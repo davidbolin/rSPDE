@@ -1,7 +1,7 @@
-kappa = 10
-sigma = 1
-nu = 0.8
 
+sigma = 1
+nu = 4.01
+kappa = sqrt(8*nu)/0.2
 x = seq(from = 0, to = 1, length.out = 101)
 
 #create mass and stiffness matrices for a FEM discretization
@@ -15,10 +15,10 @@ C[n,(n-1):n] <- c(d[n]/2,d[n])/3
 Ci = Diagonal(n,1/rowSums(C))
 
 #compute rational approximation of covariance function at 0.5
-op <- fractional.operators(L = G/kappa^2+C,beta=(nu+1/2)/2,C=C,Ci=Ci,scale.factor=kappa^2)
-tau2 = gamma(nu)/(sigma^2*kappa^(2*nu)*(4*pi)^(1/2)*gamma(nu+1/2))
+tau = sqrt(gamma(nu)/(sigma^2*kappa^(2*nu)*(4*pi)^(1/2)*gamma(nu+1/2)))
+op <- fractional.operators(L = G/kappa^2+C,beta=(nu+1/2)/2,C=C,scale.factor=kappa^2,tau=tau)
 v = rep(0,n);v[51] = 1
-c.approx = op$L2%*%solve(tau2*t(op$L1)%*%op$CiL1,op$L2%*%v)
+c.approx = op$L2%*%solve(op$Q,op$L2%*%v)
 
 #plot the result and compare with the true Matern covariance
 plot(x,matern.covariance(abs(x-0.5),kappa,nu,sigma),type="l",ylab = "C(h)",xlab="h",
@@ -35,5 +35,3 @@ plot(x,matern.covariance(abs(x-0.5),kappa,nu,sigma),type="l",ylab = "C(h)",xlab=
      main = "Matern covariance and rational approximation")
 lines(x,c.approx,col=2)
 
-Y <- rSPDE.sample(op,1)
-plot(x,Y,type="l",ylab = "u(x)",xlab="x")
