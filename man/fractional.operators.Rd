@@ -12,7 +12,6 @@
                        C,
                        scale.factor,
                        m=1,
-                       commutative = TRUE,
                        tau = 1)
                        }
 \arguments{
@@ -21,7 +20,6 @@
   \item{C}{The mass matrix of the finite element discretization.}
   \item{scale.factor}{The constant c}
   \item{m}{The order of the rational approximation, which needs to be a positive integer. The default value is 1.}
-  \item{commutative}{TRUE or FALSE depending on if the operators are commutative.}
   \item{tau}{The constant that scales the variance of the solution. The default value is 1.}
 }
 \value{
@@ -32,9 +30,8 @@
   \item{m}{The order of the rational approximation.}
   \item{beta}{The fractional power.}
   \item{type}{String indicating the type of approximation.}
-  \item{Q}{Either the matrix \code{t(L1)\%*\%Ci\%*\%L1} or \code{L2\%*\%C\%*\%t(L2)} depending on if the operators are commutative or not.}
+  \item{Q}{The matrix \code{t(L1)\%*\%Ci\%*\%L1}.}
   \item{type}{String indicating the type of approximation.}
-  \item{commutative}{TRUE or FALSE depending on if the operators are commutative.}
 }
 \author{
   David Bolin \email{davidbolin@gmail.com}
@@ -65,10 +62,4 @@ c.approx = op$L2\%*\%solve(op$Q,op$L2\%*\%v)
 plot(x,matern.covariance(abs(x-0.5),kappa,nu,sigma),type="l",ylab = "C(h)",xlab="h",
      main = "Matern covariance and rational approximations")
 lines(x,c.approx,col=2)
-
-#check that we get the same approximation if we do not assume that the operators are commutative
-op <- fractional.operators(L = fem$G/kappa^2+fem$C, beta=(nu+1/2)/2, C=fem$C,
-                           scale.factor=kappa^2,tau = tau,commutative=FALSE)
-c.approx2 = solve(op$L1,op$Q\%*\%solve(op$L1,v))
-lines(x,c.approx2,col=3,lty=2)
 }

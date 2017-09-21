@@ -1,4 +1,4 @@
-fractional.operators <- function(L,beta,C,scale.factor,m=1,commutative=TRUE,tau=1)
+fractional.operators <- function(L,beta,C,scale.factor,m=1,tau=1)
   {
   roots <- get.roots(m,beta)
   bc = max(1,floor(beta))
@@ -48,12 +48,7 @@ fractional.operators <- function(L,beta,C,scale.factor,m=1,commutative=TRUE,tau=
   L1 <- L1*tau*scale.factor^beta/roots$factor
   CiL1 = CiL1*tau*scale.factor^beta/roots$factor
 
-  if(commutative){
-    Q = t(L1)%*%CiL1
-  } else {
-
-    Q = L2C%*%t(L2C)
-  }
+  Q = t(L1)%*%CiL1
 
   output <- list(Q = Q,
                  L1 = L1,
@@ -62,8 +57,7 @@ fractional.operators <- function(L,beta,C,scale.factor,m=1,commutative=TRUE,tau=
                  C = C,
                  m = m,
                  beta = beta,
-                 type = "fractional approximation",
-                 commutative = commutative)
+                 type = "fractional approximation")
     class(output) <- "rSPDEobj"
   return(output)
 }

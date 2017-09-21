@@ -71,7 +71,6 @@ summary.rSPDEobj <- function(object,...)
     out$sigma = object$sigma
     out$nu = object$nu
   }
-  out$commutative = object$commutative
   out$m = object$m
   out$n = dim(object$L2)[1]
   return(out)
@@ -86,7 +85,6 @@ print.summary.rSPDEobj <- function(x,...)
     cat("Parametres of covariance function: kappa = ", x$kappa,", sigma = ", x$sigma, ", nu = ",x$nu, "\n")
   }
   cat("Order or rational approximation: ", x$m, "\n")
-  cat("Commutative operators: ", x$commutative, "\n")
   cat("Size of discrete operators: ", x$n," x ", x$n, "\n")
 }
 

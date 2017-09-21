@@ -58,12 +58,4 @@ u.krig <- rSPDE.krig(op,A=A,Aprd = A.krig,Y=Y,nugget = nugget)
 
 plot(obs.loc,Y,ylab = "u(x)",xlab="x",main="Data and kriging")
 lines(x,u.krig,ylab = "u(x)",xlab="x")
-
-#check that we get the same result if the general function fractional.operators is used
-#without assuming that the operators are commutative
-tau = sqrt(gamma(nu)/(sigma^2*kappa^(2*nu)*(4*pi)^(1/2)*gamma(nu+1/2)))
-op <- fractional.operators(L = fem$G/kappa^2 + fem$C, beta = (nu+1/2)/2, C = fem$C,
-                           scale.factor = kappa^2, commutative = FALSE,tau = tau)
-u.krig2 <- rSPDE.krig(op,A=A,Aprd = A.krig,Y=Y,nugget = nugget)
-lines(x,u.krig2,ylab = "u(x)",xlab="x",col=2,lty=2)
 }

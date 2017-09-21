@@ -52,11 +52,4 @@ Y = as.vector(A\%*\%u + sqrt(nugget)*rnorm(10))
 #compute log-likelihood of the data
 lik1 <- rSPDE.loglike(op, Y, A, nugget)
 
-#check that we get the same result if the general function fractional.operators is used
-#without assuming that the operators are commutative
-tau = sqrt(gamma(nu)/(sigma^2*kappa^(2*nu)*(4*pi)^(1/2)*gamma(nu+1/2)))
-op <- fractional.operators(L = fem$G/kappa^2 + fem$C, beta = (nu+1/2)/2, C = fem$C,
-                           scale.factor = kappa^2, commutative = FALSE,tau = tau)
-lik2 <- rSPDE.loglike(op, Y, A, nugget)
-cat(c(lik1,lik2))
 }
