@@ -32,15 +32,11 @@
   \item{kappa}{Range parameter.}
   \item{sigma}{Standard deviation.}
   \item{nu}{Shape parameter.}
-  \item{m}{The order of the rational approximation, which needs to be a positive integer. The default value is 1.}
+  \item{m}{The order of the rational approximation. Needs to be a positive integer (default = 1).}
   \item{type}{String indicating the type of approximation.}
 }
 \author{
   David Bolin \email{davidbolin@gmail.com}
-}
-
-\references{
-Inser reference here.
 }
 
 \seealso{
