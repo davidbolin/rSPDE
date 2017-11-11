@@ -14,7 +14,7 @@ Basic statistical operations such as likelihood evaluations and kriging predicti
 For illustration purposes, the package contains a simple FEM implementation for models on R. For spatial models, the FEM implementation in the R-INLA package is recommended.
 
 # Installation instructions #
-The package can be installed directly from CRAN, or by using the command
+The package can be installed using the command
 ```
 #!r
 
