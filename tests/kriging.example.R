@@ -1,8 +1,8 @@
 #This example replicates the results of the Application in the article
-# "Extending the SPDE approach to Gaussian random fields with general smoothness"
-#rm(list=ls())
-compute.optimal = TRUE
-compute.tapering = TRUE
+# "THE SPDE APPROACH FOR GAUSSIAN RANDOM FIELDS WITH GENERAL SMOOTHNESS"
+
+compute.variances = FALSE #takes a lot of time for the optimal predictor
+
 ##################################
 #load needed packages
 ##################################
@@ -52,48 +52,58 @@ phi2 = sqrt(0.722)
 ##################################
 #setup for optimal prediction
 ##################################
-if(compute.optimal){
-  t <- proc.time()
-  D2 = rdist.earth(loc)
-  Sigmao = matern.covariance(D2,kappa1,phi1,nu=1/2) + matern.covariance(D2,kappa2,phi2,nu=1/2)
-  D1 = rdist.earth(loc.prd,loc)
-  Sigmap = matern.covariance(D1,kappa1,phi1,nu=1/2) + matern.covariance(D1,kappa2,phi2,nu=1/2)
-  t.opt1 <- proc.time()-t
-}
+t <- proc.time()
+D2 = rdist.earth(loc)
+Sigmao = matern.covariance(D2,kappa1,phi1,nu=1/2) + matern.covariance(D2,kappa2,phi2,nu=1/2)
+D1 = rdist.earth(loc.prd,loc)
+Sigmap = matern.covariance(D1,kappa1,phi1,nu=1/2) + matern.covariance(D1,kappa2,phi2,nu=1/2)
+t.opt1 <- proc.time()-t
 
 ##################################
 #compute optimal prediction
 ##################################
-if(compute.optimal){
-  t <- proc.time()
-  Yhat = Sigmap%*%solve(Sigma,Y)
-  t.opt2 <- proc.time()-t
+t <- proc.time()
+Yhat = Sigmap%*%solve(Sigmao,Y)
+t.opt2 <- proc.time()-t
+
+#compute predictive variances
+if(compute.variances){
+  p.var <- matern.covariance(0,kappa1,phi1,nu=1/2) + matern.covariance(0,kappa2,phi2,nu=1/2)
+  p.var <- p.var*rep(1,dim(Sigmap)[1])
+  corr <- diag(Sigmap%*%solve(Sigmao,t(Sigmap)))
+  pred.var <- p.var - corr
+  pred.var[pred.var<0] = 0
+  prd.std <- sqrt(pred.var)
 }
 
 ##################################
 #setup for tapering prediction
 ##################################
-if(compute.tapering){
-  t <- proc.time()
-  exp.mix.cov <- function(distance, ...)
+t <- proc.time()
+exp.mix.cov <- function(distance, ...)
     phi1^2 * exp( -abs(distance)*kappa1) + phi2^2 * exp( -abs(distance)*kappa2)
 
-  tap.cov1 <- stationary.taper.cov(loc,loc, Covariance="exp.mix.cov",
-                                   Taper="Wendland", Dist.args = list(method="greatcircle"),Taper.args = list(theta=50.0,k=1))
+tap.cov1 <- stationary.taper.cov(loc,loc, Covariance="exp.mix.cov",
+                                 Taper="Wendland", Dist.args = list(method="greatcircle"),Taper.args = list(theta=50.0,k=1))
 
-  tap.cov2 <- stationary.taper.cov(loc.prd,loc, Covariance="exp.mix.cov",
-                                   Taper="Wendland", Dist.args=list("greatcircle"),Taper.args = list(theta=50.0,k=1))
-  t.tap1 <- proc.time() -t
-}
+tap.cov2 <- stationary.taper.cov(loc.prd,loc, Covariance="exp.mix.cov",
+                                 Taper="Wendland", Dist.args=list("greatcircle"),Taper.args = list(theta=50.0,k=1))
+t.tap1 <- proc.time() -t
 
 ##################################
 #compute tapering prediction
 ##################################
-if(compute.tapering){
-  t <- proc.time()
-  Ytap <- tap.cov2%*%solve(tap.cov1,Y)
-  t.tap2 <- proc.time()-t
-  sqrt(sum((Yhat-Ytap)^2))
+t <- proc.time()
+Ytap <- tap.cov2%*%solve(tap.cov1,Y)
+t.tap2 <- proc.time()-t
+sqrt(sum((Yhat-Ytap)^2))
+
+#compute predictive variances
+if(compute.variances){
+  corr.tap <- diag(tap.cov2%*%solve(tap.cov1,t(tap.cov2)))
+  pred.var.tap <- p.var - corr.tap
+  pred.var.tap[pred.var.tap<0] = 0
+  prd.std.tap <- sqrt(pred.var.tap)
 }
 
 ##################################
@@ -136,38 +146,30 @@ t.rational1 <- proc.time() - t
 ##################################
 t <- proc.time()
 tmp = inla.qsolve(Qhat,t(A)%*%Y/nugget,reordering="amd")
-#tmp = solve(Qhat,t(A)%*%Y/nugget)
 Yhat_r = cBind(Aprd%*%op1$L2, Aprd%*%op2$L2)%*%tmp
 t.rational2 <- proc.time() - t
 
-if(0){
-  kappa1 = 1/40
-  kappa2 = 1/500
-  op1 <- matern.operators(kappa=kappa1*R,sigma=1,nu=1/2,G=fem$g1,C=fem$c1)
-  op2 <- matern.operators(kappa=kappa2*R,sigma=1,nu=1/2,G=fem$g1,C=fem$c1)
-  v = rep(0,dim(op1$Q)[1])
-  v[500] = 1
-  c = op1$L2%*%solve(op1$Q,t(op1$L2)%*%v)+op2$L2%*%solve(op2$Q,t(op2$L2)%*%v)
-
-  d = rdist.earth(Plon[,1:2],t(Plon[500,1:2]))
-  c.true <- exponential.covariance(d,kappa1,1) + exponential.covariance(d,kappa2,1)
-  par(mfrow=c(1,2))
-  quilt.plot(Plon[,1],Plon[,2],as.vector(c))
-  quilt.plot(Plon[,1],Plon[,2],c.true)
+#compute predictive variances
+if(compute.variances){
+  AA <- cBind(Aprd%*%op1$L2, Aprd%*%op2$L2)
+  pred.var.rational <- diag(AA%*%inla.qsolve(Qhat,t(AA)))
+  prd.std.rational <- sqrt(pred.var.rational)
 }
-par(mfrow=c(1,2))
-quilt.plot(loc.prd[,1],loc.prd[,2],as.vector(Yhat_r))
-quilt.plot(loc[,1],loc[,2],as.vector(Y))
-
 
 ##################################
 #display results
 ##################################
-if(1){
-  errors = c(0,sqrt(sum((Yhat-Ytap)^2)),sqrt(sum((Yhat-Yhat_r)^2)))
-  time1 = c(t.opt1[1]+t.opt1[4],t.tap1[1]+t.tap1[4],t.rational1[1]+t.rational1[4])
-  time2 = c(t.opt2[1]+t.opt2[4],t.tap2[1]+t.tap2[4],t.rational2[1]+t.rational2[4])
-  results <- data.frame(error=errors,setup.time = time1,kriging.time = time2,total.time = time1+time2,
-                        row.names = c("Optimal","Tapering","Rational"))
-  print(t(results))
+
+errors = c(0,sqrt(sum((Yhat-Ytap)^2)),sqrt(sum((Yhat-Yhat_r)^2)))
+time1 = c(t.opt1[1]+t.opt1[4],t.tap1[1]+t.tap1[4],t.rational1[1]+t.rational1[4])
+time2 = c(t.opt2[1]+t.opt2[4],t.tap2[1]+t.tap2[4],t.rational2[1]+t.rational2[4])
+results <- data.frame(error=errors, setup.time = time1,kriging.time = time2,total.time = time1+time2,
+                      row.names = c("Optimal","Tapering","Rational"))
+
+if(compute.variances){
+  errors.var = c(0,sqrt(sum((pred.std-pred.std.tap)^2)),sqrt(sum((pred.std-pred.std.rational)^2)))
+  results$errors.var = errors.var
 }
+
+print(t(results))
+
