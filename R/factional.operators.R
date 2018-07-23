@@ -137,7 +137,7 @@ fractional.operators <- function(L,
 #' Rational approximations of stationary Gaussian Matern random fields
 #'
 #' \code{matern.operators} is used for computing a rational SPDE approximation of a stationary Gaussian random
-#' fields on \eqn{\mathbb{R}^d}{R^d} with a Matern covariance function
+#' fields on \eqn{R^d} with a Matern covariance function
 #' \deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
 #' (\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
 #'
@@ -225,7 +225,7 @@ matern.operators <- function(kappa,
 #' Rational approximations of stationary Gaussian SPDE Matern random fields
 #'
 #' \code{spde.matern.operators} is used for computing a rational SPDE approximation of a Gaussian random
-#' fields on \eqn{\mathbb{R}^d}{R^d} defined as a solution to the SPDE
+#' fields on \eqn{R^d} defined as a solution to the SPDE
 #' \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W}
 #'
 #' @param kappa Vector with the, possibly spatially varying, range parameter evaluated at the locations

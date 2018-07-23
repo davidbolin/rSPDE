@@ -4,11 +4,11 @@
 \alias{predict.rSPDEobj}
 \title{Prediction of a fractional SPDE using a rational SPDE approximation}
 \usage{
-\method{predict}{rSPDEobj}(obj, A, Aprd, Y, sigma.e,
-  compute.variances = FALSE)
+\method{predict}{rSPDEobj}(object, A, Aprd, Y, sigma.e,
+  compute.variances = FALSE, ...)
 }
 \arguments{
-\item{obj}{The rational SPDE approximation, computed using \code{\link{fractional.operators}},
+\item{object}{The rational SPDE approximation, computed using \code{\link{fractional.operators}},
 \code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.}
 
 \item{A}{A matrix linking the measurement locations to the basis of the FEM approximation of the latent model.}
@@ -22,6 +22,8 @@ of independent replicates of \eqn{u}.}
 does not have measurement noise.}
 
 \item{compute.variances}{Set to true to compute the kriging variances.}
+
+\item{...}{further arguments passed to or from other methods.}
 }
 \value{
 A list with elements

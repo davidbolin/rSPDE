@@ -1,8 +1,4 @@
-.onLoad <- function(libname, pkgname) {
-  data("m1table", "m2table", "m3table", "m4table", package = pkgname,
-       envir = parent.env(environment()))
-}
-
+# Internal function to get the roots of the polynomials used in the rational approximation.
 get.roots <- function(m, beta)
   {
   if (beta > 2) {
@@ -67,7 +63,7 @@ get.roots <- function(m, beta)
 #'
 #' @examples
 #' x = seq(from = 0, to = 1, length.out = 101)
-#' plot(h, matern.covariance(abs(x - 0.5), kappa = 10, nu = 1/5, sigma = 1),
+#' plot(x, matern.covariance(abs(x - 0.5), kappa = 10, nu = 1/5, sigma = 1),
 #'      type = "l", ylab = "C(h)", xlab = "h")
 
 matern.covariance <- function(h, kappa, nu, sigma)
@@ -126,8 +122,8 @@ print.summary.rSPDEobj <- function(x, ...)
 #' @export
 #' @method print rSPDEobj
 #' @rdname summary.rSPDEobj
-print.rSPDEobj <- function(object, ...) {
-  print.summary.rSPDEobj(summary(object))
+print.rSPDEobj <- function(x, ...) {
+  print.summary.rSPDEobj(summary(x))
 }
 
 #' Observation matrix for finite element discretization on R
@@ -151,7 +147,7 @@ print.rSPDEobj <- function(object, ...) {
 #' @examples
 #' #create mass and stiffness matrices for a FEM discretization on [0,1]
 #' x = seq(from = 0, to = 1, length.out = 101)
-#' fem <- rSPDE.fem1D(x)
+#' fem <- rSPDE.fem1d(x)
 #'
 #' #create the observation matrix for some locations in the domain
 #' obs.loc <- runif(n = 10, min = 0, max = 1)

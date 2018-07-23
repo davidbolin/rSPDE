@@ -25,6 +25,6 @@ A vector with the values C(h).
 }
 \examples{
 x = seq(from = 0, to = 1, length.out = 101)
-plot(h, matern.covariance(abs(x - 0.5), kappa = 10, nu = 1/5, sigma = 1),
+plot(x, matern.covariance(abs(x - 0.5), kappa = 10, nu = 1/5, sigma = 1),
      type = "l", ylab = "C(h)", xlab = "h")
 }

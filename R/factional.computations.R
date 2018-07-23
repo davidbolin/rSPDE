@@ -1,4 +1,8 @@
-
+#' @rdname simulate.rSPDEobj
+#' @export
+simulate <- function(obj, nsim) {
+  UseMethod("simulate", obj)
+}
 
 #' Simulation of a fractional SPDE using a rational SPDE approximation
 #'
@@ -6,7 +10,7 @@
 #'
 #' @param obj The rational SPDE approximation, computed using \code{\link{fractional.operators}},
 #' \code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.
-#' @param n The number of simulations.
+#' @param nsim The number of simulations.
 #'
 #' @return a matrix with the \code{n} samples as columns.
 #' @export
@@ -30,13 +34,13 @@
 #' Y <- simulate(op)
 #' plot(x, Y, type = "l", ylab = "u(x)", xlab = "x")
 
-simulate.rSPDEobj <- function(obj, n = 1)
+simulate.rSPDEobj <- function(obj, nsim = 1)
 {
   if (class(obj) != "rSPDEobj")
     stop("Input op is not of class rSPDEobj")
   m = dim(obj$Q)[1]
-  z = rnorm(n * m)
-  dim(z) <- c(m, n)
+  z = rnorm(nsim * m)
+  dim(z) <- c(m, nsim)
 
   R = chol(obj$Q)
   x <- obj$Pr %*% solve(R, z)
@@ -50,7 +54,7 @@ simulate.rSPDEobj <- function(obj, n = 1)
 #' where \eqn{\epsilon}{\epsilon} is mean-zero Gaussian measurement noise and \eqn{u(s)}{u(s)} is defined by
 #' a fractional SPDE \eqn{L^\beta u(s) = W}{L^\beta u(s) = W}, where \eqn{W}{W} is Gaussian white noise.
 #'
-#' @param obj The rational SPDE approximation, computed using \code{\link{fractional.operators}},
+#' @param object The rational SPDE approximation, computed using \code{\link{fractional.operators}},
 #' \code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.
 #' @param A A matrix linking the measurement locations to the basis of the FEM approximation of the latent model.
 #' @param Aprd A matrix linking the prediction locations to the basis of the FEM approximation of the latent model.
@@ -59,6 +63,7 @@ simulate.rSPDEobj <- function(obj, n = 1)
 #' @param sigma.e The standard deviation of the Gaussian measurement noise. Put to zero if the model
 #' does not have measurement noise.
 #' @param compute.variances Set to true to compute the kriging variances.
+#' @param ... further arguments passed to or from other methods.
 #'
 #' @return A list with elements
 #' \item{mean }{The kriging predictor (the posterior mean of u|Y).}
@@ -101,11 +106,8 @@ simulate.rSPDEobj <- function(obj, n = 1)
 #' lines(x, u.krig$mean + 2*sqrt(u.krig$variance), col = 2)
 #' lines(x, u.krig$mean - 2*sqrt(u.krig$variance), col = 2)
 
-predict.rSPDEobj <- function(obj, A, Aprd, Y, sigma.e, compute.variances = FALSE)
+predict.rSPDEobj <- function(object, A, Aprd, Y, sigma.e, compute.variances = FALSE,...)
 {
-  if (class(obj) != "rSPDEobj")
-    stop("Input op is not of class rSPDEobj")
-
   Y = as.matrix(Y)
   if (dim(Y)[1] != dim(A)[1])
     stop("The dimensions of A does not match the number of observations.")
@@ -114,23 +116,23 @@ predict.rSPDEobj <- function(obj, A, Aprd, Y, sigma.e, compute.variances = FALSE
   if (sigma.e < 0) {
     stop("The standard deviation of the measurement noise must be non-negative.")
   } else if (sigma.e > 0) {
-    A = A %*% obj$Pr
-    AA <- Aprd %*% obj$Pr
-    Qhat = obj$Q + (t(A) %*% A) / sigma.e^2
+    A = A %*% object$Pr
+    AA <- Aprd %*% object$Pr
+    Qhat = object$Q + (t(A) %*% A) / sigma.e^2
     out$mean = as.matrix(AA %*% solve(Qhat, t(A) %*% Y / sigma.e^2))
     if (compute.variances) {
 
       out$variance <- diag(AA %*% solve(Qhat,t(AA)))
     }
   } else {
-    Ahat = A %*% obj$Pr
-    AQiA <- Ahat %*% solve(obj$Q, t(Ahat))
-    xhat <- Ahat %*% solve(obj$Q, solve(AQiA, Y))
+    Ahat = A %*% object$Pr
+    AQiA <- Ahat %*% solve(object$Q, t(Ahat))
+    xhat <- Ahat %*% solve(object$Q, solve(AQiA, Y))
     out$mean = as.vector(Aprd %*% xhat)
     if (compute.variances) {
-      AA <- Aprd %*% obj$Pr
-      AQi <- solve(obj$Q,AA)
-      M <- obj$Q - t(Ahat) %*% AQiA %*% Ahat
+      AA <- Aprd %*% object$Pr
+      AQi <- solve(object$Q,AA)
+      M <- object$Q - t(Ahat) %*% AQiA %*% Ahat
       out$variance <- diag(AQi%*%M%*%t(AQi))
     }
   }

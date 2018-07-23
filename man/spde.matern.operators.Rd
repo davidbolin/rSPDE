@@ -39,7 +39,7 @@ following arguments:
 }
 \description{
 \code{spde.matern.operators} is used for computing a rational SPDE approximation of a Gaussian random
-fields on \eqn{\mathbb{R}^d}{R^d} defined as a solution to the SPDE
+fields on \eqn{R^d} defined as a solution to the SPDE
 \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W}
 }
 \details{

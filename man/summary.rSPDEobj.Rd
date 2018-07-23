@@ -10,7 +10,7 @@
 
 \method{print}{summary.rSPDEobj}(x, ...)
 
-\method{print}{rSPDEobj}(object, ...)
+\method{print}{rSPDEobj}(x, ...)
 }
 \arguments{
 \item{object}{an object of class "rSPDEobj", usually, a result of a call

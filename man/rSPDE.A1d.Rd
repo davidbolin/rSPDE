@@ -26,7 +26,7 @@ that links the basis function in the expansion to specified locations
 \examples{
 #create mass and stiffness matrices for a FEM discretization on [0,1]
 x = seq(from = 0, to = 1, length.out = 101)
-fem <- rSPDE.fem1D(x)
+fem <- rSPDE.fem1d(x)
 
 #create the observation matrix for some locations in the domain
 obs.loc <- runif(n = 10, min = 0, max = 1)
