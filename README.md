@@ -14,13 +14,14 @@ Basic statistical operations such as likelihood evaluations and kriging predicti
 For illustration purposes, the package contains a simple FEM implementation for models on R. For spatial models, the FEM implementation in the R-INLA package is recommended.
 
 # Reference #
-D. Bolin and K. Kichner, The SPDE approach for Gaussian random fields with general smoothness. Preprint, arXiv:XXXX.XXXXX
+D. Bolin and K. Kichner, [The SPDE approach for Gaussian random fields with general smoothness][ref]. Preprint, arXiv:1711.04333
 
 # Installation instructions #
-The package can be installed using the command
+The package can be installed in R using the command
 ```
 #!r
 
 devtools::install_bitbucket("rSPDE","davidbolin",ref="default")
 ```
-in R. 
+
+[ref]: https://arxiv.org/abs/1711.04333  "The SPDE approach for Gaussian random fields with general smoothness"
