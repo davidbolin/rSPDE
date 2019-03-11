@@ -21,7 +21,7 @@ The package can be installed in R using the command
 ```
 #!r
 
-devtools::install_bitbucket("rSPDE","davidbolin",ref="default")
+devtools::install_bitbucket("davidbolin/rspde",ref="default")
 ```
 
 [ref]: https://arxiv.org/abs/1711.04333  "The SPDE approach for Gaussian random fields with general smoothness"
