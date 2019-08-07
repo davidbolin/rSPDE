@@ -45,12 +45,11 @@ set.seed(123)
 #Sample a Gaussian Matern process on R using a rational approximation
 sigma = 1
 nu = 0.8
-practical.range = 0.2
-kappa = sqrt(8*nu)/practical.range
+kappa = 1
 sigma.e = 0.3
-n.rep = 20
+n.rep = 10
 n.obs = 100
-n.x = 101
+n.x = 51
 
 #create mass and stiffness matrices for a FEM discretization
 x = seq(from = 0, to = 1, length.out = n.x)
@@ -77,7 +76,7 @@ return(-matern.loglike(exp(theta[1]), exp(theta[2]), exp(theta[3]), exp(theta[4]
 }
 
 #Choose some reasonable starting values depending on the size of the domain
-theta0 = log(c(sqrt(8)/0.5, sqrt(var(c(Y))), 0.9, 0.01))
+theta0 = log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
 
 #run estimation and display the results
 theta <- optim(theta0, mlik, Y = Y, G = fem$G, C = fem$C, A = A)

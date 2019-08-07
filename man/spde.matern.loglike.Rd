@@ -49,10 +49,10 @@ of the fractional SPDE model.
 #this example illustrates how the function can be used for maximum likelihood estimation
 set.seed(1)
 #Sample a Gaussian Matern process on R using a rational approximation
-sigma.e = 0.3
-n.rep = 50
+sigma.e = 0.1
+n.rep = 10
 n.obs = 100
-n.x = 101
+n.x = 51
 
 #create mass and stiffness matrices for a FEM discretization
 x = seq(from = 0, to = 1, length.out = n.x)
@@ -60,7 +60,7 @@ fem <- rSPDE.fem1d(x)
 
 tau = rep(0.5,n.x)
 nu = 0.8
-kappa = rep(10,n.x)
+kappa = rep(1,n.x)
 
 #compute rational approximation
 op <- spde.matern.operators(kappa = kappa, tau = tau, nu = nu,
@@ -84,7 +84,7 @@ return(-spde.matern.loglike(rep(exp(theta[1]),n.x), rep(exp(theta[2]),n.x),
 }
 
 #Choose some reasonable starting values depending on the size of the domain
-theta0 = log(c(sqrt(8)/0.5, 1/sqrt(var(c(Y))), 0.9, 0.01))
+theta0 = log(c(sqrt(8), 1/sqrt(var(c(Y))), 0.9, 0.01))
 
 #run estimation and display the results
 theta <- optim(theta0, mlik, Y = Y, G = fem$G, C = fem$C, A = A)

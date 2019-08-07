@@ -21,7 +21,7 @@ of independent replicates of \eqn{u}.}
 \item{sigma.e}{The standard deviation of the Gaussian measurement noise. Put to zero if the model
 does not have measurement noise.}
 
-\item{compute.variances}{Set to true to compute the kriging variances.}
+\item{compute.variances}{Set to also TRUE to compute the kriging variances.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
@@ -37,13 +37,13 @@ a fractional SPDE \eqn{L^\beta u(s) = W}{L^\beta u(s) = W}, where \eqn{W}{W} is 
 }
 \examples{
 #Sample a Gaussian Matern process on R using a rational approximation
-kappa = 10
-sigma = 1
-nu = 0.8
-sigma.e = 0.3
+kappa <- 10
+sigma <- 1
+nu <- 0.8
+sigma.e <- 0.3
 
 #create mass and stiffness matrices for a FEM discretization
-x = seq(from = 0, to = 1, length.out = 101)
+x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 
 #compute rational approximation
@@ -56,7 +56,7 @@ u <- simulate(op)
 #Create some data
 obs.loc <- runif(n = 10, min = 0, max = 1)
 A <- rSPDE.A1d(x, obs.loc)
-Y = as.vector(A\\\%*\\\%u + sigma.e*rnorm(10))
+Y <- as.vector(A\\\%*\\\%u + sigma.e*rnorm(10))
 
 #compute kriging predictions at the FEM grid
 A.krig <- rSPDE.A1d(x, x)

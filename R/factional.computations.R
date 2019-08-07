@@ -1,3 +1,20 @@
+## fractional.computations.R
+##
+##   Copyright (C) 2018, 2019, David Bolin
+##
+##   This program is free software: you can redistribute it and/or modify
+##   it under the terms of the GNU General Public License as published by
+##   the Free Software Foundation, either version 3 of the License, or
+##   (at your option) any later version.
+##
+##   This program is distributed in the hope that it will be useful,
+##   but WITHOUT ANY WARRANTY; without even the implied warranty of
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##   GNU General Public License for more details.
+##
+##   You should have received a copy of the GNU General Public License
+##   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #' @rdname simulate.rSPDEobj
 #' @export
 simulate <- function(obj, nsim) {
@@ -12,18 +29,18 @@ simulate <- function(obj, nsim) {
 #' \code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.
 #' @param nsim The number of simulations.
 #'
-#' @return a matrix with the \code{n} samples as columns.
+#' @return A matrix with the \code{n} samples as columns.
 #' @export
 #' @method simulate rSPDEobj
 #'
 #' @examples
 #' #Sample a Gaussian Matern process on R using a rational approximation
-#' kappa = 10
-#' sigma = 1
-#' nu = 0.8
+#' kappa <- 10
+#' sigma <- 1
+#' nu <- 0.8
 #'
 #' #create mass and stiffness matrices for a FEM discretization
-#' x = seq(from = 0, to = 1, length.out = 101)
+#' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
 #' #compute rational approximation
@@ -37,14 +54,13 @@ simulate <- function(obj, nsim) {
 simulate.rSPDEobj <- function(obj, nsim = 1)
 {
   if (class(obj) != "rSPDEobj")
-    stop("Input op is not of class rSPDEobj")
-  m = dim(obj$Q)[1]
-  z = rnorm(nsim * m)
+    stop("input op is not of class rSPDEobj")
+  m <- dim(obj$Q)[1]
+  z <- rnorm(nsim * m)
   dim(z) <- c(m, nsim)
-
-  R = chol(obj$Q)
-  x <- obj$Pr %*% solve(R, z)
-
+  x <- Qsqrt.solve(obj,z)
+  x <- Pr.mult(obj,x)
+  
   return(x)
 }
 
@@ -62,7 +78,7 @@ simulate.rSPDEobj <- function(obj, nsim = 1)
 #' of independent replicates of \eqn{u}.
 #' @param sigma.e The standard deviation of the Gaussian measurement noise. Put to zero if the model
 #' does not have measurement noise.
-#' @param compute.variances Set to true to compute the kriging variances.
+#' @param compute.variances Set to also TRUE to compute the kriging variances.
 #' @param ... further arguments passed to or from other methods.
 #'
 #' @return A list with elements
@@ -73,13 +89,13 @@ simulate.rSPDEobj <- function(obj, nsim = 1)
 #'
 #' @examples
 #' #Sample a Gaussian Matern process on R using a rational approximation
-#' kappa = 10
-#' sigma = 1
-#' nu = 0.8
-#' sigma.e = 0.3
+#' kappa <- 10
+#' sigma <- 1
+#' nu <- 0.8
+#' sigma.e <- 0.3
 #'
 #' #create mass and stiffness matrices for a FEM discretization
-#' x = seq(from = 0, to = 1, length.out = 101)
+#' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
 #' #compute rational approximation
@@ -92,7 +108,7 @@ simulate.rSPDEobj <- function(obj, nsim = 1)
 #' #Create some data
 #' obs.loc <- runif(n = 10, min = 0, max = 1)
 #' A <- rSPDE.A1d(x, obs.loc)
-#' Y = as.vector(A\%*\%u + sigma.e*rnorm(10))
+#' Y <- as.vector(A\%*\%u + sigma.e*rnorm(10))
 #'
 #' #compute kriging predictions at the FEM grid
 #' A.krig <- rSPDE.A1d(x, x)
@@ -108,32 +124,42 @@ simulate.rSPDEobj <- function(obj, nsim = 1)
 
 predict.rSPDEobj <- function(object, A, Aprd, Y, sigma.e, compute.variances = FALSE,...)
 {
-  Y = as.matrix(Y)
+  Y <- as.matrix(Y)
   if (dim(Y)[1] != dim(A)[1])
-    stop("The dimensions of A does not match the number of observations.")
-
+    stop("the dimensions of A does not match the number of observations")
+  
   out <- list()
-  if (sigma.e < 0) {
-    stop("The standard deviation of the measurement noise must be non-negative.")
-  } else if (sigma.e > 0) {
-    A = A %*% object$Pr
-    AA <- Aprd %*% object$Pr
-    Qhat = object$Q + (t(A) %*% A) / sigma.e^2
-    out$mean = as.matrix(AA %*% solve(Qhat, t(A) %*% Y / sigma.e^2))
-    if (compute.variances) {
-
-      out$variance <- diag(AA %*% solve(Qhat,t(AA)))
-    }
-  } else {
-    Ahat = A %*% object$Pr
-    AQiA <- Ahat %*% solve(object$Q, t(Ahat))
-    xhat <- Ahat %*% solve(object$Q, solve(AQiA, Y))
-    out$mean = as.vector(Aprd %*% xhat)
-    if (compute.variances) {
+  if(length(sigma.e) == 1){
+    if (sigma.e < 0) {
+      stop("sigma.e must be non-negative")
+    } else if (sigma.e > 0) {
+      A <- A %*% object$Pr
       AA <- Aprd %*% object$Pr
-      AQi <- solve(object$Q,AA)
-      M <- object$Q - t(Ahat) %*% AQiA %*% Ahat
-      out$variance <- diag(AQi%*%M%*%t(AQi))
+      Qhat <- object$Q + (t(A) %*% A) / sigma.e^2
+      out$mean <- as.matrix(AA %*% solve(Qhat, t(A) %*% Y / sigma.e^2))
+      if (compute.variances) {
+        out$variance <- diag(AA %*% solve(Qhat,t(AA)))
+      }
+    } else { #no nugget
+      Ahat <- A %*% object$Pr
+      QiAt <- solve(object$Q, t(Ahat))
+      AQiA <- Ahat %*% QiAt
+      xhat <- solve(object$Q, t(Ahat)%*%solve(AQiA, Y))
+      out$mean <- as.vector(Aprd %*% xhat)
+      if (compute.variances) {
+        AA <- Aprd %*% object$Pr
+        M <- object$Q - QiAt %*% solve(AQiA, t(QiAt))
+        out$variance <- diag(AA%*%M%*%t(AA))
+      }
+    }  
+  } else if(dim(Y)[1] == length(sigma.e)){
+    Q.e <- Diagonal(length(sigma.e),1/sigma.e^2)
+    A <- A %*% object$Pr
+    AA <- Aprd %*% object$Pr
+    Qhat <- object$Q + t(A) %*% Q.e%*% A 
+    out$mean <- as.matrix(AA %*% solve(Qhat, t(A) %*%Q.e%*% Y))
+    if (compute.variances) {
+      out$variance <- diag(AA %*% solve(Qhat,t(AA)))
     }
   }
   return(out)
@@ -189,32 +215,47 @@ predict.rSPDEobj <- function(object, A, Aprd, Y, sigma.e, compute.variances = FA
 
 rSPDE.loglike <- function(obj, Y, A, sigma.e)
 {
+  Y = as.matrix(Y)
   if (length(dim(Y)) == 2) {
     n.rep = dim(Y)[2]
+    n = dim(Y)[1]
   } else {
     n.rep = 1
+    if (length(dim(Y)) == 1){
+      n = dim(Y)[1]
+    } else {
+      n = length(Y)
+    }
   }
-  nugget = sigma.e^2
+  if(length(sigma.e)==1){
+    Q.e <- Diagonal(n)/sigma.e^2
+    nugget = rep(sigma.e^2,n)
+  } else {
+    if(length(sigma.e) != n){
+      stop("the length of sigma.e does not match the number of observations")
+    }
+    Q.e <- Diagonal(length(sigma.e),1/sigma.e^2)
+    nugget = sigma.e^2
+  }
   R = Matrix::Cholesky(obj$Pl)
   prior.ld = 4 * c(determinant(R, logarithm = TRUE)$modulus) - sum(log(diag(obj$C)))
-
+  
   A = A %*% obj$Pr
-  Q.post = obj$Q + t(A) %*% A / nugget
+  Q.post = obj$Q + t(A) %*% Q.e %*% A 
   R.post = Matrix::Cholesky(Q.post)
   posterior.ld = 2 * c(determinant(R.post, logarithm = TRUE)$modulus)
-
-  AtY = t(A) %*% Y / nugget
+  
+  AtY = t(A) %*% Q.e %*% Y 
   mu.post <- solve(R.post, AtY, system = "A")
-
-  lik = n.rep * (prior.ld - posterior.ld - dim(A)[1] * (log(nugget) + log(2 *
-                                                                            pi))) / 2
-
+  
+  lik = n.rep * (prior.ld - posterior.ld - dim(A)[1] * log(2*pi) - sum(log(nugget))) / 2
+  
   if (n.rep > 1) {
     lik = lik - 0.5 * sum(colSums(mu.post * (obj$Q %*% mu.post)))
-    lik = lik - 0.5 * sum(colSums((Y - A %*% mu.post) ^ 2)) / nugget
+    v = Q.e%*%(Y - A %*% mu.post)
+    lik = lik - 0.5 * sum(colSums((Y - A %*% mu.post)*v)) 
   } else {
-    lik = lik - 0.5 * (t(mu.post) %*% obj$Q %*% mu.post + t(Y - A %*% mu.post) %*% (Y - A %*% mu.post) /
-                         nugget)
+    lik = lik - 0.5 * (t(mu.post) %*% obj$Q %*% mu.post + t(Y - A %*% mu.post) %*% Q.e %*% (Y - A %*% mu.post))
   }
   return(as.double(lik))
 }
@@ -251,12 +292,11 @@ rSPDE.loglike <- function(obj, Y, A, sigma.e)
 #' #Sample a Gaussian Matern process on R using a rational approximation
 #' sigma = 1
 #' nu = 0.8
-#' practical.range = 0.2
-#' kappa = sqrt(8*nu)/practical.range
+#' kappa = 1
 #' sigma.e = 0.3
-#' n.rep = 20
+#' n.rep = 10
 #' n.obs = 100
-#' n.x = 101
+#' n.x = 51
 #'
 #' #create mass and stiffness matrices for a FEM discretization
 #' x = seq(from = 0, to = 1, length.out = n.x)
@@ -283,7 +323,7 @@ rSPDE.loglike <- function(obj, Y, A, sigma.e)
 #' }
 #'
 #' #Choose some reasonable starting values depending on the size of the domain
-#' theta0 = log(c(sqrt(8)/0.5, sqrt(var(c(Y))), 0.9, 0.01))
+#' theta0 = log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
 #'
 #' #run estimation and display the results
 #' theta <- optim(theta0, mlik, Y = Y, G = fem$G, C = fem$C, A = A)
@@ -302,10 +342,10 @@ matern.loglike <- function(kappa,
                            A,
                            d = 2,
                            m = 1)
-  {
-    op <- matern.operators(kappa, sigma, nu, G, C, d = d, m = m)
-    return(rSPDE.loglike(op, Y, A, sigma.e))
-  }
+{
+  op <- matern.operators(kappa, sigma, nu, G, C, d = d, m = m)
+  return(rSPDE.loglike(op, Y, A, sigma.e))
+}
 
 #' Log-likelihood for a latent Gaussian Matern SPDE model using a rational SPDE approximation
 #'
@@ -341,10 +381,10 @@ matern.loglike <- function(kappa,
 #' #this example illustrates how the function can be used for maximum likelihood estimation
 #' set.seed(1)
 #' #Sample a Gaussian Matern process on R using a rational approximation
-#' sigma.e = 0.3
-#' n.rep = 50
+#' sigma.e = 0.1
+#' n.rep = 10
 #' n.obs = 100
-#' n.x = 101
+#' n.x = 51
 #'
 #' #create mass and stiffness matrices for a FEM discretization
 #' x = seq(from = 0, to = 1, length.out = n.x)
@@ -352,7 +392,7 @@ matern.loglike <- function(kappa,
 #'
 #' tau = rep(0.5,n.x)
 #' nu = 0.8
-#' kappa = rep(10,n.x)
+#' kappa = rep(1,n.x)
 #'
 #' #compute rational approximation
 #' op <- spde.matern.operators(kappa = kappa, tau = tau, nu = nu,
@@ -376,7 +416,7 @@ matern.loglike <- function(kappa,
 #' }
 #'
 #' #Choose some reasonable starting values depending on the size of the domain
-#' theta0 = log(c(sqrt(8)/0.5, 1/sqrt(var(c(Y))), 0.9, 0.01))
+#' theta0 = log(c(sqrt(8), 1/sqrt(var(c(Y))), 0.9, 0.01))
 #'
 #' #run estimation and display the results
 #' theta <- optim(theta0, mlik, Y = Y, G = fem$G, C = fem$C, A = A)
@@ -395,7 +435,7 @@ spde.matern.loglike <- function(kappa,
                                 A,
                                 d = 2,
                                 m = 1)
-  {
-    op <- spde.matern.operators(kappa, tau, nu, G, C, d = d, m = m)
-    return(rSPDE.loglike(op, Y, A, sigma.e))
-  }
+{
+  op <- spde.matern.operators(kappa, tau, nu, G, C, d = d, m = m)
+  return(rSPDE.loglike(op, Y, A, sigma.e))
+}

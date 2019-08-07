@@ -8,7 +8,7 @@
 #' and allows for computationally efficient inference and simulation.
 #'
 #' The main function for computing the rational operators is \code{\link{fractional.operators}},
-#' and the following simplified interfaces as available
+#' and the following simplified interfaces are available
 #' \itemize{
 #' \item{\code{\link{matern.operators}}}{Compuation of operators for random fields with
 #' stationary Matern covariance functions}
@@ -20,6 +20,8 @@
 #'
 #' For illustration purposes, the package contains a simple FEM implementation for models on R. For spatial models,
 #' the FEM implementation in the \code{R-INLA} package is recommended.
+#' 
+#' For a more detailed introduction to the package, see the rSPDE Vignette.
 #'
 #' @docType package
 #' @name rSPDE

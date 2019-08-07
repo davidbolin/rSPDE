@@ -4,7 +4,7 @@
 \alias{matern.operators}
 \title{Rational approximations of stationary Gaussian Matern random fields}
 \usage{
-matern.operators(kappa, sigma, nu, G, C, d = 2, m = 1)
+matern.operators(kappa, sigma, nu, G, C, d = NULL, m = 1)
 }
 \arguments{
 \item{kappa}{Range parameter of the covariance function.}
@@ -17,14 +17,14 @@ matern.operators(kappa, sigma, nu, G, C, d = 2, m = 1)
 
 \item{C}{The mass matrix of a finite element discretization of the domain of interest.}
 
-\item{d}{The dimension of the domain. The default value is 2.}
+\item{d}{The dimension of the domain.}
 
 \item{m}{The order of the rational approximation, which needs to be a positive integer.
 The default value is 1.}
 }
 \value{
-\code{fractional.operators} returns an object of class "rSPDEobj". This is a list that contains the
-following arguments:
+\code{fractional.operators} returns an object of class "rSPDEobj". This object contains the
+following quantities:
 \item{Pl}{The operator \eqn{P_l}.}
 \item{Pr}{The operator \eqn{P_r}.}
 \item{C}{The mass matrix.}
@@ -45,7 +45,7 @@ fields on \eqn{R^d} with a Matern covariance function
 \details{
 The approximation is based on a rational approximation of the fractional operator
 \eqn{(\kappa^2 -\Delta)^\beta}, where \eqn{\beta = (\nu + d/2)/2}.
-This results in an approximate model on the form \deqn{P_l u(s) = P_r W,}
+This results in an approximate model of the form \deqn{P_l u(s) = P_r W,}
 where \eqn{P_j = p_j(L)} are non-fractional operators defined in terms of polynomials \eqn{p_j} for
 \eqn{j=l,r}. The order of \eqn{p_r} is given by \code{m} and the order of \eqn{p_l} is \eqn{m + m_\beta}
 where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and
@@ -55,23 +55,25 @@ The discrete approximation can be written as \eqn{u = P_r x} where \eqn{x \sim N
 and \eqn{Q = P_l^T C^{-1} P_l}.
 }
 \examples{
-#Compute rational approximation of a Gaussian process with Matern covariance function on R
-kappa = 10
-sigma = 1
-nu = 0.8
+#Compute rational approximation of a Gaussian process with a 
+#Matern covariance function on R
+kappa <- 10
+sigma <- 1
+nu <- 0.8
 
 #create mass and stiffness matrices for a FEM discretization
-x = seq(from = 0, to = 1, length.out = 101)
+x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 
 #compute rational approximation of covariance function at 0.5
 op <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
                        G = fem$G, C = fem$C, d = 1)
-v = rep(0,101);v[51] = 1
+v = rep(0,101)
+v[51] = 1
 c.approx = op$Pr \\\%*\\\% solve(op$Q, op$Pr \\\%*\\\% v)
 
 #plot the result and compare with the true Matern covariance
-plot(x, matern.covariance(abs(x-0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
+plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
      xlab="h", main = "Matern covariance and rational approximation")
 lines(x,c.approx,col=2)
 }

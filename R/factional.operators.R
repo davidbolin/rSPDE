@@ -1,4 +1,19 @@
-
+## fractional.operators.R
+##
+##   Copyright (C) 2018, 2019, David Bolin
+##
+##   This program is free software: you can redistribute it and/or modify
+##   it under the terms of the GNU General Public License as published by
+##   the Free Software Foundation, either version 3 of the License, or
+##   (at your option) any later version.
+##
+##   This program is distributed in the hope that it will be useful,
+##   but WITHOUT ANY WARRANTY; without even the implied warranty of
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##   GNU General Public License for more details.
+##
+##   You should have received a copy of the GNU General Public License
+##   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #' Rational approximations of fractional operators
 #'
@@ -6,21 +21,22 @@
 #' simulation, of the fractional SPDE
 #' \deqn{L^\beta (\tau u(s)) = W.}
 #' Here \eqn{L} is a differential operator, \eqn{\beta>0} is
-#' the fractional power, \eqn{\tau>0} is a scalar that determines the variance of the solution \eqn{u}, and
+#' the fractional power, \eqn{\tau>0} is a scalar that scales the variance of the solution \eqn{u}, and
 #' \eqn{W} is white noise.
 #'
-#' @param L A finite element discretization of the operator \eqn{cL}{cL}.
+#' @param L A finite element discretization of the operator \eqn{L}{L}.
 #' @param beta The positive fractional power.
 #' @param C The mass matrix of the finite element discretization.
-#' @param scale.factor A constant \eqn{c} so that the smallest eigenvalue of the non-discretized
-#' operator \eqn{latex}{cL} is one.
+#' @param scale.factor A constant \eqn{c} is a lower bound for the the smallest eigenvalue of the non-discretized
+#' operator \eqn{L}{L}.
 #' @param m The order of the rational approximation, which needs to be a positive integer. The default value is 1.
 #' Higer values gives a more accurate approximation, which are more computationally expensive to use for inference.
-#' Currently, the largest value of m that is implemented is 4.
+#' Currently, the largest value of m that is implemented is 4. Note that the matrices assembled by the function may
+#' be ill-conditioned for m>1. 
 #' @param tau The constant that scales the variance of the solution. The default value is 1.
 #'
-#' @return \code{fractional.operators} returns an object of class "rSPDEobj". This is a list that contains the
-#' following arguments:
+#' @return \code{fractional.operators} returns an object of class "rSPDEobj". This object contains the
+#' following quantities:
 #' \item{Pl}{The operator \eqn{P_l}.}
 #' \item{Pr}{The operator \eqn{P_r}.}
 #' \item{C}{The mass matrix.}
@@ -44,25 +60,27 @@
 #' and \eqn{Q = P_l^T C^{-1} P_l}.
 #'
 #' @examples
-#' #Compute rational approximation of a Gaussian process with Matern covariance function on R
-#' kappa = 10
-#' sigma = 1
-#' nu = 0.8
+#' #Compute rational approximation of a Gaussian process with a 
+#' #Matern covariance function on R
+#' kappa <- 10
+#' sigma <- 1
+#' nu <- 0.8
 #'
 #' #create mass and stiffness matrices for a FEM discretization
-#' x = seq(from = 0, to = 1, length.out = 101)
+#' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
 #' #compute rational approximation of covariance function at 0.5
-#' tau = sqrt(gamma(nu)/(sigma^2*kappa^(2*nu)*(4*pi)^(1/2)*gamma(nu+1/2)))
-#' op <- fractional.operators(L = fem$G/kappa^2 + fem$C, beta=(nu + 1/2)/2,
+#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
+#' op <- fractional.operators(L = fem$G + kappa^2*fem$C, beta = (nu + 1/2)/2,
 #'                            C=fem$C, scale.factor = kappa^2, tau = tau)
 #'
-#' v = rep(0,101);v[51] = 1
+#' v = rep(0,101)
+#' v[51] = 1
 #' c.approx = op$Pr \%*\% solve(op$Q, op$Pr \%*\% v)
 #'
 #' #plot the result and compare with the true Matern covariance
-#' plot(x, matern.covariance(abs(x-0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
+#' plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
 #'      xlab="h", main = "Matern covariance and rational approximations")
 #' lines(x, c.approx, col = 2)
 
@@ -72,67 +90,93 @@ fractional.operators <- function(L,
                                  scale.factor,
                                  m = 1,
                                  tau = 1)
-  {
-    C = Matrix::Diagonal(dim(C)[1], rowSums(C))
-    Ci = Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
-    I = Matrix::Diagonal(dim(C)[1])
-    if (beta %% 1 == 0) {
-      #not fractional
-      Pr <- I
-      Pl <- L
-      if (beta > 1) {
-        for (i in 1:beta) {
-          Pl <- Pl %*% Ci %*% L
-        }
-      }
-
-      Pl <- tau * Pl * scale.factor ^ beta
-    } else {
-      roots <- get.roots(m, beta)
-      m_beta = max(1, floor(beta))
-
-      CiL <- Ci %*% L
-
-      #construct Pl
-      Pl = I - CiL * roots$rb[1]
-      if (length(roots$rb) > 1)
-      {
-        for (i in 2:length(roots$rb))
-        {
-          Pl <- Pl %*% (I - CiL * roots$rb[i])
-        }
-      }
-
-      Lp <- C
-      if (m_beta > 1) {
-        for (i in 1:(m_beta - 1)) {
-          Lp <- Lp %*% CiL
-        }
-      }
-      Pl <- tau * Lp %*% Pl * scale.factor ^ beta / roots$factor
-
-      #construct Pr
-      Pr <- I - CiL * roots$rc[1]
-      if (length(roots$rc) > 1) {
-        for (i in 2:length(roots$rc)) {
-          Pr <- Pr %*% (I - CiL * roots$rc[i])
-        }
+{
+  if(min(tau)<0){
+    stop("tau should be positive")
+  }
+  if((m %% 1) != 0 || m < 0){
+    stop("m must be a positive integer")
+  }
+  if(scale.factor <= 0){
+    stop("the scaling factor must be positive")
+  }
+  
+  C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
+  Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
+  I <- Matrix::Diagonal(dim(C)[1])
+  L <- L/scale.factor
+  CiL <- Ci %*% L
+  if (beta %% 1 == 0) { #not fractional
+    Pr <- I
+    Pl <- L
+    if (beta > 1) {
+      for (i in 1:beta) {
+        Pl <- Pl %*% CiL
       }
     }
-
-    Q = t(Pl) %*% Ci %*% Pl
-
-    output <- list(Q = Q,
-                   Pl = Pl,
-                   Pr = Pr,
-                   Ci = Ci,
-                   C = C,
-                   m = m,
-                   beta = beta,
-                   type = "fractional approximation")
-    class(output) <- "rSPDEobj"
-    return(output)
+    Pl.roots <- Pl.factors <- NULL
+    Pl.k <- beta
+    Pl.scaling <- scale.factor ^ beta 
+    Pr.roots <- Pr.factors <- NULL
+  } else {
+    roots <- get.roots(m, beta)
+    Pl.roots <- roots$rb
+    Pr.roots <- roots$rc
+    m_beta <- max(1, floor(beta))
+    Pr.factors <- Pl.factors <- list()
+    #construct Pl
+    Pl <- I - CiL * roots$rb[1]
+    Pl.factors[[1]] <- I - CiL * roots$rb[1]
+    if (length(roots$rb) > 1)
+    {
+      for (i in 2:length(roots$rb))
+      {
+        Pl <- Pl %*% (I - CiL * roots$rb[i])
+        Pl.factors[[i]] <- I - CiL * roots$rb[i]    
+      }
+    }
+    Lp <- C
+    if (m_beta > 1) {
+      for (i in 1:(m_beta - 1)) {
+        Lp <- Lp %*% CiL
+      }
+    }
+    Pl.k <- m_beta - 1
+    Pl.scaling <- scale.factor ^ beta / roots$factor
+    Pl <- Lp %*% Pl
+    
+    #construct Pr
+    Pr <- I - CiL * roots$rc[1]
+    Pr.factors[[1]] <- I - CiL * roots$rc[1]
+    if (length(roots$rc) > 1) {
+      for (i in 2:length(roots$rc)) {
+        Pr <- Pr %*% (I - CiL * roots$rc[i])
+        Pr.factors[[i]] <- I - CiL * roots$rc[i]
+      }
+    }
   }
+  Pl <- Pl * Pl.scaling 
+  Phi <- Matrix::Diagonal(dim(C)[1], 1/tau)
+  output <- list(Q = t(Pl) %*% Ci %*% Pl,
+                 Pl = Pl,
+                 Pr = Phi %*% Pr,
+                 Ci = Ci,
+                 C = C,
+                 CiL = CiL,
+                 L = L,
+                 Pl.factors = list(scaling = Pl.scaling,
+                                   roots = Pl.roots,
+                                   factor = Pl.factors,
+                                   k = Pl.k),
+                 Pr.factors = list(roots = Pr.roots,
+                                   factor = Pr.factors,
+                                   Phi = Phi),
+                 m = m,
+                 beta = beta,
+                 type = "fractional approximation")
+  class(output) <- "rSPDEobj"
+  return(output)
+}
 
 #' Rational approximations of stationary Gaussian Matern random fields
 #'
@@ -146,13 +190,13 @@ fractional.operators <- function(L,
 #' @param nu Shape parameter of the covariance function.
 #' @param G The stiffness matrix of a finite element discretization of the domain of interest.
 #' @param C The mass matrix of a finite element discretization of the domain of interest.
-#' @param d The dimension of the domain. The default value is 2.
+#' @param d The dimension of the domain.
 #' @param m The order of the rational approximation, which needs to be a positive integer.
 #' The default value is 1.
 #'
 #' @details The approximation is based on a rational approximation of the fractional operator
 #' \eqn{(\kappa^2 -\Delta)^\beta}, where \eqn{\beta = (\nu + d/2)/2}.
-#' This results in an approximate model on the form \deqn{P_l u(s) = P_r W,}
+#' This results in an approximate model of the form \deqn{P_l u(s) = P_r W,}
 #' where \eqn{P_j = p_j(L)} are non-fractional operators defined in terms of polynomials \eqn{p_j} for
 #' \eqn{j=l,r}. The order of \eqn{p_r} is given by \code{m} and the order of \eqn{p_l} is \eqn{m + m_\beta}
 #' where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and
@@ -161,8 +205,8 @@ fractional.operators <- function(L,
 #' The discrete approximation can be written as \eqn{u = P_r x} where \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
 #' and \eqn{Q = P_l^T C^{-1} P_l}.
 #'
-#' @return \code{fractional.operators} returns an object of class "rSPDEobj". This is a list that contains the
-#' following arguments:
+#' @return \code{fractional.operators} returns an object of class "rSPDEobj". This object contains the
+#' following quantities:
 #' \item{Pl}{The operator \eqn{P_l}.}
 #' \item{Pr}{The operator \eqn{P_r}.}
 #' \item{C}{The mass matrix.}
@@ -178,23 +222,25 @@ fractional.operators <- function(L,
 #' @seealso \code{\link{fractional.operators}}, \code{\link{spde.matern.operators}}
 #'
 #' @examples
-#' #Compute rational approximation of a Gaussian process with Matern covariance function on R
-#' kappa = 10
-#' sigma = 1
-#' nu = 0.8
+#' #Compute rational approximation of a Gaussian process with a 
+#' #Matern covariance function on R
+#' kappa <- 10
+#' sigma <- 1
+#' nu <- 0.8
 #'
 #' #create mass and stiffness matrices for a FEM discretization
-#' x = seq(from = 0, to = 1, length.out = 101)
+#' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
 #' #compute rational approximation of covariance function at 0.5
 #' op <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
 #'                        G = fem$G, C = fem$C, d = 1)
-#' v = rep(0,101);v[51] = 1
+#' v = rep(0,101)
+#' v[51] = 1
 #' c.approx = op$Pr \%*\% solve(op$Q, op$Pr \%*\% v)
 #'
 #' #plot the result and compare with the true Matern covariance
-#' plot(x, matern.covariance(abs(x-0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
+#' plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
 #'      xlab="h", main = "Matern covariance and rational approximation")
 #' lines(x,c.approx,col=2)
 
@@ -203,22 +249,25 @@ matern.operators <- function(kappa,
                              nu,
                              G,
                              C,
-                             d = 2,
+                             d = NULL,
                              m = 1)
 {
-  tau = sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-  beta = (nu + d/2)/2
-  operators <- fractional.operators(L = G/kappa^2 + C,
+  if(is.null(d)){
+    stop("the dimension d must be supplied")
+  }
+  tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
+  beta <- (nu + d/2)/2
+  operators <- fractional.operators(L = G + C*kappa^2,
                                     beta = beta,
                                     C = C,
                                     scale.factor = kappa^2,
                                     m = m,
                                     tau = tau)
   output <- operators
-  output$kappa = kappa
-  output$sigma = sigma
-  output$nu = nu
-  output$type = "Matern approximation"
+  output$kappa <- kappa
+  output$sigma <- sigma
+  output$nu <- nu
+  output$type <- "Matern approximation"
   return(output)
 }
 
@@ -236,7 +285,7 @@ matern.operators <- function(kappa,
 #' \eqn{\beta = (\nu + d/2)/2}.
 #' @param G The stiffness matrix of a finite element discretization of the domain of interest.
 #' @param C The mass matrix of a finite element discretization of the domain of interest.
-#' @param d The dimension of the domain. The default value is 2.
+#' @param d The dimension of the domain.
 #' @param m The order of the rational approximation, which needs to be a positive integer.
 #' The default value is 1.
 #'
@@ -251,8 +300,8 @@ matern.operators <- function(kappa,
 #' The discrete approximation can be written as \eqn{u = P_r x} where \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
 #' and \eqn{Q = P_l^T C^{-1} P_l}.
 #'
-#' @return \code{fractional.operators} returns an object of class "rSPDEobj". This is a list that contains the
-#' following arguments:
+#' @return \code{fractional.operators} returns an object of class "rSPDEobj". This object contains the
+#' following quanatities:
 #' \item{Pl}{The operator \eqn{P_l}.}
 #' \item{Pr}{The operator \eqn{P_r}.}
 #' \item{C}{The mass matrix.}
@@ -267,11 +316,11 @@ matern.operators <- function(kappa,
 #'
 #' @examples
 #' #Sample non-stationary Matern field on R
-#' tau = 1
-#' nu = 0.8
+#' tau <- 1
+#' nu <- 0.8
 #'
 #' #create mass and stiffness matrices for a FEM discretization
-#' x = seq(from = 0, to = 1, length.out = 101)
+#' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
 #'  #define a non-stationary range parameter
@@ -292,20 +341,24 @@ spde.matern.operators <- function(kappa,
                                   nu,
                                   G,
                                   C,
-                                  d = 2,
+                                  d,
                                   m = 1)
 {
+  if(is.null(d)){
+    stop("the dimension d must be supplied")
+  }
+  if(nu < 0){
+    stop("nu must be positive")
+  }
   beta <- (nu + d/2)/2
   kp <- Matrix::Diagonal(dim(C)[1], kappa^2)
-  Phi <- Matrix::Diagonal(dim(C)[1], 1/tau)
-  scale.factor <- min(kappa)^2
-  operators <- fractional.operators(L = (G + C %*% kp)/scale.factor,
+  
+  operators <- fractional.operators(L = G + C %*% kp,
                                     beta = beta,
                                     C = C,
-                                    scale.factor = scale.factor,
+                                    scale.factor = min(kappa)^2,
                                     m = m,
-                                    tau = 1)
-  operators$Pr <- Phi %*% operators$Pr
+                                    tau = tau)
   output <- operators
   output$beta = beta
   output$type = "Matern SPDE approximation"

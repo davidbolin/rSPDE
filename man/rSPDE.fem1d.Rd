@@ -15,7 +15,8 @@ The function returns a list with the following elements
 \item{C }{The mass matrix.}
 }
 \description{
-This function computes mass and stiffness matrices for a FEM approximation on R.
+This function computes mass and stiffness matrices for a FEM approximation on R, assuming 
+Neumann boundary conditions.
 These matrices are needed when discretizing the operators in rational approximations.
 }
 \examples{
