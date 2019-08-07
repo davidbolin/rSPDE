@@ -4,7 +4,7 @@
 \alias{spde.matern.operators}
 \title{Rational approximations of stationary Gaussian SPDE Matern random fields}
 \usage{
-spde.matern.operators(kappa, tau, nu, G, C, d = 2, m = 1)
+spde.matern.operators(kappa, tau, nu, G, C, d, m = 1)
 }
 \arguments{
 \item{kappa}{Vector with the, possibly spatially varying, range parameter evaluated at the locations
@@ -20,14 +20,14 @@ of the mesh used for the finite element discretization of the SPDE.}
 
 \item{C}{The mass matrix of a finite element discretization of the domain of interest.}
 
-\item{d}{The dimension of the domain. The default value is 2.}
+\item{d}{The dimension of the domain.}
 
 \item{m}{The order of the rational approximation, which needs to be a positive integer.
 The default value is 1.}
 }
 \value{
-\code{fractional.operators} returns an object of class "rSPDEobj". This is a list that contains the
-following arguments:
+\code{fractional.operators} returns an object of class "rSPDEobj". This object contains the
+following quanatities:
 \item{Pl}{The operator \eqn{P_l}.}
 \item{Pr}{The operator \eqn{P_r}.}
 \item{C}{The mass matrix.}
@@ -55,11 +55,11 @@ and \eqn{Q = P_l^T C^{-1} P_l}.
 }
 \examples{
 #Sample non-stationary Matern field on R
-tau = 1
-nu = 0.8
+tau <- 1
+nu <- 0.8
 
 #create mass and stiffness matrices for a FEM discretization
-x = seq(from = 0, to = 1, length.out = 101)
+x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 
  #define a non-stationary range parameter

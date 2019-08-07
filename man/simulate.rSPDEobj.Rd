@@ -16,19 +16,19 @@ simulate(obj, nsim)
 \item{nsim}{The number of simulations.}
 }
 \value{
-a matrix with the \code{n} samples as columns.
+A matrix with the \code{n} samples as columns.
 }
 \description{
 The function samples a Gaussian random field based on a pre-computed rational SPDE approximation.
 }
 \examples{
 #Sample a Gaussian Matern process on R using a rational approximation
-kappa = 10
-sigma = 1
-nu = 0.8
+kappa <- 10
+sigma <- 1
+nu <- 0.8
 
 #create mass and stiffness matrices for a FEM discretization
-x = seq(from = 0, to = 1, length.out = 101)
+x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 
 #compute rational approximation
