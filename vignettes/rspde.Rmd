@@ -27,7 +27,7 @@ $$
 L^{\beta} (\tau u) = \mathcal{W}.
 $$
 
-Here $\mathcal{W}$ is Gaussian white noise, $L$ is a second-order differential operator, $\beta>0$ determines the smoothness of $u$, and $\tau>0$ scales the variance of $u$. 
+Here $\mathcal{W}$ is Gaussian white noise, $L$ is a second-order differential operator, the fractional power $\beta>0$ determines the smoothness of $u$, and $\tau>0$ scales the variance of $u$. 
 The simplest example is a model on $\mathbb{R}^d$ with $L = \kappa^2 - \Delta$, which results in a Gaussian random field $u$ with a Matérn covariance function
 $$
 C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).
@@ -81,9 +81,9 @@ The object `op` contains the matrices needed for evaluating the distribution of 
 
 To evaluate the accuracy of the approximation, let us compute the covariance function between the process at $s=0.5$ and all other locations in `s` and compare with the true Matérn covariance function. The covariances can be calculated as 
 $$
-\boldsymbol{\mathrm{A}} \boldsymbol{\mathrm{P}}_r \boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T\boldsymbol{\mathrm{A}}_{0.5}^T.
+\boldsymbol{\mathrm{A}} \boldsymbol{\mathrm{P}}_r \boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T\boldsymbol{\mathrm{v}}.
 $$
-Here $\boldsymbol{\mathrm{A}}$ is an identity matrix since we are evaluating the approximation in the nodes of the FEM mesh and $\boldsymbol{\mathrm{A}}_{0.5}$ is a vector with all basis functions evaluated in $s=0.5$.
+Here $\boldsymbol{\mathrm{A}}$ is an identity matrix since we are evaluating the approximation in the nodes of the FEM mesh and $\boldsymbol{\mathrm{v}}$ is a vector with all basis functions evaluated in $s=0.5$.
 ```{r}
 v <- t(rSPDE.A1d(s,0.5))
 c.approx <- op$Pr %*% solve(op$Q, op$Pr %*% v)
@@ -144,7 +144,7 @@ legend("bottomright", bty = "n",
 
 ```
 
-Since the error induced by the rational approximation decreases exponentially in $m$, there is in general rarely a need for an approximation with a large value of $m$. This is good because the number of non-zero elements in $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increases with $m$, which increases the computational cost of using the approximation. Further, the condition number of $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increases with $m$, which can cause numerical problems when working with these matrices. To illustrate this, let us compute the norm of the approximation error for different $m$.
+Since the error induced by the rational approximation decreases exponentially in $m$, there is in general rarely a need for an approximation with a large value of $m$. This is good because the number of non-zero elements in $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increases with $m$, which makes the approximation more computationally costly to use. Further, the condition number of $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increases with $m$, which can cause numerical problems when working with these matrices. To illustrate this, let us compute the norm of the approximation error for different $m$.
 ```{r}
 errors <- rep(0,4)
 for(i in 1:4){
