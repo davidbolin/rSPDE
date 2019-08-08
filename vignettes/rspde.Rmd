@@ -42,7 +42,7 @@ The `rSPDE` package provides corresponding computationally efficient approximati
 $P_l x = P_r \mathcal{W}$,
 where $P_l$ and $P_r$ are non-fractional operators defined in terms of polynomials $p_l$ and $p_r$. The order of $p_r$ is given by $m$ and the order of $p_l$ is $m + m_{\beta}$ where $m_{\beta}$ is the integer part of $\beta$ if $\beta>1$ and $m_{\beta} = 1$ otherwise. 
 
-Combining the rational approximation of the operator with the FEM discretization yields an approximation $u_h$ of $u$ of the basis expansion form above. The difference to the non-fractional cast is that the vector of stochastic weights now is $\boldsymbol{\mathrm{u}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T)$ where $\boldsymbol{\mathrm{Q}}$ and $\boldsymbol{\mathrm{P}}_r$ are sparse matrices. Alternatively, $\boldsymbol{\mathrm{u}}$ can be represented as $\boldsymbol{\mathrm{u}} = \boldsymbol{\mathrm{P}}_r \boldsymbol{\mathrm{x}}$ where $\boldsymbol{\mathrm{x}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{Q}}^{-1})$, which means that the discrete approximation is a latent GMRF. This can be used for computationally efficient inference and simulation. See [@bolin19] for further details. 
+Combining the rational approximation of the operator with the FEM discretization yields an approximation $u_h$ of $u$ of the basis expansion form above. The difference to the non-fractional case is that the vector of stochastic weights now is $\boldsymbol{\mathrm{u}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T)$ where $\boldsymbol{\mathrm{Q}}$ and $\boldsymbol{\mathrm{P}}_r$ are sparse matrices. Alternatively, $\boldsymbol{\mathrm{u}}$ can be represented as $\boldsymbol{\mathrm{u}} = \boldsymbol{\mathrm{P}}_r \boldsymbol{\mathrm{x}}$ where $\boldsymbol{\mathrm{x}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{Q}}^{-1})$, which means that the discrete approximation is a latent GMRF. This can be used for computationally efficient inference and simulation. See [@bolin19] for further details. 
 
 
 # Using the package
@@ -77,7 +77,7 @@ nu <- 0.8
 op <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
                        G = fem$G, C = fem$C, d = 1, m = 1)
 ```
-The object `op` now contains the matrices needed for evaluating the distribution of the stochastic weights $\boldsymbol{\mathrm{u}}$. If we want to evaluate $u_h(s)$ at some locations $s_1,\ldots, s_n$, we need to multiply the weights with the basis functions $\varphi_i(s)$ evaluated at the locations. For this, we can construct the observation matrix $\boldsymbol{\mathrm{A}}$ with elements $A_{ij} = \varphi_j(s_i)$, linking the FEM basis functions to the locations. This matrix can be constructed using the function `rSPDE.A1d`.
+The object `op` contains the matrices needed for evaluating the distribution of the stochastic weights $\boldsymbol{\mathrm{u}}$. If we want to evaluate $u_h(s)$ at some locations $s_1,\ldots, s_n$, we need to multiply the weights with the basis functions $\varphi_i(s)$ evaluated at the locations. For this, we can construct the observation matrix $\boldsymbol{\mathrm{A}}$ with elements $A_{ij} = \varphi_j(s_i)$, linking the FEM basis functions to the locations. This matrix can be constructed using the function `rSPDE.A1d`.
 
 To evaluate the accuracy of the approximation, let us compute the covariance function between the process at $s=0.5$ and all other locations in `s` and compare with the true Matérn covariance function. The covariances can be calculated as 
 $$
@@ -144,7 +144,7 @@ legend("bottomright", bty = "n",
 
 ```
 
-Since the error induced by the rational approximation decreases exponentially in $m$, there is in general rarely a need for using a large value of $m$. This is good because the number of non-zero elements in $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increases with $m$, which increases the computational cost of using the approximation. Further, the condition number of $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increases with $m$, which can cause numerical problems when using these matrices. To illustrate this, let us compute the norm of the approximation error for different $m$.
+Since the error induced by the rational approximation decreases exponentially in $m$, there is in general rarely a need for an approximation with a large value of $m$. This is good because the number of non-zero elements in $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increases with $m$, which increases the computational cost of using the approximation. Further, the condition number of $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increases with $m$, which can cause numerical problems when working with these matrices. To illustrate this, let us compute the norm of the approximation error for different $m$.
 ```{r}
 errors <- rep(0,4)
 for(i in 1:4){
@@ -155,7 +155,7 @@ for(i in 1:4){
 }
 print(errors)
 ```
-We see that the error decreases when increasing $m$ from one to two, but then is very large for $m$ equal to three and four. The reason for this is not that the approximation is bad, but that the numerical accuracy of the product $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ is low due to the high condition numbers of the matrices. To solve this issue, the package contains functions for performing operations such as $\boldsymbol{\mathrm{P}}_rv$ or $\boldsymbol{\mathrm{P}}_r^{-1}v$ that takes advantage of the structure of $\boldsymbol{\mathrm{P}}_r$ to avoid numerical issues. A complete list of these function can be seen by typing `?operator.operations`. One of these functions is `Sigma.mult`, which performs the multiplication $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ in a more numerically stable way. Let us use this function to compute the errors of the approximations again to see that we indeed get better approximations as $m$ increases. 
+We see that the error decreases when increasing $m$ from $1$ to $2$, but is very large for $m=3$ and $m=4$. The reason for this is not that the approximation is bad, but that the numerical accuracy of the product $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ is low due to the high condition numbers of the matrices. To solve this issue, the package contains functions for performing operations such as $\boldsymbol{\mathrm{P}}_rv$ or $\boldsymbol{\mathrm{P}}_r^{-1}v$ that takes advantage of the structure of $\boldsymbol{\mathrm{P}}_r$ to avoid numerical issues. A complete list of these function can be seen by typing `?operator.operations`. One of these functions is `Sigma.mult`, which performs the multiplication $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ in a more numerically stable way. Let us use this function to compute the errors of the approximations again to see that we indeed get better approximations as $m$ increases. 
 ```{r}
 errors2 <- rep(0,4)
 for(i in 1:4){
@@ -168,7 +168,7 @@ print(errors2)
 ```
 # A non-stationary model
 
-Let us now examine a non-stationary model $(\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W}$ with $\kappa(s) = 10(1+2s^2)$ and $\tau(s) = 0.1(1 - 0.7s^2)$. We can then use the ``spde.matern.operators`` function to create the rational approximation with $m=1$ as follows.
+Let us now examine a non-stationary model $(\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W}$ with $\kappa(s) = 10(1+2s^2)$ and $\tau(s) = 0.1(1 - 0.7s^2)$. We can then use ``spde.matern.operators`` to create the rational approximation with $m=1$ as follows.
 ```{r}
 s <- seq(from = 0, to = 1, length.out = 501)
 fem <- rSPDE.fem1d(s)
@@ -177,7 +177,7 @@ tau <-  0.1*(1 - 0.7*s^2)
 op <- spde.matern.operators(kappa = kappa, tau = tau, nu = nu, 
                             G = fem$G, C = fem$C, d = 1, m=1)
 ```
-Let us compute the covariance function $C(s,s_i)$ of the resulting non-stationary model for the locations $s_1=0.1, s_2 = 0.5,$ and $s_3 = 0.9$. 
+Let us compute the covariance function $C(s,s_i)$ of the non-stationary model for the locations $s_1=0.1, s_2 = 0.5,$ and $s_3 = 0.9$. 
 ```{r}
 v <- t(rSPDE.A1d(s, c(0.1,0.5,0.9)))
 covs <- Sigma.mult(op, v)
@@ -191,7 +191,7 @@ lines(s, covs[,2], col = 2)
 lines(s, covs[,3], col = 3)
 ```
 
-We see that this choice of parameters results in a model with longer range for small values of $s$ and smaller variance in the middle of the domain. 
+We see that this choice of $\kappa(s)$ and $\tau(s)$ results in a model with longer range for small values of $s$ and smaller variance in the middle of the domain. 
 We can also apply the general function `fractional.operators` to construct the approximation. This function requires that one supplies a discretization of the non-fractional operator $L$, as well as a scaling factor $c>0$ which is a lower bound for the smallest eigenvalue of $L$. In our case we have $L = \kappa(s)^2 - \Delta$, and the eigenvalues of this operator is bounded from below by $c = \min_s \kappa(s)^2$. We compute this constant and the discrete operator. 
 ```{r}
 c = min(kappa)^2
@@ -230,7 +230,7 @@ sigma.e <- 0.3
 Y <- as.vector(A %*% u + sigma.e * rnorm(n.obs))
 ```
 
-Finally, we compute the kriging prediction of the process $u$ at the locations in `s` based on these observations. 
+Finally, we compute the kriging prediction of the process $u$ at the locations in `s` based on these observations. To specify which locations that should be predicted, the argument `Aprd` is used. This argument should be an observation matrix that links the mesh locations to the prediction locations.  
 ```{r, fig.show='hold',fig.height = 4, fig.width = 5, fig.align = "center"}
 A.krig <- rSPDE.A1d(s, s)
 u.krig <- predict(op, A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e)
@@ -275,7 +275,7 @@ A <- inla.spde.make.A(mesh, loc = obs.loc)
 sigma.<- 0.1
 Y = as.vector(A %*% u + sigma.e*rnorm(n.obs))
 ```
-The simulated random field $u$ as well as the observation locations are shown in the following figure.
+The simulated random field as well as the observation locations are shown in the following figure.
 ```{r, fig.show='hold',fig.height = 3.5, fig.width = 7, fig.align = "center",echo=FALSE}
 par(mfrow = c(1,2),mgp = c(1.2, 0.5, 0), 
     mar = c(2,2,0.5,0.5) + 0.1)
@@ -286,7 +286,7 @@ plot(obs.loc[,1],obs.loc[,2],cex=0.2,pch=16,xlab="",ylab="",
      cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
 ```
 
-For each type of rational approximation of degree $m$, there is a corresponding likelihood function that can be used for likelihood-based parameter estimation. Since we constructed the model using `matern.operators`, we can use the function `matern.loglike` to define the likelihood. To simplify parameter estimation, we create an objective function to maximize which is the negative log-likelihood, parametrized using the logarithm of each parameter to avoid constrained optimization. 
+For each type of rational approximation of degree $m$, there is a corresponding likelihood function that can be used for likelihood-based parameter estimation. Since we constructed the model with `matern.operators`, we can use the function `matern.loglike` to define the likelihood. To simplify parameter estimation, we create an objective function to maximize which is the negative log-likelihood, parametrized using the logarithm of each parameter to avoid constrained optimization. 
 ```{r}
 mlik <- function(theta, Y, G, C, A) {
   return(-spde.matern.loglike(exp(theta[1]), exp(theta[2]), exp(theta[3]), exp(theta[4]),
