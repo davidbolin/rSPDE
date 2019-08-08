@@ -17,15 +17,15 @@
 
 #' @rdname simulate.rSPDEobj
 #' @export
-simulate <- function(obj, nsim) {
-  UseMethod("simulate", obj)
+simulate <- function(object, nsim) {
+  UseMethod("simulate", object)
 }
 
 #' Simulation of a fractional SPDE using a rational SPDE approximation
 #'
 #' The function samples a Gaussian random field based on a pre-computed rational SPDE approximation.
 #'
-#' @param obj The rational SPDE approximation, computed using \code{\link{fractional.operators}},
+#' @param object The rational SPDE approximation, computed using \code{\link{fractional.operators}},
 #' \code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.
 #' @param nsim The number of simulations.
 #'
@@ -51,15 +51,15 @@ simulate <- function(obj, nsim) {
 #' Y <- simulate(op)
 #' plot(x, Y, type = "l", ylab = "u(x)", xlab = "x")
 
-simulate.rSPDEobj <- function(obj, nsim = 1)
+simulate.rSPDEobj <- function(object, nsim = 1)
 {
-  if (class(obj) != "rSPDEobj")
+  if (class(object) != "rSPDEobj")
     stop("input op is not of class rSPDEobj")
-  m <- dim(obj$Q)[1]
+  m <- dim(object$Q)[1]
   z <- rnorm(nsim * m)
   dim(z) <- c(m, nsim)
-  x <- Qsqrt.solve(obj,z)
-  x <- Pr.mult(obj,x)
+  x <- Qsqrt.solve(object,z)
+  x <- Pr.mult(object,x)
   
   return(x)
 }
@@ -322,6 +322,8 @@ rSPDE.loglike <- function(obj, Y, A, sigma.e)
 #'                        Y = Y, G = G, C = C, A = A, d = 1))
 #' }
 #'
+#' #The parameters can now be estimated by maximizing mlik with optim
+#' \dontrun{
 #' #Choose some reasonable starting values depending on the size of the domain
 #' theta0 = log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
 #'
@@ -331,6 +333,7 @@ rSPDE.loglike <- function(obj, Y, A, sigma.e)
 #' print(data.frame(kappa = c(kappa,exp(theta$par[1])), sigma = c(sigma,exp(theta$par[2])),
 #'                  nu = c(nu,exp(theta$par[3])), sigma.e = c(sigma.e,exp(theta$par[4])),
 #'                  row.names = c("Truth","Estimates")))
+#' }
 
 matern.loglike <- function(kappa,
                            sigma,

@@ -23,18 +23,9 @@ matern.operators(kappa, sigma, nu, G, C, d = NULL, m = 1)
 The default value is 1.}
 }
 \value{
-\code{fractional.operators} returns an object of class "rSPDEobj". This object contains the
-following quantities:
-\item{Pl}{The operator \eqn{P_l}.}
-\item{Pr}{The operator \eqn{P_r}.}
-\item{C}{The mass matrix.}
-\item{m}{The order of the rational approximation.}
-\item{beta}{The fractional power.}
-\item{Q}{The matrix \code{t(Pl)\%*\%solve(C,Pl)}.}
-\item{type}{String indicating the type of approximation.}
-\item{kappa}{Range parameter.}
-\item{sigma}{Standard deviation.}
-\item{nu}{Shape parameter.}
+\code{matern.operators} returns an object of class "rSPDEobj". This object contains the
+quantities listed in the output of \code{\link{fractional.operators}} as well as the 
+parameters of the covariance functoin.
 }
 \description{
 \code{matern.operators} is used for computing a rational SPDE approximation of a stationary Gaussian random
@@ -52,7 +43,9 @@ where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and
 \eqn{m_\beta = 1} otherwise.
 
 The discrete approximation can be written as \eqn{u = P_r x} where \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
-and \eqn{Q = P_l^T C^{-1} P_l}.
+and \eqn{Q = P_l^T C^{-1} P_l}. Note that the matrices \eqn{P_r} and \eqn{Q} may be be ill-conditioned for \eqn{m>1}.
+In this case, the metehods in \code{\link{operator.operations}} should be used for operations
+involving the matrices, since these methods are more numerically stable.
 }
 \examples{
 #Compute rational approximation of a Gaussian process with a 
@@ -68,8 +61,8 @@ fem <- rSPDE.fem1d(x)
 #compute rational approximation of covariance function at 0.5
 op <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
                        G = fem$G, C = fem$C, d = 1)
-v = rep(0,101)
-v[51] = 1
+                       
+v = t(rSPDE.A1d(x,0.5))
 c.approx = op$Pr \\\%*\\\% solve(op$Q, op$Pr \\\%*\\\% v)
 
 #plot the result and compare with the true Matern covariance

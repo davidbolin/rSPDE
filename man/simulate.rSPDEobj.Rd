@@ -5,12 +5,12 @@
 \alias{simulate.rSPDEobj}
 \title{Simulation of a fractional SPDE using a rational SPDE approximation}
 \usage{
-simulate(obj, nsim)
+simulate(object, nsim)
 
-\method{simulate}{rSPDEobj}(obj, nsim = 1)
+\method{simulate}{rSPDEobj}(object, nsim = 1)
 }
 \arguments{
-\item{obj}{The rational SPDE approximation, computed using \code{\link{fractional.operators}},
+\item{object}{The rational SPDE approximation, computed using \code{\link{fractional.operators}},
 \code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.}
 
 \item{nsim}{The number of simulations.}

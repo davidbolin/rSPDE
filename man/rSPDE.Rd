@@ -17,9 +17,9 @@ and allows for computationally efficient inference and simulation.
 The main function for computing the rational operators is \code{\link{fractional.operators}},
 and the following simplified interfaces are available
 \itemize{
-\item{\code{\link{matern.operators}}}{Compuation of operators for random fields with
+\item{\code{\link{matern.operators}}}{ Compuation of operators for random fields with
 stationary Matern covariance functions}
-\item{\code{\link{spde.matern.operators}}}{Compuation of operators for random fields with
+\item{\code{\link{spde.matern.operators}}}{ Compuation of operators for random fields with
 defined as solutions to a possibly non-stationary Matern-type SPDE model.}
 }
 Basic statistical operations such as likelihood evaluations (see \code{\link{rSPDE.loglike}}) and kriging

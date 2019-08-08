@@ -75,6 +75,8 @@ return(-matern.loglike(exp(theta[1]), exp(theta[2]), exp(theta[3]), exp(theta[4]
                        Y = Y, G = G, C = C, A = A, d = 1))
 }
 
+#The parameters can now be estimated by maximizing mlik with optim
+\dontrun{
 #Choose some reasonable starting values depending on the size of the domain
 theta0 = log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
 
@@ -84,6 +86,7 @@ theta <- optim(theta0, mlik, Y = Y, G = fem$G, C = fem$C, A = A)
 print(data.frame(kappa = c(kappa,exp(theta$par[1])), sigma = c(sigma,exp(theta$par[2])),
                  nu = c(nu,exp(theta$par[3])), sigma.e = c(sigma.e,exp(theta$par[4])),
                  row.names = c("Truth","Estimates")))
+}
 }
 \seealso{
 \code{\link{spde.matern.loglike}}, \code{\link{rSPDE.loglike}}, \code{\link{matern.operators}}.

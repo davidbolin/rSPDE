@@ -209,7 +209,7 @@ norm(covs-covs2)
 ```
 Obviously, it is simpler to use `spde.matern.operators` in this case, but the advantage with `fractional.operators` is that it also can be used for other more general models such as one with $L = \kappa(s)^2 - \nabla \cdot (\boldsymbol{\mathrm{H}}(s) \nabla)$ for some matrix-valued function $\boldsymbol{\mathrm{H}}(s)$. 
 
-##Using the approximation 
+## Using the approximation 
 
 For any approximation, constructed using the functions `fractional.operators`, `matern.operators`, or `spde.matern.operators`, we can simulate from the model using `simulate`. 
 
@@ -294,7 +294,7 @@ mlik <- function(theta, Y, G, C, A) {
 }
 ```
 We can now estimate the parameter using `optim`.
-```{r,eval=FALSE}
+```{r}
 theta0 = log(c(2, sqrt(var(Y)), 1,0.1*sqrt(var(Y))))
 pars <- optim(theta0, mlik, Y = Y, G = G, C = C, A = A, method = "L-BFGS-B")
 results <- data.frame(kappa = c(kappa, exp(pars$par[1])), 

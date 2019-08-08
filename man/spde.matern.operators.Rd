@@ -2,7 +2,7 @@
 % Please edit documentation in R/factional.operators.R
 \name{spde.matern.operators}
 \alias{spde.matern.operators}
-\title{Rational approximations of stationary Gaussian SPDE Matern random fields}
+\title{Rational approximations of non-stationary Gaussian SPDE Matern random fields}
 \usage{
 spde.matern.operators(kappa, tau, nu, G, C, d, m = 1)
 }
@@ -26,16 +26,8 @@ of the mesh used for the finite element discretization of the SPDE.}
 The default value is 1.}
 }
 \value{
-\code{fractional.operators} returns an object of class "rSPDEobj". This object contains the
-following quanatities:
-\item{Pl}{The operator \eqn{P_l}.}
-\item{Pr}{The operator \eqn{P_r}.}
-\item{C}{The mass matrix.}
-\item{m}{The order of the rational approximation.}
-\item{beta}{The fractional power.}
-\item{type}{String indicating the type of approximation.}
-\item{Q}{The matrix \code{t(Pl)\%*\%solve(C,Pl)}.}
-\item{nu}{Shape parameter.}
+\code{spde.matern.operators} returns an object of class "rSPDEobj. This object contains the
+quantities listed in the output of \code{\link{fractional.operators}} as well as the smoothness parameter \eqn{\nu}.
 }
 \description{
 \code{spde.matern.operators} is used for computing a rational SPDE approximation of a Gaussian random
@@ -51,7 +43,9 @@ where \eqn{P_j = p_j(L)} are non-fractional operators defined in terms of polyno
 where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and \eqn{m_\beta = 1} otherwise.
 
 The discrete approximation can be written as \eqn{u = P_r x} where \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
-and \eqn{Q = P_l^T C^{-1} P_l}.
+and \eqn{Q = P_l^T C^{-1} P_l}. Note that the matrices \eqn{P_r} and \eqn{Q} may be be ill-conditioned for \eqn{m>1}.
+In this case, the metehods in \code{\link{operator.operations}} should be used for operations
+involving the matrices, since these methods are more numerically stable.
 }
 \examples{
 #Sample non-stationary Matern field on R
