@@ -16,7 +16,8 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 library(rSPDE)
-library(INLA)
+library(excursions)
+require.nowarnings(INLA)
 set.seed(1)
 ```
 
@@ -250,7 +251,7 @@ lines(s, u.krig$mean, col = 2)
 # Spatial data and parameter estimation
 
 The functions used in the previous examples also work for spatial models. We then need to construct a mesh over the domain of interest and then compute the matrices needed to define the operator. These tasks can be performed, for example, using the `R-INLA` package. Let us start by defining a mesh over $[0,1]\times [0, 1]$ and compute the mass and stiffness matrices for that mesh. 
-````{r}
+````{r, eval = require.nowarnings(INLA)}
 x <- seq(from = 0, to = 10, length.out = 70)
 mesh <- inla.mesh.create(lattice = inla.mesh.lattice(x = x, y = x), 
                          extend = FALSE, refine = FALSE)
@@ -260,14 +261,14 @@ C <- fem$c0
 G <- fem$g1
 ```
 We can now use these matrices to define a rational SPDE approximation of degree $m=1$ for a Matérn model in the same was as before. We use $\nu=0.5$ so that the model has an exponential covariance function. 
-```{r}
+```{r, eval = require.nowarnings(INLA)}
 kappa <- 0.5
 tau <- 1
 nu <- 0.5
 op <- spde.matern.operators(kappa = kappa, tau = tau, nu = nu, G = G, C = C, d = 2, m = 1)
 ```
 Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `R-INLA` function `inla.spde.make.A`. 
-```{r}
+```{r, eval = require.nowarnings(INLA)}
 u <- simulate(op)
 n.obs <- 4000
 obs.loc <- cbind(runif(n = n.obs, min = 0, max = 1), runif(n = n.obs, min = 0, max = 1))
@@ -276,7 +277,7 @@ sigma.<- 0.1
 Y = as.vector(A %*% u + sigma.e*rnorm(n.obs))
 ```
 The simulated random field as well as the observation locations are shown in the following figure.
-```{r, fig.show='hold',fig.height = 3.5, fig.width = 7, fig.align = "center",echo=FALSE}
+```{r, fig.show='hold',fig.height = 3.5, fig.width = 7, fig.align = "center",echo=FALSE, eval = require.nowarnings(INLA)}
 par(mfrow = c(1,2),mgp = c(1.2, 0.5, 0), 
     mar = c(2,2,0.5,0.5) + 0.1)
 proj <- inla.mesh.projector(mesh, dims = c(70, 70))
@@ -294,7 +295,7 @@ mlik <- function(theta, Y, G, C, A) {
 }
 ```
 We can now estimate the parameter using `optim`.
-```{r}
+```{r, eval = require.nowarnings(INLA)}
 theta0 = log(c(2, sqrt(var(Y)), 1,0.1*sqrt(var(Y))))
 pars <- optim(theta0, mlik, Y = Y, G = G, C = C, A = A, method = "L-BFGS-B")
 results <- data.frame(kappa = c(kappa, exp(pars$par[1])), 

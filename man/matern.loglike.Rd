@@ -76,7 +76,7 @@ return(-matern.loglike(exp(theta[1]), exp(theta[2]), exp(theta[3]), exp(theta[4]
 }
 
 #The parameters can now be estimated by maximizing mlik with optim
-\dontrun{
+\donttest{
 #Choose some reasonable starting values depending on the size of the domain
 theta0 = log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
 
