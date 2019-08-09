@@ -63,7 +63,7 @@ op <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
                        G = fem$G, C = fem$C, d = 1)
                        
 v = t(rSPDE.A1d(x,0.5))
-c.approx = op$Pr \\\%*\\\% solve(op$Q, op$Pr \\\%*\\\% v)
+c.approx = op$Pr \%*\% solve(op$Q, op$Pr \%*\% v)
 
 #plot the result and compare with the true Matern covariance
 plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",

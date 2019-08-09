@@ -67,7 +67,7 @@ obs.loc <- runif(n = n.obs, min = 0, max = 1)
 A <- rSPDE.A1d(x, obs.loc)
 noise <- rnorm(n.obs*n.rep)
 dim(noise) <- c(n.obs, n.rep)
-Y = as.matrix(A\\\%*\\\%u + sigma.e*noise)
+Y = as.matrix(A\%*\%u + sigma.e*noise)
 
 #define negative likelihood function for optimization using matern.loglike
 mlik <- function(theta, Y, G, C, A){

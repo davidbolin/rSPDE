@@ -108,7 +108,7 @@ simulate.rSPDEobj <- function(object, nsim = 1)
 #' #Create some data
 #' obs.loc <- runif(n = 10, min = 0, max = 1)
 #' A <- rSPDE.A1d(x, obs.loc)
-#' Y <- as.vector(A\%*\%u + sigma.e*rnorm(10))
+#' Y <- as.vector(A%*%u + sigma.e*rnorm(10))
 #'
 #' #compute kriging predictions at the FEM grid
 #' A.krig <- rSPDE.A1d(x, x)
@@ -207,7 +207,7 @@ predict.rSPDEobj <- function(object, A, Aprd, Y, sigma.e, compute.variances = FA
 #' #Create some data
 #' obs.loc <- runif(n = 10, min = 0, max = 1)
 #' A <- rSPDE.A1d(x, obs.loc)
-#' Y = as.vector(A\%*\%u + sigma.e*rnorm(10))
+#' Y = as.vector(A%*%u + sigma.e*rnorm(10))
 #'
 #' #compute log-likelihood of the data
 #' lik1 <- rSPDE.loglike(op, Y, A, sigma.e)
@@ -314,7 +314,7 @@ rSPDE.loglike <- function(obj, Y, A, sigma.e)
 #' A <- rSPDE.A1d(x, obs.loc)
 #' noise <- rnorm(n.obs*n.rep)
 #' dim(noise) <- c(n.obs, n.rep)
-#' Y = as.matrix(A\%*\%u + sigma.e*noise)
+#' Y = as.matrix(A%*%u + sigma.e*noise)
 #'
 #' #define negative likelihood function for optimization using matern.loglike
 #' mlik <- function(theta, Y, G, C, A){
@@ -409,7 +409,7 @@ matern.loglike <- function(kappa,
 #' A <- rSPDE.A1d(x, obs.loc)
 #' noise <- rnorm(n.obs*n.rep)
 #' dim(noise) <- c(n.obs, n.rep)
-#' Y = as.matrix(A\%*\%u + sigma.e*noise)
+#' Y = as.matrix(A%*%u + sigma.e*noise)
 #'
 #' #define negative likelihood function for optimization using matern.loglike
 #' mlik <- function(theta, Y, G, C, A){

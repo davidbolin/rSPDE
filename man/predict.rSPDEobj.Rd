@@ -56,7 +56,7 @@ u <- simulate(op)
 #Create some data
 obs.loc <- runif(n = 10, min = 0, max = 1)
 A <- rSPDE.A1d(x, obs.loc)
-Y <- as.vector(A\\\%*\\\%u + sigma.e*rnorm(10))
+Y <- as.vector(A\%*\%u + sigma.e*rnorm(10))
 
 #compute kriging predictions at the FEM grid
 A.krig <- rSPDE.A1d(x, x)
