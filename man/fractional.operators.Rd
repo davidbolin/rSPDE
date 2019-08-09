@@ -76,7 +76,7 @@ op <- fractional.operators(L = fem$G + kappa^2*fem$C, beta = (nu + 1/2)/2,
                            C=fem$C, scale.factor = kappa^2, tau = tau)
 
 v = t(rSPDE.A1d(x,0.5))
-c.approx = op$Pr \\\%*\\\% solve(op$Q, op$Pr \\\%*\\\% v)
+c.approx = op$Pr \%*\% solve(op$Q, op$Pr \%*\% v)
 
 #plot the result and compare with the true Matern covariance
 plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
