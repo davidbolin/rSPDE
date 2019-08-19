@@ -92,7 +92,7 @@ matern.covariance <- function(h, kappa, nu, sigma)
     C = (sigma^2 / (2^(nu - 1) * gamma(nu))) * ((kappa*abs(h))^nu) * besselK(kappa*abs(h), nu)
   }
   C[h == 0] = sigma^2
-  return(matrix(C))
+  return(as.matrix(C))
 }
 
 #' Summarise excurobj objects
