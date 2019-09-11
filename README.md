@@ -15,7 +15,7 @@ For illustration purposes, the package contains a simple FEM implementation for 
 [Vignette][ref2] for an introduction to the package. 
 
 # Reference #
-D. Bolin and K. Kichner, [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Preprint, arXiv:1711.04333
+D. Bolin and K. Kichner, [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Journal of Computational and Graphical Statistics.
 
 # Installation instructions #
 The package can be installed in R using the command
@@ -25,5 +25,5 @@ The package can be installed in R using the command
 devtools::install_bitbucket("davidbolin/rspde",ref="default")
 ```
 
-[ref]: https://arxiv.org/abs/1711.04333  "The SPDE approach for Gaussian random fields with general smoothness"
+[ref]: https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537  "The rational SPDE approach for Gaussian random fields with general smoothness"
 [ref2]: https://cran.r-project.org/web/packages/rSPDE/vignettes/rspde.html "Vignette"
