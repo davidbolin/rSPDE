@@ -1,4 +1,7 @@
 # Description #
+
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-last-release/rSPDE)](https://cran.r-project.org/package=rSPDE)
+
 rSPDE is an R package used for approximating fractional SPDEs 
 
 L^\beta u(s) = W,
