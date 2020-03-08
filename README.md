@@ -14,12 +14,17 @@ For illustration purposes, the package contains a simple FEM implementation for 
 D. Bolin and K. Kichner, [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Journal of Computational and Graphical Statistics.
 
 # Installation instructions #
-The package can be installed in R using the command
+The latest CRAN release of the package can be installed directly from CRAN with `install.packages("rSPDE")`.
+The latest stable version (which is sometimes slightly more recent than the CRAN version), can be installed by using the command
+```r
+remotes::install_bitbucket("davidbolin/rSPDE", ref = "master")
 ```
-#!r
+in R. The development version can be installed using the command
+```r
+remotes::install_bitbucket("davidbolin/rSPDE", ref = "devel")
+```
 
-devtools::install_bitbucket("davidbolin/rspde",ref="default")
-```
+
 
 [ref]: https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537  "The rational SPDE approach for Gaussian random fields with general smoothness"
 [ref2]: https://cran.r-project.org/web/packages/rSPDE/vignettes/rspde.html "Vignette"
