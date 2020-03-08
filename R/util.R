@@ -230,3 +230,42 @@ rSPDE.fem1d <- function(x)
 
   return(list(G = G, C = C))
 }
+
+#' Warnings free loading of add-on packages
+#'
+#' Turn off all warnings for require(), to allow clean completion
+#' of examples that require unavailable Suggested packages.
+#'
+#' @param package The name of a package, given as a character string.
+#' @param lib.loc a character vector describing the location of R library trees
+#' to search through, or \code{NULL}.  The default value of \code{NULL}
+#' corresponds to all libraries currently known to \code{.libPaths()}.
+#' Non-existent library trees are silently ignored.
+#' @param character.only a logical indicating whether \code{package} can be
+#' assumed to be a character string.
+#'
+#' @return \code{require.nowarnings} returns (invisibly) \code{TRUE} if it succeeds, otherwise \code{FALSE}
+#' @details \code{require(package)} acts the same as
+#' \code{require(package, quietly = TRUE)} but with warnings turned off.
+#' In particular, no warning or error is given if the package is unavailable.
+#' Most cases should use \code{requireNamespace(package, quietly = TRUE)} instead,
+#' which doesn't produce warnings.
+#' @seealso \code{\link{require}}
+#' @export
+#' @examples
+#' ## This should produce no output:
+#' if (require.nowarnings(nonexistent)) {
+#'   message("Package loaded successfully")
+#' }
+
+require.nowarnings <- function(package, lib.loc = NULL, character.only = FALSE)
+{
+  if (!character.only)
+    package <- as.character(substitute(package))
+  suppressWarnings(
+    require(package,
+            lib.loc = lib.loc,
+            quietly = TRUE,
+            character.only = TRUE)
+  )
+}

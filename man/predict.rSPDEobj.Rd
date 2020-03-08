@@ -4,8 +4,7 @@
 \alias{predict.rSPDEobj}
 \title{Prediction of a fractional SPDE using a rational SPDE approximation}
 \usage{
-\method{predict}{rSPDEobj}(object, A, Aprd, Y, sigma.e,
-  compute.variances = FALSE, ...)
+\method{predict}{rSPDEobj}(object, A, Aprd, Y, sigma.e, compute.variances = FALSE, ...)
 }
 \arguments{
 \item{object}{The rational SPDE approximation, computed using \code{\link{fractional.operators}},

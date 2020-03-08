@@ -3,7 +3,6 @@
 \docType{package}
 \name{rSPDE}
 \alias{rSPDE}
-\alias{rSPDE-package}
 \title{Rational approximations of fractional SPDEs.}
 \description{
 \code{rSPDE} is used for approximating fractional elliptic SPDEs
