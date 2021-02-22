@@ -31,37 +31,30 @@ The package version format for released versions is `major.minor.bugfix`. All re
 For non `master` and `devel` branches that collaborators need access to (e.g. release branches, feature branches, etc, use the `git flow publish` mechanism).
 
 
-* Prepare a new stable release with CRAN submission:
+  * Prepare a new stable release with CRAN submission:
 ```
 git flow release start major.(minor+1).0
-## Update the DESCRIPTION version number as major.(minor+1).0
-## Update the version in NEWS.md
-## Commit the changes
+usethis::use_version("minor") # In R (updates the version number in DESCRIPTION and NEWS)
 ## At this point, see the CRAN submission section below.
 git flow release finish 'VERSION'
-## Resolve/update the DESCRIPTION and NEWS.md version number conflict
-## in favour of the released version, with extra .9000, e.g. with
-## the help of  git mergetool
-## Add a new version section in NEWS.md
-## Commit the merge
+usethis::use_dev_version() # In R (updates the dev version number in DESCRIPTION and NEWS)
 ```
-
-* Do a hotfix (branch from stable master; use bugfix for release branch bugfixes):
+  * Do a hotfix (branch from stable branch; use bugfix for release branch bugfixes):
 ```
 git flow hotfix start hotfix_branch_name
 ## Do the bugfix, update the verison number major.minor.(bugfix+1), and commit
 ## Optionally, do CRAN submission
 git flow hotfix finish hotfix_branch_name
-## Resolve merge conflicts (hopefully mostly due to version numbers)
+## Resolve merge conflicts, if any
 ```
-
-* CRAN submission
+  * CRAN submission
 ```
 ## Perform CRAN checks (usually on the release branch version)
 ## If unsuccessful then do bugfixes with increasing bugfix version, until ok
 ## Submit to CRAN
 ## If not accepted then do more bugfixes and repeat
 ```
+
 
 
 [ref]: https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537  "The rational SPDE approach for Gaussian random fields with general smoothness"
