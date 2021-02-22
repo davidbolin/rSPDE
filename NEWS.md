@@ -1,4 +1,4 @@
-# rSPDE (development version)
+# rSPDE 0.6.0
 
 # rSPDE 0.5.0
 
