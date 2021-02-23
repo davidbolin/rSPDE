@@ -17,12 +17,20 @@ D. Bolin and K. Kichner, [The rational SPDE approach for Gaussian random fields 
 The latest CRAN release of the package can be installed directly from CRAN with `install.packages("rSPDE")`.
 The latest stable version (which is sometimes slightly more recent than the CRAN version), can be installed by using the command
 ```r
-remotes::install_bitbucket("davidbolin/rSPDE", ref = "master")
+remotes::install_github("davidbolin/rspde", ref = "stable")
 ```
 in R. The development version can be installed using the command
 ```r
-remotes::install_bitbucket("davidbolin/rSPDE", ref = "devel")
+remotes::install_github("davidbolin/rspde", ref = "devel")
 ```
+
+If you want to install the package using the `remotes::install_github`-method on Windows, you first need to install `Rtools` and add the paths to `Rtools` and `gcc` to the Windows `PATH` environment variable. This can be done for the current R session only using the commands
+```r
+rtools = "C:\\Rtools\\bin"
+gcc = "C:\\Rtools\\gcc-4.6.3\\bin"
+Sys.setenv(PATH = paste(c(gcc, rtools, Sys.getenv("PATH")), collapse = ";"))
+```
+where the variables `rtools` and `gcc` need to be changed if `Rtool`s is not installed directly on `C:`.
 
 
 # Repository branch workflows #
@@ -31,37 +39,30 @@ The package version format for released versions is `major.minor.bugfix`. All re
 For non `master` and `devel` branches that collaborators need access to (e.g. release branches, feature branches, etc, use the `git flow publish` mechanism).
 
 
-* Prepare a new stable release with CRAN submission:
+  * Prepare a new stable release with CRAN submission:
 ```
 git flow release start major.(minor+1).0
-## Update the DESCRIPTION version number as major.(minor+1).0
-## Update the version in NEWS.md
-## Commit the changes
+usethis::use_version("minor") # In R (updates the version number in DESCRIPTION and NEWS)
 ## At this point, see the CRAN submission section below.
 git flow release finish 'VERSION'
-## Resolve/update the DESCRIPTION and NEWS.md version number conflict
-## in favour of the released version, with extra .9000, e.g. with
-## the help of  git mergetool
-## Add a new version section in NEWS.md
-## Commit the merge
+usethis::use_dev_version() # In R (updates the dev version number in DESCRIPTION and NEWS)
 ```
-
-* Do a hotfix (branch from stable master; use bugfix for release branch bugfixes):
+  * Do a hotfix (branch from stable branch; use bugfix for release branch bugfixes):
 ```
 git flow hotfix start hotfix_branch_name
 ## Do the bugfix, update the verison number major.minor.(bugfix+1), and commit
 ## Optionally, do CRAN submission
 git flow hotfix finish hotfix_branch_name
-## Resolve merge conflicts (hopefully mostly due to version numbers)
+## Resolve merge conflicts, if any
 ```
-
-* CRAN submission
+  * CRAN submission
 ```
 ## Perform CRAN checks (usually on the release branch version)
 ## If unsuccessful then do bugfixes with increasing bugfix version, until ok
 ## Submit to CRAN
 ## If not accepted then do more bugfixes and repeat
 ```
+
 
 
 [ref]: https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537  "The rational SPDE approach for Gaussian random fields with general smoothness"
