@@ -1,4 +1,4 @@
-# rSPDE (development version)
+# rSPDE 0.6.2
 
 # rSPDE 0.6.1
 * Add rgdal as suggested package
