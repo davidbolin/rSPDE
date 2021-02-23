@@ -17,12 +17,20 @@ D. Bolin and K. Kichner, [The rational SPDE approach for Gaussian random fields 
 The latest CRAN release of the package can be installed directly from CRAN with `install.packages("rSPDE")`.
 The latest stable version (which is sometimes slightly more recent than the CRAN version), can be installed by using the command
 ```r
-remotes::install_bitbucket("davidbolin/rSPDE", ref = "master")
+remotes::install_github("davidbolin/rspde", ref = "stable")
 ```
 in R. The development version can be installed using the command
 ```r
-remotes::install_bitbucket("davidbolin/rSPDE", ref = "devel")
+remotes::install_github("davidbolin/rspde", ref = "devel")
 ```
+
+If you want to install the package using the `remotes::install_github`-method on Windows, you first need to install `Rtools` and add the paths to `Rtools` and `gcc` to the Windows `PATH` environment variable. This can be done for the current R session only using the commands
+```r
+rtools = "C:\\Rtools\\bin"
+gcc = "C:\\Rtools\\gcc-4.6.3\\bin"
+Sys.setenv(PATH = paste(c(gcc, rtools, Sys.getenv("PATH")), collapse = ";"))
+```
+where the variables `rtools` and `gcc` need to be changed if `Rtool`s is not installed directly on `C:`.
 
 
 # Repository branch workflows #
