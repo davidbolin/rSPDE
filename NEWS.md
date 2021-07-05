@@ -1,4 +1,5 @@
 # rSPDE (development version)
+* Change to inline citations in the Vignette to avoid problems on CRAN
 
 # rSPDE 0.6.2
 
