@@ -80,8 +80,8 @@
 #'                            C=fem$C, scale.factor = kappa^2, tau = tau)
 #'
 #' v = t(rSPDE.A1d(x,0.5))
-#' c.approx = op$Pr %*% solve(op$Q, op$Pr %*% v)
-#'
+#' c.approx = Sigma.mult(op,v)
+#' 
 #' #plot the result and compare with the true Matern covariance
 #' plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
 #'      xlab="h", main = "Matern covariance and rational approximations")
@@ -233,7 +233,7 @@ fractional.operators <- function(L,
 #'                        G = fem$G, C = fem$C, d = 1)
 #'                        
 #' v = t(rSPDE.A1d(x,0.5))
-#' c.approx = op$Pr %*% solve(op$Q, op$Pr %*% v)
+#' c.approx = Sigma.mult(op,v)
 #'
 #' #plot the result and compare with the true Matern covariance
 #' plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",

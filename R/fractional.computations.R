@@ -169,8 +169,9 @@ predict.rSPDEobj <- function(object, A, Aprd, Y, sigma.e, compute.variances = FA
 #'
 #' This function evaluates the log-likelihood function for a fractional SPDE model
 #' \eqn{L^\beta u(s) = W}{L^\beta u(s) = W} that is observed under Gaussian measurement
-#' noise: \eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = u(s_i) + \epsilon_i}, where \eqn{\epsilon_i}{\epsilon_i}
-#' are iid mean-zero Gaussian variables.
+#' noise: \eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = x(s_i) + \epsilon_i}, where \eqn{\epsilon_i}{\epsilon_i}
+#' are iid mean-zero Gaussian variables and \eqn{x(s) = \mu(s) + u(s)}{x(s) = \mu(s) + u(s)}, where 
+#' \eqn{\mu(s)}{\mu(s)} is the expectation vector of the latent field.
 #'
 #' @param obj The rational SPDE approximation, computed using \code{\link{fractional.operators}},
 #' \code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.
@@ -178,6 +179,7 @@ predict.rSPDEobj <- function(object, A, Aprd, Y, sigma.e, compute.variances = FA
 #' the columns correspond to independent replicates of observations.
 #' @param A An observation matrix that links the measurement location to the finite elemen basis.
 #' @param sigma.e The standard deviation of the measurement noise.
+#' @param mu Expectation vector of the latent field (default = 0). 
 #'
 #' @return The log-likelihood value.
 #' @export
@@ -213,7 +215,7 @@ predict.rSPDEobj <- function(object, A, Aprd, Y, sigma.e, compute.variances = FA
 #' lik1 <- rSPDE.loglike(op, Y, A, sigma.e)
 #' cat(lik1)
 
-rSPDE.loglike <- function(obj, Y, A, sigma.e)
+rSPDE.loglike <- function(obj, Y, A, sigma.e, mu=0)
 {
   Y = as.matrix(Y)
   if (length(dim(Y)) == 2) {
@@ -246,16 +248,16 @@ rSPDE.loglike <- function(obj, Y, A, sigma.e)
   posterior.ld = 2 * c(determinant(R.post, logarithm = TRUE)$modulus)
   
   AtY = t(A) %*% Q.e %*% Y 
-  mu.post <- solve(R.post, AtY, system = "A")
+  mu.post <- mu + solve(R.post, AtY, system = "A")
   
   lik = n.rep * (prior.ld - posterior.ld - dim(A)[1] * log(2*pi) - sum(log(nugget))) / 2
   
   if (n.rep > 1) {
-    lik = lik - 0.5 * sum(colSums(mu.post * (obj$Q %*% mu.post)))
+    lik = lik - 0.5 * sum(colSums((mu.post -mu)* (obj$Q %*% (mu.post - mu))))
     v = Q.e%*%(Y - A %*% mu.post)
     lik = lik - 0.5 * sum(colSums((Y - A %*% mu.post)*v)) 
   } else {
-    lik = lik - 0.5 * (t(mu.post) %*% obj$Q %*% mu.post + t(Y - A %*% mu.post) %*% Q.e %*% (Y - A %*% mu.post))
+    lik = lik - 0.5 * (t(mu.post - mu) %*% obj$Q %*% (mu.post - mu) + t(Y - A %*% mu.post) %*% Q.e %*% (Y - A %*% mu.post))
   }
   return(as.double(lik))
 }

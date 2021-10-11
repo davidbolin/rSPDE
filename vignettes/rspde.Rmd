@@ -285,7 +285,7 @@ par(opar)
 # Spatial data and parameter estimation
 
 The functions used in the previous examples also work for spatial models. We then need to construct a mesh over the domain of interest and then compute the matrices needed to define the operator. These tasks can be performed, for example, using the `R-INLA` package. Let us start by defining a mesh over $[0,1]\times [0, 1]$ and compute the mass and stiffness matrices for that mesh. 
-````{r, eval = run_inla}
+```{r, eval = run_inla}
 x <- seq(from = 0, to = 10, length.out = 70)
 mesh <- inla.mesh.create(lattice = inla.mesh.lattice(x = x, y = x), 
                          extend = FALSE, refine = FALSE)

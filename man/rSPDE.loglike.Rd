@@ -4,7 +4,7 @@
 \alias{rSPDE.loglike}
 \title{Log-likelihood function for latent Gaussian fractional SPDE model}
 \usage{
-rSPDE.loglike(obj, Y, A, sigma.e)
+rSPDE.loglike(obj, Y, A, sigma.e, mu = 0)
 }
 \arguments{
 \item{obj}{The rational SPDE approximation, computed using \code{\link{fractional.operators}},
@@ -16,6 +16,8 @@ the columns correspond to independent replicates of observations.}
 \item{A}{An observation matrix that links the measurement location to the finite elemen basis.}
 
 \item{sigma.e}{The standard deviation of the measurement noise.}
+
+\item{mu}{Expectation vector of the latent field (default = 0).}
 }
 \value{
 The log-likelihood value.
@@ -23,8 +25,9 @@ The log-likelihood value.
 \description{
 This function evaluates the log-likelihood function for a fractional SPDE model
 \eqn{L^\beta u(s) = W}{L^\beta u(s) = W} that is observed under Gaussian measurement
-noise: \eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = u(s_i) + \epsilon_i}, where \eqn{\epsilon_i}{\epsilon_i}
-are iid mean-zero Gaussian variables.
+noise: \eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = x(s_i) + \epsilon_i}, where \eqn{\epsilon_i}{\epsilon_i}
+are iid mean-zero Gaussian variables and \eqn{x(s) = \mu(s) + u(s)}{x(s) = \mu(s) + u(s)}, where 
+\eqn{\mu(s)}{\mu(s)} is the expectation vector of the latent field.
 }
 \note{
 This example below shows how the function can be used to evaluate the likelihood of a latent
