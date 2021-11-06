@@ -56,8 +56,8 @@ from the Paraná region in Brazil. We will also provide a
 step-by-step illustration on how to use our implementation of the 
 covariance-based rational approximation to the R-INLA package.
 
-It is important to mention that our implementation in the R-INLA package
-requires the PARDISO solver. Please, go to (https://www.pardiso-project.org/r-inla/#license)
+It is important to mention that one can improve the performance
+by using the PARDISO solver. Please, go to (https://www.pardiso-project.org/r-inla/#license)
 to apply for a license. Also, use `inla.pardiso()` for instructions on 
 how to enable the PARDISO sparse library.
 
@@ -203,7 +203,7 @@ alt <- PRprec$Altitude[ind]
 
 Let us build a plot for the precipitations:
 
-```{r message=FALSE,fig.width=12, fig.height=8}
+```{r message=FALSE,fig.width=6, fig.height=4}
 ggplot() + geom_point(aes(x = coords[, 1], y = coords[, 2], colour = Y), size = 2, 
     alpha = 1) + scale_colour_gradientn(colours = tim.colors(100)) + geom_path(aes(x = PRborder[, 
     1], y = PRborder[, 2])) + geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[1034:1078, 
@@ -223,7 +223,7 @@ seaDist <- apply(spDists(coords, PRborder[1034:1078, ], longlat = TRUE), 1,
 
 Now, let us plot the precipitation as a function of the possible covariates:
 
-```{r message=FALSE, fig.width=12, fig.height=8}
+```{r message=FALSE, fig.width=6, fig.height=4}
 par(mfrow = c(2, 2))
 plot(coords[, 1], Y, cex = 0.5, xlab = "Longitude")
 plot(coords[, 2], Y, cex = 0.5, xlab = "Latitude")
@@ -242,10 +242,10 @@ library(rSPDE)
 
 ### Mesh
 
-We can use usa INLA for creating the mesh. Let us create a mesh which is based 
+We can use INLA for creating the mesh. Let us create a mesh which is based 
 on a non-convex hull to avoid adding many small triangles outside the domain of interest (more triangles = larger computation times):
 
-```{r message=FALSE, fig.width=12, fig.height=8}
+```{r message=FALSE, fig.width=6, fig.height=4}
 prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
 prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
 plot(prmesh, asp = 1, main = "")
@@ -293,7 +293,7 @@ rational approximation.
 Therefore, to set up a model all we have to do is use the `create_rspde_model` function:
 
 ```{r message=FALSE}
-rspde_model <- create_rspde_model(inla_mesh = prmesh, d=2)
+rspde_model <- create_rspde_model(inla_mesh = prmesh, optimize=FALSE)
 ```
 
 ### The inla.stack
@@ -390,7 +390,8 @@ of order `3`:
 
 * We build a new model:
 ```{r message=FALSE}
-rspde_model_3 <- create_rspde_model(inla_mesh = prmesh, d=2, rspde_order = 3)
+rspde_model_3 <- create_rspde_model(inla_mesh = prmesh, rspde_order = 3,
+                                    optimize=FALSE)
 ```
 
 * We create a new $A$ matrix:
@@ -431,8 +432,7 @@ summary(rspde_fit_3)
 
 ## Estimating models with fixed smoothness
 
-We can fix the smoothness, say $\nu$, of the model by setting the argument `fixed_nu` to
-`TRUE` *and* provide the value of $\nu$.
+We can fix the smoothness, say $\nu$, of the model by providing the value of $\nu$.
 
 When the smoothness, $\nu$, is fixed, we can have two possibilities:
 
@@ -474,11 +474,11 @@ can use the $A$ matrix and the index of the first fitted model,
 which is also of order 2.
 
 Therefore, all we have to do is build a new model in which we set
-`fixed_nu` to `TRUE` and set `nu` to `0.78`:
+ `nu` to `0.78`:
 
 ```{r message=FALSE}
-rspde_model_fix <- create_rspde_model(inla_mesh = prmesh, d=2, rspde_order = 2,
-                                      fixed_nu = TRUE, nu = 0.78)
+rspde_model_fix <- create_rspde_model(inla_mesh = prmesh, rspde_order = 2,
+                                       nu = 0.78, optimize=FALSE)
 ```
 
 Let us now fit the model:
@@ -507,8 +507,8 @@ Notice that we already computed the $A$ matrix and the `index` for the third ord
 model. Thus, all we have to do is build a new model and fit:
 
 ```{r message=FALSE}
-rspde_model_fix_3 <- create_rspde_model(inla_mesh = prmesh, d=2, rspde_order = 3,
-                                      fixed_nu = TRUE, nu = 0.78)
+rspde_model_fix_3 <- create_rspde_model(inla_mesh = prmesh, rspde_order = 3,
+                                       nu = 0.78)
 
 f.s.fix.3 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
   f(field, model = rspde_model_fix_3)
@@ -574,21 +574,21 @@ To this end we need to compute a new $A$ matrix:
 
 ```{r message=FALSE}
 Abar.int <- rspde_create_A(inla_mesh = prmesh, loc = coords,
-                       fixed_nu = TRUE, nu = 1, d = 2)
+                       nu = 1)
 ```
 
 a new index:
 
 ```{r message=FALSE}
 mesh.index.int <- rspde_make_index(name = "field", inla_mesh = prmesh,
-                                   fixed_nu = TRUE, nu = 1, d = 2)
+                                  nu = 1)
 ```
 
-create a new model (remember to set `fixed_nu=TRUE` and `nu=1`):
+create a new model (remember to set `nu=1`):
 
 ```{r message=FALSE}
-rspde_model_fix_int1 <- create_rspde_model(inla_mesh = prmesh, d=2,
-                                      fixed_nu = TRUE, nu = 1)
+rspde_model_fix_int1 <- create_rspde_model(inla_mesh = prmesh,
+                                     nu = 1, optimize = TRUE)
 ```
 
 The remaining is standard:
@@ -629,8 +629,8 @@ we already computed them.
 Thus,
 
 ```{r message=FALSE}
-rspde_model_fix_int2 <- create_rspde_model(inla_mesh = prmesh, d=2,
-                                           fixed_nu = TRUE, nu = 2)
+rspde_model_fix_int2 <- create_rspde_model(inla_mesh = prmesh,
+                                            nu = 2)
 
 f.s.fix.int.2 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
   f(field, model = rspde_model_fix_int2)
@@ -687,3 +687,5 @@ rspde_gen$cpu.used
 Observe that time computational time of the model 
 `rspde_fit` was bigger than the sum of the computational times of `rspde_fix_int_1`,
 `rspde_fix_int_2` and `rspde_gen`.
+
+## References 
