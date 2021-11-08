@@ -5,10 +5,10 @@
 
 rSPDE is an R package used for computing rational approximations of fractional SPDEs These rational approximations can be used for computatially efficient statistical inference.
 
-Basic statistical operations such as likelihood evaluations and kriging predictions using the fractional approximations are also implemented.
+Basic statistical operations such as likelihood evaluations and kriging predictions using the fractional approximations are also implemented. The package also contains an interface to [R-INLA][ref4].
 
 For illustration purposes, the package contains a simple FEM implementation for models on R. See the 
-[Vignette][ref2] for an introduction to the package. 
+[Vignette][ref2] for an introduction to the package, and the  [INLA Vignette][ref3] for an introduction to the INLA interface. 
 
 # Reference #
 D. Bolin and K. Kirchner (2020) [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Journal of Computational and Graphical Statistics, 29:2, 274-285.
@@ -67,3 +67,5 @@ git flow hotfix finish hotfix_branch_name
 
 [ref]: https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537  "The rational SPDE approach for Gaussian random fields with general smoothness"
 [ref2]: https://cran.r-project.org/web/packages/rSPDE/vignettes/rspde.html "Vignette"
+[ref3]: https://rpubs.com/alexandrebsimas/inla_rspde "INLA Vignette"
+[ref4]: https://r-inla.org "INLA homepage"
