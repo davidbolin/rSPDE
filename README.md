@@ -11,7 +11,7 @@ For illustration purposes, the package contains a simple FEM implementation for 
 [Vignette][ref2] for an introduction to the package. 
 
 # Reference #
-D. Bolin and K. Kichner, [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Journal of Computational and Graphical Statistics.
+D. Bolin and K. Kirchner (2020) [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Journal of Computational and Graphical Statistics, 29:2, 274-285.
 
 # Installation instructions #
 The latest CRAN release of the package can be installed directly from CRAN with `install.packages("rSPDE")`.
