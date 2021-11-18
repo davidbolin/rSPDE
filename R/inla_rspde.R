@@ -1,15 +1,11 @@
-#Please install pardiso for inla:
-#For further details visit: https://www.pardiso-project.org/r-inla/#license
-#inla.setOption(pardiso.license = '~/.pardiso.license',
-#               smtp = 'pardiso') 
-
-
 utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
                          "n_m", "nu", "nu_lower_bound", "nu_upper_bound",
-                         "do_optimize", "idx_symmetric", "n_Q", "positions",
-                         "lengths","epsilon_identity"))
+                         "do_optimize", "idx_symmetric", "n_Q", "rspde_order",
+                         "graph_opt","fem_matrices", "sharp",
+                         "prior.kappa", "prior.nu", "prior.tau"))
 
 #' @importFrom stats dnorm pnorm
+#' @importFrom methods as
 #' @name 'inla.rgeneric.cov_rspde_general'
 #' @title Generic INLA method for the covariance-based rSPDE approach
 #' @description Generic INLA method for the covariance-based rSPDE approach
@@ -30,17 +26,6 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
                                               args = NULL,
                                               ...) {
   
-  cut_decimals <- function(nu) {
-    temp <- nu - floor(nu)
-    if (temp < 10 ^ (-3)) {
-      temp <- 10 ^ (-3)
-    }
-    if (temp > 0.999) {
-      temp <- 0.999
-    }
-    return(temp)
-  }
-  
   initial <- function(n, theta) {
     return(c(0, 0, 0))
   }
@@ -57,91 +42,20 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
   ######## precision matrix
   Q = function(n, theta) {
     param = interpret.theta(n, theta)
-    nu = exp(param$lnu) + nu_lower_bound
+    nu = min(exp(param$lnu) + nu_lower_bound, nu_upper_bound)
     tau = exp(param$ltau)
     kappa = exp(param$lkappa)
     
-    I_C = Diagonal(n = nrow(C), x = 1)
-    
-    mt <- get(paste0("m", n_m, "t"))
-    
-    if (nu > nu_upper_bound) {
-      nu = nu_upper_bound
-    }
-    
-    beta = nu / 2 + d / 4
-    
-    m_alpha = max(1, floor(2 * beta))
-    
-    Id_temp = diag(rep(1, n_m + 1))
-    
-    r = sapply(1:(n_m), function(i) {
-      approx(mt$nu, mt[[paste0("r", i)]], cut_decimals(nu))$y
-    })
-    
-    p = sapply(1:(n_m), function(i) {
-      approx(mt$nu, mt[[paste0("p", i)]], cut_decimals(nu))$y
-    })
-    
-    k = approx(mt$nu, mt$k, cut_decimals(nu))$y
-    
-    # matrix for operator L
-    L = C + G / kappa ^ 2
-    sizeL = dim(L)[1]
-    
-    # compute m_alpha part, the interger order of L
-    Malpha = I_C
-    
-    for (i in 1:m_alpha) {
-      Malpha = Malpha %*% (I_C + C_inv_G / (kappa ^ 2))
-    }
-    #construct Q matrix
-    
-    C_L = (I_C + C_inv_G / (kappa ^ 2))
-    
-    Q = ((L - p[1] * C) %*% Malpha) / r[1]
-    
-    for (i in 2:length(r)) {
-      Q = bdiag(Q, ((L - p[i] * C) %*% Malpha) / r[i])
-    }
-    # add k_part into Q
-    
-    if (m_alpha == 0) {
-      Q = bdiag(Q, (1 / k) * C_inv)
-      
-    } else if (m_alpha == 1) {
-      Q = bdiag(Q, (1 / k) * L)
-      
-    } else if (m_alpha == 2) {
-      Q = bdiag(Q, (1 / k) * L %*% C_L)
-      
-    } else if (m_alpha == 3) {
-      Q = bdiag(Q, (1 / k) * L %*% C_L %*% C_L)
-    } else {
-      dif_m_alpha = m_alpha - 3
-      Q_temp = (1 / k) * L %*% C_L %*% C_L
-      while (dif_m_alpha > 0) {
-        Q_temp = Q_temp %*% C_L
-        dif_m_alpha = dif_m_alpha - 1
-      }
-      Q = bdiag(Q, Q_temp)
-    }
-    
-    Q = Q * kappa ^ (4 * beta)
-    
-    Q = Q + Diagonal(n = nrow(Q), x = epsilon_identity)
-    Q = tau ^ 2 * Q
-    
     if(do_optimize){
-      #nu_pos <- floor(nu_lower_bound) + floor(nu) + 1
-      nu_pos <- which(length(Q@x) == lengths)
-      idx_pos <- positions[[nu_pos]]
-      Q_x <- rep(0,n_Q)
-      Q_x[idx_pos] <- Q@x[idx_symmetric[[nu_pos]]]
-      return(Q_x)
+      return(rSPDE::rspde_Prec_opt(kappa=kappa, nu=nu, tau=tau, 
+                                   rspde_order=rspde_order, 
+                                   d=d, fem_matrices = fem_matrices,
+                                   sharp=sharp, graph = NULL))
+    } else{
+      return(rSPDE::rspde_Prec(kappa=kappa, nu=nu, tau=tau, 
+                               rspde_order=rspde_order, 
+                               d=d, fem_mesh_matrices = fem_matrices))
     }
-  
-    return(Q)
   }
   
   
@@ -158,7 +72,7 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
   
   ############################# graph skeleton
   graph <- function(n, theta) {
-    return(rSPDE::rspde_Prec(C, G, C_inv_G, C_inv, n_m, d, c(-1, log(nu_upper_bound),-1)))
+    return(graph_opt)
   }
   
   
@@ -171,11 +85,13 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
       tdnorm_nu = -Inf
     } else{
       tdnorm_nu = dnorm(param$lnu, 0, 1, log = TRUE) -
-        pnorm(log(nu_upper_bound - nu_lower_bound), 0, 1, log.p = TRUE)
+        pnorm(log(nu_upper_bound - nu_lower_bound), prior.nu$meanlog, 
+              prior.nu$sdlog, log.p = TRUE)
     }
     
-    res <- tdnorm_nu + dnorm(param$lkappa, 0, 1, log = TRUE) +
-      dnorm(param$ltau, 0, 1, log = TRUE)
+    res <- tdnorm_nu + dnorm(param$lkappa, prior.kappa$meanlog, 
+                             prior.kappa$sdlog, log = TRUE) +
+      dnorm(param$ltau, prior.tau$meanlog, prior.tau$sdlog, log = TRUE)
     return(res)
   }
   
@@ -190,251 +106,6 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
     do.call(match.arg(cmd), args = list(n = as.integer(args$n), theta = theta))
   return(res)
   
-}
-
-#' @name analyze_sparsity_rpsde
-#' @title Analyze sparsity of matrices in the rSPDE approach
-#' @description Auxiliar function to analyze sparsity of matrices in the rSPDE approach
-#' @param nu_lower_bound Lower bound for the smoothness parameter
-#' @param nu_upper_bound Upper bound for the smoothness parameter
-#' @param d The dimension of the domain
-#' @param C The mass matrix
-#' @param G The stiffness matrix
-#' @param C_inv Inverse of the mass matrix
-#' @param C_inv_G C^{-1}G
-#' @param rspde_order The order of the rational approximation
-#' @return A list containing informations on sparsity of the precision matrices
-#' @export
-
-analyze_sparsity_rpsde <- function(nu_lower_bound, nu_upper_bound, d, 
-                                   C, G, C_inv, C_inv_G, rspde_order){
-
-  
-  if(nu_lower_bound==floor(nu_lower_bound)){
-    values_theta <- log(2e-3+c(nu_lower_bound:(floor(nu_upper_bound-1e-5))))
-  } else{
-    values_theta <- log(2e-3+c(nu_lower_bound, ceiling(nu_lower_bound):(floor(nu_upper_bound-1e-5))))
-  }
-  
-  #values_theta <- log(c(nu_lower_bound,nu_lower_bound + 1:(floor(nu_upper_bound)-1) + nu_upper_bound-floor(nu_upper_bound)))
-  
-  positions = list()
-  
-  Prec_v1 <- rspde_Prec(C,G,C_inv_G,C_inv, rspde_order, d, c(0, log(nu_upper_bound), 0))
-  Prec_v1  <- INLA::inla.as.sparse(Prec_v1)
-  length_upper <- length(Prec_v1@x)
-  idx_upper_bound <- which(Prec_v1@i <= Prec_v1@j)
-  Prec_v1@i <- Prec_v1@i[idx_upper_bound]
-  Prec_v1@j <- Prec_v1@j[idx_upper_bound]
-  sM_v1 <- cbind(Prec_v1@i, Prec_v1@j)
-  colnames(sM_v1) <- NULL
-  
-  idx_symmetric <- list()
-  
-  sM_v1 <- split(sM_v1, seq(nrow(sM_v1)))
-  
-  lengths <- list()
-  
-  for(i in 1:length(values_theta)){
-    Prec_v2 <- rspde_Prec(C,G,C_inv_G,C_inv, rspde_order, d, c(0, values_theta[i], 0))
-    Prec_v2  <- INLA::inla.as.sparse(Prec_v2)
-    lengths[[i]] <- length(Prec_v2@x)
-    idx <- which(Prec_v2@i <= Prec_v2@j)
-    Prec_v2@i <- Prec_v2@i[idx]
-    Prec_v2@j <- Prec_v2@j[idx]
-    sM_v2 <- cbind(Prec_v2@i, Prec_v2@j)
-    colnames(sM_v2) <- NULL
-    
-    sM_v2 <- split(sM_v2, seq(nrow(sM_v2)))
-    
-    positions[[i]] = match(sM_v2, sM_v1)
-    idx_symmetric[[i]] = idx
-  }
-  n_Q <- length(idx_upper_bound)
-  positions[[length(values_theta)+1]] <- sM_v1
-  lengths[[length(values_theta)+1]] <- length_upper
-  return(list(positions=positions,n_Q=n_Q, idx_symmetric=idx_symmetric,
-              idx_upper_bound=idx_upper_bound, lengths=lengths))
-}
-
-
-
-#' @name rspde_Prec
-#' @title Precision matrix of the covariance-based rational approximation
-#' @description Computes the precision matrix for the covariance-based rational SPDE
-#' @param C The mass matrix
-#' @param G The stiffness matrix
-#' @param C_inv_G C^{-1}G
-#' @param C_inv The inverse of the mass matrix
-#' @param n_m The order of the rational approximation.
-#' @param d The dimension
-#' @param theta vector containing the parameters of the model.
-#' @param epsilon_identity a multiple of the identity matrix to be summed to 
-#' the precision matrix.
-#' @return The precision matrix
-#' @export
-
-rspde_Prec = function(C, G, C_inv_G, C_inv, n_m, d, theta, epsilon_identity=1e-5) {
-  
-  cut_decimals <- function(nu) {
-    temp <- nu - floor(nu)
-    if (temp < 10 ^ (-3)) {
-      temp <- 10 ^ (-3)
-    }
-    if (temp > 0.999) {
-      temp <- 0.999
-    }
-    return(temp)
-  }
-  
-  interpret.theta <- function(theta) {
-    return(list(
-      lkappa = theta[1L],
-      lnu = theta[2L],
-      ltau = theta[3L]
-    ))
-  }
-  
-  
-  
-  param = interpret.theta(theta)
-  nu = exp(param$lnu)
-  tau = exp(param$ltau)
-  kappa = exp(param$lkappa)
-  
-  I_C = Diagonal(n = nrow(C), x = 1)
-  
-  mt <- get(paste0("m", n_m, "t"))
-  
-  beta = nu / 2 + d / 4
-  
-  m_alpha = max(1, floor(2 * beta))
-
-  Id_temp = diag(rep(1, n_m + 1))
-  
-  r = sapply(1:(n_m), function(i) {
-    approx(mt$nu, mt[[paste0("r", i)]], cut_decimals(nu))$y
-  })
-  
-  p = sapply(1:(n_m), function(i) {
-    approx(mt$nu, mt[[paste0("p", i)]], cut_decimals(nu))$y
-  })
-  
-  k = approx(mt$nu, mt$k, cut_decimals(nu))$y
-  
-  # matrix for operator L
-  L = C + G / kappa ^ 2
-  sizeL = dim(L)[1]
-  
-  # compute m_alpha part, the interger order of L
-  Malpha = I_C
-  
-  for (i in 1:m_alpha) {
-    Malpha = Malpha %*% (I_C + C_inv_G / (kappa ^ 2))
-  }
-  #construct Q matrix
-  
-  C_L = (I_C + C_inv_G / (kappa ^ 2))
-  
-  Q = ((L - p[1] * C) %*% Malpha) / r[1]
-  
-  for (i in 2:length(r)) {
-    Q = bdiag(Q, ((L - p[i] * C) %*% Malpha) / r[i])
-  }
-  # add k_part into Q
-  
-  if (m_alpha == 0) {
-    Q = bdiag(Q, (1 / k) * C_inv)
-    
-  } else if (m_alpha == 1) {
-    Q = bdiag(Q, (1 / k) * L)
-    
-  } else if (m_alpha == 2) {
-    Q = bdiag(Q, (1 / k) * L %*% C_L)
-    
-  } else if (m_alpha == 3) {
-    Q = bdiag(Q, (1 / k) * L %*% C_L %*% C_L)
-  } else {
-    dif_m_alpha = m_alpha - 3
-    Q_temp = (1 / k) * L %*% C_L %*% C_L
-    while (dif_m_alpha > 0) {
-      Q_temp = Q_temp %*% C_L
-      dif_m_alpha = dif_m_alpha - 1
-    }
-    Q = bdiag(Q, Q_temp)
-  }
-  
-  Q = Q * kappa ^ (4 * beta)
-  
-  Q = Q + Diagonal(n = nrow(Q), x = epsilon_identity)
-  Q = tau ^ 2 * Q
-  
-  return(Q)
-}
-
-
-
-#' @name rspde_Prec_int
-#' @title Precision matrix of the covariance-based rational approximation
-#' @description Computes the precision matrix for the covariance-based rational SPDE
-#' @param C The mass matrix
-#' @param G The stiffness matrix
-#' @param C_inv_G C^{-1}G
-#' @param C_inv The inverse of the mass matrix
-#' @param d The dimension of the domain
-#' @param theta vector containing the parameters of the model.
-#' @param nu the smoothness parameter
-#' @param epsilon_identity a multiple of the identity matrix to be summed to 
-#' the precision matrix.
-#' @return The precision matrix
-#' @export
-
-rspde_Prec_int = function(C, G, C_inv_G, C_inv, d, theta, nu, epsilon_identity=1e-5) {
-  cut_decimals <- function(nu) {
-    temp <- nu - floor(nu)
-    if (temp < 10 ^ (-3)) {
-      temp <- 10 ^ (-3)
-    }
-    if (temp > 0.999) {
-      temp <- 0.999
-    }
-    return(temp)
-  }
-  
-  interpret.theta <- function(theta) {
-    return(list(
-      lkappa = theta[1L],
-      ltau = theta[2L]
-    ))
-  }
-  
-  param = interpret.theta(theta)
-  tau = exp(param$ltau)
-  kappa = exp(param$lkappa)
-  
-  I_C = Diagonal(n = nrow(C), x = 1)
-  
-  beta = nu / 2 + d / 4
-  
-  m_alpha = max(1, floor(2 * beta))
-  
-  n_beta = as.integer(2*beta)-1
-  
-  K = kappa^2*C + G
-  Q = K
-  if(n_beta>0){
-    CinvK = kappa^2*I_C + C_inv_G
-  }
-  
-  while(n_beta>0){
-    Q = Q %*% CinvK
-    n_beta = n_beta - 1
-  }
-  
-  Q = Q + Diagonal(n = nrow(Q), x = epsilon_identity)
-  Q = tau ^ 2 * Q
-  
-  return(Q)
 }
 
 #' @name 'inla.rgeneric.cov_rspde_frac_alpha'
@@ -448,35 +119,15 @@ rspde_Prec_int = function(C, G, C_inv_G, C_inv, d, theta, nu, epsilon_identity=1
 #' @return An INLA model
 #' @export
 'inla.rgeneric.cov_rspde_frac_alpha' <- function(cmd = c("graph",
-                                                      "Q",
-                                                      "mu",
-                                                      "initial",
-                                                      "log.norm.const",
-                                                      "log.prior",
-                                                      "quit"),
-                                              theta = NULL,
-                                              args = NULL,
-                                              ...) {
-  
-  envir = parent.env(environment())
-  if (!exists("cache.done", envir = envir)) {
-    Q <- rSPDE::rspde_Prec(C, G, C_inv_G, C_inv, n_m, d, c(-1, log(nu),-1))
-    Q <- INLA::inla.as.sparse(Q)
-    idx <- which(Q@i <= Q@j)
-    assign("idx", idx, envir = envir)
-    assign("cache.done", TRUE, envir = envir)
-  }
-  
-  cut_decimals <- function(nu) {
-    temp <- nu - floor(nu)
-    if (temp < 10 ^ (-3)) {
-      temp <- 10 ^ (-3)
-    }
-    if (temp > 0.999) {
-      temp <- 0.999
-    }
-    return(temp)
-  }
+                                                         "Q",
+                                                         "mu",
+                                                         "initial",
+                                                         "log.norm.const",
+                                                         "log.prior",
+                                                         "quit"),
+                                                 theta = NULL,
+                                                 args = NULL,
+                                                 ...) {
   
   initial <- function(n, theta) {
     return(c(0, 0))
@@ -496,80 +147,16 @@ rspde_Prec_int = function(C, G, C_inv_G, C_inv, d, theta, nu, epsilon_identity=1
     tau = exp(param$ltau)
     kappa = exp(param$lkappa)
     
-    I_C = Diagonal(n = nrow(C), x = 1)
-    
-    mt <- get(paste0("m", n_m, "t"))
-    
-    beta = nu / 2 + d / 4
-    
-    m_alpha = max(1, floor(2 * beta))
-    sigma2_spde = gamma(nu) / (gamma(nu + d / 2) * (4 * pi) ^ (0.5) * kappa ^
-                                 (2 * nu))
-    
-    Id_temp = diag(rep(1, n_m + 1))
-    
-    r = sapply(1:(n_m), function(i) {
-      approx(mt$nu, mt[[paste0("r", i)]], cut_decimals(nu))$y
-    })
-    
-    p = sapply(1:(n_m), function(i) {
-      approx(mt$nu, mt[[paste0("p", i)]], cut_decimals(nu))$y
-    })
-    
-    k = approx(mt$nu, mt$k, cut_decimals(nu))$y
-    
-    # matrix for operator L
-    L = C + G / kappa ^ 2
-    sizeL = dim(L)[1]
-    
-    # compute m_alpha part, the interger order of L
-    Malpha = I_C
-    
-    for (i in 1:m_alpha) {
-      Malpha = Malpha %*% (I_C + C_inv_G / (kappa ^ 2))
-    }
-    #construct Q matrix
-    
-    C_L = (I_C + C_inv_G / (kappa ^ 2))
-    
-    Q = ((L - p[1] * C) %*% Malpha) / r[1]
-    
-    for (i in 2:length(r)) {
-      Q = bdiag(Q, ((L - p[i] * C) %*% Malpha) / r[i])
-    }
-    # add k_part into Q
-    
-    if (m_alpha == 0) {
-      Q = bdiag(Q, (1 / k) * C_inv)
-      
-    } else if (m_alpha == 1) {
-      Q = bdiag(Q, (1 / k) * L)
-      
-    } else if (m_alpha == 2) {
-      Q = bdiag(Q, (1 / k) * L %*% C_L)
-      
-    } else if (m_alpha == 3) {
-      Q = bdiag(Q, (1 / k) * L %*% C_L %*% C_L)
-    } else {
-      dif_m_alpha = m_alpha - 3
-      Q_temp = (1 / k) * L %*% C_L %*% C_L
-      while (dif_m_alpha > 0) {
-        Q_temp = Q_temp %*% C_L
-        dif_m_alpha = dif_m_alpha - 1
-      }
-      Q = bdiag(Q, Q_temp)
-    }
-    
-    Q = Q * kappa ^ (4 * beta) * sigma2_spde
-    
-    Q = Q + Diagonal(n = nrow(Q), x = epsilon_identity)
-    Q = tau ^ 2 * Q
-    
     if(do_optimize){
-      return(Q@x[idx])
+      return(rSPDE::rspde_Prec_opt(kappa=kappa, nu=nu, tau=tau, 
+                                   rspde_order=rspde_order, 
+                                   d=d, fem_matrices = fem_matrices,
+                                   sharp=sharp, graph = NULL))
+    } else{
+      return(rSPDE::rspde_Prec(kappa=kappa, nu=nu, tau=tau, 
+                               rspde_order=rspde_order, 
+                               d=d, fem_mesh_matrices = fem_matrices))
     }
-    
-    return(Q)
   }
   
   
@@ -586,7 +173,98 @@ rspde_Prec_int = function(C, G, C_inv_G, C_inv, d, theta, nu, epsilon_identity=1
   
   ############################# graph skeleton
   graph <- function(n, theta) {
-    return(rSPDE::rspde_Prec(C, G, C_inv_G, C_inv, n_m, d, c(-1, log(nu),-1)))
+    return(graph_opt)
+  }
+  
+  ######################## log prior
+  log.prior <- function(n, theta) {
+    param = interpret.theta(n, theta)
+    
+    res <- dnorm(param$lkappa, prior.kappa$meanlog, 
+                 prior.kappa$sdlog, log = TRUE) +
+      dnorm(param$ltau, prior.tau$meanlog, 
+            prior.tau$sdlog, log = TRUE)
+    return(res)
+  }
+  
+  
+  quit <- function(n, theta) {
+    return(invisible())
+  }
+  
+  if (!length(theta))
+    theta = initial(n, theta)
+  res <-
+    do.call(match.arg(cmd), args = list(n = as.integer(args$n), theta = theta))
+  return(res)
+}
+
+
+#' @name 'inla.rgeneric.cov_rspde_int_alpha'
+#' @title Integer fixed smoothmess generic INLA method 
+#' @description Integer fixed smoothmess generic INLA method 
+#' for the covariance-based rSPDE approach
+#' @param cmd INLA parameter
+#' @param theta Parameters of the model
+#' @param ... Additional arguments to the call, or arguments with changed values. Use name = NULL to remove the argument name.
+#' @param args Arguments.
+#' @return An INLA model
+#' @export
+'inla.rgeneric.cov_rspde_int_alpha' <- function(cmd = c("graph",
+                                                        "Q",
+                                                        "mu",
+                                                        "initial",
+                                                        "log.norm.const",
+                                                        "log.prior",
+                                                        "quit"),
+                                                theta = NULL,
+                                                args = NULL,
+                                                ...) {
+  
+  initial <- function(n, theta) {
+    return(c(0, 0))
+  }
+ 
+  ######## parameter
+  interpret.theta <- function(n, theta) {
+    return(list(
+      lkappa = theta[1L],
+      ltau = theta[2L]
+    ))
+  }
+  
+  ######## precision matrix
+  Q = function(n, theta) {
+    param = interpret.theta(n, theta)
+    tau = exp(param$ltau)
+    kappa = exp(param$lkappa)
+    
+
+    
+    if(do_optimize){
+      return(rSPDE::rspde_Prec_opt_int(kappa, nu, tau,
+                                       d, fem_matrices, graph = NULL))
+    } else{
+      return(rSPDE::rspde_Prec_int(kappa=kappa, nu=nu, tau=tau, 
+                               d=d, fem_mesh_matrices = fem_matrices))
+    }
+  }
+  
+  
+  ############################# mean
+  mu = function(n, theta)
+  {
+    return(numeric(0))
+  }
+  ###################### log normal constant
+  log.norm.const <- function(n, theta) {
+    return(numeric(0))
+    
+  }
+  
+  ############################# graph skeleton
+  graph <- function(n, theta) {
+    return(graph_opt)
   }
   
   
@@ -595,8 +273,10 @@ rspde_Prec_int = function(C, G, C_inv_G, C_inv, d, theta, nu, epsilon_identity=1
   log.prior <- function(n, theta) {
     param = interpret.theta(n, theta)
     
-    res <- dnorm(param$lkappa, 0, 1, log = TRUE) +
-      dnorm(param$ltau, 0, 1, log = TRUE)
+    res <- dnorm(param$lkappa, prior.kappa$meanlog,
+                 prior.kappa$sdlog, log = TRUE) +
+      dnorm(param$ltau, prior.tau$meanlog, 
+            prior.tau$sdlog, log = TRUE)
     return(res)
   }
   
@@ -613,124 +293,639 @@ rspde_Prec_int = function(C, G, C_inv_G, C_inv, d, theta, nu, epsilon_identity=1
   
 }
 
-#' @name 'inla.rgeneric.cov_rspde_int_alpha'
-#' @title Integer fixed smoothmess generic INLA method 
-#' @description Integer fixed smoothmess generic INLA method 
-#' for the covariance-based rSPDE approach
-#' @param cmd INLA parameter
-#' @param theta Parameters of the model
-#' @param ... Additional arguments to the call, or arguments with changed values. Use name = NULL to remove the argument name.
-#' @param args Arguments.
-#' @return An INLA model
+
+
+#' @name create_rspde_model
+#' @title Create INLA-based rSPDE models
+#' @description Create INLA-based rSPDE models with general smoothness
+#' @param inla_mesh An INLA mesh
+#' @param nu_lower_bound Lower bound for the smoothness parameter.
+#' @param nu_upper_bound Upper bound for the smoothness parameter.
+#' @param rspde_order The order of the covariance-based rational SPDE approach.
+#' @param nu If nu is set to a parameter, nu will be kept fixed and will not be estimated.
+#' If nu is NULL, it will be estimated.
+#' @param sharp The sparsity graph should have the correct sparsity (costs more to perform
+#' a sparsity analysis) or an upper bound for the sparsity? If TRUE, the graph
+#' will have the correct sparsity.
+#' @param debug INLA debug argument.
+#' @param optimize Should the model be optimized? In this case the sparsities of
+#' the matrices will be analyzed.
+#' @param prior.kappa a list containing the elements meanlog and sdlog, that is,
+#' the mean and standard deviation on the log scale.
+#' @param prior.nu a list containing the elements meanlog and sdlog, that is,
+#' the mean and standard deviation on the log scale.
+#' @param prior.tau a list containing the elements meanlog and sdlog, that is,
+#' the mean and standard deviation on the log scale.
+#' @return An INLA model.
 #' @export
-'inla.rgeneric.cov_rspde_int_alpha' <- function(cmd = c("graph",
-                                                      "Q",
-                                                      "mu",
-                                                      "initial",
-                                                      "log.norm.const",
-                                                      "log.prior",
-                                                      "quit"),
-                                              theta = NULL,
-                                              args = NULL,
-                                              ...) {
- 
-  initial <- function(n, theta) {
-    return(c(0, 0))
+
+create_rspde_model <- function(inla_mesh, 
+                               nu_lower_bound = 
+                                 get_inla_mesh_dimension(inla_mesh)/4,
+                               nu_upper_bound = 4, rspde_order = 2,
+                               nu = NULL, sharp = TRUE,
+                               debug = FALSE,
+                               optimize=TRUE, 
+                               prior.kappa = list(meanlog = 0, sdlog = 1),
+                               prior.nu = list(meanlog = 0, sdlog = 1),
+                               prior.tau = list(meanlog = 0, sdlog = 1)
+){
+  if(is.null(prior.kappa$meanlog)){
+    prior.kappa$meanlog <- 0
+  }
+  if(is.null(prior.nu$meanlog)){
+    prior.nu$meanlog <- 0
+  }
+  if(is.null(prior.tau$meanlog)){
+    prior.tau$meanlog <- 0
+  }
+  if(is.null(prior.kappa$sdlog)){
+    prior.kappa$sdlog <- 1
+  }
+  if(is.null(prior.nu$sdlog)){
+    prior.nu$sdlog <- 1
+  }
+  if(is.null(prior.tau$sdlog)){
+    prior.tau$sdlog <- 1
   }
   
-  envir = parent.env(environment())
-  if (!exists("cache.done", envir = envir)) {
-    Q <- rSPDE::rspde_Prec_int(C, G, C_inv_G, C_inv, d, c(-1, -1),nu)
-    Q <- INLA::inla.as.sparse(Q)
-    idx <- which(Q@i <= Q@j)
-    assign("idx", idx, envir = envir)
-    assign("cache.done", TRUE, envir = envir)
+  if(inla_mesh$manifold == "R1"){
+    d = 1
+  } else if(inla_mesh$manifold == "R2"){
+    d = 2
+  } else{
+    stop("The domain must be flat manifolds of dimension 1 or 2, that is,
+         the domain must be a line or a plane.")
+  }
+  if(nu_lower_bound<d/4){
+    stop("The lower bound for nu cannot be less than d/4")
   }
   
-  ######## parameter
-  interpret.theta <- function(n, theta) {
-    return(list(
-      lkappa = theta[1L],
-      ltau = theta[2L]
-    ))
+  if(nu_upper_bound-floor(nu_upper_bound)==0){
+    nu_upper_bound = nu_upper_bound-1e-5
   }
   
-  ######## precision matrix
-  Q = function(n, theta) {
-    param = interpret.theta(n, theta)
-    tau = exp(param$ltau)
-    kappa = exp(param$lkappa)
+  if(!is.null(nu)){
+    if(!is.numeric(nu)){
+      stop("nu must be numeric!")
+    }
+  }
+  
+  fixed_nu = !is.null(nu)
+  
+  if(fixed_nu){
+    alpha = nu + d/2
+    integer_alpha <- (alpha%%1==0)
+  } else{
+    integer_alpha = FALSE
+  }
+  
+  if(fixed_nu){
+    nu_order <- nu
+  } else{
+    nu_order <- nu_upper_bound
+  }
+  
+  if(optimize){
     
-    I_C = Diagonal(n = nrow(C), x = 1)
-    
-    beta = nu / 2 + d / 4
+    beta = nu_order / 2 + d / 4
     
     m_alpha = max(1, floor(2 * beta))
-    sigma2_spde = gamma(nu) / (gamma(nu + d / 2) * (4 * pi) ^ (0.5) * kappa ^
-                                 (2 * nu))
     
-    n_beta = as.integer(2*beta)-1
-    
-    K = kappa^2*C + G
-    Q = K * sigma2_spde
-    if(n_beta>0){
-      CinvK = kappa^2*I_C + C_inv_G
+    if(integer_alpha){
+      fem_mesh <- INLA::inla.mesh.fem(inla_mesh, order = m_alpha)
+    } else{
+      fem_mesh <- INLA::inla.mesh.fem(inla_mesh, order = m_alpha+1)
     }
+  } else{
+    beta = nu_order / 2 + d / 4
     
-    while(n_beta>0){
-      Q = Q %*% CinvK
-      n_beta = n_beta - 1
+    m_alpha = max(1, floor(2 * beta))
+  
+    if(integer_alpha){
+      fem_matrices <- INLA::inla.mesh.fem(inla_mesh, order = m_alpha)
+    } else{
+      fem_matrices <- INLA::inla.mesh.fem(inla_mesh, order = m_alpha+1)
     }
-    
-    Q = Q + Diagonal(n = nrow(Q), x = epsilon_identity)
-    Q = tau ^ 2 * Q
-    
-    if(do_optimize){
-      return(Q@x[idx])
+  }
+  
+  if(optimize){
+    if(integer_alpha){
+      result_sparsity <- analyze_sparsity_rspde(nu_upper_bound=nu_order, d=d, 
+                                                rspde_order=rspde_order, 
+                                                fem_mesh_matrices = fem_mesh,
+                                                include_higher_order = FALSE)
+    } else{
+      if(sharp){
+        result_sparsity <- analyze_sparsity_rspde(nu_upper_bound=nu_order, d=d, 
+                                                  rspde_order=rspde_order, 
+                                                  fem_mesh_matrices = fem_mesh)
+      } else{
+        result_sparsity <- analyze_sparsity_rspde(nu_upper_bound=nu_order, d=d, 
+                                                  rspde_order=rspde_order, 
+                                                  fem_mesh_matrices = fem_mesh,
+                                                  include_lower_order = FALSE)
+      }
+      positions_matrices <- result_sparsity$positions_matrices
     }
+
+      idx_matrices <- result_sparsity$idx_matrices
+      positions_matrices_less <- result_sparsity$positions_matrices_less
+  } else{
+      positions_matrices <- NULL
+      idx_matrices <- NULL
+      positions_matrices_less <- NULL
+  }
+  
+  if(optimize){
     
-    return(Q)
-  }
-  
-  
-  ############################# mean
-  mu = function(n, theta)
-  {
-    return(numeric(0))
-  }
-  ###################### log normal constant
-  log.norm.const <- function(n, theta) {
-    return(numeric(0))
+    fem_matrices <- list()
+    
+    if(sharp || integer_alpha){
+      fem_matrices[[paste0("G_",m_alpha,"_less")]] <- fem_mesh[[paste0("g",m_alpha)]]@x[idx_matrices[[m_alpha+1]]]
+      
+      fem_matrices[["C_less"]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha,"_less")]]))
+      fem_matrices[["C_less"]][positions_matrices_less[[1]]] <- fem_mesh$c0@x[idx_matrices[[1]]]
+      
+      fem_matrices[["G_less"]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha,"_less")]]))
+      fem_matrices[["G_less"]][positions_matrices_less[[2]]] <- fem_mesh$g1@x[idx_matrices[[2]]]
+      
+      #The case m_alpha=2 already uses G_2_less defined above
+      if(m_alpha > 2){
+        for(j in 2:(m_alpha-1)){
+          fem_matrices[[paste0("G_",j,"_less")]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha,"_less")]]))
+          fem_matrices[[paste0("G_",j,"_less")]][positions_matrices_less[[j+1]]] <- fem_mesh[[paste0("g",j)]]@x[idx_matrices[[j+1]]]
+        }
+      }
+    }
+
+    
+    if(!integer_alpha){
+      fem_matrices[[paste0("G_",m_alpha+1)]] <- fem_mesh[[paste0("g",m_alpha+1)]]@x[idx_matrices[[m_alpha+2]]]
+      
+      fem_matrices[["G"]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha+1)]]))
+      fem_matrices[["G"]][positions_matrices[[2]]] <- fem_mesh$g1@x[idx_matrices[[2]]]
+      
+      fem_matrices[["C"]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha+1)]]))
+      fem_matrices[["C"]][positions_matrices[[1]]] <- fem_mesh$c0@x[idx_matrices[[1]]]
+      if(m_alpha > 1){
+        for(j in 2:(m_alpha)){
+          fem_matrices[[paste0("G_",j)]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha+1)]]))
+          fem_matrices[[paste0("G_",j)]][positions_matrices[[j+1]]] <- fem_mesh[[paste0("g",j)]]@x[idx_matrices[[j+1]]]
+        }
+      } 
+    }
+
     
   }
   
-  ############################# graph skeleton
-  graph <- function(n, theta) {
-    return(rSPDE::rspde_Prec_int(C, G, C_inv_G, C_inv, d, c(-1, -1),nu))
+
+  if(!fixed_nu){
+     if(optimize){
+       graph_opt <- rSPDE::get_sparsity_graph_rspde(fem_mesh_matrices = fem_mesh, d=d,
+                                       nu=nu_upper_bound,
+                                       rspde_order = rspde_order,
+                                       sharp = sharp,
+                                       force_non_integer = TRUE)
+     } else{
+       graph_opt <- rSPDE::get_sparsity_graph_rspde(fem_mesh_matrices = fem_matrices, d=d,
+                                                    nu=nu_upper_bound,
+                                                    rspde_order = rspde_order,
+                                                    sharp = TRUE,
+                                                    force_non_integer = TRUE)
+     }
+    model <- INLA::inla.rgeneric.define(inla.rgeneric.cov_rspde_general,
+                                        nu_lower_bound=nu_lower_bound,
+                                        nu_upper_bound=nu_upper_bound,
+                                        fem_matrices=fem_matrices, 
+                                        graph_opt=graph_opt,
+                                        sharp=sharp,
+                                        m1t=m1t,m2t = m2t, m3t=m3t, 
+                                        m4t=m4t, m5t=m5t, m6t=m6t,
+                                        m7t=m7t,m8t=m8t,
+                                        prior.kappa=prior.kappa,
+                                        prior.nu=prior.nu,
+                                        prior.tau=prior.tau,
+                                        d = d, rspde_order = rspde_order, 
+                                        n=ncol(C)*(rspde_order+1), 
+                                        debug=debug,
+                                        do_optimize=optimize, optimize=optimize)
+  } else if(!integer_alpha){
+    if(optimize){
+      graph_opt <- rSPDE::get_sparsity_graph_rspde(fem_mesh_matrices = fem_mesh, d=d,
+                                                   nu=nu,
+                                                   rspde_order = rspde_order,
+                                                   sharp = sharp)
+    } else{
+      graph_opt <- rSPDE::get_sparsity_graph_rspde(fem_mesh_matrices = fem_matrices, d=d,
+                                                   nu=nu,
+                                                   rspde_order = rspde_order,
+                                                   sharp = TRUE, force_non_integer=TRUE)
+    }
+
+    model <- INLA::inla.rgeneric.define(inla.rgeneric.cov_rspde_frac_alpha,
+                                        nu = nu,
+                                        fem_matrices=fem_matrices, 
+                                        graph_opt=graph_opt,
+                                        sharp=sharp,
+                                        m1t=m1t,m2t = m2t, m3t=m3t, 
+                                        m4t=m4t, m5t=m5t, m6t=m6t,
+                                        m7t=m7t,m8t=m8t,
+                                        prior.kappa=prior.kappa,
+                                        prior.nu=prior.nu,
+                                        prior.tau=prior.tau,
+                                        d = d, rspde_order = rspde_order, 
+                                        n=ncol(C)*(rspde_order+1), 
+                                        debug=debug,
+                                        do_optimize=optimize, optimize=optimize)
+  } else{
+    if(optimize){
+      graph_opt <- rSPDE::get_sparsity_graph_rspde(fem_mesh_matrices = fem_mesh, d=d,
+                                                   nu=nu,
+                                                   rspde_order = rspde_order,
+                                                   sharp = sharp)
+    } else{
+      graph_opt <- rSPDE::get_sparsity_graph_rspde(fem_mesh_matrices = fem_matrices, d=d,
+                                                   nu=nu,
+                                                   rspde_order = rspde_order,
+                                                   force_non_integer=FALSE)
+    }
+    model <- INLA::inla.rgeneric.define(inla.rgeneric.cov_rspde_int_alpha,
+                                        nu = nu,
+                                        fem_matrices=fem_matrices, 
+                                        graph_opt=graph_opt, 
+                                        m1t=m1t,m2t = m2t, m3t=m3t, 
+                                        m4t=m4t, m5t=m5t, m6t=m6t,
+                                        m7t=m7t,m8t=m8t,
+                                        prior.kappa=prior.kappa,
+                                        prior.nu=prior.nu,
+                                        prior.tau=prior.tau,
+                                        d = d,
+                                        n=ncol(C), 
+                                        debug=debug,
+                                        do_optimize=optimize, optimize=optimize)
   }
+  return(model)
+}
+
+
+
+symmetric_part_matrix <- function(M){
+  M  <- as(M, "dgTMatrix")
+  idx <- which(M@i <= M@j)
+  sM <- cbind(M@i[idx], M@j[idx])
+  colnames(sM) <- NULL
+  return(list(M = split(sM, seq(nrow(sM))), idx = idx))
+}
+
+
+
+#' @name analyze_sparsity_rspde
+#' @title Analyze sparsity of matrices in the rSPDE approach
+#' @description Auxiliar function to analyze sparsity of matrices in the rSPDE approach
+#' @param nu_upper_bound Upper bound for the smoothness parameter
+#' @param d The dimension of the domain
+#' @param rspde_order The order of the rational approximation
+#' @param fem_mesh_matrices A list containing FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.
+#' @param include_lower_order Logical. Should the lower-order terms be included? They are needed for the cases
+#' when alpha = nu + d/2 is integer or for when sharp is set to TRUE.
+#' @param include_higher_order Logical. Should be included for when nu is estimated or for when alpha = nu + d/2 is not an integer.
+#' @return A list containing informations on sparsity of the precision matrices
+#' @export
+
+analyze_sparsity_rspde <- function(nu_upper_bound, d, rspde_order,
+                                   fem_mesh_matrices,
+                                   include_lower_order = TRUE, 
+                                   include_higher_order = TRUE){
+  beta = nu_upper_bound / 2 + d / 4
   
+  m_alpha = max(1, floor(2 * beta))
   
+  positions_matrices <- list()
   
-  ######################## log prior
-  log.prior <- function(n, theta) {
-    param = interpret.theta(n, theta)
+  C_list <- symmetric_part_matrix(fem_mesh_matrices$c0)
+  G_1_list <- symmetric_part_matrix(fem_mesh_matrices$g1)
+  for(j in 2:(m_alpha)){
+      assign(paste0("G_",j,"_list"), symmetric_part_matrix(fem_mesh_matrices[[paste0("g",j)]]))
+  }
     
-    res <- dnorm(param$lkappa, 0, 1, log = TRUE) +
-      dnorm(param$ltau, 0, 1, log = TRUE)
-    return(res)
+  if(include_higher_order){
+    assign(paste0("G_",m_alpha+1,"_list"), symmetric_part_matrix(fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
+      
+    positions_matrices[[1]] <-  match(C_list$M, get(paste0("G_",m_alpha+1,"_list"))[["M"]])
+  }
+  
+
+  
+  idx_matrices <- list()
+  
+  idx_matrices[[1]] = C_list$idx
+  
+  for(i in 1:m_alpha){
+    if(include_higher_order){
+      positions_matrices[[i+1]] <- match(get(paste0("G_",i,"_list"))[["M"]], get(paste0("G_",m_alpha+1,"_list"))[["M"]])
+    }
+    idx_matrices[[i+1]] = get(paste0("G_",i,"_list"))[["idx"]]
+  }
+  
+  if(include_higher_order){
+    idx_matrices[[m_alpha+2]] = get(paste0("G_",m_alpha+1,"_list"))[["idx"]]
+  }
+  
+  if(include_lower_order){
+    positions_matrices_less <- list()
+    positions_matrices_less[[1]] <-  match(C_list$M, get(paste0("G_",m_alpha,"_list"))[["M"]])
+    if(m_alpha > 1){
+      for(i in 1:(m_alpha-1)){
+        positions_matrices_less[[i+1]] <- match(get(paste0("G_",i,"_list"))[["M"]], get(paste0("G_",m_alpha,"_list"))[["M"]])
+      }
+    } else{
+      positions_matrices_less[[2]] <-  1:length(get(paste0("G_",m_alpha,"_list"))[["M"]])
+    }
+  } else{
+    positions_matrices_less <- NULL
+  }
+  
+  return(list(positions_matrices = positions_matrices,
+              idx_matrices = idx_matrices,
+              positions_matrices_less = positions_matrices_less))
+}
+
+
+
+#' @name rspde_Prec_opt
+#' @title Optimized precision matrix of the covariance-based rational approximation
+#' @description Computes the optimized version of the precision matrix for the covariance-based rational SPDE
+#' @param kappa Range parameter of the latent process.
+#' @param nu The smoothness parameter
+#' @param tau The precision parameter
+#' @param rspde_order The order of the rational approximation
+#' @param d The dimension
+#' @param fem_matrices A list containing the FEM-related matrices. The list should contain elements C, G, G_2, G_3, etc.
+#' @param graph The sparsity graph of the matrices. If NULL, only a vector
+#' of the elements will be returned, if non-NULL, a sparse matrix will be returned.
+#' @param sharp The sparsity graph should have the correct sparsity (costs more to perform
+#' a sparsity analysis) or an upper bound for the sparsity?
+#' @return The precision matrix
+#' @export
+
+rspde_Prec_opt = function(kappa, nu, tau, rspde_order, d, fem_matrices, graph=NULL,
+                          sharp) {
+  
+  n_m <- rspde_order
+  
+  mt <- get(paste0("m", n_m, "t"))
+  
+  beta = nu / 2 + d / 4
+  
+  m_alpha = max(1, floor(2 * beta))
+  
+  r = sapply(1:(n_m), function(i) {
+    approx(mt$nu, mt[[paste0("r", i)]], cut_decimals(nu))$y
+  })
+  
+  p = sapply(1:(n_m), function(i) {
+    approx(mt$nu, mt[[paste0("p", i)]], cut_decimals(nu))$y
+  })
+  
+  k = approx(mt$nu, mt$k, cut_decimals(nu))$y
+  
+  if (m_alpha == 1){
+    Malpha =  (fem_matrices[["C"]] + fem_matrices[["G"]]/(kappa^2))
+  } else if (m_alpha > 1){
+    Malpha =  fem_matrices[["C"]] + m_alpha * fem_matrices[["G"]]/(kappa^2)
+    for(j in 2:m_alpha){
+      Malpha = Malpha +  choose(m_alpha, j) * fem_matrices[[paste0("G_",j)]]/(kappa^(2*j))
+    }
+  } else {
+    stop("Something is wrong with the value of nu!")
   }
   
   
-  quit <- function(n, theta) {
-    return(invisible())
+  if (m_alpha == 1){
+    Malpha2 =  (fem_matrices[["G"]] + fem_matrices[["G_2"]]/(kappa^2))
+  } else if (m_alpha > 1){
+    Malpha2 =  fem_matrices[["G"]] + m_alpha * fem_matrices[["G_2"]]/(kappa^2)
+    for(j in 2:m_alpha){
+      Malpha2 = Malpha2 +  choose(m_alpha, j) * fem_matrices[[paste0("G_",j+1)]]/(kappa^(2*j))
+    }
+  } else {
+    stop("Something is wrong with the value of nu!")
   }
   
-  if (!length(theta))
-    theta = initial(n, theta)
-  res <-
-    do.call(match.arg(cmd), args = list(n = as.integer(args$n), theta = theta))
-  return(res)
+  Q = 1/r[1] * (Malpha + Malpha2/kappa^2 - p[1] * Malpha)
   
+  if(length(r)>1){
+    for (i in 2:length(r)) {
+      Q = c(Q, 1/r[i] * (Malpha + Malpha2/kappa^2 - p[i] * Malpha))
+    }
+  }
+  
+  # add k_part into Q
+  
+  if(sharp){
+    if (m_alpha == 1){
+      Kpart = 1/k * (fem_matrices[["C_less"]] + fem_matrices[["G_less"]]/(kappa^2))
+    } else if (m_alpha > 1){
+      Kpart = 1/k * fem_matrices[["C_less"]] + 1/k * m_alpha * fem_matrices[["G_less"]]/(kappa^2)
+      for(j in 2:m_alpha){
+        Kpart = Kpart + 1/k * choose(m_alpha, j) * fem_matrices[[paste0("G_",j,"_less")]]/(kappa^(2*j))
+      }
+    } else {
+      stop("Something is wrong with the value of nu!")
+    }
+  } else{
+    if (m_alpha == 1){
+      Kpart = 1/k * (fem_matrices[["C"]] + fem_matrices[["G"]]/(kappa^2))
+    } else if (m_alpha > 1){
+      Kpart = 1/k * fem_matrices[["C"]] + 1/k * m_alpha * fem_matrices[["G"]]/(kappa^2)
+      for(j in 2:m_alpha){
+        Kpart = Kpart + 1/k * choose(m_alpha, j) * fem_matrices[[paste0("G_",j)]]/(kappa^(2*j))
+      }
+    } else {
+      stop("Something is wrong with the value of nu!")
+    }
+  }
+  
+  
+
+  
+  Q = c(Q, Kpart)
+  
+  Q = Q * kappa ^ (4 * beta)
+  
+  Q = tau ^ 2 * Q
+  
+  if(!is.null(graph)){
+    graph = as(graph, "dgTMatrix")
+    idx <- which(graph@i <= graph@j)
+    Q = Matrix::sparseMatrix(i=graph@i[idx], j = graph@j[idx], x= Q,
+                             symmetric=TRUE, index1 = FALSE)
+  }
+  
+  return(Q)
+}
+
+#' @name rspde_Prec
+#' @title Precision matrix of the covariance-based rational approximation
+#' @description Computes the precision matrix for the covariance-based rational SPDE
+#' @param kappa Range parameter of the latent process.
+#' @param nu The smoothness parameter
+#' @param tau The precision parameter
+#' @param rspde_order The order of the rational approximation
+#' @param d The dimension
+#' @param fem_mesh_matrices A list containing the FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.
+#' @return The precision matrix
+#' @export
+
+rspde_Prec = function(kappa, nu, tau, rspde_order, d, fem_mesh_matrices) {
+  
+  n_m <- rspde_order
+  
+  mt <- get(paste0("m", n_m, "t"))
+  
+  beta = nu / 2 + d / 4
+  
+  m_alpha = max(1, floor(2 * beta))
+  
+  r = sapply(1:(n_m), function(i) {
+    approx(mt$nu, mt[[paste0("r", i)]], cut_decimals(nu))$y
+  })
+  
+  p = sapply(1:(n_m), function(i) {
+    approx(mt$nu, mt[[paste0("p", i)]], cut_decimals(nu))$y
+  })
+  
+  k = approx(mt$nu, mt$k, cut_decimals(nu))$y
+  
+  if (m_alpha == 1){
+    Malpha =  (fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/(kappa^2))
+  } else if (m_alpha > 1){
+    Malpha =  fem_mesh_matrices[["c0"]] + m_alpha * fem_mesh_matrices[["g1"]]/(kappa^2)
+    for(j in 2:m_alpha){
+      Malpha = Malpha +  choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j)]]/(kappa^(2*j))
+    }
+  } else {
+    stop("Something is wrong with the value of nu!")
+  }
+  
+  
+  if (m_alpha == 1){
+    Malpha2 =  (fem_mesh_matrices[["g1"]] + fem_mesh_matrices[["g2"]]/(kappa^2))
+  } else if (m_alpha > 1){
+    Malpha2 =  fem_mesh_matrices[["g1"]] + m_alpha * fem_mesh_matrices[["g2"]]/(kappa^2)
+    for(j in 2:m_alpha){
+      Malpha2 = Malpha2 +  choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j+1)]]/(kappa^(2*j))
+    }
+  } else {
+    stop("Something is wrong with the value of nu!")
+  }
+  
+  Q = 1/r[1] * (Malpha + Malpha2/kappa^2 - p[1] * Malpha)
+  
+  if(length(r)>1){
+    for (i in 2:length(r)) {
+      Q = bdiag(Q, 1/r[i] * (Malpha + Malpha2/kappa^2 - p[i] * Malpha))
+    }
+  }
+  
+  # add k_part into Q
+  
+
+    if (m_alpha == 1){
+      Kpart = 1/k * (fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/(kappa^2))
+    } else if (m_alpha > 1){
+      Kpart = 1/k * fem_mesh_matrices[["c0"]] + 1/k * m_alpha * fem_mesh_matrices[["g1"]]/(kappa^2)
+      for(j in 2:m_alpha){
+        Kpart = Kpart + 1/k * choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j)]]/(kappa^(2*j))
+      }
+    } else {
+      stop("Something is wrong with the value of nu!")
+    }
+  
+  Q = bdiag(Q, Kpart)
+  
+  Q = Q * kappa ^ (4 * beta)
+  
+  Q = tau ^ 2 * Q
+  
+  return(Q)
+}
+
+
+#' @name rspde_Prec_opt_int
+#' @title Precision matrix of the covariance-based rational approximation
+#' @description Computes the precision matrix for the covariance-based rational SPDE
+#' @param kappa Range parameter of the latent process.
+#' @param nu The smoothness parameter
+#' @param tau The precision parameter
+#' @param d The dimension
+#' @param fem_matrices A list containing the FEM-related matrices. The list should contain elements C, G, G_2, G_3, etc.
+#' @param graph The sparsity graph of the matrices. If NULL, only a vector
+#' of the elements will be returned, if non-NULL, a sparse matrix will be returned.
+#' @return The precision matrix
+#' @export
+
+rspde_Prec_opt_int = function(kappa, nu, tau, d, fem_matrices, graph=NULL) {
+  
+  beta = nu / 2 + d / 4
+  
+  n_beta = floor(2*beta)
+  
+  if (n_beta == 1){
+    Q = (kappa^2 * fem_matrices[["C_less"]] + fem_matrices[["G_less"]])
+  } else if (n_beta > 1){
+    Q = (kappa^2) * fem_matrices[["C_less"]] + n_beta * fem_matrices[["G_less"]]
+    for(j in 2:n_beta){
+      Q = Q + kappa^(2*j) * choose(n_beta, j) * fem_matrices[[paste0("G_",j,"_less")]]
+    }
+  } else {
+    stop("Something is wrong with the value of nu!")
+  }
+  
+  Q = tau ^ 2 * Q
+  
+  if(!is.null(graph)){
+    graph = as(graph, "dgTMatrix")
+    idx <- which(graph@i <= graph@j)
+    Q = Matrix::sparseMatrix(i=graph@i[idx], j = graph@j[idx], x= Q,
+                             symmetric=TRUE, index1 = FALSE)
+  }
+  
+  return(Q)
+}
+
+#' @name rspde_Prec_int
+#' @title Precision matrix of the covariance-based rational approximation
+#' @description Computes the precision matrix for the covariance-based rational SPDE
+#' @param kappa Range parameter of the latent process.
+#' @param nu The smoothness parameter
+#' @param tau The precision parameter
+#' @param d The dimension
+#' @param fem_mesh_matrices A list containing the FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.
+#' @return The precision matrix
+#' @export
+
+rspde_Prec_int = function(kappa, nu, tau, d, fem_mesh_matrices) {
+  
+  beta = nu / 2 + d / 4
+  
+  n_beta = floor(2*beta)
+  
+  if (n_beta == 1){
+    Q = (kappa^2 * fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]])
+  } else if (n_beta > 1){
+    Q = (kappa^2) * fem_mesh_matrices[["c0"]] + n_beta * fem_mesh_matrices[["g1"]]
+    for(j in 2:n_beta){
+      Q = Q + kappa^(2*j) * choose(n_beta, j) * fem_mesh_matrices[[paste0("g",j)]]
+    }
+  } else {
+    stop("Something is wrong with the value of nu!")
+  }
+  
+  Q = tau ^ 2 * Q
+  
+  return(Q)
 }
 
 #' @name get_inla_mesh_dimension
@@ -753,160 +948,132 @@ get_inla_mesh_dimension <- function(inla_mesh){
   }
 }
 
-#' @name create_rspde_model
-#' @title Create INLA-based rSPDE models
-#' @description Create INLA-based rSPDE models with general smoothness
-#' @param inla_mesh An INLA mesh
-#' @param nu_lower_bound Lower bound for the smoothness parameter.
-#' @param nu_upper_bound Upper bound for the smoothness parameter.
-#' @param rspde_order The order of the covariance-based rational SPDE approach.
-#' @param nu If nu is set to a parameter, nu will be kept fixed and will not be estimated.
-#' If nu is NULL, it will be estimated.
-#' @param debug INLA debug argument.
-#' @param optimize Should the model be optimized? In this case the sparsities of
-#' the matrices will be analyzed.
-#' @param controls A list of controls. For now, the only control is
-#' sum.identity, which sums a multiple of the identity matrix (the value of 
-#' the multiple is indicated by the user) to the
-#' precision parameter to improve numerical stability.
-#' @return An INLA model.
-#' @export
-create_rspde_model <- function(inla_mesh, 
-                               nu_lower_bound = 
-                                 get_inla_mesh_dimension(inla_mesh)/4,
-                               nu_upper_bound = 7, rspde_order = 2,
-                               nu = NULL, debug = FALSE,
-                               optimize=FALSE, controls = list()
-){
-  if(inla_mesh$manifold == "R1"){
-    d = 1
-  } else if(inla_mesh$manifold == "R2"){
-    d = 2
-  } else{
-    stop("The domain must be flat manifolds of dimension 1 or 2, that is,
-         the domain must be a line or a plane.")
-  }
-  if(nu_lower_bound<d/4){
-    stop("The lower bound for nu cannot be less than d/4")
-  }
-  
-  if(!is.null(controls[["sum.identity"]])){
-    epsilon_identity <- controls[["sum.identity"]]
-  } else{
-    epsilon_identity <- 1e-5
-  }
 
-  
-  fem_mesh <- INLA::inla.mesh.fem(inla_mesh)
-  C <- fem_mesh$c0
-  G <- fem_mesh$g1
-  C_inv <- solve(C)
-  C_inv_G <- solve(C,G)
-  alpha = nu + d/2
-  
-  if(!is.null(nu)){
-    if(!is.numeric(nu)){
-      stop("nu must be numeric!")
-    }
-  }
-  
-  fixed_nu = !is.null(nu)
-  
-  if(!fixed_nu){
-    if(optimize){
-      result_sparsity <- analyze_sparsity_rpsde(nu_lower_bound, nu_upper_bound, d, 
-                                                C, G, C_inv, C_inv_G, rspde_order) 
-      positions <- result_sparsity$positions
-      n_Q <- result_sparsity$n_Q
-      idx_symmetric <- result_sparsity$idx_symmetric
-      idx_upper_bound <- result_sparsity$idx_upper_bound
-      lengths <- result_sparsity$lengths
-    } else{
-      positions <- NULL
-      n_Q <- NULL
-      idx <- NULL
-      idx_upper_bound <- NULL
-      idx_symmetric <- NULL
-    }
-  }
-  
-  
-  if(fixed_nu){
-  if(alpha - floor(alpha) == 0){
-    integer_alpha = TRUE
-  } else{
-    integer_alpha = FALSE
-  }
-  }
-  if(!fixed_nu){
-    model <- INLA::inla.rgeneric.define(inla.rgeneric.cov_rspde_general,
-                                  nu_lower_bound=nu_lower_bound,
-                                  nu_upper_bound=nu_upper_bound, 
-                                  positions=positions, n_Q = n_Q,
-                                  idx_symmetric=idx_symmetric,
-                                  lengths=lengths,
-                                  idx_upper_bound=idx_upper_bound,
-                                  epsilon_identity=epsilon_identity,
-                                  C = C, C_inv = C_inv,
-                                  C_inv_G=C_inv_G, G = G,
-                                  m1t=m1t,m2t = m2t, m3t=m3t, 
-                                  m4t=m4t, m5t=m5t, m6t=m6t,
-                                  m7t=m7t,m8t=m8t,
-                                  d = d, n_m = rspde_order, 
-                                  n=ncol(C)*(rspde_order+1), 
-                                  debug=debug,
-                                  do_optimize=optimize, optimize=optimize)
-  } else if(!integer_alpha){
-    model <- INLA::inla.rgeneric.define(inla.rgeneric.cov_rspde_frac_alpha,
-                                  nu = nu,
-                                  C = C, C_inv = C_inv,
-                                  C_inv_G=C_inv_G, G = G, 
-                                  m1t=m1t,m2t = m2t, m3t=m3t, 
-                                  m4t=m4t, m5t=m5t, m6t=m6t,
-                                  m7t=m7t,m8t=m8t, 
-                                  epsilon_identity=epsilon_identity,
-                                  d = d, n_m = rspde_order, 
-                                  n=ncol(C)*(rspde_order+1), 
-                                  debug=debug,
-                                  do_optimize=optimize, optimize=optimize)
-  } else{
-    model <- INLA::inla.rgeneric.define(inla.rgeneric.cov_rspde_int_alpha,
-                                  nu = nu,
-                                  C = C, C_inv = C_inv,
-                                  C_inv_G=C_inv_G, G = G, 
-                                  m1t=m1t,m2t = m2t, m3t=m3t, 
-                                  m4t=m4t, m5t=m5t, m6t=m6t,
-                                  m7t=m7t,m8t=m8t,
-                                  epsilon_identity=epsilon_identity,
-                                  d = d,
-                                  n=ncol(C), 
-                                  debug=debug,
-                                  do_optimize=optimize, optimize=optimize)
-  }
-  return(model)
-}
 
-#' @name rspde_create_A
-#' @title Create A matrices for INLA-based rSPDE models
-#' @description Create A matrices for INLA-based rSPDE models
-#' @param inla_mesh An INLA mesh
-#' @param loc Locations
+#' @name get_sparsity_graph_rspde
+#' @title Sparsity graph for rSPDE models
+#' @description Creates the sparsity graph for rSPDE models
+#' @param inla_mesh An INLA mesh, optional
+#' @param fem_mesh_matrices A list containing the FEM-related matrices. The list should contain elements C, G, G_2, G_3, etc. Optional,
+#' should be provided if inla_mesh is not provided.
+#' @param d The dimension, optional. Should be provided if inla_mesh is not provided.
+#' @param nu The smoothness parameter
+#' @param force_non_integer Should nu be treated as non_integer?
 #' @param rspde_order The order of the covariance-based rational SPDE approach.
-#' @param nu If nu is set to a parameter, nu will be kept fixed and will not be estimated.
-#' If nu is NULL, it will be estimated.
+#' @param sharp The graph should have the correct sparsity (costs more to perform
+#' a sparsity analysis) or an upper bound for the sparsity?
 #' @return The A matrix for rSPDE models.
 #' @export
-rspde_create_A <- function(inla_mesh, loc,
-                           rspde_order = 2, nu = NULL){
-  if(inla_mesh$manifold == "R1"){
-    d = 1
-  } else if(inla_mesh$manifold == "R2"){
-    d = 2
-  } else{
-    stop("The domain must be flat manifolds of dimension 1 or 2, that is,
-         the domain must be a line or a plane.")
+get_sparsity_graph_rspde <- function(inla_mesh=NULL,
+                                     fem_mesh_matrices=NULL,
+                                     nu,
+                                     force_non_integer = FALSE,
+                                     rspde_order = 2,
+                                     sharp = TRUE,
+                                     d=NULL){
+  
+  if(!is.null(inla_mesh)){
+    if(inla_mesh$manifold == "R1"){
+      d = 1
+    } else if(inla_mesh$manifold == "R2"){
+      d = 2
+    } else{
+      stop("The mesh should be from a flat manifold.")
+    }
+  } else if(is.null(d)){
+    stop("If an INLA mesh is not provided, you should provide the dimension!")
   }
-  A <- INLA::inla.spde.make.A(inla_mesh, loc = loc)
+  
+  alpha = nu + d/2
+  
+  m_alpha = max(1, floor(alpha))
+  
+  integer_alpha <- (alpha%%1 == 0)
+  
+  if(force_non_integer){
+    integer_alpha = FALSE
+  }
+  
+  if(!is.null(fem_mesh_matrices)){
+    if(integer_alpha){
+      return(fem_mesh_matrices[[paste0("g",m_alpha)]])
+    } else{
+      if(sharp){
+        return(bdiag(kronecker(diag(rep(1,rspde_order)),
+                               fem_mesh_matrices[[paste0("g",m_alpha+1)]]), 
+                     fem_mesh_matrices[[paste0("g",m_alpha)]]))
+      } else{
+        return(kronecker(diag(rep(1,rspde_order+1)),
+                         fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
+      }
+    }
+  } else if(!is.null(inla_mesh)){
+    if(integer_alpha){
+      fem_mesh_matrices <- INLA::inla.mesh.fem(inla_mesh, order = m_alpha)
+      return(fem_mesh_matrices[[paste0("g",m_alpha)]])
+    } else{
+      fem_mesh_matrices <- INLA::inla.mesh.fem(inla_mesh, order = m_alpha+1)
+      if(sharp){
+        return(bdiag(kronecker(diag(rep(1,rspde_order)),
+                               fem_mesh_matrices[[paste0("g",m_alpha+1)]]), 
+                     fem_mesh_matrices[[paste0("g",m_alpha)]]))
+      } else{
+        return(kronecker(diag(rep(1,rspde_order+1)),
+                         fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
+      }
+    } 
+  } else {
+    stop("You should provide either inla_mesh or fem_mesh_matrices!")
+  } 
+}
+
+
+#' @name rspde_create_A
+#' @title Create A matrices for rSPDE models
+#' @description Create A matrices for INLA-based rSPDE models
+#' @param inla_mesh An INLA mesh, optional
+#' @param loc Locations, needed if an INLA mesh is provided
+#' @param A The A matrix from the standard SPDE approach. Should only be provided if an
+#' INLA mesh is not provided.
+#' @param d the dimension. Should only be provided if an
+#' INLA mesh is not provided.
+#' @param rspde_order The order of the covariance-based rational SPDE approach.
+#' @param nu If NULL, then the model will assume that nu will be estimated. If
+#' nu is fixed, you should provide the value of nu.
+#' @return The A matrix for rSPDE models.
+#' @export
+rspde_create_A <- function(inla_mesh=NULL,
+                           A = NULL,
+                           d = NULL,
+                           loc = NULL,
+                           rspde_order = 2, nu = NULL){
+  if(!is.null(inla_mesh)){
+    if(inla_mesh$manifold == "R1"){
+      d = 1
+    } else if(inla_mesh$manifold == "R2"){
+      d = 2
+    } else{
+      stop("The domain must be flat manifolds of dimension 1 or 2, that is,
+         the domain must be a line or a plane.")
+    }
+  } else if(is.null(d)){
+    stop("If inla_mesh is not provided, then you should provide the dimension d!")
+  }
+  
+  if(!is.null(inla_mesh)){
+    if(is.null(loc)){
+      stop("If you provided inla_mesh, you should also provide the locations, loc.")
+    }
+  }
+  
+  if(!is.null(inla_mesh)){
+    A <- INLA::inla.spde.make.A(inla_mesh, loc = loc)
+  } else if(is.null(A)){
+    stop("If inla_mesh is not provided, then you should provide the A matrix from
+         the standard SPDE approach!")
+  }
+
+
   if(!is.null(nu)){
     if(!is.numeric(nu)){
       stop("nu must be numeric!")
@@ -916,11 +1083,7 @@ rspde_create_A <- function(inla_mesh, loc,
   fixed_nu = !is.null(nu)
   if(fixed_nu){
     alpha = nu + d/2
-    if(alpha - floor(alpha) == 0){
-      integer_alpha = TRUE
-    } else{
-      integer_alpha = FALSE
-    }
+    integer_alpha <- (alpha%%1 == 0)
     if(integer_alpha){
       Abar = A
     } else{
@@ -940,8 +1103,8 @@ rspde_create_A <- function(inla_mesh, loc,
 #' @param name Name
 #' @param inla_mesh An INLA mesh
 #' @param rspde_order The order of the covariance-based rational SPDE approach.
-#' @param nu If nu is set to a parameter, nu will be kept fixed and will not be estimated.
-#' If nu is NULL, it will be estimated.
+#' @param nu If NULL, then the model will assume that nu will be estimated. If
+#' nu is fixed, you should provide the value of nu.
 #' @return index for rSPDE models.
 #' @export
 rspde_make_index <- function(name, inla_mesh,
@@ -956,7 +1119,7 @@ rspde_make_index <- function(name, inla_mesh,
     stop("The domain must be flat manifolds of dimension 1 or 2, that is,
          the domain must be a line or a plane.")
   }
-
+  
   if(!is.null(nu)){
     if(!is.numeric(nu)){
       stop("nu must be numeric!")
@@ -967,11 +1130,7 @@ rspde_make_index <- function(name, inla_mesh,
   
   if(fixed_nu){
     alpha = nu + d/2
-    if(alpha - floor(alpha) == 0){
-      integer_alpha = TRUE
-    } else{
-      integer_alpha = FALSE
-    }
+    integer_alpha <- (alpha%%1 == 0)
     
     if(integer_alpha){
       n_rspde = n_mesh
@@ -984,5 +1143,20 @@ rspde_make_index <- function(name, inla_mesh,
   }
   return(INLA::inla.spde.make.index(name = name, n.spde = n_rspde))
 }
-  
 
+#' @name build_sparse_matrix_rspde
+#' @title Create sparse matrix from entries and graph
+#' @description Create sparse matrix from entries and graph
+#' @param entries The entries of the precision matrix
+#' @param graph The sparsity graph of the precision matrix
+#' @return index for rSPDE models.
+#' @export
+build_sparse_matrix_rspde <- function(entries, graph){
+  if(!is.null(graph)){
+    graph = as(graph, "dgTMatrix")
+    idx <- which(graph@i <= graph@j)
+    Q = Matrix::sparseMatrix(i=graph@i[idx], j = graph@j[idx], x= entries,
+                             symmetric=TRUE, index1 = FALSE)
+  }
+  return(Q)
+}

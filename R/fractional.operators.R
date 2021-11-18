@@ -267,6 +267,75 @@ matern.operators <- function(kappa,
   return(output)
 }
 
+
+
+#' @name matern.cov_rSPDE.operators
+#' @title Create INLA-based rSPDE models
+#' @description \code{matern.operators} is used for computing a
+#' covariance-based rational SPDE approximation of a stationary Gaussian random
+#' fields on \eqn{R^d} with a Matern covariance function
+#' \deqn{C(h) = \frac{\tau^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
+#' (\tau^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
+#' @param kappa Range parameter of the covariance function.
+#' @param tau Standard deviation of the covariance function.
+#' @param nu Shape parameter of the covariance function.
+#' @param G The stiffness matrix of a finite element discretization of the domain of interest.
+#' @param C The mass matrix of a finite element discretization of the domain of interest.
+#' @param d The dimension of the domain.
+#' @param m The order of the rational approximation, which needs to be a positive integer.
+#' The default value is 2.
+#' @return A cov_rSPDE object.
+#' @export
+
+matern.cov_rSPDE.operators <- function(C,
+                                 G,
+                                 nu,
+                                 kappa,
+                                 tau,
+                                 m=2,
+                                 d)
+{
+  ## get lumped mass matrix
+  C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
+  ## get alpha, m_alpha
+  alpha <- nu + d/2
+  m_alpha <- max(1,floor(alpha))
+  
+  ## get G_k matrix: k is up to m_alpha if alpha is integer, k is up tp m_alpha + 1 otherwise.
+  # inverse lumped mass matrix
+  Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))  
+  
+  GCi <- G%*%Ci
+  # create a list to store all the G_k matrix
+  
+  Gk <- list()
+  
+  Gk[[1]] <- G
+  # determine how many G_k matrices we want to create
+  m_order <- ifelse(alpha%%1==0, m_alpha, m_alpha+1)
+  for (i in 2:m_order){
+    Gk[[i]] <- GCi %*% Gk[[i-1]]
+  }
+  
+  # create a list contains all the finite element related matrices
+  fem_mesh_matrices <- list()
+  fem_mesh_matrices[["c0"]] <- C
+  
+  for(i in 1:m_order){
+    fem_mesh_matrices[[paste0("g",i)]] <- Gk[[i]]
+  }
+  
+  ## output
+  output <- list(C = C, Ci <- Ci, GCi = GCi, Gk = Gk, 
+                 fem_mesh_matrices=fem_mesh_matrices,
+                 alpha = alpha, nu = nu, kappa = kappa, 
+                 tau = tau, m = m, d = d)
+  output$type = "Covariance-Based Matern SPDE approximation"
+  class(output) <- "cov_rSPDEobj"
+  return(output)
+}
+
+
 #' Rational approximations of non-stationary Gaussian SPDE Matern random fields
 #'
 #' \code{spde.matern.operators} is used for computing a rational SPDE approximation of a Gaussian random

@@ -4,25 +4,18 @@
 \alias{rspde_Prec_int}
 \title{Precision matrix of the covariance-based rational approximation}
 \usage{
-rspde_Prec_int(C, G, C_inv_G, C_inv, d, theta, nu, epsilon_identity = 1e-05)
+rspde_Prec_int(kappa, nu, tau, d, fem_mesh_matrices)
 }
 \arguments{
-\item{C}{The mass matrix}
+\item{kappa}{Range parameter of the latent process.}
 
-\item{G}{The stiffness matrix}
+\item{nu}{The smoothness parameter}
 
-\item{C_inv_G}{C^{-1}G}
+\item{tau}{The precision parameter}
 
-\item{C_inv}{The inverse of the mass matrix}
+\item{d}{The dimension}
 
-\item{d}{The dimension of the domain}
-
-\item{theta}{vector containing the parameters of the model.}
-
-\item{nu}{the smoothness parameter}
-
-\item{epsilon_identity}{a multiple of the identity matrix to be summed to 
-the precision matrix.}
+\item{fem_mesh_matrices}{A list containing the FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.}
 }
 \value{
 The precision matrix

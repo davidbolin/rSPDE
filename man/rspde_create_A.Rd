@@ -2,19 +2,32 @@
 % Please edit documentation in R/inla_rspde.R
 \name{rspde_create_A}
 \alias{rspde_create_A}
-\title{Create A matrices for INLA-based rSPDE models}
+\title{Create A matrices for rSPDE models}
 \usage{
-rspde_create_A(inla_mesh, loc, rspde_order = 2, nu = NULL)
+rspde_create_A(
+  inla_mesh = NULL,
+  A = NULL,
+  d = NULL,
+  loc = NULL,
+  rspde_order = 2,
+  nu = NULL
+)
 }
 \arguments{
-\item{inla_mesh}{An INLA mesh}
+\item{inla_mesh}{An INLA mesh, optional}
 
-\item{loc}{Locations}
+\item{A}{The A matrix from the standard SPDE approach. Should only be provided if an
+INLA mesh is not provided.}
+
+\item{d}{the dimension. Should only be provided if an
+INLA mesh is not provided.}
+
+\item{loc}{Locations, needed if an INLA mesh is provided}
 
 \item{rspde_order}{The order of the covariance-based rational SPDE approach.}
 
-\item{nu}{If nu is set to a parameter, nu will be kept fixed and will not be estimated.
-If nu is NULL, it will be estimated.}
+\item{nu}{If NULL, then the model will assume that nu will be estimated. If
+nu is fixed, you should provide the value of nu.}
 }
 \value{
 The A matrix for rSPDE models.

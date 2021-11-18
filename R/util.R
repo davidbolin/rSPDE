@@ -269,3 +269,23 @@ require.nowarnings <- function(package, lib.loc = NULL, character.only = FALSE)
             character.only = TRUE)
   )
 }
+
+
+
+#' @name cut_decimals
+#' @title Approximation function for covariance-based rSPDE models
+#' @description Approximation function to be used to compute the precision matrix for covariance-based rSPDE models
+#' @param nu A real number
+#' @return An approximation
+#' @export
+
+cut_decimals <- function(nu) {
+  temp <- nu - floor(nu)
+  if (temp < 10 ^ (-3)) {
+    temp <- 10 ^ (-3)
+  }
+  if (temp > 0.999) {
+    temp <- 0.999
+  }
+  return(temp)
+}

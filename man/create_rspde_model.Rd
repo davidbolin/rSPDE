@@ -7,12 +7,15 @@
 create_rspde_model(
   inla_mesh,
   nu_lower_bound = get_inla_mesh_dimension(inla_mesh)/4,
-  nu_upper_bound = 7,
+  nu_upper_bound = 4,
   rspde_order = 2,
   nu = NULL,
+  sharp = TRUE,
   debug = FALSE,
-  optimize = FALSE,
-  controls = list()
+  optimize = TRUE,
+  prior.kappa = list(meanlog = 0, sdlog = 1),
+  prior.nu = list(meanlog = 0, sdlog = 1),
+  prior.tau = list(meanlog = 0, sdlog = 1)
 )
 }
 \arguments{
@@ -27,15 +30,23 @@ create_rspde_model(
 \item{nu}{If nu is set to a parameter, nu will be kept fixed and will not be estimated.
 If nu is NULL, it will be estimated.}
 
+\item{sharp}{The sparsity graph should have the correct sparsity (costs more to perform
+a sparsity analysis) or an upper bound for the sparsity? If TRUE, the graph
+will have the correct sparsity.}
+
 \item{debug}{INLA debug argument.}
 
 \item{optimize}{Should the model be optimized? In this case the sparsities of
 the matrices will be analyzed.}
 
-\item{controls}{A list of controls. For now, the only control is
-sum.identity, which sums a multiple of the identity matrix (the value of 
-the multiple is indicated by the user) to the
-precision parameter to improve numerical stability.}
+\item{prior.kappa}{a list containing the elements meanlog and sdlog, that is,
+the mean and standard deviation on the log scale.}
+
+\item{prior.nu}{a list containing the elements meanlog and sdlog, that is,
+the mean and standard deviation on the log scale.}
+
+\item{prior.tau}{a list containing the elements meanlog and sdlog, that is,
+the mean and standard deviation on the log scale.}
 }
 \value{
 An INLA model.

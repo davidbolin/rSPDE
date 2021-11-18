@@ -13,8 +13,8 @@ rspde_make_index(name, inla_mesh, rspde_order = 2, nu = NULL)
 
 \item{rspde_order}{The order of the covariance-based rational SPDE approach.}
 
-\item{nu}{If nu is set to a parameter, nu will be kept fixed and will not be estimated.
-If nu is NULL, it will be estimated.}
+\item{nu}{If NULL, then the model will assume that nu will be estimated. If
+nu is fixed, you should provide the value of nu.}
 }
 \value{
 index for rSPDE models.

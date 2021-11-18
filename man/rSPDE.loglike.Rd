@@ -13,7 +13,7 @@ rSPDE.loglike(obj, Y, A, sigma.e, mu = 0)
 \item{Y}{The observations, either a vector or a matrix where
 the columns correspond to independent replicates of observations.}
 
-\item{A}{An observation matrix that links the measurement location to the finite elemen basis.}
+\item{A}{An observation matrix that links the measurement location to the finite element basis.}
 
 \item{sigma.e}{The standard deviation of the measurement noise.}
 
