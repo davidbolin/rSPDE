@@ -324,15 +324,14 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
 #' @export
 
 rspde.matern <- function(mesh, 
-                               nu_lower_bound = 
-                                 get_inla_mesh_dimension(mesh)/4,
-                               nu_upper_bound = 4, rspde_order = 2,
-                               nu = NULL, sharp = TRUE,
-                               debug = FALSE,
-                               optimize=TRUE, 
-                               prior.kappa = list(meanlog = 0, sdlog = 1),
-                               prior.nu = list(meanlog = 0, sdlog = 1),
-                               prior.tau = list(meanlog = 0, sdlog = 1),
+                         nu_lower_bound = get_inla_mesh_dimension(mesh)/4,
+                         nu_upper_bound = 4, rspde_order = 2,
+                         nu = NULL, sharp = TRUE,
+                         debug = FALSE,
+                         optimize=TRUE, 
+                         prior.kappa = list(meanlog = 0, sdlog = 1),
+                         prior.nu = list(meanlog = 0, sdlog = 1),
+                         prior.tau = list(meanlog = 0, sdlog = 1),
                          start.lkappa = 0,
                          start.lnu = 0,
                          start.ltau = 0
@@ -482,11 +481,8 @@ rspde.matern <- function(mesh,
         }
       } 
     }
-
-    
   }
   
-
   if(!fixed_nu){
      if(optimize){
        graph_opt <- rSPDE::get_sparsity_graph_rspde(fem_mesh_matrices = fem_mesh, dim=d,
@@ -575,6 +571,7 @@ rspde.matern <- function(mesh,
   model$dim = d
   model$est_nu = !fixed_nu
   model$nu_lower_bound = nu_lower_bound
+  model$n.spde = mesh$n
   return(model)
 }
 
