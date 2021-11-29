@@ -1,11 +1,12 @@
 utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
-                         "n_m", "nu", "nu_lower_bound", "nu_upper_bound",
+                         "n_m", "nu", "nu_upper_bound",
                          "do_optimize", "idx_symmetric", "n_Q", "rspde_order",
                          "graph_opt","fem_matrices", "sharp",
                          "prior.kappa", "prior.nu", "prior.tau",
-                         "start.lkappa", "start.ltau", "start.lnu"))
+                         "start.lkappa", "start.ltau", "start.lnu",
+                         "prior.nu.dist"))
 
-#' @importFrom stats dnorm pnorm
+#' @importFrom stats dnorm pnorm dbeta
 #' @importFrom methods as
 #' @name 'inla.rgeneric.cov_rspde_general'
 #' @title Generic INLA method for the covariance-based rSPDE approach
@@ -43,7 +44,7 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
   ######## precision matrix
   Q = function(n, theta) {
     param = interpret.theta(n, theta)
-    nu = min(exp(param$lnu) + nu_lower_bound, nu_upper_bound)
+    nu = min(exp(param$lnu), nu_upper_bound)
     tau = exp(param$ltau)
     kappa = exp(param$lkappa)
     
@@ -82,18 +83,31 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
   log.prior <- function(n, theta) {
     param = interpret.theta(n, theta)
     
-    if (param$lnu > log(nu_upper_bound - nu_lower_bound)) {
-      tdnorm_nu = -Inf
+    if(prior.nu.dist == "lognormal"){
+      if (param$lnu > log(nu_upper_bound)) {
+        tdnorm_nu = -Inf
+      } else{
+        tdnorm_nu = dnorm(param$lnu, 0, 1, log = TRUE) -
+          pnorm(log(nu_upper_bound), prior.nu$meanlog,
+                prior.nu$sdlog, log.p = TRUE)
+      }
+      
+      res <- tdnorm_nu + dnorm(param$lkappa, prior.kappa$meanlog,
+                               prior.kappa$sdlog, log = TRUE) +
+        dnorm(param$ltau, prior.tau$meanlog, prior.tau$sdlog, log = TRUE)
+    } else if(prior.nu.dist == "beta"){
+      s_1 = (exp(prior.nu$meanlog)/nu_upper_bound) * prior.nu$prec
+      s_2 = (1-exp(prior.nu$meanlog)/nu_upper_bound) * prior.nu$prec
+      
+      res <- dbeta(exp(param$lnu)/nu_upper_bound, shape1 = s_1, shape2 = s_2, log=TRUE) - log(nu_upper_bound) +
+        dnorm(param$lkappa, prior.kappa$meanlog,prior.kappa$sdlog, log = TRUE) +
+        dnorm(param$ltau, prior.tau$meanlog, prior.tau$sdlog, log = TRUE)
     } else{
-      tdnorm_nu = dnorm(param$lnu, 0, 1, log = TRUE) -
-        pnorm(log(nu_upper_bound - nu_lower_bound), prior.nu$meanlog, 
-              prior.nu$sdlog, log.p = TRUE)
+      stop("You must choose prior.nu.dist between beta and lognormal!")
     }
     
-    res <- tdnorm_nu + dnorm(param$lkappa, prior.kappa$meanlog, 
-                             prior.kappa$sdlog, log = TRUE) +
-      dnorm(param$ltau, prior.tau$meanlog, prior.tau$sdlog, log = TRUE)
     return(res)
+
   }
   
   
@@ -300,7 +314,6 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
 #' @title Create INLA-based rSPDE models
 #' @description Create INLA-based rSPDE models with general smoothness
 #' @param mesh An INLA mesh
-#' @param nu_lower_bound Lower bound for the smoothness parameter.
 #' @param nu_upper_bound Upper bound for the smoothness parameter.
 #' @param rspde_order The order of the covariance-based rational SPDE approach.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not be estimated.
@@ -313,47 +326,42 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
 #' the matrices will be analyzed.
 #' @param prior.kappa a list containing the elements meanlog and sdlog, that is,
 #' the mean and standard deviation on the log scale.
-#' @param prior.nu a list containing the elements meanlog and sdlog, that is,
-#' the mean and standard deviation on the log scale.
+#' @param prior.nu a list containing the elements meanlog and prec for beta distribution,
+#' or meanlog and sdlog for a truncated lognormal distribution. meanlog stands for
+#' the mean on the log scale. prec stands for the precision of a beta distribution.
+#' sdlog stands for the standard deviation on the log scale. See help for further details.
+#' The default precision is 50.
 #' @param prior.tau a list containing the elements meanlog and sdlog, that is,
 #' the mean and standard deviation on the log scale.
 #' @param start.lkappa Starting value for log of kappa.
-#' @param start.lnu Starting value for log(nu-nu_lower_bound).
+#' @param start.lnu Starting value for log(nu).
 #' @param start.ltau Starting value for log of tau.
+#' @param prior.nu.dist The distribution of the smoothness parameter. The current
+#' options are "beta" or "lognormal". The default is "beta".
+#' @param nu.prec.inc Amount to increase the precision in the beta prior distribution.
 #' @return An INLA model.
 #' @export
 
 rspde.matern <- function(mesh, 
-                         nu_lower_bound = get_inla_mesh_dimension(mesh)/4,
                          nu_upper_bound = 4, rspde_order = 2,
                          nu = NULL, sharp = TRUE,
                          debug = FALSE,
                          optimize=TRUE, 
-                         prior.kappa = list(meanlog = 0, sdlog = 1),
-                         prior.nu = list(meanlog = 0, sdlog = 1),
-                         prior.tau = list(meanlog = 0, sdlog = 1),
-                         start.lkappa = 0,
-                         start.lnu = 0,
-                         start.ltau = 0
+                         prior.kappa = NULL,
+                         prior.nu = NULL,
+                         prior.tau = NULL,
+                         start.lkappa = NULL,
+                         start.lnu = NULL,
+                         start.ltau = NULL,
+                         prior.nu.dist = c("beta", "lognormal"),
+                         nu.prec.inc = 11
 ){
-  if(is.null(prior.kappa$meanlog)){
-    prior.kappa$meanlog <- 0
+  
+  prior.nu.dist = prior.nu.dist[[1]]
+  if(!prior.nu.dist%in%c("beta", "lognormal")){
+    stop("prior.nu.dist should be either beta or lognormal!")
   }
-  if(is.null(prior.nu$meanlog)){
-    prior.nu$meanlog <- 0
-  }
-  if(is.null(prior.tau$meanlog)){
-    prior.tau$meanlog <- 0
-  }
-  if(is.null(prior.kappa$sdlog)){
-    prior.kappa$sdlog <- 1
-  }
-  if(is.null(prior.nu$sdlog)){
-    prior.nu$sdlog <- 1
-  }
-  if(is.null(prior.tau$sdlog)){
-    prior.tau$sdlog <- 1
-  }
+  
   
   if(mesh$manifold == "R1"){
     d = 1
@@ -362,9 +370,6 @@ rspde.matern <- function(mesh,
   } else{
     stop("The domain must be flat manifolds of dimension 1 or 2, that is,
          the domain must be a line or a plane.")
-  }
-  if(nu_lower_bound<d/4){
-    stop("The lower bound for nu cannot be less than d/4")
   }
   
   if(nu_upper_bound-floor(nu_upper_bound)==0){
@@ -483,6 +488,54 @@ rspde.matern <- function(mesh,
     }
   }
   
+  
+  
+
+
+ 
+if(is.null(prior.nu$meanlog)){
+  prior.nu$meanlog <- log(min(1, nu_upper_bound/2))
+}
+
+if(is.null(prior.kappa$meanlog)){
+  mesh.range = ifelse(d == 2, (max(c(diff(range(mesh$loc[,
+                                                              1])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[,
+                                                                                                                    3]))))), diff(mesh$interval))
+  prior.range.nominal = mesh.range * 0.2
+  prior.kappa$meanlog <- log(sqrt(8 * exp(prior.nu$meanlog))/prior.range.nominal)
+}
+
+if(is.null(prior.tau$meanlog)){
+  prior.tau$meanlog <-  log(sqrt(gamma(exp(prior.nu$meanlog))/gamma(exp(prior.nu$meanlog)+d/2)/(4 *
+                                                                                    pi * exp(prior.kappa$meanlog)^(2 * exp(prior.nu$meanlog)))))
+}
+if(is.null(prior.kappa$sdlog)){
+  prior.kappa$sdlog <- 1
+}
+if(is.null(prior.nu$prec)){
+  mu_temp <- exp(prior.nu$meanlog)/nu_upper_bound
+  prior.nu$prec <- max(1/mu_temp, 1/(1-mu_temp)) + nu.prec.inc
+}
+
+if(is.null(prior.nu$sdlog)){
+    prior.nu$sdlog <- 1
+}  
+  
+if(is.null(prior.tau$sdlog)){
+  prior.tau$sdlog <- 1
+}
+  
+  if(is.null(start.lkappa)){
+    start.lkappa = prior.kappa$meanlog
+  }
+  if(is.null(start.ltau)){
+    start.ltau = prior.tau$meanlog
+  }
+  if(is.null(start.lnu)){
+    start.lnu = prior.nu$meanlog
+  }
+  
+  
   if(!fixed_nu){
      if(optimize){
        graph_opt <- rSPDE::get_sparsity_graph_rspde(fem_mesh_matrices = fem_mesh, dim=d,
@@ -498,7 +551,6 @@ rspde.matern <- function(mesh,
                                                     force_non_integer = TRUE)
      }
     model <- INLA::inla.rgeneric.define(inla.rgeneric.cov_rspde_general,
-                                        nu_lower_bound=nu_lower_bound,
                                         nu_upper_bound=nu_upper_bound,
                                         fem_matrices=fem_matrices, 
                                         graph_opt=graph_opt,
@@ -510,6 +562,7 @@ rspde.matern <- function(mesh,
                                         start.lnu = start.lnu,
                                         start.ltau = start.ltau,
                                         d = d, rspde_order = rspde_order, 
+                                        prior.nu.dist=prior.nu.dist,
                                         n=ncol(C)*(rspde_order+1), 
                                         debug=debug,
                                         do_optimize=optimize, optimize=optimize)
@@ -570,7 +623,6 @@ rspde.matern <- function(mesh,
   class(model) <- c(class(model), "inla.rspde")
   model$dim = d
   model$est_nu = !fixed_nu
-  model$nu_lower_bound = nu_lower_bound
   model$n.spde = mesh$n
   return(model)
 }
@@ -1115,7 +1167,7 @@ if (!is.null(inla$marginals.hyperpar[[paste0("Theta1 for ", name)]])) {
                                                                x))
     if(rspde$est_nu){
       result$marginals.nu = lapply(result$marginals.log.nu, 
-                                      function(x) INLA::inla.tmarginal(function(y) exp(y)+rspde$nu_lower_bound, 
+                                      function(x) INLA::inla.tmarginal(function(y) exp(y), 
                                                                  x))
   }
 }
