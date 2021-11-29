@@ -1190,7 +1190,7 @@ plot.rspde.result <- function(x, which = c("tau","kappa","nu"),
   param <- c("tau", "kappa", "nu")
   for(i in 1:3){
     if(param[i]%in%which){
-      graph_temp <- result[[paste0("marginals.",param[i])]][param[i]]]
+      graph_temp <- result[[paste0("marginals.",param[i])]][[param[i]]]
       graphics::plot(graph_temp, type = type_plot, main = main, ylab = ylab, xlab=xlab,
                      ...)
       graphics::mtext(getCaption(i), side = 3, cex = cex.caption)
