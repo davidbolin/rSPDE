@@ -289,3 +289,275 @@ cut_decimals <- function(nu) {
   }
   return(temp)
 }
+
+#' @name check_class_inla_rspde
+#' @title Check if the object inherits from inla.rspde class
+#' @description Check if the object inherits from inla.rspde class
+#' @param model A model to test if it inherits from inla.rspde
+#' @return Gives an error if the object does not inherit from inla.rspde
+#' @export
+#' 
+check_class_inla_rspde <- function(model){
+  if(!inherits(model, "inla.rspde")){
+    stop("You should provide a rSPDE model!")
+  }
+}
+
+#' @name get_inla_mesh_dimension
+#' @title Get the dimension of an INLA mesh
+#' @description Get the dimension of an INLA mesh
+#' @param inla_mesh An INLA mesh
+#' @return The dimension of an INLA mesh.
+#' @export
+get_inla_mesh_dimension <- function(inla_mesh){
+  stopifnot(inherits(inla_mesh,"inla.mesh"))
+  if(!(class(inla_mesh) %in% c("inla.mesh", "inla.mesh.1d"))){
+    stop("The object should be an INLA mesh")
+  } else{
+    if(inla_mesh$manifold == "R1"){
+      d = 1
+    } else if(inla_mesh$manifold == "R2"){
+      d = 2
+    } else{
+      stop("The mesh should be from a flat manifold.")
+    }
+  }
+}
+
+
+#' @name get_sparsity_graph_rspde
+#' @title Sparsity graph for rSPDE models
+#' @description Creates the sparsity graph for rSPDE models
+#' @param mesh An INLA mesh, optional
+#' @param fem_mesh_matrices A list containing the FEM-related matrices. The list should contain elements C, G, G_2, G_3, etc. Optional,
+#' should be provided if mesh is not provided.
+#' @param dim The dimension, optional. Should be provided if mesh is not provided.
+#' @param nu The smoothness parameter
+#' @param force_non_integer Should nu be treated as non_integer?
+#' @param rspde_order The order of the covariance-based rational SPDE approach.
+#' @param sharp The graph should have the correct sparsity (costs more to perform
+#' a sparsity analysis) or an upper bound for the sparsity?
+#' @return The A matrix for rSPDE models.
+#' @export
+get_sparsity_graph_rspde <- function(mesh=NULL,
+                                     fem_mesh_matrices=NULL,
+                                     nu,
+                                     force_non_integer = FALSE,
+                                     rspde_order = 2,
+                                     sharp = TRUE,
+                                     dim=NULL){
+  
+  if(!is.null(mesh)){
+    stopifnot(inherits(mesh,"inla.mesh"))
+    if(mesh$manifold == "R1"){
+      dim = 1
+    } else if(mesh$manifold == "R2"){
+      dim = 2
+    } else{
+      stop("The mesh should be from a flat manifold.")
+    }
+  } else if(is.null(dim)){
+    stop("If an INLA mesh is not provided, you should provide the dimension!")
+  }
+  
+  alpha = nu + dim/2
+  
+  m_alpha = max(1, floor(alpha))
+  
+  integer_alpha <- (alpha%%1 == 0)
+  
+  if(force_non_integer){
+    integer_alpha = FALSE
+  }
+  
+  if(!is.null(fem_mesh_matrices)){
+    if(integer_alpha){
+      return(fem_mesh_matrices[[paste0("g",m_alpha)]])
+    } else{
+      if(sharp){
+        return(bdiag(kronecker(diag(rep(1,rspde_order)),
+                               fem_mesh_matrices[[paste0("g",m_alpha+1)]]), 
+                     fem_mesh_matrices[[paste0("g",m_alpha)]]))
+      } else{
+        return(kronecker(diag(rep(1,rspde_order+1)),
+                         fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
+      }
+    }
+  } else if(!is.null(mesh)){
+    if(integer_alpha){
+      fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+      return(fem_mesh_matrices[[paste0("g",m_alpha)]])
+    } else{
+      fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha+1)
+      if(sharp){
+        return(bdiag(kronecker(diag(rep(1,rspde_order)),
+                               fem_mesh_matrices[[paste0("g",m_alpha+1)]]), 
+                     fem_mesh_matrices[[paste0("g",m_alpha)]]))
+      } else{
+        return(kronecker(diag(rep(1,rspde_order+1)),
+                         fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
+      }
+    } 
+  } else {
+    stop("You should provide either mesh or fem_mesh_matrices!")
+  } 
+}
+
+
+#' @name build_sparse_matrix_rspde
+#' @title Create sparse matrix from entries and graph
+#' @description Create sparse matrix from entries and graph
+#' @param entries The entries of the precision matrix
+#' @param graph The sparsity graph of the precision matrix
+#' @return index for rSPDE models.
+#' @export
+build_sparse_matrix_rspde <- function(entries, graph){
+  if(!is.null(graph)){
+    graph = as(graph, "dgTMatrix")
+    idx <- which(graph@i <= graph@j)
+    Q = Matrix::sparseMatrix(i=graph@i[idx], j = graph@j[idx], x= entries,
+                             symmetric=TRUE, index1 = FALSE)
+  }
+  return(Q)
+}
+
+
+#' @name analyze_sparsity_rspde
+#' @title Analyze sparsity of matrices in the rSPDE approach
+#' @description Auxiliar function to analyze sparsity of matrices in the rSPDE approach
+#' @param nu_upper_bound Upper bound for the smoothness parameter
+#' @param dim The dimension of the domain
+#' @param rspde_order The order of the rational approximation
+#' @param fem_mesh_matrices A list containing FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.
+#' @param include_lower_order Logical. Should the lower-order terms be included? They are needed for the cases
+#' when alpha = nu + d/2 is integer or for when sharp is set to TRUE.
+#' @param include_higher_order Logical. Should be included for when nu is estimated or for when alpha = nu + d/2 is not an integer.
+#' @return A list containing informations on sparsity of the precision matrices
+#' @export
+
+analyze_sparsity_rspde <- function(nu_upper_bound, dim, rspde_order,
+                                   fem_mesh_matrices,
+                                   include_lower_order = TRUE, 
+                                   include_higher_order = TRUE){
+  beta = nu_upper_bound / 2 + dim / 4
+  
+  m_alpha = max(1, floor(2 * beta))
+  
+  positions_matrices <- list()
+  
+  C_list <- symmetric_part_matrix(fem_mesh_matrices$c0)
+  G_1_list <- symmetric_part_matrix(fem_mesh_matrices$g1)
+  for(j in 2:(m_alpha)){
+    assign(paste0("G_",j,"_list"), symmetric_part_matrix(fem_mesh_matrices[[paste0("g",j)]]))
+  }
+  
+  if(include_higher_order){
+    assign(paste0("G_",m_alpha+1,"_list"), symmetric_part_matrix(fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
+    
+    positions_matrices[[1]] <-  match(C_list$M, get(paste0("G_",m_alpha+1,"_list"))[["M"]])
+  }
+  
+  
+  
+  idx_matrices <- list()
+  
+  idx_matrices[[1]] = C_list$idx
+  
+  for(i in 1:m_alpha){
+    if(include_higher_order){
+      positions_matrices[[i+1]] <- match(get(paste0("G_",i,"_list"))[["M"]], get(paste0("G_",m_alpha+1,"_list"))[["M"]])
+    }
+    idx_matrices[[i+1]] = get(paste0("G_",i,"_list"))[["idx"]]
+  }
+  
+  if(include_higher_order){
+    idx_matrices[[m_alpha+2]] = get(paste0("G_",m_alpha+1,"_list"))[["idx"]]
+  }
+  
+  if(include_lower_order){
+    positions_matrices_less <- list()
+    positions_matrices_less[[1]] <-  match(C_list$M, get(paste0("G_",m_alpha,"_list"))[["M"]])
+    if(m_alpha > 1){
+      for(i in 1:(m_alpha-1)){
+        positions_matrices_less[[i+1]] <- match(get(paste0("G_",i,"_list"))[["M"]], get(paste0("G_",m_alpha,"_list"))[["M"]])
+      }
+    } else{
+      positions_matrices_less[[2]] <-  1:length(get(paste0("G_",m_alpha,"_list"))[["M"]])
+    }
+  } else{
+    positions_matrices_less <- NULL
+  }
+  
+  return(list(positions_matrices = positions_matrices,
+              idx_matrices = idx_matrices,
+              positions_matrices_less = positions_matrices_less))
+}
+
+
+#' @name create_summary_from_density
+#' @title Creates a summary from a density data frame
+#' @description Auxiliar function to create summaries from density data drames
+#' @param density_df A density data frame
+#' @param name Name of the parameter
+#' @return A data frame containing a basic summary
+#' @export
+#' 
+
+create_summary_from_density <- function(density_df, name){
+  min_x <- density_df[1,"x"]
+  max_x <- density_df[nrow(density_df),"x"]
+  denstemp <- function(x){
+    dens <- sapply(x, function(z){
+      if(z<min_x){
+        return(0)
+      } else if (z>max_x){
+        return(0)
+      } else{
+        return(approx(density_df[,"x"], density_df[,"y"], z)$y)
+      }
+    })
+    return(dens)
+  } 
+  
+  ptemp <- function(q){
+    prob_temp <- sapply(q, function(v){
+      if(v<=min_x){
+        return(0)
+      } else if(v>=max_x){
+        return(1)
+      } else{
+        stats::integrate(denstemp,lower = min_x, upper = v,
+                         subdivisions = min(nrow(density_df),500))$value
+      }
+    })
+    return(prob_temp)
+  }
+  
+  mean_temp <- stats::integrate(function(z){denstemp(z)*z},lower = min_x, upper = max_x,
+                                subdivisions = nrow(density_df))$value
+  
+  sd_temp <- sqrt(stats::integrate(function(z){denstemp(z)*z^2},lower = min_x, upper = max_x,
+                                                  subdivisions = nrow(density_df))$value - mean_temp^2)
+  
+  mode_temp <- density_df[which.max(density_df[,"y"]),"x"]
+  
+  qtemp <- function(p){
+    quant_temp <- sapply(p, function(x){
+      if(x < 0 | x > 1){
+        warn_qtemp <- TRUE
+        return(NaN)} else{
+          return(stats::uniroot(function(y) {
+            ptemp(y) - x
+          },lower = min_x, upper = max_x)$root)
+        }
+    }
+    )
+    return(quant_temp)
+  }
+  
+  out <- data.frame(mean = mean_temp, sd = sd_temp, `0.025quant`=qtemp(0.025), 
+                    `0.5quant`=qtemp(0.5), `0.975quant`=qtemp(0.975), mode = mode_temp)
+  rownames(out) <- name
+  colnames(out) = c("mean", "sd", "0.025quant", "0.5quant", "0.975quant", "mode")
+  return(out)
+}

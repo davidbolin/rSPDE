@@ -277,7 +277,7 @@ To this end we can use the `rspde_create_A` function. Since we will assume order
 the mesh and the locations:
 
 ```{r message=FALSE}
-Abar <- rspde_create_A(inla_mesh = prmesh, loc = coords)
+Abar <- rspde.make.A(mesh = prmesh, loc = coords)
 ```
 
 ### Setting up the rSPDE model
@@ -290,10 +290,10 @@ We will also see other options for setting up rSPDE models such as keeping
 the smoothness parameter fixed and/or increasing the order of the covariance-based
 rational approximation.
 
-Therefore, to set up a model all we have to do is use the `create_rspde_model` function:
+Therefore, to set up a model all we have to do is use the `rspde.matern` function:
 
 ```{r message=FALSE}
-rspde_model <- create_rspde_model(inla_mesh = prmesh, optimize=FALSE)
+rspde_model <- rspde.matern(mesh = prmesh)
 ```
 
 ### The inla.stack
@@ -302,11 +302,11 @@ Since the covariates already are evaluated at the observation locations,
 we only want to apply the $A$ matrix to the spatial effect and not the 
 fixed effects. We can use the `inla.stack` function.
 
-The difference is that we need to use the function `rspde_make_index` to
+The difference is that we need to use the function `rspde.make.index` to
 create the index:
 
 ```{r message=FALSE}
-mesh.index <- rspde_make_index(name = "field", inla_mesh = prmesh)
+mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
 ```
 
 We can then create the stack in a standard manner:
@@ -377,6 +377,19 @@ $$(\kappa^2 I - \Delta)^\beta(\tau u) = \mathcal{W},$$
 where $\beta = \nu/2 + d/4$, we have that
 $$\kappa = \exp(\theta_1), \quad \nu = \exp(\theta_2) + d/4, \quad \tau = \exp(\theta_3).$$
 
+We can obtain outputs with respect to parameters in the original scale by
+using the function `rspde.result()`:
+
+```{r}
+result_fit <- rspde.result(rspde_fit, "field", rspde_model)
+summary(result_fit)
+```
+
+We can also plot the posterior densities:
+
+```{r}
+plot(result_fit)
+```
 
 ## Changing the order of the rational approximation
 
@@ -390,18 +403,17 @@ of order `3`:
 
 * We build a new model:
 ```{r message=FALSE}
-rspde_model_3 <- create_rspde_model(inla_mesh = prmesh, rspde_order = 3,
-                                    optimize=FALSE)
+rspde_model_3 <- rspde.matern(mesh = prmesh, rspde_order = 3)
 ```
 
 * We create a new $A$ matrix:
 ```{r message=FALSE}
-Abar_3 <- rspde_create_A(inla_mesh = prmesh, loc = coords, rspde_order = 3)
+Abar_3 <- rspde.make.A(mesh = prmesh, loc = coords, rspde_order = 3)
 ```
 
 * We create a new index:
 ```{r message=FALSE}
-mesh.index.3 <- rspde_make_index(name = "field", inla_mesh = prmesh, 
+mesh.index.3 <- rspde.make.index(name = "field", mesh = prmesh, 
                                  rspde_order = 3)
 ```
 
@@ -428,6 +440,13 @@ rspde_fit_3 <- inla(f.s.3, family = "Gamma", data = inla.stack.data(stk.dat.3),
 Let us see the summary:
 ```{r}
 summary(rspde_fit_3)
+```
+
+Let us now see the summary in the original scale:
+
+```{r}
+result_fit_3 <- rspde.result(rspde_fit_3, "field", rspde_model_3)
+summary(result_fit_3)
 ```
 
 ## Estimating models with fixed smoothness
@@ -477,8 +496,8 @@ Therefore, all we have to do is build a new model in which we set
  `nu` to `0.78`:
 
 ```{r message=FALSE}
-rspde_model_fix <- create_rspde_model(inla_mesh = prmesh, rspde_order = 2,
-                                       nu = 0.78, optimize=FALSE)
+rspde_model_fix <- rspde.matern(mesh = prmesh, rspde_order = 2,
+                                       nu = 0.78)
 ```
 
 Let us now fit the model:
@@ -498,6 +517,12 @@ Here we have the summary:
 summary(rspde_fix)
 ```
 
+Now, the summary in the original scale:
+
+```{r}
+result_fix <- rspde.result(rspde_fix, "field", rspde_model_fix)
+summary(result_fix)
+```
 #### Increasing the order
 
 Let us fit the same model as above, but with order 3 from the covariance-based
@@ -507,7 +532,7 @@ Notice that we already computed the $A$ matrix and the `index` for the third ord
 model. Thus, all we have to do is build a new model and fit:
 
 ```{r message=FALSE}
-rspde_model_fix_3 <- create_rspde_model(inla_mesh = prmesh, rspde_order = 3,
+rspde_model_fix_3 <- rspde.matern(mesh = prmesh, rspde_order = 3,
                                        nu = 0.78)
 
 f.s.fix.3 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
@@ -522,6 +547,13 @@ rspde_fix_3 <- inla(f.s.fix.3, family = "Gamma", data = inla.stack.data(stk.dat.
 Here we have the summary:
 ```{r}
 summary(rspde_fix_3)
+```
+
+Now, the summary in the original scale:
+
+```{r}
+result_fix_3 <- rspde.result(rspde_fix_3, "field", rspde_model_fix_3)
+summary(result_fix_3)
 ```
 
 ### Estimating models with fixed smoothness and integer $\alpha$
@@ -573,22 +605,22 @@ that makes $\alpha = \nu + 1$ an integer is $\nu=1$. Let us fit such a model.
 To this end we need to compute a new $A$ matrix:
 
 ```{r message=FALSE}
-Abar.int <- rspde_create_A(inla_mesh = prmesh, loc = coords,
+Abar.int <- rspde.make.A(mesh = prmesh, loc = coords,
                        nu = 1)
 ```
 
 a new index:
 
 ```{r message=FALSE}
-mesh.index.int <- rspde_make_index(name = "field", inla_mesh = prmesh,
+mesh.index.int <- rspde.make.index(name = "field", mesh = prmesh,
                                   nu = 1)
 ```
 
 create a new model (remember to set `nu=1`):
 
 ```{r message=FALSE}
-rspde_model_fix_int1 <- create_rspde_model(inla_mesh = prmesh,
-                                     nu = 1, optimize = TRUE)
+rspde_model_fix_int1 <- rspde.matern(mesh = prmesh,
+                                     nu = 1)
 ```
 
 The remaining is standard:
@@ -629,7 +661,7 @@ we already computed them.
 Thus,
 
 ```{r message=FALSE}
-rspde_model_fix_int2 <- create_rspde_model(inla_mesh = prmesh,
+rspde_model_fix_int2 <- rspde.matern(mesh = prmesh,
                                             nu = 2)
 
 f.s.fix.int.2 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
@@ -654,7 +686,7 @@ we will set `2` as our upper bound for $\nu$ by setting `nu_upper_bound = 2`
 inside the `create_rspde_model` function:
 
 ```{r message=FALSE}
-rspde_model_gen <- create_rspde_model(inla_mesh = prmesh, d=2, 
+rspde_model_gen <- rspde.matern(mesh = prmesh, 
                                       nu_upper_bound = 2)
 
 f.s.gen <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +

@@ -6,17 +6,17 @@ n <- 10
 
 coords <- cbind(long=sample(1:n), lat=sample(1:n))
 
-prmesh <- inla.mesh.2d(coords, max.edge = c(20, 40))
+mesh <- inla.mesh.2d(coords, max.edge = c(20, 40))
 
 rspde_order_m = 2
 
-rspde_model <- create_rspde_model(inla_mesh = prmesh, rspde_order = rspde_order_m,
+rspde_model <- rspde.matern(mesh = mesh, rspde_order = rspde_order_m,
                                   optimize=FALSE, debug=FALSE, 
                                   nu_upper_bound = 2)
 
 prec_m <- rspde_model$f$rgeneric$definition(cmd="Q", theta=c(1,1,1))
 
-rspde_model_opt <- create_rspde_model(inla_mesh = prmesh, rspde_order = rspde_order_m,
+rspde_model_opt <- rspde.matern(mesh = mesh, rspde_order = rspde_order_m,
                                   optimize=TRUE, sharp = FALSE,debug=FALSE, 
                                   nu_upper_bound = 2)
 
@@ -25,7 +25,7 @@ prec_opt_values <- rspde_model_opt$f$rgeneric$definition(cmd="Q", theta=c(1,1,1)
 prec_opt_graph <- rspde_model_opt$f$rgeneric$definition(cmd="graph")
 prec_opt <- build_sparse_matrix_rspde(prec_opt_values,prec_opt_graph)
 
-rspde_model_opt_2 <- create_rspde_model(inla_mesh = prmesh, rspde_order = rspde_order_m,
+rspde_model_opt_2 <- rspde.matern(mesh = mesh, rspde_order = rspde_order_m,
                                       optimize=TRUE, sharp = TRUE,debug=FALSE, 
                                       nu_upper_bound = 2)
 prec_opt_values_2 <- rspde_model_opt_2$f$rgeneric$definition(cmd="Q", theta=c(1,1,1))
@@ -43,12 +43,12 @@ test_that("Checking equality of optimized and non-opt. Prec. matrices for intege
   
   coords <- cbind(long=sample(1:n), lat=sample(1:n))
   
-  prmesh <- inla.mesh.2d(coords, max.edge = c(20, 40))
-  rspde_model_int <- create_rspde_model(inla_mesh = prmesh, rspde_order = rspde_order_m,
+  mesh <- inla.mesh.2d(coords, max.edge = c(20, 40))
+  rspde_model_int <- rspde.matern(mesh = mesh, rspde_order = rspde_order_m,
                                   optimize=FALSE, debug=FALSE, 
                                   nu = 1)
 
-  rspde_model_int_opt <- create_rspde_model(inla_mesh = prmesh, rspde_order = rspde_order_m,
+  rspde_model_int_opt <- rspde.matern(mesh = mesh, rspde_order = rspde_order_m,
                                       optimize=TRUE, debug=FALSE, 
                                       nu = 1)
 
@@ -56,6 +56,12 @@ test_that("Checking equality of optimized and non-opt. Prec. matrices for intege
   prec_int_opt_values <- rspde_model_int_opt$f$rgeneric$definition(cmd="Q", theta=c(1,1))
   prec_int_opt_graph <- rspde_model_int_opt$f$rgeneric$definition(cmd="graph")
   prec_int_opt <- build_sparse_matrix_rspde(prec_int_opt_values,prec_int_opt_graph)
-
+  
   expect_true(all(prec_int==prec_int_opt))
+  
+  spde <- inla.spde2.matern(mesh,alpha=2)
+  prec_temp <- inla.spde.precision(spde,theta=c(1,3))
+  prec_int <- rspde.precision(rspde_model_int, theta=c(1,3))
+  expect_true(sum((prec_temp-prec_int)^2) < 10^(-10))
+  
 })
