@@ -1309,7 +1309,7 @@ summary.rspde.result <- function(object,digits=6,...){
 #' @export
 #' 
 rspde.mesh.project <- function(...) {
-  UseMethod("rspde.mesh.project", ...)
+  UseMethod("rspde.mesh.project")
 }
 
 #' @rdname rspde.mesh.project
