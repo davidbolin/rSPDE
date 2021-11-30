@@ -3,7 +3,7 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
                          "do_optimize", "idx_symmetric", "n_Q", "rspde_order",
                          "graph_opt","fem_matrices", "sharp",
                          "prior.kappa", "prior.nu", "prior.tau",
-                         "start.lkappa", "start.ltau", "start.lnu",
+                         "start.lkappa", "start.ltau", "start.nu",
                          "prior.nu.dist"))
 
 #' @importFrom stats dnorm pnorm dbeta
@@ -29,7 +29,7 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
                                               ...) {
   
   initial <- function(n, theta) {
-    return(c(start.ltau, start.lkappa, start.lnu))
+    return(c(start.ltau, start.lkappa, log(start.nu/(nu_upper_bound-start.nu))))
   }
   
   ######## parameter
@@ -44,7 +44,8 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
   ######## precision matrix
   Q = function(n, theta) {
     param = interpret.theta(n, theta)
-    nu = min(exp(param$lnu), nu_upper_bound)
+    #nu = min(exp(param$lnu), nu_upper_bound)
+    nu = (exp(param$lnu)/(1+exp(param$lnu)))*nu_upper_bound
     tau = exp(param$ltau)
     kappa = exp(param$lkappa)
     
@@ -84,24 +85,25 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
     param = interpret.theta(n, theta)
     
     if(prior.nu.dist == "lognormal"){
-      if (param$lnu > log(nu_upper_bound)) {
-        tdnorm_nu = -Inf
-      } else{
-        tdnorm_nu = dnorm(param$lnu, 0, 1, log = TRUE) -
+      nu = (exp(param$lnu)/(1+exp(param$lnu)))*nu_upper_bound
+      tdnorm_nu = dnorm(log(nu), 0, 1, log = TRUE) - log(nu) -
           pnorm(log(nu_upper_bound), prior.nu$meanlog,
                 prior.nu$sdlog, log.p = TRUE)
-      }
       
       res <- tdnorm_nu + dnorm(param$lkappa, prior.kappa$meanlog,
                                prior.kappa$sdlog, log = TRUE) +
-        dnorm(param$ltau, prior.tau$meanlog, prior.tau$sdlog, log = TRUE)
+        dnorm(param$ltau, prior.tau$meanlog, prior.tau$sdlog, log = TRUE) -
+        param$ltau - param$lkappa
     } else if(prior.nu.dist == "beta"){
-      s_1 = (exp(prior.nu$meanlog)/nu_upper_bound) * prior.nu$prec
-      s_2 = (1-exp(prior.nu$meanlog)/nu_upper_bound) * prior.nu$prec
+      s_1 = (prior.nu[["mean"]]/nu_upper_bound) * prior.nu$prec
+      s_2 = (1-prior.nu[["mean"]]/nu_upper_bound) * prior.nu$prec
       
-      res <- dbeta(exp(param$lnu)/nu_upper_bound, shape1 = s_1, shape2 = s_2, log=TRUE) - log(nu_upper_bound) +
+      nu = (exp(param$lnu)/(1+exp(param$lnu)))*nu_upper_bound
+      
+      res <- dbeta(nu/nu_upper_bound, shape1 = s_1, shape2 = s_2, log=TRUE) - log(nu_upper_bound) +
         dnorm(param$lkappa, prior.kappa$meanlog,prior.kappa$sdlog, log = TRUE) +
-        dnorm(param$ltau, prior.tau$meanlog, prior.tau$sdlog, log = TRUE)
+        dnorm(param$ltau, prior.tau$meanlog, prior.tau$sdlog, log = TRUE) -
+        param$lkappa - param$ltau
     } else{
       stop("You must choose prior.nu.dist between beta and lognormal!")
     }
@@ -198,7 +200,8 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
     res <- dnorm(param$lkappa, prior.kappa$meanlog, 
                  prior.kappa$sdlog, log = TRUE) +
       dnorm(param$ltau, prior.tau$meanlog, 
-            prior.tau$sdlog, log = TRUE)
+            prior.tau$sdlog, log = TRUE)-
+      param$lkappa - param$ltau
     return(res)
   }
   
@@ -291,7 +294,8 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
     res <- dnorm(param$lkappa, prior.kappa$meanlog,
                  prior.kappa$sdlog, log = TRUE) +
       dnorm(param$ltau, prior.tau$meanlog, 
-            prior.tau$sdlog, log = TRUE)
+            prior.tau$sdlog, log = TRUE)-
+      param$lkappa - param$ltau
     return(res)
   }
   
@@ -326,7 +330,7 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
 #' the matrices will be analyzed.
 #' @param prior.kappa a list containing the elements meanlog and sdlog, that is,
 #' the mean and standard deviation on the log scale.
-#' @param prior.nu a list containing the elements meanlog and prec for beta distribution,
+#' @param prior.nu a list containing the elements mean and prec for beta distribution,
 #' or meanlog and sdlog for a truncated lognormal distribution. meanlog stands for
 #' the mean on the log scale. prec stands for the precision of a beta distribution.
 #' sdlog stands for the standard deviation on the log scale. See help for further details.
@@ -334,7 +338,7 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
 #' @param prior.tau a list containing the elements meanlog and sdlog, that is,
 #' the mean and standard deviation on the log scale.
 #' @param start.lkappa Starting value for log of kappa.
-#' @param start.lnu Starting value for log(nu).
+#' @param start.nu Starting value for nu.
 #' @param start.ltau Starting value for log of tau.
 #' @param prior.nu.dist The distribution of the smoothness parameter. The current
 #' options are "beta" or "lognormal". The default is "beta".
@@ -351,10 +355,10 @@ rspde.matern <- function(mesh,
                          prior.nu = NULL,
                          prior.tau = NULL,
                          start.lkappa = NULL,
-                         start.lnu = NULL,
+                         start.nu = NULL,
                          start.ltau = NULL,
                          prior.nu.dist = c("beta", "lognormal"),
-                         nu.prec.inc = 11
+                         nu.prec.inc = 1
 ){
   
   prior.nu.dist = prior.nu.dist[[1]]
@@ -496,24 +500,38 @@ rspde.matern <- function(mesh,
 if(is.null(prior.nu$meanlog)){
   prior.nu$meanlog <- log(min(1, nu_upper_bound/2))
 }
+  
+if(is.null(prior.nu[["mean"]])){
+  prior.nu[["mean"]] <- min(1, nu_upper_bound/2)
+}
 
 if(is.null(prior.kappa$meanlog)){
   mesh.range = ifelse(d == 2, (max(c(diff(range(mesh$loc[,
                                                               1])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[,
                                                                                                                     3]))))), diff(mesh$interval))
   prior.range.nominal = mesh.range * 0.2
-  prior.kappa$meanlog <- log(sqrt(8 * exp(prior.nu$meanlog))/prior.range.nominal)
+  if(prior.nu.dist=="lognormal"){
+    prior.kappa$meanlog <- log(sqrt(8 * exp(prior.nu[["meanlog"]]))/prior.range.nominal)
+  } else if (prior.nu.dist=="beta"){
+    prior.kappa$meanlog <- log(sqrt(8 * prior.nu[["mean"]])/prior.range.nominal)
+  }
+  
 }
 
 if(is.null(prior.tau$meanlog)){
-  prior.tau$meanlog <-  log(sqrt(gamma(exp(prior.nu$meanlog))/gamma(exp(prior.nu$meanlog)+d/2)/(4 *
-                                                                                    pi * exp(prior.kappa$meanlog)^(2 * exp(prior.nu$meanlog)))))
-}
+  if(prior.nu.dist=="lognormal"){
+    prior.tau$meanlog <-  log(sqrt(gamma(exp(prior.nu[["meanlog"]]))/gamma(exp(prior.nu$meanlog)+d/2)/(4 *
+                                                                                                         pi * exp(prior.kappa$meanlog)^(2 * exp(prior.nu$meanlog)))))
+  } else if (prior.nu.dist == "beta"){
+    prior.tau$meanlog <-  log(sqrt(gamma(prior.nu[["mean"]])/gamma(prior.nu[["mean"]]+d/2)/(4 *
+                                                                                                         pi * exp(prior.kappa$meanlog)^(2 * prior.nu[["mean"]]))))
+  }
+  }
 if(is.null(prior.kappa$sdlog)){
   prior.kappa$sdlog <- 1
 }
 if(is.null(prior.nu$prec)){
-  mu_temp <- exp(prior.nu$meanlog)/nu_upper_bound
+  mu_temp <- prior.nu[["mean"]]/nu_upper_bound
   prior.nu$prec <- max(1/mu_temp, 1/(1-mu_temp)) + nu.prec.inc
 }
 
@@ -531,8 +549,17 @@ if(is.null(prior.tau$sdlog)){
   if(is.null(start.ltau)){
     start.ltau = prior.tau$meanlog
   }
-  if(is.null(start.lnu)){
-    start.lnu = prior.nu$meanlog
+  if(is.null(start.nu)){
+    if(prior.nu.dist=="beta"){
+      start.nu = prior.nu[["mean"]]
+    } else if (prior.nu.dist=="lognormal"){
+      start.nu = exp(prior.nu[["meanlog"]])
+    } else{
+      stop("prior.nu.dist should be either beta or lognormal!")
+    }
+
+  } else if(start.nu > nu_upper_bound || start.nu < 0){
+    stop("start.nu should be a number between 0 and nu_upper_bound!")
   }
   
   
@@ -559,7 +586,7 @@ if(is.null(prior.tau$sdlog)){
                                         prior.nu=prior.nu,
                                         prior.tau=prior.tau,
                                         start.lkappa = start.lkappa,
-                                        start.lnu = start.lnu,
+                                        start.nu = start.nu,
                                         start.ltau = start.ltau,
                                         d = d, rspde_order = rspde_order, 
                                         prior.nu.dist=prior.nu.dist,
@@ -624,6 +651,7 @@ if(is.null(prior.tau$sdlog)){
   model$dim = d
   model$est_nu = !fixed_nu
   model$n.spde = mesh$n
+  model$nu_upper_bound = nu_upper_bound
   return(model)
 }
 
@@ -679,7 +707,7 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
   
   if (m_alpha == 1){
     Malpha =  (fem_matrices[["C"]] + fem_matrices[["G"]]/(kappa^2))
-  } else if (m_alpha > 1){
+  } else if(m_alpha > 1){
     Malpha =  fem_matrices[["C"]] + m_alpha * fem_matrices[["G"]]/(kappa^2)
     for(j in 2:m_alpha){
       Malpha = Malpha +  choose(m_alpha, j) * fem_matrices[[paste0("G_",j)]]/(kappa^(2*j))
@@ -691,7 +719,7 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
   
   if (m_alpha == 1){
     Malpha2 =  (fem_matrices[["G"]] + fem_matrices[["G_2"]]/(kappa^2))
-  } else if (m_alpha > 1){
+  } else if(m_alpha > 1){
     Malpha2 =  fem_matrices[["G"]] + m_alpha * fem_matrices[["G_2"]]/(kappa^2)
     for(j in 2:m_alpha){
       Malpha2 = Malpha2 +  choose(m_alpha, j) * fem_matrices[[paste0("G_",j+1)]]/(kappa^(2*j))
@@ -713,7 +741,7 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
   if(sharp){
     if (m_alpha == 1){
       Kpart = 1/k * (fem_matrices[["C_less"]] + fem_matrices[["G_less"]]/(kappa^2))
-    } else if (m_alpha > 1){
+    } else if(m_alpha > 1){
       Kpart = 1/k * fem_matrices[["C_less"]] + 1/k * m_alpha * fem_matrices[["G_less"]]/(kappa^2)
       for(j in 2:m_alpha){
         Kpart = Kpart + 1/k * choose(m_alpha, j) * fem_matrices[[paste0("G_",j,"_less")]]/(kappa^(2*j))
@@ -1111,12 +1139,14 @@ rspde.precision <- function(rspde, theta, optimized = FALSE){
 #' @param inla An inla object.
 #' @param name A character string with the name of the rSPDE effect in the inla formula.
 #' @param rspde The inla.rspde object used for the effect in the inla formula. 
+#' @param compute.summary Should the summary be computed?
 #' @return Returns a list containing posterior results.
 #' @export
-rspde.result <- function(inla, name, rspde)
+rspde.result <- function(inla, name, rspde, compute.summary=TRUE)
 {
   check_class_inla_rspde(rspde)
 
+  nu_upper_bound = rspde$nu_upper_bound
 result = list()
 
 if(!rspde$est_nu){
@@ -1167,17 +1197,18 @@ if (!is.null(inla$marginals.hyperpar[[paste0("Theta1 for ", name)]])) {
                                                                x))
     if(rspde$est_nu){
       result$marginals.nu = lapply(result$marginals.log.nu, 
-                                      function(x) INLA::inla.tmarginal(function(y) exp(y), 
+                                      function(x) INLA::inla.tmarginal(function(y) {nu_upper_bound*exp(y)/(1+exp(y))}, 
                                                                  x))
   }
 }
 
-result$summary.tau <- create_summary_from_density(result$marginals.tau$tau, name="tau")
-result$summary.kappa <- create_summary_from_density(result$marginals.kappa$kappa, name="kappa")
-if(rspde$est_nu){
-  result$summary.nu <- create_summary_from_density(result$marginals.nu$nu, name="nu")
+if(compute.summary){
+  result$summary.tau <- create_summary_from_density(result$marginals.tau$tau, name="tau")
+  result$summary.kappa <- create_summary_from_density(result$marginals.kappa$kappa, name="kappa")
+  if(rspde$est_nu){
+    result$summary.nu <- create_summary_from_density(result$marginals.nu$nu, name="nu")
+  }
 }
-
 
 class(result) <- "rspde.result"
 return(result)
@@ -1274,12 +1305,16 @@ plot.rspde.result <- function(x, which = c("tau","kappa","nu"),
 #' @method summary rspde.result
 #' 
 summary.rspde.result <- function(object,digits=6,...){
-  out <- object$summary.tau
-  out <- rbind(out, object$summary.kappa)
-  if(!is.null(object$summary.nu)){
-    out <- rbind(out, object$summary.nu)
+  if(is.null(object$summary.tau)){
+    warning("The summary was not computed, rerun rspde.result with compute.summary set to TRUE.")
+  } else{
+    out <- object$summary.tau
+    out <- rbind(out, object$summary.kappa)
+    if(!is.null(object$summary.nu)){
+      out <- rbind(out, object$summary.nu)
+    }
+    return(signif(out,digits=digits))
   }
-  return(signif(out,digits=digits))
 }
 
 
