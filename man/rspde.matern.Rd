@@ -6,25 +6,24 @@
 \usage{
 rspde.matern(
   mesh,
-  nu_lower_bound = get_inla_mesh_dimension(mesh)/4,
   nu_upper_bound = 4,
   rspde_order = 2,
   nu = NULL,
   sharp = TRUE,
   debug = FALSE,
   optimize = TRUE,
-  prior.kappa = list(meanlog = 0, sdlog = 1),
-  prior.nu = list(meanlog = 0, sdlog = 1),
-  prior.tau = list(meanlog = 0, sdlog = 1),
-  start.lkappa = 0,
-  start.lnu = 0,
-  start.ltau = 0
+  prior.kappa = NULL,
+  prior.nu = NULL,
+  prior.tau = NULL,
+  start.lkappa = NULL,
+  start.nu = NULL,
+  start.ltau = NULL,
+  prior.nu.dist = c("beta", "lognormal"),
+  nu.prec.inc = 1
 )
 }
 \arguments{
 \item{mesh}{An INLA mesh}
-
-\item{nu_lower_bound}{Lower bound for the smoothness parameter.}
 
 \item{nu_upper_bound}{Upper bound for the smoothness parameter.}
 
@@ -45,17 +44,25 @@ the matrices will be analyzed.}
 \item{prior.kappa}{a list containing the elements meanlog and sdlog, that is,
 the mean and standard deviation on the log scale.}
 
-\item{prior.nu}{a list containing the elements meanlog and sdlog, that is,
-the mean and standard deviation on the log scale.}
+\item{prior.nu}{a list containing the elements mean and prec for beta distribution,
+or meanlog and sdlog for a truncated lognormal distribution. meanlog stands for
+the mean on the log scale. prec stands for the precision of a beta distribution.
+sdlog stands for the standard deviation on the log scale. See help for further details.
+The default precision is 50.}
 
 \item{prior.tau}{a list containing the elements meanlog and sdlog, that is,
 the mean and standard deviation on the log scale.}
 
 \item{start.lkappa}{Starting value for log of kappa.}
 
-\item{start.lnu}{Starting value for log(nu-nu_lower_bound).}
+\item{start.nu}{Starting value for nu.}
 
 \item{start.ltau}{Starting value for log of tau.}
+
+\item{prior.nu.dist}{The distribution of the smoothness parameter. The current
+options are "beta" or "lognormal". The default is "beta".}
+
+\item{nu.prec.inc}{Amount to increase the precision in the beta prior distribution.}
 }
 \value{
 An INLA model.

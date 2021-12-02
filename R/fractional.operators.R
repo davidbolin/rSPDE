@@ -269,7 +269,7 @@ matern.operators <- function(kappa,
 
 
 
-#' @name matern.cov_rSPDE.operators
+#' @name CBrSPDE.matern.operators
 #' @title Create INLA-based rSPDE models
 #' @description \code{matern.operators} is used for computing a
 #' covariance-based rational SPDE approximation of a stationary Gaussian random
@@ -284,10 +284,10 @@ matern.operators <- function(kappa,
 #' @param d The dimension of the domain.
 #' @param m The order of the rational approximation, which needs to be a positive integer.
 #' The default value is 2.
-#' @return A cov_rSPDE object.
+#' @return A CBrSPDE object.
 #' @export
 
-matern.cov_rSPDE.operators <- function(C,
+CBrSPDE.matern.operators <- function(C,
                                  G,
                                  nu,
                                  kappa,
@@ -331,7 +331,7 @@ matern.cov_rSPDE.operators <- function(C,
                  alpha = alpha, nu = nu, kappa = kappa, 
                  tau = tau, m = m, d = d)
   output$type = "Covariance-Based Matern SPDE approximation"
-  class(output) <- "cov_rSPDEobj"
+  class(output) <- "CBrSPDEobj"
   return(output)
 }
 

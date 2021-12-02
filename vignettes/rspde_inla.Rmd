@@ -695,8 +695,7 @@ f.s.gen <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
 rspde_gen <- inla(f.s.gen, family = "Gamma", 
                       data = inla.stack.data(stk.dat), verbose = FALSE, 
                       control.inla=list(int.strategy='eb'),
-                      control.predictor = list(A = inla.stack.A(stk.dat), 
-                                               compute = TRUE))
+                      control.predictor = list(A = inla.stack.A(stk.dat)))
 ```
 
 Let us see the summary:
