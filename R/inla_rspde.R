@@ -515,9 +515,17 @@ rspde.matern <- function(mesh,
     m_alpha = max(1, floor(2 * beta))
     
     if(integer_alpha){
-      fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+      if(d==1){
+        fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha)
+      } else{
+        fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+      }
     } else{
-      fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha+1)
+      if(d==1){
+        fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha+1)        
+      } else{
+        fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha+1)
+      }
     }
   } else{
     beta = nu_order / 2 + d / 4
@@ -525,9 +533,17 @@ rspde.matern <- function(mesh,
     m_alpha = max(1, floor(2 * beta))
   
     if(integer_alpha){
-      fem_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+      if(d==1){
+        fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha)
+      } else{
+        fem_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+      }
     } else{
-      fem_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha+1)
+      if(d==1){
+        fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha+1)
+      } else{
+        fem_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha+1)        
+      }
     }
   }
   

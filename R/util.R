@@ -367,21 +367,50 @@ get_inla_mesh_dimension <- function(inla_mesh){
   cond1 <- inherits(inla_mesh,"inla.mesh.1d")
   cond2 <- inherits(inla_mesh,"inla.mesh")
   stopifnot(cond1 || cond2)
-  if(!(class(inla_mesh) %in% c("inla.mesh", "inla.mesh.1d"))){
-    stop("The object should be an INLA mesh")
-  } else{
-    if(inla_mesh$manifold == "R1"){
+  if(inla_mesh$manifold == "R1"){
       d = 1
-    } else if(inla_mesh$manifold == "R2"){
+  } else if(inla_mesh$manifold == "R2"){
       d = 2
-    } else{
-      stop("The mesh should be from a flat manifold.")
-    }
+  } else{
+    stop("The mesh should be from a flat manifold.")
   }
   return(d)
 }
 
 
+#' @name fem_mesh_order_1d
+#' @title Get fem_mesh_matrices for 1d inla.mesh objects
+#' @description Get fem_mesh_matrices for 1d inla.mesh objects
+#' @param inla_mesh An INLA mesh
+#' @param m_order the order of the FEM matrices
+#' @return A list with fem_mesh_matrices
+#' @noRd
+
+
+fem_mesh_order_1d <- function(inla_mesh, m_order){
+  fem_mesh <- INLA::inla.mesh.1d.fem(inla_mesh)
+  C <- fem_mesh$c0
+  G <- fem_mesh$g1
+  Gk <- list()
+  Ci <- C
+  Ci@x <- 1/C@x
+  
+  GCi <- G%*%Ci
+  Gk[[1]] <- G
+  # determine how many G_k matrices we want to create
+  for (i in 2:m_order){
+    Gk[[i]] <- GCi %*% Gk[[i-1]]
+  }
+  
+  # create a list contains all the finite element related matrices
+  fem_mesh_matrices <- list()
+  fem_mesh_matrices[["c0"]] <- C
+  
+  for(i in 1:m_order){
+    fem_mesh_matrices[[paste0("g",i)]] <- Gk[[i]]
+  }
+  return(fem_mesh_matrices)
+}
 
 #' @name get.sparsity.graph.rspde
 #' @title Sparsity graph for rSPDE models
