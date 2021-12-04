@@ -10,7 +10,7 @@ Basic statistical operations such as likelihood evaluations and kriging predicti
 For illustration purposes, the package contains a simple FEM implementation for models on R. See the 
 [Getting Started to the rSPDE package][ref2] vignette for an introduction to the package. The [Rational approximation][ref5] and [Covariance-based rational approximation][ref6] vignettes provide
 introductions to how to create and fit rSPDE models. For an introduction to the R-INLA implementation
-of the rSPDE models see the [INLA Vignette][ref3]. The [`rSPDE` documentation][ref7] contains description and examples of the functions in the `rSPDE` package.
+of the rSPDE models see the [INLA Vignette][ref3]. The [`rSPDE` documentation][ref7] contains descriptions and examples of the functions in the `rSPDE` package.
 
 # Reference #
 D. Bolin and K. Kirchner (2020) [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Journal of Computational and Graphical Statistics, 29:2, 274-285.

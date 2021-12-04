@@ -1,10 +1,10 @@
 ---
-title: "Using the covariance-based rational approximation with the `rSPDE` package"
+title: "An introduction to the `rSPDE` package"
 author: "David Bolin, Alexandre B. Simas, Zhen Xiong"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Using the covariance-based rational approximation with the `rSPDE` package}
+  %\VignetteIndexEntry{An introduction to the `rSPDE` package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 references:
@@ -39,4 +39,22 @@ references:
   issued:
     year: 2011
 ---
-## Introduction 
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(rSPDE)
+run_inla <- identical(Sys.getenv("NOT_CRAN"), "true")
+if(run_inla){
+  run_inla <- run_inla&require.nowarnings(INLA)
+}
+
+set.seed(1)
+```
+
+# Introduction
+
+# References
+
