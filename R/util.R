@@ -362,8 +362,11 @@ check_class_inla_rspde <- function(model){
 #' @return The dimension of an INLA mesh.
 #' @noRd
 
+
 get_inla_mesh_dimension <- function(inla_mesh){
-  stopifnot(inherits(inla_mesh,"inla.mesh"))
+  cond1 <- inherits(inla_mesh,"inla.mesh.1d")
+  cond2 <- inherits(inla_mesh,"inla.mesh")
+  stopifnot(cond1 || cond2)
   if(!(class(inla_mesh) %in% c("inla.mesh", "inla.mesh.1d"))){
     stop("The object should be an INLA mesh")
   } else{
@@ -375,7 +378,9 @@ get_inla_mesh_dimension <- function(inla_mesh){
       stop("The mesh should be from a flat manifold.")
     }
   }
+  return(d)
 }
+
 
 
 #' @name get.sparsity.graph.rspde
