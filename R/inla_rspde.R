@@ -1182,7 +1182,9 @@ rspde.make.A <- function(mesh=NULL,
                            n.group=NULL,
                            n.repl=NULL){
   if(!is.null(mesh)){
-    stopifnot(inherits(mesh,"inla.mesh"))
+    cond1 <- inherits(mesh,"inla.mesh.1d")
+    cond2 <- inherits(mesh,"inla.mesh")
+    stopifnot(cond1 || cond2)
     if(mesh$manifold == "R1"){
       dim = 1
     } else if(mesh$manifold == "R2"){
@@ -1806,7 +1808,9 @@ rspde.mesh.projector <- function(mesh,
 rspde.mesh.project.inla.mesh <- function (mesh, loc = NULL, 
                                           field = NULL, rspde_order = 2,
                                           nu = NULL, ...) {
-  stopifnot(inherits(mesh, "inla.mesh"))
+  cond1 <- inherits(mesh,"inla.mesh.1d")
+  cond2 <- inherits(mesh,"inla.mesh")
+  stopifnot(cond1 || cond2)
 
     if (!missing(field) && !is.null(field)) {
       proj <- rspde.mesh.projector(mesh, loc = loc, rspde_order = rspde_order, nu=nu,
