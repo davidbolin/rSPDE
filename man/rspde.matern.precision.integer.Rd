@@ -2,18 +2,19 @@
 % Please edit documentation in R/inla_rspde.R
 \name{rspde.matern.precision.integer}
 \alias{rspde.matern.precision.integer}
-\title{Precision matrix of the covariance-based rational approximation}
+\title{Precision matrix of stationary Gaussian Matern random fields with integer
+covariance exponent}
 \usage{
 rspde.matern.precision.integer(kappa, nu, tau, dim, fem_mesh_matrices)
 }
 \arguments{
-\item{kappa}{Range parameter of the latent process.}
+\item{kappa}{Range parameter of the covariance function.}
 
-\item{nu}{The smoothness parameter}
+\item{nu}{Shape parameter of the covariance function.}
 
-\item{tau}{The precision parameter}
+\item{tau}{Scale parameter of the covariance function.}
 
-\item{dim}{The dimension}
+\item{dim}{The dimension of the domain}
 
 \item{fem_mesh_matrices}{A list containing the FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.}
 }
@@ -21,5 +22,34 @@ rspde.matern.precision.integer(kappa, nu, tau, dim, fem_mesh_matrices)
 The precision matrix
 }
 \description{
-Computes the precision matrix for the covariance-based rational SPDE
+\code{rspde.matern.precision.integer.opt} is used for computing the
+precision matrix of stationary Gaussian random
+fields on \eqn{R^d} with a Matern covariance function
+\deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
+(\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)},
+where \eqn{\alpha = \nu + d/2 \in\mathbb{N}}.
+}
+\examples{
+set.seed(123)
+nobs = 101
+x <- seq(from = 0, to = 1, length.out = nobs)
+fem <- rSPDE.fem1d(x)
+kappa <- 40
+sigma <- 1
+d <- 1
+nu = 0.5
+tau = sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
+op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,tau = tau,
+                                  d=1,m = 2)
+v <- t(rSPDE.A1d(x,0.5))
+c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
+Q <- rspde.matern.precision.integer(kappa=kappa,nu=nu,tau=tau,d=1,
+fem_mesh_matrices = op_cov$fem_mesh_matrices)
+A <- Diagonal(nobs)
+c.approx_cov <- A\%*\%solve(Q,v)
+
+#plot the result and compare with the true Matern covariance
+plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
+     xlab="h", main = "Matern covariance and rational approximations")
+lines(x, c.approx_cov, col = 2)
 }

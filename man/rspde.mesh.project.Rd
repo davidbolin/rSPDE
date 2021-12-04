@@ -6,7 +6,7 @@
 \alias{rspde.mesh.project.inla.mesh}
 \alias{rspde.mesh.project.rspde.mesh.projector}
 \alias{rspde.mesh.project.inla.mesh.1d}
-\title{Calculate a lattice projection to/from an inla.mesh() for rSPDE objects}
+\title{Calculate a lattice projection to/from an \code{inla.mesh} for rSPDE objects}
 \usage{
 rspde.mesh.project(...)
 
@@ -39,15 +39,15 @@ rspde.mesh.projector(
 \arguments{
 \item{...}{Additional parameters.}
 
-\item{mesh}{An inla.mesh() or inla.mesh.1d() object.}
+\item{mesh}{An \code{inla.mesh} or \code{inla.mesh.1d} object.}
 
-\item{nu}{The smoothness parameter. If NULL, it will be assumed that nu was estimated.}
+\item{nu}{The smoothness parameter. If \code{NULL}, it will be assumed that nu was estimated.}
 
 \item{rspde_order}{The order of the rational approximation.}
 
 \item{loc}{Projection locations. Can be a matrix or a SpatialPoints or a SpatialPointsDataFrame object.}
 
-\item{lattice}{An inla.mesh.lattice() object.}
+\item{lattice}{An \code{inla.mesh.lattice} object.}
 
 \item{xlim}{X-axis limits for a lattice. For R2 meshes, defaults to covering the domain.}
 
@@ -59,7 +59,7 @@ rspde.mesh.projector(
 
 \item{field}{Basis function weights, one per mesh basis function, describing the function to be avaluated at the projection locationssFunction values for on the mesh}
 
-\item{projector}{A rspde.mesh.projector object.}
+\item{projector}{A \code{rspde.mesh.projector} object.}
 }
 \value{
 A list with projection information for rspde.mesh.project. For rspde.mesh.projector(mesh, ...), 
@@ -67,7 +67,7 @@ a rspde.mesh.projector object. For rspde.mesh.project(projector, field, ...), a 
 given by the projector object.
 }
 \description{
-Calculate a lattice projection to/from an inla.mesh() for rSPDE objects
+Calculate a lattice projection to/from an \code{inla.mesh} for rSPDE objects
 }
 \details{
 This function is built upon the inla.mesh.project and inla.mesh.projector functions from INLA.

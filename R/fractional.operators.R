@@ -49,7 +49,8 @@
 #' \item{Pr.factors}{List with elements that can be used to assemble \eqn{P_r}.}
 #' @export
 #' @author David Bolin \email{davidbolin@@gmail.com}
-#' @seealso \code{\link{matern.operators}}, \code{\link{spde.matern.operators}}
+#' @seealso \code{\link{matern.operators}}, \code{\link{spde.matern.operators}},
+#' \code{\link{CBrSPDE.matern.operators}}
 #' @details The approximation is based on a rational approximation of the fractional operator,
 #' resulting in an
 #' approximate model on the form \deqn{P_l u(s) = P_r W,}
@@ -60,7 +61,7 @@
 #'
 #' The discrete approximation can be written as \eqn{u = P_r x} where \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
 #' and \eqn{Q = P_l^T C^{-1} P_l}. Note that the matrices \eqn{P_r} and \eqn{Q} may be be ill-conditioned for \eqn{m>1}.
-#' In this case, the metehods in \code{\link{operator.operations}} should be used for operations
+#' In this case, the methods in \code{\link{operator.operations}} should be used for operations
 #' involving the matrices, since these methods are more numerically stable.   
 #'
 #' @examples
@@ -215,7 +216,8 @@ fractional.operators <- function(L,
 #' parameters of the covariance functoin.
 #' @export
 #' @author David Bolin \email{davidbolin@@gmail.com}
-#' @seealso \code{\link{fractional.operators}}, \code{\link{spde.matern.operators}}
+#' @seealso \code{\link{fractional.operators}}, \code{\link{spde.matern.operators}},
+#' \code{\link{CBrSPDE.matern.operators}}
 #'
 #' @examples
 #' #Compute rational approximation of a Gaussian process with a 
@@ -270,21 +272,87 @@ matern.operators <- function(kappa,
 
 
 #' @name CBrSPDE.matern.operators
-#' @title Create INLA-based rSPDE models
-#' @description \code{matern.operators} is used for computing a
-#' covariance-based rational SPDE approximation of a stationary Gaussian random
+#' @title Covariance-based rational approximations of stationary Gaussian Matern random fields
+#' @description \code{CBrSPDE.matern.operators} is used for computing a 
+#' covariance-based rational SPDE approximation of stationary Gaussian random
 #' fields on \eqn{R^d} with a Matern covariance function
-#' \deqn{C(h) = \frac{\tau^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
-#' (\tau^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
+#' \deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
+#' (\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
 #' @param kappa Range parameter of the covariance function.
-#' @param tau Standard deviation of the covariance function.
+#' @param tau Scale parameter of the covariance function.
 #' @param nu Shape parameter of the covariance function.
 #' @param G The stiffness matrix of a finite element discretization of the domain of interest.
 #' @param C The mass matrix of a finite element discretization of the domain of interest.
 #' @param d The dimension of the domain.
 #' @param m The order of the rational approximation, which needs to be a positive integer.
 #' The default value is 2.
-#' @return A CBrSPDE object.
+#' @return \code{CBrSPDE.matern.operators} returns an object of class "CBrSPDEobj". 
+#' This object is a list containing the
+#' following quantities:
+#' \item{C}{The mass lumped mass matrix.}
+#' \item{Ci}{The inverse of \code{C}.}
+#' \item{GCi}{The stiffness matrix G times \code{Ci}}
+#' \item{Gk}{The stiffness matrix G along with the higher-order FEM-related matrices G2, G3, etc.}
+#' \item{fem_mesh_matrices}{A list containing the mass lumped mass matrix, the stiffness matrix and 
+#' the higher-order FEM-related matrices.}
+#' \item{m}{The order of the rational approximation.}
+#' \item{alpha}{The fractional power of the precision operator.}
+#' \item{type}{String indicating the type of approximation.}
+#' \item{d}{The dimension of the domain.}
+#' \item{nu}{Shape parameter of the covariance function.}
+#' \item{kappa}{Range parameter of the covariance function}
+#' \item{tau}{Scale parameter of the covariance function.}
+#' \item{type}{String indicating the type of approximation.}
+#' @export
+#' @seealso \code{\link{matern.operators}}, \code{\link{spde.matern.operators}}
+#' @details We use the covariance-based rational approximation of the fractional operator.
+#' In the SPDE approach, we model \eqn{u} as the solution of the following SPDE: 
+#' \deqn{L^{\alpha/2}(\tau u) = \mathcal{W},}
+#' where 
+#' \eqn{L  = -\Delta +\kappa^2 I} and \eqn{\mathcal{W}} is the standard Gaussian white noise. 
+#' The covariance operator of \eqn{u} is given by \eqn{L^{-\alpha}}. 
+#' Now, let \eqn{L_h} be a finite-element approximation of \eqn{L}. We can use 
+#' a rational approximation of order \eqn{m} on \eqn{L_h^{-\alpha}} to
+#' obtain the following approximation:
+#' \deqn{L_{h,m}^{-\alpha} = L_h^{-m_\alpha} p(L_h^{-1})q(L_h^{-1})^{-1},}
+#' where \eqn{m_\alpha = \max\{1,\lfloor \alpha\rfloor\}}, \eqn{p} and \eqn{q} are polynomials arising from such rational approximation.
+#' From this approximation we construct an approximate precision matrix for \eqn{u}.
+#' 
+#'
+#' @examples
+#' #Compute the covariance-based rational approximation of a 
+#' #Gaussian process with a Matern covariance function on R
+#' kappa <- 10
+#' sigma <- 1
+#' nu <- 0.8
+#'
+#' #create mass and stiffness matrices for a FEM discretization
+#' nobs = 101
+#' x <- seq(from = 0, to = 1, length.out = 101)
+#' fem <- rSPDE.fem1d(x)
+#'
+#' #compute rational approximation of covariance function at 0.5
+#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
+#' op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
+#' kappa=kappa,tau=tau,d=1,m=2)
+#'
+#' v = t(rSPDE.A1d(x,0.5))
+#' #Compute the precision matrix
+#' Q <- rspde.matern.precision(kappa=kappa,nu=nu,tau=tau,
+#' rspde_order=2,d=1,fem_mesh_matrices = op_cov$fem_mesh_matrices)
+#' #A matrix here is the identity matrix
+#' A <- Diagonal(nobs)
+#' #We need to concatenate 3 A's since we are doing a covariance-based rational
+#' #approximation of order 2
+#' Abar <- cbind(A,A,A)
+#' w <- rbind(v,v,v)
+#' #The approximate covariance function:
+#' c_cov.approx <- (Abar)%*%solve(Q,w)
+#' 
+#' #plot the result and compare with the true Matern covariance
+#' plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
+#'      xlab="h", main = "Matern covariance and rational approximations")
+#' lines(x, c_cov.approx, col = 2)
 #' @export
 
 CBrSPDE.matern.operators <- function(C,
@@ -312,7 +380,7 @@ CBrSPDE.matern.operators <- function(C,
   
   Gk[[1]] <- G
   # determine how many G_k matrices we want to create
-  m_order <- ifelse(alpha%%1==0, m_alpha, m_alpha+1)
+  m_order <- m_alpha+1
   for (i in 2:m_order){
     Gk[[i]] <- GCi %*% Gk[[i-1]]
   }
@@ -326,7 +394,7 @@ CBrSPDE.matern.operators <- function(C,
   }
   
   ## output
-  output <- list(C = C, Ci <- Ci, GCi = GCi, Gk = Gk, 
+  output <- list(C = C, Ci = Ci, GCi = GCi, Gk = Gk, 
                  fem_mesh_matrices=fem_mesh_matrices,
                  alpha = alpha, nu = nu, kappa = kappa, 
                  tau = tau, m = m, d = d)
@@ -371,7 +439,8 @@ CBrSPDE.matern.operators <- function(C,
 #' quantities listed in the output of \code{\link{fractional.operators}} as well as the smoothness parameter \eqn{\nu}.
 #' @export
 #' @author David Bolin \email{davidbolin@@gmail.com}
-#' @seealso \code{\link{fractional.operators}}, \code{\link{spde.matern.operators}}
+#' @seealso \code{\link{fractional.operators}}, \code{\link{spde.matern.operators}},
+#' \code{\link{CBrSPDE.matern.operators}}
 #'
 #' @examples
 #' #Sample non-stationary Matern field on R

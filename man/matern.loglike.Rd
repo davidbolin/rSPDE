@@ -43,10 +43,10 @@ of the fractional SPDE model corresponding to the Gaussian process.
 #this example illustrates how the function can be used for maximum likelihood estimation
 set.seed(123)
 #Sample a Gaussian Matern process on R using a rational approximation
-sigma = 1
 nu = 0.8
-kappa = 1
-sigma.e = 0.3
+kappa = 5
+sigma = 1
+sigma.e = 0.1
 n.rep = 10
 n.obs = 100
 n.x = 51
@@ -81,7 +81,8 @@ return(-matern.loglike(exp(theta[1]), exp(theta[2]), exp(theta[3]), exp(theta[4]
 theta0 = log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
 
 #run estimation and display the results
-theta <- optim(theta0, mlik, Y = Y, G = fem$G, C = fem$C, A = A)
+theta <- optim(theta0, mlik, Y = Y, G = fem$G, C = fem$C, A = A,
+method = "L-BFGS-B")
 
 print(data.frame(kappa = c(kappa,exp(theta$par[1])), sigma = c(sigma,exp(theta$par[2])),
                  nu = c(nu,exp(theta$par[3])), sigma.e = c(sigma.e,exp(theta$par[4])),

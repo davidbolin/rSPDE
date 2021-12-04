@@ -47,7 +47,7 @@ of the fractional SPDE model.
 }
 \examples{
 #this example illustrates how the function can be used for maximum likelihood estimation
-set.seed(1)
+set.seed(123)
 #Sample a Gaussian Matern process on R using a rational approximation
 sigma.e = 0.1
 n.rep = 10

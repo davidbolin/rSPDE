@@ -2,7 +2,7 @@
 % Please edit documentation in R/inla_rspde.R
 \name{rspde.make.index}
 \alias{rspde.make.index}
-\title{Create index for INLA-based rSPDE models}
+\title{rSPDE model index vector generation}
 \usage{
 rspde.make.index(
   name,
@@ -16,7 +16,7 @@ rspde.make.index(
 )
 }
 \arguments{
-\item{name}{Name}
+\item{name}{A character string with the base name of the effect.}
 
 \item{n.spde}{The number of basis functions in the mesh model.}
 
@@ -24,19 +24,56 @@ rspde.make.index(
 
 \item{n.repl}{The total number of replicates.}
 
-\item{mesh}{An INLA mesh}
+\item{mesh}{An \code{inla.mesh} or
+an \code{inla.mesh.1d} object.}
 
-\item{rspde_order}{The order of the covariance-based rational SPDE approach.}
+\item{rspde_order}{The order of the rational approximation}
 
-\item{nu}{If NULL, then the model will assume that nu will be estimated. If
+\item{nu}{If \code{NULL}, then the model will assume that nu will be estimated. If
 nu is fixed, you should provide the value of nu.}
 
-\item{dim}{the dimension. Should only be provided if an
-INLA mesh is not provided.}
+\item{dim}{the dimension of the domain. Should only be provided if 
+\code{mesh} is not provided.}
 }
 \value{
-index for rSPDE models.
+A list of named index vectors.
+\item{name}{Indices into the vector of latent variables}
+\item{name.group}{'group' indices}
+\item{name.repl}{Indices for replicates}
 }
 \description{
-Create index for INLA-based rSPDE models
+Generates a list of named index vectors for an rSPDE model.
+}
+\examples{
+\donttest{
+library(INLA)
+
+loc <- matrix(runif(100 * 2), 100, 2)
+mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(0.1, 0.5))
+rspde <- rspde.matern(mesh)
+index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
+n.repl = 2, dim = 2)
+spatial.A <- rspde.make.A(mesh=mesh, loc=loc,
+                             index = rep(1:nrow(loc), 2),
+                             repl = rep(1:2, each = nrow(loc))
+)
+y <- 10 + rnorm(100 * 2)
+stack <- inla.stack(
+ data = list(y = y),
+ A = list(spatial.A),
+ effects = list(c(index, list(intercept = 1))),
+ tag = "tag"
+)
+data <- inla.stack.data(stack, spde = rspde)
+formula <- y ~ -1 + intercept + f(spatial,
+                                  model = rspde,
+                                 replicate = spatial.repl
+)
+result <- inla(formula,
+               family = "gaussian", data = data,
+               control.predictor = list(A = inla.stack.A(stack))
+)
+result <- rspde.result(result, "spatial", rspde)
+plot(result)
+}
 }

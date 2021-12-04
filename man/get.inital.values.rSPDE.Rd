@@ -2,7 +2,8 @@
 % Please edit documentation in R/util.R
 \name{get.inital.values.rSPDE}
 \alias{get.inital.values.rSPDE}
-\title{Creates a summary from a density data frame}
+\title{Initial values for log-likelihood optimization in rSPDE models
+with a latent stationary Gaussian Matern model}
 \usage{
 get.inital.values.rSPDE(
   mesh = NULL,
@@ -29,5 +30,7 @@ theta_1 is the initial guess for tau, theta_2 is the initial guess for kappa
 and theta_3 is the initial guess for nu.
 }
 \description{
-Auxiliar function to create summaries from density data drames
+Auxiliar function to obtain domain-based initial values for
+log-likelihood optimization in rSPDE models
+with a latent stationary Gaussian Matern model
 }

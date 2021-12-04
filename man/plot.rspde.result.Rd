@@ -2,7 +2,7 @@
 % Please edit documentation in R/inla_rspde.R
 \name{plot.rspde.result}
 \alias{plot.rspde.result}
-\title{Posterior plots for rSPDE field parameters}
+\title{Posterior plots for field parameters for an \code{inla.rspde} model from a \code{rpsde.result} object}
 \usage{
 \method{plot}{rspde.result}(
   x,
@@ -21,7 +21,7 @@
 )
 }
 \arguments{
-\item{x}{A rspde.result object.}
+\item{x}{A \code{rspde.result} object.}
 
 \item{which}{For which parameters the posterior should be plotted?}
 
@@ -49,5 +49,38 @@
 Called for its side effects.
 }
 \description{
-Posterior plots for rSPDE field parameters
+Posterior plots for rSPDE field parameters in their original scales.
+}
+\examples{
+\donttest{
+library(INLA)
+
+loc <- matrix(runif(100 * 2), 100, 2)
+mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(0.1, 0.5))
+rspde <- rspde.matern(mesh)
+index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
+n.repl = 2, dim = 2)
+spatial.A <- rspde.make.A(mesh=mesh, loc=loc,
+                             index = rep(1:nrow(loc), 2),
+                             repl = rep(1:2, each = nrow(loc))
+)
+y <- 10 + rnorm(100 * 2)
+stack <- inla.stack(
+ data = list(y = y),
+ A = list(spatial.A),
+ effects = list(c(index, list(intercept = 1))),
+ tag = "tag"
+)
+data <- inla.stack.data(stack, spde = rspde)
+formula <- y ~ -1 + intercept + f(spatial,
+                                  model = rspde,
+                                 replicate = spatial.repl
+)
+result <- inla(formula,
+               family = "gaussian", data = data,
+               control.predictor = list(A = inla.stack.A(stack))
+)
+result <- rspde.result(result, "spatial", rspde)
+plot(result)
+}
 }

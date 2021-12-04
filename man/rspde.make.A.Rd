@@ -2,13 +2,13 @@
 % Please edit documentation in R/inla_rspde.R
 \name{rspde.make.A}
 \alias{rspde.make.A}
-\title{Create A matrices for rSPDE models}
+\title{Observation/prediction matrices for rSPDE models.}
 \usage{
 rspde.make.A(
   mesh = NULL,
+  loc = NULL,
   A = NULL,
   dim = NULL,
-  loc = NULL,
   rspde_order = 2,
   nu = NULL,
   index = NULL,
@@ -19,22 +19,23 @@ rspde.make.A(
 )
 }
 \arguments{
-\item{mesh}{An INLA mesh, optional}
-
-\item{A}{The A matrix from the standard SPDE approach. Should only be provided if an
-INLA mesh is not provided.}
-
-\item{dim}{the dimension. Should only be provided if an
-INLA mesh is not provided.}
+\item{mesh}{An \code{inla.mesh} or
+an \code{inla.mesh.1d} object.}
 
 \item{loc}{Locations, needed if an INLA mesh is provided}
 
+\item{A}{The A matrix from the standard SPDE approach, such as the matrix
+returned by \code{inla.spde.make.A}. Should only be provided if \code{mesh} is not provided.}
+
+\item{dim}{the dimension. Should only be provided if an
+\code{mesh} is not provided.}
+
 \item{rspde_order}{The order of the covariance-based rational SPDE approach.}
 
-\item{nu}{If NULL, then the model will assume that nu will be estimated. If
+\item{nu}{If \code{NULL}, then the model will assume that nu will be estimated. If
 nu is fixed, you should provide the value of nu.}
 
-\item{index}{For each observation/prediction value, an index into loc. Default is seq_len(nrow(A.loc)).}
+\item{index}{For each observation/prediction value, an index into loc. Default is \code{seq_len(nrow(A.loc))}.}
 
 \item{group}{For each observation/prediction value, an index into the group model.}
 
@@ -45,8 +46,22 @@ nu is fixed, you should provide the value of nu.}
 \item{n.repl}{The total number of replicates.}
 }
 \value{
-The A matrix for rSPDE models.
+The \eqn{A} matrix for rSPDE models.
 }
 \description{
-Create A matrices for INLA-based rSPDE models
+Constructs observation/prediction weight matrices for rSPDE models based on 
+\code{inla.mesh} or \code{inla.mesh.1d} objects.
+}
+\examples{
+\donttest{
+library(INLA)
+
+loc <- matrix(runif(10000 * 2) * 1000, 10000, 2)
+mesh <- inla.mesh.2d(
+loc = loc,
+cutoff = 50,
+max.edge = c(50, 500)
+)
+A <- rspde.make.A(mesh, loc = loc, rspde_order=3)
+}
 }

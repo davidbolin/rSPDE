@@ -95,7 +95,7 @@ matern.covariance <- function(h, kappa, nu, sigma)
   return(as.matrix(C))
 }
 
-#' Summarise excurobj objects
+#' Summarise rSPDE objects
 #'
 #' Summary method for class "rSPDEobj"
 #'
@@ -116,7 +116,7 @@ summary.rSPDEobj <- function(object, ...)
     out$nu = object$nu
   }
   out$m = object$m
-  out$n = dim(object$L2)[1]
+  out$n = dim(object$L)[1]
   return(out)
 }
 
@@ -270,6 +270,58 @@ require.nowarnings <- function(package, lib.loc = NULL, character.only = FALSE)
   )
 }
 
+#' @name get.inital.values.rSPDE
+#' @title Initial values for log-likelihood optimization in rSPDE models
+#' with a latent stationary Gaussian Matern model
+#' @description Auxiliar function to obtain domain-based initial values for
+#' log-likelihood optimization in rSPDE models
+#' with a latent stationary Gaussian Matern model
+#' @param mesh An in INLA mesh
+#' @param mesh.range The range of the mesh. 
+#' @param include.nu Should we also provide an initial guess for nu?
+#' @param log.scale Should the results be provided in log scale?
+#' @param nu_upper_bound Should an upper bound for nu be considered?
+#' @return A vector of the form (theta_1,theta_2,theta_3) or where
+#' theta_1 is the initial guess for tau, theta_2 is the initial guess for kappa
+#' and theta_3 is the initial guess for nu.
+#' @export
+#' 
+
+get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, 
+                                    include.nu = TRUE, log.scale = TRUE,
+                                    nu_upper_bound = NULL){
+  if(is.null(mesh)&&is.null(mesh.range)){
+    stop("You should either provide mesh or mesh.range!")
+  }
+  if(include.nu){
+    if(!is.null(nu_upper_bound)){
+      nu <- min(1,nu_upper_bound/2)
+    } else{
+      nu <- 1
+    }
+  }
+  
+  if(!is.null(mesh)){
+    mesh.range = ifelse(d == 2, (max(c(diff(range(mesh$loc[,
+                                                           1])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[,
+                                                                                                                 3]))))), diff(mesh$interval))
+  }
+  
+  range.nominal <- mesh.range * 0.2
+    
+  kappa <- sqrt(8 * nu)/range.nominal
+    
+  tau <-  sqrt(gamma(nu)/gamma(nu+d/2)/(4 * pi * kappa^(2 * nu)))
+  
+  initial <- c(tau, kappa, nu)
+  if(log.scale){
+    return(log(initial))
+  } else{
+    return(initial)
+  }
+}
+
+
 
 
 #' @name cut_decimals
@@ -277,7 +329,7 @@ require.nowarnings <- function(package, lib.loc = NULL, character.only = FALSE)
 #' @description Approximation function to be used to compute the precision matrix for covariance-based rSPDE models
 #' @param nu A real number
 #' @return An approximation
-#' @export
+#' @noRd
 
 cut_decimals <- function(nu) {
   temp <- nu - floor(nu)
@@ -295,8 +347,8 @@ cut_decimals <- function(nu) {
 #' @description Check if the object inherits from inla.rspde class
 #' @param model A model to test if it inherits from inla.rspde
 #' @return Gives an error if the object does not inherit from inla.rspde
-#' @export
-#' 
+#' @noRd
+
 check_class_inla_rspde <- function(model){
   if(!inherits(model, "inla.rspde")){
     stop("You should provide a rSPDE model!")
@@ -308,7 +360,8 @@ check_class_inla_rspde <- function(model){
 #' @description Get the dimension of an INLA mesh
 #' @param inla_mesh An INLA mesh
 #' @return The dimension of an INLA mesh.
-#' @export
+#' @noRd
+
 get_inla_mesh_dimension <- function(inla_mesh){
   stopifnot(inherits(inla_mesh,"inla.mesh"))
   if(!(class(inla_mesh) %in% c("inla.mesh", "inla.mesh.1d"))){
@@ -325,7 +378,7 @@ get_inla_mesh_dimension <- function(inla_mesh){
 }
 
 
-#' @name get_sparsity_graph_rspde
+#' @name get.sparsity.graph.rspde
 #' @title Sparsity graph for rSPDE models
 #' @description Creates the sparsity graph for rSPDE models
 #' @param mesh An INLA mesh, optional
@@ -337,9 +390,10 @@ get_inla_mesh_dimension <- function(inla_mesh){
 #' @param rspde_order The order of the covariance-based rational SPDE approach.
 #' @param sharp The graph should have the correct sparsity (costs more to perform
 #' a sparsity analysis) or an upper bound for the sparsity?
-#' @return The A matrix for rSPDE models.
+#' @return The sparsity graph for rSPDE models to be used in R-INLA interface.
 #' @export
-get_sparsity_graph_rspde <- function(mesh=NULL,
+
+get.sparsity.graph.rspde <- function(mesh=NULL,
                                      fem_mesh_matrices=NULL,
                                      nu,
                                      force_non_integer = FALSE,
@@ -410,7 +464,8 @@ get_sparsity_graph_rspde <- function(mesh=NULL,
 #' @param entries The entries of the precision matrix
 #' @param graph The sparsity graph of the precision matrix
 #' @return index for rSPDE models.
-#' @export
+#' @noRd
+
 build_sparse_matrix_rspde <- function(entries, graph){
   if(!is.null(graph)){
     graph = as(graph, "dgTMatrix")
@@ -433,7 +488,7 @@ build_sparse_matrix_rspde <- function(entries, graph){
 #' when alpha = nu + d/2 is integer or for when sharp is set to TRUE.
 #' @param include_higher_order Logical. Should be included for when nu is estimated or for when alpha = nu + d/2 is not an integer.
 #' @return A list containing informations on sparsity of the precision matrices
-#' @export
+#' @noRd
 
 analyze_sparsity_rspde <- function(nu_upper_bound, dim, rspde_order,
                                    fem_mesh_matrices,
@@ -500,8 +555,7 @@ analyze_sparsity_rspde <- function(nu_upper_bound, dim, rspde_order,
 #' @param density_df A density data frame
 #' @param name Name of the parameter
 #' @return A data frame containing a basic summary
-#' @export
-#' 
+#' @noRd
 
 create_summary_from_density <- function(density_df, name){
   min_x <- density_df[1,"x"]
@@ -537,7 +591,7 @@ create_summary_from_density <- function(density_df, name){
                                 subdivisions = nrow(density_df))$value
   
   sd_temp <- sqrt(stats::integrate(function(z){denstemp(z)*(z-mean_temp)^2},lower = min_x, upper = max_x,
-                                                  subdivisions = nrow(density_df))$value)
+                                   subdivisions = nrow(density_df))$value)
   
   mode_temp <- density_df[which.max(density_df[,"y"]),"x"]
   
@@ -563,50 +617,67 @@ create_summary_from_density <- function(density_df, name){
 }
 
 
-#' @name get.inital.values.rSPDE
-#' @title Creates a summary from a density data frame
-#' @description Auxiliar function to create summaries from density data drames
-#' @param mesh An in INLA mesh
-#' @param mesh.range The range of the mesh. 
-#' @param include.nu Should we also provide an initial guess for nu?
-#' @param log.scale Should the results be provided in log scale?
-#' @param nu_upper_bound Should an upper bound for nu be considered?
-#' @return A vector of the form (theta_1,theta_2,theta_3) or where
-#' theta_1 is the initial guess for tau, theta_2 is the initial guess for kappa
-#' and theta_3 is the initial guess for nu.
-#' @export
-#' 
 
-get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, 
-                                    include.nu = TRUE, log.scale = TRUE,
-                                    nu_upper_bound = NULL){
-  if(is.null(mesh)&&is.null(mesh.range)){
-    stop("You should either provide mesh or mesh.range!")
-  }
-  if(include.nu){
-    if(!is.null(nu_upper_bound)){
-      nu <- min(1,nu_upper_bound/2)
-    } else{
-      nu <- 1
-    }
-  }
+
+
+
+#' Summarise CBrSPDE objects
+#'
+#' Summary method for class "CBrSPDEobj"
+#'
+#' @param object an object of class "CBrSPDEobj", usually, a result of a call
+#'   to \code{\link{CBrSPDE.matern.operators}}.
+#' @param ... further arguments passed to or from other methods.
+#' @export
+#' @method summary CBrSPDEobj
+#' @examples
+#' #Compute the covariance-based rational approximation of a 
+#' #Gaussian process with a Matern covariance function on R
+#' kappa <- 10
+#' sigma <- 1
+#' nu <- 0.8
+#'
+#' #create mass and stiffness matrices for a FEM discretization
+#' x <- seq(from = 0, to = 1, length.out = 101)
+#' fem <- rSPDE.fem1d(x)
+#'
+#' #compute rational approximation of covariance function at 0.5
+#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
+#' op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
+#' kappa=kappa,tau=tau,d=1,m=2)
+#' 
+#' op_cov
+summary.CBrSPDEobj <- function(object, ...)
+{
+  out <- list()
+  class(out) <- "summary.CBrSPDEobj"
+  out$type = object$type
+  out$kappa = object$kappa
+  out$tau = object$tau
+  out$nu = object$nu
+  out$m = object$m
+  out$n = dim(object$C)[1]
+  return(out)
+}
+
+#' @param x an object of class "summary.CBrSPDEobj", usually, a result of a call
+#'   to \code{\link{summary.CBrSPDEobj}}.
+#' @export
+#' @method print summary.CBrSPDEobj
+#' @rdname summary.CBrSPDEobj
+print.summary.CBrSPDEobj <- function(x, ...)
+{
   
-  if(!is.null(mesh)){
-    mesh.range = ifelse(d == 2, (max(c(diff(range(mesh$loc[,
-                                                           1])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[,
-                                                                                                                 3]))))), diff(mesh$interval))
-  }
-  
-  range.nominal <- mesh.range * 0.2
-    
-  kappa <- sqrt(8 * nu)/range.nominal
-    
-  tau <-  sqrt(gamma(nu)/gamma(nu+d/2)/(4 * pi * kappa^(2 * nu)))
-  
-  initial <- c(tau, kappa, nu)
-  if(log.scale){
-    return(log(initial))
-  } else{
-    return(initial)
-  }
+  cat("Type of approximation: ", x$type,"\n")
+  cat("Parameters of covariance function: kappa = ",
+        x$kappa,", tau = ", x$tau, ", nu = ",x$nu, "\n")
+  cat("Order or rational approximation: ", x$m, "\n")
+  cat("Size of discrete operators: ", x$n," x ", x$n, "\n")
+}
+
+#' @export
+#' @method print CBrSPDEobj
+#' @rdname summary.CBrSPDEobj
+print.CBrSPDEobj <- function(x, ...) {
+  print.summary.CBrSPDEobj(summary(x))
 }

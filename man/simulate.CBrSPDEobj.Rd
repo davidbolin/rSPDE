@@ -2,7 +2,7 @@
 % Please edit documentation in R/fractional.computations.R
 \name{simulate.CBrSPDEobj}
 \alias{simulate.CBrSPDEobj}
-\title{Simulation of a fractional SPDE using a rational SPDE approximation}
+\title{Simulation of a fractional SPDE using the covariance-based rational SPDE approximation}
 \usage{
 \method{simulate}{CBrSPDEobj}(
   object,
@@ -16,7 +16,8 @@
 )
 }
 \arguments{
-\item{object}{A CBrSPDE object}
+\item{object}{The covariance-based rational SPDE approximation, 
+computed using \code{\link{CBrSPDE.matern.operators}}}
 
 \item{nsim}{The number of simulations.}
 
@@ -33,8 +34,28 @@
 \item{...}{Currently not used.}
 }
 \value{
-A CBrSPDE object
+A matrix with the \code{n} samples as columns.
 }
 \description{
-The function samples a Gaussian random field based on a pre-computed rational SPDE approximation.
+The function samples a Gaussian random field based using the
+covariance-based rational SPDE approximation.
+}
+\examples{
+#Sample a Gaussian Matern process on R using a rational approximation
+kappa <- 10
+sigma <- 1
+nu <- 0.8
+
+#create mass and stiffness matrices for a FEM discretization
+x <- seq(from = 0, to = 1, length.out = 101)
+fem <- rSPDE.fem1d(x)
+
+#compute rational approximation of covariance function at 0.5
+tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
+op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
+kappa=kappa,tau=tau,d=1,m=2)
+
+#Sample the model and plot the result
+Y <- simulate(op_cov)
+plot(x, Y, type = "l", ylab = "u(x)", xlab = "x")
 }

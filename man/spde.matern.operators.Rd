@@ -70,7 +70,8 @@ u <- simulate(op)
 plot(x, u, type = "l", ylab = "u(s)", xlab = "s")
 }
 \seealso{
-\code{\link{fractional.operators}}, \code{\link{spde.matern.operators}}
+\code{\link{fractional.operators}}, \code{\link{spde.matern.operators}},
+\code{\link{CBrSPDE.matern.operators}}
 }
 \author{
 David Bolin \email{davidbolin@gmail.com}

@@ -16,15 +16,15 @@ rspde.matern.precision.opt(
 )
 }
 \arguments{
-\item{kappa}{Range parameter of the latent process.}
+\item{kappa}{Range parameter of the covariance function.}
 
-\item{nu}{The smoothness parameter}
+\item{nu}{Shape parameter of the covariance function.}
 
-\item{tau}{The precision parameter}
+\item{tau}{Scale parameter of the covariance function.}
 
 \item{rspde_order}{The order of the rational approximation}
 
-\item{dim}{The dimension}
+\item{dim}{The dimension of the domain}
 
 \item{fem_matrices}{A list containing the FEM-related matrices. The list should contain elements C, G, G_2, G_3, etc.}
 
@@ -38,5 +38,10 @@ a sparsity analysis) or an upper bound for the sparsity?}
 The precision matrix
 }
 \description{
-Computes the optimized version of the precision matrix for the covariance-based rational SPDE
+\code{rspde.matern.precision} is used for computing the
+optimized version of the precision matrix of the
+covariance-based rational SPDE approximation of a stationary Gaussian random
+fields on \eqn{R^d} with a Matern covariance function
+\deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
+(\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
 }

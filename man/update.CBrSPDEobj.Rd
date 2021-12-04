@@ -2,7 +2,7 @@
 % Please edit documentation in R/fractional.computations.R
 \name{update.CBrSPDEobj}
 \alias{update.CBrSPDEobj}
-\title{Update parameters of cov_rSPDE objects}
+\title{Update parameters of CBrSPDE objects}
 \usage{
 \method{update}{CBrSPDEobj}(
   object,
@@ -14,7 +14,8 @@
 )
 }
 \arguments{
-\item{object}{A CBrSPDE object}
+\item{object}{The covariance-based rational SPDE approximation, 
+computed using \code{\link{CBrSPDE.matern.operators}}}
 
 \item{user_nu}{If non-null, update the shape parameter of the covariance function.}
 
@@ -27,8 +28,33 @@
 \item{...}{Currently not used.}
 }
 \value{
-A  CBrSPDE object
+It returns an object of class "CBrSPDEobj. This object contains the
+same quantities listed in the output of \code{\link{CBrSPDE.matern.operators}}.
 }
 \description{
 Function to change the parameters of a CBrSPDE object
+}
+\examples{
+#Compute the covariance-based rational approximation of a 
+#Gaussian process with a Matern covariance function on R
+kappa <- 10
+sigma <- 1
+nu <- 0.8
+
+#create mass and stiffness matrices for a FEM discretization
+x <- seq(from = 0, to = 1, length.out = 101)
+fem <- rSPDE.fem1d(x)
+
+#compute rational approximation of covariance function at 0.5
+tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
+op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
+kappa=kappa,tau=tau,d=1,m=2)
+op_cov
+
+#Update the range parameter of the model:
+op_cov <- update(op_cov, user_kappa=20)
+op_cov
+}
+\seealso{
+\code{\link{simulate.CBrSPDEobj}}, \code{\link{CBrSPDE.matern.operators}}
 }

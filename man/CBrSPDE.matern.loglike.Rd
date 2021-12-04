@@ -2,7 +2,8 @@
 % Please edit documentation in R/fractional.computations.R
 \name{CBrSPDE.matern.loglike}
 \alias{CBrSPDE.matern.loglike}
-\title{Log-likelihood function for latent Gaussian fractional SPDE model}
+\title{Object-based log-likelihood function for latent Gaussian fractional SPDE model using
+the covariance-based rational approximations}
 \usage{
 CBrSPDE.matern.loglike(
   object,
@@ -18,7 +19,8 @@ CBrSPDE.matern.loglike(
 )
 }
 \arguments{
-\item{object}{A cov_rSPDE object}
+\item{object}{The covariance-based rational SPDE approximation, 
+computed using \code{\link{CBrSPDE.matern.operators}}}
 
 \item{Y}{The observations, either a vector or a matrix where
 the columns correspond to independent replicates of observations.}
@@ -40,9 +42,75 @@ the columns correspond to independent replicates of observations.}
 \item{pivot}{Should pivoting be used for the Cholesky decompositions? Default is TRUE}
 }
 \value{
-A cov_rSPDE object
+The log-likelihood value.
 }
 \description{
-This function evaluates the log-likelihood function for covariance-based
-rational approximation of a fractional SPDE model
+This function evaluates the log-likelihood function for a Gaussian process with a Matern covariance
+function, that is observed under Gaussian measurement noise:
+\eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = u(s_i) + \epsilon_i}, where \eqn{\epsilon_i}{\epsilon_i} are
+iid mean-zero Gaussian variables. The latent model is approximated using 
+the covariance-based rational approximation
+of the fractional SPDE model corresponding to the Gaussian process.
+}
+\examples{
+#this example illustrates how the function can be used for maximum likelihood estimation
+set.seed(123)
+#Sample a Gaussian Matern process on R using a rational approximation
+nu = 0.8
+kappa = 5
+sigma = 1
+sigma.e = 0.1
+n.rep = 10
+n.obs = 100
+n.x = 51
+
+#create mass and stiffness matrices for a FEM discretization
+x = seq(from = 0, to = 1, length.out = n.x)
+fem <- rSPDE.fem1d(x)
+
+tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
+
+#Compute the covariance-based rational approximation
+op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
+kappa=kappa,tau=tau,d=1,m=2)
+
+#Sample the model
+u <- simulate(op_cov, n.rep)
+
+#Create some data
+obs.loc <- runif(n = n.obs, min = 0, max = 1)
+A <- rSPDE.A1d(x, obs.loc)
+noise <- rnorm(n.obs*n.rep)
+dim(noise) <- c(n.obs, n.rep)
+Y = as.matrix(A\%*\%u + sigma.e*noise)
+
+#Define the negative likelihood function for optimization using CBrSPDE.matern.loglike
+#Notice that we are also using sigma instead of tau, so it can be compared
+#to matern.loglike()
+mlik_cov <- function(theta, Y, A, op_cov){
+kappa = exp(theta[1])
+sigma = exp(theta[2])
+nu = exp(theta[3])
+tau = sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
+return(-CBrSPDE.matern.loglike(object = op_cov, Y=Y,
+                                 A = A, user_kappa=kappa, user_tau = tau,
+                                user_nu=nu, sigma.e = exp(theta[4])))
+                                }
+
+#The parameters can now be estimated by maximizing mlik with optim
+\donttest{
+#Choose some reasonable starting values depending on the size of the domain
+theta0 = log(c(sqrt(8), 1/sqrt(var(c(Y))), 0.9, 0.01))
+
+#run estimation and display the results
+theta <- optim(theta0, mlik_cov, Y = Y, A = A, op_cov = op_cov,
+method = "L-BFGS-B")
+
+print(data.frame(kappa = c(kappa,exp(theta$par[1])), sigma = c(sigma,exp(theta$par[2])),
+                 nu = c(nu,exp(theta$par[3])), sigma.e = c(sigma.e,exp(theta$par[4])),
+                 row.names = c("Truth","Estimates")))
+}
+}
+\seealso{
+\code{\link{CBrSPDE.matern.operators}}, \code{\link{predict.CBrSPDEobj}}
 }

@@ -1,6 +1,7 @@
 context("CBrSPDE.operators")
 
 test_that("Checking covariances of CBrSPDE",{
+  set.seed(123)
   nobs <- 100
   s <- seq(from = 0, to = 1, length.out = nobs)
   fem <- rSPDE.fem1d(s)
@@ -24,7 +25,7 @@ test_that("Checking covariances of CBrSPDE",{
 })
   
 test_that("Checking loglike of CBrSPDE", {
-  
+  set.seed(123)
   nobs <- 100
   s <- seq(from = 0, to = 1, length.out = nobs)
   fem <- rSPDE.fem1d(s)
@@ -48,7 +49,7 @@ test_that("Checking loglike of CBrSPDE", {
 })
 
 test_that("Checking Predict of CBrSPDE", {
-  
+  set.seed(123)
   nobs <- 100
   s <- seq(from = 0, to = 1, length.out = nobs)
   fem <- rSPDE.fem1d(s)
@@ -77,7 +78,7 @@ test_that("Checking Predict of CBrSPDE", {
 })
 
 test_that("Checking loglike of CBrSPDE with replicates", {
-  
+  set.seed(123)
   nobs <- 100
   s <- seq(from = 0, to = 1, length.out = nobs)
   fem <- rSPDE.fem1d(s)
@@ -92,7 +93,7 @@ test_that("Checking loglike of CBrSPDE with replicates", {
     sim_data1 = A %*% simulate(op2) + rnorm(dim(A)[1], sd=0.1)
     sim_data2 = A%*%simulate(op2) + rnorm(dim(A)[1], sd=0.1)
     sim_data = cbind(sim_data1,sim_data2)
-    loglike2 = CBrSPDE.matern.loglike(object=op2, Y = sim_data, A=A, sigma.e=0.1,user_nu = nu, user_kappa = kappa, user_tau=tau)
+    loglike2 = CBrSPDE.matern.loglike(object=op2, Y = sim_data, A=A, sigma.e=0.1)
     
     op1 <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
                             G = fem$G, C = fem$C, d = 1)

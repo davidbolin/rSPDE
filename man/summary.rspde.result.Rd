@@ -2,21 +2,54 @@
 % Please edit documentation in R/inla_rspde.R
 \name{summary.rspde.result}
 \alias{summary.rspde.result}
-\title{Summary for posteriors of rSPDE field parameters}
+\title{Summary for posteriors of field parameters for an \code{inla.rspde} model from a \code{rpsde.result} object}
 \usage{
 \method{summary}{rspde.result}(object, digits = 6, ...)
 }
 \arguments{
-\item{object}{A rspde.result object.}
+\item{object}{A \code{rspde.result} object.}
 
 \item{digits}{integer, used for number formatting with signif()}
 
 \item{...}{Currently not used.}
 }
 \value{
-Returns a data frame
+Returns a \code{data.frame}
 containing the summary.
 }
 \description{
-Summary for posteriors of rSPDE field parameters
+Summary for posteriors of rSPDE field parameters in their original scales.
+}
+\examples{
+\donttest{
+library(INLA)
+
+loc <- matrix(runif(100 * 2), 100, 2)
+mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(0.1, 0.5))
+rspde <- rspde.matern(mesh)
+index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
+n.repl = 2, dim = 2)
+spatial.A <- rspde.make.A(mesh=mesh, loc=loc,
+                             index = rep(1:nrow(loc), 2),
+                             repl = rep(1:2, each = nrow(loc))
+)
+y <- 10 + rnorm(100 * 2)
+stack <- inla.stack(
+ data = list(y = y),
+ A = list(spatial.A),
+ effects = list(c(index, list(intercept = 1))),
+ tag = "tag"
+)
+data <- inla.stack.data(stack, spde = rspde)
+formula <- y ~ -1 + intercept + f(spatial,
+                                  model = rspde,
+                                 replicate = spatial.repl
+)
+result <- inla(formula,
+               family = "gaussian", data = data,
+               control.predictor = list(A = inla.stack.A(stack))
+)
+result <- rspde.result(result, "spatial", rspde)
+summary(result)
+}
 }

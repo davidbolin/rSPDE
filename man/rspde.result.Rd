@@ -7,17 +7,71 @@
 rspde.result(inla, name, rspde, compute.summary = TRUE)
 }
 \arguments{
-\item{inla}{An inla object.}
+\item{inla}{An \code{inla} object obtained from a call to \code{inla()}.}
 
 \item{name}{A character string with the name of the rSPDE effect in the inla formula.}
 
-\item{rspde}{The inla.rspde object used for the effect in the inla formula.}
+\item{rspde}{The \code{inla.rspde} object used for the effect in the inla formula.}
 
 \item{compute.summary}{Should the summary be computed?}
 }
 \value{
-Returns a list containing posterior results.
+Returns a list containing:
+\item{marginals.kappa}{Marginal densities for kappa}
+\item{marginals.log.kappa}{Marginal densities for log(kappa)}
+\item{marginals.log.tau}{Marginal densities for log(tau)}
+\item{marginals.tau}{Marginal densities for tau}
+\item{marginals.values}{Marginal densities for the field values}
+\item{summary.log.kappa}{Summary statistics for log(kappa)}
+\item{summary.log.tau}{Summary statistics for log(tau)}
+\item{summary.values}{Summary statistics for the field values}
+If nu was estimated, then the list will also contain
+\item{marginals.nu}{Marginal densities for nu}
+If nu was estimated and a beta prior was used, then the list will also contain
+\item{marginals.logit.nu}{Marginal densities for logit(nu)}
+\item{summary.logit.nu}{Marginal densities for logit(nu)}
+If nu was estimated and a truncated lognormal prior was used, then the list will also contain
+\item{marginals.log.nu}{Marginal densities for log(nu)}
+\item{summary.log.nu}{Marginal densities for log(nu)}
+If \code{compute.summary} is \code{TRUE}, then the list will also contain
+\item{summary.kappa}{Summary statistics for kappa}
+\item{summary.tau}{Summary statistics for tau}
+If nu was estimated and \code{compute.summary} is \code{TRUE}, then the list will also contain
+\item{summary.nu}{Summary statistics for nu}
 }
 \description{
 Extract field and parameter values and distributions for an rspde effect from an inla result object.
+}
+\examples{
+\donttest{
+library(INLA)
+
+loc <- matrix(runif(100 * 2), 100, 2)
+mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(0.1, 0.5))
+rspde <- rspde.matern(mesh)
+index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
+n.repl = 2, dim = 2)
+spatial.A <- rspde.make.A(mesh=mesh, loc=loc,
+                             index = rep(1:nrow(loc), 2),
+                             repl = rep(1:2, each = nrow(loc))
+)
+y <- 10 + rnorm(100 * 2)
+stack <- inla.stack(
+ data = list(y = y),
+ A = list(spatial.A),
+ effects = list(c(index, list(intercept = 1))),
+ tag = "tag"
+)
+data <- inla.stack.data(stack, spde = rspde)
+formula <- y ~ -1 + intercept + f(spatial,
+                                  model = rspde,
+                                 replicate = spatial.repl
+)
+result <- inla(formula,
+               family = "gaussian", data = data,
+               control.predictor = list(A = inla.stack.A(stack))
+)
+result <- rspde.result(result, "spatial", rspde)
+plot(result)
+}
 }

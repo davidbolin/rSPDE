@@ -71,7 +71,8 @@ plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C
 lines(x,c.approx,col=2)
 }
 \seealso{
-\code{\link{fractional.operators}}, \code{\link{spde.matern.operators}}
+\code{\link{fractional.operators}}, \code{\link{spde.matern.operators}},
+\code{\link{CBrSPDE.matern.operators}}
 }
 \author{
 David Bolin \email{davidbolin@gmail.com}

@@ -41,3 +41,6 @@ op <- matern.operators(kappa = kappa, sigma = sigma,
 Y <- simulate(op)
 plot(x, Y, type = "l", ylab = "u(x)", xlab = "x")
 }
+\seealso{
+\code{\link{simulate.CBrSPDEobj}}
+}

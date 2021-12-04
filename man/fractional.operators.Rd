@@ -56,7 +56,7 @@ where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and
 
 The discrete approximation can be written as \eqn{u = P_r x} where \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
 and \eqn{Q = P_l^T C^{-1} P_l}. Note that the matrices \eqn{P_r} and \eqn{Q} may be be ill-conditioned for \eqn{m>1}.
-In this case, the metehods in \code{\link{operator.operations}} should be used for operations
+In this case, the methods in \code{\link{operator.operations}} should be used for operations
 involving the matrices, since these methods are more numerically stable.
 }
 \examples{
@@ -84,7 +84,8 @@ plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C
 lines(x, c.approx, col = 2)
 }
 \seealso{
-\code{\link{matern.operators}}, \code{\link{spde.matern.operators}}
+\code{\link{matern.operators}}, \code{\link{spde.matern.operators}},
+\code{\link{CBrSPDE.matern.operators}}
 }
 \author{
 David Bolin \email{davidbolin@gmail.com}

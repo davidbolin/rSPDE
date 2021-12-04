@@ -2,7 +2,8 @@
 % Please edit documentation in R/inla_rspde.R
 \name{rspde.matern.precision.integer.opt}
 \alias{rspde.matern.precision.integer.opt}
-\title{Precision matrix of the covariance-based rational approximation}
+\title{Optimized precision matrix of stationary Gaussian Matern random fields with integer
+covariance exponent}
 \usage{
 rspde.matern.precision.integer.opt(
   kappa,
@@ -14,13 +15,13 @@ rspde.matern.precision.integer.opt(
 )
 }
 \arguments{
-\item{kappa}{Range parameter of the latent process.}
+\item{kappa}{Range parameter of the covariance function.}
 
-\item{nu}{The smoothness parameter}
+\item{nu}{Shape parameter of the covariance function.}
 
-\item{tau}{The precision parameter}
+\item{tau}{Scale parameter of the covariance function.}
 
-\item{d}{The dimension}
+\item{d}{The dimension of the domain}
 
 \item{fem_matrices}{A list containing the FEM-related matrices. The list should contain elements C, G, G_2, G_3, etc.}
 
@@ -31,5 +32,10 @@ of the elements will be returned, if non-NULL, a sparse matrix will be returned.
 The precision matrix
 }
 \description{
-Computes the precision matrix for the covariance-based rational SPDE
+\code{rspde.matern.precision.integer.opt} is used for computing the
+optimized version of the precision matrix of stationary Gaussian random
+fields on \eqn{R^d} with a Matern covariance function
+\deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
+(\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)},
+where \eqn{\alpha = \nu + d/2 \in\mathbb{N}}.
 }
