@@ -45,6 +45,9 @@
   </a>
 </li>
 <li>
+  <a href="../articles/rSPDE.html">Get started</a>
+</li>
+<li>
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
@@ -55,9 +58,6 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/rspde.html">An introduction to the `rSPDE` package</a>
-    </li>
-    <li>
       <a href="../articles/rspde_base.html">Using the rational approximation with the `rSPDE` package</a>
     </li>
     <li>
@@ -282,7 +282,7 @@
 ##    list(A = inla.stack.A(stk.dat), ", " compute = TRUE), control.inla = 
 ##    list(int.strategy = \"eb\"))" ) 
 ## Time used:
-##     Pre = 3.31, Running = 21.7, Post = 0.0808, Total = 25.1 
+##     Pre = 3.51, Running = 22.7, Post = 0.0842, Total = 26.3 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.648 0.019      0.611    0.648      0.685 0.648   0
@@ -371,7 +371,7 @@
 ##    list(A = inla.stack.A(stk.dat.3), ", " compute = TRUE), control.inla = 
 ##    list(int.strategy = \"eb\"))" ) 
 ## Time used:
-##     Pre = 3.25, Running = 58.9, Post = 0.071, Total = 62.2 
+##     Pre = 3.59, Running = 60.3, Post = 0.0752, Total = 64 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.486 0.014      0.458    0.486      0.514 0.486   0
@@ -451,7 +451,7 @@
 ##    list(A = inla.stack.A(stk.dat), ", " compute = TRUE), control.inla = 
 ##    list(int.strategy = \"eb\"))" ) 
 ## Time used:
-##     Pre = 3.15, Running = 11.5, Post = 0.0606, Total = 14.7 
+##     Pre = 3.29, Running = 11, Post = 0.0582, Total = 14.4 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.648 0.019       0.61    0.648      0.686 0.648   0
@@ -463,17 +463,17 @@
 ## 
 ## Model hyperparameters:
 ##                                                     mean       sd 0.025quant
-## Precision parameter for the Gamma observations    13.306 9.02e-01     11.608
-## Precision for seaDist                          16477.600 2.17e+04   2896.973
-## Theta1 for field                                  -0.396 2.59e-01     -0.871
-## Theta2 for field                                   0.793 4.12e-01     -0.079
-##                                                0.5quant 0.975quant     mode
-## Precision parameter for the Gamma observations    13.28   1.52e+01   13.237
-## Precision for seaDist                          10031.08   6.93e+04 5322.665
-## Theta1 for field                                  -0.41   1.44e-01   -0.458
-## Theta2 for field                                   0.82   1.53e+00    0.919
+## Precision parameter for the Gamma observations    13.301 9.00e-01     11.607
+## Precision for seaDist                          17220.617 2.36e+04   2924.889
+## Theta1 for field                                  -0.393 2.59e-01     -0.866
+## Theta2 for field                                   0.785 4.14e-01     -0.095
+##                                                 0.5quant 0.975quant     mode
+## Precision parameter for the Gamma observations    13.274   1.52e+01   13.228
+## Precision for seaDist                          10264.668   7.40e+04 5354.592
+## Theta1 for field                                  -0.407   1.49e-01   -0.458
+## Theta2 for field                                   0.813   1.52e+00    0.917
 ## 
-## Marginal log-Likelihood:  -1262.23 
+## Marginal log-Likelihood:  -1262.19 
 ## Posterior summaries for the linear predictor and the fitted values are computed
 ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</code></pre>
 <p>Now, the summary in the original scale:</p>
@@ -481,8 +481,8 @@
 <code class="sourceCode R"><span class="va">result_fix</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fix</span>, <span class="st">"field"</span>, <span class="va">rspde_model_fix</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">result_fix</span><span class="op">)</span></code></pre></div>
 <pre><code>##           mean       sd 0.025quant 0.5quant 0.975quant     mode
-## tau   0.695364 0.187790   0.419548 0.664019    1.15636 0.601704
-## kappa 2.391870 0.953406   0.930994 2.271780    4.63247 1.980040</code></pre>
+## tau   0.697901 0.188761   0.421954 0.665903    1.16239 0.602119
+## kappa 2.375100 0.949501   0.916833 2.257160    4.60060 1.965420</code></pre>
 <div id="increasing-the-order" class="section level4">
 <h4 class="hasAnchor">
 <a href="#increasing-the-order" class="anchor"></a>Increasing the order</h4>
@@ -509,7 +509,7 @@
 ##    list(A = inla.stack.A(stk.dat.3), ", " compute = TRUE), control.inla = 
 ##    list(int.strategy = \"eb\"))" ) 
 ## Time used:
-##     Pre = 3.15, Running = 13.3, Post = 0.0644, Total = 16.5 
+##     Pre = 3.18, Running = 13.3, Post = 0.0632, Total = 16.5 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.486 0.014      0.458    0.486      0.514 0.486   0
@@ -522,14 +522,14 @@
 ## Model hyperparameters:
 ##                                                    mean       sd 0.025quant
 ## Precision parameter for the Gamma observations   13.289    0.908     11.543
-## Precision for seaDist                          9600.914 6297.730   3269.712
-## Theta1 for field                                 -0.361    0.296     -0.879
-## Theta2 for field                                  0.766    0.422     -0.151
+## Precision for seaDist                          9564.939 6239.533   3269.289
+## Theta1 for field                                 -0.362    0.296     -0.880
+## Theta2 for field                                  0.767    0.422     -0.149
 ##                                                0.5quant 0.975quant     mode
 ## Precision parameter for the Gamma observations   13.279   1.51e+01   13.285
-## Precision for seaDist                          7816.989   2.63e+04 5593.610
+## Precision for seaDist                          7801.162   2.61e+04 5594.632
 ## Theta1 for field                                 -0.386   2.74e-01   -0.474
-## Theta2 for field                                  0.804   1.50e+00    0.945
+## Theta2 for field                                  0.805   1.50e+00    0.945
 ## 
 ## Marginal log-Likelihood:  -1262.44 
 ## Posterior summaries for the linear predictor and the fitted values are computed
@@ -538,9 +538,9 @@
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">result_fix_3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fix_3</span>, <span class="st">"field"</span>, <span class="va">rspde_model_fix_3</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">result_fix_3</span><span class="op">)</span></code></pre></div>
-<pre><code>##          mean       sd 0.025quant 0.5quant 0.975quant     mode
-## tau   0.72789 0.230999   0.416560 0.680183    1.31706 0.590312
-## kappa 2.33597 0.930904   0.867378 2.237120    4.45744 1.954880</code></pre>
+<pre><code>##           mean       sd 0.025quant 0.5quant 0.975quant     mode
+## tau   0.727384 0.230831   0.416167 0.679749    1.31603 0.589921
+## kappa 2.338840 0.931537   0.869429 2.239800    4.46226 1.957480</code></pre>
 </div>
 </div>
 <div id="estimating-models-with-fixed-smoothness-and-integer-alpha" class="section level3">
@@ -604,7 +604,7 @@
 ##    list(A = inla.stack.A(stk.dat.int), ", " compute = TRUE), control.inla 
 ##    = list(int.strategy = \"eb\"))" ) 
 ## Time used:
-##     Pre = 3.14, Running = 5.58, Post = 0.0438, Total = 8.76 
+##     Pre = 3.16, Running = 5.46, Post = 0.0394, Total = 8.66 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 1.945 0.055      1.837    1.945      2.052 1.945   0
@@ -655,7 +655,7 @@
 ##    list(A = inla.stack.A(stk.dat.int), ", " compute = TRUE), control.inla 
 ##    = list(int.strategy = \"eb\"))" ) 
 ## Time used:
-##     Pre = 3.38, Running = 5.35, Post = 0.0404, Total = 8.77 
+##     Pre = 3.16, Running = 5.24, Post = 0.0416, Total = 8.44 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 1.944 0.055      1.836    1.944      2.051 1.944   0
@@ -702,10 +702,10 @@
 ##    list(A = inla.stack.A(stk.dat)), ", " control.inla = list(int.strategy 
 ##    = \"eb\"))") 
 ## Time used:
-##     Pre = 3.5, Running = 21.8, Post = 0.0564, Total = 25.4 
+##     Pre = 3.15, Running = 20.1, Post = 0.0555, Total = 23.3 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-## Intercept 0.647 0.019      0.609    0.647      0.685 0.647   0
+## Intercept 0.647 0.019       0.61    0.647      0.685 0.647   0
 ## 
 ## Random effects:
 ##   Name     Model
@@ -714,38 +714,38 @@
 ## 
 ## Model hyperparameters:
 ##                                                    mean       sd 0.025quant
-## Precision parameter for the Gamma observations   13.057    0.909     11.422
-## Precision for seaDist                          9716.408 6605.836   2510.744
-## Theta1 for field                                 -1.607    0.608     -2.868
-## Theta2 for field                                  1.197    0.263      0.697
-## Theta3 for field                                  0.793    0.610     -0.352
+## Precision parameter for the Gamma observations   13.055    0.909     11.420
+## Precision for seaDist                          9764.256 6679.033   2516.354
+## Theta1 for field                                 -1.602    0.606     -2.856
+## Theta2 for field                                  1.196    0.262      0.697
+## Theta3 for field                                  0.789    0.610     -0.356
 ##                                                0.5quant 0.975quant    mode
-## Precision parameter for the Gamma observations    13.00     14.990   12.85
-## Precision for seaDist                           7997.41  26984.538 5552.02
-## Theta1 for field                                  -1.58     -0.452   -1.50
-## Theta2 for field                                   1.19      1.737    1.16
-## Theta3 for field                                   0.77      2.047    0.69
+## Precision parameter for the Gamma observations   12.998     14.988   12.85
+## Precision for seaDist                          8018.168  27250.033 5553.52
+## Theta1 for field                                 -1.581     -0.448   -1.50
+## Theta2 for field                                  1.187      1.733    1.16
+## Theta3 for field                                  0.767      2.041    0.69
 ## 
-## Marginal log-Likelihood:  -1260.75 
+## Marginal log-Likelihood:  -1260.76 
 ## Posterior summaries for the linear predictor and the fitted values are computed
 ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</code></pre>
 <p>Let us compare the computational times for the first model, with the default value of <code>nu_upper_bound</code>, with the one obtained from the two-stages strategy:</p>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">rspde_fit</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
 <pre><code>##         Pre     Running        Post       Total 
-##  3.30642486 21.72764802  0.08076215 25.11483502</code></pre>
+##  3.50681996 22.66070223  0.08422995 26.25175214</code></pre>
 <div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">rspde_fix_int_1</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
 <pre><code>##        Pre    Running       Post      Total 
-## 3.13655710 5.57668591 0.04378104 8.75702405</code></pre>
+## 3.15951014 5.46464396 0.03942609 8.66358018</code></pre>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">rspde_fix_int_2</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
 <pre><code>##        Pre    Running       Post      Total 
-## 3.37838101 5.35242891 0.04039907 8.77120900</code></pre>
+## 3.15526891 5.24074721 0.04164195 8.43765807</code></pre>
 <div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">rspde_gen</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
 <pre><code>##         Pre     Running        Post       Total 
-##  3.49910903 21.80706000  0.05638504 25.36255407</code></pre>
+##  3.15196013 20.06920385  0.05546618 23.27663016</code></pre>
 <p>Observe that time computational time of the model <code>rspde_fit</code> was bigger than the sum of the computational times of <code>rspde_fix_int_1</code>, <code>rspde_fix_int_2</code> and <code>rspde_gen</code>.</p>
 </div>
 </div>
