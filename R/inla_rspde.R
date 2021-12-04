@@ -534,13 +534,13 @@ rspde.matern <- function(mesh,
   
     if(integer_alpha){
       if(d==1){
-        fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha)
+        fem_matrices <- fem_mesh_order_1d(mesh, m_order = m_alpha)
       } else{
         fem_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha)
       }
     } else{
       if(d==1){
-        fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha+1)
+        fem_matrices <- fem_mesh_order_1d(mesh, m_order = m_alpha+1)
       } else{
         fem_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha+1)        
       }

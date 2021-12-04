@@ -389,7 +389,7 @@ get_inla_mesh_dimension <- function(inla_mesh){
 
 fem_mesh_order_1d <- function(inla_mesh, m_order){
   fem_mesh <- INLA::inla.mesh.1d.fem(inla_mesh)
-  C <- fem_mesh$c0
+  C <- INLA::inla.as.sparse(fem_mesh$c0)
   G <- fem_mesh$g1
   Gk <- list()
   Ci <- C
