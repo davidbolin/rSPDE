@@ -388,18 +388,22 @@ get_inla_mesh_dimension <- function(inla_mesh){
 
 
 fem_mesh_order_1d <- function(inla_mesh, m_order){
-  fem_mesh <- INLA::inla.mesh.1d.fem(inla_mesh)
-  C <- INLA::inla.as.sparse(fem_mesh$c0)
-  G <- fem_mesh$g1
+  fem_mesh <- rSPDE.fem1d(inla_mesh[["loc"]])
+  C <- fem_mesh$C
+  C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
+  C <- INLA::inla.as.sparse(C)
+  G <- fem_mesh$G
   Gk <- list()
   Ci <- C
-  Ci@x <- 1/C@x
+  Ci@x <- 1/(C@x)
   
   GCi <- G%*%Ci
   Gk[[1]] <- G
   # determine how many G_k matrices we want to create
-  for (i in 2:m_order){
-    Gk[[i]] <- GCi %*% Gk[[i-1]]
+  if(m_order>1){
+    for (i in 2:m_order){
+      Gk[[i]] <- GCi %*% Gk[[i-1]]
+    }
   }
   
   # create a list contains all the finite element related matrices
@@ -450,7 +454,7 @@ get.sparsity.graph.rspde <- function(mesh=NULL,
   
   alpha = nu + dim/2
   
-  m_alpha = max(1, floor(alpha))
+  m_alpha = floor(alpha)
   
   integer_alpha <- (alpha%%1 == 0)
   
@@ -463,9 +467,16 @@ get.sparsity.graph.rspde <- function(mesh=NULL,
       return(fem_mesh_matrices[[paste0("g",m_alpha)]])
     } else{
       if(sharp){
-        return(bdiag(kronecker(diag(rep(1,rspde_order)),
-                               fem_mesh_matrices[[paste0("g",m_alpha+1)]]), 
-                     fem_mesh_matrices[[paste0("g",m_alpha)]]))
+        if(m_alpha>0){
+          return(bdiag(kronecker(diag(rep(1,rspde_order)),
+                                 fem_mesh_matrices[[paste0("g",m_alpha+1)]]), 
+                       fem_mesh_matrices[[paste0("g",m_alpha)]]))
+        } else{
+          return(bdiag(kronecker(diag(rep(1,rspde_order)),
+                                 fem_mesh_matrices[["g1"]]), 
+                       fem_mesh_matrices[["c0"]]))
+        }
+
       } else{
         return(kronecker(diag(rep(1,rspde_order+1)),
                          fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
@@ -476,11 +487,24 @@ get.sparsity.graph.rspde <- function(mesh=NULL,
       fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha)
       return(fem_mesh_matrices[[paste0("g",m_alpha)]])
     } else{
-      fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha+1)
+      if(dim == 2){
+        fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha+1)
+      } else{
+        fem_mesh_matrices <- fem_mesh_order_1d(mesh, m_order = m_alpha+1)
+      }
+
+      
       if(sharp){
-        return(bdiag(kronecker(diag(rep(1,rspde_order)),
-                               fem_mesh_matrices[[paste0("g",m_alpha+1)]]), 
-                     fem_mesh_matrices[[paste0("g",m_alpha)]]))
+        if(m_alpha>0){
+          return(bdiag(kronecker(diag(rep(1,rspde_order)),
+                                 fem_mesh_matrices[[paste0("g",m_alpha+1)]]), 
+                       fem_mesh_matrices[[paste0("g",m_alpha)]]))
+        } else{
+          return(bdiag(kronecker(diag(rep(1,rspde_order)),
+                                 fem_mesh_matrices[["g1"]]), 
+                       fem_mesh_matrices[["c0"]]))
+        }
+
       } else{
         return(kronecker(diag(rep(1,rspde_order+1)),
                          fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
@@ -530,33 +554,38 @@ analyze_sparsity_rspde <- function(nu_upper_bound, dim, rspde_order,
                                    include_higher_order = TRUE){
   beta = nu_upper_bound / 2 + dim / 4
   
-  m_alpha = max(1, floor(2 * beta))
+  m_alpha = floor(2 * beta)
   
   positions_matrices <- list()
   
   C_list <- symmetric_part_matrix(fem_mesh_matrices$c0)
   G_1_list <- symmetric_part_matrix(fem_mesh_matrices$g1)
-  for(j in 2:(m_alpha)){
-    assign(paste0("G_",j,"_list"), symmetric_part_matrix(fem_mesh_matrices[[paste0("g",j)]]))
-  }
-  
-  if(include_higher_order){
-    assign(paste0("G_",m_alpha+1,"_list"), symmetric_part_matrix(fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
+  if(m_alpha<2){
+      G_2_list <- symmetric_part_matrix(fem_mesh_matrices[["g2"]])
+    }
+  if(m_alpha>1){
+    for(j in 2:(m_alpha)){
+      assign(paste0("G_",j,"_list"), symmetric_part_matrix(fem_mesh_matrices[[paste0("g",j)]]))
+    }
     
-    positions_matrices[[1]] <-  match(C_list$M, get(paste0("G_",m_alpha+1,"_list"))[["M"]])
+    if(include_higher_order){
+      assign(paste0("G_",m_alpha+1,"_list"), symmetric_part_matrix(fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
+      
+      positions_matrices[[1]] <-  match(C_list$M, get(paste0("G_",m_alpha+1,"_list"))[["M"]])
+    }
   }
-  
-  
   
   idx_matrices <- list()
   
   idx_matrices[[1]] = C_list$idx
   
+  if(m_alpha>0){
   for(i in 1:m_alpha){
     if(include_higher_order){
       positions_matrices[[i+1]] <- match(get(paste0("G_",i,"_list"))[["M"]], get(paste0("G_",m_alpha+1,"_list"))[["M"]])
     }
     idx_matrices[[i+1]] = get(paste0("G_",i,"_list"))[["idx"]]
+  }
   }
   
   if(include_higher_order){
@@ -565,12 +594,17 @@ analyze_sparsity_rspde <- function(nu_upper_bound, dim, rspde_order,
   
   if(include_lower_order){
     positions_matrices_less <- list()
-    positions_matrices_less[[1]] <-  match(C_list$M, get(paste0("G_",m_alpha,"_list"))[["M"]])
+    if(m_alpha>0){
+      positions_matrices_less[[1]] <-  match(C_list$M, get(paste0("G_",m_alpha,"_list"))[["M"]])
+    } else{
+      positions_matrices_less[[1]] <-  match(C_list$M, get(paste0("G_",1,"_list"))[["M"]])
+    }
+
     if(m_alpha > 1){
       for(i in 1:(m_alpha-1)){
         positions_matrices_less[[i+1]] <- match(get(paste0("G_",i,"_list"))[["M"]], get(paste0("G_",m_alpha,"_list"))[["M"]])
       }
-    } else{
+    } else if (m_alpha == 1){
       positions_matrices_less[[2]] <-  1:length(get(paste0("G_",m_alpha,"_list"))[["M"]])
     }
   } else{
@@ -580,6 +614,21 @@ analyze_sparsity_rspde <- function(nu_upper_bound, dim, rspde_order,
   return(list(positions_matrices = positions_matrices,
               idx_matrices = idx_matrices,
               positions_matrices_less = positions_matrices_less))
+}
+
+#' @name symmetric_part_matrix
+#' @title Gets the upper triangular part of a matrix
+#' @description Gets the upper triangular part of a matrix
+#' @param M A matrix or a sparse matrix
+#' @return A sparse matrix formed by the upper triangular part of \code{M}.
+#' @noRd
+
+symmetric_part_matrix <- function(M){
+  M  <- as(M, "dgTMatrix")
+  idx <- which(M@i <= M@j)
+  sM <- cbind(M@i[idx], M@j[idx])
+  colnames(sM) <- NULL
+  return(list(M = split(sM, seq(nrow(sM))), idx = idx))
 }
 
 

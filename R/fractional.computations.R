@@ -258,104 +258,28 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       LQ = chol(Q)
       X = solve(LQ,Z)
     }
-  }else{# simulation in non-integer case
-    ## get rational approximation coefficients: r,p,k
-    # name of the table we need to reach
-    
-    mt <- get(paste0("m", m, "t"))
-    beta = nu / 2 + d / 4
-    
-    m_alpha = max(1, floor(2 * beta))
-    
-    r = sapply(1:(m), function(i) {
-      approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2*beta))$y
-    })
-    
-    p = sapply(1:(m), function(i) {
-      approx(mt$alpha, mt[[paste0("p", i)]], cut_decimals(2*beta))$y
-    })
-    
-    k = approx(mt$alpha, mt$k, cut_decimals(2*beta))$y
-    # one part to construct Q_i, i<=m
-    if (m_alpha == 1){
-      Malpha =  (fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/(kappa^2))
-    } else if (m_alpha > 1){
-      Malpha =  fem_mesh_matrices[["c0"]] + m_alpha * fem_mesh_matrices[["g1"]]/(kappa^2)
-      for(j in 2:m_alpha){
-        Malpha = Malpha +  choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j)]]/(kappa^(2*j))
-      }
-    } else {
-      stop("Something is wrong with the value of nu!")
+  }else{
+    Q <- rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
+                                        dim=d, 
+                                        fem_mesh_matrices = fem_mesh_matrices,
+                                rspde_order = m)
+    Z = rnorm((m+1)*sizeL * nsim)
+    dim(Z) <- c((m+1)*sizeL, nsim)
+    if(pivot){
+      LQ = chol(Q, pivot = TRUE)
+      reorder = attr(LQ,"pivot")
+      X = solve(LQ,Z)
+      # order back
+      orderback = numeric(length(reorder))
+      orderback[reorder] = 1:length(reorder)
+      X = X[orderback]
+    } else{
+      LQ = chol(Q)
+      X = solve(LQ,Z)
     }
-    
-    # another part to construct Q_i, i<=m
-    if (m_alpha == 1){
-      Malpha2 =  (fem_mesh_matrices[["g1"]] + fem_mesh_matrices[["g2"]]/(kappa^2))
-    } else if (m_alpha > 1){
-      Malpha2 =  fem_mesh_matrices[["g1"]] + m_alpha * fem_mesh_matrices[["g2"]]/(kappa^2)
-      for(j in 2:m_alpha){
-        Malpha2 = Malpha2 +  choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j+1)]]/(kappa^(2*j))
-      }
-    } else {
-      stop("Something is wrong with the value of nu!")
-    }
-    
-    # initialize the simulated uhat as X = 0
-    X = 0
-    # compute sum of x_i, i from 1 to m
-    for (i in 1:m){
-      # one sample from standard  normal multivariate gaussian
-      Z = rnorm(sizeL * nsim)
-      dim(Z) <- c(sizeL, nsim)
-      # cholesky decomposition of Q_i
-      # R is an upper triangle matrix
-      if(pivot){
-        R = chol(1/r[i] * (Malpha + Malpha2/kappa^2 - p[i] * Malpha), pivot = TRUE)
-        reorder = attr(R,"pivot")
-        # order back
-        orderback = numeric(length(reorder))
-        orderback[reorder] = 1:length(reorder)
-        X = X + solve(R,Z)[orderback]
-      } else{
-        R = chol(1/r[i] * (Malpha + Malpha2/kappa^2 - p[i] * Malpha))
-        # use backsolve for upper triangle matrix
-        X = X + solve(R,Z)
-      }
-    }
-    # now let us add the k_part which is Q_m+1
-    Z = rnorm(sizeL * nsim)
-    dim(Z) <- c(sizeL, nsim)
-    count = m_alpha
-    diag_C0 <- diag(fem_mesh_matrices[["c0"]])
-    
-    if (m_alpha%%2 == 0){# when m_alpha is even
-      CR = sqrt(k*diag_C0)
-      k_part = CR * Z
-      while (count > 0){
-        k_part = solve(L, diag_C0 * k_part)
-        count = count-2
-      }
-    }else{
-      if(pivot){
-        LR <- chol((1/k)*L, pivot=TRUE)
-        reorder <- attr(LR,"pivot")
-        orderback = numeric(length(reorder))
-        orderback[reorder] = 1:length(reorder)
-        k_part = solve(LR,Z)[orderback]
-      } else{
-        LR = chol((1/k)*L)
-        k_part = solve(LR,Z)
-      }
-
-      while (count > 1){
-        k_part = solve(L,diag_C0 * k_part)
-        count = count-2
-      }
-    }
-    X = X + k_part
-    # compute u, the simulated field
-    X = kappa^(-alpha)*X
-    X = X/tau
+    A = Diagonal(sizeL)
+    Abar = kronecker(matrix(1,1,m+1),A)
+    X = Abar%*%X
   }
   return(X)
 }
@@ -1197,100 +1121,19 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu=0,
       }
       
     }else{# loglikelihood in non-integer case
-      ## get rational approximation coefficients: r,p,k
-      # name of the table we need to reach
-      mt <- get(paste0("m", m, "t"))
-      # get r
-      beta = nu / 2 + d/ 4
       
-      m_alpha = max(1, floor(2 * beta))
+      Q <- rspde.matern.precision(kappa=kappa, nu=nu,
+                                          tau=tau, 
+                                          dim=d,
+                                  rspde_order= m,
+                                          fem_mesh_matrices = fem_mesh_matrices)
       
-      r = sapply(1:(m), function(i) {
-        approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2*beta))$y
-      })
-      
-      p = sapply(1:(m), function(i) {
-        approx(mt$alpha, mt[[paste0("p", i)]], cut_decimals(2*beta))$y
-      })
-      
-      k = approx(mt$alpha, mt$k, cut_decimals(2*beta))$y
-      # one part to construct Q_i, i<=m
-      if (m_alpha == 1){
-        Malpha =  (fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/(kappa^2))
-      } else if (m_alpha > 1){
-        Malpha =  fem_mesh_matrices[["c0"]] + m_alpha * fem_mesh_matrices[["g1"]]/(kappa^2)
-        for(j in 2:m_alpha){
-          Malpha = Malpha +  choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j)]]/(kappa^(2*j))
-        }
-      } else {
-        stop("Something is wrong with the value of nu!")
-      }
-      
-      # another part to construct Q_i, i<=m
-      if (m_alpha == 1){
-        Malpha2 =  (fem_mesh_matrices[["g1"]] + fem_mesh_matrices[["g2"]]/(kappa^2))
-      } else if (m_alpha > 1){
-        Malpha2 =  fem_mesh_matrices[["g1"]] + m_alpha * fem_mesh_matrices[["g2"]]/(kappa^2)
-        for(j in 2:m_alpha){
-          Malpha2 = Malpha2 +  choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j+1)]]/(kappa^(2*j))
-        }
-      } else {
-        stop("Something is wrong with the value of nu!")
-      }
-      
-      ## compute log|Q|
-      logQ = 0
-      # compute sum of x_i, i from 1 to m
-      for (i in 1:m){
-        
-        # cholesky decomposition of Q_i
-        # R is an upper triangle matrix
-        R = chol(1/r[i] * (Malpha + Malpha2/kappa^2 - p[i] * Malpha))
-        logQ = logQ + sum(log(diag(R)))
-      }
-      # now let us add the logk_part which is log|Q_m+1|
-      logkpart = 0
-      LR = chol(L)
-      loglpart = sum(log(diag(LR)))
-      logcinvpart = -sum(log(diag(fem_mesh_matrices[["c0"]])))
-      logkpart = m_alpha*loglpart + (m_alpha-1)*logcinvpart -log(k)
-      # get logQ
-      logQ = 2*logQ + logkpart
-      logQ = logQ + (m+1)*sizeL*log(kappa ^ (2 * alpha) + tau ^ 2)
-      
-      ## construct Q
-      Q = 1/r[1] * (Malpha + Malpha2/kappa^2 - p[1] * Malpha)
-      
-      if(length(r)>1){
-        for (i in 2:length(r)) {
-          Q = bdiag(Q, 1/r[i] * (Malpha + Malpha2/kappa^2 - p[i] * Malpha))
-        }
-      }
-      
-      # add k_part into Q
-      
-      
-      if (m_alpha == 1){
-        Kpart = 1/k * (fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/(kappa^2))
-      } else if (m_alpha > 1){
-        Kpart = 1/k * fem_mesh_matrices[["c0"]] + 1/k * m_alpha * fem_mesh_matrices[["g1"]]/(kappa^2)
-        for(j in 2:m_alpha){
-          Kpart = Kpart + 1/k * choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j)]]/(kappa^(2*j))
-        }
-      } else {
-        stop("Something is wrong with the value of nu!")
-      }
-      
-      Q = bdiag(Q, Kpart)
-      
-      Q = Q * kappa ^ (4 * beta)
-      
-      Q = tau ^ 2 * Q
-      
+      R = chol(Q,pivot = pivot)
+      logQ = 2*sum(log(diag(R)))
       ## compute Q_x|y
-      Q_xgiveny = kronecker(matrix(1,length(r)+1,length(r)+1),t(A)%*% Q.e %*% A) + Q
+      Q_xgiveny = kronecker(matrix(1,m+1,m+1),t(A)%*% Q.e %*% A) + Q
       ## construct mu_x|y 
-      Abar = kronecker(matrix(1,1,length(r)+1),A)
+      Abar = kronecker(matrix(1,1,m+1),A)
       mu_xgiveny = t(Abar) %*% Q.e %*% Y
       # upper triangle with reordering
       R = chol(Q_xgiveny, pivot = pivot)
@@ -1311,7 +1154,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu=0,
       }
       mu_xgiveny <- mu + mu_xgiveny
       
-      Aprd_bar = kronecker(matrix(1,1,length(r)+1),Aprd)
+      Aprd_bar = kronecker(matrix(1,1,m+1),Aprd)
       
       out$mean <- Aprd_bar %*% mu_xgiveny
       

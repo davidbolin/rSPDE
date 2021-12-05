@@ -29,7 +29,12 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
                                               ...) {
   
   initial <- function(n, theta) {
-    return(c(start.ltau, start.lkappa, log(start.nu/(nu_upper_bound-start.nu))))
+    if(prior.nu.dist=="beta"){
+      return(c(start.ltau, start.lkappa, log(start.nu/(nu_upper_bound-start.nu))))
+    } else{
+      return(c(start.ltau, start.lkappa, log(start.nu)))
+    }
+
   }
   
   ######## parameter
@@ -44,8 +49,12 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
   ######## precision matrix
   Q = function(n, theta) {
     param = interpret.theta(n, theta)
-    #nu = min(exp(param$lnu), nu_upper_bound)
-    nu = (exp(param$lnu)/(1+exp(param$lnu)))*nu_upper_bound
+    if(prior.nu.dist=="beta"){
+      nu = (exp(param$lnu)/(1+exp(param$lnu)))*nu_upper_bound
+    } else if(prior.nu.dist=="lognormal"){
+      nu = min(exp(param$lnu), nu_upper_bound)
+    }
+
     tau = exp(param$ltau)
     kappa = exp(param$lkappa)
     
@@ -360,17 +369,17 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
 #' very close to \code{nu_upper_bound}).
 #' 
 #' The following parameterization is used:
-#' \deqn{\log(\theta_1) = \tau,}
-#' \deqn{\log(\theta_2) = \kappa}
+#' \deqn{\log(\tau) = \theta_1,}
+#' \deqn{\log(\kappa) = \theta_2}
 #' and for \eqn{\theta_3}, if a beta prior is used, with the beta prior
 #' being taken on the interval \eqn{(0,\nu_{UB})}, where \eqn{\nu_{UB}} is
 #' \code{nu_upper_bound}, then the following parameterization
 #' is considered:
-#' \deqn{\log\Big(\frac{\theta_3}{\nu_{UB}-\theta_3}\Big) = \nu.}
+#' \deqn{\log\Big(\frac{\nu}{\nu_{UB}-\nu}\Big) = \theta_3.}
 #' If a truncated lognormal prior is used, where the lognormal is truncated to
 #' the interval \eqn{(0,\nu_{UB})}, then the following parameterization
 #' is considered:
-#' \deqn{\log(\theta_3) = \nu.}
+#' \deqn{\log(\nu) = \theta_3.}
 #' 
 #' By default, an optimized version of this model is considered. The optimized
 #' version is generally much faster for larger datasets, however it takes more
@@ -512,17 +521,17 @@ rspde.matern <- function(mesh,
     
     beta = nu_order / 2 + d / 4
     
-    m_alpha = max(1, floor(2 * beta))
+    m_alpha = floor(2 * beta)
     
     if(integer_alpha){
       if(d==1){
-        fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha)
+        fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha+1)
       } else{
         fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
       }
     } else{
       if(d==1){
-        fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha+1)        
+        fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha+2)        
       } else{
         fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha+1)
       }
@@ -530,17 +539,17 @@ rspde.matern <- function(mesh,
   } else{
     beta = nu_order / 2 + d / 4
     
-    m_alpha = max(1, floor(2 * beta))
+    m_alpha = floor(2 * beta)
   
     if(integer_alpha){
       if(d==1){
-        fem_matrices <- fem_mesh_order_1d(mesh, m_order = m_alpha)
+        fem_matrices <- fem_mesh_order_1d(mesh, m_order = m_alpha+1)
       } else{
         fem_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha)
       }
     } else{
       if(d==1){
-        fem_matrices <- fem_mesh_order_1d(mesh, m_order = m_alpha+1)
+        fem_matrices <- fem_mesh_order_1d(mesh, m_order = m_alpha+2)
       } else{
         fem_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha+1)        
       }
@@ -580,13 +589,19 @@ rspde.matern <- function(mesh,
     fem_matrices <- list()
     
     if(sharp || integer_alpha){
-      fem_matrices[[paste0("G_",m_alpha,"_less")]] <- fem_mesh[[paste0("g",m_alpha)]]@x[idx_matrices[[m_alpha+1]]]
-      
-      fem_matrices[["C_less"]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha,"_less")]]))
-      fem_matrices[["C_less"]][positions_matrices_less[[1]]] <- fem_mesh$c0@x[idx_matrices[[1]]]
-      
-      fem_matrices[["G_less"]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha,"_less")]]))
-      fem_matrices[["G_less"]][positions_matrices_less[[2]]] <- fem_mesh$g1@x[idx_matrices[[2]]]
+      if(m_alpha>0){
+        fem_matrices[[paste0("G_",m_alpha,"_less")]] <- fem_mesh[[paste0("g",m_alpha)]]@x[idx_matrices[[m_alpha+1]]]
+        
+        fem_matrices[["C_less"]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha,"_less")]]))
+        fem_matrices[["C_less"]][positions_matrices_less[[1]]] <- fem_mesh$c0@x[idx_matrices[[1]]]
+        
+        fem_matrices[["G_less"]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha,"_less")]]))
+        fem_matrices[["G_less"]][positions_matrices_less[[2]]] <- fem_mesh$g1@x[idx_matrices[[2]]]
+      } else{
+        fem_matrices[["C_less"]] <- fem_mesh[["c0"]]@x
+        fem_matrices[["G_less"]] <- fem_mesh[["g1"]]@x
+      }
+
       
       #The case m_alpha=2 already uses G_2_less defined above
       if(m_alpha > 2){
@@ -599,6 +614,10 @@ rspde.matern <- function(mesh,
 
     
     if(!integer_alpha){
+      if(m_alpha == 0){
+        fem_matrices[["G"]] <- fem_mesh$g1@x
+        fem_matrices[["C"]] <- fem_mesh$c0@x
+      } else if(m_alpha > 0){
       fem_matrices[[paste0("G_",m_alpha+1)]] <- fem_mesh[[paste0("g",m_alpha+1)]]@x[idx_matrices[[m_alpha+2]]]
       
       fem_matrices[["G"]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha+1)]]))
@@ -606,6 +625,7 @@ rspde.matern <- function(mesh,
       
       fem_matrices[["C"]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha+1)]]))
       fem_matrices[["C"]][positions_matrices[[1]]] <- fem_mesh$c0@x[idx_matrices[[1]]]
+      }
       if(m_alpha > 1){
         for(j in 2:(m_alpha)){
           fem_matrices[[paste0("G_",j)]] <- rep(0, length(fem_matrices[[paste0("G_",m_alpha+1)]]))
@@ -776,17 +796,14 @@ if(is.null(prior.tau$sdlog)){
   model$n.spde = mesh$n
   model$nu_upper_bound = nu_upper_bound
   model$prior.nu.dist = prior.nu.dist
+
+  if(optimize){
+    model$fem_mesh <- fem_mesh
+  } else{
+    model$fem_matrices <- fem_matrices
+  }
+
   return(model)
-}
-
-
-
-symmetric_part_matrix <- function(M){
-  M  <- as(M, "dgTMatrix")
-  idx <- which(M@i <= M@j)
-  sM <- cbind(M@i[idx], M@j[idx])
-  colnames(sM) <- NULL
-  return(list(M = split(sM, seq(nrow(sM))), idx = idx))
 }
 
 
@@ -822,7 +839,7 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
   
   beta = nu / 2 + dim / 4
   
-  m_alpha = max(1, floor(2 * beta))
+  m_alpha = floor(2 * beta)
   
   r = sapply(1:(n_m), function(i) {
     approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2*beta))$y
@@ -833,6 +850,15 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
   })
   
   k = approx(mt$alpha, mt$k, cut_decimals(2*beta))$y
+
+  
+  if(m_alpha == 0){
+    L = (fem_matrices[["C"]] + fem_matrices[["G"]]/(kappa^2))
+    Q = (L - p[1]*fem_matrices[["C"]])/r[1]
+    for(i in 2:length(r)){
+      Q = c(Q,(L - p[i]*fem_matrices[["C"]])/r[i])
+    }
+  } else{
   
   if (m_alpha == 1){
     Malpha =  (fem_matrices[["C"]] + fem_matrices[["G"]]/(kappa^2))
@@ -864,10 +890,16 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
       Q = c(Q, 1/r[i] * (Malpha + Malpha2/kappa^2 - p[i] * Malpha))
     }
   }
+  }
   
   # add k_part into Q
   
   if(sharp){
+    if(m_alpha == 0){
+      Kpart = fem_matrices[["C_less"]]
+      Kpart[Kpart!=0] = 1/(Kpart[Kpart!=0])
+      Kpart = Kpart/k
+    } else{
     if (m_alpha == 1){
       Kpart = 1/k * (fem_matrices[["C_less"]] + fem_matrices[["G_less"]]/(kappa^2))
     } else if(m_alpha > 1){
@@ -878,7 +910,13 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
     } else {
       stop("Something is wrong with the value of nu!")
     }
+    }
   } else{
+    if(m_alpha == 0){
+      Kpart = fem_matrices[["C"]]
+      Kpart[Kpart!=0] = 1/(Kpart[Kpart!=0])
+      Kpart = Kpart/k
+    } else{
     if (m_alpha == 1){
       Kpart = 1/k * (fem_matrices[["C"]] + fem_matrices[["G"]]/(kappa^2))
     } else if (m_alpha > 1){
@@ -888,6 +926,7 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
       }
     } else {
       stop("Something is wrong with the value of nu!")
+    }
     }
   }
   
@@ -961,7 +1000,7 @@ rspde.matern.precision = function(kappa, nu, tau, rspde_order, dim, fem_mesh_mat
   
   beta = nu / 2 + dim / 4
   
-  m_alpha = max(1, floor(2 * beta))
+  m_alpha = floor(2 * beta)
   
   r = sapply(1:(n_m), function(i) {
     approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2*beta))$y
@@ -973,7 +1012,14 @@ rspde.matern.precision = function(kappa, nu, tau, rspde_order, dim, fem_mesh_mat
   
   k = approx(mt$alpha, mt$k, cut_decimals(2*beta))$y
   
-  if (m_alpha == 1){
+  if(m_alpha == 0){
+    L = ((kappa^2)*fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]])/kappa^2
+    Q = (L - p[1]*fem_mesh_matrices[["c0"]])/r[1]
+    for(i in 2:length(r)){
+      Q = bdiag(Q,(L - p[i]*fem_mesh_matrices[["c0"]])/r[i])
+    }
+  } else{
+    if (m_alpha == 1){
     Malpha =  (fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/(kappa^2))
   } else if (m_alpha > 1){
     Malpha =  fem_mesh_matrices[["c0"]] + m_alpha * fem_mesh_matrices[["g1"]]/(kappa^2)
@@ -1004,9 +1050,15 @@ rspde.matern.precision = function(kappa, nu, tau, rspde_order, dim, fem_mesh_mat
     }
   }
   
+  }
+  
   # add k_part into Q
   
-
+    if(m_alpha == 0){
+      Kpart = fem_mesh_matrices[["c0"]]
+      Kpart@x = 1/(fem_mesh_matrices[["c0"]]@x)
+      Kpart = Kpart/k
+    } else{
     if (m_alpha == 1){
       Kpart = 1/k * (fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/(kappa^2))
     } else if (m_alpha > 1){
@@ -1017,9 +1069,10 @@ rspde.matern.precision = function(kappa, nu, tau, rspde_order, dim, fem_mesh_mat
     } else {
       stop("Something is wrong with the value of nu!")
     }
+    }
   
   Q = bdiag(Q, Kpart)
-  
+
   Q = Q * kappa ^ (4 * beta)
   
   Q = tau ^ 2 * Q
