@@ -29,11 +29,8 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
                                               ...) {
   
   initial <- function(n, theta) {
-    if(prior.nu.dist=="beta"){
-      return(c(start.ltau, start.lkappa, log(start.nu/(nu_upper_bound-start.nu))))
-    } else{
-      return(c(start.ltau, start.lkappa, log(start.nu)))
-    }
+
+    return(c(start.ltau, start.lkappa, log(start.nu/(nu_upper_bound-start.nu))))
 
   }
   
@@ -49,12 +46,8 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
   ######## precision matrix
   Q = function(n, theta) {
     param = interpret.theta(n, theta)
-    if(prior.nu.dist=="beta"){
-      nu = (exp(param$lnu)/(1+exp(param$lnu)))*nu_upper_bound
-    } else if(prior.nu.dist=="lognormal"){
-      nu = min(exp(param$lnu), nu_upper_bound)
-    }
-
+    
+    nu = (exp(param$lnu)/(1+exp(param$lnu)))*nu_upper_bound
     tau = exp(param$ltau)
     kappa = exp(param$lkappa)
     
@@ -94,12 +87,11 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
     param = interpret.theta(n, theta)
     
     if(prior.nu.dist == "lognormal"){
-      tdnorm_nu = dnorm(param$lnu, 0, 1, log = TRUE) - param$lnu -
+      nu <- (exp(param$lnu)/(1+exp(param$lnu)))*nu_upper_bound
+      
+      tdnorm_nu = dnorm(log(nu), 0, 1, log = TRUE) - log(nu) -
           pnorm(log(nu_upper_bound), prior.nu$loglocation,
                 prior.nu$logscale, log.p = TRUE)
-      if(param$lnu > log(nu_upper_bound)){
-        tdnorm_nu = -Inf
-      }
       
       res <- tdnorm_nu + dnorm(param$lkappa, prior.kappa$meanlog,
                                prior.kappa$sdlog, log = TRUE) +
@@ -967,7 +959,8 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
 #' \deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
 #' (\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
 #' @param kappa Range parameter of the covariance function.
-#' @param tau Scale parameter of the covariance function.
+#' @param tau Scale parameter of the covariance function. If sigma is not provided, tau should be provided.
+#' @param sigma Standard deviation of the covariance function. If tau is not provided, sigma should be provided.
 #' @param nu Shape parameter of the covariance function.
 #' @param rspde_order The order of the rational approximation
 #' @param dim The dimension of the domain
@@ -1000,7 +993,15 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
 #'      xlab="h", main = "Matern covariance and rational approximations")
 #' lines(x, c.approx_cov, col = 2)
 
-rspde.matern.precision = function(kappa, nu, tau, rspde_order, dim, fem_mesh_matrices) {
+rspde.matern.precision = function(kappa, nu, tau=NULL, sigma=NULL, rspde_order, dim, fem_mesh_matrices) {
+  
+  if(is.null(tau)&&is.null(sigma)){
+    stop("You should provide either tau or sigma!")
+  }
+  
+  if(is.null(tau)){
+    tau = sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
+  }
   
   n_m <- rspde_order
   
@@ -1552,19 +1553,9 @@ result$summary.log.kappa = INLA::inla.extract.el(inla$summary.hyperpar,
                                              paste("Theta2 for ", name, "$", sep = ""))
 rownames(result$summary.log.kappa) <- "log(kappa)"
 if(rspde$est_nu){
-  if(rspde$prior.nu.dist == "beta"){
     result$summary.logit.nu = INLA::inla.extract.el(inla$summary.hyperpar, 
                                                   paste("Theta3 for ", name, "$", sep = ""))
-  } else{
-    result$summary.log.nu = INLA::inla.extract.el(inla$summary.hyperpar, 
-                                                  paste("Theta3 for ", name, "$", sep = ""))
-  }
-  if(rspde$prior.nu.dist == "beta"){
     rownames(result$summary.logit.nu) <- "logit(nu)"
-  } else{
-    rownames(result$summary.log.nu) <- "log(nu)"
-  }
-  
 }
 
 if (!is.null(inla$marginals.hyperpar[[paste0("Theta1 for ", name)]])) {
@@ -1576,15 +1567,9 @@ if (!is.null(inla$marginals.hyperpar[[paste0("Theta1 for ", name)]])) {
   names(result$marginals.log.kappa) = "kappa"
   
   if(rspde$est_nu){
-    if(rspde$prior.nu.dist == "beta"){
       result$marginals.logit.nu = INLA::inla.extract.el(inla$marginals.hyperpar,
                                             paste("Theta3 for ", name, "$", sep = ""))
       names(result$marginals.logit.nu) = "nu"
-    } else{
-      result$marginals.log.nu = INLA::inla.extract.el(inla$marginals.hyperpar,
-                                                      paste("Theta3 for ", name, "$", sep = ""))
-      names(result$marginals.log.nu) = "nu"
-    }
   }
 
     result$marginals.tau = lapply(result$marginals.log.tau, 
@@ -1594,15 +1579,9 @@ if (!is.null(inla$marginals.hyperpar[[paste0("Theta1 for ", name)]])) {
                                     function(x) INLA::inla.tmarginal(function(y) exp(y), 
                                                                x))
     if(rspde$est_nu){
-      if(rspde$prior.nu.dist == "beta"){
         result$marginals.nu = lapply(result$marginals.logit.nu, 
                                       function(x) INLA::inla.tmarginal(function(y) {nu_upper_bound*exp(y)/(1+exp(y))}, 
                                                                  x))
-      } else{
-        result$marginals.nu = lapply(result$marginals.log.nu, 
-                                     function(x) INLA::inla.tmarginal(function(y) {exp(y)}, 
-                                                                      x))
-      }
   }
 }
 
