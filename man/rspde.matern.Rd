@@ -46,9 +46,9 @@ the matrices will be analyzed.}
 the mean and standard deviation on the log scale.}
 
 \item{prior.nu}{a list containing the elements \code{mean} and \code{prec} for beta distribution,
-or \code{meanlog} and \code{sdlog} for a truncated lognormal distribution. \code{meanlog} stands for
-the mean on the log scale. \code{prec} stands for the precision of a beta distribution.
-\code{sdlog} stands for the standard deviation on the log scale. Check details below.}
+or \code{loglocation} and \code{logscale} for a truncated lognormal distribution. \code{loglocation} stands for
+the location parameter of the truncated lognormal distribution in the log scale. \code{prec} stands for the precision of a beta distribution.
+\code{logscale} stands for the scale of the truncated lognormal distribution on the log scale. Check details below.}
 
 \item{prior.tau}{a list containing the elements \code{meanlog} and \code{sdlog}, that is,
 the mean and standard deviation on the log scale.}

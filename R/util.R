@@ -278,6 +278,7 @@ require.nowarnings <- function(package, lib.loc = NULL, character.only = FALSE)
 #' with a latent stationary Gaussian Matern model
 #' @param mesh An in INLA mesh
 #' @param mesh.range The range of the mesh. 
+#' @param dim The dimension of the domain.
 #' @param include.nu Should we also provide an initial guess for nu?
 #' @param log.scale Should the results be provided in log scale?
 #' @param nu_upper_bound Should an upper bound for nu be considered?
@@ -288,10 +289,15 @@ require.nowarnings <- function(package, lib.loc = NULL, character.only = FALSE)
 #' 
 
 get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, 
+                                    dim = NULL,
                                     include.nu = TRUE, log.scale = TRUE,
                                     nu_upper_bound = NULL){
   if(is.null(mesh)&&is.null(mesh.range)){
     stop("You should either provide mesh or mesh.range!")
+  }
+  
+  if(is.null(mesh)&&is.null(dim)){
+    stop("If you don't provide mesh, you have to provide dim!")
   }
   if(include.nu){
     if(!is.null(nu_upper_bound)){
@@ -302,7 +308,8 @@ get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
   }
   
   if(!is.null(mesh)){
-    mesh.range = ifelse(d == 2, (max(c(diff(range(mesh$loc[,
+    dim <- get_inla_mesh_dimension(inla_mesh = mesh)
+    mesh.range = ifelse(dim == 2, (max(c(diff(range(mesh$loc[,
                                                            1])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[,
                                                                                                                  3]))))), diff(mesh$interval))
   }
@@ -311,7 +318,7 @@ get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
     
   kappa <- sqrt(8 * nu)/range.nominal
     
-  tau <-  sqrt(gamma(nu)/gamma(nu+d/2)/(4 * pi * kappa^(2 * nu)))
+  tau <-  sqrt(gamma(nu)/gamma(nu+dim/2)/(4 * pi * kappa^(2 * nu)))
   
   initial <- c(tau, kappa, nu)
   if(log.scale){

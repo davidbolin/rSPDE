@@ -8,6 +8,7 @@ with a latent stationary Gaussian Matern model}
 get.inital.values.rSPDE(
   mesh = NULL,
   mesh.range = NULL,
+  dim = NULL,
   include.nu = TRUE,
   log.scale = TRUE,
   nu_upper_bound = NULL
@@ -17,6 +18,8 @@ get.inital.values.rSPDE(
 \item{mesh}{An in INLA mesh}
 
 \item{mesh.range}{The range of the mesh.}
+
+\item{dim}{The dimension of the domain.}
 
 \item{include.nu}{Should we also provide an initial guess for nu?}
 

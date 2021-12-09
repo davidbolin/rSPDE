@@ -13,9 +13,9 @@ where \eqn{L} is a differential operator and \eqn{\beta>0} is a general fraction
 The approximation is based on a rational approximation of the fractional operator,
 and allows for computationally efficient inference and simulation.
 
-The main function for computing the rational operators is \code{\link{fractional.operators}},
-and the following simplified interfaces are available
+The main functions for computing the rational operators are:
 \itemize{
+\item{\code{\link{fractional.operators}}}{Computation of general rational operators}
 \item{\code{\link{matern.operators}}}{ Computation of operators for random fields with
 stationary Matern covariance functions}
 \item{\code{\link{spde.matern.operators}}}{ Computation of operators for random fields with

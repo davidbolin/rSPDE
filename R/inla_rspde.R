@@ -94,10 +94,12 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
     param = interpret.theta(n, theta)
     
     if(prior.nu.dist == "lognormal"){
-      nu = (exp(param$lnu)/(1+exp(param$lnu)))*nu_upper_bound
-      tdnorm_nu = dnorm(log(nu), 0, 1, log = TRUE) - log(nu) -
-          pnorm(log(nu_upper_bound), prior.nu$meanlog,
-                prior.nu$sdlog, log.p = TRUE)
+      tdnorm_nu = dnorm(param$lnu, 0, 1, log = TRUE) - param$lnu -
+          pnorm(log(nu_upper_bound), prior.nu$loglocation,
+                prior.nu$logscale, log.p = TRUE)
+      if(param$lnu > log(nu_upper_bound)){
+        tdnorm_nu = -Inf
+      }
       
       res <- tdnorm_nu + dnorm(param$lkappa, prior.kappa$meanlog,
                                prior.kappa$sdlog, log = TRUE) +
@@ -342,9 +344,9 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
 #' @param prior.kappa a \code{list} containing the elements \code{meanlog} and \code{sdlog}, that is,
 #' the mean and standard deviation on the log scale.
 #' @param prior.nu a list containing the elements \code{mean} and \code{prec} for beta distribution,
-#' or \code{meanlog} and \code{sdlog} for a truncated lognormal distribution. \code{meanlog} stands for
-#' the mean on the log scale. \code{prec} stands for the precision of a beta distribution.
-#' \code{sdlog} stands for the standard deviation on the log scale. Check details below.
+#' or \code{loglocation} and \code{logscale} for a truncated lognormal distribution. \code{loglocation} stands for
+#' the location parameter of the truncated lognormal distribution in the log scale. \code{prec} stands for the precision of a beta distribution.
+#' \code{logscale} stands for the scale of the truncated lognormal distribution on the log scale. Check details below.
 #' @param prior.tau a list containing the elements \code{meanlog} and \code{sdlog}, that is,
 #' the mean and standard deviation on the log scale.
 #' @param start.lkappa Starting value for log of kappa.
@@ -502,6 +504,12 @@ rspde.matern <- function(mesh,
     }
   }
   
+  if(d==1){
+    if(nu_upper_bound > 2){
+      warning("In dimension 1 you can have unstable results for nu_upper_bound > 2. Consider changing nu_upper_bound to 2 or 1.")
+    }
+  }
+  
   fixed_nu = !is.null(nu)
   
   if(fixed_nu){
@@ -640,8 +648,8 @@ rspde.matern <- function(mesh,
 
 
  
-if(is.null(prior.nu$meanlog)){
-  prior.nu$meanlog <- log(min(1, nu_upper_bound/2))
+if(is.null(prior.nu$loglocation)){
+  prior.nu$loglocation <- log(min(1, nu_upper_bound/2))
 }
   
 if(is.null(prior.nu[["mean"]])){
@@ -654,7 +662,7 @@ if(is.null(prior.kappa$meanlog)){
                                                                                                                     3]))))), diff(mesh$interval))
   prior.range.nominal = mesh.range * 0.2
   if(prior.nu.dist=="lognormal"){
-    prior.kappa$meanlog <- log(sqrt(8 * exp(prior.nu[["meanlog"]]))/prior.range.nominal)
+    prior.kappa$meanlog <- log(sqrt(8 * exp(prior.nu[["loglocation"]]))/prior.range.nominal)
   } else if (prior.nu.dist=="beta"){
     prior.kappa$meanlog <- log(sqrt(8 * prior.nu[["mean"]])/prior.range.nominal)
   }
@@ -663,8 +671,8 @@ if(is.null(prior.kappa$meanlog)){
 
 if(is.null(prior.tau$meanlog)){
   if(prior.nu.dist=="lognormal"){
-    prior.tau$meanlog <-  log(sqrt(gamma(exp(prior.nu[["meanlog"]]))/gamma(exp(prior.nu$meanlog)+d/2)/(4 *
-                                                                                                         pi * exp(prior.kappa$meanlog)^(2 * exp(prior.nu$meanlog)))))
+    prior.tau$meanlog <-  log(sqrt(gamma(exp(prior.nu[["loglocation"]]))/gamma(exp(prior.nu[["loglocation"]])+d/2)/(4 *
+                                                                                                         pi * exp(prior.kappa$meanlog)^(2 * exp(prior.nu[["loglocation"]])))))
   } else if (prior.nu.dist == "beta"){
     prior.tau$meanlog <-  log(sqrt(gamma(prior.nu[["mean"]])/gamma(prior.nu[["mean"]]+d/2)/(4 *
                                                                                                          pi * exp(prior.kappa$meanlog)^(2 * prior.nu[["mean"]]))))
@@ -678,8 +686,8 @@ if(is.null(prior.nu$prec)){
   prior.nu$prec <- max(1/mu_temp, 1/(1-mu_temp)) + nu.prec.inc
 }
 
-if(is.null(prior.nu$sdlog)){
-    prior.nu$sdlog <- 1
+if(is.null(prior.nu[["logscale"]])){
+    prior.nu[["logscale"]] <- 1
 }  
   
 if(is.null(prior.tau$sdlog)){
@@ -696,7 +704,7 @@ if(is.null(prior.tau$sdlog)){
     if(prior.nu.dist=="beta"){
       start.nu = prior.nu[["mean"]]
     } else if (prior.nu.dist=="lognormal"){
-      start.nu = exp(prior.nu[["meanlog"]])
+      start.nu = exp(prior.nu[["loglocation"]])
     } else{
       stop("prior.nu.dist should be either beta or lognormal!")
     }
