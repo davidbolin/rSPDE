@@ -24,7 +24,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-#202123"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
@@ -72,7 +72,8 @@
     
   </div>
 </nav><div class="container template-article">
-<script src="rSPDE_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
+
+<div class="row">
   <main id="main"><div class="page-header">
       <img src="" class="logo" alt=""><h1>An introduction to the rSPDE package</h1>
                         <h4 data-toc-skip class="author">David Bolin, Alexandre B. Simas, Zhen Xiong</h4>
@@ -85,53 +86,21 @@
 
     
     
-<div class="section level2">
-<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
-</h2>
-<p>In this vignette we will provide a brief introduction to the <code>rSPDE</code> package by providing a simple data set and using the different functions in the package to analyze it.</p>
-<p>We have three main “families” of functions inside the <code>rSPDE</code> package:</p>
-<ul>
-<li><p>The <code>R-INLA</code> implementation of the rational SPDE approach;</p></li>
-<li><p>The covariance-based rational SPDE approach;</p></li>
-<li><p>The operator-based rational SPDE approach.</p></li>
-</ul>
-<p>We will analyze the same data set using all the three approaches. We also have specific vignettes for each of the aforementioned family. More precisely, we have the following additional vignettes:</p>
-<ul>
-<li><p><a href="rspde_inla.html">R-INLA implementation of the rational SPDE approach</a></p></li>
-<li><p><a href="rspde_cov.html">Covariance-based rational approximation with the rSPDE package</a></p></li>
-<li><p><a href="rspde_base.html">Operator-based rational approximation with the rSPDE package</a></p></li>
-</ul>
-<p>We will now begin by creating a toy data set.</p>
-</div>
-<div class="section level2">
-<h2 id="a-toy-data-set">A toy data set<a class="anchor" aria-label="anchor" href="#a-toy-data-set"></a>
-</h2>
-<p>For this illustration, we will simulate a data set on a two-dimentional spatial domain. To this end, we need to construct a mesh over the domain of interest and then compute the matrices needed to define the operator. We will use the <code>R-INLA</code> package to create the mesh and obtain the matrices of interest.</p>
-<p>We will begin by defining a mesh over <span class="math inline">\([0,1]\times [0, 1]\)</span>:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span>
-<span class="va">m</span> <span class="op">=</span><span class="fl">100</span>
-<span class="va">loc_2d_mesh</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">m</span><span class="op">*</span><span class="fl">2</span><span class="op">)</span>,<span class="va">m</span>,<span class="fl">2</span><span class="op">)</span>
-<span class="va">mesh_2d</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.create.helper.html" class="external-link">inla.mesh.create.helper</a></span><span class="op">(</span>
-  points<span class="op">=</span><span class="va">loc_2d_mesh</span>,
-  cutoff<span class="op">=</span><span class="fl">0.05</span>,
-  offset<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>,<span class="fl">0.4</span><span class="op">)</span>,
-  max.edge<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.5</span><span class="op">)</span> <span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mesh_2d</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">loc_2d_mesh</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>,<span class="va">loc_2d_mesh</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="rSPDE_files/figure-html/unnamed-chunk-1-1.png" width="700"></p>
-<p>There are two matrices we need to create the approximation of a basic Matérn model. These matrices are the mass matrix <span class="math inline">\(\boldsymbol{\mathrm{C}}\)</span>, with elements <span class="math inline">\(C_{ij} = \int \varphi_j(s) \varphi_i(s) ds\)</span>, and the stiffness matrix <span class="math inline">\(\boldsymbol{\mathrm{G}}\)</span>, with elements <span class="math inline">\(G_{ij} = \int \nabla\varphi_j(s) \cdot \nabla\varphi_i(s) ds\)</span>.</p>
-<p>Now, let us compute these matrices for this mesh using <code>INLA</code>’s <code>inla.fem.mesh()</code> function:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">fem_mesh_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.fem.html" class="external-link">inla.mesh.fem</a></span><span class="op">(</span><span class="va">mesh_2d</span><span class="op">)</span>
-<span class="va">C</span> <span class="op">=</span> <span class="va">fem_mesh_2d</span><span class="op">$</span><span class="va">c0</span>
-<span class="va">G</span> <span class="op">&lt;-</span> <span class="va">fem_mesh_2d</span><span class="op">$</span><span class="va">g1</span></code></pre></div>
-<p>We want to use these matrices to simulate Gaussian latent fields with Matérn covariance. To this end, we have two functions possibilities: simulate the latent field using the operator-based rational approximation or using the covariance-based rational approximation. We will use both of them, and consider the realizations as replicates. We will generate 20 independent replicates from the operator-based rational approximation and 20 independent replicates from the covariance-based rational approximation.</p>
-<p>Let <span class="math inline">\(\mathbf{X}_1\)</span> be</p>
-</div>
 <div class="section level1">
-<h1 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<h1 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h1>
+</div>
+<div class="section level1 unnumbered">
+<h1 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-bolin19" class="csl-entry">
+Bolin, David, and Kristin Kirchner. 2020. <span>“The Rational SPDE Approach for Gaussian Random Fields with General Smoothness.”</span> <em>Journal of Computational and Graphical Statistics</em> 29 (2): 274–85.
+</div>
+<div id="ref-lindgren11" class="csl-entry">
+Lindgren, Finn, Håvard Rue, and Johan Lindström. 2011. <span>“An Explicit Link Between Gaussian Fields and Gaussian Markov Random Fields: The Stochastic Partial Differential Equation Approach.”</span> <em>Journal of the Royal Statistical Society. Series B. Statistical Methodology</em> 73 (4): 423–98.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
