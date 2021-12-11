@@ -14,7 +14,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="R-INLA implementation of the rational SPDE approach">
 <meta property="og:description" content="rSPDE">
-<meta name="robots" content="noindex">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -28,7 +27,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.6.2.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,14 +40,14 @@
   <a class="nav-link" href="../articles/rSPDE.html">Get started</a>
 </li>
 <li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
+  <a class="nav-link" href="../reference/index.html">Functions</a>
 </li>
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation with the rSPDE package</a>
-    <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-vignettes">Vignettes</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-vignettes">
     <a class="dropdown-item" href="../articles/rspde_inla.html">R-INLA implementation of the rational SPDE approach</a>
+    <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
+    <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation with the rSPDE package</a>
   </div>
 </li>
 <li class="nav-item">
@@ -66,6 +65,12 @@
      
   </a>
 </li>
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://twitter.com/jdavidbolin" aria-label="Twitter">
+    <span class="fa fa-twitter"></span>
+     
+  </a>
+</li>
       </ul>
 </div>
 
@@ -76,7 +81,7 @@
 <div class="row">
   <main id="main"><div class="page-header">
       <img src="" class="logo" alt=""><h1>R-INLA implementation of the rational SPDE approach</h1>
-                        <h4 data-toc-skip class="author">David Bolin, Alexandre B. Simas, Zhen Xiong</h4>
+                        <h4 data-toc-skip class="author">David Bolin and Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">10/29/2021</h4>
       
@@ -251,7 +256,7 @@
 <span class="co">##    list(A = inla.stack.A(stk.dat), ", " compute = TRUE), control.inla = </span>
 <span class="co">##    list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 4.26, Running = 22, Post = 0.0784, Total = 26.3 </span>
+<span class="co">##     Pre = 4.45, Running = 22, Post = 0.0815, Total = 26.5 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.648 0.019      0.611    0.648      0.685 0.648   0</span>
@@ -343,8 +348,8 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
              data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.data</a></span><span class="op">(</span><span class="va">stk.all</span><span class="op">)</span>, 
              control.predictor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>A <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.A</a></span><span class="op">(</span><span class="va">stk.all</span><span class="op">)</span>,
                                       compute <span class="op">=</span> <span class="cn">TRUE</span>, link <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,
-             control.compute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>return.marginals <span class="op">=</span> <span class="cn">F</span>, 
-                                    return.marginals.predictor <span class="op">=</span> <span class="cn">F</span><span class="op">)</span>,
+             control.compute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>return.marginals <span class="op">=</span> <span class="cn">FALSE</span>, 
+                                    return.marginals.predictor <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,
              control.inla <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>int.strategy <span class="op">=</span> <span class="st">"eb"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p>We then extract the indices to the prediction nodes and then extract the mean and the standard deviation of the response:</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
@@ -401,7 +406,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    list(A = inla.stack.A(stk.dat), ", " compute = TRUE), control.inla = </span>
 <span class="co">##    list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 4.31, Running = 13.3, Post = 0.0577, Total = 17.6 </span>
+<span class="co">##     Pre = 4.16, Running = 13, Post = 0.0524, Total = 17.2 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.648 0.019       0.61    0.648      0.685 0.648   0</span>
@@ -432,13 +437,13 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># nu_upper_bound = 4</span>
 <span class="va">rspde_fit</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
-<pre><code><span class="co">##        Pre    Running       Post      Total </span>
-<span class="co">##  4.2643790 21.9740050  0.0784421 26.3168261</span></code></pre>
+<pre><code><span class="co">##       Pre   Running      Post     Total </span>
+<span class="co">##  4.446503 21.975022  0.081496 26.503021</span></code></pre>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#nu_upper_bound = 2</span>
 <span class="va">rspde_fit_2</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
 <pre><code><span class="co">##         Pre     Running        Post       Total </span>
-<span class="co">##  4.30745792 13.25340700  0.05767703 17.61854196</span></code></pre>
+<span class="co">##  4.15825009 13.03367305  0.05242085 17.24434400</span></code></pre>
 <p>We can see that the fit for <code>nu_upper_bound</code> equal to 2 was considerably faster.</p>
 <p>Finally, let us get the result the user’s scale and see the estimate for <span class="math inline">\(\nu\)</span>:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
@@ -501,7 +506,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    list(A = inla.stack.A(stk.dat.3), ", " compute = TRUE), control.inla = </span>
 <span class="co">##    list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 4.13, Running = 14.3, Post = 0.0674, Total = 18.5 </span>
+<span class="co">##     Pre = 4.13, Running = 14.9, Post = 0.0851, Total = 19.1 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.486 0.014      0.458    0.486      0.514 0.486   0</span>
@@ -532,13 +537,13 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># nu_upper_bound = 4</span>
 <span class="va">rspde_fit</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
-<pre><code><span class="co">##        Pre    Running       Post      Total </span>
-<span class="co">##  4.2643790 21.9740050  0.0784421 26.3168261</span></code></pre>
+<pre><code><span class="co">##       Pre   Running      Post     Total </span>
+<span class="co">##  4.446503 21.975022  0.081496 26.503021</span></code></pre>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#nu_upper_bound = 2</span>
 <span class="va">rspde_fit_order_3</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
-<pre><code><span class="co">##         Pre     Running        Post       Total </span>
-<span class="co">##  4.12629580 14.33234000  0.06739402 18.52602983</span></code></pre>
+<pre><code><span class="co">##        Pre    Running       Post      Total </span>
+<span class="co">##  4.1304281 14.8706150  0.0851469 19.0861900</span></code></pre>
 <p>Let us now see the summary in the original scale:</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">result_fit_order_3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit_order_3</span>, <span class="st">"field"</span>, <span class="va">rspde_model_order_3</span><span class="op">)</span>
@@ -595,7 +600,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    list(A = inla.stack.A(stk.dat), ", " compute = TRUE), control.inla = </span>
 <span class="co">##    list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 4.01, Running = 12.3, Post = 0.0929, Total = 16.4 </span>
+<span class="co">##     Pre = 4.08, Running = 12.6, Post = 0.0553, Total = 16.7 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.648 0.018      0.612    0.648      0.684 0.648   0</span>
@@ -673,7 +678,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    list(A = inla.stack.A(stk.dat.int), ", " compute = TRUE), control.inla </span>
 <span class="co">##    = list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 4.24, Running = 3.42, Post = 0.0311, Total = 7.69 </span>
+<span class="co">##     Pre = 4.27, Running = 3.27, Post = 0.0305, Total = 7.57 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 1.945 0.053      1.841    1.945      2.048 1.945   0</span>
@@ -762,7 +767,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    list(A = inla.stack.A(stk.dat), ", " compute = TRUE), control.inla = </span>
 <span class="co">##    list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 3.94, Running = 15.4, Post = 0.0845, Total = 19.4 </span>
+<span class="co">##     Pre = 4.2, Running = 15.5, Post = 0.0873, Total = 19.8 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.648 0.019       0.61    0.648      0.686 0.648   0</span>
@@ -843,7 +848,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    list(A = inla.stack.A(stk.dat.3), ", " compute = TRUE), control.inla = </span>
 <span class="co">##    list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 3.97, Running = 44.5, Post = 0.0648, Total = 48.6 </span>
+<span class="co">##     Pre = 4.12, Running = 44.5, Post = 0.0745, Total = 48.7 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.486 0.013      0.461    0.486      0.511 0.486   0</span>
@@ -961,9 +966,9 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
                            <span class="va">`Total time`</span><span class="op">)</span>
 <span class="va">result_table</span></code></pre></div>
 <pre><code><span class="co">##             Model Time.to.create.model Time.to.fit.the.model    Total.time</span>
-<span class="co">## 1     Opt &amp; sharp        1.586460 secs              12.58156 14.16802 secs</span>
-<span class="co">## 2 Opt &amp; not sharp        1.318430 secs              15.07183 16.39026 secs</span>
-<span class="co">## 3         Non-opt        1.130283 secs              23.17148 24.30176 secs</span></code></pre>
+<span class="co">## 1     Opt &amp; sharp        1.502526 secs              12.34817 13.85069 secs</span>
+<span class="co">## 2 Opt &amp; not sharp        1.338474 secs              14.23426 15.57273 secs</span>
+<span class="co">## 3         Non-opt        1.043503 secs              22.02601 23.06951 secs</span></code></pre>
 <p>Therefore, we see that for this example one benefits from using the optimized version.</p>
 </div>
 </div>
@@ -974,12 +979,14 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <div class="section level3">
 <h3 id="simulating-the-data">Simulating the data<a class="anchor" aria-label="anchor" href="#simulating-the-data"></a>
 </h3>
-<p>Let us consider a simple Gaussian linear model with 30 independent replicates of a latent spatial field <span class="math inline">\(x(\mathbf{s})\)</span>, observed at the same <span class="math inline">\(m\)</span> locations, <span class="math inline">\(\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}\)</span>, for each replicate. For each <span class="math inline">\(i = 1,\ldots,m,\)</span> we have $$ <span class="math display">\[\begin{align} 
-y_i &amp;= x_1(\mathbf{s}_i)+\varepsilon_i\\
+<p>Let us consider a simple Gaussian linear model with 30 independent replicates of a latent spatial field <span class="math inline">\(x(\mathbf{s})\)</span>, observed at the same <span class="math inline">\(m\)</span> locations, <span class="math inline">\(\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}\)</span>, for each replicate. For each <span class="math inline">\(i = 1,\ldots,m,\)</span> we have</p>
+<p><span class="math display">\[\begin{align} 
+y_i &amp;= x_1(\mathbf{s}_i)+\varepsilon_i,\\
 \vdots &amp;= \vdots\\
 
-y_{i+29m} &amp;= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m}
-\end{align}\]</span>, $$ where <span class="math inline">\(\varepsilon_1,\ldots,\varepsilon_{30m}\)</span> are iid normally distributed with mean 0 and standard deviation 0.1.</p>
+y_{i+29m} &amp;= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
+\end{align}\]</span></p>
+<p>where <span class="math inline">\(\varepsilon_1,\ldots,\varepsilon_{30m}\)</span> are iid normally distributed with mean 0 and standard deviation 0.1.</p>
 <p>We use the basis function representation of <span class="math inline">\(x(\cdot)\)</span> to define the <span class="math inline">\(A\)</span> matrix linking the point locations to the mesh. We also need to account for the fact that we have 30 replicates at the same locations. To this end, the <span class="math inline">\(A\)</span> matrix we need can be generated by <code><a href="https://rdrr.io/pkg/INLA/man/inla.spde.make.A.html" class="external-link">inla.spde.make.A()</a></code> function. The reason being that we are sampling <span class="math inline">\(x(\cdot)\)</span> directly and not the latent vector described in the introduction of the <a href="rspde_cov.html">Rational approximation with the <code>rSPDE</code> package</a> vignette.</p>
 <p>We begin by creating the mesh:</p>
 <div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
@@ -1064,7 +1071,7 @@ y_{i+29m} &amp;= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m}
 <span class="co">##    inla.stack.data(st.dat.rep), ", " control.predictor = list(A = </span>
 <span class="co">##    inla.stack.A(st.dat.rep)), inla.mode = \"experimental\")" ) </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 3.84, Running = 262, Post = 1.53, Total = 268 </span>
+<span class="co">##     Pre = 3.65, Running = 267, Post = 3.01, Total = 274 </span>
 <span class="co">## Random effects:</span>
 <span class="co">##   Name     Model</span>
 <span class="co">##     field RGeneric2</span>
