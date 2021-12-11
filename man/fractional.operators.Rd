@@ -85,7 +85,7 @@ lines(x, c.approx, col = 2)
 }
 \seealso{
 \code{\link{matern.operators}}, \code{\link{spde.matern.operators}},
-\code{\link{CBrSPDE.matern.operators}}
+\code{\link{matern.operators}}
 }
 \author{
 David Bolin \email{davidbolin@gmail.com}

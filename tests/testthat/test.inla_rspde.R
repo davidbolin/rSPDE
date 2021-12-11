@@ -73,7 +73,7 @@ test_that("Checking equality of optimized and non-opt Prec. matrices for d=1",{
   kappa <- 20
   sigma <- 1
   nu <- 0.1
-  nu_upper_bound = 4
+  nu_upper_bound = 2
   
   #create mass and stiffness matrices for a FEM discretization
   nobs = 101
@@ -84,8 +84,8 @@ test_that("Checking equality of optimized and non-opt Prec. matrices for d=1",{
   #compute rational approximation of covariance function at 0.5
   tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
 
-  op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
-                                     kappa=kappa,tau=tau,d=1,m=2)
+  op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
+                                     kappa=kappa,sigma=sigma,d=1,m=2)
   
   rspde_model.opt <- rspde.matern(mesh = mesh, rspde_order = 2,
                                   optimize=TRUE,

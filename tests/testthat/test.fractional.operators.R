@@ -11,7 +11,8 @@ test_that("Operator construction for fractional stationary Matern", {
   kappa <- 20
   
   op1 <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
-                              G = fem$G, C = fem$C, d = 1)
+                              G = fem$G, C = fem$C, d = 1,
+                          type="operator")
   
   tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
   beta <- (nu + d/2)/2
@@ -45,7 +46,8 @@ test_that("Operator construction for non-fractional stationary Matern", {
   kappa <- 20
   
   op1 <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
-                          G = fem$G, C = fem$C, d = 1)
+                          G = fem$G, C = fem$C, d = 1,
+                          type="operator")
   
   tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
   beta <- (nu + d/2)/2
@@ -80,7 +82,8 @@ test_that("Operator construction for fractional stationary Matern with beta>1", 
   kappa <- 20
   
   op1 <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
-                          G = fem$G, C = fem$C, d = 1)
+                          G = fem$G, C = fem$C, d = 1,
+                          type="operator")
   
   tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
   beta <- (nu + d/2)/2

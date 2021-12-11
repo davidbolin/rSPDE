@@ -18,7 +18,7 @@
 }
 \arguments{
 \item{object}{The covariance-based rational SPDE approximation, 
-computed using \code{\link{CBrSPDE.matern.operators}}}
+computed using \code{\link{matern.operators}}}
 
 \item{A}{A matrix linking the measurement locations to the basis of the FEM approximation of the latent model.}
 
@@ -64,8 +64,8 @@ fem <- rSPDE.fem1d(x)
 tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
 
 #Compute the covariance-based rational approximation
-op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
-kappa=kappa,tau=tau,d=1,m=2)
+op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
+kappa=kappa,sigma=sigma,d=1,m=2)
 
 #Sample the model
 u <- simulate(op_cov)

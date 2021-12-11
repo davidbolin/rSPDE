@@ -5,13 +5,13 @@ development:
 
 template:
   bootstrap: 5
-  bootswatch: flatly
+  bootswatch: cosmo
   theme: arrow-light
   bslib:
     heading_font: {google: "Roboto Slab"}
 
 navbar:
-  bg: "#202123"
+  bg: secondary
     
 reference:
   - title: rSPDE package
@@ -19,18 +19,16 @@ reference:
     - rSPDE
   - title: rSPDE models
     contents:
-    - fractional.operators
-    - matern.operators
-    - spde.matern.operators
-    - CBrSPDE.matern.operators
     - rspde.matern
+    - matern.operators
+    - spde.matern.operators    
+    - fractional.operators
   - title: Log-likelihood
     contents:
+    - rSPDE.matern.loglike
     - rSPDE.loglike
     - matern.loglike
     - spde.matern.loglike
-    - CBrSPDE.matern.loglike
-    - CBrSPDE.matern.loglike2
   - title: Computation of precision matrices
     contents:
     - rspde.matern.precision
@@ -40,6 +38,7 @@ reference:
     - predict.rSPDEobj
     - simulate.rSPDEobj
     - summary.rSPDEobj
+    - update.rSPDEobj
     - predict.CBrSPDEobj
     - simulate.CBrSPDEobj
     - summary.CBrSPDEobj
@@ -64,6 +63,7 @@ reference:
     - require.nowarnings
     - get.sparsity.graph.rspde
     - matern.covariance
+    - folded.matern.covariance
     - rspde.matern.precision.opt
     - rspde.matern.precision.integer.opt
   - title: Operator operations

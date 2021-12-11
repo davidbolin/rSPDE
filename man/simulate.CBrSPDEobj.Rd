@@ -17,7 +17,7 @@
 }
 \arguments{
 \item{object}{The covariance-based rational SPDE approximation, 
-computed using \code{\link{CBrSPDE.matern.operators}}}
+computed using \code{\link{matern.operators}}}
 
 \item{nsim}{The number of simulations.}
 
@@ -52,8 +52,8 @@ fem <- rSPDE.fem1d(x)
 
 #compute rational approximation of covariance function at 0.5
 tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
-op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
-kappa=kappa,tau=tau,d=1,m=2)
+op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
+kappa=kappa,sigma=sigma,d=1,m=2)
 
 #Sample the model and plot the result
 Y <- simulate(op_cov)

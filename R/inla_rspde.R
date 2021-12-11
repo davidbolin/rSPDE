@@ -977,7 +977,7 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
 #' d <- 1
 #' nu = 2.6
 #' tau = sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-#' op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,tau = tau,
+#' op_cov <- matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa, sigma = sigma,
 #'                                   d=1,m = 2)
 #' v <- t(rSPDE.A1d(x,0.5))
 #' c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
@@ -1000,7 +1000,7 @@ rspde.matern.precision = function(kappa, nu, tau=NULL, sigma=NULL, rspde_order, 
   }
   
   if(is.null(tau)){
-    tau = sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
+    tau = sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(dim /2) * gamma(nu + dim/2)))
   }
   
   n_m <- rspde_order
@@ -1149,6 +1149,7 @@ rspde.matern.precision.integer.opt = function(kappa, nu, tau, d, fem_matrices, g
 #' where \eqn{\alpha = \nu + d/2 \in\mathbb{N}}.
 #' @param kappa Range parameter of the covariance function.
 #' @param tau Scale parameter of the covariance function.
+#' @param sigma Standard deviation of the covariance function. If tau is not provided, sigma should be provided.
 #' @param nu Shape parameter of the covariance function.
 #' @param dim The dimension of the domain
 #' @param fem_mesh_matrices A list containing the FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.
@@ -1164,7 +1165,7 @@ rspde.matern.precision.integer.opt = function(kappa, nu, tau, d, fem_matrices, g
 #' d <- 1
 #' nu = 0.5
 #' tau = sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-#' op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,tau = tau,
+#' op_cov <- matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,sigma = sigma,
 #'                                   d=1,m = 2)
 #' v <- t(rSPDE.A1d(x,0.5))
 #' c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
@@ -1178,7 +1179,16 @@ rspde.matern.precision.integer.opt = function(kappa, nu, tau, d, fem_matrices, g
 #'      xlab="h", main = "Matern covariance and rational approximations")
 #' lines(x, c.approx_cov, col = 2)
 
-rspde.matern.precision.integer = function(kappa, nu, tau, dim, fem_mesh_matrices) {
+rspde.matern.precision.integer = function(kappa, nu, tau=NULL, sigma=NULL, dim, fem_mesh_matrices) {
+  
+  
+  if(is.null(tau)&&is.null(sigma)){
+    stop("You should provide either tau or sigma!")
+  }
+  
+  if(is.null(tau)){
+    tau = sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(dim /2) * gamma(nu + dim/2)))
+  }
   
   beta = nu / 2 + dim / 4
   

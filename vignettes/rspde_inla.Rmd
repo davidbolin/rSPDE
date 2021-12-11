@@ -42,13 +42,14 @@ references:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+set.seed(1)
 ```
 
 ## Introduction 
 
 In this vignette we will present the R-INLA implementation of the rational
 SPDE approach. For theoretical details we refer the reader to 
-the [Covariance-based rational approximation with the `rSPDE` package](rspde_cov.html) vignette.
+the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette.
 
 We begin by providing a 
 step-by-step illustration on how to use our implementation. To this end we 
@@ -313,13 +314,19 @@ Here `-1` is added to remove R's implicit intercept, which is replaced
 by the explicit `+Intercept` from when we created the stack. 
 
 To fit the model we proceed as in the standard SPDE approach and
-we simply call INLA:
+we simply call INLA. It is noteworthy that we can have
+a performance enhancement by using the argument `inla.mode = "experimental"`.
+As argued in `INLA`'s man page, not all features are available in
+`inla.mode="experimental"`, and we will need to use the `"classic"` mode (the default mode)
+instead of `"experimental"` whenever we are doing predictions.
+
 
 ```{r fit_model, message=FALSE, warning=FALSE}
 rspde_fit <- inla(f.s, family = "Gamma", data = inla.stack.data(stk.dat), 
             verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
+            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
+            inla.mode = "experimental")
 ```
 
 ### INLA results
@@ -372,6 +379,8 @@ plot(result_fit)
 
 This function is reminiscent to the `inla.spde.result()` function with the main
 difference that it has the `summary` and `plot` methods implemented.
+
+
 ### Predictions
 
 Let us now obtain predictions (i.e. do kriging) of the expected precipitation on 
@@ -416,7 +425,7 @@ A more accurate way is to calculate the prediction jointly with the estimation,
 which unfortunately is quite computationally expensive if we do prediction on a fine grid. 
 However, in this illustration, we proceed with this option to show how one can do it. 
 
-To this end, first, link the prediction coordinates to the mesh nodes through an A
+To this end, first, link the prediction coordinates to the mesh nodes through an $A$
  matrix
 
 ```{r A_prd}
@@ -445,7 +454,8 @@ stk.all <- inla.stack(stk.dat, stk.prd)
 ```
 
 Doing the joint estimation takes a while, and we therefore turn off the computation of certain things that we are not interested in, such as the marginals for the random effect. 
-We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes:
+We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes.
+Since we are doing predictions, we should not use `INLA`'s experimental mode.
 
 ```{r fit_prd, message=FALSE, warning=FALSE}
 rspde_fitprd <- inla(f.s, family = "Gamma", 
@@ -533,7 +543,8 @@ f.s.2 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
 rspde_fit_2 <- inla(f.s.2, family = "Gamma", data = inla.stack.data(stk.dat), 
             verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
+            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
+            inla.mode = "experimental")
 ```
 
 Let us see the summary of the fit:
@@ -614,7 +625,8 @@ f.s.3 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
 rspde_fit_order_3 <- inla(f.s.3, family = "Gamma", data = inla.stack.data(stk.dat.3), 
                     verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE))
+            control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE),
+            inla.mode = "experimental")
 ```
 
 Let us see the summary:
@@ -709,7 +721,8 @@ f.s.fix <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
 rspde_fix <- inla(f.s.fix, family = "Gamma", data = inla.stack.data(stk.dat), 
                 verbose = FALSE, 
               control.inla=list(int.strategy='eb'),
-              control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
+              control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
+            inla.mode = "experimental")
 ```
 
 Here we have the summary:
@@ -771,7 +784,8 @@ rspde_fix_int_1 <- inla(f.s.fix.int.1, family = "Gamma",
                       data = inla.stack.data(stk.dat.int), verbose = FALSE, 
                   control.inla=list(int.strategy='eb'),
                   control.predictor = list(A = inla.stack.A(stk.dat.int), 
-                                           compute = TRUE))
+                                           compute = TRUE),
+            inla.mode = "experimental")
 ```
 
 Let us check the summary:
@@ -860,7 +874,7 @@ $$\phi_1 = \max\Big\{\frac{\nu_{UB}}{\text{nu_1}}, \frac{\nu_{UB}}{\nu_{UB}-\tex
 
 Of one sets `prior.nu = list(prec=prec_1)`, then $\nu$ will have prior
 $$\nu\sim \mathcal{B}(\nu_0, \text{prec_1}).$$
-It is also noteworthy that if we assume beta as the prior distribution for $\nu$, we have that,
+It is also noteworthy that we have that,
 in terms of INLA's parameters,
 
 $$\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
@@ -874,15 +888,17 @@ will be $\min\{1,\nu_{UB}/2\}$.
 
 We can have another possibility of prior distribution for $\nu$, namely, a truncated lognormal distribution.
 The truncated lognormal distribution is defined
-in the following sense. We assume that
-$$\nu = \exp(\theta_3),$$
-where $\theta_3$ follow a [truncated normal distribution](https://en.wikipedia.org/wiki/Truncated_normal_distribution#One_sided_truncation_(of_upper_tail))
+in the following sense. We assume that $\log(\nu)$ has prior distribution given by a [truncated normal distribution](https://en.wikipedia.org/wiki/Truncated_normal_distribution#One_sided_truncation_(of_upper_tail))
 with support $(-\infty,\log(\nu_{UB}))$, where $\nu_{UB}$ is the upper bound for $\nu$, with location parameter $\mu_0 =\log(\nu_0)= \log\Big(\min\{1,\nu_{UB}/2\}\Big)$ and
 scale parameter $\sigma_0 = 1$. More precisely, let $\Phi(\cdot; \mu,\sigma)$ stand for the cumulative distribution function (CDF) of a normal distribution
-with mean $\mu$ and standard deviation $\sigma$. Then, $\theta_3$ has cumulative distribution function given by
-$$F_{\theta_3}(x) = \frac{\Phi(x;\mu_0,\sigma_0)}{\Phi(\nu_{UB})},\quad x\leq \nu_{UB},$$
-and $F_{\theta_3}(x) = 1$ if $x>\nu_{UB}$. We will call $\mu_0$ and $\sigma_0$ the log-location and log-scale parameters of $\nu$, respectively, and we say that
-$\theta_3$ follows a truncated normal distribution with location parameter $\mu_0$ and scale parameter $\sigma_0$. 
+with mean $\mu$ and standard deviation $\sigma$.
+Then, $\log(\nu)$ has cumulative distribution function given by
+$$F_{\log(\nu)}(x) = \frac{\Phi(x;\mu_0,\sigma_0)}{\Phi(\nu_{UB})},\quad x\leq \nu_{UB},$$
+and $F_{\log(\nu)}(x) = 1$ if $x>\nu_{UB}$. We will call $\mu_0$ and $\sigma_0$ the log-location and log-scale parameters of $\nu$, respectively, and we say that
+$\log(\nu)$ follows a truncated normal distribution with location parameter $\mu_0$ and scale parameter $\sigma_0$.
+
+We also assume that, in terms of INLA's parameters,
+$$\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
 
 To change the prior distribution of $\nu$ to the truncated lognormal distribution, we need
 to set the argument `prior.nu.dist="lognormal"`.
@@ -922,7 +938,8 @@ f.s.ln <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
 rspde_fit_ln <- inla(f.s.ln, family = "Gamma", data = inla.stack.data(stk.dat), 
             verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
+            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
+            inla.mode = "experimental")
 ```
 
 We have the summary:
@@ -980,7 +997,8 @@ rspde_fit_order_3_start <- inla(f.s.3.start, family = "Gamma",
                     verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
             control.predictor = list(A = inla.stack.A(stk.dat.3), 
-                                     compute = TRUE))
+                                     compute = TRUE),
+            inla.mode = "experimental")
 ```
 
 We have the summary:
@@ -1065,7 +1083,8 @@ rspde_fit_opt_sharp <- inla(f.s.opt.sharp, family = "Gamma",
                             verbose = FALSE, 
                             control.inla=list(int.strategy='eb'),
                             control.predictor=list(A=inla.stack.A(stk.dat.1), 
-                                                     compute = FALSE))
+                                                     compute = FALSE),
+            inla.mode = "experimental")
 
 f.s.opt.notsharp <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
   f(field, model = rspde_model_opt_notsharp) 
@@ -1075,7 +1094,8 @@ rspde_fit_opt_notsharp <- inla(f.s.opt.notsharp, family = "Gamma",
                                verbose = FALSE, 
                                control.inla=list(int.strategy='eb'),
                                control.predictor=list(A=inla.stack.A(stk.dat.1), 
-                                                        compute = FALSE))
+                                                        compute = FALSE),
+            inla.mode = "experimental")
 
 f.s.nonopt <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
   f(field, model = rspde_model_nonopt) 
@@ -1085,7 +1105,8 @@ rspde_fit_nonopt <- inla(f.s.nonopt, family = "Gamma",
                          verbose = FALSE, 
                          control.inla=list(int.strategy='eb'),
                          control.predictor=list(A=inla.stack.A(stk.dat.1), 
-                                                  compute = FALSE))
+                                                  compute = FALSE),
+            inla.mode = "experimental")
 ```
 
 Finally, let us compare the times:
@@ -1109,14 +1130,14 @@ Therefore, we see that for this example one benefits from using the optimized ve
 ## An example with replicates
 
 For this example we will simulate a data with replicates. We will
-use the same example considered in the [Covariance-based rational approximation with the `rSPDE` package](rspde_cov.html) vignette (the only difference is the way the data 
+use the same example considered in the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette (the only difference is the way the data 
 is organized).
 We also refer the reader to this vignette for a description of the function
-`CBrSPDE.matern.operators()`, along with its methods (for instance, the `simulate` method).
+`matern.operators()`, along with its methods (for instance, the `simulate` method).
 
 ### Simulating the data
 
-Let us consider a simple Gaussian linear model with 40 independent replicates 
+Let us consider a simple Gaussian linear model with 30 independent replicates 
 of a latent spatial field $x(\mathbf{s})$, observed at the same 
 $m$ locations, $\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}$, for each replicate.
 For each $i = 1,\ldots,m,$ we have
@@ -1125,24 +1146,23 @@ $$
 y_i &= x_1(\mathbf{s}_i)+\varepsilon_i\\
 \vdots &= \vdots\\
 
-y_{i+39m} &= x_{40}(\mathbf{s}_i) + \varepsilon_{i+39m}
+y_{i+29m} &= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m}
 \end{align},
 $$
-where $\varepsilon_1,\ldots,\varepsilon_{2m}$ are iid normally distributed
-with mean 0 and standard deviation 0.01.
+where $\varepsilon_1,\ldots,\varepsilon_{30m}$ are iid normally distributed
+with mean 0 and standard deviation 0.1.
 
 We use the basis function representation of $x(\cdot)$ to define the $A$ matrix
 linking the point locations to the mesh. We also need to account for the fact
-that we have 40 replicates at the same locations. To this end,
+that we have 30 replicates at the same locations. To this end,
 the $A$ matrix we need can be generated by `inla.spde.make.A()` function. The 
 reason being that we are sampling $x(\cdot)$ directly and not the
 latent vector described in the introduction of the 
-[Covariance-based rational approximation with the `rSPDE` package](rspde_cov.html) vignette.
+[Rational approximation with the `rSPDE` package](rspde_cov.html) vignette.
 
 We begin by creating the mesh:
 
 ```{r}
-set.seed(1)
 m = 100
 loc_2d_mesh = matrix(runif(m*2),m,2)
 mesh_2d = inla.mesh.2d(
@@ -1154,13 +1174,11 @@ plot(mesh_2d)
 points(loc_2d_mesh[,1],loc_2d_mesh[,2])
 ```
 
-We then compute the finite element quantities (which are needed for simulation):
+We then compute the $A$ matrix, which is needed for simulation, and connects the observation
+locations to the mesh:
 
 ```{r}
 n.rep = 30
-fem_mesh_2d <- inla.mesh.fem(mesh_2d)
-C = fem_mesh_2d$c0
-G <- fem_mesh_2d$g1
 A=inla.spde.make.A(
   mesh=mesh_2d,
   loc=loc_2d_mesh,
@@ -1178,16 +1196,14 @@ To this end we create a model object with the `CBrSPDE.matern.operators()` funct
 nu = 0.5
 sigma = 1 
 range = 0.1
-kappa = sqrt(8)/range
+kappa = sqrt(8*nu)/range
 tau = 1/(sqrt(4*pi)*kappa*sigma)
 d=2
-operator_information = CBrSPDE.matern.operators (C=C,
-                                 G=G,
+operator_information = matern.operators (mesh=mesh_2d,
                                  nu=nu,
                                  kappa=kappa,
-                                 tau=tau,
-                                 m=2,
-                                 d=d)
+                                 sigma=sigma,
+                                 m=2)
 ```
 More details on this function can be found at the [Covariance-based rational approximation with the `rSPDE` package](rspde_cov.html) vignette.
 
@@ -1196,6 +1212,7 @@ the `operator_information` object. We then obtain the simulated data $y$
 by connecting with the $A$ matrix and adding the gaussian noise.
 
 ```{r}
+set.seed(1)
 u = simulate(operator_information, nsim=n.rep)
 y = as.vector(A %*% as.vector(u)) +
   rnorm(m*n.rep)*0.1
@@ -1205,7 +1222,7 @@ The first replicate of the simulated random field as well as the observation loc
 
 ```{r, fig.show='hold',fig.height = 3.5, fig.width = 7, fig.align = "center",echo=FALSE}
 opar <- par(mfrow = c(1,2),mgp = c(1.2, 0.5, 0), mar = c(2,2,0.5,0.5) + 0.1)
-proj <- inla.mesh.projector(mesh_2d, dims = c(70, 70))
+proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
 image(inla.mesh.project(proj, field = as.vector(u[,1])),xlab="",ylab="",
       cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
 plot(loc_2d_mesh[,1],loc_2d_mesh[,2],cex=0.2,pch=16,xlab="",ylab="",
@@ -1219,7 +1236,12 @@ par(opar)
 Let us then use the rational SPDE approach to fit the data.
 
 We begin by creating the $A$ matrix and index with replicates, and the
-`inla.stack` object:
+`inla.stack` object. It is important to notice
+that since we have replicates we should provide 
+the `index` and `repl` arguments for `rspde.make.A()` function,
+and also the argument `n.repl` in `rspde.make.index()` function. They behave 
+identically as in their
+`INLA`'s counterparts, namely, `inla.spde.make.A()` and `inla.make.index()`.
 
 ```{r}
 Abar.rep <- rspde.make.A(mesh = mesh_2d, loc = loc_2d_mesh, index=rep(1:m,times=n.rep),
@@ -1239,7 +1261,10 @@ We now create the model object.
 rspde_model.rep <- rspde.matern(mesh = mesh_2d)
 ```
 
-Finally, we create the formula and fit:
+Finally, we create the formula and fit. It is extremely important
+not to forget the `replicate` argument when building the formula
+as `inla()` function will not produce warning and might fit some
+meaningless model.
 
 ```{r, message=FALSE, warning=FALSE}
 f.rep =
@@ -1250,7 +1275,8 @@ rspde_fit.rep =
        data=inla.stack.data(st.dat.rep),
        family="gaussian",
        control.predictor=
-         list(A=inla.stack.A(st.dat.rep)))
+         list(A=inla.stack.A(st.dat.rep)),
+            inla.mode = "experimental")
 ```
 
 We can get the summary:
@@ -1262,7 +1288,8 @@ and the summary in the user's scale:
 ```{r}
 result_fit_rep <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 summary(result_fit_rep)
-result_df <- data.frame(true = c(tau, kappa, nu), mean = c(result_fit_rep$summary.tau$mean, 
+result_df <- data.frame(parameter = c("tau","kappa","nu"),
+                      true = c(tau, kappa, nu), mean = c(result_fit_rep$summary.tau$mean, 
                                                            result_fit_rep$summary.kappa$mean,
                                                            result_fit_rep$summary.nu$mean),
                         mode = c(result_fit_rep$summary.tau$mode, 

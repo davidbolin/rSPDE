@@ -5,7 +5,14 @@
 \title{Precision matrix of stationary Gaussian Matern random fields with integer
 covariance exponent}
 \usage{
-rspde.matern.precision.integer(kappa, nu, tau, dim, fem_mesh_matrices)
+rspde.matern.precision.integer(
+  kappa,
+  nu,
+  tau = NULL,
+  sigma = NULL,
+  dim,
+  fem_mesh_matrices
+)
 }
 \arguments{
 \item{kappa}{Range parameter of the covariance function.}
@@ -13,6 +20,8 @@ rspde.matern.precision.integer(kappa, nu, tau, dim, fem_mesh_matrices)
 \item{nu}{Shape parameter of the covariance function.}
 
 \item{tau}{Scale parameter of the covariance function.}
+
+\item{sigma}{Standard deviation of the covariance function. If tau is not provided, sigma should be provided.}
 
 \item{dim}{The dimension of the domain}
 
@@ -39,7 +48,7 @@ sigma <- 1
 d <- 1
 nu = 0.5
 tau = sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,tau = tau,
+op_cov <- matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,sigma = sigma,
                                   d=1,m = 2)
 v <- t(rSPDE.A1d(x,0.5))
 c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)

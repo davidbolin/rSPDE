@@ -9,12 +9,12 @@ test_that("Checking covariances of CBrSPDE",{
   sigma <- 1
   d <- 1
   for (nu in c(0.8,1.7,2.6)){
-  tau = sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-  op2 <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,tau = tau,
+  op2 <- matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,sigma = sigma,
                                   d=1,m = 2)
   v <- t(rSPDE.A1d(s,0.5))
   c.true <- matern.covariance(abs(s - 0.5), kappa, nu, sigma)
-  Q <- rspde.matern.precision(kappa=kappa,nu=nu,tau=tau,rspde_order=2,d=1,fem_mesh_matrices = op2$fem_mesh_matrices)
+  Q <- rspde.matern.precision(kappa=kappa,nu=nu,sigma=sigma,rspde_order=2,dim=1,
+                              fem_mesh_matrices = op2$fem_mesh_matrices)
   A <- Diagonal(nobs)
   Abar <- cbind(A,A,A)
   w <- rbind(v,v,v)
@@ -33,16 +33,18 @@ test_that("Checking loglike of CBrSPDE", {
   sigma <- 1
   d <- 1
   for (nu in c(0.8,1.7,2.6)){
-    tau = sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-    op2 <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,tau = tau,
+    op2 <- matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,sigma = sigma,
                                     d=1,m = 2)
     A <- Diagonal(nobs)
     sim_data = A %*% simulate(op2) + rnorm(dim(A)[1], sd=0.1)
-    loglike2 = CBrSPDE.matern.loglike(object=op2, Y = sim_data, A=A, sigma.e=0.1,user_nu = nu, user_kappa = kappa, user_tau=tau)
+    loglike2 = rSPDE.matern.loglike(object=op2, Y = sim_data, A=A, 
+                                      sigma.e=0.1,user_nu = nu, 
+                                      user_kappa = kappa, 
+                                      user_sigma=sigma)
     
     op1 <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
-                            G = fem$G, C = fem$C, d = 1)
-    loglike1 = rSPDE.loglike(op1, sim_data, A, sigma.e=0.1)
+                            G = fem$G, C = fem$C, d = 1, type="operator")
+    loglike1 = rSPDE.matern.loglike(op1, sim_data, A, sigma.e=0.1)
     
     expect_equal(loglike1,loglike2, tol=0.3)
   }
@@ -58,8 +60,7 @@ test_that("Checking Predict of CBrSPDE", {
   d <- 1
   for (nu in c(0.8,1.7,2.6)){
     Aprd <- rSPDE.A1d(s,0.5)
-    tau = sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-    op2 <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,tau = tau,
+    op2 <- matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,sigma = sigma,
                                     d=1,m = 2)
     A <- Diagonal(nobs)
     sim_data = A %*% simulate(op2) + rnorm(dim(A)[1], sd=0.1)
@@ -68,7 +69,8 @@ test_that("Checking Predict of CBrSPDE", {
                        compute.variances=TRUE)
     
     op1 <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
-                            G = fem$G, C = fem$C, d = 1)
+                            G = fem$G, C = fem$C, d = 1,
+                            type = "operator")
     predict1 = predict(object=op1, Y=sim_data, A=A, Aprd=Aprd,  sigma.e=0.1,
                        compute.variances = TRUE)
     
@@ -86,18 +88,18 @@ test_that("Checking loglike of CBrSPDE with replicates", {
   sigma <- 1
   d <- 1
   for (nu in c(0.8,1.7,2.6)){
-    tau = sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-    op2 <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,tau = tau,
+    op2 <- matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,sigma = sigma,
                                     d=1,m = 2)
     A <- Diagonal(nobs)
     sim_data1 = A %*% simulate(op2) + rnorm(dim(A)[1], sd=0.1)
     sim_data2 = A%*%simulate(op2) + rnorm(dim(A)[1], sd=0.1)
     sim_data = cbind(sim_data1,sim_data2)
-    loglike2 = CBrSPDE.matern.loglike(object=op2, Y = sim_data, A=A, sigma.e=0.1)
+    loglike2 = rSPDE.matern.loglike(object=op2, Y = sim_data, A=A, sigma.e=0.1)
     
     op1 <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
-                            G = fem$G, C = fem$C, d = 1)
-    loglike1 = rSPDE.loglike(op1, sim_data, A, sigma.e=0.1)
+                            G = fem$G, C = fem$C, d = 1,
+                            type="operator")
+    loglike1 = rSPDE.matern.loglike(op1, sim_data, A, sigma.e=0.1)
     
     expect_equal(loglike1,loglike2, tol=0.3)
   }

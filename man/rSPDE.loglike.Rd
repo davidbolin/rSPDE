@@ -47,7 +47,8 @@ fem <- rSPDE.fem1d(x)
 
 #compute rational approximation
 op <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
-                       G = fem$G, C = fem$C, d = 1)
+                       G = fem$G, C = fem$C, d = 1,
+                       type = "operator")
 
 #Sample the model
 u <- simulate(op)

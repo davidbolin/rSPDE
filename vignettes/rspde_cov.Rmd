@@ -1,10 +1,10 @@
 ---
-title: "Covariance-based rational approximation with the rSPDE package"
+title: "Rational approximation with the rSPDE package"
 author: "David Bolin, Alexandre B. Simas, Zhen Xiong"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Covariance-based rational approximation with the rSPDE package}
+  %\VignetteIndexEntry{Rational approximation with the rSPDE package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 references:
@@ -47,7 +47,29 @@ the covariance-based rational SPDE approach. The covariance-based
 rational approximation is related to the operator-based [rational approximation by Bolin
 and Kirchner (2020)](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537).
 
-For operator-based rational approximation, see the [Operator-based rational approximation with the `rSPDE` package](rspde_base.html).
+The covariance-based rational approximation is an efficient alternative 
+to the operator-based rational approximation when one has SPDE driven
+by Gaussian white noise.
+
+When dealing with fractional SPDE models driven by non-Gaussian white noises,
+the operator-based rational approximations might be useful.
+For instance, consider the SPDE: 
+$$L^{\alpha/2}(\tau u) = \widetilde{\mathcal{W}},$$ 
+where 
+$L  = -\Delta +\kappa^2 I$ and $\widetilde{\mathcal{W}}$ is a non-Gaussian white noise. 
+An example in which the operator-based rational approximation is suitable, is when one has the
+above SPDE with the white noise being the so-called type G Lévy noises. 
+
+We refer the reader to [Geostatistical Modelling Using Non-Gaussian Matérn Fields](https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141),
+[Spatial Matérn Fields Driven by Non-Gaussian Noise](https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046) and
+[Linear mixed effects models for non-Gaussian continuous repeated measurement data](https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405)
+for examples of models driven by type-G Lévy noises. We also refer the reader
+to the [`ngme` package](https://github.com/davidbolin/ngme) where one can fit such models.
+
+We explore the functions for performing the operator-based rational approximation
+on the vignette:
+
+* [Operator-based rational approximation with the rSPDE package](rspde_base.html)
 
 For the R-INLA implementation of the rational SPDE approach we refer the reader to
 the [R-INLA implementation of the rational SPDE approach](rspde_inla.html) vignette.
@@ -143,8 +165,9 @@ is approximately the same as the standard rational approximation of order $m/2$.
 
 ## Constructing the approximation
 
-In this section, we explain how to to use the function `CBrSPDE.matern.operators()`
-function for constructing the covariance-based rational approximation. We will
+In this section, we explain how to to use the function `matern.operators()`
+with the default argument `type`, that is, `type="covariance"`, which is
+constructs the covariance-based rational approximation. We will
 also illustrate the usage of several methods and related functions related to
 the covariance-based rational approximation. We will use functions to sample from Gaussian fields
 with stationary Matérn covariance function, compute the log-likelihood function,
@@ -173,16 +196,15 @@ Based on these nodes, we use the built-in function `rSPDE.fem1d` to assemble two
 fem <- rSPDE.fem1d(s)
 ```
 
-We can now use `CBrSPDE.matern.operators` to construct a rational SPDE approximation of order $m=2$ for a Gaussian random field with a Matérn covariance function on the interval. We also refer the reader to the
+We can now use `matern.operators` to construct a rational SPDE approximation of order $m=2$ for a Gaussian random field with a Matérn covariance function on the interval. We also refer the reader to the
 [Operator-based rational approximation with the `rSPDE` package](rspde_base.html) for a similar comparison made for the operator-based rational approximation.
 
 ```{r}
 kappa <- 20
 sigma <- 2
 nu <- 0.8
-tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
-op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
-                                   kappa=kappa,tau=tau,d=1,m=2)
+op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
+                                   kappa=kappa,sigma=sigma,d=1,m=2)
 ```
 The object `op_cov` contains the matrices needed for evaluating the distribution of the stochastic weights $\boldsymbol{\mathrm{u}}$. If we want to evaluate $u_h(s)$ at some locations $s_1,\ldots, s_n$, we need to multiply the weights with the basis functions $\varphi_i(s)$ evaluated at the locations. For this, we can construct the observation matrix $\boldsymbol{\mathrm{A}}$ with elements $A_{ij} = \varphi_j(s_i)$, linking the FEM basis functions to the locations. 
 This matrix can be constructed using the function `rSPDE.A1d`. However, as observed in the introduction of this vignette, we have decomposed the stochastic weights $\boldsymbol{\mathrm{u}}$ into a vector of latent variables.
@@ -190,7 +212,9 @@ Thus, the $A$ matrix for the covariance-based rational approximation, which we w
 of the rational approximation.
 
 To compute the precision matrix from the covariance-based rational approximation one
-can use the `precision` method on the `CBrSPDE` object:
+can use the `precision` method on the `CBrSPDEobj` object (the object returned by
+the `matern.operators()` function with the default type, which is
+`type="covariance"`):
 
 ```{r}
 Q <- precision(op_cov)
@@ -209,18 +233,11 @@ A_bar <- kronecker(matrix(1,ncol=3),A)
 c_cov.approx <- (A_bar)%*%solve(Q,v_bar)
 ```
 
-Let us now compute the true Matérn covariance function on the interval $(0,1)$:
+Let us now compute the true Matérn covariance function on the interval $(0,1)$,
+which is the folded Matérn, see Theorem 1 in [An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach](https://www.jstor.org/stable/41262260) for further details.
 
 ```{r}
-N = 10
-matern.cov <- function(x,kappa,nu,sigma){
-  out = 0
-  for(i in -N:N){
-    out <- out + matern.covariance(x + i,kappa, nu, sigma)
-  }
-  return(out)
-}
-c.true <- matern.cov(abs(s - 0.5), kappa, nu, sigma)
+c.true <- folded.matern.covariance(rep(0.5,length(s)),abs(s), kappa, nu, sigma)
 ```
 
 The covariance function and the error compared with the Matérn covariance are shown in the following figure.
@@ -244,7 +261,7 @@ par(opar)
 To improve the approximation we can increase the degree of the polynomials, by increasing $m$, and/or increase the number of basis functions used for the FEM approximation. Let us, for example, compute the approximation with $m=4$ using the same mesh, as well as the approximation when we increase the number of basis functions and use $m=2$ and $m=4$. 
 
 ```{r}
-op_cov2 <- CBrSPDE.matern.operators(kappa = kappa, tau = tau, nu = nu,
+op_cov2 <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
                        G = fem$G, C = fem$C, d = 1, m = 4)
 Q2 <- precision(op_cov2)
 v_bar2 <- kronecker(matrix(1,nrow=5),v)
@@ -253,7 +270,7 @@ c_cov.approx2 <- (A_bar2)%*%solve(Q2,v_bar2)
 
 s2 <- seq(from = 0, to = 1, length.out = 501)
 fem2 <- rSPDE.fem1d(s2)
-op_cov <- CBrSPDE.matern.operators(kappa = kappa, tau = tau, nu = nu,
+op_cov <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
                        G = fem2$G, C = fem2$C, d = 1, m=2)
 Q3 <- precision(op_cov)
 A2 <- rSPDE.A1d(s2,s)
@@ -262,7 +279,7 @@ v2_bar <- kronecker(matrix(1,nrow=3),v2)
 A2_bar <- kronecker(matrix(1,ncol=3),A2)
 c_cov.approx3 <- (A2_bar)%*%solve(Q3,v2_bar)
 
-op_cov <- CBrSPDE.matern.operators(kappa = kappa, tau = tau, nu = nu,
+op_cov <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
                        G = fem2$G, C = fem2$C, d = 1, m=4)
 Q4 <- precision(op_cov)
 v2_bar2 <- kronecker(matrix(1,nrow=5),v2)
@@ -291,7 +308,7 @@ Since the error induced by the rational approximation decreases exponentially in
 ```{r}
 errors <- rep(0,4)
 for(i in 1:4){
-  op_cov <- CBrSPDE.matern.operators(kappa = kappa, tau=tau, nu = nu,
+  op_cov <- matern.operators(kappa = kappa, sigma=sigma, nu = nu,
                        G = fem2$G, C = fem2$C, d = 1, m = i)
   Q = precision(op_cov)
   v_bar <- kronecker(matrix(1,nrow=i+1),v2)
@@ -301,13 +318,23 @@ for(i in 1:4){
 }
 print(errors)
 ```
-We see that the error decreases very fast when we increase $m$ from $1$ to $4$.
+We see that the error decreases very fast when we increase $m$ from $1$ to $4$,
+without any numerical instability. This is an advantage of the covariance-based
+rational approximation when compared to the operator-based rational approximation. 
+See [Operator-based rational approximation with the `rSPDE` package](rspde_base.html)
+for details on the numerical instability of the operator-based rational approximation.
+
+The main reason for the numerical stability of the covariance-based method is that
+its clever
+decomposition of the latent field into a vector of random fields (see the introduction for
+further details) remove the need of higher order finite element matrices to have higher
+order rational approximations.
 
 ## Using the approximation 
 
-When we use the function `CBrSPDE.matern.operators()`, we can simulate from the model using the
+When we use the function `matern.operators()`, we can simulate from the model using the
 `simulate` method. To such an end we simply apply the simulate method to the
-object returned by the `CBrSPDE.matern.operators()` function:
+object returned by the `matern.operators()` function:
 
 ```{r}
 u <- simulate(op_cov)
@@ -339,9 +366,8 @@ with $\kappa=20, \sigma=2$ and $\nu=0.8$:
 kappa <- 20
 sigma <- 2
 nu <- 0.8
-tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
-op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
-                                   kappa=kappa,tau=tau,d=1,m=2)
+op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
+                                   kappa=kappa,sigma=sigma,d=1,m=2)
 u <- simulate(op_cov)
 
 sigma.e <- 0.3
@@ -356,11 +382,11 @@ parameter to avoid constrained optimization.
 
 ```{r}
 mlik_cov <- function(theta, Y, A, op_cov){
-tau = exp(theta[1])
+sigma = exp(theta[1])
 kappa = exp(theta[2])
 nu = exp(theta[3])
-return(-rSPDE::CBrSPDE.matern.loglike(object = op_cov, Y=Y,
-                                  A = A, user_kappa=kappa, user_tau = tau,
+return(-rSPDE::rSPDE.matern.loglike(object = op_cov, Y=Y,
+                                  A = A, user_kappa=kappa, user_sigma = sigma,
                                  user_nu=nu, sigma.e = exp(theta[4])))
 }
 ```
@@ -379,7 +405,7 @@ end_time <- Sys.time()
 
 time_optim <- end_time - start_time
 
-print(data.frame(tau = c(tau,exp(theta$par[1])), kappa = c(kappa,exp(theta$par[2])),
+print(data.frame(sigma = c(sigma,exp(theta$par[1])), kappa = c(kappa,exp(theta$par[2])),
                   nu = c(nu,exp(theta$par[3])), sigma.e = c(sigma.e,exp(theta$par[4])),
                   row.names = c("Truth","Estimates")))
 
@@ -406,7 +432,7 @@ end_time <- Sys.time()
 
 time_optim <- end_time - start_time
 
-print(data.frame(tau = c(tau,exp(theta_parallel$par[1])), 
+print(data.frame(sigma = c(sigma,exp(theta_parallel$par[1])), 
                  kappa = c(kappa,exp(theta_parallel$par[2])),
                   nu = c(nu,exp(theta_parallel$par[3])), 
                  sigma.e = c(sigma.e,exp(theta_parallel$par[4])),
@@ -423,15 +449,16 @@ Finally, we compute the kriging prediction of the process $u$ at the locations i
 A.krig <- rSPDE.A1d(s, s)
 ```
 
-Let us update the `CBrSPDE` object with the fitted parameters:
+Let us update the `CBrSPDEobj` object (returned by the `matern.operators()` function)
+with the fitted parameters:
 
 ```{r}
-tau_est = exp(theta$par[1])
+sigma_est = exp(theta$par[1])
 kappa_est = exp(theta$par[2])
 nu_est = exp(theta$par[3])
 
 op_cov <- update(op_cov, user_kappa=kappa_est,
-                 user_tau = tau_est,
+                 user_sigma = sigma_est,
                  user_nu = nu_est)
 ```
 
@@ -462,7 +489,8 @@ we will show how to fit and do kringing on such a dataset.
 Recall that to simulate a latent model with replicates, all we do is set
 the `nsim` argument to the number of replicates.
 
-Let us simulate the dataset. We will use the same `CBrSPDE` object from
+Let us simulate the dataset. We will use the same `CBrSPDEobj` object (returned
+from the `matern.operators()` function) from
 the previous example, namely `op_cov`.
 
 ```{r}
@@ -480,7 +508,7 @@ Y.rep <- A %*% u.rep + sigma.e * matrix(rnorm(n.obs*n.rep), ncol=n.rep)
 
 Notice that $Y$ is a matrix with two columns, each column containing 
 a replicate. Now, the remaining of the code is identical to the previous case.
-The `CBrSPDE.matern.loglike()` function automatically identifies the replicates 
+The `rSPDE.matern.loglike()` function automatically identifies the replicates 
 from the fact that $Y$ is a matrix with more than one column.
 
 ```{r, message=FALSE, warning=FALSE}
@@ -494,7 +522,7 @@ end_time <- Sys.time()
 
 time_optim <- end_time - start_time
 
-print(data.frame(tau = c(tau,exp(theta$par[1])), kappa = c(kappa,exp(theta$par[2])),
+print(data.frame(sigma = c(sigma,exp(theta$par[1])), kappa = c(kappa,exp(theta$par[2])),
                   nu = c(nu,exp(theta$par[3])), sigma.e = c(sigma.e,exp(theta$par[4])),
                   row.names = c("Truth","Estimates")))
 
@@ -513,50 +541,59 @@ and compute the mass and stiffness matrices for that mesh.
 It is important to mention that when using the `R-INLA` package we recommend
 the usage of the [R-INLA implementation of the rational SPDE approach](rspde_inla.html).
 
+Let us then consider a simple Gaussian linear model with 30 independent replicates 
+of a latent spatial field $u(\mathbf{s})$, observed at the same 
+$m$ locations, $\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}$, for each replicate.
+For each $i = 1,\ldots,m,$ we have
+$$
+\begin{align} 
+y_i &= u_1(\mathbf{s}_i)+\varepsilon_i\\
+\vdots &= \vdots\\
+
+y_{i+29m} &= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m}
+\end{align},
+$$
+where $\varepsilon_1,\ldots,\varepsilon_{30m}$ are iid normally distributed
+with mean 0 and standard deviation 0.1.
+
 Let us then create the FEM mesh:
 
 ```{r, message=FALSE, warning=FALSE}
 library(INLA)
 m =100
 loc_2d_mesh = matrix(runif(m*2),m,2)
-mesh_2d = inla.mesh.create.helper(
-  points=loc_2d_mesh,
+mesh_2d = inla.mesh.2d(
+  loc=loc_2d_mesh,
   cutoff=0.05,
   offset=c(0.1,0.4),
   max.edge=c(0.05,0.5) )
 plot(mesh_2d)
 points(loc_2d_mesh[,1],loc_2d_mesh[,2])
-
-fem_mesh_2d <- inla.mesh.fem(mesh_2d)
-C = fem_mesh_2d$c0
-G <- fem_mesh_2d$g1
 ```
 
-We can now use these matrices to define a rational SPDE approximation of order
+We can now use this mesh to define a rational SPDE approximation of order
 $m=2$ for a Matérn model in the same fashion as we did above in
 the one-dimensional case.
 We will now simulate a latent process with standard deviation $\sigma=1$ and 
 range $0.1$. We will use $\nu=0.5$ so that the model has an exponential covariance function.
-To this end we create a model object with the `CBrSPDE.matern.operators()` function:
+To this end we create a model object with the `matern.operators()` function:
 
 ```{r}
 nu = 0.5
 sigma = 1 
 range = 0.1
-kappa = sqrt(8)/range
-tau = 1/(sqrt(4*pi)*kappa*sigma)
+kappa = sqrt(8*nu)/range
 d = 2
-op_cov_2d = CBrSPDE.matern.operators (C=C,
-                                 G=G,
+op_cov_2d = matern.operators(mesh=mesh_2d,
                                  nu=nu,
                                  kappa=kappa,
-                                 tau=tau,
-                                 m=2,
-                                 d=2)
+                                 sigma=sigma,
+                                 m=2)
 ```
 
-Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `R-INLA` function `inla.spde.make.A`. We will simulate the data
-with 30 replicates.
+Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `R-INLA` function `inla.spde.make.A()`.
+Recall that we will simulate the data
+with 30 replicates. 
 
 ```{r}
 n.rep = 30
@@ -571,7 +608,7 @@ Y = A %*% u + matrix(rnorm(m*n.rep),ncol=n.rep) * sigma.e
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
 
 ```{r, fig.show='hold',fig.height = 3.5, fig.width = 7, fig.align = "center",echo=FALSE}
-opar <- par(mfrow = c(1,3),mgp = c(1.2, 0.5, 0), mar = c(2,2,0.5,0.5) + 0.1)
+opar <- par(mfrow = c(1,2),mgp = c(1.2, 0.5, 0), mar = c(2,2,0.5,0.5) + 0.1)
 proj <- inla.mesh.projector(mesh_2d, dims = c(70, 70))
 image(inla.mesh.project(proj, field = as.vector(u[,1])),xlab="",ylab="",
       cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
@@ -581,22 +618,24 @@ par(opar)
 ```
 
 
-For each type of rational approximation of order $m$, there is a corresponding 
-likelihood function that can be used for likelihood-based parameter estimation. 
 
-Since we constructed the model with `CBrSPDE.matern.operators`, we can use the 
-function `CBrSPDE.matern.loglike` to define the likelihood. 
+We will now use the 
+function `rSPDE.matern.loglike()` to define the likelihood. This function
+is object-based, in the sense that it obtains several of the quantities
+it needs from the `rSPDE` model object. In our case, for this example,
+the object `op_cov_2d`.
+
 To simplify parameter estimation, we create an objective function to maximize 
 which is the negative log-likelihood, parametrized using the logarithm of each 
 parameter to avoid constrained optimization. 
 
 ```{r}
 mlik_2d <- function(theta, Y, A, op_cov_2d) {
-  tau = exp(theta[1])
+  sigma = exp(theta[1])
   kappa = exp(theta[2])
   nu = exp(theta[3])
-  return(-rSPDE::CBrSPDE.matern.loglike(object = op_cov_2d, Y=Y,
-                                  A = A, user_kappa=kappa, user_tau = tau,
+  return(-rSPDE::rSPDE.matern.loglike(object = op_cov_2d, Y=Y,
+                                  A = A, user_kappa=kappa, user_sigma = sigma,
                                  user_nu=nu, sigma.e = exp(theta[4])))
 }    
 ```
@@ -610,7 +649,7 @@ start_time <- Sys.time()
 pars <- optimParallel(theta0_2d, mlik_2d, Y = Y, A = A, op_cov_2d=op_cov_2d)
 end_time <- Sys.time()
 total_time <- end_time - start_time
-results <- data.frame(tau = c(tau, exp(pars$par[1])), 
+results <- data.frame(sigma = c(sigma, exp(pars$par[1])), 
                       kappa = c(kappa, exp(pars$par[2])),
                       nu = c(nu, exp(pars$par[3])),
                       sigma.e = c(sigma.e, exp(pars$par[4])),

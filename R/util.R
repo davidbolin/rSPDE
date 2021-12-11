@@ -95,6 +95,51 @@ matern.covariance <- function(h, kappa, nu, sigma)
   return(as.matrix(C))
 }
 
+#' The folded Matern covariance function
+#'
+#' \code{matern.covariance} evaluates the folded Matern covariance function
+#' over an interval \eqn{[0,L]}:
+#' \deqn{C(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL)+C(h+m-2kL)),}
+#' 
+#' where \eqn{C(\cdot)} is the Matern covariance function:
+#' \deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
+#' 
+#' We consider the truncation:
+#' \deqn{C(h,m) = \sum_{k=-N}^{N} (C(h-m+2kL)+C(h+m-2kL)).}
+#'
+#' @param h,m Arguments of the covariance function.
+#' @param kappa Range parameter.
+#' @param nu Shape parameter.
+#' @param sigma Standard deviation.
+#' @param L The upper bound of the interval [0,L]. By default, \code{L=1}.
+#' @param N The truncation parameter.
+#'
+#' @return A vector with the values C(h).
+#' @export
+#'
+#' @examples
+#' x = seq(from = 0, to = 1, length.out = 101)
+#' plot(x, folded.matern.covariance(rep(0.5,length(x)),x, kappa = 10, nu = 1/5, sigma = 1),
+#'      type = "l", ylab = "C(h)", xlab = "h")
+
+folded.matern.covariance <- function(h, m, kappa, nu, sigma,
+                                     L=1, N=10)
+{
+  if(length(h)!=length(m)){
+    stop("h and m should have the same length!")
+  }
+
+  s1 <- sapply(-N:N, function(j){
+    h-m+2*j*L
+  })
+  s2 <- sapply(-N:N, function(j){
+    h+m-2*j*L
+  })
+  C <- rowSums(matern.covariance(h=s1, kappa=kappa, nu=nu, sigma=sigma)+
+             matern.covariance(h=s2, kappa=kappa, nu=nu, sigma=sigma))
+  return(as.matrix(C))
+}
+
 #' Summarise rSPDE objects
 #'
 #' Summary method for class "rSPDEobj"
@@ -282,6 +327,7 @@ require.nowarnings <- function(package, lib.loc = NULL, character.only = FALSE)
 #' @param include.nu Should we also provide an initial guess for nu?
 #' @param log.scale Should the results be provided in log scale?
 #' @param nu_upper_bound Should an upper bound for nu be considered?
+#' @param include.tau Should tau be returned instead of sigma?
 #' @return A vector of the form (theta_1,theta_2,theta_3) or where
 #' theta_1 is the initial guess for tau, theta_2 is the initial guess for kappa
 #' and theta_3 is the initial guess for nu.
@@ -291,6 +337,7 @@ require.nowarnings <- function(package, lib.loc = NULL, character.only = FALSE)
 get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, 
                                     dim = NULL,
                                     include.nu = TRUE, log.scale = TRUE,
+                                    include.tau = FALSE,
                                     nu_upper_bound = NULL){
   if(is.null(mesh)&&is.null(mesh.range)){
     stop("You should either provide mesh or mesh.range!")
@@ -317,10 +364,15 @@ get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
   range.nominal <- mesh.range * 0.2
     
   kappa <- sqrt(8 * nu)/range.nominal
-    
-  tau <-  sqrt(gamma(nu)/gamma(nu+dim/2)/(4 * pi * kappa^(2 * nu)))
   
-  initial <- c(tau, kappa, nu)
+  if(include.tau){
+    tau <- sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(dim /2) * gamma(nu + dim/2)))
+    
+    initial <- c(tau, kappa, nu)
+  } else{
+    initial <- c(1, kappa, nu)
+  }  
+
   if(log.scale){
     return(log(initial))
   } else{
@@ -716,7 +768,7 @@ create_summary_from_density <- function(density_df, name){
 #' Summary method for class "CBrSPDEobj"
 #'
 #' @param object an object of class "CBrSPDEobj", usually, a result of a call
-#'   to \code{\link{CBrSPDE.matern.operators}}.
+#'   to \code{\link{matern.operators}}.
 #' @param ... further arguments passed to or from other methods.
 #' @export
 #' @method summary CBrSPDEobj
@@ -733,8 +785,8 @@ create_summary_from_density <- function(density_df, name){
 #'
 #' #compute rational approximation of covariance function at 0.5
 #' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
-#' op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
-#' kappa=kappa,tau=tau,d=1,m=2)
+#' op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
+#' kappa=kappa,sigma=sigma,d=1,m=2)
 #' 
 #' op_cov
 summary.CBrSPDEobj <- function(object, ...)
@@ -743,7 +795,7 @@ summary.CBrSPDEobj <- function(object, ...)
   class(out) <- "summary.CBrSPDEobj"
   out$type = object$type
   out$kappa = object$kappa
-  out$tau = object$tau
+  out$sigma = object$sigma
   out$nu = object$nu
   out$m = object$m
   out$n = dim(object$C)[1]
@@ -760,7 +812,7 @@ print.summary.CBrSPDEobj <- function(x, ...)
   
   cat("Type of approximation: ", x$type,"\n")
   cat("Parameters of covariance function: kappa = ",
-        x$kappa,", tau = ", x$tau, ", nu = ",x$nu, "\n")
+        x$kappa,", sigma = ", x$sigma, ", nu = ",x$nu, "\n")
   cat("Order or rational approximation: ", x$m, "\n")
   cat("Size of discrete operators: ", x$n," x ", x$n, "\n")
 }

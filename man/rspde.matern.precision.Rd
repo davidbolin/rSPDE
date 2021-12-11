@@ -5,14 +5,24 @@
 \title{Precision matrix of the covariance-based rational approximation of 
 stationary Gaussian Matern random fields}
 \usage{
-rspde.matern.precision(kappa, nu, tau, rspde_order, dim, fem_mesh_matrices)
+rspde.matern.precision(
+  kappa,
+  nu,
+  tau = NULL,
+  sigma = NULL,
+  rspde_order,
+  dim,
+  fem_mesh_matrices
+)
 }
 \arguments{
 \item{kappa}{Range parameter of the covariance function.}
 
 \item{nu}{Shape parameter of the covariance function.}
 
-\item{tau}{Scale parameter of the covariance function.}
+\item{tau}{Scale parameter of the covariance function. If sigma is not provided, tau should be provided.}
+
+\item{sigma}{Standard deviation of the covariance function. If tau is not provided, sigma should be provided.}
 
 \item{rspde_order}{The order of the rational approximation}
 
@@ -41,7 +51,7 @@ sigma <- 1
 d <- 1
 nu = 2.6
 tau = sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa,tau = tau,
+op_cov <- matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa, sigma = sigma,
                                   d=1,m = 2)
 v <- t(rSPDE.A1d(x,0.5))
 c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)

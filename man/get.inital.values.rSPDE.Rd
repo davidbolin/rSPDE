@@ -11,6 +11,7 @@ get.inital.values.rSPDE(
   dim = NULL,
   include.nu = TRUE,
   log.scale = TRUE,
+  include.tau = FALSE,
   nu_upper_bound = NULL
 )
 }
@@ -24,6 +25,8 @@ get.inital.values.rSPDE(
 \item{include.nu}{Should we also provide an initial guess for nu?}
 
 \item{log.scale}{Should the results be provided in log scale?}
+
+\item{include.tau}{Should tau be returned instead of sigma?}
 
 \item{nu_upper_bound}{Should an upper bound for nu be considered?}
 }

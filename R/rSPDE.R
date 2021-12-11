@@ -14,14 +14,11 @@
 #' stationary Matern covariance functions}
 #' \item{\code{\link{spde.matern.operators}}}{ Computation of operators for random fields with
 #' defined as solutions to a possibly non-stationary Matern-type SPDE model.}
-#' \item{\code{\link{CBrSPDE.matern.operators}}} {Covariance-based rational approximation 
-#' computation of operators for random fields with
-#' stationary Matern covariance functions}
 #' \item{\code{\link{rspde.matern}}} {R-INLA implementation of the covariance-based 
 #' rational approximation for random fields with
 #' stationary Matern covariance functions}
 #' }
-#' Basic statistical operations such as likelihood evaluations (see \code{\link{rSPDE.loglike}, \link{CBrSPDE.matern.loglike}}) and kriging
+#' Basic statistical operations such as likelihood evaluations (see \code{\link{rSPDE.loglike}, \link{rSPDE.matern.loglike}}) and kriging
 #' predictions (see \code{\link{predict.rSPDEobj}, \link{predict.CBrSPDEobj}}) using the fractional approximations are also implemented.
 #'
 #' For illustration purposes, the package contains a simple FEM implementation for models on R. For spatial models,

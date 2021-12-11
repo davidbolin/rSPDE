@@ -14,7 +14,7 @@
 }
 \arguments{
 \item{object}{an object of class "CBrSPDEobj", usually, a result of a call
-to \code{\link{CBrSPDE.matern.operators}}.}
+to \code{\link{matern.operators}}.}
 
 \item{...}{further arguments passed to or from other methods.}
 
@@ -37,8 +37,8 @@ fem <- rSPDE.fem1d(x)
 
 #compute rational approximation of covariance function at 0.5
 tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
-op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
-kappa=kappa,tau=tau,d=1,m=2)
+op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
+kappa=kappa,sigma=sigma,d=1,m=2)
 
 op_cov
 }
