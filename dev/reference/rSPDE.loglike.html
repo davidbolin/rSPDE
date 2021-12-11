@@ -14,7 +14,7 @@ are iid mean-zero Gaussian variables and \(x(s) = \mu(s) + u(s)\), where
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-secondary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
@@ -36,7 +36,7 @@ are iid mean-zero Gaussian variables and \(x(s) = \mu(s) + u(s)\), where
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation with the rSPDE package</a>
-    <a class="dropdown-item" href="../articles/rspde_cov.html">Covariance-based rational approximation with the rSPDE package</a>
+    <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_inla.html">R-INLA implementation of the rational SPDE approach</a>
   </div>
 </li>
@@ -121,7 +121,8 @@ likelihood estimation.</p>
 <span class="r-in"></span>
 <span class="r-in"><span class="co">#compute rational approximation</span></span>
 <span class="r-in"><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="matern.operators.html">matern.operators</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span>
-<span class="r-in">                       G <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span>, C <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span>, d <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span class="r-in">                       G <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span>, C <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span>, d <span class="op">=</span> <span class="fl">1</span>,</span>
+<span class="r-in">                       type <span class="op">=</span> <span class="st">"operator"</span><span class="op">)</span></span>
 <span class="r-in"></span>
 <span class="r-in"><span class="co">#Sample the model</span></span>
 <span class="r-in"><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate.rSPDEobj.html">simulate</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span>
@@ -134,7 +135,7 @@ likelihood estimation.</p>
 <span class="r-in"><span class="co">#compute log-likelihood of the data</span></span>
 <span class="r-in"><span class="va">lik1</span> <span class="op">&lt;-</span> <span class="fu">rSPDE.loglike</span><span class="op">(</span><span class="va">op</span>, <span class="va">Y</span>, <span class="va">A</span>, <span class="va">sigma.e</span><span class="op">)</span></span>
 <span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="va">lik1</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -12.64296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -8.96018</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

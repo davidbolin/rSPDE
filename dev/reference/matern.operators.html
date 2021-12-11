@@ -10,7 +10,7 @@ $$C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)$$">
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-secondary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
@@ -32,7 +32,7 @@ $$C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)$$">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation with the rSPDE package</a>
-    <a class="dropdown-item" href="../articles/rspde_cov.html">Covariance-based rational approximation with the rSPDE package</a>
+    <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_inla.html">R-INLA implementation of the rational SPDE approach</a>
   </div>
 </li>
@@ -68,7 +68,17 @@ $$C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)$$</
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">matern.operators</span><span class="op">(</span><span class="va">kappa</span>, <span class="va">sigma</span>, <span class="va">nu</span>, <span class="va">G</span>, <span class="va">C</span>, d <span class="op">=</span> <span class="cn">NULL</span>, m <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">matern.operators</span><span class="op">(</span>
+  <span class="va">kappa</span>,
+  <span class="va">sigma</span>,
+  <span class="va">nu</span>,
+  G <span class="op">=</span> <span class="cn">NULL</span>,
+  C <span class="op">=</span> <span class="cn">NULL</span>,
+  d <span class="op">=</span> <span class="cn">NULL</span>,
+  mesh <span class="op">=</span> <span class="cn">NULL</span>,
+  m <span class="op">=</span> <span class="fl">1</span>,
+  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"covariance"</span>, <span class="st">"operator"</span><span class="op">)</span>
+<span class="op">)</span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -80,20 +90,58 @@ $$C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)$$</
 <dt>nu</dt>
 <dd><p>Shape parameter of the covariance function.</p></dd>
 <dt>G</dt>
-<dd><p>The stiffness matrix of a finite element discretization of the domain of interest.</p></dd>
+<dd><p>The stiffness matrix of a finite element discretization of the domain of interest. Does not need to be given if <code>mesh</code> is used.</p></dd>
 <dt>C</dt>
-<dd><p>The mass matrix of a finite element discretization of the domain of interest.</p></dd>
+<dd><p>The mass matrix of a finite element discretization of the domain of interest. Does not need to be given if <code>mesh</code> is used.</p></dd>
 <dt>d</dt>
-<dd><p>The dimension of the domain.</p></dd>
+<dd><p>The dimension of the domain. Does not need to be given if <code>mesh</code> is used.</p></dd>
+<dt>mesh</dt>
+<dd><p>An optional inla mesh. <code>d</code>, <code>C</code> and <code>G</code> must be given if <code>mesh</code> is not given.</p></dd>
 <dt>m</dt>
 <dd><p>The order of the rational approximation, which needs to be a positive integer.
 The default value is 1.</p></dd>
+<dt>type</dt>
+<dd><p>The type of the rational approximation. The options are "covariance"
+and "operator". The default is "covariance".</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p><code>matern.operators</code> returns an object of class "rSPDEobj". This object contains the
-quantities listed in the output of <code><a href="fractional.operators.html">fractional.operators</a></code> as well as the 
-parameters of the covariance functoin.</p>
+    <p>If <code>type</code> is "covariance", then <code>matern.operators</code>returns an object of class "CBrSPDEobj". 
+This object is a list containing the
+following quantities:</p>
+<dl><dt>C</dt>
+<dd><p>The mass lumped mass matrix.</p></dd>
+<dt>Ci</dt>
+<dd><p>The inverse of <code>C</code>.</p></dd>
+<dt>GCi</dt>
+<dd><p>The stiffness matrix G times <code>Ci</code></p></dd>
+<dt>Gk</dt>
+<dd><p>The stiffness matrix G along with the higher-order FEM-related matrices G2, G3, etc.</p></dd>
+<dt>fem_mesh_matrices</dt>
+<dd><p>A list containing the mass lumped mass matrix, the stiffness matrix and 
+the higher-order FEM-related matrices.</p></dd>
+<dt>m</dt>
+<dd><p>The order of the rational approximation.</p></dd>
+<dt>alpha</dt>
+<dd><p>The fractional power of the precision operator.</p></dd>
+<dt>type</dt>
+<dd><p>String indicating the type of approximation.</p></dd>
+<dt>d</dt>
+<dd><p>The dimension of the domain.</p></dd>
+<dt>nu</dt>
+<dd><p>Shape parameter of the covariance function.</p></dd>
+<dt>kappa</dt>
+<dd><p>Range parameter of the covariance function</p></dd>
+<dt>tau</dt>
+<dd><p>Scale parameter of the covariance function.</p></dd>
+<dt>sigma</dt>
+<dd><p>Standard deviation of the covariance function.</p></dd>
+<dt>type</dt>
+<dd><p>String indicating the type of approximation.</p></dd>
+</dl><p>If <code>type</code> is "operator", then <code>matern.operators</code> returns an object of class "rSPDEobj". This object contains the
+quantities listed in the output of <code><a href="fractional.operators.html">fractional.operators</a></code>,
+the <code>G</code> matrix, the dimension of the domain, as well as the 
+parameters of the covariance function.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -108,21 +156,67 @@ where \(m_\beta\) is the integer part of \(\beta\) if \(\beta&gt;1\) and
 and \(Q = P_l^T C^{-1} P_l\). Note that the matrices \(P_r\) and \(Q\) may be be ill-conditioned for \(m&gt;1\).
 In this case, the metehods in <code><a href="operator.operations.html">operator.operations</a></code> should be used for operations
 involving the matrices, since these methods are more numerically stable.</p>
+<p>If <code>type</code> is "covariance",
+we use the covariance-based rational approximation of the fractional operator.
+In the SPDE approach, we model \(u\) as the solution of the following SPDE: 
+$$L^{\alpha/2}(\tau u) = \mathcal{W},$$
+where 
+\(L  = -\Delta +\kappa^2 I\) and \(\mathcal{W}\) is the standard Gaussian white noise. 
+The covariance operator of \(u\) is given by \(L^{-\alpha}\). 
+Now, let \(L_h\) be a finite-element approximation of \(L\). We can use 
+a rational approximation of order \(m\) on \(L_h^{-\alpha}\) to
+obtain the following approximation:
+$$L_{h,m}^{-\alpha} = L_h^{-m_\alpha} p(L_h^{-1})q(L_h^{-1})^{-1},$$
+where \(m_\alpha = \max\{1,\lfloor \alpha\rfloor\}\), \(p\) and \(q\) are polynomials arising from such rational approximation.
+From this approximation we construct an approximate precision matrix for \(u\).</p>
+<p>If <code>type</code> is "operator", then the rational approximation is carried out
+on the operator. See <code><a href="fractional.operators.html">fractional.operators</a></code> for further details.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="fractional.operators.html">fractional.operators</a></code>, <code><a href="spde.matern.operators.html">spde.matern.operators</a></code>,
-<code><a href="CBrSPDE.matern.operators.html">CBrSPDE.matern.operators</a></code></p></div>
-    </div>
-    <div class="section level2">
-    <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
-    <p>David Bolin <a href="mailto:davidbolin@gmail.com">davidbolin@gmail.com</a></p>
+<code>matern.operators</code></p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="co">#Compute rational approximation of a Gaussian process with a </span></span>
-<span class="r-in"><span class="co">#Matern covariance function on R</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="co">#Compute the covariance-based rational approximation of a </span></span>
+<span class="r-in"><span class="co">#Gaussian process with a Matern covariance function on R</span></span>
+<span class="r-in"><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
+<span class="r-in"><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span class="r-in"><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span>
+<span class="r-in"></span>
+<span class="r-in"><span class="co">#create mass and stiffness matrices for a FEM discretization</span></span>
+<span class="r-in"><span class="va">nobs</span> <span class="op">=</span> <span class="fl">101</span></span>
+<span class="r-in"><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">101</span><span class="op">)</span></span>
+<span class="r-in"><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="rSPDE.fem1d.html">rSPDE.fem1d</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span class="r-in"></span>
+<span class="r-in"><span class="co">#compute rational approximation of covariance function at 0.5</span></span>
+<span class="r-in"><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu">matern.operators</span><span class="op">(</span>C<span class="op">=</span><span class="va">fem</span><span class="op">$</span><span class="va">C</span>, G<span class="op">=</span><span class="va">fem</span><span class="op">$</span><span class="va">G</span>,nu<span class="op">=</span><span class="va">nu</span>,</span>
+<span class="r-in">kappa<span class="op">=</span><span class="va">kappa</span>,sigma<span class="op">=</span><span class="va">sigma</span>,d<span class="op">=</span><span class="fl">1</span>,m<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
+<span class="r-in"></span>
+<span class="r-in"><span class="va">v</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="rSPDE.A1d.html">rSPDE.A1d</a></span><span class="op">(</span><span class="va">x</span>,<span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
+<span class="r-in"><span class="co">#Compute the precision matrix</span></span>
+<span class="r-in"><span class="va">Q</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde.matern.precision.html">rspde.matern.precision</a></span><span class="op">(</span>kappa<span class="op">=</span><span class="va">kappa</span>,nu<span class="op">=</span><span class="va">nu</span>,sigma<span class="op">=</span><span class="va">sigma</span>,</span>
+<span class="r-in">rspde_order<span class="op">=</span><span class="fl">2</span>,d<span class="op">=</span><span class="fl">1</span>,fem_mesh_matrices <span class="op">=</span> <span class="va">op_cov</span><span class="op">$</span><span class="va">fem_mesh_matrices</span><span class="op">)</span></span>
+<span class="r-in"><span class="co">#A matrix here is the identity matrix</span></span>
+<span class="r-in"><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/Diagonal.html" class="external-link">Diagonal</a></span><span class="op">(</span><span class="va">nobs</span><span class="op">)</span></span>
+<span class="r-in"><span class="co">#We need to concatenate 3 A's since we are doing a covariance-based rational</span></span>
+<span class="r-in"><span class="co">#approximation of order 2</span></span>
+<span class="r-in"><span class="va">Abar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://www.math.uzh.ch/pages/spam//reference/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">A</span>,<span class="va">A</span>,<span class="va">A</span><span class="op">)</span></span>
+<span class="r-in"><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://www.math.uzh.ch/pages/spam//reference/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">v</span>,<span class="va">v</span>,<span class="va">v</span><span class="op">)</span></span>
+<span class="r-in"><span class="co">#The approximate covariance function:</span></span>
+<span class="r-in"><span class="va">c_cov.approx</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">Abar</span><span class="op">)</span><span class="op"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">%*%</a></span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/solve-methods.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">Q</span>,<span class="va">w</span><span class="op">)</span></span>
+<span class="r-in"></span>
+<span class="r-in"><span class="co">#plot the result and compare with the true Matern covariance</span></span>
+<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="matern.covariance.html">matern.covariance</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">x</span> <span class="op">-</span> <span class="fl">0.5</span><span class="op">)</span>, <span class="va">kappa</span>, <span class="va">nu</span>, <span class="va">sigma</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"l"</span>, ylab <span class="op">=</span> <span class="st">"C(h)"</span>,</span>
+<span class="r-in">     xlab<span class="op">=</span><span class="st">"h"</span>, main <span class="op">=</span> <span class="st">"Matern covariance and rational approximations"</span><span class="op">)</span></span>
+<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">c_cov.approx</span>, col <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span class="r-plt img"><img src="matern.operators-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"></span>
+<span class="r-in"></span>
+<span class="r-in"><span class="co">#Compute the operator-based rational approximation of a Gaussian </span></span>
+<span class="r-in"><span class="co">#process with a Matern covariance function on R</span></span>
 <span class="r-in"><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
 <span class="r-in"><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
 <span class="r-in"><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span>
@@ -133,7 +227,8 @@ involving the matrices, since these methods are more numerically stable.</p>
 <span class="r-in"></span>
 <span class="r-in"><span class="co">#compute rational approximation of covariance function at 0.5</span></span>
 <span class="r-in"><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu">matern.operators</span><span class="op">(</span>kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span>
-<span class="r-in">                       G <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span>, C <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span>, d <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span class="r-in">                       G <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span>, C <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span>, d <span class="op">=</span> <span class="fl">1</span>,</span>
+<span class="r-in">                       type<span class="op">=</span><span class="st">"operator"</span><span class="op">)</span></span>
 <span class="r-in">                       </span>
 <span class="r-in"><span class="va">v</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="rSPDE.A1d.html">rSPDE.A1d</a></span><span class="op">(</span><span class="va">x</span>,<span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
 <span class="r-in"><span class="va">c.approx</span> <span class="op">=</span> <span class="fu"><a href="operator.operations.html">Sigma.mult</a></span><span class="op">(</span><span class="va">op</span>,<span class="va">v</span><span class="op">)</span></span>
@@ -142,7 +237,7 @@ involving the matrices, since these methods are more numerically stable.</p>
 <span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="matern.covariance.html">matern.covariance</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">x</span> <span class="op">-</span> <span class="fl">0.5</span><span class="op">)</span>, <span class="va">kappa</span>, <span class="va">nu</span>, <span class="va">sigma</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"l"</span>, ylab <span class="op">=</span> <span class="st">"C(h)"</span>,</span>
 <span class="r-in">     xlab<span class="op">=</span><span class="st">"h"</span>, main <span class="op">=</span> <span class="st">"Matern covariance and rational approximation"</span><span class="op">)</span></span>
 <span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">c.approx</span>,col<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
-<span class="r-plt img"><img src="matern.operators-1.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="matern.operators-2.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

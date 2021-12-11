@@ -12,7 +12,7 @@ with a latent stationary Gaussian Matern model"><meta name="robots" content="noi
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-secondary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
@@ -34,7 +34,7 @@ with a latent stationary Gaussian Matern model"><meta name="robots" content="noi
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation with the rSPDE package</a>
-    <a class="dropdown-item" href="../articles/rspde_cov.html">Covariance-based rational approximation with the rSPDE package</a>
+    <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_inla.html">R-INLA implementation of the rational SPDE approach</a>
   </div>
 </li>
@@ -77,6 +77,7 @@ with a latent stationary Gaussian Matern model</p>
   dim <span class="op">=</span> <span class="cn">NULL</span>,
   include.nu <span class="op">=</span> <span class="cn">TRUE</span>,
   log.scale <span class="op">=</span> <span class="cn">TRUE</span>,
+  include.tau <span class="op">=</span> <span class="cn">FALSE</span>,
   nu_upper_bound <span class="op">=</span> <span class="cn">NULL</span>
 <span class="op">)</span></code></pre></div>
     </div>
@@ -93,6 +94,8 @@ with a latent stationary Gaussian Matern model</p>
 <dd><p>Should we also provide an initial guess for nu?</p></dd>
 <dt>log.scale</dt>
 <dd><p>Should the results be provided in log scale?</p></dd>
+<dt>include.tau</dt>
+<dd><p>Should tau be returned instead of sigma?</p></dd>
 <dt>nu_upper_bound</dt>
 <dd><p>Should an upper bound for nu be considered?</p></dd>
 </dl></div>
