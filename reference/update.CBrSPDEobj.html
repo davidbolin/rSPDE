@@ -6,7 +6,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-secondary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
@@ -28,7 +28,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation with the rSPDE package</a>
-    <a class="dropdown-item" href="../articles/rspde_cov.html">Covariance-based rational approximation with the rSPDE package</a>
+    <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_inla.html">R-INLA implementation of the rational SPDE approach</a>
   </div>
 </li>
@@ -67,7 +67,7 @@
   <span class="va">object</span>,
   user_nu <span class="op">=</span> <span class="cn">NULL</span>,
   user_kappa <span class="op">=</span> <span class="cn">NULL</span>,
-  user_tau <span class="op">=</span> <span class="cn">NULL</span>,
+  user_sigma <span class="op">=</span> <span class="cn">NULL</span>,
   user_m <span class="op">=</span> <span class="cn">NULL</span>,
   <span class="va">...</span>
 <span class="op">)</span></code></pre></div>
@@ -77,12 +77,12 @@
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
 <dd><p>The covariance-based rational SPDE approximation, 
-computed using <code><a href="CBrSPDE.matern.operators.html">CBrSPDE.matern.operators</a></code></p></dd>
+computed using <code><a href="matern.operators.html">matern.operators</a></code></p></dd>
 <dt>user_nu</dt>
 <dd><p>If non-null, update the shape parameter of the covariance function.</p></dd>
 <dt>user_kappa</dt>
 <dd><p>If non-null, update the range parameter of the covariance function.</p></dd>
-<dt>user_tau</dt>
+<dt>user_sigma</dt>
 <dd><p>If non-null, update the standard deviation of the covariance function.</p></dd>
 <dt>user_m</dt>
 <dd><p>If non-null, update the order of the rational approximation, which needs to be a positive integer.</p></dd>
@@ -92,11 +92,11 @@ computed using <code><a href="CBrSPDE.matern.operators.html">CBrSPDE.matern.oper
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>It returns an object of class "CBrSPDEobj. This object contains the
-same quantities listed in the output of <code><a href="CBrSPDE.matern.operators.html">CBrSPDE.matern.operators</a></code>.</p>
+same quantities listed in the output of <code><a href="matern.operators.html">matern.operators</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="simulate.CBrSPDEobj.html">simulate.CBrSPDEobj</a></code>, <code><a href="CBrSPDE.matern.operators.html">CBrSPDE.matern.operators</a></code></p></div>
+    <div class="dont-index"><p><code><a href="simulate.CBrSPDEobj.html">simulate.CBrSPDEobj</a></code>, <code><a href="matern.operators.html">matern.operators</a></code></p></div>
     </div>
 
     <div class="section level2">
@@ -112,12 +112,11 @@ same quantities listed in the output of <code><a href="CBrSPDE.matern.operators.
 <span class="r-in"><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="rSPDE.fem1d.html">rSPDE.fem1d</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
 <span class="r-in"></span>
 <span class="r-in"><span class="co">#compute rational approximation of covariance function at 0.5</span></span>
-<span class="r-in"><span class="va">tau</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Special.html" class="external-link">gamma</a></span><span class="op">(</span><span class="va">nu</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">sigma</span><span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="va">kappa</span><span class="op">^</span><span class="op">(</span><span class="fl">2</span><span class="op">*</span><span class="va">nu</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="fl">4</span><span class="op">*</span><span class="va">pi</span><span class="op">)</span><span class="op">^</span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Special.html" class="external-link">gamma</a></span><span class="op">(</span><span class="va">nu</span><span class="op">+</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="CBrSPDE.matern.operators.html">CBrSPDE.matern.operators</a></span><span class="op">(</span>C<span class="op">=</span><span class="va">fem</span><span class="op">$</span><span class="va">C</span>, G<span class="op">=</span><span class="va">fem</span><span class="op">$</span><span class="va">G</span>,nu<span class="op">=</span><span class="va">nu</span>,</span>
-<span class="r-in">kappa<span class="op">=</span><span class="va">kappa</span>,tau<span class="op">=</span><span class="va">tau</span>,d<span class="op">=</span><span class="fl">1</span>,m<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
+<span class="r-in"><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="matern.operators.html">matern.operators</a></span><span class="op">(</span>C<span class="op">=</span><span class="va">fem</span><span class="op">$</span><span class="va">C</span>, G<span class="op">=</span><span class="va">fem</span><span class="op">$</span><span class="va">G</span>,nu<span class="op">=</span><span class="va">nu</span>,</span>
+<span class="r-in">kappa<span class="op">=</span><span class="va">kappa</span>,sigma<span class="op">=</span><span class="va">sigma</span>,d<span class="op">=</span><span class="fl">1</span>,m<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
 <span class="r-in"><span class="va">op_cov</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Type of approximation:  Covariance-Based Matern SPDE approximation </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: kappa =  10 , tau =  0.0958753 , nu =  0.8 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: kappa =  10 , sigma =  1 , nu =  0.8 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Order or rational approximation:  2 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Size of discrete operators:  101  x  101 </span>
 <span class="r-in"></span>
@@ -125,7 +124,7 @@ same quantities listed in the output of <code><a href="CBrSPDE.matern.operators.
 <span class="r-in"><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">op_cov</span>, user_kappa<span class="op">=</span><span class="fl">20</span><span class="op">)</span></span>
 <span class="r-in"><span class="va">op_cov</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Type of approximation:  Covariance-Based Matern SPDE approximation </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: kappa =  20 , tau =  0.0958753 , nu =  0.8 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: kappa =  20 , sigma =  1 , nu =  0.8 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Order or rational approximation:  2 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Size of discrete operators:  101  x  101 </span>
 </code></pre></div>
