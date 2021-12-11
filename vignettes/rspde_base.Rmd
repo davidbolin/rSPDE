@@ -373,7 +373,7 @@ range $0.1$. We will use $\nu=0.5$ so that the model has an exponential covarian
 nu = 0.5
 sigma = 1 
 range = 0.1
-kappa = sqrt(8)/range
+kappa = sqrt(8*nu)/range
 tau = 1/(sqrt(4*pi)*kappa*sigma)
 op <- spde.matern.operators(kappa = kappa, tau = tau, nu = nu, G = G, C = C, d = 2, m = 1)
 ```
@@ -408,7 +408,7 @@ mlik <- function(theta, Y, G, C, A) {
 ```
 We can now estimate the parameter using `optim`.
 ```{r}
-theta0 = c(get.inital.values.rSPDE(mesh=mesh_2d),
+theta0 = c(get.inital.values.rSPDE(mesh=mesh_2d, include.tau = TRUE),
               log(0.1*sqrt(var(as.vector(Y)))))
 start_time <- Sys.time()
 pars <- optim(theta0, mlik, Y = Y, G = G, C = C, A = A, method = "L-BFGS-B")
