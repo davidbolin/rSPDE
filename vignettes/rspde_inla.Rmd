@@ -1,6 +1,6 @@
 ---
 title: "R-INLA implementation of the rational SPDE approach"
-author: "David Bolin, Alexandre B. Simas, Zhen Xiong"
+author: "David Bolin and Alexandre B. Simas"
 date: "10/29/2021"
 output: rmarkdown::html_vignette
 vignette: >
@@ -131,7 +131,7 @@ alt <- PRprec$Altitude[ind]
 
 Let us build a plot for the precipitations:
 
-```{r plot_precipitations, message=FALSE}
+```{r plot_precipitations, message=FALSE,fig.height=4,fig.width=7}
 ggplot() + geom_point(aes(x = coords[, 1], y = coords[, 2], colour = Y), size = 2, 
     alpha = 1) + scale_colour_gradientn(colours = tim.colors(100)) + geom_path(aes(x = PRborder[, 
     1], y = PRborder[, 2])) + geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[1034:1078, 
@@ -151,7 +151,7 @@ seaDist <- apply(spDists(coords, PRborder[1034:1078, ],
 
 Now, let us plot the precipitation as a function of the possible covariates:
 
-```{r plot_prec_as_func, message=FALSE, fig.width=7.5, fig.height=6}
+```{r plot_prec_as_func, message=FALSE, fig.width=7, fig.height=6}
 par(mfrow = c(2, 2))
 plot(coords[, 1], Y, cex = 0.5, xlab = "Longitude")
 plot(coords[, 2], Y, cex = 0.5, xlab = "Latitude")
@@ -185,7 +185,7 @@ We can use INLA for creating the mesh. Let us create a mesh which is based
 on a non-convex hull to avoid adding many small triangles outside the domain 
 of interest (more triangles = larger computation times):
 
-```{r mesh_creation, message=FALSE, fig.width=14, fig.height=9}
+```{r mesh_creation, message=FALSE, fig.width=7, fig.height=5}
 prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
 prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
 plot(prmesh, asp = 1, main = "")
@@ -372,7 +372,7 @@ summary(result_fit)
 
 We can also plot the posterior densities:
 
-```{r plot_post}
+```{r plot_post, fig.width=7, fig.height=4}
 par(mfrow=c(1,3))
 plot(result_fit)
 ```
@@ -410,7 +410,7 @@ xy.in <- inout(projgrid$lattice$loc, cbind(PRborder[, 1], PRborder[, 2]))
 
 Let us plot the locations that we will do prediction:
 
-```{r plot_prd}
+```{r plot_prd, fig.height=7, fig.width=7}
 coord.prd <- projgrid$lattice$loc[xy.in, ]
 plot(coord.prd, type = "p", cex = 0.1)
 lines(PRborder)
@@ -462,8 +462,8 @@ rspde_fitprd <- inla(f.s, family = "Gamma",
              data = inla.stack.data(stk.all), 
              control.predictor = list(A = inla.stack.A(stk.all),
                                       compute = TRUE, link = 1),
-             control.compute = list(return.marginals = F, 
-                                    return.marginals.predictor = F),
+             control.compute = list(return.marginals = FALSE, 
+                                    return.marginals.predictor = FALSE),
              control.inla = list(int.strategy = "eb"))
 ```
 
@@ -479,7 +479,7 @@ sd.prd[xy.in] <- rspde_fitprd$summary.fitted.values$sd[id.prd]
 
 Finally, we plot the results:
 
-```{r plot_pred, fig.width=7.5, fig.height=15}
+```{r plot_pred, fig.width=7, fig.height=14}
 #Plot the predictions
 grid.arrange(levelplot(m.prd, col.regions = tim.colors(99), 
              xlab = "", ylab = "", main = "mean", 
@@ -654,7 +654,7 @@ summary(result_fit_order_3)
 
 Let us see the plots of the posterior marginal densities:
 
-```{r plot_post_order_3}
+```{r plot_post_order_3, fig.height=4, fig.width=7}
 par(mfrow=c(1,3))
 plot(result_fit_order_3)
 ```
@@ -955,7 +955,7 @@ result_fit_ln <- rspde.result(rspde_fit_ln, "field", rspde_model_ln)
 summary(result_fit_ln)
 ```
 and the plot of the posterior marginal densities
-```{r}
+```{r, fig.height=4, fig.width=7}
 par(mfrow=c(1,3))
 plot(result_fit_ln)
 ```
@@ -1141,14 +1141,14 @@ Let us consider a simple Gaussian linear model with 30 independent replicates
 of a latent spatial field $x(\mathbf{s})$, observed at the same 
 $m$ locations, $\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}$, for each replicate.
 For each $i = 1,\ldots,m,$ we have
-$$
+
 \begin{align} 
-y_i &= x_1(\mathbf{s}_i)+\varepsilon_i\\
+y_i &= x_1(\mathbf{s}_i)+\varepsilon_i,\\
 \vdots &= \vdots\\
 
-y_{i+29m} &= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m}
-\end{align},
-$$
+y_{i+29m} &= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
+\end{align}
+
 where $\varepsilon_1,\ldots,\varepsilon_{30m}$ are iid normally distributed
 with mean 0 and standard deviation 0.1.
 
@@ -1162,7 +1162,7 @@ latent vector described in the introduction of the
 
 We begin by creating the mesh:
 
-```{r}
+```{r, fig.height=7, fig.width=7}
 m = 100
 loc_2d_mesh = matrix(runif(m*2),m,2)
 mesh_2d = inla.mesh.2d(
@@ -1289,12 +1289,13 @@ and the summary in the user's scale:
 result_fit_rep <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 summary(result_fit_rep)
 result_df <- data.frame(parameter = c("tau","kappa","nu"),
-                      true = c(tau, kappa, nu), mean = c(result_fit_rep$summary.tau$mean, 
-                                                           result_fit_rep$summary.kappa$mean,
-                                                           result_fit_rep$summary.nu$mean),
+                      true = c(tau, kappa, nu), 
+                      mean = c(result_fit_rep$summary.tau$mean, 
+                              result_fit_rep$summary.kappa$mean,
+                              result_fit_rep$summary.nu$mean),
                         mode = c(result_fit_rep$summary.tau$mode, 
-                                                           result_fit_rep$summary.kappa$mode,
-                                                           result_fit_rep$summary.nu$mode))
+                                 result_fit_rep$summary.kappa$mode,
+                                 result_fit_rep$summary.nu$mode))
 print(result_df)
 ```
 

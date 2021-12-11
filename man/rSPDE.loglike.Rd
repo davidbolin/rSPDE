@@ -2,7 +2,7 @@
 % Please edit documentation in R/fractional.computations.R
 \name{rSPDE.loglike}
 \alias{rSPDE.loglike}
-\title{Log-likelihood function for latent Gaussian fractional SPDE model}
+\title{Object-based log-likelihood function for latent Gaussian fractional SPDE model}
 \usage{
 rSPDE.loglike(obj, Y, A, sigma.e, mu = 0)
 }

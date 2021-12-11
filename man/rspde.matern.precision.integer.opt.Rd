@@ -37,5 +37,5 @@ optimized version of the precision matrix of stationary Gaussian random
 fields on \eqn{R^d} with a Matern covariance function
 \deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
 (\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)},
-where \eqn{\alpha = \nu + d/2 \in\mathbb{N}}.
+where \eqn{\alpha = \nu + d/2} is a natural number.
 }

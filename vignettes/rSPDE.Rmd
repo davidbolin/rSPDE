@@ -1,6 +1,6 @@
 ---
 title: "An introduction to the rSPDE package"
-author: "David Bolin, Alexandre B. Simas, Zhen Xiong"
+author: "David Bolin and Alexandre B. Simas"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -103,7 +103,7 @@ We have two main "families" of functions inside the `rSPDE` package:
 
 * The `R-INLA` implementation of the rational SPDE approach;
 
-* The rational SPDE approach;
+* The rational SPDE approach.
 
 We will analyze the same data set using both approaches.
 We also have specific vignettes for each of the aforementioned family. More precisely,
@@ -141,7 +141,7 @@ to create the mesh and obtain the matrices of interest.
 
 We will begin by defining a mesh over $[0,1]\times [0, 1]$:
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE,fig.height = 7, fig.width = 7}
 library(INLA)
 m =500
 loc_2d_mesh = matrix(runif(m*2),m,2)
@@ -198,7 +198,7 @@ y = A %*% u + rnorm(m) * sigma.e
 
 The observed data can be seen in the following image.
 
-```{r,fig.height = 3.5, fig.width = 7, echo=FALSE}
+```{r,fig.height = 7, fig.width = 7, echo=FALSE}
 library(ggplot2)
 df  <- data.frame(x1 = as.double(loc_2d_mesh[,1]), x2 = as.double(loc_2d_mesh[,2]), y = as.double(y))
 ggplot(df,aes(x=x1,y=x2,col=y))+geom_point()+scale_color_gradient(low="yellow", high="red")
@@ -206,7 +206,7 @@ ggplot(df,aes(x=x1,y=x2,col=y))+geom_point()+scale_color_gradient(low="yellow", 
 
 The simulated random field is shown in the following figure.
 
-```{r, fig.show='hold',fig.height = 3.5, fig.width = 7, fig.align = "center",echo=FALSE}
+```{r, fig.show='hold',fig.height = 7, fig.width = 7, fig.align = "center",echo=FALSE}
 proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
 field <- inla.mesh.project(proj, field = as.vector(u))
 grd = expand.grid(1:100, 1:100)
@@ -303,7 +303,7 @@ This lattice contains 100 × 100 locations (the default).
 
 Let us plot the locations that we will do prediction:
 
-```{r plot_prd}
+```{r plot_prd,fig.height = 7, fig.width = 7}
 coord.prd <- projgrid$lattice$loc
 plot(coord.prd, type = "p", cex = 0.1)
 ```
@@ -335,8 +335,8 @@ rspde_fitprd <- inla(f, family = "Gaussian",
              data = inla.stack.data(st.all), 
              control.predictor = list(A = inla.stack.A(st.all),
                                       compute = TRUE, link = 1),
-             control.compute = list(return.marginals = F, 
-                                    return.marginals.predictor = F),
+             control.compute = list(return.marginals = FALSE, 
+                                    return.marginals.predictor = FALSE),
              control.inla = list(int.strategy = "eb"))
 ```
 
@@ -351,7 +351,7 @@ sd.prd <- matrix(rspde_fitprd$summary.fitted.values$sd[id.prd],100,100)
 
 Finally, we plot the results. First the mean:
 
-```{r plot_pred, fig.width=7.5, fig.height=3, echo=FALSE}
+```{r plot_pred, fig.width=7.5, fig.height=7, echo=FALSE}
 grd = expand.grid(1:100, 1:100)/100
 field.pred.df <- cbind(grd,as.vector(m.prd))
 colnames(field.pred.df) <- c("x1","x2","y")
@@ -360,7 +360,7 @@ ggplot(field.pred.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(lo
 
 Then, the std. deviations:
 
-```{r plot_pred_sd, fig.width=7.5, fig.height=3, echo=FALSE}
+```{r plot_pred_sd, fig.width=7.5, fig.height=7, echo=FALSE}
 field.pred.sd.df <- cbind(grd,as.vector(sd.prd))
 colnames(field.pred.sd.df) <- c("x1","x2","y")
 ggplot(field.pred.sd.df,aes(x=x1,y=x2,fill=y))+geom_raster()
@@ -464,7 +464,7 @@ pred.rspde <- predict(op.prd, A = A, Aprd = A.prd2, Y = y,
 
 Finally, we plot the results. First the mean:
 
-```{r plot_pred2, fig.width=7.5, fig.height=3, echo=FALSE}
+```{r plot_pred2, fig.width=7.5, fig.height=7, echo=FALSE}
 field.pred2.df <- cbind(grd,as.vector(pred.rspde$mean))
 colnames(field.pred2.df) <- c("x1","x2","y")
 ggplot(field.pred2.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(low="yellow", high="red")
@@ -472,7 +472,7 @@ ggplot(field.pred2.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(l
 
 Then, the std. deviations:
 
-```{r plot_pred_sd2, fig.width=7.5, fig.height=3, echo=FALSE}
+```{r plot_pred_sd2, fig.width=7.5, fig.height=7, echo=FALSE}
 field.pred2.sd.df <- cbind(grd,as.vector(sqrt(pred.rspde$variance)))
 colnames(field.pred2.sd.df) <- c("x1","x2","y")
 ggplot(field.pred2.sd.df,aes(x=x1,y=x2,fill=y))+geom_raster()

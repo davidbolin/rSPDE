@@ -1,6 +1,7 @@
 library(INLA)
 
 test_that("Checking equality of optimized and non-opt. Prec. matrices for non-integer case", {
+  testthat::skip_on_cran()
 set.seed(1)
 n <- 10
 
@@ -37,7 +38,7 @@ expect_true(all(prec_m==prec_opt_2))
 })
 
 test_that("Checking equality of optimized and non-opt. Prec. matrices for integer case", {
-
+  testthat::skip_on_cran()
   set.seed(1)
   n <- 10
   
@@ -68,7 +69,7 @@ test_that("Checking equality of optimized and non-opt. Prec. matrices for intege
 
 test_that("Checking equality of optimized and non-opt Prec. matrices for d=1",{
   
-  
+  testthat::skip_on_cran()
   
   kappa <- 20
   sigma <- 1

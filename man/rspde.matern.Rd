@@ -118,7 +118,7 @@ The mean of the beta prior is determined by the \code{prior.nu$mean}, whereas
 the precision parameter is determined by the \code{prior.nu$prec}. If \code{prior.nu$prec}
 is \code{NULL} (which is the default case), the precision parameter is taken
 as 
-\deqn{\phi = \max\Big\{\frac{\nu_{UB}}{\mu}, \frac{\nu_{UB}}{\nu_{UB}-\mu}\Big\} + \text{nu.prec.inc},}
+\deqn{\phi = \max\Big\{\frac{\nu_{UB}}{\mu}, \frac{\nu_{UB}}{\nu_{UB}-\mu}\Big\} + \textrm{nu.prec.inc},}
 where \eqn{\mu} is the prior mean of the smoothness parameter.
 
 This choice of precision parameter is to ensure that the prior beta density

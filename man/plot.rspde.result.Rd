@@ -2,7 +2,7 @@
 % Please edit documentation in R/inla_rspde.R
 \name{plot.rspde.result}
 \alias{plot.rspde.result}
-\title{Posterior plots for field parameters for an \code{inla.rspde} model from a \code{rpsde.result} object}
+\title{Posterior plots for field parameters for an \code{inla.rspde} model from a \code{rspde.result} object}
 \usage{
 \method{plot}{rspde.result}(
   x,
@@ -54,9 +54,9 @@ Posterior plots for rSPDE field parameters in their original scales.
 \examples{
 \donttest{
 library(INLA)
-
+set.seed(1)
 loc <- matrix(runif(100 * 2), 100, 2)
-mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(0.1, 0.5))
+mesh <- inla.mesh.2d(loc = loc, max.edge = c(0.1, 0.5))
 rspde <- rspde.matern(mesh)
 index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
 n.repl = 2, dim = 2)

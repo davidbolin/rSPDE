@@ -2,7 +2,7 @@
 % Please edit documentation in R/fractional.computations.R
 \name{spde.matern.loglike}
 \alias{spde.matern.loglike}
-\title{Log-likelihood for a latent Gaussian Matern SPDE model using a rational SPDE approximation}
+\title{Parameter-based log-likelihood for a latent Gaussian Matern SPDE model using a rational SPDE approximation}
 \usage{
 spde.matern.loglike(kappa, tau, nu, sigma.e, Y, G, C, A, d = 2, m = 1)
 }

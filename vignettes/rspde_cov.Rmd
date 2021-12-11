@@ -545,20 +545,20 @@ Let us then consider a simple Gaussian linear model with 30 independent replicat
 of a latent spatial field $u(\mathbf{s})$, observed at the same 
 $m$ locations, $\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}$, for each replicate.
 For each $i = 1,\ldots,m,$ we have
-$$
+
 \begin{align} 
-y_i &= u_1(\mathbf{s}_i)+\varepsilon_i\\
+y_i &= u_1(\mathbf{s}_i)+\varepsilon_i,\\
 \vdots &= \vdots\\
 
-y_{i+29m} &= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m}
-\end{align},
-$$
+y_{i+29m} &= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
+\end{align}
+
 where $\varepsilon_1,\ldots,\varepsilon_{30m}$ are iid normally distributed
 with mean 0 and standard deviation 0.1.
 
 Let us then create the FEM mesh:
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, fig.height=7, fig.width=7}
 library(INLA)
 m =100
 loc_2d_mesh = matrix(runif(m*2),m,2)

@@ -487,7 +487,7 @@ predict.rSPDEobj <- function(object, A, Aprd, Y, sigma.e, compute.variances = FA
   return(out)
 }
 
-#' Log-likelihood function for latent Gaussian fractional SPDE model
+#' Object-based log-likelihood function for latent Gaussian fractional SPDE model
 #'
 #' This function evaluates the log-likelihood function for a fractional SPDE model
 #' \eqn{L^\beta u(s) = W}{L^\beta u(s) = W} that is observed under Gaussian measurement
@@ -1187,7 +1187,7 @@ CBrSPDE.matern.loglike2 <- function(kappa,
 
 
 
-#' Log-likelihood for a latent Gaussian Matern SPDE model using a rational SPDE approximation
+#' Parameter-based log-likelihood for a latent Gaussian Matern SPDE model using a rational SPDE approximation
 #'
 #' This function evaluates the log-likelihood function for observations of a Gaussian process defined as
 #' the solution to the SPDE \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W},

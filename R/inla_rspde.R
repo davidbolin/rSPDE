@@ -395,7 +395,7 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
 #' the precision parameter is determined by the \code{prior.nu$prec}. If \code{prior.nu$prec}
 #' is \code{NULL} (which is the default case), the precision parameter is taken
 #' as 
-#' \deqn{\phi = \max\Big\{\frac{\nu_{UB}}{\mu}, \frac{\nu_{UB}}{\nu_{UB}-\mu}\Big\} + \text{nu.prec.inc},}
+#' \deqn{\phi = \max\Big\{\frac{\nu_{UB}}{\mu}, \frac{\nu_{UB}}{\nu_{UB}-\mu}\Big\} + \textrm{nu.prec.inc},}
 #' where \eqn{\mu} is the prior mean of the smoothness parameter.
 #' 
 #' This choice of precision parameter is to ensure that the prior beta density
@@ -1098,7 +1098,7 @@ rspde.matern.precision = function(kappa, nu, tau=NULL, sigma=NULL, rspde_order, 
 #' fields on \eqn{R^d} with a Matern covariance function
 #' \deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
 #' (\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)},
-#' where \eqn{\alpha = \nu + d/2 \in\mathbb{N}}.
+#' where \eqn{\alpha = \nu + d/2} is a natural number.
 #' @param kappa Range parameter of the covariance function.
 #' @param tau Scale parameter of the covariance function.
 #' @param nu Shape parameter of the covariance function.
@@ -1146,7 +1146,7 @@ rspde.matern.precision.integer.opt = function(kappa, nu, tau, d, fem_matrices, g
 #' fields on \eqn{R^d} with a Matern covariance function
 #' \deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
 #' (\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)},
-#' where \eqn{\alpha = \nu + d/2 \in\mathbb{N}}.
+#' where \eqn{\alpha = \nu + d/2} is a natural number.
 #' @param kappa Range parameter of the covariance function.
 #' @param tau Scale parameter of the covariance function.
 #' @param sigma Standard deviation of the covariance function. If tau is not provided, sigma should be provided.
@@ -1608,7 +1608,7 @@ return(result)
 }
 
 #' @name plot.rspde.result
-#' @title Posterior plots for field parameters for an \code{inla.rspde} model from a \code{rpsde.result} object
+#' @title Posterior plots for field parameters for an \code{inla.rspde} model from a \code{rspde.result} object
 #' @description Posterior plots for rSPDE field parameters in their original scales.
 #' @param x A \code{rspde.result} object.
 #' @param which For which parameters the posterior should be plotted?
@@ -1628,9 +1628,9 @@ return(result)
 #' @examples 
 #' \donttest{
 #' library(INLA)
-#' 
+#' set.seed(1)
 #' loc <- matrix(runif(100 * 2), 100, 2)
-#' mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(0.1, 0.5))
+#' mesh <- inla.mesh.2d(loc = loc, max.edge = c(0.1, 0.5))
 #' rspde <- rspde.matern(mesh)
 #' index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
 #' n.repl = 2, dim = 2)
