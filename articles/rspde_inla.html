@@ -263,7 +263,7 @@
 <span class="co">##    list(A = inla.stack.A(stk.dat), ", " compute = TRUE), control.inla = </span>
 <span class="co">##    list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 3.08, Running = 14.2, Post = 0.0658, Total = 17.4 </span>
+<span class="co">##     Pre = 3.12, Running = 14.8, Post = 0.0854, Total = 18 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.648 0.019      0.611    0.648      0.685 0.648   0</span>
@@ -413,7 +413,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    list(A = inla.stack.A(stk.dat), ", " compute = TRUE), control.inla = </span>
 <span class="co">##    list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 2.97, Running = 8.98, Post = 0.0509, Total = 12 </span>
+<span class="co">##     Pre = 3.71, Running = 10.4, Post = 0.0449, Total = 14.2 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.648 0.019       0.61    0.648      0.685 0.648   0</span>
@@ -445,12 +445,12 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <code class="sourceCode R"><span class="co"># nu_upper_bound = 4</span>
 <span class="va">rspde_fit</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
 <pre><code><span class="co">##         Pre     Running        Post       Total </span>
-<span class="co">##  3.08380198 14.24542999  0.06575298 17.39498496</span></code></pre>
+<span class="co">##  3.11809802 14.80208278  0.08540106 18.00558186</span></code></pre>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#nu_upper_bound = 2</span>
 <span class="va">rspde_fit_2</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
 <pre><code><span class="co">##         Pre     Running        Post       Total </span>
-<span class="co">##  2.97334599  8.98108816  0.05094886 12.00538301</span></code></pre>
+<span class="co">##  3.71120691 10.42782402  0.04487109 14.18390203</span></code></pre>
 <p>We can see that the fit for <code>nu_upper_bound</code> equal to 2 was considerably faster.</p>
 <p>Finally, let us get the result the user’s scale and see the estimate for <span class="math inline">\(\nu\)</span>:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
@@ -513,7 +513,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    list(A = inla.stack.A(stk.dat.3), ", " compute = TRUE), control.inla = </span>
 <span class="co">##    list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 2.79, Running = 9.7, Post = 0.0479, Total = 12.5 </span>
+<span class="co">##     Pre = 2.96, Running = 10.6, Post = 0.049, Total = 13.6 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.486 0.014      0.458    0.486      0.514 0.486   0</span>
@@ -545,12 +545,12 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <code class="sourceCode R"><span class="co"># nu_upper_bound = 4</span>
 <span class="va">rspde_fit</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
 <pre><code><span class="co">##         Pre     Running        Post       Total </span>
-<span class="co">##  3.08380198 14.24542999  0.06575298 17.39498496</span></code></pre>
+<span class="co">##  3.11809802 14.80208278  0.08540106 18.00558186</span></code></pre>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#nu_upper_bound = 2</span>
 <span class="va">rspde_fit_order_3</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
 <pre><code><span class="co">##         Pre     Running        Post       Total </span>
-<span class="co">##  2.79280090  9.70333314  0.04785395 12.54398799</span></code></pre>
+<span class="co">##  2.95959496 10.55898309  0.04895782 13.56753588</span></code></pre>
 <p>Let us now see the summary in the original scale:</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">result_fit_order_3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit_order_3</span>, <span class="st">"field"</span>, <span class="va">rspde_model_order_3</span><span class="op">)</span>
@@ -607,7 +607,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    list(A = inla.stack.A(stk.dat), ", " compute = TRUE), control.inla = </span>
 <span class="co">##    list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 2.89, Running = 8.46, Post = 0.0553, Total = 11.4 </span>
+<span class="co">##     Pre = 2.85, Running = 8.89, Post = 0.055, Total = 11.8 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.648 0.018      0.612    0.648      0.684 0.648   0</span>
@@ -685,7 +685,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    list(A = inla.stack.A(stk.dat.int), ", " compute = TRUE), control.inla </span>
 <span class="co">##    = list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 2.79, Running = 2.53, Post = 0.0308, Total = 5.35 </span>
+<span class="co">##     Pre = 2.83, Running = 2.55, Post = 0.0325, Total = 5.41 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 1.945 0.053      1.841    1.945      2.048 1.945   0</span>
@@ -774,7 +774,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    list(A = inla.stack.A(stk.dat), ", " compute = TRUE), control.inla = </span>
 <span class="co">##    list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 2.8, Running = 10.1, Post = 0.0425, Total = 12.9 </span>
+<span class="co">##     Pre = 3.33, Running = 15.3, Post = 0.271, Total = 18.9 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.648 0.019       0.61    0.648      0.686 0.648   0</span>
@@ -855,7 +855,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    list(A = inla.stack.A(stk.dat.3), ", " compute = TRUE), control.inla = </span>
 <span class="co">##    list(int.strategy = \"eb\"), ", " inla.mode = \"experimental\")") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 2.97, Running = 30, Post = 0.046, Total = 33 </span>
+<span class="co">##     Pre = 3.55, Running = 43.9, Post = 0.148, Total = 47.6 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.486 0.013      0.461    0.486      0.511 0.486   0</span>
@@ -972,10 +972,10 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
                            <span class="va">`Time to fit the model`</span>, 
                            <span class="va">`Total time`</span><span class="op">)</span>
 <span class="va">result_table</span></code></pre></div>
-<pre><code><span class="co">##             Model Time.to.create.model Time.to.fit.the.model     Total.time</span>
-<span class="co">## 1     Opt &amp; sharp        1.055915 secs              8.398722  9.454637 secs</span>
-<span class="co">## 2 Opt &amp; not sharp        0.910485 secs             10.042448 10.952933 secs</span>
-<span class="co">## 3         Non-opt        0.746515 secs             14.595020 15.341535 secs</span></code></pre>
+<pre><code><span class="co">##             Model Time.to.create.model Time.to.fit.the.model    Total.time</span>
+<span class="co">## 1     Opt &amp; sharp       1.2416701 secs              11.27983 12.52150 secs</span>
+<span class="co">## 2 Opt &amp; not sharp       1.4869521 secs              12.40034 13.88729 secs</span>
+<span class="co">## 3         Non-opt       0.8911419 secs              16.32517 17.21631 secs</span></code></pre>
 <p>Therefore, we see that for this example one benefits from using the optimized version.</p>
 </div>
 </div>
@@ -1078,7 +1078,7 @@ y_{i+29m} &amp;= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <span class="co">##    inla.stack.data(st.dat.rep), ", " control.predictor = list(A = </span>
 <span class="co">##    inla.stack.A(st.dat.rep)), inla.mode = \"experimental\")" ) </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 2.7, Running = 181, Post = 0.933, Total = 184 </span>
+<span class="co">##     Pre = 2.84, Running = 230, Post = 2.33, Total = 236 </span>
 <span class="co">## Random effects:</span>
 <span class="co">##   Name     Model</span>
 <span class="co">##     field RGeneric2</span>
