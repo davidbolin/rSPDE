@@ -69,7 +69,7 @@ to the [`ngme` package](https://github.com/davidbolin/ngme) where one can fit su
 We explore the functions for performing the operator-based rational approximation
 on the vignette:
 
-* [Operator-based rational approximation with the rSPDE package](rspde_base.html)
+* [Operator-based rational approximation](rspde_base.html)
 
 For the R-INLA implementation of the rational SPDE approach we refer the reader to
 the [R-INLA implementation of the rational SPDE approach](rspde_inla.html) vignette.
@@ -196,8 +196,8 @@ Based on these nodes, we use the built-in function `rSPDE.fem1d` to assemble two
 fem <- rSPDE.fem1d(s)
 ```
 
-We can now use `matern.operators` to construct a rational SPDE approximation of order $m=2$ for a Gaussian random field with a Matérn covariance function on the interval. We also refer the reader to the
-[Operator-based rational approximation with the `rSPDE` package](rspde_base.html) for a similar comparison made for the operator-based rational approximation.
+We can now use `matern.operators()` to construct a rational SPDE approximation of order $m=2$ for a Gaussian random field with a Matérn covariance function on the interval. We also refer the reader to the
+[Operator-based rational approximation](rspde_base.html) for a similar comparison made for the operator-based rational approximation.
 
 ```{r}
 kappa <- 20
@@ -212,7 +212,7 @@ Thus, the $A$ matrix for the covariance-based rational approximation, which we w
 of the rational approximation.
 
 To compute the precision matrix from the covariance-based rational approximation one
-can use the `precision` method on the `CBrSPDEobj` object (the object returned by
+can use the `precision()` method on the `CBrSPDEobj` object (the object returned by
 the `matern.operators()` function with the default type, which is
 `type="covariance"`):
 
@@ -321,7 +321,7 @@ print(errors)
 We see that the error decreases very fast when we increase $m$ from $1$ to $4$,
 without any numerical instability. This is an advantage of the covariance-based
 rational approximation when compared to the operator-based rational approximation. 
-See [Operator-based rational approximation with the `rSPDE` package](rspde_base.html)
+See [Operator-based rational approximation](rspde_base.html)
 for details on the numerical instability of the operator-based rational approximation.
 
 The main reason for the numerical stability of the covariance-based method is that
@@ -415,7 +415,7 @@ print(time_optim)
 
 We can also speed up the optimization by using the `optimParallel()` function
 from the `optimParallel` package. To such an end, we simply replace the
-`optim` function by `optimParallel` and set the number of cores we
+`optim()` function by `optimParallel()` and set the number of cores we
 want to use:
 
 ```{r, message=FALSE, warning=FALSE}
@@ -462,7 +462,7 @@ op_cov <- update(op_cov, user_kappa=kappa_est,
                  user_nu = nu_est)
 ```
 
-We can now perform kringing with the `predict` method:
+We can now perform kringing with the `predict()` method:
 
 ```{r}
 u.krig <- predict(op_cov, A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e)
@@ -640,7 +640,7 @@ mlik_2d <- function(theta, Y, A, op_cov_2d) {
 }    
 ```
 
-We can now estimate the parameter using `optimParallel`:
+We can now estimate the parameter using `optimParallel()`:
 
 ```{r}
 theta0_2d = c(get.inital.values.rSPDE(mesh=mesh_2d),

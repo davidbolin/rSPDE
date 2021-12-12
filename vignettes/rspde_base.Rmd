@@ -117,11 +117,11 @@ Combining the rational approximation of the operator with the FEM discretization
 
 ## Using the package to perform operator-based rational approximations
 
-The main purpose of the `rSPDE` package is to provide functions for creating the rational approximation. In this vignette we focus on the operator-based rational approximation, which means assembling the matrices $\boldsymbol{\mathrm{Q}}$ and $\boldsymbol{\mathrm{P}}_r$. There are three functions for computing the rational approximation. The most general function is `fractional.operators`, which works for a wide class of models with a general differential operator $L$. For the stationary Matérn case, where $L = \kappa^2 - \Delta$, the function `matern.operators` provides a simplified model specification. For the generalized non-stationary Matérn model, defined through the SPDE 
+The main purpose of the `rSPDE` package is to provide functions for creating the rational approximation. In this vignette we focus on the operator-based rational approximation, which means assembling the matrices $\boldsymbol{\mathrm{Q}}$ and $\boldsymbol{\mathrm{P}}_r$. There are three functions for computing the rational approximation. The most general function is `fractional.operators()`, which works for a wide class of models with a general differential operator $L$. For the stationary Matérn case, where $L = \kappa^2 - \Delta$, the function `matern.operators()` provides a simplified model specification. For the generalized non-stationary Matérn model, defined through the SPDE 
 $$
 (\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W},
 $$
-the function `spde.matern.operators` can be used. 
+the function `spde.matern.operators()` can be used. 
 
 For the covariance-based rational approximation, we refer the reader to the [Rational approximation with the rSPDE package](rspde_cov.html) vignette.
 
@@ -134,7 +134,7 @@ the reader to [Geostatistical Modelling Using Non-Gaussian Matérn Fields](https
 for examples of models driven by type-G Lévy noises. We also refer the reader
 to the [`ngme` package](https://github.com/davidbolin/ngme) where one can fit such models.
 
-Once the approximation has been constructed, it can be included manually in statistical models just as for the non-fractional case. The package has some built-in functions for basic use of the approximation, such as `simulate` which can be applied for simulation of the field. There are also functions for likelihood evaluation and kriging prediction for geostatistical models with Gaussian measurement noise where $u$ is included. In the following sections, we will illustrate the usage of these functions. 
+Once the approximation has been constructed, it can be included manually in statistical models just as for the non-fractional case. The package has some built-in functions for basic use of the approximation, such as `simulate()` which can be applied for simulation of the field. There are also functions for likelihood evaluation and kriging prediction for geostatistical models with Gaussian measurement noise where $u$ is included. In the following sections, we will illustrate the usage of these functions. 
 
 ### Constructing the approximation
 
@@ -150,7 +150,7 @@ Based on these nodes, we use the built-in function `rSPDE.fem1d` to assemble two
 fem <- rSPDE.fem1d(s)
 ```
 
-We can now use `matern.operators` to construct a rational SPDE approximation of degree $m=1$ for a Gaussian random field with a Matérn covariance function on the interval. Since
+We can now use `matern.operators()` to construct a rational SPDE approximation of degree $m=1$ for a Gaussian random field with a Matérn covariance function on the interval. Since
 we are using the operator-based approximation, we must set `type` to `operator`.
 ```{r}
 kappa <- 20
@@ -264,7 +264,7 @@ print(errors2)
 ```
 ## A non-stationary model
 
-Let us now examine a non-stationary model $(\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W}$ with $\kappa(s) = 10(1+2s^2)$ and $\tau(s) = 0.1(1 - 0.7s^2)$. We can then use ``spde.matern.operators``,
+Let us now examine a non-stationary model $(\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W}$ with $\kappa(s) = 10(1+2s^2)$ and $\tau(s) = 0.1(1 - 0.7s^2)$. We can then use `spde.matern.operators()`,
 which currently is only available for operator-based rational approximation, to create the rational approximation with $m=1$ as follows.
 ```{r}
 s <- seq(from = 0, to = 1, length.out = 501)
@@ -290,12 +290,12 @@ par(opar)
 ```
 
 We see that this choice of $\kappa(s)$ and $\tau(s)$ results in a model with longer range for small values of $s$ and smaller variance in the middle of the domain. 
-We can also apply the general function `fractional.operators` to construct the approximation. This function requires that one supplies a discretization of the non-fractional operator $L$, as well as a scaling factor $c>0$ which is a lower bound for the smallest eigenvalue of $L$. In our case we have $L = \kappa(s)^2 - \Delta$, and the eigenvalues of this operator is bounded from below by $c = \min_s \kappa(s)^2$. We compute this constant and the discrete operator. 
+We can also apply the general function `fractional.operators()` to construct the approximation. This function requires that one supplies a discretization of the non-fractional operator $L$, as well as a scaling factor $c>0$ which is a lower bound for the smallest eigenvalue of $L$. In our case we have $L = \kappa(s)^2 - \Delta$, and the eigenvalues of this operator is bounded from below by $c = \min_s \kappa(s)^2$. We compute this constant and the discrete operator. 
 ```{r}
 c = min(kappa)^2
 L = fem$G + fem$C %*% Diagonal(501, kappa^2)
 ```
-Another difference between `fractional.operators` and the previous functions for constructing the approximation, is that it requires specifying $\beta$ instead of the smoothness parameter $\nu$ for the Matérn covariance. These two parameters are related as $2\beta = \nu + d/2$. 
+Another difference between `fractional.operators()` and the previous functions for constructing the approximation, is that it requires specifying $\beta$ instead of the smoothness parameter $\nu$ for the Matérn covariance. These two parameters are related as $2\beta = \nu + d/2$. 
 ```{r}
 op <- fractional.operators(L = L, beta = (nu + 1/2)/2, C = fem$C, 
                            scale.factor = c, tau = tau, m = 1)
@@ -305,11 +305,11 @@ Let's make sure that we have the same approximation by comparing the previously 
 covs2 <- Sigma.mult(op,v)
 norm(covs-covs2)
 ```
-Obviously, it is simpler to use `spde.matern.operators` in this case, but the advantage with `fractional.operators` is that it also can be used for other more general models such as one with $L = \kappa(s)^2 - \nabla \cdot (\boldsymbol{\mathrm{H}}(s) \nabla)$ for some matrix-valued function $\boldsymbol{\mathrm{H}}(s)$. 
+Obviously, it is simpler to use `spde.matern.operators()` in this case, but the advantage with `fractional.operators()` is that it also can be used for other more general models such as one with $L = \kappa(s)^2 - \nabla \cdot (\boldsymbol{\mathrm{H}}(s) \nabla)$ for some matrix-valued function $\boldsymbol{\mathrm{H}}(s)$. 
 
 ### Using the approximation 
 
-For any approximation, constructed using the functions `fractional.operators`, `matern.operators`, or `spde.matern.operators`, we can simulate from the model using `simulate`. 
+For any approximation, constructed using the functions `fractional.operators()`, `matern.operators()`, or `spde.matern.operators()`, we can simulate from the model using `simulate()`. 
 
 ```{r}
 u <- simulate(op)
@@ -374,7 +374,7 @@ kappa = sqrt(8*nu)/range
 tau = 1/(sqrt(4*pi)*kappa*sigma)
 op <- spde.matern.operators(kappa = kappa, tau = tau, nu = nu, G = G, C = C, d = 2, m = 1)
 ```
-Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `R-INLA` function `inla.spde.make.A`. We will
+Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `R-INLA` function `inla.spde.make.A()`. We will
 sample 30 replicates of the latent field.
 ```{r}
 n.rep = 30
@@ -396,7 +396,7 @@ plot(loc_2d_mesh[,1],loc_2d_mesh[,2],cex=0.2,pch=16,xlab="",ylab="",
 par(opar)
 ```
 
-For each type of rational approximation of degree $m$, there is a corresponding likelihood function that can be used for likelihood-based parameter estimation. Since we constructed the model with `matern.operators`, we can use the function `matern.loglike` to define the likelihood. To simplify parameter estimation, we create an objective function to maximize which is the negative log-likelihood, parametrized using the logarithm of each parameter to avoid constrained optimization. 
+For each type of rational approximation of degree $m$, there is a corresponding likelihood function that can be used for likelihood-based parameter estimation. Since we constructed the model with `spde.matern.operators()`, we can use the function `spde.matern.loglike()` to define the likelihood. To simplify parameter estimation, we create an objective function to maximize which is the negative log-likelihood, parametrized using the logarithm of each parameter to avoid constrained optimization. 
 ```{r}
 mlik <- function(theta, Y, G, C, A) {
   return(-spde.matern.loglike(tau=exp(theta[1]), kappa=exp(theta[2]), 
@@ -404,7 +404,7 @@ mlik <- function(theta, Y, G, C, A) {
                               Y = Y, G = G, C = C, A = A, d = 2, m=1))
 }
 ```
-We can now estimate the parameter using `optim`.
+We can now estimate the parameter using `optim()`.
 ```{r}
 theta0 = c(get.inital.values.rSPDE(mesh=mesh_2d, include.tau = TRUE),
               log(0.1*sqrt(var(as.vector(Y)))))

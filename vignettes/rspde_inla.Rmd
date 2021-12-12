@@ -61,7 +61,7 @@ After the initial model fitting, we will show how to change some parameters of t
 In the end, we will also provide an example in which we have replicates.
 
 It is important to mention that one can improve the performance
-by using the PARDISO solver. Please, go to (https://www.pardiso-project.org/r-inla/#license)
+by using the PARDISO solver. Please, go to https://www.pardiso-project.org/r-inla/#license
 to apply for a license. Also, use `inla.pardiso()` for instructions on 
 how to enable the PARDISO sparse library.
 
@@ -378,7 +378,7 @@ plot(result_fit)
 ```
 
 This function is reminiscent to the `inla.spde.result()` function with the main
-difference that it has the `summary` and `plot` methods implemented.
+difference that it has the `summary()` and `plot()` methods implemented.
 
 
 ### Predictions
@@ -582,7 +582,7 @@ The higher the order of the rational approximation, the more accurate the result
 will be, however, the higher the computational cost will be.
 
 The default `rspde_order` of 2 is, generally, a good choice and reasonably
-accurate. See the vignette [Covariance-based rational approximation with the `rSPDE` package](rspde_cov.html)
+accurate. See the vignette [Rational approximation with the rSPDE package](rspde_cov.html)
 for further details on the order of the rational approximation and some comparison
 with the Matérn covariance.
 
@@ -676,13 +676,13 @@ non-integer $\alpha$.
 
 The $A$ matrix is the same for all values of $\nu$ such that $\alpha$ is integer.
 So, the $A$ matrix for these cases only need to be computed once. The same
-holds for the `index` obtained from the `rspde.make.index` function.
+holds for the `index` obtained from the `rspde.make.index()` function.
 
 In the second case the $A$ matrix only depends on the order of the rational
 approximation and not on $\nu$. Therefore, if the matrix $A$ has already been
 computed for some `rspde_order`, then the $A$ matrix will be same for all the values
 of $\nu$ such that $\alpha$ is non-integer for that `rspde_order`. The same holds for the
-`index` obtained from the `rspde.make.index` function.
+`index` obtained from the `rspde.make.index()` function.
 
 If $\nu$ is fixed, we have that the parameters returned by INLA are
 $$\kappa = \exp(\theta_1)\quad\hbox{and}\quad\tau = \exp(\theta_2).$$
@@ -1186,11 +1186,11 @@ A=inla.spde.make.A(
   repl=rep(1:n.rep,each=m))
 ```
 
-Notice that for the simulated data, we should use the $A$ matrix from `inla.spde.make.A` function.
+Notice that for the simulated data, we should use the $A$ matrix from `inla.spde.make.A()` function.
 
 We will now simulate a latent process with standard deviation $\sigma=1$ and 
 range $0.1$. We will use $\nu=0.5$ so that the model has an exponential covariance function.
-To this end we create a model object with the `CBrSPDE.matern.operators()` function:
+To this end we create a model object with the `matern.operators()` function:
 
 ```{r}
 nu = 0.5
@@ -1205,7 +1205,7 @@ operator_information = matern.operators (mesh=mesh_2d,
                                  sigma=sigma,
                                  m=2)
 ```
-More details on this function can be found at the [Covariance-based rational approximation with the `rSPDE` package](rspde_cov.html) vignette.
+More details on this function can be found at the [Rational approximation with the rSPDE package](rspde_cov.html) vignette.
 
 To simulate the latent process all we need to do is to use the `simulate` method on
 the `operator_information` object. We then obtain the simulated data $y$

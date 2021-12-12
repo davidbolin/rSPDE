@@ -3,14 +3,14 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-last-release/rSPDE)](https://cran.r-project.org/package=rSPDE)
 [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)
 
-rSPDE is an R package used for computing rational approximations of fractional SPDEs These rational approximations can be used for computatially efficient statistical inference.
+rSPDE is an R package used for computing rational approximations of fractional SPDEs. These rational approximations can be used for computatially efficient statistical inference.
 
 Basic statistical operations such as likelihood evaluations and kriging predictions using the fractional approximations are also implemented. The package also contains an interface to [R-INLA][ref4].
 
 For illustration purposes, the package contains a simple FEM implementation for models on R. See the 
-[Getting Started to the rSPDE package][ref2] vignette for an introduction to the package. The [Rational approximation][ref5] and [Covariance-based rational approximation][ref6] vignettes provide
+[Getting Started to the rSPDE package][ref2] vignette for an introduction to the package. The [Rational approximation with the rSPDE package][ref6] and [Operator-based rational approximation ][ref5] vignettes provide
 introductions to how to create and fit rSPDE models. For an introduction to the R-INLA implementation
-of the rSPDE models see the [INLA Vignette][ref3]. The [`rSPDE` documentation][ref7] contains descriptions and examples of the functions in the `rSPDE` package.
+of the rSPDE models see the [R-INLA implementation of the rational SPDE approach][ref3]. The [`rSPDE` documentation][ref7] contains descriptions and examples of the functions in the `rSPDE` package.
 
 # Reference #
 D. Bolin and K. Kirchner (2020) [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Journal of Computational and Graphical Statistics, 29:2, 274-285.
@@ -74,9 +74,9 @@ git flow hotfix finish hotfix_branch_name
 
 
 [ref]: https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537  "The rational SPDE approach for Gaussian random fields with general smoothness"
-[ref2]: https://davidbolin.github.io/rSPDE/articles/rSPDE.html "Getting Started to the rSPDE package"
-[ref3]: https://davidbolin.github.io/rSPDE/articles/inla_rspde "INLA Vignette"
+[ref2]: https://davidbolin.github.io/rSPDE//articles/rSPDE.html "Getting Started to the rSPDE package"
+[ref3]: https://davidbolin.github.io/rSPDE//articles/rspde_inla.html "INLA Vignette"
 [ref4]: https://r-inla.org "INLA homepage"
-[ref5]: https://davidbolin.github.io/rSPDE/articles/rspde_base.html
-[ref6]: https://davidbolin.github.io/rSPDE/articles/rspde_cov.html
+[ref5]: https://davidbolin.github.io/rSPDE//articles/rspde_base.html
+[ref6]: https://davidbolin.github.io/rSPDE//articles/rspde_cov.html
 [ref7]: https://davidbolin.github.io/rSPDE/reference/index.html "`rSPDE` documentation."

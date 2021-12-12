@@ -152,7 +152,7 @@ mesh_2d = inla.mesh.2d(
 plot(mesh_2d)
 ```
 
-We will now use the `matern.operators` function to construct a rational SPDE approximation of 
+We will now use the `matern.operators()` function to construct a rational SPDE approximation of 
 order $m=2$ for a Gaussian random field with a Matérn covariance function on
 $[0,1]\times [0, 1]$. We choose $\nu=0.5$ which corresponds to exponential
 covariance. We also set $\sigma=1$ and the range as $0.2$.
@@ -399,8 +399,8 @@ mlik <- function(theta, Y, A, op) {
 }    
 ```
 
-We can now estimate the parameter using `optimParallel` (one can also
-use `optim`):
+We can now estimate the parameter using `optimParallel()` (one can also
+use `optim()`):
 
 ```{r}
 library(optimParallel)
@@ -445,7 +445,7 @@ ylim = c(0,1))
 A.prd2 <- predgrid$proj$A
 ```
 
-We will now use the `predict` method on the `rSPDE` model object
+We will now use the `predict()` method on the `rSPDE` model object
 with the argument `compute.variances` set to `TRUE` so that
 we can plot the standard deviations. Let us also update the values of 
 the `rSPDE` model object to the fitted ones, and also save the estimated

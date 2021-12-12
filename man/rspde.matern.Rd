@@ -88,15 +88,12 @@ very close to \code{nu_upper_bound}).
 The following parameterization is used:
 \deqn{\log(\tau) = \theta_1,}
 \deqn{\log(\kappa) = \theta_2}
-and for \eqn{\theta_3}, if a beta prior is used, with the beta prior
-being taken on the interval \eqn{(0,\nu_{UB})}, where \eqn{\nu_{UB}} is
-\code{nu_upper_bound}, then the following parameterization
+and for \eqn{\theta_3}, we can have a beta prior
+or a truncated lognormal prior distribution. In each case,
+the prior distribution has support on the interval \eqn{(0,\nu_{UB})}, where \eqn{\nu_{UB}} is
+\code{nu_upper_bound}. Then, the following parameterization
 is considered:
 \deqn{\log\Big(\frac{\nu}{\nu_{UB}-\nu}\Big) = \theta_3.}
-If a truncated lognormal prior is used, where the lognormal is truncated to
-the interval \eqn{(0,\nu_{UB})}, then the following parameterization
-is considered:
-\deqn{\log(\nu) = \theta_3.}
 
 By default, an optimized version of this model is considered. The optimized
 version is generally much faster for larger datasets, however it takes more

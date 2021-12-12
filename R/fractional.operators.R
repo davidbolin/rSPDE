@@ -227,8 +227,8 @@ fractional.operators <- function(L,
 #' the \code{G} matrix, the dimension of the domain, as well as the 
 #' parameters of the covariance function.
 #' 
-#' @details If \code{type} is "covariance",
-#' we use the covariance-based rational approximation of the fractional operator.
+#' @details If \code{type} is "covariance", we use the 
+#' covariance-based rational approximation of the fractional operator.
 #' In the SPDE approach, we model \eqn{u} as the solution of the following SPDE: 
 #' \deqn{L^{\alpha/2}(\tau u) = \mathcal{W},}
 #' where 
@@ -238,7 +238,7 @@ fractional.operators <- function(L,
 #' a rational approximation of order \eqn{m} on \eqn{L_h^{-\alpha}} to
 #' obtain the following approximation:
 #' \deqn{L_{h,m}^{-\alpha} = L_h^{-m_\alpha} p(L_h^{-1})q(L_h^{-1})^{-1},}
-#' where \eqn{m_\alpha = \max\{1,\lfloor \alpha\rfloor\}}, \eqn{p} and \eqn{q} are polynomials arising from such rational approximation.
+#' where \eqn{m_\alpha = \lfloor \alpha\rfloor}, \eqn{p} and \eqn{q} are polynomials arising from such rational approximation.
 #' From this approximation we construct an approximate precision matrix for \eqn{u}.
 #' 
 #' If \code{type} is "operator", the approximation is based on a 
