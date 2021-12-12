@@ -1235,8 +1235,8 @@ rspde.matern.precision.integer = function(kappa, nu, tau=NULL, sigma=NULL, dim, 
 #' \donttest{
 #' library(INLA)
 #' 
-#' set.seed(1)
-#' loc <- matrix(runif(10000 * 2) * 1000, 10000, 2)
+#' set.seed(123)
+#' loc <- matrix(runif(100 * 2) * 100, 100, 2)
 #' mesh <- inla.mesh.2d(
 #' loc = loc,
 #' cutoff = 50,
@@ -1332,28 +1332,28 @@ rspde.make.A <- function(mesh=NULL,
 #' @examples 
 #' \donttest{
 #' library(INLA)
-#' set.seed(1)
+#' set.seed(123)
 #' 
-#' loc <- matrix(runif(100 * 2), 100, 2)
+#' loc <- matrix(runif(150 * 2), 150, 2)
 #' mesh <- inla.mesh.2d(loc = loc, max.edge = c(0.1, 0.5))
 #' rspde <- rspde.matern(mesh)
-#' index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
-#' n.repl = 2, dim = 2)
+#' index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde,
+#'                           n.repl = 2, dim = 2)
 #' spatial.A <- rspde.make.A(mesh=mesh, loc=loc,
-#'                              index = rep(1:nrow(loc), 2),
-#'                              repl = rep(1:2, each = nrow(loc))
+#'                           index = rep(1:nrow(loc), 2),
+#'                           repl = rep(1:2, each = nrow(loc))
 #' )
-#' y <- 10 + rnorm(100 * 2)
+#' y <- 10 + rnorm(150 * 2)
 #' stack <- inla.stack(
-#'  data = list(y = y),
-#'  A = list(spatial.A),
-#'  effects = list(c(index, list(intercept = 1))),
-#'  tag = "tag"
+#'   data = list(y = y),
+#'   A = list(spatial.A),
+#'   effects = list(c(index, list(intercept = 1))),
+#'   tag = "tag"
 #' )
 #' data <- inla.stack.data(stack, spde = rspde)
 #' formula <- y ~ -1 + intercept + f(spatial,
 #'                                   model = rspde,
-#'                                  replicate = spatial.repl
+#'                                   replicate = spatial.repl
 #' )
 #' result <- inla(formula,
 #'                family = "gaussian", data = data,
@@ -1508,28 +1508,28 @@ rspde.precision <- function(rspde, theta, optimized = FALSE){
 #' @examples
 #' \donttest{
 #' library(INLA)
-#' set.seed(1)
+#' set.seed(123)
 #' 
-#' loc <- matrix(runif(100 * 2), 100, 2)
+#' loc <- matrix(runif(150 * 2), 150, 2)
 #' mesh <- inla.mesh.2d(loc = loc, max.edge = c(0.1, 0.5))
 #' rspde <- rspde.matern(mesh)
-#' index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
-#' n.repl = 2, dim = 2)
+#' index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde,
+#'                           n.repl = 2, dim = 2)
 #' spatial.A <- rspde.make.A(mesh=mesh, loc=loc,
-#'                              index = rep(1:nrow(loc), 2),
-#'                              repl = rep(1:2, each = nrow(loc))
+#'                           index = rep(1:nrow(loc), 2),
+#'                           repl = rep(1:2, each = nrow(loc))
 #' )
-#' y <- 10 + rnorm(100 * 2)
+#' y <- 10 + rnorm(150 * 2)
 #' stack <- inla.stack(
-#'  data = list(y = y),
-#'  A = list(spatial.A),
-#'  effects = list(c(index, list(intercept = 1))),
-#'  tag = "tag"
+#'   data = list(y = y),
+#'   A = list(spatial.A),
+#'   effects = list(c(index, list(intercept = 1))),
+#'   tag = "tag"
 #' )
 #' data <- inla.stack.data(stack, spde = rspde)
 #' formula <- y ~ -1 + intercept + f(spatial,
 #'                                   model = rspde,
-#'                                  replicate = spatial.repl
+#'                                   replicate = spatial.repl
 #' )
 #' result <- inla(formula,
 #'                family = "gaussian", data = data,
@@ -1631,8 +1631,8 @@ return(result)
 #' @examples 
 #' \donttest{
 #' library(INLA)
-#' set.seed(1)
-#' loc <- matrix(runif(100 * 2), 100, 2)
+#' set.seed(123)
+#' loc <- matrix(runif(150 * 2), 150, 2)
 #' mesh <- inla.mesh.2d(loc = loc, max.edge = c(0.1, 0.5))
 #' rspde <- rspde.matern(mesh)
 #' index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
@@ -1641,7 +1641,7 @@ return(result)
 #'                              index = rep(1:nrow(loc), 2),
 #'                              repl = rep(1:2, each = nrow(loc))
 #' )
-#' y <- 10 + rnorm(100 * 2)
+#' y <- 10 + rnorm(150 * 2)
 #' stack <- inla.stack(
 #'  data = list(y = y),
 #'  A = list(spatial.A),
@@ -1733,9 +1733,9 @@ plot.rspde.result <- function(x, which = c("tau","kappa","nu"),
 #' @examples
 #' \donttest{
 #' library(INLA)
-#' set.seed(1)
+#' set.seed(123)
 #' 
-#' loc <- matrix(runif(100 * 2), 100, 2)
+#' loc <- matrix(runif(150 * 2), 150, 2)
 #' mesh <- inla.mesh.2d(loc = loc, max.edge = c(0.1, 0.5))
 #' rspde <- rspde.matern(mesh)
 #' index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
@@ -1744,7 +1744,7 @@ plot.rspde.result <- function(x, which = c("tau","kappa","nu"),
 #'                              index = rep(1:nrow(loc), 2),
 #'                              repl = rep(1:2, each = nrow(loc))
 #' )
-#' y <- 10 + rnorm(100 * 2)
+#' y <- 10 + rnorm(150 * 2)
 #' stack <- inla.stack(
 #'  data = list(y = y),
 #'  A = list(spatial.A),

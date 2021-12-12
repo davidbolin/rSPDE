@@ -54,8 +54,8 @@ Posterior plots for rSPDE field parameters in their original scales.
 \examples{
 \donttest{
 library(INLA)
-set.seed(1)
-loc <- matrix(runif(100 * 2), 100, 2)
+set.seed(123)
+loc <- matrix(runif(150 * 2), 150, 2)
 mesh <- inla.mesh.2d(loc = loc, max.edge = c(0.1, 0.5))
 rspde <- rspde.matern(mesh)
 index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
@@ -64,7 +64,7 @@ spatial.A <- rspde.make.A(mesh=mesh, loc=loc,
                              index = rep(1:nrow(loc), 2),
                              repl = rep(1:2, each = nrow(loc))
 )
-y <- 10 + rnorm(100 * 2)
+y <- 10 + rnorm(150 * 2)
 stack <- inla.stack(
  data = list(y = y),
  A = list(spatial.A),

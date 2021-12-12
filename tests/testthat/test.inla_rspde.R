@@ -1,5 +1,3 @@
-library(INLA)
-
 test_that("Checking equality of optimized and non-opt. Prec. matrices for non-integer case", {
   testthat::skip_on_cran()
 set.seed(1)

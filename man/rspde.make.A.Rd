@@ -56,8 +56,8 @@ Constructs observation/prediction weight matrices for rSPDE models based on
 \donttest{
 library(INLA)
 
-set.seed(1)
-loc <- matrix(runif(10000 * 2) * 1000, 10000, 2)
+set.seed(123)
+loc <- matrix(runif(100 * 2) * 100, 100, 2)
 mesh <- inla.mesh.2d(
 loc = loc,
 cutoff = 50,

@@ -67,23 +67,10 @@ parameters of the covariance function.
 \description{
 \code{matern.operators} is used for computing a rational SPDE approximation of a stationary Gaussian random
 fields on \eqn{R^d} with a Matern covariance function
-\deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
-(\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
+\deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
+(\sigma^2/(2^{\nu-1}\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
 }
 \details{
-The approximation is based on a rational approximation of the fractional operator
-\eqn{(\kappa^2 -\Delta)^\beta}, where \eqn{\beta = (\nu + d/2)/2}.
-This results in an approximate model of the form \deqn{P_l u(s) = P_r W,}
-where \eqn{P_j = p_j(L)} are non-fractional operators defined in terms of polynomials \eqn{p_j} for
-\eqn{j=l,r}. The order of \eqn{p_r} is given by \code{m} and the order of \eqn{p_l} is \eqn{m + m_\beta}
-where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and
-\eqn{m_\beta = 1} otherwise.
-
-The discrete approximation can be written as \eqn{u = P_r x} where \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
-and \eqn{Q = P_l^T C^{-1} P_l}. Note that the matrices \eqn{P_r} and \eqn{Q} may be be ill-conditioned for \eqn{m>1}.
-In this case, the metehods in \code{\link{operator.operations}} should be used for operations
-involving the matrices, since these methods are more numerically stable.
-
 If \code{type} is "covariance",
 we use the covariance-based rational approximation of the fractional operator.
 In the SPDE approach, we model \eqn{u} as the solution of the following SPDE: 
@@ -98,8 +85,19 @@ obtain the following approximation:
 where \eqn{m_\alpha = \max\{1,\lfloor \alpha\rfloor\}}, \eqn{p} and \eqn{q} are polynomials arising from such rational approximation.
 From this approximation we construct an approximate precision matrix for \eqn{u}.
 
-If \code{type} is "operator", then the rational approximation is carried out
-on the operator. See \code{\link{fractional.operators}} for further details.
+If \code{type} is "operator", the approximation is based on a 
+rational approximation of the fractional operator
+\eqn{(\kappa^2 -\Delta)^\beta}, where \eqn{\beta = (\nu + d/2)/2}.
+This results in an approximate model of the form \deqn{P_l u(s) = P_r W,}
+where \eqn{P_j = p_j(L)} are non-fractional operators defined in terms of polynomials \eqn{p_j} for
+\eqn{j=l,r}. The order of \eqn{p_r} is given by \code{m} and the order of \eqn{p_l} is \eqn{m + m_\beta}
+where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and
+\eqn{m_\beta = 1} otherwise.
+
+The discrete approximation can be written as \eqn{u = P_r x} where \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
+and \eqn{Q = P_l^T C^{-1} P_l}. Note that the matrices \eqn{P_r} and \eqn{Q} may be be ill-conditioned for \eqn{m>1}.
+In this case, the methods in \code{\link{operator.operations}} should be used for operations
+involving the matrices, since these methods are more numerically stable.
 }
 \examples{
 #Compute the covariance-based rational approximation of a 
@@ -129,9 +127,10 @@ Abar <- cbind(A,A,A)
 w <- rbind(v,v,v)
 #The approximate covariance function:
 c_cov.approx <- (Abar)\%*\%solve(Q,w)
+c.true <- folded.matern.covariance(rep(0.5,length(x)),abs(x), kappa, nu, sigma)
 
 #plot the result and compare with the true Matern covariance
-plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
+plot(x, c.true, type = "l", ylab = "C(h)",
      xlab="h", main = "Matern covariance and rational approximations")
 lines(x, c_cov.approx, col = 2)
 
@@ -153,9 +152,10 @@ op <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
                        
 v = t(rSPDE.A1d(x,0.5))
 c.approx = Sigma.mult(op,v)
+c.true <- folded.matern.covariance(rep(0.5,length(x)),abs(x), kappa, nu, sigma)
 
 #plot the result and compare with the true Matern covariance
-plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
+plot(x, c.true, type = "l", ylab = "C(h)",
      xlab="h", main = "Matern covariance and rational approximation")
 lines(x,c.approx,col=2)
 }
