@@ -107,7 +107,7 @@
 <p>We refer the reader to <a href="https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141" class="external-link">Geostatistical Modelling Using Non-Gaussian Matérn Fields</a>, <a href="https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046" class="external-link">Spatial Matérn Fields Driven by Non-Gaussian Noise</a> and <a href="https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405" class="external-link">Linear mixed effects models for non-Gaussian continuous repeated measurement data</a> for examples of models driven by type-G Lévy noises. We also refer the reader to the <a href="https://github.com/davidbolin/ngme" class="external-link"><code>ngme</code> package</a> where one can fit such models.</p>
 <p>We explore the functions for performing the operator-based rational approximation on the vignette:</p>
 <ul>
-<li><a href="rspde_base.html">Operator-based rational approximation with the rSPDE package</a></li>
+<li><a href="rspde_base.html">Operator-based rational approximation</a></li>
 </ul>
 <p>For the R-INLA implementation of the rational SPDE approach we refer the reader to the <a href="rspde_inla.html">R-INLA implementation of the rational SPDE approach</a> vignette.</p>
 </div>
@@ -148,7 +148,7 @@
 <p>Based on these nodes, we use the built-in function <code>rSPDE.fem1d</code> to assemble two matrices needed for creating the approximation of a basic Matérn model. These matrices are the mass matrix <span class="math inline">\(\boldsymbol{\mathrm{C}}\)</span>, with elements <span class="math inline">\(C_{ij} = \int \varphi_j(s) \varphi_i(s) ds\)</span>, and the stiffness matrix <span class="math inline">\(\boldsymbol{\mathrm{G}}\)</span>, with elements <span class="math inline">\(G_{ij} = \int \nabla\varphi_j(s) \cdot \nabla\varphi_i(s) ds\)</span>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rSPDE.fem1d.html">rSPDE.fem1d</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></code></pre></div>
-<p>We can now use <code>matern.operators</code> to construct a rational SPDE approximation of order <span class="math inline">\(m=2\)</span> for a Gaussian random field with a Matérn covariance function on the interval. We also refer the reader to the <a href="rspde_base.html">Operator-based rational approximation with the <code>rSPDE</code> package</a> for a similar comparison made for the operator-based rational approximation.</p>
+<p>We can now use <code><a href="../reference/matern.operators.html">matern.operators()</a></code> to construct a rational SPDE approximation of order <span class="math inline">\(m=2\)</span> for a Gaussian random field with a Matérn covariance function on the interval. We also refer the reader to the <a href="rspde_base.html">Operator-based rational approximation</a> for a similar comparison made for the operator-based rational approximation.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">20</span>
 <span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">2</span>
@@ -156,7 +156,7 @@
 <span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/matern.operators.html">matern.operators</a></span><span class="op">(</span>C<span class="op">=</span><span class="va">fem</span><span class="op">$</span><span class="va">C</span>, G<span class="op">=</span><span class="va">fem</span><span class="op">$</span><span class="va">G</span>,nu<span class="op">=</span><span class="va">nu</span>,
                                    kappa<span class="op">=</span><span class="va">kappa</span>,sigma<span class="op">=</span><span class="va">sigma</span>,d<span class="op">=</span><span class="fl">1</span>,m<span class="op">=</span><span class="fl">2</span><span class="op">)</span></code></pre></div>
 <p>The object <code>op_cov</code> contains the matrices needed for evaluating the distribution of the stochastic weights <span class="math inline">\(\boldsymbol{\mathrm{u}}\)</span>. If we want to evaluate <span class="math inline">\(u_h(s)\)</span> at some locations <span class="math inline">\(s_1,\ldots, s_n\)</span>, we need to multiply the weights with the basis functions <span class="math inline">\(\varphi_i(s)\)</span> evaluated at the locations. For this, we can construct the observation matrix <span class="math inline">\(\boldsymbol{\mathrm{A}}\)</span> with elements <span class="math inline">\(A_{ij} = \varphi_j(s_i)\)</span>, linking the FEM basis functions to the locations. This matrix can be constructed using the function <code>rSPDE.A1d</code>. However, as observed in the introduction of this vignette, we have decomposed the stochastic weights <span class="math inline">\(\boldsymbol{\mathrm{u}}\)</span> into a vector of latent variables. Thus, the <span class="math inline">\(A\)</span> matrix for the covariance-based rational approximation, which we will denote by <span class="math inline">\(\overline{A}\)</span>, is actually given by the <span class="math inline">\(m+1\)</span>-fold horizontal concatenation of these <span class="math inline">\(A\)</span> matrices, where <span class="math inline">\(m\)</span> is the order of the rational approximation.</p>
-<p>To compute the precision matrix from the covariance-based rational approximation one can use the <code>precision</code> method on the <code>CBrSPDEobj</code> object (the object returned by the <code><a href="../reference/matern.operators.html">matern.operators()</a></code> function with the default type, which is <code>type="covariance"</code>):</p>
+<p>To compute the precision matrix from the covariance-based rational approximation one can use the <code><a href="../reference/precision.CBrSPDEobj.html">precision()</a></code> method on the <code>CBrSPDEobj</code> object (the object returned by the <code><a href="../reference/matern.operators.html">matern.operators()</a></code> function with the default type, which is <code>type="covariance"</code>):</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">Q</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/precision.CBrSPDEobj.html">precision</a></span><span class="op">(</span><span class="va">op_cov</span><span class="op">)</span></code></pre></div>
 <p>To evaluate the accuracy of the approximation, let us compute the covariance function between the process at <span class="math inline">\(s=0.5\)</span> and all other locations in <code>s</code> and compare with the true Matérn covariance function. The covariances can be calculated as <span class="math display">\[
@@ -214,7 +214,7 @@
 <span class="op">}</span>
 <span class="fu"><a href="https://www.math.uzh.ch/pages/spam//reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">errors</span><span class="op">)</span></code></pre></div>
 <pre><code><span class="co">## [1] 0.977500618 0.086659186 0.017335546 0.008432142</span></code></pre>
-<p>We see that the error decreases very fast when we increase <span class="math inline">\(m\)</span> from <span class="math inline">\(1\)</span> to <span class="math inline">\(4\)</span>, without any numerical instability. This is an advantage of the covariance-based rational approximation when compared to the operator-based rational approximation. See <a href="rspde_base.html">Operator-based rational approximation with the <code>rSPDE</code> package</a> for details on the numerical instability of the operator-based rational approximation.</p>
+<p>We see that the error decreases very fast when we increase <span class="math inline">\(m\)</span> from <span class="math inline">\(1\)</span> to <span class="math inline">\(4\)</span>, without any numerical instability. This is an advantage of the covariance-based rational approximation when compared to the operator-based rational approximation. See <a href="rspde_base.html">Operator-based rational approximation</a> for details on the numerical instability of the operator-based rational approximation.</p>
 <p>The main reason for the numerical stability of the covariance-based method is that its clever decomposition of the latent field into a vector of random fields (see the introduction for further details) remove the need of higher order finite element matrices to have higher order rational approximations.</p>
 </div>
 <div class="section level2">
@@ -279,8 +279,8 @@ method <span class="op">=</span> <span class="st">"L-BFGS-B"</span><span class="
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#Total time</span>
 <span class="fu"><a href="https://www.math.uzh.ch/pages/spam//reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Time difference of 4.01108 secs</span></code></pre>
-<p>We can also speed up the optimization by using the <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> function from the <code>optimParallel</code> package. To such an end, we simply replace the <code>optim</code> function by <code>optimParallel</code> and set the number of cores we want to use:</p>
+<pre><code><span class="co">## Time difference of 5.380112 secs</span></code></pre>
+<p>We can also speed up the optimization by using the <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> function from the <code>optimParallel</code> package. To such an end, we simply replace the <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> function by <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> and set the number of cores we want to use:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/florafauna/optimParallel-R" class="external-link">optimParallel</a></span><span class="op">)</span>
 
@@ -306,7 +306,7 @@ method <span class="op">=</span> <span class="st">"L-BFGS-B"</span><span class="
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#Total time</span>
 <span class="fu"><a href="https://www.math.uzh.ch/pages/spam//reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Time difference of 3.598192 secs</span></code></pre>
+<pre><code><span class="co">## Time difference of 4.311849 secs</span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kringing">Kringing<a class="anchor" aria-label="anchor" href="#kringing"></a>
@@ -323,7 +323,7 @@ method <span class="op">=</span> <span class="st">"L-BFGS-B"</span><span class="
 <span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">op_cov</span>, user_kappa<span class="op">=</span><span class="va">kappa_est</span>,
                  user_sigma <span class="op">=</span> <span class="va">sigma_est</span>,
                  user_nu <span class="op">=</span> <span class="va">nu_est</span><span class="op">)</span></code></pre></div>
-<p>We can now perform kringing with the <code>predict</code> method:</p>
+<p>We can now perform kringing with the <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> method:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">u.krig</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">op_cov</span>, A <span class="op">=</span> <span class="va">A</span>, Aprd <span class="op">=</span> <span class="va">A.krig</span>, Y <span class="op">=</span> <span class="va">Y</span>, sigma.e <span class="op">=</span> <span class="va">sigma.e</span><span class="op">)</span></code></pre></div>
 <p>The process simulation, the observed data, and the kriging prediction are shown in the following figure.</p>
@@ -365,7 +365,7 @@ method <span class="op">=</span> <span class="st">"L-BFGS-B"</span><span class="
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#Total time</span>
 <span class="fu"><a href="https://www.math.uzh.ch/pages/spam//reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Time difference of 1.308838 secs</span></code></pre>
+<pre><code><span class="co">## Time difference of 1.623881 secs</span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -427,7 +427,7 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
                                   A <span class="op">=</span> <span class="va">A</span>, user_kappa<span class="op">=</span><span class="va">kappa</span>, user_sigma <span class="op">=</span> <span class="va">sigma</span>,
                                  user_nu<span class="op">=</span><span class="va">nu</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span>    </code></pre></div>
-<p>We can now estimate the parameter using <code>optimParallel</code>:</p>
+<p>We can now estimate the parameter using <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code>:</p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">theta0_2d</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/get.inital.values.rSPDE.html">get.inital.values.rSPDE</a></span><span class="op">(</span>mesh<span class="op">=</span><span class="va">mesh_2d</span><span class="op">)</span>,
               <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var</a></span><span class="op">(</span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam//reference/Coercion.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
@@ -447,7 +447,7 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#Total time</span>
 <span class="fu"><a href="https://www.math.uzh.ch/pages/spam//reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Time difference of 3.549913 secs</span></code></pre>
+<pre><code><span class="co">## Time difference of 4.891011 secs</span></code></pre>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

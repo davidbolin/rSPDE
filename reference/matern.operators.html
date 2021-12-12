@@ -151,8 +151,8 @@ parameters of the covariance function.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>If <code>type</code> is "covariance",
-we use the covariance-based rational approximation of the fractional operator.
+    <p>If <code>type</code> is "covariance", we use the 
+covariance-based rational approximation of the fractional operator.
 In the SPDE approach, we model \(u\) as the solution of the following SPDE: 
 $$L^{\alpha/2}(\tau u) = \mathcal{W},$$
 where 
@@ -162,7 +162,7 @@ Now, let \(L_h\) be a finite-element approximation of \(L\). We can use
 a rational approximation of order \(m\) on \(L_h^{-\alpha}\) to
 obtain the following approximation:
 $$L_{h,m}^{-\alpha} = L_h^{-m_\alpha} p(L_h^{-1})q(L_h^{-1})^{-1},$$
-where \(m_\alpha = \max\{1,\lfloor \alpha\rfloor\}\), \(p\) and \(q\) are polynomials arising from such rational approximation.
+where \(m_\alpha = \lfloor \alpha\rfloor\), \(p\) and \(q\) are polynomials arising from such rational approximation.
 From this approximation we construct an approximate precision matrix for \(u\).</p>
 <p>If <code>type</code> is "operator", the approximation is based on a 
 rational approximation of the fractional operator

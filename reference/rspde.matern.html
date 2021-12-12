@@ -153,15 +153,12 @@ very close to <code>nu_upper_bound</code>).</p>
 <p>The following parameterization is used:
 $$\log(\tau) = \theta_1,$$
 $$\log(\kappa) = \theta_2$$
-and for \(\theta_3\), if a beta prior is used, with the beta prior
-being taken on the interval \((0,\nu_{UB})\), where \(\nu_{UB}\) is
-<code>nu_upper_bound</code>, then the following parameterization
+and for \(\theta_3\), we can have a beta prior
+or a truncated lognormal prior distribution. In each case,
+the prior distribution has support on the interval \((0,\nu_{UB})\), where \(\nu_{UB}\) is
+<code>nu_upper_bound</code>. Then, the following parameterization
 is considered:
-$$\log\Big(\frac{\nu}{\nu_{UB}-\nu}\Big) = \theta_3.$$
-If a truncated lognormal prior is used, where the lognormal is truncated to
-the interval \((0,\nu_{UB})\), then the following parameterization
-is considered:
-$$\log(\nu) = \theta_3.$$</p>
+$$\log\Big(\frac{\nu}{\nu_{UB}-\nu}\Big) = \theta_3.$$</p>
 <p>By default, an optimized version of this model is considered. The optimized
 version is generally much faster for larger datasets, however it takes more
 time to build the model as the sparsity of the graph should be analyzed. 
@@ -244,10 +241,10 @@ either by continuity or by limits).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    inla.stack.data(stk.dat), ", " control.predictor = list(A = </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    inla.stack.A(stk.dat)), control.inla = list(int.strategy = \"eb\"))" ) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Time used:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 4.64, Running = 31.9, Post = 0.0464, Total = 36.6 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 4.03, Running = 23, Post = 0.0405, Total = 27.1 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.649 0.016      0.618    0.649       0.68 0.649   0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           mean    sd 0.025quant 0.5quant 0.975quant mode kld</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.65 0.015       0.62     0.65      0.679 0.65   0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name	  Model</span>
@@ -256,19 +253,19 @@ either by continuity or by limits).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Model hyperparameters:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                   mean       sd 0.025quant</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision parameter for the Gamma observations   13.67    0.407      12.80</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for seaDist                          7207.53 2636.669    3728.56</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                                 -1.44    0.364      -2.23</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                                  1.43    0.150       1.16</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                                 -1.01    0.268      -1.52</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision parameter for the Gamma observations   13.88    0.919      12.16</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for seaDist                          7921.83 5934.311    2252.74</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                                 -1.33    0.316      -1.93</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                                  1.45    0.157       1.13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                                 -1.16    0.203      -1.59</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                0.5quant 0.975quant    mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision parameter for the Gamma observations    13.69     14.430   13.79</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for seaDist                           6634.09  13893.157 5643.72</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                                  -1.41     -0.747   -1.32</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                                   1.42      1.752    1.38</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                                  -1.03     -0.385   -1.10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision parameter for the Gamma observations    13.86     15.774   13.80</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for seaDist                           6211.37  23667.206 4222.91</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                                  -1.33     -0.684   -1.35</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                                   1.45      1.753    1.46</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                                  -1.16     -0.755   -1.15</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Marginal log-Likelihood:  -1253.94 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Marginal log-Likelihood:  -1254.63 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Posterior summaries for the linear predictor and the fitted values are computed</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
