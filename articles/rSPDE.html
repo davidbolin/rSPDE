@@ -84,12 +84,13 @@
     
   </div>
 </nav><div class="container template-article">
-<script src="rSPDE_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
+
+<div class="row">
   <main id="main"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>An introduction to the rSPDE package</h1>
                         <h4 data-toc-skip class="author">David Bolin and Alexandre B. Simas</h4>
             
-            <h4 data-toc-skip class="date">2021-12-11</h4>
+            <h4 data-toc-skip class="date">2021-12-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rSPDE.Rmd" class="external-link"><code>vignettes/rSPDE.Rmd</code></a></small>
       <div class="d-none name"><code>rSPDE.Rmd</code></div>
@@ -164,7 +165,7 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span class="va">sigma.e</span> <span class="op">&lt;-</span> <span class="fl">0.1</span>
 <span class="va">y</span> <span class="op">=</span> <span class="va">A</span> <span class="op"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">%*%</a></span> <span class="va">u</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="op">*</span> <span class="va">sigma.e</span></code></pre></div>
 <p>The observed data can be seen in the following image.</p>
-<p><img src="rSPDE_files/figure-html/unnamed-chunk-5-1.png" width="672"></p>
+<p><img src="rSPDE_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;"></p>
 <p>The simulated random field is shown in the following figure.</p>
 <p><img src="rSPDE_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;"></p>
 </div>
@@ -205,24 +206,24 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span class="co">#&gt;    inla.stack.data(st.dat), ", " control.predictor = list(A = </span>
 <span class="co">#&gt;    inla.stack.A(st.dat)), inla.mode = \"experimental\")" ) </span>
 <span class="co">#&gt; Time used:</span>
-<span class="co">#&gt;     Pre = 2.85, Running = 24.4, Post = 0.0718, Total = 27.3 </span>
+<span class="co">#&gt;     Pre = 4.39, Running = 30, Post = 0.118, Total = 34.5 </span>
 <span class="co">#&gt; Random effects:</span>
 <span class="co">#&gt;   Name     Model</span>
 <span class="co">#&gt;     field RGeneric2</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Model hyperparameters:</span>
 <span class="co">#&gt;                                           mean    sd 0.025quant 0.5quant</span>
-<span class="co">#&gt; Precision for the Gaussian observations 85.447 3.168     79.868   85.209</span>
-<span class="co">#&gt; Theta1 for field                        -1.721 0.028     -1.779   -1.719</span>
-<span class="co">#&gt; Theta2 for field                         1.935 0.012      1.910    1.935</span>
-<span class="co">#&gt; Theta3 for field                         0.398 0.022      0.357    0.397</span>
-<span class="co">#&gt;                                         0.975quant   mode</span>
-<span class="co">#&gt; Precision for the Gaussian observations     92.343 84.448</span>
-<span class="co">#&gt; Theta1 for field                            -1.670 -1.714</span>
-<span class="co">#&gt; Theta2 for field                             1.960  1.935</span>
-<span class="co">#&gt; Theta3 for field                             0.445  0.393</span>
+<span class="co">#&gt; Precision for the Gaussian observations 83.056 1.072     80.919   83.031</span>
+<span class="co">#&gt; Theta1 for field                        -1.559 0.012     -1.581   -1.560</span>
+<span class="co">#&gt; Theta2 for field                         2.108 0.012      2.084    2.108</span>
+<span class="co">#&gt; Theta3 for field                         0.243 0.014      0.216    0.242</span>
+<span class="co">#&gt;                                         0.975quant  mode</span>
+<span class="co">#&gt; Precision for the Gaussian observations     85.265 82.97</span>
+<span class="co">#&gt; Theta1 for field                            -1.534 -1.56</span>
+<span class="co">#&gt; Theta2 for field                             2.131  2.11</span>
+<span class="co">#&gt; Theta3 for field                             0.272  0.24</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; Marginal log-Likelihood:  28.43 </span>
+<span class="co">#&gt; Marginal log-Likelihood:  26.48 </span>
 <span class="co">#&gt; Posterior summaries for the linear predictor and the fitted values are computed</span>
 <span class="co">#&gt; (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></code></pre></div>
 <p>and the summary in the user’s scale:</p>
@@ -230,9 +231,9 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <code class="sourceCode R"><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span>
 <span class="co">#&gt;           mean         sd 0.025quant 0.5quant 0.975quant     mode</span>
-<span class="co">#&gt; tau   0.178764 0.00488326   0.168899 0.179149   0.188027 0.180170</span>
-<span class="co">#&gt; kappa 6.916430 0.08555340   6.756970 6.923470   7.093320 6.923400</span>
-<span class="co">#&gt; nu    0.597621 0.00538140   0.588459 0.597970   0.609519 0.596908</span>
+<span class="co">#&gt; tau   0.210119 0.00248226   0.205812 0.210243   0.215538 0.209774</span>
+<span class="co">#&gt; kappa 8.223890 0.09578920   8.039620 8.234370   8.415540 8.244290</span>
+<span class="co">#&gt; nu    0.559783 0.00342860   0.554124 0.560290   0.567388 0.559762</span>
 <span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span>
 <span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>,<span class="st">"kappa"</span>,<span class="st">"nu"</span><span class="op">)</span>,
                         true <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tau</span>, <span class="va">kappa</span>, <span class="va">nu</span><span class="op">)</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">$</span><span class="va">summary.tau</span><span class="op">$</span><span class="va">mean</span>, 
@@ -243,9 +244,9 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
                                                            <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.nu</span><span class="op">$</span><span class="va">mode</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://www.math.uzh.ch/pages/spam//reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span>
 <span class="co">#&gt;   parameter       true      mean      mode</span>
-<span class="co">#&gt; 1       tau  0.2236068 0.1787642 0.1801696</span>
-<span class="co">#&gt; 2     kappa 10.0000000 6.9164301 6.9234046</span>
-<span class="co">#&gt; 3        nu  0.5000000 0.5976215 0.5969083</span></code></pre></div>
+<span class="co">#&gt; 1       tau  0.2236068 0.2101194 0.2097745</span>
+<span class="co">#&gt; 2     kappa 10.0000000 8.2238943 8.2442945</span>
+<span class="co">#&gt; 3        nu  0.5000000 0.5597830 0.5597616</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="kringing-with-r-inla-implementation-of-the-rational-spde-approach">Kringing with <code>R-INLA</code> implementation of the rational SPDE approach<a class="anchor" aria-label="anchor" href="#kringing-with-r-inla-implementation-of-the-rational-spde-approach"></a>
@@ -331,7 +332,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">#&gt; Estimate     1  8.098931 0.5277972 0.1134149</span>
 <span class="co">#Total time</span>
 <span class="fu"><a href="https://www.math.uzh.ch/pages/spam//reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span>
-<span class="co">#&gt; Time difference of 5.918595 secs</span></code></pre></div>
+<span class="co">#&gt; Time difference of 4.696493 secs</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="kringing-with-rspde">Kringing with <code>rSPDE</code><a class="anchor" aria-label="anchor" href="#kringing-with-rspde"></a>
@@ -358,9 +359,26 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <p>Then, the std. deviations:</p>
 <p><img src="rSPDE_files/figure-html/plot_pred_sd2-1.png" width="720"></p>
 </div>
-<div class="section level1">
-<h1 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<div class="section level1 unnumbered">
+<h1 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-azar20" class="csl-entry">
+Asar, Özgür, David Bolin, Peter Diggle, and Jonas Wallin. 2020. <span>“Linear Mixed Effects Models for Non‐Gaussian Repeated Measurement Data.”</span> <em>Journal of the Royal Statistical Society. Series C. Applied Statistics</em> 69 (5): 1015–65.
+</div>
+<div id="ref-bolin13" class="csl-entry">
+Bolin, David. n.d. <span>“Spatial Matérn Fields Driven by Non-Gaussian Noise.”</span> <em>Scandinavian Journal of Statistics</em> 41 (3): 557–79.
+</div>
+<div id="ref-bolin19" class="csl-entry">
+Bolin, David, and Kristin Kirchner. 2020. <span>“The Rational SPDE Approach for Gaussian Random Fields with General Smoothness.”</span> <em>Journal of Computational and Graphical Statistics</em> 29 (2): 274–85.
+</div>
+<div id="ref-lindgren11" class="csl-entry">
+Lindgren, Finn, Håvard Rue, and Johan Lindström. 2011. <span>“An Explicit Link Between Gaussian Fields and Gaussian Markov Random Fields: The Stochastic Partial Differential Equation Approach.”</span> <em>Journal of the Royal Statistical Society. Series B. Statistical Methodology</em> 73 (4): 423–98.
+</div>
+<div id="ref-wallin15" class="csl-entry">
+Wallin, Jonas, and David Bolin. 2015. <span>“Geostatistical Modelling Using Non-Gaussian Matérn Fields.”</span> <em>Scandinavian Journal of Statistics</em> 42 (3): 872–90.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
