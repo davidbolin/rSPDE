@@ -1235,6 +1235,7 @@ rspde.matern.precision.integer = function(kappa, nu, tau=NULL, sigma=NULL, dim, 
 #' \donttest{
 #' library(INLA)
 #' 
+#' set.seed(1)
 #' loc <- matrix(runif(10000 * 2) * 1000, 10000, 2)
 #' mesh <- inla.mesh.2d(
 #' loc = loc,
@@ -1331,9 +1332,10 @@ rspde.make.A <- function(mesh=NULL,
 #' @examples 
 #' \donttest{
 #' library(INLA)
+#' set.seed(1)
 #' 
 #' loc <- matrix(runif(100 * 2), 100, 2)
-#' mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(0.1, 0.5))
+#' mesh <- inla.mesh.2d(loc = loc, max.edge = c(0.1, 0.5))
 #' rspde <- rspde.matern(mesh)
 #' index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
 #' n.repl = 2, dim = 2)
@@ -1437,7 +1439,7 @@ rspde.make.index <- function(name, n.spde=NULL, n.group = 1,
 #' \donttest{
 #' library(INLA)
 #' 
-#'   set.seed(1)
+#' set.seed(1)
 #' n <- 10
 #' 
 #' coords <- cbind(long=sample(1:n), lat=sample(1:n))
@@ -1506,9 +1508,10 @@ rspde.precision <- function(rspde, theta, optimized = FALSE){
 #' @examples
 #' \donttest{
 #' library(INLA)
+#' set.seed(1)
 #' 
 #' loc <- matrix(runif(100 * 2), 100, 2)
-#' mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(0.1, 0.5))
+#' mesh <- inla.mesh.2d(loc = loc, max.edge = c(0.1, 0.5))
 #' rspde <- rspde.matern(mesh)
 #' index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
 #' n.repl = 2, dim = 2)
@@ -1730,9 +1733,10 @@ plot.rspde.result <- function(x, which = c("tau","kappa","nu"),
 #' @examples
 #' \donttest{
 #' library(INLA)
+#' set.seed(1)
 #' 
 #' loc <- matrix(runif(100 * 2), 100, 2)
-#' mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(0.1, 0.5))
+#' mesh <- inla.mesh.2d(loc = loc, max.edge = c(0.1, 0.5))
 #' rspde <- rspde.matern(mesh)
 #' index <- rspde.make.index(name = "spatial", n.spde = rspde$n.spde, 
 #' n.repl = 2, dim = 2)

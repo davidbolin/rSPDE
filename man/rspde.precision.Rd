@@ -28,7 +28,7 @@ for given parameter values based on an \code{inla.rspde} model object.
 \donttest{
 library(INLA)
 
-  set.seed(1)
+set.seed(1)
 n <- 10
 
 coords <- cbind(long=sample(1:n), lat=sample(1:n))
