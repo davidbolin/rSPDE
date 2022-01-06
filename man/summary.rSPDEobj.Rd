@@ -4,7 +4,7 @@
 \alias{summary.rSPDEobj}
 \alias{print.summary.rSPDEobj}
 \alias{print.rSPDEobj}
-\title{Summarise excurobj objects}
+\title{Summarise rSPDE objects}
 \usage{
 \method{summary}{rSPDEobj}(object, ...)
 

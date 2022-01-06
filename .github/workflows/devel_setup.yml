@@ -1,0 +1,23 @@
+on:
+  push:
+    branches:
+      - devel
+      
+name: devel_setup
+
+jobs:
+  build:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v2 
+      - run:  |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          sed -i .bak '/vignettes/d' .Rbuildignore
+          sed -i .bak 's/R.rsp/knitr/' DESCRIPTION
+          git rm vignettes/*.html
+          git rm vignettes/*.asis
+          git add .Rbuildignore
+          git add DESCRIPTION
+          git commit -m "Doing the setup"
+          git push

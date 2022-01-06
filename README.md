@@ -3,15 +3,17 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-last-release/rSPDE)](https://cran.r-project.org/package=rSPDE)
 [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)
 
-rSPDE is an R package used for computing rational approximations of fractional SPDEs These rational approximations can be used for computatially efficient statistical inference.
+rSPDE is an R package used for computing rational approximations of fractional SPDEs. These rational approximations can be used for computatially efficient statistical inference.
 
-Basic statistical operations such as likelihood evaluations and kriging predictions using the fractional approximations are also implemented.
+Basic statistical operations such as likelihood evaluations and kriging predictions using the fractional approximations are also implemented. The package also contains an interface to [R-INLA][ref4].
 
 For illustration purposes, the package contains a simple FEM implementation for models on R. See the 
-[Vignette][ref2] for an introduction to the package. 
+[Getting Started to the rSPDE package][ref2] vignette for an introduction to the package. The [Rational approximation with the rSPDE package][ref6] and [Operator-based rational approximation ][ref5] vignettes provide
+introductions to how to create and fit rSPDE models. For an introduction to the R-INLA implementation
+of the rSPDE models see the [R-INLA implementation of the rational SPDE approach][ref3]. The [`rSPDE` documentation][ref7] contains descriptions and examples of the functions in the `rSPDE` package.
 
 # Reference #
-D. Bolin and K. Kichner, [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Journal of Computational and Graphical Statistics.
+D. Bolin and K. Kirchner (2020) [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Journal of Computational and Graphical Statistics, 29:2, 274-285.
 
 # Installation instructions #
 The latest CRAN release of the package can be installed directly from CRAN with `install.packages("rSPDE")`.
@@ -30,8 +32,15 @@ rtools = "C:\\Rtools\\bin"
 gcc = "C:\\Rtools\\gcc-4.6.3\\bin"
 Sys.setenv(PATH = paste(c(gcc, rtools, Sys.getenv("PATH")), collapse = ";"))
 ```
-where the variables `rtools` and `gcc` need to be changed if `Rtool`s is not installed directly on `C:`.
+where the variables `rtools` and `gcc` need to be changed if `Rtool`s is not installed directly on `C:`,
+and `gcc`'s version might need to be changed depending on the version of `Rtools`.
 
+# Upcoming features
+
+- Implementation of covariance-based non-stationary models.
+- Implementation of the covariance-based rational approximation on R-STAN interface.
+- Implementation of covariance-based method to more general SPDE models.
+- Implementation of PC-priors for R-INLA `rSPDE` models.
 
 # Repository branch workflows #
 The package version format for released versions is `major.minor.bugfix`. All regular development should be performed on the `devel` branch or in a feature branch, managed with `git flow feature`. On the `devel` branch, the vestion number is `major.minor.bugfix.9000`, where the first three components reflect the latest released version with changes present in the `default` branch. Bugfixes should be applied via the `git flow bugfix` and `git flow hotfix` methods, as indicated below. For `git flow` configuration, use `master` as the stable master branch, `devel` as the develop branch, and `v` as the version tag prefix. See [the `git flow` tutorial](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) for more information.
@@ -66,4 +75,9 @@ git flow hotfix finish hotfix_branch_name
 
 
 [ref]: https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537  "The rational SPDE approach for Gaussian random fields with general smoothness"
-[ref2]: https://cran.r-project.org/web/packages/rSPDE/vignettes/rspde.html "Vignette"
+[ref2]: https://davidbolin.github.io/rSPDE//articles/rSPDE.html "Getting Started to the rSPDE package"
+[ref3]: https://davidbolin.github.io/rSPDE//articles/rspde_inla.html "INLA Vignette"
+[ref4]: https://r-inla.org "INLA homepage"
+[ref5]: https://davidbolin.github.io/rSPDE//articles/rspde_base.html
+[ref6]: https://davidbolin.github.io/rSPDE//articles/rspde_cov.html
+[ref7]: https://davidbolin.github.io/rSPDE/reference/index.html "`rSPDE` documentation."

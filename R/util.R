@@ -68,8 +68,7 @@ get.roots <- function(m, beta)
 #' The Matern covariance function
 #'
 #' \code{matern.covariance} evaluates the Matern covariance function
-#' \deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
-#' (\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
+#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
 #'
 #' @param h Distances to evaluate the covariance function at.
 #' @param kappa Range parameter.
@@ -84,7 +83,10 @@ get.roots <- function(m, beta)
 #' plot(x, matern.covariance(abs(x - 0.5), kappa = 10, nu = 1/5, sigma = 1),
 #'      type = "l", ylab = "C(h)", xlab = "h")
 
-matern.covariance <- function(h, kappa, nu, sigma)
+matern.covariance <- function(h, 
+                              kappa, 
+                              nu, 
+                              sigma)
 {
   if (nu == 1/2) {
     C = sigma^2*exp(-kappa*abs(h))
@@ -95,7 +97,57 @@ matern.covariance <- function(h, kappa, nu, sigma)
   return(as.matrix(C))
 }
 
-#' Summarise excurobj objects
+#' The folded Matern covariance function
+#'
+#' @description 
+#' \code{matern.covariance} evaluates the folded Matern covariance function
+#' over an interval \eqn{[0,L]}.
+#' 
+#' @details 
+#' \code{matern.covariance} evaluates the folded Matern covariance function
+#' over an interval \eqn{[0,L]}:
+#' \deqn{C(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL)+C(h+m-2kL)),}
+#' 
+#' where \eqn{C(\cdot)} is the Matern covariance function:
+#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
+#' 
+#' We consider the truncation:
+#' \deqn{C(h,m) = \sum_{k=-N}^{N} (C(h-m+2kL)+C(h+m-2kL)).}
+#'
+#' @param h,m Arguments of the covariance function.
+#' @param kappa Range parameter.
+#' @param nu Shape parameter.
+#' @param sigma Standard deviation.
+#' @param L The upper bound of the interval [0,L]. By default, \code{L=1}.
+#' @param N The truncation parameter.
+#'
+#' @return A vector with the values C(h).
+#' @export
+#'
+#' @examples
+#' x = seq(from = 0, to = 1, length.out = 101)
+#' plot(x, folded.matern.covariance(rep(0.5,length(x)),x, kappa = 10, nu = 1/5, sigma = 1),
+#'      type = "l", ylab = "C(h)", xlab = "h")
+
+folded.matern.covariance <- function(h, m, kappa, nu, sigma,
+                                     L=1, N=10)
+{
+  if(length(h)!=length(m)){
+    stop("h and m should have the same length!")
+  }
+
+  s1 <- sapply(-N:N, function(j){
+    h-m+2*j*L
+  })
+  s2 <- sapply(-N:N, function(j){
+    h+m-2*j*L
+  })
+  C <- rowSums(matern.covariance(h=s1, kappa=kappa, nu=nu, sigma=sigma)+
+             matern.covariance(h=s2, kappa=kappa, nu=nu, sigma=sigma))
+  return(as.matrix(C))
+}
+
+#' Summarise rSPDE objects
 #'
 #' Summary method for class "rSPDEobj"
 #'
@@ -116,7 +168,7 @@ summary.rSPDEobj <- function(object, ...)
     out$nu = object$nu
   }
   out$m = object$m
-  out$n = dim(object$L2)[1]
+  out$n = dim(object$L)[1]
   return(out)
 }
 
@@ -268,4 +320,513 @@ require.nowarnings <- function(package, lib.loc = NULL, character.only = FALSE)
             quietly = TRUE,
             character.only = TRUE)
   )
+}
+
+#' @name get.inital.values.rSPDE
+#' @title Initial values for log-likelihood optimization in rSPDE models
+#' with a latent stationary Gaussian Matern model
+#' @description Auxiliar function to obtain domain-based initial values for
+#' log-likelihood optimization in rSPDE models
+#' with a latent stationary Gaussian Matern model
+#' @param mesh An in INLA mesh
+#' @param mesh.range The range of the mesh. 
+#' @param dim The dimension of the domain.
+#' @param include.nu Should we also provide an initial guess for nu?
+#' @param log.scale Should the results be provided in log scale?
+#' @param nu_upper_bound Should an upper bound for nu be considered?
+#' @param include.tau Should tau be returned instead of sigma?
+#' @return A vector of the form (theta_1,theta_2,theta_3) or where
+#' theta_1 is the initial guess for tau, theta_2 is the initial guess for kappa
+#' and theta_3 is the initial guess for nu.
+#' @export
+#' 
+
+get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, 
+                                    dim = NULL,
+                                    include.nu = TRUE, log.scale = TRUE,
+                                    include.tau = FALSE,
+                                    nu_upper_bound = NULL){
+  if(is.null(mesh)&&is.null(mesh.range)){
+    stop("You should either provide mesh or mesh.range!")
+  }
+  
+  if(is.null(mesh)&&is.null(dim)){
+    stop("If you don't provide mesh, you have to provide dim!")
+  }
+  if(include.nu){
+    if(!is.null(nu_upper_bound)){
+      nu <- min(1,nu_upper_bound/2)
+    } else{
+      nu <- 1
+    }
+  }
+  
+  if(!is.null(mesh)){
+    dim <- get_inla_mesh_dimension(inla_mesh = mesh)
+    mesh.range = ifelse(dim == 2, (max(c(diff(range(mesh$loc[,
+                                                           1])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[,
+                                                                                                                 3]))))), diff(mesh$interval))
+  }
+  
+  range.nominal <- mesh.range * 0.2
+    
+  kappa <- sqrt(8 * nu)/range.nominal
+  
+  if(include.tau){
+    tau <- sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(dim /2) * gamma(nu + dim/2)))
+    
+    initial <- c(tau, kappa, nu)
+  } else{
+    initial <- c(1, kappa, nu)
+  }  
+
+  if(log.scale){
+    return(log(initial))
+  } else{
+    return(initial)
+  }
+}
+
+
+
+
+#' @name cut_decimals
+#' @title Approximation function for covariance-based rSPDE models
+#' @description Approximation function to be used to compute the precision matrix for covariance-based rSPDE models
+#' @param nu A real number
+#' @return An approximation
+#' @noRd
+
+cut_decimals <- function(nu) {
+  temp <- nu - floor(nu)
+  if (temp < 10 ^ (-3)) {
+    temp <- 10 ^ (-3)
+  }
+  if (temp > 0.999) {
+    temp <- 0.999
+  }
+  return(temp)
+}
+
+#' @name check_class_inla_rspde
+#' @title Check if the object inherits from inla.rspde class
+#' @description Check if the object inherits from inla.rspde class
+#' @param model A model to test if it inherits from inla.rspde
+#' @return Gives an error if the object does not inherit from inla.rspde
+#' @noRd
+
+check_class_inla_rspde <- function(model){
+  if(!inherits(model, "inla.rspde")){
+    stop("You should provide a rSPDE model!")
+  }
+}
+
+#' @name get_inla_mesh_dimension
+#' @title Get the dimension of an INLA mesh
+#' @description Get the dimension of an INLA mesh
+#' @param inla_mesh An INLA mesh
+#' @return The dimension of an INLA mesh.
+#' @noRd
+
+
+get_inla_mesh_dimension <- function(inla_mesh){
+  cond1 <- inherits(inla_mesh,"inla.mesh.1d")
+  cond2 <- inherits(inla_mesh,"inla.mesh")
+  stopifnot(cond1 || cond2)
+  if(inla_mesh$manifold == "R1"){
+      d = 1
+  } else if(inla_mesh$manifold == "R2"){
+      d = 2
+  } else{
+    stop("The mesh should be from a flat manifold.")
+  }
+  return(d)
+}
+
+
+#' @name fem_mesh_order_1d
+#' @title Get fem_mesh_matrices for 1d inla.mesh objects
+#' @description Get fem_mesh_matrices for 1d inla.mesh objects
+#' @param inla_mesh An INLA mesh
+#' @param m_order the order of the FEM matrices
+#' @return A list with fem_mesh_matrices
+#' @noRd
+
+
+fem_mesh_order_1d <- function(inla_mesh, m_order){
+  fem_mesh <- rSPDE.fem1d(inla_mesh[["loc"]])
+  C <- fem_mesh$C
+  C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
+  C <- INLA::inla.as.sparse(C)
+  G <- fem_mesh$G
+  Gk <- list()
+  Ci <- C
+  Ci@x <- 1/(C@x)
+  
+  GCi <- G%*%Ci
+  Gk[[1]] <- G
+  # determine how many G_k matrices we want to create
+  if(m_order>1){
+    for (i in 2:m_order){
+      Gk[[i]] <- GCi %*% Gk[[i-1]]
+    }
+  }
+  
+  # create a list contains all the finite element related matrices
+  fem_mesh_matrices <- list()
+  fem_mesh_matrices[["c0"]] <- C
+  
+  for(i in 1:m_order){
+    fem_mesh_matrices[[paste0("g",i)]] <- Gk[[i]]
+  }
+  return(fem_mesh_matrices)
+}
+
+#' @name get.sparsity.graph.rspde
+#' @title Sparsity graph for rSPDE models
+#' @description Creates the sparsity graph for rSPDE models
+#' @param mesh An INLA mesh, optional
+#' @param fem_mesh_matrices A list containing the FEM-related matrices. The list should contain elements C, G, G_2, G_3, etc. Optional,
+#' should be provided if mesh is not provided.
+#' @param dim The dimension, optional. Should be provided if mesh is not provided.
+#' @param nu The smoothness parameter
+#' @param force_non_integer Should nu be treated as non_integer?
+#' @param rspde_order The order of the covariance-based rational SPDE approach.
+#' @param sharp The graph should have the correct sparsity (costs more to perform
+#' a sparsity analysis) or an upper bound for the sparsity?
+#' @return The sparsity graph for rSPDE models to be used in R-INLA interface.
+#' @export
+
+get.sparsity.graph.rspde <- function(mesh=NULL,
+                                     fem_mesh_matrices=NULL,
+                                     nu,
+                                     force_non_integer = FALSE,
+                                     rspde_order = 2,
+                                     sharp = TRUE,
+                                     dim=NULL){
+  
+  if(!is.null(mesh)){
+    stopifnot(inherits(mesh,"inla.mesh"))
+    if(mesh$manifold == "R1"){
+      dim = 1
+    } else if(mesh$manifold == "R2"){
+      dim = 2
+    } else{
+      stop("The mesh should be from a flat manifold.")
+    }
+  } else if(is.null(dim)){
+    stop("If an INLA mesh is not provided, you should provide the dimension!")
+  }
+  
+  alpha = nu + dim/2
+  
+  m_alpha = floor(alpha)
+  
+  integer_alpha <- (alpha%%1 == 0)
+  
+  if(force_non_integer){
+    integer_alpha = FALSE
+  }
+  
+  if(!is.null(fem_mesh_matrices)){
+    if(integer_alpha){
+      return(fem_mesh_matrices[[paste0("g",m_alpha)]])
+    } else{
+      if(sharp){
+        if(m_alpha>0){
+          return(bdiag(kronecker(diag(rep(1,rspde_order)),
+                                 fem_mesh_matrices[[paste0("g",m_alpha+1)]]), 
+                       fem_mesh_matrices[[paste0("g",m_alpha)]]))
+        } else{
+          return(bdiag(kronecker(diag(rep(1,rspde_order)),
+                                 fem_mesh_matrices[["g1"]]), 
+                       fem_mesh_matrices[["c0"]]))
+        }
+
+      } else{
+        return(kronecker(diag(rep(1,rspde_order+1)),
+                         fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
+      }
+    }
+  } else if(!is.null(mesh)){
+    if(integer_alpha){
+      fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+      return(fem_mesh_matrices[[paste0("g",m_alpha)]])
+    } else{
+      if(dim == 2){
+        fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha+1)
+      } else{
+        fem_mesh_matrices <- fem_mesh_order_1d(mesh, m_order = m_alpha+1)
+      }
+
+      
+      if(sharp){
+        if(m_alpha>0){
+          return(bdiag(kronecker(diag(rep(1,rspde_order)),
+                                 fem_mesh_matrices[[paste0("g",m_alpha+1)]]), 
+                       fem_mesh_matrices[[paste0("g",m_alpha)]]))
+        } else{
+          return(bdiag(kronecker(diag(rep(1,rspde_order)),
+                                 fem_mesh_matrices[["g1"]]), 
+                       fem_mesh_matrices[["c0"]]))
+        }
+
+      } else{
+        return(kronecker(diag(rep(1,rspde_order+1)),
+                         fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
+      }
+    } 
+  } else {
+    stop("You should provide either mesh or fem_mesh_matrices!")
+  } 
+}
+
+
+#' @name build_sparse_matrix_rspde
+#' @title Create sparse matrix from entries and graph
+#' @description Create sparse matrix from entries and graph
+#' @param entries The entries of the precision matrix
+#' @param graph The sparsity graph of the precision matrix
+#' @return index for rSPDE models.
+#' @noRd
+
+build_sparse_matrix_rspde <- function(entries, graph){
+  if(!is.null(graph)){
+    graph = as(graph, "dgTMatrix")
+    idx <- which(graph@i <= graph@j)
+    Q = Matrix::sparseMatrix(i=graph@i[idx], j = graph@j[idx], x= entries,
+                             symmetric=TRUE, index1 = FALSE)
+  }
+  return(Q)
+}
+
+
+#' @name analyze_sparsity_rspde
+#' @title Analyze sparsity of matrices in the rSPDE approach
+#' @description Auxiliar function to analyze sparsity of matrices in the rSPDE approach
+#' @param nu_upper_bound Upper bound for the smoothness parameter
+#' @param dim The dimension of the domain
+#' @param rspde_order The order of the rational approximation
+#' @param fem_mesh_matrices A list containing FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.
+#' @param include_lower_order Logical. Should the lower-order terms be included? They are needed for the cases
+#' when alpha = nu + d/2 is integer or for when sharp is set to TRUE.
+#' @param include_higher_order Logical. Should be included for when nu is estimated or for when alpha = nu + d/2 is not an integer.
+#' @return A list containing informations on sparsity of the precision matrices
+#' @noRd
+
+analyze_sparsity_rspde <- function(nu_upper_bound, dim, rspde_order,
+                                   fem_mesh_matrices,
+                                   include_lower_order = TRUE, 
+                                   include_higher_order = TRUE){
+  beta = nu_upper_bound / 2 + dim / 4
+  
+  m_alpha = floor(2 * beta)
+  
+  positions_matrices <- list()
+  
+  C_list <- symmetric_part_matrix(fem_mesh_matrices$c0)
+  G_1_list <- symmetric_part_matrix(fem_mesh_matrices$g1)
+  if(m_alpha<2){
+      G_2_list <- symmetric_part_matrix(fem_mesh_matrices[["g2"]])
+    }
+  if(m_alpha>1){
+    for(j in 2:(m_alpha)){
+      assign(paste0("G_",j,"_list"), symmetric_part_matrix(fem_mesh_matrices[[paste0("g",j)]]))
+    }
+    
+    if(include_higher_order){
+      assign(paste0("G_",m_alpha+1,"_list"), symmetric_part_matrix(fem_mesh_matrices[[paste0("g",m_alpha+1)]]))
+      
+      positions_matrices[[1]] <-  match(C_list$M, get(paste0("G_",m_alpha+1,"_list"))[["M"]])
+    }
+  }
+  
+  idx_matrices <- list()
+  
+  idx_matrices[[1]] = C_list$idx
+  
+  if(m_alpha>0){
+  for(i in 1:m_alpha){
+    if(include_higher_order){
+      positions_matrices[[i+1]] <- match(get(paste0("G_",i,"_list"))[["M"]], get(paste0("G_",m_alpha+1,"_list"))[["M"]])
+    }
+    idx_matrices[[i+1]] = get(paste0("G_",i,"_list"))[["idx"]]
+  }
+  }
+  
+  if(include_higher_order){
+    idx_matrices[[m_alpha+2]] = get(paste0("G_",m_alpha+1,"_list"))[["idx"]]
+  }
+  
+  if(include_lower_order){
+    positions_matrices_less <- list()
+    if(m_alpha>0){
+      positions_matrices_less[[1]] <-  match(C_list$M, get(paste0("G_",m_alpha,"_list"))[["M"]])
+    } else{
+      positions_matrices_less[[1]] <-  match(C_list$M, get(paste0("G_",1,"_list"))[["M"]])
+    }
+
+    if(m_alpha > 1){
+      for(i in 1:(m_alpha-1)){
+        positions_matrices_less[[i+1]] <- match(get(paste0("G_",i,"_list"))[["M"]], get(paste0("G_",m_alpha,"_list"))[["M"]])
+      }
+    } else if (m_alpha == 1){
+      positions_matrices_less[[2]] <-  1:length(get(paste0("G_",m_alpha,"_list"))[["M"]])
+    }
+  } else{
+    positions_matrices_less <- NULL
+  }
+  
+  return(list(positions_matrices = positions_matrices,
+              idx_matrices = idx_matrices,
+              positions_matrices_less = positions_matrices_less))
+}
+
+#' @name symmetric_part_matrix
+#' @title Gets the upper triangular part of a matrix
+#' @description Gets the upper triangular part of a matrix
+#' @param M A matrix or a sparse matrix
+#' @return A sparse matrix formed by the upper triangular part of \code{M}.
+#' @noRd
+
+symmetric_part_matrix <- function(M){
+  M  <- as(M, "dgTMatrix")
+  idx <- which(M@i <= M@j)
+  sM <- cbind(M@i[idx], M@j[idx])
+  colnames(sM) <- NULL
+  return(list(M = split(sM, seq(nrow(sM))), idx = idx))
+}
+
+
+#' @name create_summary_from_density
+#' @title Creates a summary from a density data frame
+#' @description Auxiliar function to create summaries from density data drames
+#' @param density_df A density data frame
+#' @param name Name of the parameter
+#' @return A data frame containing a basic summary
+#' @noRd
+
+create_summary_from_density <- function(density_df, name){
+  min_x <- density_df[1,"x"]
+  max_x <- density_df[nrow(density_df),"x"]
+  denstemp <- function(x){
+    dens <- sapply(x, function(z){
+      if(z<min_x){
+        return(0)
+      } else if (z>max_x){
+        return(0)
+      } else{
+        return(approx(density_df[,"x"], density_df[,"y"], z)$y)
+      }
+    })
+    return(dens)
+  } 
+  
+  ptemp <- function(q){
+    prob_temp <- sapply(q, function(v){
+      if(v<=min_x){
+        return(0)
+      } else if(v>=max_x){
+        return(1)
+      } else{
+        stats::integrate(denstemp,lower = min_x, upper = v,
+                         subdivisions = min(nrow(density_df),500))$value
+      }
+    })
+    return(prob_temp)
+  }
+  
+  mean_temp <- stats::integrate(function(z){denstemp(z)*z},lower = min_x, upper = max_x,
+                                subdivisions = nrow(density_df))$value
+  
+  sd_temp <- sqrt(stats::integrate(function(z){denstemp(z)*(z-mean_temp)^2},lower = min_x, upper = max_x,
+                                   subdivisions = nrow(density_df))$value)
+  
+  mode_temp <- density_df[which.max(density_df[,"y"]),"x"]
+  
+  qtemp <- function(p){
+    quant_temp <- sapply(p, function(x){
+      if(x < 0 | x > 1){
+        warn_qtemp <- TRUE
+        return(NaN)} else{
+          return(stats::uniroot(function(y) {
+            ptemp(y) - x
+          },lower = min_x, upper = max_x)$root)
+        }
+    }
+    )
+    return(quant_temp)
+  }
+  
+  out <- data.frame(mean = mean_temp, sd = sd_temp, `0.025quant`=qtemp(0.025), 
+                    `0.5quant`=qtemp(0.5), `0.975quant`=qtemp(0.975), mode = mode_temp)
+  rownames(out) <- name
+  colnames(out) = c("mean", "sd", "0.025quant", "0.5quant", "0.975quant", "mode")
+  return(out)
+}
+
+
+
+
+
+
+#' Summarise CBrSPDE objects
+#'
+#' Summary method for class "CBrSPDEobj"
+#'
+#' @param object an object of class "CBrSPDEobj", usually, a result of a call
+#'   to \code{\link{matern.operators}}.
+#' @param ... further arguments passed to or from other methods.
+#' @export
+#' @method summary CBrSPDEobj
+#' @examples
+#' #Compute the covariance-based rational approximation of a 
+#' #Gaussian process with a Matern covariance function on R
+#' kappa <- 10
+#' sigma <- 1
+#' nu <- 0.8
+#'
+#' #create mass and stiffness matrices for a FEM discretization
+#' x <- seq(from = 0, to = 1, length.out = 101)
+#' fem <- rSPDE.fem1d(x)
+#'
+#' #compute rational approximation of covariance function at 0.5
+#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
+#' op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
+#' kappa=kappa,sigma=sigma,d=1,m=2)
+#' 
+#' op_cov
+summary.CBrSPDEobj <- function(object, ...)
+{
+  out <- list()
+  class(out) <- "summary.CBrSPDEobj"
+  out$type = object$type
+  out$kappa = object$kappa
+  out$sigma = object$sigma
+  out$nu = object$nu
+  out$m = object$m
+  out$n = dim(object$C)[1]
+  return(out)
+}
+
+#' @param x an object of class "summary.CBrSPDEobj", usually, a result of a call
+#'   to \code{\link{summary.CBrSPDEobj}}.
+#' @export
+#' @method print summary.CBrSPDEobj
+#' @rdname summary.CBrSPDEobj
+print.summary.CBrSPDEobj <- function(x, ...)
+{
+  
+  cat("Type of approximation: ", x$type,"\n")
+  cat("Parameters of covariance function: kappa = ",
+        x$kappa,", sigma = ", x$sigma, ", nu = ",x$nu, "\n")
+  cat("Order or rational approximation: ", x$m, "\n")
+  cat("Size of discrete operators: ", x$n," x ", x$n, "\n")
+}
+
+#' @export
+#' @method print CBrSPDEobj
+#' @rdname summary.CBrSPDEobj
+print.CBrSPDEobj <- function(x, ...) {
+  print.summary.CBrSPDEobj(summary(x))
 }
