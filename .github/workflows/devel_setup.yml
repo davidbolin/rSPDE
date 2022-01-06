@@ -1,0 +1,19 @@
+on:
+  push:
+    branches:
+      - devel
+      
+name: devel_setup
+
+jobs:
+  build:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v2 
+      - run:  |
+          sed -i .bak '/vignettes/d' .Rbuildignore
+          rm .Rbuildignore.bak
+          sed -i .bak 's/R.rsp/knitr/' DESCRIPTION
+          rm DESCRIPTION.bak
+          rm vignettes/*.html
+          rm vignettes/*.asis
