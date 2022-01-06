@@ -93,6 +93,12 @@ library(rSPDE)
 set.seed(1)
 ```
 
+```{r inla_link, include = FALSE}
+inla_link <- function() {
+  sprintf("[%s](%s)", "`R-INLA`", "https://www.r-inla.org")
+}
+```
+
 ## Introduction
 
 Several popular Gaussian random field models can be represented as solutions to stochastic partial differential equations (SPDEs) of the form 
@@ -106,13 +112,14 @@ If $2\beta$ is an integer and if the domain $\mathcal{D}$ where the model is def
 $$
 u_h(s) = \sum_{i=1}^n u_i \varphi_i(s).
 $$
-Here $\{\varphi_i\}$ are piecewise linear basis functions defined by some triangulation of $\mathcal{D}$ and the vector of weights $\boldsymbol{\mathrm{u}} = (u_1,\ldots,u_n)^T$ is normally distributed, $N(\boldsymbol{\mathrm{u}},\tilde{\boldsymbol{\mathrm{Q}}}^{-1})$, where $\tilde{\boldsymbol{\mathrm{Q}}}$ is sparse. See [@lindgren11] for further details. 
+Here $\{\varphi_i\}$ are piecewise linear basis functions defined by some triangulation of $\mathcal{D}$ and the vector of weights $\boldsymbol{\mathrm{u}} = (u_1,\ldots,u_n)^T$ is normally distributed, $N(\boldsymbol{\mathrm{u}},\tilde{\boldsymbol{\mathrm{Q}}}^{-1})$, where $\tilde{\boldsymbol{\mathrm{Q}}}$ is sparse. See [An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach](https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x) for further details. 
 
 In this vignette we focus on the operator-based rational approximation. This approach results in an approximation of the original SPDE which is of the form 
 $P_l x = P_r \mathcal{W}$,
 where $P_l$ and $P_r$ are non-fractional operators defined in terms of polynomials $p_l$ and $p_r$. The order of $p_r$ is given by $m$ and the order of $p_l$ is $m + m_{\beta}$ where $m_{\beta}$ is the integer part of $\beta$ if $\beta>1$ and $m_{\beta} = 1$ otherwise. 
 
-Combining the rational approximation of the operator with the FEM discretization yields an approximation $u_h$ of $u$ of the basis expansion form above. The difference to the non-fractional case is that the vector of stochastic weights now is $\boldsymbol{\mathrm{u}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T)$ where $\boldsymbol{\mathrm{Q}}$ and $\boldsymbol{\mathrm{P}}_r$ are sparse matrices. Alternatively, $\boldsymbol{\mathrm{u}}$ can be represented as $\boldsymbol{\mathrm{u}} = \boldsymbol{\mathrm{P}}_r \boldsymbol{\mathrm{x}}$ where $\boldsymbol{\mathrm{x}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{Q}}^{-1})$, which means that the discrete approximation is a latent GMRF. This can be used for computationally efficient inference and simulation. See [@bolin19] for further details. 
+The combination of the rational approximation of the operator with the FEM discretization yields an approximation $u_h$ of $u$ on the basis expansion form above. The difference to the non-fractional case is that the vector of stochastic weights now is $\boldsymbol{\mathrm{u}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T)$ where $\boldsymbol{\mathrm{Q}}$ and $\boldsymbol{\mathrm{P}}_r$ are sparse matrices. Alternatively, $\boldsymbol{\mathrm{u}}$ can be represented as $\boldsymbol{\mathrm{u}} = \boldsymbol{\mathrm{P}}_r \boldsymbol{\mathrm{x}}$ where $\boldsymbol{\mathrm{x}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{Q}}^{-1})$, which means that the discrete approximation is a latent GMRF. This can be used for computationally efficient inference and simulation. See [Bolin
+and Kirchner (2020)](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537) for further details. 
 
 
 ## Using the package to perform operator-based rational approximations
@@ -139,19 +146,19 @@ Once the approximation has been constructed, it can be included manually in stat
 ### Constructing the approximation
 
 In this section, we explain how the different main functions can be used for constructing the rational approximation. 
-The first step for constructing the rational SPDE approximation is to define the FEM mesh. For illustration purposes, the `rSPDE` package contains a simple FEM implementation for models on $\mathbb{R}$ which we will use first. We will then illustrate how spatial models can be constructed, if the FEM implementation of the `R-INLA` package is used instead.
+The first step for constructing the rational SPDE approximation is to define the FEM mesh. For illustration purposes, the `rSPDE` package contains a simple FEM implementation for models on $\mathbb{R}$ which we will use first. We will then illustrate how spatial models can be constructed, if the FEM implementation of the `r inla_link()` package is used instead.
 
 Assume that we want to define a model on the interval $[0,1]$. We then start by defining a vector with mesh nodes $s_i$ where the basis functions $\varphi_i$ are centered. 
 ```{r}
 s <- seq(from = 0, to = 1, length.out = 101)
 ```
-Based on these nodes, we use the built-in function `rSPDE.fem1d` to assemble two matrices needed for creating the approximation of a basic Matérn model. These matrices are the mass matrix $\boldsymbol{\mathrm{C}}$, with elements $C_{ij} = \int \varphi_j(s) \varphi_i(s) ds$, and the stiffness matrix $\boldsymbol{\mathrm{G}}$, with elements $G_{ij} = \int \nabla\varphi_j(s) \cdot \nabla\varphi_i(s) ds$. 
+Based on these nodes, we use the built-in function `rSPDE.fem1d()` to assemble two matrices needed for creating the approximation of a basic Matérn model. These matrices are the mass matrix $\boldsymbol{\mathrm{C}}$, with elements $C_{ij} = \int \varphi_j(s) \varphi_i(s) ds$, and the stiffness matrix $\boldsymbol{\mathrm{G}}$, with elements $G_{ij} = \int \nabla\varphi_j(s) \cdot \nabla\varphi_i(s) ds$. 
 ```{r}
 fem <- rSPDE.fem1d(s)
 ```
 
 We can now use `matern.operators()` to construct a rational SPDE approximation of degree $m=1$ for a Gaussian random field with a Matérn covariance function on the interval. Since
-we are using the operator-based approximation, we must set `type` to `operator`.
+we are using the operator-based approximation, we must set `type` to `"operator"`.
 ```{r}
 kappa <- 20
 sigma <- 2
@@ -160,7 +167,7 @@ op <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
                        G = fem$G, C = fem$C, d = 1, m = 1,
                        type="operator")
 ```
-The object `op` contains the matrices needed for evaluating the distribution of the stochastic weights $\boldsymbol{\mathrm{u}}$. If we want to evaluate $u_h(s)$ at some locations $s_1,\ldots, s_n$, we need to multiply the weights with the basis functions $\varphi_i(s)$ evaluated at the locations. For this, we can construct the observation matrix $\boldsymbol{\mathrm{A}}$ with elements $A_{ij} = \varphi_j(s_i)$, linking the FEM basis functions to the locations. This matrix can be constructed using the function `rSPDE.A1d`.
+The object `op` contains the matrices needed for evaluating the distribution of the stochastic weights $\boldsymbol{\mathrm{u}}$. If we want to evaluate $u_h(s)$ at some locations $s_1,\ldots, s_n$, we need to multiply the weights with the basis functions $\varphi_i(s)$ evaluated at the locations. For this, we can construct the observation matrix $\boldsymbol{\mathrm{A}}$ with elements $A_{ij} = \varphi_j(s_i)$, which links the FEM basis functions to the locations. This matrix can be constructed using the function `rSPDE.A1d()`.
 
 To evaluate the accuracy of the approximation, let us compute the covariance function between the process at $s=0.5$ and all other locations in `s` and compare with the true Matérn covariance function,
 which is the folded Matérn, see Theorem 1 in [An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach](https://www.jstor.org/stable/41262260) for further details. The covariances can be calculated as 
@@ -175,7 +182,7 @@ c.true <- folded.matern.covariance(rep(0.5,length(s)),abs(s), kappa, nu, sigma)
 ```
 
 The covariance function and the error compared with the Matérn covariance are shown in the following figure.
-```{r, fig.show='hold',fig.height = 2.5, fig.width = 7, fig.align = "center",echo=FALSE}
+```{r, fig.show='hold',fig.align = "center",echo=FALSE}
 opar <- par(mfrow = c(1,2),mgp = c(1.3, 0.5, 0),
             mar = c(2,2,0.5,0.5) + 0.1)
 plot(s, c.true, type = "l", ylab = "C(|s-0.5|)", xlab = "s",ylim=c(0,5),
@@ -216,7 +223,7 @@ c.approx4 <- A%*%op$Pr %*% solve(op$Q, op$Pr %*% v)
 
 The resulting errors are shown in the following figure. 
 
-```{r, fig.show='hold',fig.height = 3, fig.width = 7, fig.align = "center",echo=FALSE}
+```{r, fig.show='hold',fig.align = "center",echo=FALSE}
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2,2,0.5,0.5) + 0.1)
 plot(s, c.true - c.approx, type = "l", ylab = "Error", xlab = "s", col = 1,
      cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
@@ -250,7 +257,7 @@ decomposition of the latent field into a vector of random fields remove the need
 order rational approximations. We refer the reader to the [Rational approximation with the rSPDE package](rspde_cov.html) vignette
 for further details.
 
-To solve this issue for the operator-based rational approximation, the package contains functions for performing operations such as $\boldsymbol{\mathrm{P}}_rv$ or $\boldsymbol{\mathrm{P}}_r^{-1}v$ that takes advantage of the structure of $\boldsymbol{\mathrm{P}}_r$ to avoid numerical issues. A complete list of these function can be seen by typing `?operator.operations`. One of these functions is `Sigma.mult`, which performs the multiplication $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ in a more numerically stable way. Let us use this function to compute the errors of the approximations again to see that we indeed get better approximations as $m$ increases. 
+To solve this issue for the operator-based rational approximation, the package contains functions for performing operations such as $\boldsymbol{\mathrm{P}}_rv$ or $\boldsymbol{\mathrm{P}}_r^{-1}v$ that takes advantage of the structure of $\boldsymbol{\mathrm{P}}_r$ to avoid numerical issues. A complete list of these function can be seen by typing `?operator.operations`. One of these functions is `Sigma.mult()`, which performs the multiplication $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ in a more numerically stable way. Let us use this function to compute the errors of the approximations again to see that we indeed get better approximations as $m$ increases. 
 ```{r}
 errors2 <- rep(0,4)
 for(i in 1:4){
@@ -280,7 +287,7 @@ v <- t(rSPDE.A1d(s, c(0.1,0.5,0.9)))
 covs <- Sigma.mult(op, v)
 ```
 The three covariances are shown in the following figure.
-```{r, fig.show='hold',fig.height = 3, fig.width = 7, fig.align = "center",echo=FALSE}
+```{r, fig.show='hold', fig.align = "center",echo=FALSE}
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2,2,0.5,0.5) + 0.1)
 plot(s, covs[,1], type = "l", ylab = "C(s,s_i)", xlab = "s",
      cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
@@ -329,13 +336,13 @@ Y <- as.vector(A %*% u + sigma.e * rnorm(n.obs))
 ```
 
 Finally, we compute the kriging prediction of the process $u$ at the locations in `s` based on these observations. To specify which locations that should be predicted, the argument `Aprd` is used. This argument should be an observation matrix that links the mesh locations to the prediction locations.  
-```{r, fig.show='hold',fig.height = 4, fig.width = 5, fig.align = "center"}
+```{r, fig.show='hold',fig.align = "center"}
 A.krig <- rSPDE.A1d(s, s)
 u.krig <- predict(op, A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e)
 ```
 The process simulation, the observed data, and the kriging prediction are shown in the following figure.
 
-```{r, fig.show='hold',fig.height = 2.5, fig.width = 7, fig.align = "center",echo=FALSE}
+```{r, fig.show='hold', fig.align = "center",echo=FALSE}
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2,2,0.5,0.5) + 0.1)
 plot(obs.loc, Y, ylab = "u(s)", xlab = "s", 
      ylim = c(min(c(min(u), min(Y))), max(c(max(u), max(Y)))),
@@ -347,8 +354,8 @@ par(opar)
 
 ## Spatial data and parameter estimation
 
-The functions used in the previous examples also work for spatial models. We then need to construct a mesh over the domain of interest and then compute the matrices needed to define the operator. These tasks can be performed, for example, using the `R-INLA` package. Let us start by defining a mesh over $[0,1]\times [0, 1]$ and compute the mass and stiffness matrices for that mesh. 
-```{r, fig.height=7, fig.width=7}
+The functions used in the previous examples also work for spatial models. We then need to construct a mesh over the domain of interest and then compute the matrices needed to define the operator. These tasks can be performed, for example, using the `r inla_link()` package. Let us start by defining a mesh over $[0,1]\times [0, 1]$ and compute the mass and stiffness matrices for that mesh. 
+```{r fig.align = "center", message=FALSE}
 library(INLA)
 m = 100
 loc_2d_mesh = matrix(runif(m*2),m,2)
@@ -357,7 +364,7 @@ mesh_2d = inla.mesh.create.helper(
   cutoff=0.05,
   offset=c(0.1,0.4),
   max.edge=c(0.05,0.5) )
-plot(mesh_2d)
+plot(mesh_2d, main= "")
 points(loc_2d_mesh[,1],loc_2d_mesh[,2])
 
 fem_mesh_2d <- inla.mesh.fem(mesh_2d)
@@ -374,7 +381,7 @@ kappa = sqrt(8*nu)/range
 tau = 1/(sqrt(4*pi)*kappa*sigma)
 op <- spde.matern.operators(kappa = kappa, tau = tau, nu = nu, G = G, C = C, d = 2, m = 1)
 ```
-Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `R-INLA` function `inla.spde.make.A()`. We will
+Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `r inla_link()` function `inla.spde.make.A()`. We will
 sample 30 replicates of the latent field.
 ```{r}
 n.rep = 30
@@ -386,7 +393,7 @@ sigma.e<- 0.1
 Y = A %*% u + matrix(rnorm(m*n.rep),ncol=n.rep) * sigma.e
 ```
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
-```{r, fig.show='hold',fig.height = 3.5, fig.width = 7, fig.align = "center",echo=FALSE}
+```{r, fig.show='hold', fig.align = "center",echo=FALSE}
 opar <- par(mfrow = c(1,2),mgp = c(1.2, 0.5, 0), mar = c(2,2,0.5,0.5) + 0.1)
 proj <- inla.mesh.projector(mesh_2d, dims = c(70, 70))
 image(inla.mesh.project(proj, field = as.vector(u[,1])),xlab="",ylab="",
@@ -396,7 +403,7 @@ plot(loc_2d_mesh[,1],loc_2d_mesh[,2],cex=0.2,pch=16,xlab="",ylab="",
 par(opar)
 ```
 
-For each type of rational approximation of degree $m$, there is a corresponding likelihood function that can be used for likelihood-based parameter estimation. Since we constructed the model with `spde.matern.operators()`, we can use the function `spde.matern.loglike()` to define the likelihood. To simplify parameter estimation, we create an objective function to maximize which is the negative log-likelihood, parametrized using the logarithm of each parameter to avoid constrained optimization. 
+For each type of rational approximation of degree $m$, there is a corresponding likelihood function that can be used for likelihood-based parameter estimation. Since we constructed the model with `spde.matern.operators()`, we can use the function `spde.matern.loglike()` to define the likelihood. To simplify parameter estimation, we create an objective function to minimize which is the negative log-likelihood, parametrized using the logarithm of each parameter to avoid constrained optimization. 
 ```{r}
 mlik <- function(theta, Y, G, C, A) {
   return(-spde.matern.loglike(tau=exp(theta[1]), kappa=exp(theta[2]), 

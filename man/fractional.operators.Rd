@@ -87,6 +87,3 @@ lines(x, c.approx, col = 2)
 \code{\link{matern.operators}}, \code{\link{spde.matern.operators}},
 \code{\link{matern.operators}}
 }
-\author{
-David Bolin \email{davidbolin@gmail.com}
-}

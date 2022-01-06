@@ -48,7 +48,6 @@
 #' \item{Pl.factors}{List with elements that can be used to assemble \eqn{P_l}.}
 #' \item{Pr.factors}{List with elements that can be used to assemble \eqn{P_r}.}
 #' @export
-#' @author David Bolin \email{davidbolin@@gmail.com}
 #' @seealso \code{\link{matern.operators}}, \code{\link{spde.matern.operators}},
 #' \code{\link{matern.operators}}
 #' @details The approximation is based on a rational approximation of the fractional operator,
@@ -187,7 +186,7 @@ fractional.operators <- function(L,
 #' \code{matern.operators} is used for computing a rational SPDE approximation of a stationary Gaussian random
 #' fields on \eqn{R^d} with a Matern covariance function
 #' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
-#' (\sigma^2/(2^{\nu-1}\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
+#' (\sigma^2/(2^{\nu-1}\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h).}
 #'
 #' @param kappa Range parameter of the covariance function.
 #' @param sigma Standard deviation of the covariance function.
@@ -530,7 +529,7 @@ CBrSPDE.matern.operators <- function(C,
 #'
 #' \code{spde.matern.operators} is used for computing a rational SPDE approximation of a Gaussian random
 #' fields on \eqn{R^d} defined as a solution to the SPDE
-#' \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W}
+#' \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.}
 #'
 #' @param kappa Vector with the, possibly spatially varying, range parameter evaluated at the locations
 #' of the mesh used for the finite element discretization of the SPDE.
@@ -560,7 +559,6 @@ CBrSPDE.matern.operators <- function(C,
 #' @return \code{spde.matern.operators} returns an object of class "rSPDEobj. This object contains the
 #' quantities listed in the output of \code{\link{fractional.operators}} as well as the smoothness parameter \eqn{\nu}.
 #' @export
-#' @author David Bolin \email{davidbolin@@gmail.com}
 #' @seealso \code{\link{fractional.operators}}, \code{\link{spde.matern.operators}},
 #' \code{\link{matern.operators}}
 #'

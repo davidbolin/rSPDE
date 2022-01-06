@@ -68,7 +68,7 @@ options are "beta" or "lognormal". The default is "beta".}
 An INLA model.
 }
 \description{
-Create an INLA object for a stationary Matern model with general 
+Creates an INLA object for a stationary Matern model with general 
 smoothness parameter.
 }
 \details{
@@ -80,7 +80,7 @@ For this model, an upper bound for the smoothness parameter \eqn{\nu} should be 
 given by the \code{nu_upper_bound} argument. 
 
 It is very important to notice that the larger the value of \code{nu_upper_bound}
-the larger the computational cost to fit the model. So, it is generally best
+the higher the computational cost to fit the model. So, it is generally best
 to initially fit a model with a small value of \code{nu_upper_bound} and increase it
 only if it is really needed (for instance, if the estimated smoothness parameter was
 very close to \code{nu_upper_bound}).
@@ -88,7 +88,7 @@ very close to \code{nu_upper_bound}).
 The following parameterization is used:
 \deqn{\log(\tau) = \theta_1,}
 \deqn{\log(\kappa) = \theta_2}
-and for \eqn{\theta_3}, we can have a beta prior
+and for \eqn{\theta_3} we can have a beta prior
 or a truncated lognormal prior distribution. In each case,
 the prior distribution has support on the interval \eqn{(0,\nu_{UB})}, where \eqn{\nu_{UB}} is
 \code{nu_upper_bound}. Then, the following parameterization
@@ -110,7 +110,7 @@ fitting the model to large datasets.
 
 Finally, when considering a beta prior, the beta distribution will be parameterized
 in terms of its mean, say \eqn{\mu} and a precision parameter \eqn{\phi}, which
-is such that the variance of the beta distribution is given by \eqn{\mu(1-\mu)/(1+\phi)}. 
+is such that the variance of the beta distribution is given by \eqn{\mu(\nu_{UB}-\mu)/(1+\phi)}. 
 The mean of the beta prior is determined by the \code{prior.nu$mean}, whereas
 the precision parameter is determined by the \code{prior.nu$prec}. If \code{prior.nu$prec}
 is \code{NULL} (which is the default case), the precision parameter is taken

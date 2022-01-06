@@ -32,7 +32,8 @@ rtools = "C:\\Rtools\\bin"
 gcc = "C:\\Rtools\\gcc-4.6.3\\bin"
 Sys.setenv(PATH = paste(c(gcc, rtools, Sys.getenv("PATH")), collapse = ";"))
 ```
-where the variables `rtools` and `gcc` need to be changed if `Rtool`s is not installed directly on `C:`.
+where the variables `rtools` and `gcc` need to be changed if `Rtool`s is not installed directly on `C:`,
+and `gcc`'s version might need to be changed depending on the version of `Rtools`.
 
 # Upcoming features
 

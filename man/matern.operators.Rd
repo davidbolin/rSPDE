@@ -68,7 +68,7 @@ parameters of the covariance function.
 \code{matern.operators} is used for computing a rational SPDE approximation of a stationary Gaussian random
 fields on \eqn{R^d} with a Matern covariance function
 \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
-(\sigma^2/(2^{\nu-1}\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
+(\sigma^2/(2^{\nu-1}\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h).}
 }
 \details{
 If \code{type} is "covariance", we use the 

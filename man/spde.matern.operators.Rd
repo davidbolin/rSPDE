@@ -32,7 +32,7 @@ quantities listed in the output of \code{\link{fractional.operators}} as well as
 \description{
 \code{spde.matern.operators} is used for computing a rational SPDE approximation of a Gaussian random
 fields on \eqn{R^d} defined as a solution to the SPDE
-\deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W}
+\deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.}
 }
 \details{
 The approximation is based on a rational approximation of the fractional operator
@@ -72,7 +72,4 @@ plot(x, u, type = "l", ylab = "u(s)", xlab = "s")
 \seealso{
 \code{\link{fractional.operators}}, \code{\link{spde.matern.operators}},
 \code{\link{matern.operators}}
-}
-\author{
-David Bolin \email{davidbolin@gmail.com}
 }

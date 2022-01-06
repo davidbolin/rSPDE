@@ -68,8 +68,7 @@ get.roots <- function(m, beta)
 #' The Matern covariance function
 #'
 #' \code{matern.covariance} evaluates the Matern covariance function
-#' \deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
-#' (\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
+#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
 #'
 #' @param h Distances to evaluate the covariance function at.
 #' @param kappa Range parameter.
@@ -84,7 +83,10 @@ get.roots <- function(m, beta)
 #' plot(x, matern.covariance(abs(x - 0.5), kappa = 10, nu = 1/5, sigma = 1),
 #'      type = "l", ylab = "C(h)", xlab = "h")
 
-matern.covariance <- function(h, kappa, nu, sigma)
+matern.covariance <- function(h, 
+                              kappa, 
+                              nu, 
+                              sigma)
 {
   if (nu == 1/2) {
     C = sigma^2*exp(-kappa*abs(h))
@@ -97,12 +99,17 @@ matern.covariance <- function(h, kappa, nu, sigma)
 
 #' The folded Matern covariance function
 #'
+#' @description 
+#' \code{matern.covariance} evaluates the folded Matern covariance function
+#' over an interval \eqn{[0,L]}.
+#' 
+#' @details 
 #' \code{matern.covariance} evaluates the folded Matern covariance function
 #' over an interval \eqn{[0,L]}:
 #' \deqn{C(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL)+C(h+m-2kL)),}
 #' 
 #' where \eqn{C(\cdot)} is the Matern covariance function:
-#' \deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
+#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
 #' 
 #' We consider the truncation:
 #' \deqn{C(h,m) = \sum_{k=-N}^{N} (C(h-m+2kL)+C(h+m-2kL)).}

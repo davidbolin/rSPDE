@@ -96,7 +96,7 @@ return(-rSPDE.matern.loglike(object = op_cov, Y=Y,
                                 user_nu=nu, sigma.e = exp(theta[4])))
                                 }
 
-#The parameters can now be estimated by maximizing mlik with optim
+#The parameters can now be estimated by minimizing mlik with optim
 \donttest{
 #Choose some reasonable starting values depending on the size of the domain
 theta0 = log(c(sqrt(8), 1/sqrt(var(c(Y))), 0.9, 0.01))

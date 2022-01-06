@@ -32,7 +32,7 @@ It returns an object of class "rSPDEobj. This object contains the
 same quantities listed in the output of \code{\link{matern.operators}}.
 }
 \description{
-Function to change the parameters of a rSPDEpbj object
+Function to change the parameters of a rSPDEobj object
 }
 \examples{
 #Compute the operator-based rational approximation of a 

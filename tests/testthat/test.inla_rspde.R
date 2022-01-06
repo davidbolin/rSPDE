@@ -1,11 +1,13 @@
 test_that("Checking equality of optimized and non-opt. Prec. matrices for non-integer case", {
   testthat::skip_on_cran()
+  old_threads <- INLA::inla.getOption("num.threads")
+  INLA::inla.setOption(num.threads = "1:1")
 set.seed(1)
 n <- 10
 
 coords <- cbind(long=sample(1:n), lat=sample(1:n))
 
-mesh <- inla.mesh.2d(coords, max.edge = c(20, 40))
+mesh <- INLA::inla.mesh.2d(coords, max.edge = c(20, 40))
 
 rspde_order_m = 2
 
@@ -33,16 +35,19 @@ prec_opt_2 <- build_sparse_matrix_rspde(prec_opt_values_2,prec_opt_graph_2)
 
 expect_true(all(prec_m==prec_opt))
 expect_true(all(prec_m==prec_opt_2))
+INLA::inla.setOption(num.threads = old_threads)
 })
 
 test_that("Checking equality of optimized and non-opt. Prec. matrices for integer case", {
   testthat::skip_on_cran()
+  old_threads <- INLA::inla.getOption("num.threads")
+  INLA::inla.setOption(num.threads = "1:1")
   set.seed(1)
   n <- 10
   
   coords <- cbind(long=sample(1:n), lat=sample(1:n))
   
-  mesh <- inla.mesh.2d(coords, max.edge = c(20, 40))
+  mesh <- INLA::inla.mesh.2d(coords, max.edge = c(20, 40))
   rspde_model_int <- rspde.matern(mesh = mesh, rspde_order = rspde_order_m,
                                   optimize=FALSE, debug=FALSE, 
                                   nu = 1)
@@ -58,17 +63,19 @@ test_that("Checking equality of optimized and non-opt. Prec. matrices for intege
   
   expect_true(all(prec_int==prec_int_opt))
   
-  spde <- inla.spde2.matern(mesh,alpha=2)
-  prec_temp <- inla.spde.precision(spde,theta=c(1,3))
+  spde <- INLA::inla.spde2.matern(mesh,alpha=2)
+  prec_temp <- INLA::inla.spde.precision(spde,theta=c(1,3))
   prec_int <- rspde.precision(rspde_model_int, theta=c(1,3))
   expect_true(sum((prec_temp-prec_int)^2) < 10^(-10))
-  
+  INLA::inla.setOption(num.threads = old_threads)
 })
 
 test_that("Checking equality of optimized and non-opt Prec. matrices for d=1",{
   
   testthat::skip_on_cran()
   
+  old_threads <- INLA::inla.getOption("num.threads")
+  INLA::inla.setOption(num.threads = "1:1")
   kappa <- 20
   sigma <- 1
   nu <- 0.1
@@ -77,7 +84,7 @@ test_that("Checking equality of optimized and non-opt Prec. matrices for d=1",{
   #create mass and stiffness matrices for a FEM discretization
   nobs = 101
   x <- seq(from = 0, to = 1, length.out = 101)
-  mesh <- inla.mesh.1d(x)
+  mesh <- INLA::inla.mesh.1d(x)
   fem <- rSPDE.fem1d(x)
   
   #compute rational approximation of covariance function at 0.5
@@ -108,6 +115,6 @@ test_that("Checking equality of optimized and non-opt Prec. matrices for d=1",{
   
   expect_true(sum((Q2-Q.opt)^2) < 10^(-10))
   
-  
+  INLA::inla.setOption(num.threads = old_threads)
   
 })

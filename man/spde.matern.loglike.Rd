@@ -37,7 +37,7 @@ The log-likelihood value.
 }
 \description{
 This function evaluates the log-likelihood function for observations of a Gaussian process defined as
-the solution to the SPDE \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W},
+the solution to the SPDE \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.}
 }
 \details{
 The observations are assumed to be generated as
@@ -83,7 +83,7 @@ return(-spde.matern.loglike(rep(exp(theta[1]),n.x), rep(exp(theta[2]),n.x),
                             Y = Y, G = G, C = C, A = A, d = 1))
 }
 
-#' #The parameters can now be estimated by maximizing mlik with optim
+#' #The parameters can now be estimated by minimizing mlik with optim
 \donttest{
 #Choose some reasonable starting values depending on the size of the domain
 theta0 = log(c(sqrt(8), 1/sqrt(var(c(Y))), 0.9, 0.01))

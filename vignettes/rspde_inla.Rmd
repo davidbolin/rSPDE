@@ -1,7 +1,7 @@
 ---
 title: "R-INLA implementation of the rational SPDE approach"
 author: "David Bolin and Alexandre B. Simas"
-date: "10/29/2021"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{R-INLA implementation of the rational SPDE approach}
@@ -45,9 +45,15 @@ knitr::opts_chunk$set(echo = TRUE)
 set.seed(1)
 ```
 
+```{r inla_link, include = FALSE}
+inla_link <- function() {
+  sprintf("[%s](%s)", "`R-INLA`", "https://www.r-inla.org")
+}
+```
+
 ## Introduction 
 
-In this vignette we will present the R-INLA implementation of the rational
+In this vignette we will present the `r inla_link()` implementation of the rational
 SPDE approach. For theoretical details we refer the reader to 
 the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette.
 
@@ -67,32 +73,32 @@ how to enable the PARDISO sparse library.
 
 ## Example with real data
 
-To illustrate our implementation of rSPDE in INLA we will consider a dataset
-available in INLA. This data has also been used to illustrate the SPDE approach,
+To illustrate our implementation of `rSPDE` in `r inla_link()` we will consider a dataset
+available in `r inla_link()`. This data has also been used to illustrate the SPDE approach,
 see for instance the book [Advanced Spatial Modeling with Stochastic Partial Differential Equations Using R and INLA](https://www.routledge.com/Advanced-Spatial-Modeling-with-Stochastic-Partial-Differential-Equations/Krainski-Gomez-Rubio-Bakka-Lenzi-Castro-Camilo-Simpson-Lindgren-Rue/p/book/9780367570644) and also the vignette [Spatial Statistics using R-INLA and Gaussian Markov random fields](https://sites.stat.washington.edu/peter/591/INLA.html).
 
 The data consist of precipitation measurements from the Paraná region in Brazil
 and were provided by the Brazilian National Water Agency. The data were collected
 at 616 gauge stations in Paraná state, south of Brazil, for each day in 2011.
 
-### A rSPDE model for precipitation
+### An rSPDE model for precipitation
 
 We will follow the vignette [Spatial Statistics using R-INLA and Gaussian Markov random fields](https://sites.stat.washington.edu/peter/591/INLA.html). 
 As precipitation data are always positive, we will assume it is Gamma distributed. 
-INLA uses the following parameterization of the Gamma distribution, 
+`r inla_link()` uses the following parameterization of the Gamma distribution, 
 $$\Gamma(\mu, c\phi): \pi (y) = \frac{1}{\Gamma(c\phi)} \left(\frac{c\phi}{\mu}\right)^{c\phi} y^{c\phi - 1} \exp\left(-\frac{c\phi y}{\mu}\right) .$$
 In this parameterization, the distribution has expected value $E(x) = \mu$ and variance $V(x) = \mu^2/(c\phi)$, where $c$ is a fixed (known) scaling parameter and $1/\phi$ is a dispersion parameter.
 
 In this example $\mu$ will be modelled using a stochastic model that includes both covariates 
 and spatial structure, resulting in the latent Gaussian model for the precipitation measurements
-$$\begin{align} y_i\mid \mu(s_i), \theta &\sim \Gamma(\mu(s_i),c\phi)\\ \log (\mu(s)) &= \eta(s) = \sum_k f_k(c_k(s))+u(s)\\ \theta &\sim \pi(\theta) \end{align}.$$
+$$\begin{align} y_i\mid \mu(s_i), \theta &\sim \Gamma(\mu(s_i),c\phi)\\ \log (\mu(s)) &= \eta(s) = \sum_k f_k(c_k(s))+u(s)\\ \theta &\sim \pi(\theta) \end{align},$$
 
 where $y_i$ denotes the measurement taken at location $s_i$, $c_k(s)$ are covariates, $u(s)$ is a mean-zero Gaussian Matérn field, and $\theta$ is a vector containing all parameters of the model,
-including smoothness of the field. That is, by using the rSPDE model, we will 
+including smoothness of the field. That is, by using the `rSPDE` model we will 
 also be able to estimate the smoothness of the latent field.
 
 ### Examining the data
-We will be using INLA. To install INLA go to [R-INLA Project](https://www.r-inla.org/download-install).
+We will be using `r inla_link()`. To install `r inla_link()` go to [R-INLA Project](https://www.r-inla.org/download-install).
 
 We begin by loading some libraries we need to get the data and build the plots.
 
@@ -131,7 +137,7 @@ alt <- PRprec$Altitude[ind]
 
 Let us build a plot for the precipitations:
 
-```{r plot_precipitations, message=FALSE,fig.height=4,fig.width=7}
+```{r plot_precipitations, message=FALSE, fig.align = "center"}
 ggplot() + geom_point(aes(x = coords[, 1], y = coords[, 2], colour = Y), size = 2, 
     alpha = 1) + scale_colour_gradientn(colours = tim.colors(100)) + geom_path(aes(x = PRborder[, 
     1], y = PRborder[, 2])) + geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[1034:1078, 
@@ -151,7 +157,7 @@ seaDist <- apply(spDists(coords, PRborder[1034:1078, ],
 
 Now, let us plot the precipitation as a function of the possible covariates:
 
-```{r plot_prec_as_func, message=FALSE, fig.width=7, fig.height=6}
+```{r plot_prec_as_func, message=FALSE, fig.width=7, fig.height=5, fig.align = "center"}
 par(mfrow = c(2, 2))
 plot(coords[, 1], Y, cex = 0.5, xlab = "Longitude")
 plot(coords[, 2], Y, cex = 0.5, xlab = "Latitude")
@@ -163,29 +169,29 @@ par(mfrow = c(1, 1))
 
 ### Creating the rSPDE model
 
-To use the INLA implementation of the rSPDE model we need to load the functions:
+To use the `r inla_link()` implementation of the `rSPDE` model we need to load the functions:
 ```{r load_rspde_lib, message=FALSE}
 library(rSPDE)
 ```
 
-The rSPDE-INLA implementation is very reminiscent of INLA, so its usage should be
-straightforward for INLA users. For instance, to create a rSPDE model, one would
+The `rSPDE`-`INLA` implementation is very reminiscent of `r inla_link()`, so its usage should be
+straightforward for `r inla_link()` users. For instance, to create a `rSPDE` model, one would
 `rspde.matern()` in place of `inla.spde2.matern()`. To create an index, one should use
 `rspde.make.index()` in place of `inla.spde.make.index()`. To create the `A` matrix, one
 should use `rspde.make.A()` in place of `inla.spde.make.A()`, and so on.
 
-The main differences when comparing the arguments between the rSPDE-INLA implementation
-and the standard SPDE implementation in INLA, are the `nu` and `rspde_order` arguments,
-which are present in rSPDE-INLA implementation. We will see below how use these
+The main differences when comparing the arguments between the `rSPDE`-`INLA` implementation
+and the standard SPDE implementation in `r inla_link()`, are the `nu` and `rspde_order` arguments,
+which are present in `rSPDE`-`INLA` implementation. We will see below how use these
 arguments.
 
 #### Mesh
 
-We can use INLA for creating the mesh. Let us create a mesh which is based 
+We can use `r inla_link()` for creating the mesh. Let us create a mesh which is based 
 on a non-convex hull to avoid adding many small triangles outside the domain 
-of interest (more triangles = larger computation times):
+of interest:
 
-```{r mesh_creation, message=FALSE, fig.width=7, fig.height=5}
+```{r mesh_creation, message=FALSE, fig.align='center'}
 prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
 prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
 plot(prmesh, asp = 1, main = "")
@@ -196,17 +202,17 @@ points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
 #### The observation matrix (A)
 
 We now create the $A$ matrix, that connects the mesh to the observation 
-locations and then create the rSPDE model.
+locations and then create the `rSPDE` model.
 
-For this task, as we mentioned earlier, we need to use a rSPDE specific function, 
-whose name is very reminiscent to INLA's standard SPDE approach,
-namely `rspde.make.A()` (in place of INLA's `inla.spde.make.A()`). 
+For this task, as we mentioned earlier, we need to use an `rSPDE`specific function, 
+whose name is very reminiscent to `r inla_link()`'s standard SPDE approach,
+namely `rspde.make.A()` (in place of `r inla_link()`'s `inla.spde.make.A()`). 
 The reason for the need of this specific function is that the size of
 the $A$ matrix depends on the order of the rational approximation. The details
-can be found in the introduction of this vignette.
+can be found in the introduction of the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette.
 
 The default order is 2 for our covariance-based rational approximation. 
-As mentioned in the introduction, an approximation of order 2 in the covariance-based
+As mentioned in the introduction of the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette, an approximation of order 2 in the covariance-based
 rational approximation has approximately the same computational cost as the standard rational approximation
 of order 1.
 
@@ -218,7 +224,7 @@ We want to estimate $\tau,\kappa$ and $\nu$.
 
 There is also an option to fix the smoothness parameter $\nu$ to some predefined value and only estimate $\tau$ and $\kappa$.
 
-By default the rSPDE-INLA implementation estimates all the three parameters. 
+By default the `rSPDE`-`INLA` implementation estimates all the three parameters. 
 
 In this first example we will assume we want a rational approximation of order
 2, where we also want to estimate the smoothness parameter $\nu$.
@@ -234,11 +240,11 @@ Abar <- rspde.make.A(mesh = prmesh, loc = coords)
 
 #### Setting up the rSPDE model
 
-To set up a rSPDE model, all we need is the mesh. 
+To set up an `rSPDE`model, all we need is the mesh. 
 By default it will assume that we want to estimate the smoothness parameter $\nu$
 and to do a covariance-based rational approximation of order 2.
 
-Later in this vignette we will also see other options for setting up rSPDE models such as keeping
+Later in this vignette we will also see other options for setting up `rSPDE` models such as keeping
 the smoothness parameter fixed and/or increasing the order of the covariance-based
 rational approximation.
 
@@ -248,14 +254,14 @@ Therefore, to set up a model all we have to do is use the `rspde.matern()` funct
 rspde_model <- rspde.matern(mesh = prmesh)
 ```
 
-Notice that this function is very reminiscent of INLA's `inla.spde2.matern()` function.
+Notice that this function is very reminiscent of `r inla_link()`'s `inla.spde2.matern()` function.
 
-This is a pattern we tried to keep consistent. All the rSPDE versions of some INLA function 
+This is a pattern we tried to keep consistent. All the `rSPDE` versions of some `r inla_link()` function 
 will either replace `inla` or `inla.spde` or `inla.spde2` by `rspde`.
 
 #### The `inla.stack`
 
-Since the covariates already are evaluated at the observation locations, 
+Since the covariates are already evaluated at the observation locations, 
 we only want to apply the $A$ matrix to the spatial effect and not the 
 fixed effects. We can use the `inla.stack()` function.
 
@@ -304,7 +310,7 @@ $$y_i\mid \eta(s_i),\theta \sim \Gamma(\exp(\eta (s_i)), c\phi).$$
 
 We will build a model using the distance to the sea $x_i$ 
 as a covariate through an improper CAR(1) model with 
-$\beta_{ij}=1(i\sim j)$, which INLA calls a random walk of order 1.
+$\beta_{ij}=1(i\sim j)$, which `r inla_link()` calls a random walk of order 1.
 
 ```{r create_formula, message=FALSE}
 f.s <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
@@ -314,9 +320,9 @@ Here `-1` is added to remove R's implicit intercept, which is replaced
 by the explicit `+Intercept` from when we created the stack. 
 
 To fit the model we proceed as in the standard SPDE approach and
-we simply call INLA. It is noteworthy that we can have
+we simply call `inla()`. It is noteworthy that we can have
 a performance enhancement by using the argument `inla.mode = "experimental"`.
-As argued in `INLA`'s man page, not all features are available in
+As argued in `r inla_link()`'s man page, not all features are available in
 `inla.mode="experimental"`, and we will need to use the `"classic"` mode (the default mode)
 instead of `"experimental"` whenever we are doing predictions.
 
@@ -340,7 +346,7 @@ and the parameters of the spatial field):
 summary(rspde_fit)
 ```
 
-Let $\theta_1 = Theta1$, $\theta_2=Theta2$ and $\theta_3=Theta3$.
+Let $\theta_1 = \textrm{Theta1}$, $\theta_2=\textrm{Theta2}$ and $\theta_3=\textrm{Theta3}$.
 In terms of 
 the SPDE
 $$(\kappa^2 I - \Delta)^{\alpha/2}(\tau u) = \mathcal{W},$$
@@ -348,19 +354,16 @@ where $\alpha = \nu + d/2$, we have that
 $$\tau = \exp(\theta_1),\quad \kappa = \exp(\theta_2), $$
 and by default
 $$\nu = 4\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
-The number 4 comes from the upper bound for $\nu$, which will be discussed later in this vignette
-and the logit link function comes from the default choice of the prior distribution for $\nu$, which 
-is beta. 
+The number 4 comes from the upper bound for $\nu$, which will be discussed later in this vignette. 
 
-In general, for beta prior distribution for the smoothness parameter (the default)
-the link function is
+In general, we have
 $$\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big),$$
 where $\nu_{UB}$ is the value of the upper bound for the smoothness parameter $\nu$.
 
 Another choice for prior for $\nu$ is a truncated lognormal distribution and
 will also be discussed later in this vignette.
 
-### rSPDE-INLA results
+### `rSPDE`-`INLA` results
 
 We can obtain outputs with respect to parameters in the original scale by
 using the function `rspde.result()`:
@@ -372,9 +375,9 @@ summary(result_fit)
 
 We can also plot the posterior densities:
 
-```{r plot_post, fig.width=7, fig.height=4}
+```{r plot_post, fig.align='center'}
 par(mfrow=c(1,3))
-plot(result_fit)
+plot(result_fit, caption=c("tau","kappa","nu"))
 ```
 
 This function is reminiscent to the `inla.spde.result()` function with the main
@@ -388,9 +391,9 @@ a dense grid in the region.
 
 We begin by creating the grid in which we want to do the predictions. To this end,
 we can use the `rspde.mesh.projector()` function. This function has the same arguments
-as the function `inla.mesh.projector()` the only difference being that the rSPDE
+as the function `inla.mesh.projector()`, with the only difference being that the `rSPDE`
 version also has an argument `nu` and an argument `rspde_order`. Thus, we
-proceed in the same fashion as we would in INLA's standard SPDE implementation:
+proceed in the same fashion as we would in `r inla_link()`'s standard SPDE implementation:
 
 
 ```{r create_proj_grid}
@@ -410,7 +413,7 @@ xy.in <- inout(projgrid$lattice$loc, cbind(PRborder[, 1], PRborder[, 2]))
 
 Let us plot the locations that we will do prediction:
 
-```{r plot_prd, fig.height=7, fig.width=7}
+```{r plot_prd, fig.align='center'}
 coord.prd <- projgrid$lattice$loc[xy.in, ]
 plot(coord.prd, type = "p", cex = 0.1)
 lines(PRborder)
@@ -455,7 +458,7 @@ stk.all <- inla.stack(stk.dat, stk.prd)
 
 Doing the joint estimation takes a while, and we therefore turn off the computation of certain things that we are not interested in, such as the marginals for the random effect. 
 We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes.
-Since we are doing predictions, we should not use `INLA`'s experimental mode.
+Since we are doing predictions, we should not use `r inla_link()`'s experimental mode.
 
 ```{r fit_prd, message=FALSE, warning=FALSE}
 rspde_fitprd <- inla(f.s, family = "Gamma", 
@@ -479,7 +482,7 @@ sd.prd[xy.in] <- rspde_fitprd$summary.fitted.values$sd[id.prd]
 
 Finally, we plot the results:
 
-```{r plot_pred, fig.width=7, fig.height=14}
+```{r plot_pred, fig.align = "center"}
 #Plot the predictions
 grid.arrange(levelplot(m.prd, col.regions = tim.colors(99), 
              xlab = "", ylab = "", main = "mean", 
@@ -490,11 +493,11 @@ grid.arrange(levelplot(m.prd, col.regions = tim.colors(99),
 ```
 
 
-## Further options of the rSPDE-INLA implementation
+## Further options of the `rSPDE`-`INLA` implementation
 
 We will now discuss some of the arguments that were introduced in our
-R-INLA implementation of the rational approximation that are not present in
-INLA's standard SPDE implementation. 
+`r inla_link()` implementation of the rational approximation that are not present in
+`r inla_link()`'s standard SPDE implementation. 
 
 In each case we will provide an illustrative example.
 
@@ -502,7 +505,7 @@ In each case we will provide an illustrative example.
 
 When we fit a `rspde.matern()` model we need to provide an upper bound
 for the smoothness parameter $\nu$. The reason for that is that the sparsity
-of the precision matrix should be kept fixed during INLA's estimation and the higher
+of the precision matrix should be kept fixed during `r inla_link()`'s estimation and the higher
 the value of $\nu$ the denser the precision matrix gets. 
 
 This means that the higher the value of $\nu$, the higher the computational cost
@@ -581,7 +584,7 @@ possibilities are `1,2,3`,..., up to `8`.
 The higher the order of the rational approximation, the more accurate the results
 will be, however, the higher the computational cost will be.
 
-The default `rspde_order` of 2 is, generally, a good choice and reasonably
+The default `rspde_order` of 2 is generally a good choice and reasonably
 accurate. See the vignette [Rational approximation with the rSPDE package](rspde_cov.html)
 for further details on the order of the rational approximation and some comparison
 with the Matérn covariance.
@@ -635,8 +638,8 @@ summary(rspde_fit_order_3)
 ```
 
 We can see in the above summary that the computational cost significantly increased.
-We can see that for this dataset, the cost of having `rspde_order=3` and 
-`nu_upper_bound=2` is greater than `rspde_order=2` and `nu_upper_bound=4`:
+Let us compare the cost of having `rspde_order=3` and 
+`nu_upper_bound=2` with the cost of having `rspde_order=2` and `nu_upper_bound=4`:
 
 ```{r}
 # nu_upper_bound = 4
@@ -654,9 +657,9 @@ summary(result_fit_order_3)
 
 Let us see the plots of the posterior marginal densities:
 
-```{r plot_post_order_3, fig.height=4, fig.width=7}
+```{r plot_post_order_3, fig.align='center'}
 par(mfrow=c(1,3))
-plot(result_fit_order_3)
+plot(result_fit_order_3, caption=c("tau","kappa","nu"))
 ```
 
 ### Estimating models with fixed smoothness
@@ -684,7 +687,7 @@ computed for some `rspde_order`, then the $A$ matrix will be same for all the va
 of $\nu$ such that $\alpha$ is non-integer for that `rspde_order`. The same holds for the
 `index` obtained from the `rspde.make.index()` function.
 
-If $\nu$ is fixed, we have that the parameters returned by INLA are
+If $\nu$ is fixed, we have that the parameters returned by `r inla_link()` are
 $$\kappa = \exp(\theta_1)\quad\hbox{and}\quad\tau = \exp(\theta_2).$$
 We will now provide illustrations for both scenarios. 
 It is also noteworthy that just as with the case in which we estimate $\nu$, we can also change
@@ -694,22 +697,22 @@ of 2, that is, the default order.
 
 #### Estimating models with fixed smoothness and non-integer $\alpha$
 
-Recall that for beta prior (which is the default choice of prior for $\nu$):
+Recall that:
 $$\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
 Thus, to illustrate, let us consider a fixed $\nu$ given by the mean of $\nu$ 
 obtained from the first model we considered in this vignette, namely, 
-the fit given by `rspde_fit`, which is approximately $\nu = 1.16$.
+the fit given by `rspde_fit`, which is approximately $\nu = 1.21$.
 
 Notice that for this $\nu$, the value of $\alpha$ is non-integer, so we
 can use the $A$ matrix and the index of the first fitted model, 
 which is also of order 2.
 
 Therefore, all we have to do is build a new model in which we set
- `nu` to `1.16`:
+ `nu` to `1.21`:
 
 ```{r message=FALSE}
 rspde_model_fix <- rspde.matern(mesh = prmesh, rspde_order = 2,
-                                       nu = 1.16)
+                                       nu = 1.21)
 ```
 
 Let us now fit the model:
@@ -803,9 +806,9 @@ summary(rspde_result_int)
 
 ### Changing the priors
 
-We begin by recalling that the fitted rSPDE model in INLA contains the 
-parameters $Theta1$, $Theta2$ and $Theta3$. Let, again,
-$\theta_1 = Theta1$, $\theta_2=Theta2$ and $\theta_3=Theta3$.
+We begin by recalling that the fitted `rSPDE` model in `r inla_link()` contains the 
+parameters $\textrm{Theta1}$, $\textrm{Theta2}$ and $\textrm{Theta3}$. Let, again,
+$\theta_1 = \textrm{Theta1}$, $\theta_2=\textrm{Theta2}$ and $\theta_3=\textrm{Theta3}$.
 In terms of 
 the SPDE
 $$(\kappa^2 I - \Delta)^{\alpha/2}(\tau u) = \mathcal{W},$$
@@ -851,7 +854,7 @@ Finally, let us consider the smoothness parameter $\nu$.
 
 By default, we assume 
 that $\nu$ follows a beta distribution on the interval $(0,\nu_{UB})$, where $\nu_{UB}$
-is the upper bound for $\nu$, with mean $\nu_0=\min\{1, \nu_{UB}/2\}$ and variance $\frac{\nu_0(1-\nu_0)}{1+\phi_0}$, and
+is the upper bound for $\nu$, with mean $\nu_0=\min\{1, \nu_{UB}/2\}$ and variance $\frac{\nu_0(\nu_{UB}-\nu_0)}{1+\phi_0}$, and
 we call $\phi_0$ the precision parameter, whose default value is
 $$\phi_0 = \max\Big\{\frac{\nu_{UB}}{\nu_0}, \frac{\nu_{UB}}{\nu_{UB}-\nu_0}\Big\} + \phi_{inc}.$$
 The parameter $\phi_{inc}$ is an increment to ensure that the prior beta density has boundary 
@@ -861,21 +864,21 @@ changing the argument `nu.prec.inc` in the `rspde.matern()` function. The higher
 the value of $\phi_{inc}$ (that is, the value of `nu.prec.inc`) the more informative
 the prior distribution becomes.
 
-Let us denote a beta distribution with mean $\mu$ and precision parameter $\phi$ by
-$\mathcal{B}(\nu_0,\phi)$.
+Let us denote a beta distribution with support on $(0,\nu_{UB})$, mean $\mu$ and precision parameter $\phi$ by
+$\mathcal{B}_{\nu_{UB}}(\mu,\phi)$.
 
 If we want $\nu$ to have a prior 
-$$\nu \sim \mathcal{B}(\text{nu_1},\text{prec_1}),$$
+$$\nu \sim \mathcal{B}_{\nu_{UB}}(\text{nu_1},\text{prec_1}),$$
 one simply needs to set `prior.nu = list(mean=nu_1, prec=prec_1)`.
 If one sets `prior.nu = list(mean=nu_1)`, then $\nu$ will have prior
-$$\nu \sim \mathcal{B}(\text{nu_1},\phi_1),$$
+$$\nu \sim \mathcal{B}_{\nu_{UB}}(\text{nu_1},\phi_1),$$
 where
 $$\phi_1 = \max\Big\{\frac{\nu_{UB}}{\text{nu_1}}, \frac{\nu_{UB}}{\nu_{UB}-\text{nu_1}}\Big\} + \text{nu.prec.inc}.$$
 
 Of one sets `prior.nu = list(prec=prec_1)`, then $\nu$ will have prior
-$$\nu\sim \mathcal{B}(\nu_0, \text{prec_1}).$$
+$$\nu\sim \mathcal{B}_{\nu_{UB}}(\nu_0, \text{prec_1}).$$
 It is also noteworthy that we have that,
-in terms of INLA's parameters,
+in terms of `r inla_link()`'s parameters,
 
 $$\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
 
@@ -897,7 +900,7 @@ $$F_{\log(\nu)}(x) = \frac{\Phi(x;\mu_0,\sigma_0)}{\Phi(\nu_{UB})},\quad x\leq \
 and $F_{\log(\nu)}(x) = 1$ if $x>\nu_{UB}$. We will call $\mu_0$ and $\sigma_0$ the log-location and log-scale parameters of $\nu$, respectively, and we say that
 $\log(\nu)$ follows a truncated normal distribution with location parameter $\mu_0$ and scale parameter $\sigma_0$.
 
-We also assume that, in terms of INLA's parameters,
+We also assume that, in terms of `r inla_link()`'s parameters,
 $$\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
 
 To change the prior distribution of $\nu$ to the truncated lognormal distribution, we need
@@ -955,14 +958,14 @@ result_fit_ln <- rspde.result(rspde_fit_ln, "field", rspde_model_ln)
 summary(result_fit_ln)
 ```
 and the plot of the posterior marginal densities
-```{r, fig.height=4, fig.width=7}
+```{r fig.align = "center"}
 par(mfrow=c(1,3))
-plot(result_fit_ln)
+plot(result_fit_ln, caption=c("tau","kappa","nu"))
 ```
 
 ### Changing the initial values
 
-The inital values to be used by INLA's optimization algorithm can be changed by
+The inital values to be used by `r inla_link()`'s optimization algorithm can be changed by
 setting the arguments `start.ltau`, `start.lkappa` and `start.nu`.
 
 * `start.ltau` will be the initial value for $\log(\tau)$, that is, the logarithm of $\tau$.
@@ -1006,8 +1009,6 @@ We have the summary:
 ```{r}
 summary(rspde_fit_order_3_start)
 ```
-
-Notice that we sped up a lot the convergence in this case by considering a good starting value.
 
 ### Choosing between the optimized and non-optimized versions
 
@@ -1133,7 +1134,7 @@ For this example we will simulate a data with replicates. We will
 use the same example considered in the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette (the only difference is the way the data 
 is organized).
 We also refer the reader to this vignette for a description of the function
-`matern.operators()`, along with its methods (for instance, the `simulate` method).
+`matern.operators()`, along with its methods (for instance, the `simulate()` method).
 
 ### Simulating the data
 
@@ -1162,7 +1163,7 @@ latent vector described in the introduction of the
 
 We begin by creating the mesh:
 
-```{r, fig.height=7, fig.width=7}
+```{r fig.align = "center"}
 m = 100
 loc_2d_mesh = matrix(runif(m*2),m,2)
 mesh_2d = inla.mesh.2d(
@@ -1170,7 +1171,7 @@ mesh_2d = inla.mesh.2d(
   cutoff=0.05,
   offset=c(0.1,0.4),
   max.edge=c(0.05,0.5) )
-plot(mesh_2d)
+plot(mesh_2d, main="")
 points(loc_2d_mesh[,1],loc_2d_mesh[,2])
 ```
 
@@ -1207,7 +1208,7 @@ operator_information = matern.operators (mesh=mesh_2d,
 ```
 More details on this function can be found at the [Rational approximation with the rSPDE package](rspde_cov.html) vignette.
 
-To simulate the latent process all we need to do is to use the `simulate` method on
+To simulate the latent process all we need to do is to use the `simulate()` method on
 the `operator_information` object. We then obtain the simulated data $y$
 by connecting with the $A$ matrix and adding the gaussian noise.
 
@@ -1220,7 +1221,7 @@ y = as.vector(A %*% as.vector(u)) +
 
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
 
-```{r, fig.show='hold',fig.height = 3.5, fig.width = 7, fig.align = "center",echo=FALSE}
+```{r, fig.show='hold', fig.align = "center",echo=FALSE}
 opar <- par(mfrow = c(1,2),mgp = c(1.2, 0.5, 0), mar = c(2,2,0.5,0.5) + 0.1)
 proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
 image(inla.mesh.project(proj, field = as.vector(u[,1])),xlab="",ylab="",
@@ -1241,7 +1242,7 @@ that since we have replicates we should provide
 the `index` and `repl` arguments for `rspde.make.A()` function,
 and also the argument `n.repl` in `rspde.make.index()` function. They behave 
 identically as in their
-`INLA`'s counterparts, namely, `inla.spde.make.A()` and `inla.make.index()`.
+`r inla_link()`'s counterparts, namely, `inla.spde.make.A()` and `inla.make.index()`.
 
 ```{r}
 Abar.rep <- rspde.make.A(mesh = mesh_2d, loc = loc_2d_mesh, index=rep(1:m,times=n.rep),

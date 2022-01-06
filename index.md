@@ -12,38 +12,37 @@ Basic statistical operations such as likelihood evaluations and kriging predicti
 Several popular Gaussian random field models can be represented as solutions to stochastic partial differential equations (SPDEs) of the form 
 
 
-$$
-L^{\beta}(\tau u) = \mathcal{W}.
-$$
+\\[
+L^{\\beta}(\\tau u) = \\mathcal{W}.
+\\]
 
-Here $\mathcal{W}$ is Gaussian white noise, $L$ is a second-order differential operator, the fractional power $\beta>0$ determines the smoothness of $u$, and $\tau>0$ scales the variance of $u$. 
-The simplest example is a model on $\mathbb {R}^d$ with $L = \kappa^2 - \Delta$, which results in a Gaussian random field $u$ with a Matérn covariance function
+Here \\(\\mathcal{W}\\) is a Gaussian white noise, \\(L\\) is a second-order differential operator, the fractional power \\(\\beta&gt;0\\) determines the smoothness of \\(u\\), and \\(\\tau&gt;0\\) scales the variance of \\(u\\). The simplest example is a model on \\(\\mathbb {R}^d\\) with \\(L = \\kappa^2 - \\Delta\\), which results in a Gaussian random field \\(u\\) with a Matérn covariance function
 
-$$
-C(h) = \dfrac{\sigma^2}{2^{\nu-1} \Gamma (\nu)} (\kappa h) ^ \nu K_{\nu} (\kappa h).
-$$
+\\[
+C(h) = \\dfrac{ \\sigma^2 }{ 2 ^ {\\nu-1} \\Gamma (\\nu)} (\\kappa h) ^ {\\nu} K_{\\nu} (\\kappa h).
+\\]
 
-If $2 \beta$ is an integer and if the domain $\mathcal {D}$ where the model is defined is bounded, then $u$ can be approximated by a Gaussian Markov random field (GMRF) $\mathbf {\mathrm{u}}$ via a finite element method (FEM) for the SPDE. Specifically, the approximation can be written as 
+If \\(2 \\beta\\) is an integer and if the domain \\(\\mathcal {D}\\) where the model is defined is bounded, then \\(u\\) can be approximated by a Gaussian Markov random field (GMRF) \\(\\mathbf { \\mathrm{u} }\\) via a finite element method (FEM) for the SPDE. Specifically, the approximation can be written as
 
-$$
-u_h (s) = \sum_{i=1}^n u_i \varphi_i (s).
-$$
+\\[
+u_h (s) = \\sum _ { i=1 } ^ n u_i \\varphi_i (s).
+\\]
 
-Here $\{\varphi_i\}$ are piecewise linear basis functions defined by some triangulation of $\mathcal {D}$ and the vector of weights $\mathbf{\mathrm{u}} = (u_1,\ldots,u_n)^\top$ is normally distributed, $N(\mathbf{\mathrm{u}}, \tilde{ \mathbf{\mathrm{Q} } }^{-1})$, where $\tilde{ \mathbf{ \mathrm{Q} } }$ is sparse. See [An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach][ref8] for further details. 
+Here \\(\\{\\varphi_i\\}\\) are piecewise linear basis functions defined by some triangulation of \\(\\mathcal {D}\\) and the vector of weights \\( \\mathbf { \\mathrm { u } } = (u_1,\\ldots,u_n)^\\top \\) is normally distributed, \\(N(\\mathbf { \\mathrm{u} }, \\tilde{ \\mathbf { \\mathrm{Q} } }^{-1})\\), where \\(\\tilde{ \\mathbf{ \\mathrm{Q} } }\\) is sparse. See [An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach][ref8] for further details. 
 
-The `rSPDE` package provides corresponding computationally efficient approximations for the case when $\beta$ is a general fractional power. The main idea is to combine the FEM approximation with a rational approximation of the fractional operator.
+The `rSPDE` package provides corresponding computationally efficient approximations for the case when \\(\\beta\\) is a general fractional power. The main idea is to combine the FEM approximation with a rational approximation of the fractional operator.
 As a result, one can easily do inference and prediction using fractional SPDE models such as 
 
-$$
-(\kappa^2-\Delta)^\beta u = \mathcal{W}.
-$$
+\\[
+( \\kappa^2-\\Delta )^\\beta u = \\mathcal{ W }.
+\\]
 
-In particular, it allows for bayesian inference of all model parameters, including the fractional parameter $\beta$.
+In particular, it allows for bayesian inference of all model parameters, including the fractional parameter \\(\\beta\\).
 
 For illustration purposes, the package contains a simple FEM implementation for models on R. See the 
-[Getting Started to the rSPDE package][ref2] vignette for an introduction to the package. The [Rational approximation with the rSPDE package][ref6] and [Operator-based rational approximation ][ref5] vignettes provide
-introductions to how to create and fit rSPDE models. For an introduction to the R-INLA implementation
-of the rSPDE models see the [R-INLA implementation of the rational SPDE approach][ref3]. The [`rSPDE` documentation][ref7] contains descriptions and examples of the functions in the `rSPDE` package.
+[An introduction to the rSPDE package][ref2] vignette for an introduction to the package. The [Rational approximation with the rSPDE package][ref6] and [Operator-based rational approximation ][ref5] vignettes provide
+introductions to how to create and fit `rSPDE` models. For an introduction to the [`R-INLA`](https://www.r-inla.org) implementation
+of the `rSPDE` models see the [R-INLA implementation of the rational SPDE approach][ref3]. The [`rSPDE` documentation][ref7] contains descriptions and examples of the functions in the `rSPDE` package.
 
 # Installation instructions #
 The latest CRAN release of the package can be installed directly from CRAN with `install.packages("rSPDE")`.
@@ -62,11 +61,12 @@ rtools = "C:\\Rtools\\bin"
 gcc = "C:\\Rtools\\gcc-4.6.3\\bin"
 Sys.setenv(PATH = paste(c(gcc, rtools, Sys.getenv("PATH")), collapse = ";"))
 ```
-where the variables `rtools` and `gcc` need to be changed if `Rtool`s is not installed directly on `C:`.
+where the variables `rtools` and `gcc` need to be changed if `Rtool`s is not installed directly on `C:`,
+and `gcc`'s version might need to be changed depending on the version of `Rtools`.
 
 # Example
 
-We will illustrate the rSPDE package with a kriging example. 
+We will illustrate the `rSPDE` package with a kriging example. 
 
 The data consist of precipitation measurements from the Paraná region in Brazil
 and were provided by the Brazilian National Water Agency. The data were collected
@@ -239,9 +239,9 @@ grid.arrange(levelplot(m.prd, col.regions = tim.colors(99),
 <img src="articles/rspde_inla_files/figure-html/plot_pred-1.png">
 
 [ref]: https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537  "The rational SPDE approach for Gaussian random fields with general smoothness"
-[ref2]: https://davidbolin.github.io/rSPDE//articles/rSPDE.html "Getting Started to the rSPDE package"
+[ref2]: https://davidbolin.github.io/rSPDE//articles/rSPDE.html "An introduction to the rSPDE package"
 [ref3]: https://davidbolin.github.io/rSPDE//articles/rspde_inla.html "INLA Vignette"
-[ref4]: https://r-inla.org "INLA homepage"
+[ref4]: https://www.r-inla.org "INLA homepage"
 [ref5]: https://davidbolin.github.io/rSPDE//articles/rspde_base.html
 [ref6]: https://davidbolin.github.io/rSPDE//articles/rspde_cov.html
 [ref7]: https://davidbolin.github.io/rSPDE/reference/index.html "`rSPDE` documentation."

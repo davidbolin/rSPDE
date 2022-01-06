@@ -24,12 +24,15 @@ A vector with the values C(h).
 }
 \description{
 \code{matern.covariance} evaluates the folded Matern covariance function
-over an interval \eqn{[0,L]}:
-\deqn{C(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL)+C(h+m-2kL)),}
+over an interval \eqn{[0,L]}.
 }
 \details{
+\code{matern.covariance} evaluates the folded Matern covariance function
+over an interval \eqn{[0,L]}:
+\deqn{C(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL)+C(h+m-2kL)),}
+
 where \eqn{C(\cdot)} is the Matern covariance function:
-\deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
+\deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
 
 We consider the truncation:
 \deqn{C(h,m) = \sum_{k=-N}^{N} (C(h-m+2kL)+C(h+m-2kL)).}

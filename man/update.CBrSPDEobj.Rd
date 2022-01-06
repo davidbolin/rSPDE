@@ -2,7 +2,7 @@
 % Please edit documentation in R/fractional.computations.R
 \name{update.CBrSPDEobj}
 \alias{update.CBrSPDEobj}
-\title{Update parameters of CBrSPDE objects}
+\title{Update parameters of CBrSPDEobj objects}
 \usage{
 \method{update}{CBrSPDEobj}(
   object,
@@ -32,7 +32,7 @@ It returns an object of class "CBrSPDEobj. This object contains the
 same quantities listed in the output of \code{\link{matern.operators}}.
 }
 \description{
-Function to change the parameters of a CBrSPDE object
+Function to change the parameters of a CBrSPDEobj object
 }
 \examples{
 #Compute the covariance-based rational approximation of a 

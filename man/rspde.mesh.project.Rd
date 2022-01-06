@@ -57,7 +57,7 @@ rspde.mesh.projector(
 
 \item{projection}{One of c("default", "longlat", "longsinlat", "mollweide").}
 
-\item{field}{Basis function weights, one per mesh basis function, describing the function to be avaluated at the projection locationssFunction values for on the mesh}
+\item{field}{Basis function weights, one per mesh basis function, describing the function to be evaluated at the projection locations.}
 
 \item{projector}{A \code{rspde.mesh.projector} object.}
 }

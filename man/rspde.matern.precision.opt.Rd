@@ -42,6 +42,5 @@ The precision matrix
 optimized version of the precision matrix of the
 covariance-based rational SPDE approximation of a stationary Gaussian random
 fields on \eqn{R^d} with a Matern covariance function
-\deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
-(\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
+\deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
 }

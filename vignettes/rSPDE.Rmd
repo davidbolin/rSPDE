@@ -93,15 +93,21 @@ knitr::opts_chunk$set(
 set.seed(1)
 ```
 
+```{r inla_link, include = FALSE}
+inla_link <- function() {
+  sprintf("[%s](%s)", "`R-INLA`", "https://www.r-inla.org")
+}
+```
+
 ## Introduction
 
-In this vignette we will provide a brief introduction to the `rSPDE`
-package by providing a simple data set and using the different functions in
-the package to analyze it.
+In this vignette we provide a brief introduction to the `rSPDE`
+package. We begin by using the package to generate a simple data set. Then,
+we will analyze this data set using the `rSPDE` package.
 
 We have two main "families" of functions inside the `rSPDE` package:
 
-* The `R-INLA` implementation of the rational SPDE approach;
+* The `r inla_link()` implementation of the rational SPDE approach;
 
 * The rational SPDE approach.
 
@@ -115,9 +121,9 @@ we have the following additional vignettes:
 
 We also have a separate group of functions for performing operator-based
 rational approximations. These will be useful when performing rational 
-approximations for fractional SPDE models with non-Gaussian noise. A
+approximations for fractional SPDE models with non-Gaussian noise. An
 example in which such approximation is suitable is when one has the
-so-called type G Lévy noises. 
+so-called type-G Lévy noises. 
 
 We refer the reader to [Geostatistical Modelling Using Non-Gaussian Matérn Fields](https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141),
 [Spatial Matérn Fields Driven by Non-Gaussian Noise](https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046) and
@@ -132,24 +138,24 @@ on the vignette:
 
 ## A toy data set
 
-We begin by creating a toy data set.
+We begin by generating a toy data set.
 
 For this illustration, we will simulate a data set on a two-dimensional spatial domain. 
 To this end, we need to construct a mesh over the domain of interest and then compute 
-the matrices needed to define the operator. We will use the `R-INLA` package
+the matrices needed to define the operator. We will use the `r inla_link()` package
 to create the mesh and obtain the matrices of interest.
 
 We will begin by defining a mesh over $[0,1]\times [0, 1]$:
 
-```{r, message=FALSE, warning=FALSE,fig.height = 7, fig.width = 7}
+```{r, message=FALSE, warning=FALSE, fig.align='center'}
 library(INLA)
-m =500
+m = 500
 loc_2d_mesh = matrix(runif(m*2),m,2)
 mesh_2d = inla.mesh.2d(
   loc=loc_2d_mesh,
   cutoff=0.05,
   max.edge=c(0.1,0.5) )
-plot(mesh_2d)
+plot(mesh_2d, main = "")
 ```
 
 We will now use the `matern.operators()` function to construct a rational SPDE approximation of 
@@ -157,18 +163,17 @@ order $m=2$ for a Gaussian random field with a Matérn covariance function on
 $[0,1]\times [0, 1]$. We choose $\nu=0.5$ which corresponds to exponential
 covariance. We also set $\sigma=1$ and the range as $0.2$.
 
-```{r}
+```{r, message=FALSE}
 library(rSPDE)
-sigma = 1
-range = 0.2
+sigma <- 1
+range <- 0.2
 nu <- 0.5
-kappa = sqrt(8*nu)/range
+kappa <- sqrt(8*nu)/range
 op <- matern.operators(mesh=mesh_2d,nu=nu,
                                    kappa=kappa,sigma=sigma,m=2)
 ```
 
-We are now in a position to simulate the latent field. We will simulate the 
-latent field $u$:
+We are now in a position to simulate the latent field $u$:
 
 ```{r}
 u <- simulate(op)
@@ -183,10 +188,10 @@ $$
 y_i &= u(\mathbf{s}_i)+\varepsilon_i\\
 \end{align},
 $$
-where $\varepsilon_1,\ldots,\varepsilon_{30m}$ are iid normally distributed
+where $\varepsilon_1,\ldots,\varepsilon_{m}$ are iid normally distributed
 with mean 0 and standard deviation 0.1.
 
-We now obtain a realization of $y$. To construct the observation matrix, we use the `R-INLA` function `inla.spde.make.A()`.
+We now obtain a realization of $y$. We will use the `r inla_link()` function `inla.spde.make.A()` to construct the observation matrix.
 
 ```{r}
 A <- inla.spde.make.A(
@@ -198,7 +203,7 @@ y = A %*% u + rnorm(m) * sigma.e
 
 The observed data can be seen in the following image.
 
-```{r,fig.height = 7, fig.width = 7, fig.align = "center", echo=FALSE}
+```{r,fig.align = "center", echo=FALSE}
 library(ggplot2)
 df  <- data.frame(x1 = as.double(loc_2d_mesh[,1]), x2 = as.double(loc_2d_mesh[,2]), y = as.double(y))
 ggplot(df,aes(x=x1,y=x2,col=y))+geom_point()+scale_color_gradient(low="yellow", high="red")
@@ -206,10 +211,10 @@ ggplot(df,aes(x=x1,y=x2,col=y))+geom_point()+scale_color_gradient(low="yellow", 
 
 The simulated random field is shown in the following figure.
 
-```{r, fig.show='hold',fig.height = 7, fig.width = 7, fig.align = "center",echo=FALSE}
+```{r, fig.show='hold', fig.align = "center",echo=FALSE}
 proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
 field <- inla.mesh.project(proj, field = as.vector(u))
-grd = expand.grid(1:100, 1:100)
+grd = expand.grid(1:100, 1:100)/100
 field.df <- cbind(grd,as.vector(field))
 colnames(field.df) <- c("x1","x2","y")
 ggplot(field.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(low="yellow", high="red")
@@ -217,7 +222,7 @@ ggplot(field.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(low="ye
 
 ## Fitting the model with `R-INLA` implementation of the rational SPDE approach
 
-We will now fit the model of the toy data set using our `R-INLA` implementation of the
+We will now fit the model of the toy data set using our `r inla_link()` implementation of the
 rational SPDE approach. Further details on this implementation can be found in
  [R-INLA implementation of the rational SPDE approach](rspde_inla.html).
  
@@ -246,8 +251,7 @@ rspde_model <- rspde.matern(mesh = mesh_2d,
                             nu_upper_bound = 1)
 ```
 
-Finally, we create the formula, taking the replicates
-into account, and fit:
+Finally, we create the formula and fit:
 
 ```{r, message=FALSE, warning=FALSE}
 f =
@@ -284,14 +288,14 @@ print(result_df)
 
 ## Kringing with `R-INLA` implementation of the rational SPDE approach
 
-Let us now obtain predictions (i.e. do kriging) of the latent field on 
+Let us now obtain predictions (i.e., do kriging) of the latent field on 
 a dense grid in the region.
 
 We begin by creating the grid in which we want to do the predictions. To this end,
 we can use the `rspde.mesh.projector()` function. This function has the same arguments
 as the function `inla.mesh.projector()` the only difference being that the rSPDE
 version also has an argument `nu` and an argument `rspde_order`. Thus, we
-proceed in the same fashion as we would in INLA's standard SPDE implementation:
+proceed in the same fashion as we would in `r inla_link()`'s standard SPDE implementation:
 
 
 ```{r create_proj_grid}
@@ -303,7 +307,7 @@ This lattice contains 100 × 100 locations (the default).
 
 Let us plot the locations that we will do prediction:
 
-```{r plot_prd,fig.height = 7, fig.width = 7}
+```{r plot_prd, fig.align='center'}
 coord.prd <- projgrid$lattice$loc
 plot(coord.prd, type = "p", cex = 0.1)
 ```
@@ -351,7 +355,7 @@ sd.prd <- matrix(rspde_fitprd$summary.fitted.values$sd[id.prd],100,100)
 
 Finally, we plot the results. First the mean:
 
-```{r plot_pred, fig.width=7.5, fig.height=7, echo=FALSE}
+```{r plot_pred, echo=FALSE, fig.align='center'}
 grd = expand.grid(1:100, 1:100)/100
 field.pred.df <- cbind(grd,as.vector(m.prd))
 colnames(field.pred.df) <- c("x1","x2","y")
@@ -360,7 +364,7 @@ ggplot(field.pred.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(lo
 
 Then, the std. deviations:
 
-```{r plot_pred_sd, fig.width=7.5, fig.height=7, echo=FALSE}
+```{r plot_pred_sd, fig.align='center', echo=FALSE}
 field.pred.sd.df <- cbind(grd,as.vector(sd.prd))
 colnames(field.pred.sd.df) <- c("x1","x2","y")
 ggplot(field.pred.sd.df,aes(x=x1,y=x2,fill=y))+geom_raster()
@@ -369,7 +373,7 @@ ggplot(field.pred.sd.df,aes(x=x1,y=x2,fill=y))+geom_raster()
 
 ## Fitting the model with `rSPDE`
 
-We will now fit the model of the toy data set without using `R-INLA`.
+We will now fit the model of the toy data set without using `r inla_link()`.
 To this end we will use the rational approximation functions from 
 `rSPDE` package. Further details can be found in the vignette
 [Rational approximation with the rSPDE package](rspde_cov.html).
@@ -384,7 +388,7 @@ We will, then, use the same model object. Recall that the `rSPDE` model
 object we created is `op`. We also already have the $A$ matrix connecting
 the observation locations to the mesh, and we simply called it `A`.
 
-To simplify parameter estimation, we create an objective function to maximize 
+To simplify parameter estimation, we create an objective function to minimize 
 which is the negative log-likelihood, parametrized using the logarithm of each 
 parameter to avoid constrained optimization. 
 
@@ -405,7 +409,16 @@ use `optim()`):
 ```{r}
 library(optimParallel)
 #Preparing the parallel
-cl <- makeCluster(detectCores()-1)     
+
+#Checking if we have a limit to the number of cores
+chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+if (nzchar(chk) && chk == "TRUE") {
+    n_cores <- 2L
+} else {
+    n_cores <- parallel::detectCores() - 1
+}
+
+cl <- makeCluster(n_cores)
 setDefaultCluster(cl=cl)
 
 #Fitting the model
@@ -429,7 +442,7 @@ print(total_time)
 ## Kringing with `rSPDE`
 
 We will now do kringing on the same dense grid
-we did for the `R-INLA`-based rational SPDE approach,
+we did for the `r inla_link()`-based rational SPDE approach,
 but now using the `rSPDE` functions. To this end we
 will use the `predict` method on the `rSPDE` model object.
 
@@ -437,7 +450,7 @@ Observe that we need an $A$ matrix connecting the mesh to the
 prediction locations. 
 
 Let us now create the $A$ matrix for the same prediction locations we used for the
-previous case (using the `R-INLA` implementation).
+previous case (using the `r inla_link()` implementation):
 
 ```{r create_proj_grid_prd2}
 predgrid <- inla.mesh.projector(mesh_2d, xlim = c(0,1), 
@@ -464,7 +477,7 @@ pred.rspde <- predict(op.prd, A = A, Aprd = A.prd2, Y = y,
 
 Finally, we plot the results. First the mean:
 
-```{r plot_pred2, fig.width=7.5, fig.height=7, echo=FALSE}
+```{r plot_pred2, fig.align='center', echo=FALSE}
 field.pred2.df <- cbind(grd,as.vector(pred.rspde$mean))
 colnames(field.pred2.df) <- c("x1","x2","y")
 ggplot(field.pred2.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(low="yellow", high="red")
@@ -472,7 +485,7 @@ ggplot(field.pred2.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(l
 
 Then, the std. deviations:
 
-```{r plot_pred_sd2, fig.width=7.5, fig.height=7, echo=FALSE}
+```{r plot_pred_sd2, fig.align='center', echo=FALSE}
 field.pred2.sd.df <- cbind(grd,as.vector(sqrt(pred.rspde$variance)))
 colnames(field.pred2.sd.df) <- c("x1","x2","y")
 ggplot(field.pred2.sd.df,aes(x=x1,y=x2,fill=y))+geom_raster()

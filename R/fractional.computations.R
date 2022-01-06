@@ -17,7 +17,10 @@
 
 #' @rdname simulate.rSPDEobj
 #' @export
-simulate <- function(object, nsim,...) {
+simulate <- function(object, 
+                     nsim,
+                     ...) 
+{
   UseMethod("simulate", object)
 }
 
@@ -53,7 +56,9 @@ simulate <- function(object, nsim,...) {
 #' Y <- simulate(op)
 #' plot(x, Y, type = "l", ylab = "u(x)", xlab = "x")
 
-simulate.rSPDEobj <- function(object, nsim = 1 ,...)
+simulate.rSPDEobj <- function(object, 
+                              nsim = 1,
+                              ...)
 {
   if (class(object) != "rSPDEobj")
     stop("input op is not of class rSPDEobj")
@@ -68,8 +73,8 @@ simulate.rSPDEobj <- function(object, nsim = 1 ,...)
 
 
 #' @name update.CBrSPDEobj
-#' @title Update parameters of CBrSPDE objects
-#' @description Function to change the parameters of a CBrSPDE object
+#' @title Update parameters of CBrSPDEobj objects
+#' @description Function to change the parameters of a CBrSPDEobj object
 #' @param object The covariance-based rational SPDE approximation, 
 #' computed using \code{\link{matern.operators}}
 #' @param user_kappa If non-null, update the range parameter of the covariance function.
@@ -177,7 +182,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 
 #' @name update.rSPDEobj
 #' @title Update parameters of rSPDEobj objects
-#' @description Function to change the parameters of a rSPDEpbj object
+#' @description Function to change the parameters of a rSPDEobj object
 #' @param object The operator-based rational SPDE approximation, 
 #' computed using \code{\link{matern.operators}} with \code{type="operator"}
 #' @param user_kappa If non-null, update the range parameter of the covariance function.
@@ -354,7 +359,7 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       # order back
       orderback = numeric(length(reorder))
       orderback[reorder] = 1:length(reorder)
-      X = X[orderback]
+      X = X[orderback,]
     } else{
       LQ = chol(forceSymmetric(Q))
       X = solve(LQ,Z)
@@ -444,7 +449,13 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 #' lines(x, u.krig$mean + 2*sqrt(u.krig$variance), col = 2)
 #' lines(x, u.krig$mean - 2*sqrt(u.krig$variance), col = 2)
 
-predict.rSPDEobj <- function(object, A, Aprd, Y, sigma.e, compute.variances = FALSE,...)
+predict.rSPDEobj <- function(object, 
+                             A, 
+                             Aprd, 
+                             Y, 
+                             sigma.e, 
+                             compute.variances = FALSE,
+                             ...)
 {
   Y <- as.matrix(Y)
   if (dim(Y)[1] != dim(A)[1])
@@ -537,7 +548,11 @@ predict.rSPDEobj <- function(object, A, Aprd, Y, sigma.e, compute.variances = FA
 #' lik1 <- rSPDE.loglike(op, Y, A, sigma.e)
 #' cat(lik1)
 
-rSPDE.loglike <- function(obj, Y, A, sigma.e, mu=0)
+rSPDE.loglike <- function(obj,
+                          Y, 
+                          A, 
+                          sigma.e, 
+                          mu=0)
 {
   Y = as.matrix(Y)
   if (length(dim(Y)) == 2) {
@@ -653,7 +668,7 @@ rSPDE.loglike <- function(obj, Y, A, sigma.e, mu=0)
 #'                                 user_nu=nu, sigma.e = exp(theta[4])))
 #'                                 }
 #'
-#' #The parameters can now be estimated by maximizing mlik with optim
+#' #The parameters can now be estimated by minimizing mlik with optim
 #' \donttest{
 #' #Choose some reasonable starting values depending on the size of the domain
 #' theta0 = log(c(sqrt(8), 1/sqrt(var(c(Y))), 0.9, 0.01))
@@ -772,7 +787,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
 #'                                 user_nu=nu, sigma.e = exp(theta[4])))
 #'                                 }
 #'
-#' #The parameters can now be estimated by maximizing mlik with optim
+#' #The parameters can now be estimated by minimizing mlik with optim
 #' \donttest{
 #' #Choose some reasonable starting values depending on the size of the domain
 #' theta0 = log(c(sqrt(8), 1/sqrt(var(c(Y))), 0.9, 0.01))
@@ -961,7 +976,7 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
 #' return(-matern.loglike(kappa=kappa, sigma=sigma, 
 #' nu=nu, sigma.e=exp(theta[4]), Y=Y, A=A, C=fem$C, G=fem$G, d=1))}
 #'
-#' #The parameters can now be estimated by maximizing mlik with optim
+#' #The parameters can now be estimated by minimizing mlik with optim
 #' \donttest{
 #' #Choose some reasonable starting values depending on the size of the domain
 #' theta0 = log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
@@ -1013,7 +1028,7 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
 #'                        type="operator"))
 #' }
 #'
-#' #The parameters can now be estimated by maximizing mlik with optim
+#' #The parameters can now be estimated by minimizing mlik with optim
 #' \donttest{
 #' #Choose some reasonable starting values depending on the size of the domain
 #' theta0 = log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
@@ -1139,7 +1154,7 @@ matern.loglike <- function(kappa,
 #' return(-matern.loglike(kappa=kappa, sigma=sigma, 
 #' nu=nu, sigma.e=exp(theta[4]), Y=Y, A=A, C=fem$C, G=fem$G, d=1))}
 #'
-#' #The parameters can now be estimated by maximizing mlik with optim
+#' #The parameters can now be estimated by minimizing mlik with optim
 #' \donttest{
 #' #Choose some reasonable starting values depending on the size of the domain
 #' theta0 = log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
@@ -1190,7 +1205,7 @@ CBrSPDE.matern.loglike2 <- function(kappa,
 #' Parameter-based log-likelihood for a latent Gaussian Matern SPDE model using a rational SPDE approximation
 #'
 #' This function evaluates the log-likelihood function for observations of a Gaussian process defined as
-#' the solution to the SPDE \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W},
+#' the solution to the SPDE \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.}
 #'
 #' The observations are assumed to be generated as
 #' \eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = u(s_i) + \epsilon_i}, where \eqn{\epsilon_i}{\epsilon_i} are
@@ -1255,7 +1270,7 @@ CBrSPDE.matern.loglike2 <- function(kappa,
 #'                             Y = Y, G = G, C = C, A = A, d = 1))
 #' }
 #'
-#'#' #The parameters can now be estimated by maximizing mlik with optim
+#'#' #The parameters can now be estimated by minimizing mlik with optim
 #' \donttest{
 #' #Choose some reasonable starting values depending on the size of the domain
 #' theta0 = log(c(sqrt(8), 1/sqrt(var(c(Y))), 0.9, 0.01))
@@ -1510,8 +1525,8 @@ precision <- function(object,...) {
 }
 
 #' @name precision.CBrSPDEobj
-#' @title Get the precision matrix of CBrSPDE objects
-#' @description Function to get the precision matrix of a CBrSPDE object
+#' @title Get the precision matrix of CBrSPDEobj objects
+#' @description Function to get the precision matrix of a CBrSPDEobj object
 #' @param object The covariance-based rational SPDE approximation, 
 #' computed using \code{\link{matern.operators}}
 #' @param user_kappa If non-null, update the range parameter of the covariance function.

@@ -3,7 +3,7 @@
 \name{precision}
 \alias{precision}
 \alias{precision.CBrSPDEobj}
-\title{Get the precision matrix of CBrSPDE objects}
+\title{Get the precision matrix of CBrSPDEobj objects}
 \usage{
 precision(object, ...)
 
@@ -34,7 +34,7 @@ computed using \code{\link{matern.operators}}}
 The precision matrix.
 }
 \description{
-Function to get the precision matrix of a CBrSPDE object
+Function to get the precision matrix of a CBrSPDEobj object
 }
 \examples{
 #Compute the covariance-based rational approximation of a 
