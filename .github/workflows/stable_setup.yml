@@ -56,8 +56,9 @@ jobs:
           
       - name: Finish the setup
         run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
           sed -i .bak 's/knitr/R.rsp/' DESCRIPTION
-          rm DESCRIPTION.bak
           touch vignettes/rSPDE.html.asis
           echo "%\VignetteIndexEntry{An introduction to the rSPDE package}" >> vignettes/rSPDE.html.asis
           echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rSPDE.html.asis
@@ -75,4 +76,9 @@ jobs:
           echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rspde_base.html.asis
           echo "%\VignetteEncoding{UTF-8}" >> vignettes/rspde_base.html.asis
           echo "^vignettes/.*\.Rmd$" >> .Rbuildignore
+          git add .Rbuildignore
+          git add vignettes
+          git add DESCRIPTION
+          git commit -m "Doing the setup"
+          git push
         shell: bash
