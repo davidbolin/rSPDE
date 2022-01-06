@@ -49,10 +49,10 @@ jobs:
 
       - name: Generate html files
         run: |
-          Rscript -e 'rmarkdown::render('vignettes/rSPDE.Rmd')'
-          Rscript -e 'rmarkdown::render('vignettes/rspde_cov.Rmd')'
-          Rscript -e 'rmarkdown::render('vignettes/rspde_inla.Rmd')'
-          Rscript -e 'rmarkdown::render('vignettes/rspde_base.Rmd')'
+          Rscript -e "rmarkdown::render('vignettes/rSPDE.Rmd')"
+          Rscript -e "rmarkdown::render('vignettes/rspde_cov.Rmd')"
+          Rscript -e "rmarkdown::render('vignettes/rspde_inla.Rmd')"
+          Rscript -e "rmarkdown::render('vignettes/rspde_base.Rmd')"
           
       - name: Finish the setup
         run: |
