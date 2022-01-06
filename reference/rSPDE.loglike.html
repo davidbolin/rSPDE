@@ -18,7 +18,7 @@ are iid mean-zero Gaussian variables and \(x(s) = \mu(s) + u(s)\), where
     
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -136,7 +136,7 @@ likelihood estimation.</p>
 <span class="r-in"><span class="co">#Create some data</span></span>
 <span class="r-in"><span class="va">obs.loc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">10</span>, min <span class="op">=</span> <span class="fl">0</span>, max <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span class="r-in"><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="rSPDE.A1d.html">rSPDE.A1d</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">obs.loc</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">Y</span> <span class="op">=</span> <span class="fu"><a href="https://www.math.uzh.ch/pages/spam//reference/Coercion.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">A</span><span class="op"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">%*%</a></span><span class="va">u</span> <span class="op">+</span> <span class="va">sigma.e</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
+<span class="r-in"><span class="va">Y</span> <span class="op">=</span> <span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/Coercion.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">A</span><span class="op"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">%*%</a></span><span class="va">u</span> <span class="op">+</span> <span class="va">sigma.e</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span class="r-in"></span>
 <span class="r-in"><span class="co">#compute log-likelihood of the data</span></span>
 <span class="r-in"><span class="va">lik1</span> <span class="op">&lt;-</span> <span class="fu">rSPDE.loglike</span><span class="op">(</span><span class="va">op</span>, <span class="va">Y</span>, <span class="va">A</span>, <span class="va">sigma.e</span><span class="op">)</span></span>

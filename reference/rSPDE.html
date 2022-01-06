@@ -14,7 +14,7 @@ where \(L\) is a differential operator and \(\beta&amp;gt;0\) is a general fract
     
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,16 +77,16 @@ where \(L\) is a differential operator and \(\beta&gt;0\) is a general fractiona
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The approximation is based on a rational approximation of the fractional operator,
 and allows for computationally efficient inference and simulation.</p>
-<p>The main functions for computing the rational operators are:</p><ul><li><p><code><a href="fractional.operators.html">fractional.operators</a></code>Computation of general rational operators</p></li>
-<li><p><code><a href="matern.operators.html">matern.operators</a></code> Computation of operators for random fields with
+<p>The main functions for computing rational approximation objects are:</p><ul><li><p><code><a href="fractional.operators.html">fractional.operators</a></code>works for general rational operators</p></li>
+<li><p><code><a href="matern.operators.html">matern.operators</a></code> works for random fields with
 stationary Matern covariance functions</p></li>
-<li><p><code><a href="spde.matern.operators.html">spde.matern.operators</a></code> Computation of operators for random fields with
+<li><p><code><a href="spde.matern.operators.html">spde.matern.operators</a></code> works for random fields with
 defined as solutions to a possibly non-stationary Matern-type SPDE model.</p></li>
 <li><p><code><a href="rspde.matern.html">rspde.matern</a></code> R-INLA implementation of the covariance-based 
 rational approximation for random fields with
 stationary Matern covariance functions</p></li>
 </ul><p>Basic statistical operations such as likelihood evaluations (see <code><a href="rSPDE.loglike.html">rSPDE.loglike</a>, <a href="rSPDE.matern.loglike.html">rSPDE.matern.loglike</a></code>) and kriging
-predictions (see <code><a href="predict.rSPDEobj.html">predict.rSPDEobj</a>, <a href="predict.CBrSPDEobj.html">predict.CBrSPDEobj</a></code>) using the fractional approximations are also implemented.</p>
+predictions (see <code><a href="predict.rSPDEobj.html">predict.rSPDEobj</a>, <a href="predict.CBrSPDEobj.html">predict.CBrSPDEobj</a></code>) using the rational approximations are also implemented.</p>
 <p>For illustration purposes, the package contains a simple FEM implementation for models on R. For spatial models,
 the FEM implementation in the <code>R-INLA</code> package is recommended.</p>
 <p>For a more detailed introduction to the package, see the rSPDE Vignettes.</p>

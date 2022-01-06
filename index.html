@@ -34,7 +34,7 @@
     
     <a class="navbar-brand me-2" href="index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -92,30 +92,22 @@
 </div>
 
 <p><code>rSPDE</code> is an R package used for computing rational approximations of fractional SPDEs. These rational approximations can be used for computatially efficient statistical inference.</p>
-<p>Basic statistical operations such as likelihood evaluations and kriging predictions using the fractional approximations are also implemented. The package also contains an interface to <a href="https://r-inla.org" title="INLA homepage" class="external-link">R-INLA</a>.</p>
+<p>Basic statistical operations such as likelihood evaluations and kriging predictions using the fractional approximations are also implemented. The package also contains an interface to <a href="https://www.r-inla.org" title="INLA homepage" class="external-link">R-INLA</a>.</p>
 </div>
 <div class="section level1">
 <h1 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h1>
 <p>Several popular Gaussian random field models can be represented as solutions to stochastic partial differential equations (SPDEs) of the form</p>
-<p><span class="math display">\[
-L^{\beta}(\tau u) = \mathcal{W}.
-\]</span></p>
-<p>Here <span class="math inline">\(\mathcal{W}\)</span> is Gaussian white noise, <span class="math inline">\(L\)</span> is a second-order differential operator, the fractional power <span class="math inline">\(\beta&gt;0\)</span> determines the smoothness of <span class="math inline">\(u\)</span>, and <span class="math inline">\(\tau&gt;0\)</span> scales the variance of <span class="math inline">\(u\)</span>. The simplest example is a model on <span class="math inline">\(\mathbb {R}^d\)</span> with <span class="math inline">\(L = \kappa^2 - \Delta\)</span>, which results in a Gaussian random field <span class="math inline">\(u\)</span> with a Matérn covariance function</p>
-<p><span class="math display">\[
-C(h) = \dfrac{\sigma^2}{2^{\nu-1} \Gamma (\nu)} (\kappa h) ^ \nu K_{\nu} (\kappa h).
-\]</span></p>
-<p>If <span class="math inline">\(2 \beta\)</span> is an integer and if the domain <span class="math inline">\(\mathcal {D}\)</span> where the model is defined is bounded, then <span class="math inline">\(u\)</span> can be approximated by a Gaussian Markov random field (GMRF) <span class="math inline">\(\mathbf {\mathrm{u}}\)</span> via a finite element method (FEM) for the SPDE. Specifically, the approximation can be written as</p>
-<p><span class="math display">\[
-u_h (s) = \sum_{i=1}^n u_i \varphi_i (s).
-\]</span></p>
-<p>Here <span class="math inline">\(\{\varphi_i\}\)</span> are piecewise linear basis functions defined by some triangulation of <span class="math inline">\(\mathcal {D}\)</span> and the vector of weights <span class="math inline">\(\mathbf{\mathrm{u}} = (u_1,\ldots,u_n)^\top\)</span> is normally distributed, <span class="math inline">\(N(\mathbf{\mathrm{u}}, \tilde{ \mathbf{\mathrm{Q} } }^{-1})\)</span>, where <span class="math inline">\(\tilde{ \mathbf{ \mathrm{Q} } }\)</span> is sparse. See <a href="https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x" title="An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach">An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach</a> for further details.</p>
-<p>The <code>rSPDE</code> package provides corresponding computationally efficient approximations for the case when <span class="math inline">\(\beta\)</span> is a general fractional power. The main idea is to combine the FEM approximation with a rational approximation of the fractional operator. As a result, one can easily do inference and prediction using fractional SPDE models such as</p>
-<p><span class="math display">\[
-(\kappa^2-\Delta)^\beta u = \mathcal{W}.
-\]</span></p>
-<p>In particular, it allows for bayesian inference of all model parameters, including the fractional parameter <span class="math inline">\(\beta\)</span>.</p>
-<p>For illustration purposes, the package contains a simple FEM implementation for models on R. See the <a href="https://davidbolin.github.io/rSPDE//articles/rSPDE.html" title="Getting Started to the rSPDE package">Getting Started to the rSPDE package</a> vignette for an introduction to the package. The <a href="https://davidbolin.github.io/rSPDE//articles/rspde_cov.html">Rational approximation with the rSPDE package</a> and <a href="https://davidbolin.github.io/rSPDE//articles/rspde_base.html">Operator-based rational approximation</a> vignettes provide introductions to how to create and fit rSPDE models. For an introduction to the R-INLA implementation of the rSPDE models see the <a href="https://davidbolin.github.io/rSPDE//articles/rspde_inla.html" title="INLA Vignette">R-INLA implementation of the rational SPDE approach</a>. The <a href="https://davidbolin.github.io/rSPDE/reference/index.html" title="`rSPDE` documentation."><code>rSPDE</code> documentation</a> contains descriptions and examples of the functions in the <code>rSPDE</code> package.</p>
+<p>\[ L^{\beta}(\tau u) = \mathcal{W}. \]</p>
+<p>Here \(\mathcal{W}\) is a Gaussian white noise, \(L\) is a second-order differential operator, the fractional power \(\beta&gt;0\) determines the smoothness of \(u\), and \(\tau&gt;0\) scales the variance of \(u\). The simplest example is a model on \(\mathbb {R}^d\) with \(L = \kappa^2 - \Delta\), which results in a Gaussian random field \(u\) with a Matérn covariance function</p>
+<p>\[ C(h) = \dfrac{ \sigma^2 }{ 2 ^ {\nu-1} \Gamma (\nu)} (\kappa h) ^ {\nu} K_{\nu} (\kappa h). \]</p>
+<p>If \(2 \beta\) is an integer and if the domain \(\mathcal {D}\) where the model is defined is bounded, then \(u\) can be approximated by a Gaussian Markov random field (GMRF) \(\mathbf { \mathrm{u} }\) via a finite element method (FEM) for the SPDE. Specifically, the approximation can be written as</p>
+<p>\[ u_h (s) = \sum _ { i=1 } ^ n u_i \varphi_i (s). \]</p>
+<p>Here \(\{\varphi_i\}\) are piecewise linear basis functions defined by some triangulation of \(\mathcal {D}\) and the vector of weights \( \mathbf { \mathrm { u } } = (u_1,\ldots,u_n)^\top \) is normally distributed, \(N(\mathbf { \mathrm{u} }, \tilde{ \mathbf { \mathrm{Q} } }^{-1})\), where \(\tilde{ \mathbf{ \mathrm{Q} } }\) is sparse. See <a href="https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x" title="An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach" class="external-link">An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach</a> for further details.</p>
+<p>The <code>rSPDE</code> package provides corresponding computationally efficient approximations for the case when \(\beta\) is a general fractional power. The main idea is to combine the FEM approximation with a rational approximation of the fractional operator. As a result, one can easily do inference and prediction using fractional SPDE models such as</p>
+<p>\[ ( \kappa^2-\Delta )^\beta u = \mathcal{ W }. \]</p>
+<p>In particular, it allows for bayesian inference of all model parameters, including the fractional parameter \(\beta\).</p>
+<p>For illustration purposes, the package contains a simple FEM implementation for models on R. See the <a href="https://davidbolin.github.io/rSPDE//articles/rSPDE.html" title="An introduction to the rSPDE package">An introduction to the rSPDE package</a> vignette for an introduction to the package. The <a href="https://davidbolin.github.io/rSPDE//articles/rspde_cov.html">Rational approximation with the rSPDE package</a> and <a href="https://davidbolin.github.io/rSPDE//articles/rspde_base.html">Operator-based rational approximation</a> vignettes provide introductions to how to create and fit <code>rSPDE</code> models. For an introduction to the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> implementation of the <code>rSPDE</code> models see the <a href="https://davidbolin.github.io/rSPDE//articles/rspde_inla.html" title="INLA Vignette">R-INLA implementation of the rational SPDE approach</a>. The <a href="https://davidbolin.github.io/rSPDE/reference/index.html" title="`rSPDE` documentation."><code>rSPDE</code> documentation</a> contains descriptions and examples of the functions in the <code>rSPDE</code> package.</p>
 </div>
 <div class="section level1">
 <h1 id="installation-instructions">Installation instructions<a class="anchor" aria-label="anchor" href="#installation-instructions"></a>
@@ -131,12 +123,12 @@ u_h (s) = \sum_{i=1}^n u_i \varphi_i (s).
 <code class="sourceCode R"><span class="va">rtools</span> <span class="op">=</span> <span class="st">"C:\\Rtools\\bin"</span>
 <span class="va">gcc</span> <span class="op">=</span> <span class="st">"C:\\Rtools\\gcc-4.6.3\\bin"</span>
 <span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>PATH <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">gcc</span>, <span class="va">rtools</span>, <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"PATH"</span><span class="op">)</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">";"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p>where the variables <code>rtools</code> and <code>gcc</code> need to be changed if <code>Rtool</code>s is not installed directly on <code>C:</code>.</p>
+<p>where the variables <code>rtools</code> and <code>gcc</code> need to be changed if <code>Rtool</code>s is not installed directly on <code>C:</code>, and <code>gcc</code>’s version might need to be changed depending on the version of <code>Rtools</code>.</p>
 </div>
 <div class="section level1">
 <h1 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h1>
-<p>We will illustrate the rSPDE package with a kriging example.</p>
+<p>We will illustrate the <code>rSPDE</code> package with a kriging example.</p>
 <p>The data consist of precipitation measurements from the Paraná region in Brazil and were provided by the Brazilian National Water Agency. The data were collected at 616 gauge stations in Paraná state, south of Brazil, for each day in 2011. We will not analyse the full spatio-temporal data set, but instead look at the total precipitation in January</p>
 <p>For further details on the dataset and on the commands we refer the reader to the <a href="https://davidbolin.github.io/rSPDE//articles/rspde_inla.html" title="INLA Vignette">rSPDE-INLA Vignette</a>.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -255,7 +247,7 @@ u_h (s) = \sum_{i=1}^n u_i \varphi_i (s).
 <span class="va">nxy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">100</span><span class="op">)</span>
 <span class="va">projgrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rspde.mesh.project.html">rspde.mesh.projector</a></span><span class="op">(</span><span class="va">prmesh</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">PRborder</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span>, 
 ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">PRborder</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span>, dims <span class="op">=</span> <span class="va">nxy</span><span class="op">)</span>
-<span class="va">xy.in</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/splancs/man/inout.html" class="external-link">inout</a></span><span class="op">(</span><span class="va">projgrid</span><span class="op">$</span><span class="va">lattice</span><span class="op">$</span><span class="va">loc</span>, <span class="fu"><a href="https://www.math.uzh.ch/pages/spam//reference/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">PRborder</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">PRborder</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
+<span class="va">xy.in</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/splancs/man/inout.html" class="external-link">inout</a></span><span class="op">(</span><span class="va">projgrid</span><span class="op">$</span><span class="va">lattice</span><span class="op">$</span><span class="va">loc</span>, <span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">PRborder</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">PRborder</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
 <span class="va">coord.prd</span> <span class="op">&lt;-</span> <span class="va">projgrid</span><span class="op">$</span><span class="va">lattice</span><span class="op">$</span><span class="va">loc</span><span class="op">[</span><span class="va">xy.in</span>, <span class="op">]</span>
 
 <span class="co">#Compute A matrix and seaDist at predict locations and build the stack</span>
