@@ -11,9 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2 
       - run:  |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
           sed -i .bak '/vignettes/d' .Rbuildignore
-          rm .Rbuildignore.bak
           sed -i .bak 's/R.rsp/knitr/' DESCRIPTION
-          rm DESCRIPTION.bak
-          rm vignettes/*.html
-          rm vignettes/*.asis
+          git rm vignettes/*.html
+          git rm vignettes/*.asis
+          git add .Rbuildignore
+          git add DESCRIPTION
+          git commit -m "Doing the setup"
+          git push
