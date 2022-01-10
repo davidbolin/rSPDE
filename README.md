@@ -70,7 +70,7 @@ test_that("Description of the test", {
   
   # The contents of the test
   
-    INLA::inla.setOption(num.threads = old_threads)
+  INLA::inla.setOption(num.threads = old_threads)
 })
 ```
 
