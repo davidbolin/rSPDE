@@ -53,7 +53,7 @@ For non `master` and `devel` branches that collaborators need access to (e.g. re
 git flow release start major.(minor+1).0
 usethis::use_version("minor") # In R (updates the version number in DESCRIPTION and NEWS)
 ## At this point, see the CRAN submission section below.
-git flow release finish 'VERSION'
+git flow release finish 'VERSION' 
 usethis::use_dev_version() # In R (updates the dev version number in DESCRIPTION and NEWS)
 ```
   * Do a hotfix (branch from stable branch; use bugfix for release branch bugfixes):
