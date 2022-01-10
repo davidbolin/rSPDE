@@ -52,8 +52,7 @@ Called for its side effects.
 Posterior plots for rSPDE field parameters in their original scales.
 }
 \examples{
-\donttest{ #tryCatch version
-tryCatch({
+\donttest{ #devel version
 library(INLA)
 set.seed(123)
 
@@ -89,7 +88,6 @@ rspde_fit = inla(f,
       inla.mode = "experimental")
 result <- rspde.result(rspde_fit, "field", rspde_model)
 plot(result)
-#stable.tryCatch
-}, error = function(e){print("Could not run the example")})
+#devel.tag
 }
 }
