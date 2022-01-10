@@ -50,7 +50,7 @@ The examples that depend on `INLA` should have the following structure:
 #' \donttest{ #devel version
 #' library(INLA)
 #' 
-#' # The contents of the example...
+#' # The contents of the example
 #'
 #' #devel.tag
 #' }
