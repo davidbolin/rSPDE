@@ -42,6 +42,7 @@ jobs:
         run: |
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rmarkdown")
+          remotes::install_cran("devtools")
         shell: Rscript {0}
 
       - name: Install package
@@ -53,7 +54,7 @@ jobs:
           Rscript -e "rmarkdown::render('vignettes/rspde_cov.Rmd')"
           Rscript -e "rmarkdown::render('vignettes/rspde_inla.Rmd')"
           Rscript -e "rmarkdown::render('vignettes/rspde_base.Rmd')"
-          
+      
       - name: Finish the setup
         run: |
           git config --local user.email "actions@github.com"
@@ -85,6 +86,8 @@ jobs:
           #'\'' }, error = function(e){print("Could not run the example")})
           ' R/inla_rspde.R
           sed -i .bak 's/#stable\.tag/#stable\.tryCatch/' R/inla_rspde.R
+          Rscript -e "devtools::document()"
+          git add man
           git add .Rbuildignore
           git add vignettes
           git add DESCRIPTION
