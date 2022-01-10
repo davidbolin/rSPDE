@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.1.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -120,9 +120,14 @@
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"> <span class="co">#tryCatch version</span></span>
-<span class="r-in"><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"> <span class="co">#devel version</span></span>
 <span class="r-in"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: foreach</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: parallel</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: sp</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> This is INLA_21.12.21-2 built 2021-12-21 17:01:08 UTC.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>  - See www.r-inla.org/contact-us for how to get help.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>  - To enable PARDISO sparse library; see inla.pardiso()</span>
 <span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span class="r-in"></span>
 <span class="r-in"><span class="va">m</span> <span class="op">=</span> <span class="fl">100</span></span>
@@ -155,21 +160,14 @@
 <span class="r-in">      control.predictor<span class="op">=</span></span>
 <span class="r-in">        <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>A<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.A</a></span><span class="op">(</span><span class="va">st.dat</span><span class="op">)</span><span class="op">)</span>,</span>
 <span class="r-in">      inla.mode <span class="op">=</span> <span class="st">"experimental"</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
-<span class="r-in"><span class="co">#stable.tryCatch</span></span>
-<span class="r-in"><span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Could not run the example"</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: foreach</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: parallel</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: sp</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> This is INLA_21.12.21-2 built 2021-12-21 17:01:08 UTC.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - See www.r-inla.org/contact-us for how to get help.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - To enable PARDISO sparse library; see inla.pardiso()</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Model 'rgeneric' in section 'latent' is marked as 'experimental'; changes may appear at any time.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>   Use this model with extra care!!! Further warnings are disabled.</span>
+<span class="r-in"><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
+<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
 <span class="r-plt img"><img src="plot.rspde.result-1.png" alt="" width="700" height="433"></span>
 <span class="r-plt img"><img src="plot.rspde.result-2.png" alt="" width="700" height="433"></span>
 <span class="r-plt img"><img src="plot.rspde.result-3.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span class="co">#devel.tag</span></span>
 <span class="r-in"></span>
 </code></pre></div>
     </div>

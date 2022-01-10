@@ -35,7 +35,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.1.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -276,7 +276,7 @@
 <span class="co">##    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span>
 <span class="co">##    .parent.frame)") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 4.4, Running = 26.8, Post = 0.117, Total = 31.3 </span>
+<span class="co">##     Pre = 4.1, Running = 23.2, Post = 0.117, Total = 27.5 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean   sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.648 0.02      0.609    0.648      0.687 0.648   0</span>
@@ -440,7 +440,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span>
 <span class="co">##    .parent.frame)") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 3.87, Running = 12.6, Post = 0.0723, Total = 16.5 </span>
+<span class="co">##     Pre = 3.53, Running = 11.1, Post = 0.0755, Total = 14.7 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.647 0.018      0.612    0.647      0.683 0.647   0</span>
@@ -471,13 +471,13 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># nu_upper_bound = 4</span>
 <span class="va">rspde_fit</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
-<pre><code><span class="co">##        Pre    Running       Post      Total </span>
-<span class="co">##  4.4009511 26.7601569  0.1172092 31.2783172</span></code></pre>
+<pre><code><span class="co">##       Pre   Running      Post     Total </span>
+<span class="co">##  4.097993 23.234822  0.117403 27.450218</span></code></pre>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#nu_upper_bound = 2</span>
 <span class="va">rspde_fit_2</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
 <pre><code><span class="co">##         Pre     Running        Post       Total </span>
-<span class="co">##  3.87365913 12.57802796  0.07230687 16.52399397</span></code></pre>
+<span class="co">##  3.53429508 11.13868594  0.07546401 14.74844503</span></code></pre>
 <p>We can see that the fit for <code>nu_upper_bound</code> equal to 2 was considerably faster.</p>
 <p>Finally, let us get the result the user’s scale and see the estimate for <span class="math inline">\(\nu\)</span>:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
@@ -553,7 +553,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span>
 <span class="co">##    .parent.frame)") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 3.99, Running = 17.8, Post = 0.0788, Total = 21.8 </span>
+<span class="co">##     Pre = 3.63, Running = 15.8, Post = 0.0783, Total = 19.6 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.486 0.014      0.459    0.486      0.512 0.486   0</span>
@@ -584,13 +584,13 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># nu_upper_bound = 4</span>
 <span class="va">rspde_fit</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
-<pre><code><span class="co">##        Pre    Running       Post      Total </span>
-<span class="co">##  4.4009511 26.7601569  0.1172092 31.2783172</span></code></pre>
+<pre><code><span class="co">##       Pre   Running      Post     Total </span>
+<span class="co">##  4.097993 23.234822  0.117403 27.450218</span></code></pre>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#nu_upper_bound = 2</span>
 <span class="va">rspde_fit_order_3</span><span class="op">$</span><span class="va">cpu.used</span></code></pre></div>
 <pre><code><span class="co">##         Pre     Running        Post       Total </span>
-<span class="co">##  3.98520088 17.78452802  0.07875299 21.84848189</span></code></pre>
+<span class="co">##  3.63104296 15.84286094  0.07831311 19.55221701</span></code></pre>
 <p>Let us now see the summary in the original scale:</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">result_fit_order_3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit_order_3</span>, <span class="st">"field"</span>, <span class="va">rspde_model_order_3</span><span class="op">)</span>
@@ -660,7 +660,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span>
 <span class="co">##    .parent.frame)") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 3.83, Running = 11.8, Post = 0.0589, Total = 15.7 </span>
+<span class="co">##     Pre = 3.38, Running = 13, Post = 0.0746, Total = 16.4 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.648 0.018      0.613    0.648      0.684 0.648   0</span>
@@ -751,7 +751,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span>
 <span class="co">##    .parent.frame)") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 3.81, Running = 5.42, Post = 0.0445, Total = 9.27 </span>
+<span class="co">##     Pre = 3.47, Running = 4.8, Post = 0.0503, Total = 8.32 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 1.945 0.054      1.838    1.945      2.051 1.945   0</span>
@@ -853,7 +853,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span>
 <span class="co">##    .parent.frame)") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 4.05, Running = 11.4, Post = 0.0592, Total = 15.5 </span>
+<span class="co">##     Pre = 3.36, Running = 10.4, Post = 0.0699, Total = 13.9 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.648 0.019      0.611    0.648      0.685 0.648   0</span>
@@ -865,19 +865,19 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">## </span>
 <span class="co">## Model hyperparameters:</span>
 <span class="co">##                                                     mean       sd 0.025quant</span>
-<span class="co">## Precision parameter for the Gamma observations    13.156    0.877     11.528</span>
-<span class="co">## Precision for seaDist                          10699.048 8932.884   2667.030</span>
-<span class="co">## Theta1 for field                                  -1.456    0.760     -2.811</span>
-<span class="co">## Theta2 for field                                   1.136    0.329      0.445</span>
-<span class="co">## Theta3 for field                                   0.599    0.776     -1.058</span>
+<span class="co">## Precision parameter for the Gamma observations    13.254    0.873     11.588</span>
+<span class="co">## Precision for seaDist                          10595.704 9251.403   2551.109</span>
+<span class="co">## Theta1 for field                                  -1.548    0.611     -2.707</span>
+<span class="co">## Theta2 for field                                   1.186    0.258      0.660</span>
+<span class="co">## Theta3 for field                                   0.658    0.617     -0.602</span>
 <span class="co">##                                                0.5quant 0.975quant     mode</span>
-<span class="co">## Precision parameter for the Gamma observations   13.122   1.50e+01   13.051</span>
-<span class="co">## Precision for seaDist                          8073.163   3.44e+04 5222.609</span>
-<span class="co">## Theta1 for field                                 -1.514   1.69e-01   -1.721</span>
-<span class="co">## Theta2 for field                                  1.156   1.73e+00    1.228</span>
-<span class="co">## Theta3 for field                                  0.655   1.98e+00    0.857</span>
+<span class="co">## Precision parameter for the Gamma observations   13.239     15.016   13.225</span>
+<span class="co">## Precision for seaDist                          7849.622  35025.114 4973.410</span>
+<span class="co">## Theta1 for field                                 -1.567     -0.288   -1.633</span>
+<span class="co">## Theta2 for field                                  1.193      1.679    1.221</span>
+<span class="co">## Theta3 for field                                  0.676      1.842    0.742</span>
 <span class="co">## </span>
-<span class="co">## Marginal log-Likelihood:  -1261.13 </span>
+<span class="co">## Marginal log-Likelihood:  -1261.14 </span>
 <span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span>
 <span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></code></pre>
 <p>Also, we can have the summary in the user’s scale:</p>
@@ -885,9 +885,9 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <code class="sourceCode R"><span class="va">result_fit_ln</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit_ln</span>, <span class="st">"field"</span>, <span class="va">rspde_model_ln</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_ln</span><span class="op">)</span></code></pre></div>
 <pre><code><span class="co">##           mean       sd 0.025quant 0.5quant 0.975quant     mode</span>
-<span class="co">## tau   0.317372 0.312494   0.061420 0.220209    1.18531 0.126464</span>
-<span class="co">## kappa 3.277030 1.046510   1.568620 3.179830    5.64968 2.954770</span>
-<span class="co">## nu    1.261120 0.328951   0.522721 1.317100    1.75727 1.478810</span></code></pre>
+<span class="co">## tau   0.256805 0.177216  0.0676658 0.208798   0.740475 0.143067</span>
+<span class="co">## kappa 3.378430 0.865201  1.9429400 3.300350   5.339970 3.134330</span>
+<span class="co">## nu    1.293530 0.263420  0.7140600 1.326430   1.722150 1.412630</span></code></pre>
 <p>and the plot of the posterior marginal densities</p>
 <div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span>
@@ -947,7 +947,7 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
 <span class="co">##    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span>
 <span class="co">##    .parent.frame)") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 3.64, Running = 19.7, Post = 0.0771, Total = 23.4 </span>
+<span class="co">##     Pre = 3.7, Running = 22.7, Post = 0.0762, Total = 26.5 </span>
 <span class="co">## Fixed effects:</span>
 <span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="co">## Intercept 0.486 0.014      0.459    0.486      0.513 0.486   0</span>
@@ -1064,9 +1064,9 @@ ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/
                            <span class="va">`Total time`</span><span class="op">)</span>
 <span class="va">result_table</span></code></pre></div>
 <pre><code><span class="co">##             Model Time.to.create.model Time.to.fit.the.model    Total.time</span>
-<span class="co">## 1     Opt &amp; sharp        1.457888 secs              24.19629 25.65418 secs</span>
-<span class="co">## 2 Opt &amp; not sharp        1.172351 secs              28.14775 29.32010 secs</span>
-<span class="co">## 3         Non-opt        1.000203 secs              46.00241 47.00262 secs</span></code></pre>
+<span class="co">## 1     Opt &amp; sharp        1.623741 secs              24.71491 26.33865 secs</span>
+<span class="co">## 2 Opt &amp; not sharp        1.316437 secs              28.70659 30.02303 secs</span>
+<span class="co">## 3         Non-opt        1.026927 secs              52.37790 53.40482 secs</span></code></pre>
 <p>Therefore, we see that for this example one benefits from using the optimized version.</p>
 </div>
 </div>
@@ -1183,24 +1183,24 @@ y_{i+29m} &amp;= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <span class="co">##    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span>
 <span class="co">##    .parent.frame)") </span>
 <span class="co">## Time used:</span>
-<span class="co">##     Pre = 3.46, Running = 226, Post = 1.42, Total = 231 </span>
+<span class="co">##     Pre = 3.34, Running = 220, Post = 1.42, Total = 225 </span>
 <span class="co">## Random effects:</span>
 <span class="co">##   Name     Model</span>
 <span class="co">##     field RGeneric2</span>
 <span class="co">## </span>
 <span class="co">## Model hyperparameters:</span>
 <span class="co">##                                          mean    sd 0.025quant 0.5quant</span>
-<span class="co">## Precision for the Gaussian observations 93.24 5.282      83.94    92.79</span>
+<span class="co">## Precision for the Gaussian observations 93.25 5.293      83.94    92.80</span>
 <span class="co">## Theta1 for field                        -2.74 0.090      -2.92    -2.74</span>
 <span class="co">## Theta2 for field                         3.10 0.028       3.04     3.10</span>
 <span class="co">## Theta3 for field                        -1.50 0.035      -1.57    -1.50</span>
 <span class="co">##                                         0.975quant  mode</span>
-<span class="co">## Precision for the Gaussian observations     104.91 91.46</span>
+<span class="co">## Precision for the Gaussian observations     104.95 91.46</span>
 <span class="co">## Theta1 for field                             -2.54 -2.74</span>
 <span class="co">## Theta2 for field                              3.16  3.10</span>
 <span class="co">## Theta3 for field                             -1.42 -1.50</span>
 <span class="co">## </span>
-<span class="co">## Marginal log-Likelihood:  -1582.48 </span>
+<span class="co">## Marginal log-Likelihood:  -1582.47 </span>
 <span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span>
 <span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></code></pre>
 <p>and the summary in the user’s scale:</p>
@@ -1208,9 +1208,9 @@ y_{i+29m} &amp;= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <code class="sourceCode R"><span class="va">result_fit_rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span>, <span class="st">"field"</span>, <span class="va">rspde_model.rep</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_rep</span><span class="op">)</span></code></pre></div>
 <pre><code><span class="co">##             mean        sd 0.025quant   0.5quant 0.975quant       mode</span>
-<span class="co">## tau    0.0646112 0.0058046  0.0540921  0.0644521  0.0770699  0.0638721</span>
-<span class="co">## kappa 22.2884000 0.6158760 21.1292000 22.3043000 23.5585000 22.2848000</span>
-<span class="co">## nu     0.7293630 0.0209235  0.6899420  0.7302550  0.7725430  0.7299460</span></code></pre>
+<span class="co">## tau    0.0646111 0.0058061  0.0540897  0.0644521  0.0770736  0.0638719</span>
+<span class="co">## kappa 22.2884000 0.6160950 21.1288000 22.3043000 23.5590000 22.2848000</span>
+<span class="co">## nu     0.7293600 0.0209316  0.6899280  0.7302550  0.7725610  0.7299460</span></code></pre>
 <div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>,<span class="st">"kappa"</span>,<span class="st">"nu"</span><span class="op">)</span>,
                       true <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tau</span>, <span class="va">kappa</span>, <span class="va">nu</span><span class="op">)</span>, 
@@ -1222,9 +1222,9 @@ y_{i+29m} &amp;= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
                                  <span class="va">result_fit_rep</span><span class="op">$</span><span class="va">summary.nu</span><span class="op">$</span><span class="va">mode</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></code></pre></div>
 <pre><code><span class="co">##   parameter        true        mean        mode</span>
-<span class="co">## 1       tau  0.01410474  0.06461116  0.06387213</span>
-<span class="co">## 2     kappa 20.00000000 22.28837243 22.28480013</span>
-<span class="co">## 3        nu  0.50000000  0.72936322  0.72994645</span></code></pre>
+<span class="co">## 1       tau  0.01410474  0.06461106  0.06387194</span>
+<span class="co">## 2     kappa 20.00000000 22.28837723 22.28477345</span>
+<span class="co">## 3        nu  0.50000000  0.72936025  0.72994633</span></code></pre>
 </div>
 </div>
 <div class="section level2 unnumbered">

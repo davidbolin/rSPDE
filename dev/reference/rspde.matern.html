@@ -12,7 +12,7 @@ smoothness parameter."><meta property="og:image" content="https://davidbolin.git
     
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.1.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -187,8 +187,7 @@ either by continuity or by limits).</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"> <span class="co">#tryCatch version</span></span>
-<span class="r-in"><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"> <span class="co">#devel version</span></span>
 <span class="r-in"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span>
 <span class="r-in"></span>
 <span class="r-in"><span class="co">#Organizing the data</span></span>
@@ -236,8 +235,6 @@ either by continuity or by limits).</p>
 <span class="r-in"></span>
 <span class="r-in"><span class="co">#The result</span></span>
 <span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span>
-<span class="r-in"><span class="co">#stable.tryCatch</span></span>
-<span class="r-in"><span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Could not run the example"</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    c("inla.core(formula = formula, family = family, contrasts = contrasts, </span>
@@ -258,7 +255,7 @@ either by continuity or by limits).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    .parent.frame)") </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Time used:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 15.7, Running = 40.1, Post = 0.0563, Total = 55.8 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 9.16, Running = 37.2, Post = 0.0539, Total = 46.4 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.649 0.015      0.619    0.649       0.68 0.649   0</span>
@@ -286,6 +283,7 @@ either by continuity or by limits).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Posterior summaries for the linear predictor and the fitted values are computed</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span class="co">#devel.tag</span></span>
 <span class="r-in"></span>
 <span class="r-in"></span>
 </code></pre></div>
