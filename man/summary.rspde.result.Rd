@@ -21,7 +21,8 @@ containing the summary.
 Summary for posteriors of rSPDE field parameters in their original scales.
 }
 \examples{
-\donttest{
+\donttest{ #tryCatch version
+tryCatch({
 library(INLA)
 set.seed(123)
 
@@ -57,6 +58,8 @@ rspde_fit = inla(f,
       inla.mode = "experimental")
 result <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result)
+#stable.tryCatch
+}, error = function(e){print("Could not run the example")})
 }
 
 }

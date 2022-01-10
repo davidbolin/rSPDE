@@ -43,7 +43,8 @@ If nu was estimated and \code{compute.summary} is \code{TRUE}, then the list wil
 Extract field and parameter values and distributions for an rspde effect from an inla result object.
 }
 \examples{
-\donttest{
+\donttest{ #tryCatch version
+tryCatch({
 library(INLA)
 set.seed(123)
 
@@ -80,5 +81,7 @@ rspde_fit = inla(f,
 result <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result)
 plot(result)
+#stable.tryCatch
+}, error = function(e){print("Could not run the example")})
 }
 }

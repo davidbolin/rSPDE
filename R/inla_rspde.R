@@ -402,7 +402,8 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
 #' Hence, the higher the value of \code{nu.prec.inc} the more informative the prior is.
 #' 
 #' @examples 
-#' \donttest{
+#' \donttest{ #tryCatch version
+#' tryCatch({
 #' library(INLA)
 #' 
 #' #Organizing the data
@@ -450,6 +451,8 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
 #' 
 #' #The result
 #' summary(rspde_fit)
+#' #stable.tryCatch
+#' }, error = function(e){print("Could not run the example")})
 #' }
 #' 
 
@@ -1233,7 +1236,8 @@ rspde.matern.precision.integer = function(kappa, nu, tau=NULL, sigma=NULL, dim, 
 #' @return The \eqn{A} matrix for rSPDE models.
 #' @export
 #' @examples
-#' \donttest{
+#' \donttest{ #tryCatch version
+#' tryCatch({
 #' library(INLA)
 #' 
 #' set.seed(123)
@@ -1244,6 +1248,8 @@ rspde.matern.precision.integer = function(kappa, nu, tau=NULL, sigma=NULL, dim, 
 #' max.edge = c(50, 500)
 #' )
 #' A <- rspde.make.A(mesh, loc = loc, rspde_order=3)
+#' #stable.tryCatch
+#' }, error = function(e){print("Could not run the example")})
 #' }
 rspde.make.A <- function(mesh=NULL,
                          loc = NULL,
@@ -1331,8 +1337,8 @@ rspde.make.A <- function(mesh=NULL,
 #' \item{name.repl}{Indices for replicates}
 #' @export
 #' @examples 
-#' \donttest{
-#' library(INLA)
+#' \donttest{ #tryCatch version
+#' tryCatch({
 #' library(INLA)
 #' set.seed(123)
 #' 
@@ -1368,6 +1374,8 @@ rspde.make.A <- function(mesh=NULL,
 #'       inla.mode = "experimental")
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' plot(result)
+#' #stable.tryCatch
+#' }, error = function(e){print("Could not run the example")})
 #' }
 
 rspde.make.index <- function(name, n.spde=NULL, n.group = 1,
@@ -1443,7 +1451,8 @@ rspde.make.index <- function(name, n.spde=NULL, n.group = 1,
 #' @return A sparse precision matrix.
 #' @export
 #' @examples 
-#' \donttest{
+#' \donttest{ #tryCatch version
+#' tryCatch({
 #' library(INLA)
 #' 
 #' set.seed(1)
@@ -1458,6 +1467,8 @@ rspde.make.index <- function(name, n.spde=NULL, n.group = 1,
 #' 
 #' rspde_model <- rspde.matern(mesh)
 #' prec <- rspde.precision(rspde_model, theta=log(c(1,3,1.2)))
+#' #stable.tryCatch
+#' }, error = function(e){print("Could not run the example")})
 #' }
 rspde.precision <- function(rspde, 
                             theta, 
@@ -1516,7 +1527,8 @@ rspde.precision <- function(rspde,
 #' \item{summary.nu}{Summary statistics for nu}
 #' @export
 #' @examples
-#' \donttest{
+#' \donttest{ #tryCatch version
+#' tryCatch({
 #' library(INLA)
 #' set.seed(123)
 #' 
@@ -1553,6 +1565,8 @@ rspde.precision <- function(rspde,
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
 #' plot(result)
+#' #stable.tryCatch
+#' }, error = function(e){print("Could not run the example")})
 #' }
 rspde.result <- function(inla, name, rspde, compute.summary=TRUE)
 {
@@ -1645,7 +1659,8 @@ return(result)
 #' @export
 #' @method plot rspde.result
 #' @examples 
-#' \donttest{
+#' \donttest{ #tryCatch version
+#' tryCatch({
 #' library(INLA)
 #' set.seed(123)
 #' 
@@ -1681,6 +1696,8 @@ return(result)
 #'       inla.mode = "experimental")
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' plot(result)
+#' #stable.tryCatch
+#' }, error = function(e){print("Could not run the example")})
 #' }
 plot.rspde.result <- function(x, which = c("tau","kappa","nu"),
          caption = list("Posterior density for tau",
@@ -1753,7 +1770,8 @@ plot.rspde.result <- function(x, which = c("tau","kappa","nu"),
 #' @export
 #' @method summary rspde.result
 #' @examples
-#' \donttest{
+#' \donttest{ #tryCatch version
+#' tryCatch({
 #' library(INLA)
 #' set.seed(123)
 #' 
@@ -1789,6 +1807,8 @@ plot.rspde.result <- function(x, which = c("tau","kappa","nu"),
 #'       inla.mode = "experimental")
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
+#' #stable.tryCatch
+#' }, error = function(e){print("Could not run the example")})
 #' }
 #' 
 summary.rspde.result <- function(object,

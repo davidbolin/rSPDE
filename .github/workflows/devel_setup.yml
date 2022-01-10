@@ -14,9 +14,15 @@ jobs:
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           sed -i .bak '/vignettes/d' .Rbuildignore
+          sed -i .bak '/#'\'' tryCatch({/d' R/inla_rspde.R
+          sed -i .bak '/Could not run the example/d' R/inla_rspde.R
+          sed -i .bak 's/donttest{ #tryCatch version/donttest{ #devel version/' R/inla_rspde.R
+          sed -i .bak 's/#stable\.tag/#devel\.tag/' R/inla_rspde.R
+          sed -i .bak 's/#stable\.tryCatch/#devel\.tag/' R/inla_rspde.R
           sed -i .bak 's/R.rsp/knitr/' DESCRIPTION
           git rm vignettes/*.html
           git rm vignettes/*.asis
+          git add R/inla_rspde.R
           git add .Rbuildignore
           git add DESCRIPTION
           git commit -m "Doing the setup"
