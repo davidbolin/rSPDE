@@ -342,10 +342,10 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>In this vignette we will illustrate how to do statistical inference with the covariance-based rational SPDE approach. The covariance-based rational approximation is related to the operator-based <a href="https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537">rational approximation by Bolin and Kirchner (2020)</a>.</p>
+<p>In this vignette we will illustrate how to do statistical inference with the covariance-based rational SPDE approach. The covariance-based rational approximation is related to the operator-based <span class="citation">(rational approximation by Bolin and Kirchner 2020)</span>(<a href="https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537" class="uri">https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537</a>).</p>
 <p>The covariance-based rational approximation is an efficient alternative to the operator-based rational approximation when one has SPDE driven by Gaussian white noise.</p>
 <p>When dealing with fractional SPDE models driven by non-Gaussian white noises, the operator-based rational approximations might be useful. For instance, consider the SPDE: <span class="math display">\[L^{\alpha/2}(\tau u) = \widetilde{\mathcal{W}},\]</span> where <span class="math inline">\(L = -\Delta +\kappa^2 I\)</span> and <span class="math inline">\(\widetilde{\mathcal{W}}\)</span> is a non-Gaussian white noise. An example in which the operator-based rational approximation is suitable, is when one has the above SPDE with the white noise being the so-called type-G Lévy noises.</p>
-<p>We refer the reader to <a href="https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141">Geostatistical Modelling Using Non-Gaussian Matérn Fields</a>, <a href="https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046">Spatial Matérn Fields Driven by Non-Gaussian Noise</a> and <a href="https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405">Linear mixed effects models for non-Gaussian continuous repeated measurement data</a> for examples of models driven by type-G Lévy noises. We also refer the reader to the <a href="https://github.com/davidbolin/ngme"><code>ngme</code> package</a> where one can fit such models.</p>
+<p>We refer the reader to <span class="citation">(Wallin and Bolin 2015)</span>(<a href="https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141" class="uri">https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141</a>), <span class="citation">(Bolin 2013)</span>(<a href="https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046" class="uri">https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046</a>) and <span class="citation">(Asar et al. 2020)</span>(<a href="https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405" class="uri">https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405</a>) for examples of models driven by type-G Lévy noises. We also refer the reader to the <a href="https://github.com/davidbolin/ngme"><code>ngme</code> package</a> where one can fit such models.</p>
 <p>We explore the functions for performing the operator-based rational approximation on the vignette:</p>
 <ul>
 <li><a href="rspde_base.html">Operator-based rational approximation</a></li>
@@ -355,7 +355,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <div id="covariance-based-rational-spde-approach" class="section level2">
 <h2>Covariance-based rational SPDE approach</h2>
 <p>Let us first present the basic setup. We want to model the precipitation as a two-dimensional random field <span class="math inline">\(u\)</span> within a bounded domain, where each location on the domain associates with a random variable which describe the local precipitation.</p>
-<p>In the SPDE approach, we model <span class="math inline">\(u\)</span> as the solution of the following SPDE: <span class="math display">\[L^{\alpha/2}(\tau u) = \mathcal{W},\]</span> where <span class="math inline">\(L = -\Delta +\kappa^2 I\)</span> and <span class="math inline">\(\mathcal{W}\)</span> is the standard Gaussian white noise. Here, <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\kappa\)</span> and <span class="math inline">\(\tau\)</span> are three parameters we want to estimate. In the standard SPDE approach, we write, for a general dimension <span class="math inline">\(d\)</span>, <span class="math inline">\(\alpha = \nu + d/2\)</span> and assume <span class="math inline">\(\nu\)</span> to be fixed. In the rational SPDE approach we are able to estimate a general smoothness <span class="math inline">\(\nu\)</span> from the data.</p>
+<p>In the SPDE approach, introduced in <span class="citation">(Lindgren, Rue, and Lindström 2011)</span>(<a href="https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x" class="uri">https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x</a>) we model <span class="math inline">\(u\)</span> as the solution of the following SPDE: <span class="math display">\[L^{\alpha/2}(\tau u) = \mathcal{W},\]</span> where <span class="math inline">\(L = -\Delta +\kappa^2 I\)</span> and <span class="math inline">\(\mathcal{W}\)</span> is the standard Gaussian white noise. Here, <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\kappa\)</span> and <span class="math inline">\(\tau\)</span> are three parameters we want to estimate. In the standard SPDE approach, we write, for a general dimension <span class="math inline">\(d\)</span>, <span class="math inline">\(\alpha = \nu + d/2\)</span> and assume <span class="math inline">\(\nu\)</span> to be fixed. In the rational SPDE approach we are able to estimate a general smoothness <span class="math inline">\(\nu\)</span> from the data.</p>
 <p>Now let us briefly describe how covariance based rational SPDE approach works in statistical inference.</p>
 <p>The central idea is to perform the rational approximation directly on the covariance operator, which is given by <span class="math inline">\(L^{-\alpha}\)</span>, instead of on the solution <span class="math inline">\(u\)</span>.</p>
 <p>To this end, we begin by obtaining an approximation of the random field <span class="math inline">\(u\)</span>, which is the solution of the SPDE written above, by using the finite element method (FEM): <span class="math display">\[u_h(\mathbf{s}_i)=\sum_{j=1}^{n_h} \hat{u}_j \varphi_j(\mathbf{s}_i),\]</span> where <span class="math inline">\(\{\hat{u}_j\}_{j = 1}^{n_h}\)</span> are stochastic weights and <span class="math inline">\(\{\varphi_j(\mathbf{s}_i)\}_{j = 1}^{n_h}\)</span> are fixed basis functions. We then obtain finite element approximation of the operator <span class="math inline">\(L\)</span>, which is given by <span class="math inline">\(L_h\)</span>, and the covariance operator of <span class="math inline">\(u_h\)</span> is given by <span class="math inline">\(L_h^{-\alpha}\)</span>.</p>
@@ -500,7 +500,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ## Estimates     1 16.67311 0.7811246 0.328456</code></pre>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="co">#Total time</span></span>
 <span id="cb18-2"><a href="#cb18-2"></a><span class="kw">print</span>(time_optim)</span></code></pre></div>
-<pre><code>## Time difference of 5.713117 secs</code></pre>
+<pre><code>## Time difference of 7.738368 secs</code></pre>
 <p>We can also speed up the optimization by using the <code>optimParallel()</code> function from the <code>optimParallel</code> package. To such an end, we simply replace the <code>optim()</code> function by <code>optimParallel()</code> and set the number of cores we want to use:</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">library</span>(optimParallel)</span>
 <span id="cb20-2"><a href="#cb20-2"></a><span class="co">#Preparing the parallel</span></span>
@@ -534,7 +534,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ## Estimates     1 16.67311 0.7811246 0.328456</code></pre>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="co">#Total time</span></span>
 <span id="cb22-2"><a href="#cb22-2"></a><span class="kw">print</span>(time_optim)</span></code></pre></div>
-<pre><code>## Time difference of 5.355557 secs</code></pre>
+<pre><code>## Time difference of 5.785522 secs</code></pre>
 </div>
 <div id="kringing" class="section level3">
 <h3>Kringing</h3>
@@ -584,7 +584,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ## Estimates     1 17.26616 0.7824962 0.2954302</code></pre>
 <div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1"></a><span class="co">#Total time</span></span>
 <span id="cb31-2"><a href="#cb31-2"></a><span class="kw">print</span>(time_optim)</span></code></pre></div>
-<pre><code>## Time difference of 3.279119 secs</code></pre>
+<pre><code>## Time difference of 3.63908 secs</code></pre>
 </div>
 <div id="spatial-data-and-parameter-estimation" class="section level2">
 <h2>Spatial data and parameter estimation</h2>
@@ -659,10 +659,27 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 ## Estimate     1 19.37055 0.5084295 0.1098874</code></pre>
 <div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1"></a><span class="co">#Total time</span></span>
 <span id="cb39-2"><a href="#cb39-2"></a><span class="kw">print</span>(total_time)</span></code></pre></div>
-<pre><code>## Time difference of 9.537511 secs</code></pre>
+<pre><code>## Time difference of 10.40231 secs</code></pre>
 </div>
-<div id="references" class="section level2">
+<div id="references" class="section level2 unnumbered">
 <h2>References</h2>
+<div id="refs" class="references">
+<div id="ref-asar20">
+<p>Asar, Özgür, David Bolin, Peter Diggle, and Jonas Wallin. 2020. “Linear Mixed Effects Models for Non‐Gaussian Repeated Measurement Data.” <em>Journal of the Royal Statistical Society. Series C. Applied Statistics</em> 69 (5): 1015–65.</p>
+</div>
+<div id="ref-bolin13">
+<p>Bolin, David. 2013. “Spatial Matérn Fields Driven by Non-Gaussian Noise.” <em>Scandinavian Journal of Statistics</em> 41 (3): 557–79.</p>
+</div>
+<div id="ref-bolin19">
+<p>Bolin, David, and Kristin Kirchner. 2020. “The Rational SPDE Approach for Gaussian Random Fields with General Smoothness.” <em>Journal of Computational and Graphical Statistics</em> 29 (2): 274–85.</p>
+</div>
+<div id="ref-lindgren11">
+<p>Lindgren, Finn, Håvard Rue, and Johan Lindström. 2011. “An Explicit Link Between Gaussian Fields and Gaussian Markov Random Fields: The Stochastic Partial Differential Equation Approach.” <em>Journal of the Royal Statistical Society. Series B. Statistical Methodology</em> 73 (4): 423–98.</p>
+</div>
+<div id="ref-wallin15">
+<p>Wallin, Jonas, and David Bolin. 2015. “Geostatistical Modelling Using Non-Gaussian Matérn Fields.” <em>Scandinavian Journal of Statistics</em> 42 (3): 872–90.</p>
+</div>
+</div>
 </div>
 
 
