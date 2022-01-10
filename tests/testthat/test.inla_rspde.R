@@ -2,6 +2,10 @@ test_that("Checking equality of optimized and non-opt. Prec. matrices for non-in
   testthat::skip_on_cran()
   old_threads <- INLA::inla.getOption("num.threads")
   INLA::inla.setOption(num.threads = "1:1")
+  inla_installed <- "INLA" %in% rownames(installed.packages())
+  if(!inla_installed){
+    testthat::skip("INLA not installed")
+  }
 set.seed(1)
 n <- 10
 
@@ -42,6 +46,10 @@ test_that("Checking equality of optimized and non-opt. Prec. matrices for intege
   testthat::skip_on_cran()
   old_threads <- INLA::inla.getOption("num.threads")
   INLA::inla.setOption(num.threads = "1:1")
+  inla_installed <- "INLA" %in% rownames(installed.packages())
+  if(!inla_installed){
+    testthat::skip("INLA not installed")
+  }
   set.seed(1)
   n <- 10
   
@@ -76,6 +84,11 @@ test_that("Checking equality of optimized and non-opt Prec. matrices for d=1",{
   
   old_threads <- INLA::inla.getOption("num.threads")
   INLA::inla.setOption(num.threads = "1:1")
+  inla_installed <- "INLA" %in% rownames(installed.packages())
+  if(!inla_installed){
+    testthat::skip("INLA not installed")
+  }
+  
   kappa <- 20
   sigma <- 1
   nu <- 0.1
