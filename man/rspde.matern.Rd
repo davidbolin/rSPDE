@@ -125,7 +125,7 @@ either by continuity or by limits).
 Hence, the higher the value of \code{nu.prec.inc} the more informative the prior is.
 }
 \examples{
-\donttest{
+\donttest{ #devel version
 library(INLA)
 
 #Organizing the data
@@ -173,6 +173,7 @@ control.predictor = list(A = inla.stack.A(stk.dat)))
 
 #The result
 summary(rspde_fit)
+#devel.tag
 }
 
 }

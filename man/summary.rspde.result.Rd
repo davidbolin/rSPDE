@@ -21,7 +21,7 @@ containing the summary.
 Summary for posteriors of rSPDE field parameters in their original scales.
 }
 \examples{
-\donttest{
+\donttest{ #devel version
 library(INLA)
 set.seed(123)
 
@@ -57,6 +57,7 @@ rspde_fit = inla(f,
       inla.mode = "experimental")
 result <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result)
+#devel.tag
 }
 
 }

@@ -25,7 +25,7 @@ Calculates the precision matrix
 for given parameter values based on an \code{inla.rspde} model object.
 }
 \examples{
-\donttest{
+\donttest{ #devel version
 library(INLA)
 
 set.seed(1)
@@ -40,5 +40,6 @@ prec_int <- rspde.precision(rspde_model_int, theta=log(c(1,3)))
 
 rspde_model <- rspde.matern(mesh)
 prec <- rspde.precision(rspde_model, theta=log(c(1,3,1.2)))
+#devel.tag
 }
 }

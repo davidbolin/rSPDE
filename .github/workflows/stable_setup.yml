@@ -76,9 +76,19 @@ jobs:
           echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rspde_base.html.asis
           echo "%\VignetteEncoding{UTF-8}" >> vignettes/rspde_base.html.asis
           echo "^vignettes/.*\.Rmd$" >> .Rbuildignore
+          sed -i .bak 's/#devel\.tag/#stable\.tag/' R/inla_rspde.R
+          sed -i .bak '/donttest{ #devel version$/a\
+          #'\'' tryCatch({
+          ' R/inla_rspde.R
+          sed -i .bak 's/donttest{ #devel version/donttest{ #tryCatch version/' R/inla_rspde.R
+          sed -i .bak '/#stable\.tag$/a\
+          #'\'' }, error = function(e){print("Could not run the example")})
+          ' R/inla_rspde.R
+          sed -i .bak 's/#stable\.tag/#stable\.tryCatch/' R/inla_rspde.R
           git add .Rbuildignore
           git add vignettes
           git add DESCRIPTION
+          git add R/inla_rspde.R
           git commit -m "Doing the setup"
           git push
         shell: bash

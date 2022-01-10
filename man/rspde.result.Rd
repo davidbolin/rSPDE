@@ -43,7 +43,7 @@ If nu was estimated and \code{compute.summary} is \code{TRUE}, then the list wil
 Extract field and parameter values and distributions for an rspde effect from an inla result object.
 }
 \examples{
-\donttest{
+\donttest{ #devel version
 library(INLA)
 set.seed(123)
 
@@ -80,5 +80,6 @@ rspde_fit = inla(f,
 result <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result)
 plot(result)
+#devel.tag
 }
 }

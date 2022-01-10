@@ -53,7 +53,7 @@ Constructs observation/prediction weight matrices for rSPDE models based on
 \code{inla.mesh} or \code{inla.mesh.1d} objects.
 }
 \examples{
-\donttest{
+\donttest{ #devel version
 library(INLA)
 
 set.seed(123)
@@ -64,5 +64,6 @@ cutoff = 50,
 max.edge = c(50, 500)
 )
 A <- rspde.make.A(mesh, loc = loc, rspde_order=3)
+#devel.tag
 }
 }
