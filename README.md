@@ -3,7 +3,7 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-last-release/rSPDE)](https://cran.r-project.org/package=rSPDE)
 [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)
 
-`rSPDE` is an `R` package used for computing rational approximations of fractional SPDEs. These rational approximations can be used for computatially efficient statistical inference.
+`rSPDE` is an R package used for computing rational approximations of fractional SPDEs. These rational approximations can be used for computatially efficient statistical inference.
 
 Basic statistical operations such as likelihood evaluations and kriging predictions using the fractional approximations are also implemented. The package also contains an interface to [R-INLA][ref4].
 
@@ -43,7 +43,38 @@ and `gcc`'s version might need to be changed depending on the version of `Rtools
 - Implementation of PC-priors for R-INLA `rSPDE` models.
 
 # Repository branch workflows #
-The package version format for released versions is `major.minor.bugfix`. All regular development should be performed on the `devel` branch or in a feature branch, managed with `git flow feature`. On the `devel` branch, the vestion number is `major.minor.bugfix.9000`, where the first three components reflect the latest released version with changes present in the `default` branch. Bugfixes should be applied via the `git flow bugfix` and `git flow hotfix` methods, as indicated below. For `git flow` configuration, use `master` as the stable master branch, `devel` as the develop branch, and `v` as the version tag prefix. See [the `git flow` tutorial](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) for more information.
+The package version format for released versions is `major.minor.bugfix`. All regular development should be performed on the `devel` branch or in a feature branch, managed with `git flow feature`. Ideally, all the changes should be made on the `devel` branch. The `devel` version of the package should contain unit tests and examples for all important functions. Several functions may depend on `INLA`. Examples and tests for such functions might create problems when submitting to CRAN. To solve this problem, we created some Github Actions scripts that get the examples and tests depending on `INLA` on the `devel` branch and adapt to versions that will not fail on CRAN. Therefore, the best way to handle these situations is to avoid as much as possible to do any push to the `stable` branch. The idea is to update the `stable` branch by merges following the workflow that will be described below. 
+The examples that depend on `INLA` should have the following structure:
+
+```
+#' \donttest{ #devel version
+#' library(INLA)
+#' 
+#' # The contents of the example...
+#'
+#' #devel.tag
+#' }
+```
+
+The tests that depend on `INLA` should have the following structure:
+
+```
+test_that("Description of the test", {
+  testthat::skip_on_cran()
+  old_threads <- INLA::inla.getOption("num.threads")
+  INLA::inla.setOption(num.threads = "1:1")
+  inla_installed <- "INLA" %in% rownames(installed.packages())
+  if(!inla_installed){
+    testthat::skip("INLA not installed")
+  }
+  
+  # The contents of the test
+  
+  INLA::inla.setOption(num.threads = old_threads)
+})
+```
+
+On the `devel` branch, the vestion number is `major.minor.bugfix.9000`, where the first three components reflect the latest released version with changes present in the `default` branch. Bugfixes should be applied via the `git flow bugfix` and `git flow hotfix` methods, as indicated below. For `git flow` configuration, use `master` as the stable master branch, `devel` as the develop branch, and `v` as the version tag prefix. Hotfixes directly `stable` should be avoided whenever possible to minimize conflicts on merges. See [the `git flow` tutorial](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) for more information.
 
 For non `master` and `devel` branches that collaborators need access to (e.g. release branches, feature branches, etc, use the `git flow publish` mechanism).
 
@@ -51,10 +82,13 @@ For non `master` and `devel` branches that collaborators need access to (e.g. re
   * Prepare a new stable release with CRAN submission:
 ```
 git flow release start major.(minor+1).0
-usethis::use_version("minor") # In R (updates the version number in DESCRIPTION and NEWS)
+
+# In R, the following updates the version number in DESCRIPTION and NEWS:
+usethis::use_version("minor") 
 ## At this point, see the CRAN submission section below.
 git flow release finish 'VERSION'
-usethis::use_dev_version() # In R (updates the dev version number in DESCRIPTION and NEWS)
+# In R, the following updates the dev version number in DESCRIPTION and NEWS:
+usethis::use_dev_version() 
 ```
   * Do a hotfix (branch from stable branch; use bugfix for release branch bugfixes):
 ```
@@ -66,7 +100,7 @@ git flow hotfix finish hotfix_branch_name
 ```
   * CRAN submission
 ```
-## Perform CRAN checks (usually on the release branch version)
+## Perform CRAN checks on the stable branch
 ## If unsuccessful then do bugfixes with increasing bugfix version, until ok
 ## Submit to CRAN
 ## If not accepted then do more bugfixes and repeat
