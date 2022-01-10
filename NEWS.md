@@ -1,3 +1,6 @@
+# rSPDE 1.1.1
+* Adjusts on donttest examples for CRAN.
+
 # rSPDE 1.1.0
 * Minor typos on vignettes and man pages were corrected.
 * Some examples were changed to improve their numerical stability.
