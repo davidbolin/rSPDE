@@ -20,8 +20,16 @@ jobs:
           sed -i .bak 's/#stable\.tag/#devel\.tag/' R/inla_rspde.R
           sed -i .bak 's/#stable\.tryCatch/#devel\.tag/' R/inla_rspde.R
           sed -i .bak 's/R.rsp/knitr/' DESCRIPTION
-          git rm vignettes/*.html
-          git rm vignettes/*.asis
+          html_files=$(shopt -s nullglob dotglob; echo vignettes/*.html)
+          asis_files=$(shopt -s nullglob dotglob; echo vignettes/*.asis)
+          if (( ${#html_files} ))
+          then
+            git rm vignettes/*.html
+          fi
+          if (( ${#asis_files} ))
+          then
+            git rm vignettes/*.asis
+          fi
           git add R/inla_rspde.R
           git add .Rbuildignore
           git add DESCRIPTION
