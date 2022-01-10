@@ -38,6 +38,50 @@ references:
   type: article-journal
   issued:
     year: 2011
+- id: bolin13
+  title: "Spatial Matérn Fields Driven by Non-Gaussian Noise"
+  author:
+    - family: Bolin
+      given: David
+  container-title: Scandinavian Journal of Statistics
+  volume: 41
+  issue: 3
+  page: 557-579
+  type: article-journal
+  issued:
+    year: 2013
+- id: wallin15
+  title: "Geostatistical Modelling Using Non-Gaussian Matérn Fields"
+  author:
+    - family: Wallin
+      given: Jonas
+    - family: Bolin
+      given: David
+  container-title: Scandinavian Journal of Statistics
+  volume: 42
+  issue: 3
+  page: 872-890
+  type: article-journal
+  issued:
+    year: 2015
+- id: asar20
+  title: "Linear mixed effects models for non‐Gaussian repeated measurement data"
+  author:
+    - family: Asar
+      given: Özgür
+    - family: Bolin
+      given: David
+    - family: Diggle
+      given: Peter
+    - family: Wallin
+      given: Jonas
+  container-title: Journal of the Royal Statistical Society. Series C. Applied Statistics
+  volume: 69
+  issue: 5
+  page: 1015-1065
+  type: article-journal
+  issued:
+    year: 2020 
 ---
 
 ```{r setup, include=FALSE}
@@ -55,8 +99,7 @@ inla_link <- function() {
 
 In this vignette we will illustrate how to do statistical inference with 
 the covariance-based rational SPDE approach. The covariance-based
-rational approximation is related to the operator-based [rational approximation by Bolin
-and Kirchner (2020)](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537).
+rational approximation is related to the operator-based [rational approximation by @bolin19](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537).
 
 The covariance-based rational approximation is an efficient alternative 
 to the operator-based rational approximation when one has SPDE driven
@@ -71,9 +114,9 @@ $L  = -\Delta +\kappa^2 I$ and $\widetilde{\mathcal{W}}$ is a non-Gaussian white
 An example in which the operator-based rational approximation is suitable, is when one has the
 above SPDE with the white noise being the so-called type-G Lévy noises. 
 
-We refer the reader to [Geostatistical Modelling Using Non-Gaussian Matérn Fields](https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141),
-[Spatial Matérn Fields Driven by Non-Gaussian Noise](https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046) and
-[Linear mixed effects models for non-Gaussian continuous repeated measurement data](https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405)
+We refer the reader to  [@wallin15](https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141), 
+[@bolin13](https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046) and
+[@asar20](https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405)
 for examples of models driven by type-G Lévy noises. We also refer the reader
 to the [`ngme` package](https://github.com/davidbolin/ngme) where one can fit such models.
 
@@ -92,7 +135,7 @@ a two-dimensional random field $u$ within a bounded domain, where each
 location on the domain associates with a random variable which describe 
 the local precipitation. 
 
-In the SPDE approach, we model $u$ as the solution of the following SPDE: 
+In the SPDE approach, introduced in [@lindgren11](https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x) we model $u$ as the solution of the following SPDE: 
 $$L^{\alpha/2}(\tau u) = \mathcal{W},$$ 
 where 
 $L  = -\Delta +\kappa^2 I$ and $\mathcal{W}$ is the standard Gaussian white noise. 
