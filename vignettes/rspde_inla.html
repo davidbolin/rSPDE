@@ -490,7 +490,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 4.24, Running = 25.6, Post = 0.0872, Total = 29.9 
+##     Pre = 3.78, Running = 22.2, Post = 0.0958, Total = 26 
 ## Fixed effects:
 ##            mean   sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.648 0.02      0.609    0.648      0.687 0.648   0
@@ -635,7 +635,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.96, Running = 12.2, Post = 0.0728, Total = 16.3 
+##     Pre = 3.92, Running = 11.5, Post = 0.0809, Total = 15.5 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.647 0.018      0.612    0.647      0.683 0.647   0
@@ -665,12 +665,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>Let us compare with the cost from the previous fit, with the default value of <code>nu_upper_bound</code> of 4:</p>
 <div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1"></a><span class="co"># nu_upper_bound = 4</span></span>
 <span id="cb35-2"><a href="#cb35-2"></a>rspde_fit<span class="op">$</span>cpu.used</span></code></pre></div>
-<pre><code>##        Pre    Running       Post      Total 
-##  4.2354169 25.6177189  0.0872221 29.9403579</code></pre>
+<pre><code>##         Pre     Running        Post       Total 
+##  3.78378582 22.16431618  0.09577394 26.04387593</code></pre>
 <div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1"></a><span class="co">#nu_upper_bound = 2</span></span>
 <span id="cb37-2"><a href="#cb37-2"></a>rspde_fit_<span class="dv">2</span><span class="op">$</span>cpu.used</span></code></pre></div>
 <pre><code>##         Pre     Running        Post       Total 
-##  3.96138716 12.22604585  0.07275915 16.26019216</code></pre>
+##  3.91691995 11.50230312  0.08085299 15.50007606</code></pre>
 <p>We can see that the fit for <code>nu_upper_bound</code> equal to 2 was considerably faster.</p>
 <p>Finally, let us get the result the user’s scale and see the estimate for <span class="math inline">\(\nu\)</span>:</p>
 <div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1"></a>result_fit_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">rspde.result</span>(rspde_fit_<span class="dv">2</span>, <span class="st">&quot;field&quot;</span>, rspde_model_<span class="dv">2</span>)</span>
@@ -739,7 +739,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.74, Running = 16.6, Post = 0.0741, Total = 20.4 
+##     Pre = 3.9, Running = 16.2, Post = 0.0819, Total = 20.2 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.486 0.014      0.459    0.486      0.512 0.486   0
@@ -769,12 +769,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>We can see in the above summary that the computational cost significantly increased. Let us compare the cost of having <code>rspde_order=3</code> and <code>nu_upper_bound=2</code> with the cost of having <code>rspde_order=2</code> and <code>nu_upper_bound=4</code>:</p>
 <div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1"></a><span class="co"># nu_upper_bound = 4</span></span>
 <span id="cb47-2"><a href="#cb47-2"></a>rspde_fit<span class="op">$</span>cpu.used</span></code></pre></div>
-<pre><code>##        Pre    Running       Post      Total 
-##  4.2354169 25.6177189  0.0872221 29.9403579</code></pre>
+<pre><code>##         Pre     Running        Post       Total 
+##  3.78378582 22.16431618  0.09577394 26.04387593</code></pre>
 <div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1"></a><span class="co">#nu_upper_bound = 2</span></span>
 <span id="cb49-2"><a href="#cb49-2"></a>rspde_fit_order_<span class="dv">3</span><span class="op">$</span>cpu.used</span></code></pre></div>
-<pre><code>##        Pre    Running       Post      Total 
-##  3.7438560 16.5903981  0.0741179 20.4083719</code></pre>
+<pre><code>##         Pre     Running        Post       Total 
+##  3.90133309 16.16996312  0.08191681 20.15321302</code></pre>
 <p>Let us now see the summary in the original scale:</p>
 <div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1"></a>result_fit_order_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="kw">rspde.result</span>(rspde_fit_order_<span class="dv">3</span>, <span class="st">&quot;field&quot;</span>, rspde_model_order_<span class="dv">3</span>)</span>
 <span id="cb51-2"><a href="#cb51-2"></a><span class="kw">summary</span>(result_fit_order_<span class="dv">3</span>)</span></code></pre></div>
@@ -837,7 +837,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.87, Running = 11.4, Post = 0.0641, Total = 15.4 
+##     Pre = 3.84, Running = 11.6, Post = 0.0729, Total = 15.5 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.648 0.018      0.613    0.648      0.684 0.648   0
@@ -921,7 +921,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.52, Running = 5.13, Post = 0.0457, Total = 8.69 
+##     Pre = 3.86, Running = 5.44, Post = 0.0513, Total = 9.35 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 1.945 0.054      1.838    1.945      2.051 1.945   0
@@ -1016,7 +1016,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.48, Running = 11.4, Post = 0.067, Total = 15 
+##     Pre = 3.91, Running = 11.4, Post = 0.0745, Total = 15.4 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.648 0.019      0.611    0.648      0.685 0.648   0
@@ -1104,7 +1104,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.38, Running = 19.6, Post = 0.0763, Total = 23 
+##     Pre = 3.94, Running = 19.4, Post = 0.0852, Total = 23.5 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.486 0.014      0.459    0.486      0.513 0.486   0
@@ -1216,9 +1216,9 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb82-9"><a href="#cb82-9"></a>                           <span class="st">`</span><span class="dt">Total time</span><span class="st">`</span>)</span>
 <span id="cb82-10"><a href="#cb82-10"></a>result_table</span></code></pre></div>
 <pre><code>##             Model Time.to.create.model Time.to.fit.the.model    Total.time
-## 1     Opt &amp; sharp       1.3239961 secs              24.55609 25.88008 secs
-## 2 Opt &amp; not sharp       1.1887951 secs              29.97431 31.16311 secs
-## 3         Non-opt       0.8858609 secs              48.53630 49.42217 secs</code></pre>
+## 1     Opt &amp; sharp        1.465471 secs              24.03699 25.50246 secs
+## 2 Opt &amp; not sharp        1.261227 secs              29.03619 30.29741 secs
+## 3         Non-opt        0.988728 secs              48.19458 49.18331 secs</code></pre>
 <p>Therefore, we see that for this example one benefits from using the optimized version.</p>
 </div>
 </div>
@@ -1324,7 +1324,7 @@ y_{i+29m} &amp;= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.51, Running = 222, Post = 1.24, Total = 226 
+##     Pre = 3.76, Running = 206, Post = 1.49, Total = 211 
 ## Random effects:
 ##   Name     Model
 ##     field RGeneric2
