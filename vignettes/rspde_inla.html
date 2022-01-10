@@ -490,7 +490,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.6, Running = 20.5, Post = 0.0935, Total = 24.2 
+##     Pre = 4.24, Running = 25.6, Post = 0.0872, Total = 29.9 
 ## Fixed effects:
 ##            mean   sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.648 0.02      0.609    0.648      0.687 0.648   0
@@ -635,7 +635,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.38, Running = 11.6, Post = 0.0634, Total = 15 
+##     Pre = 3.96, Running = 12.2, Post = 0.0728, Total = 16.3 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.647 0.018      0.612    0.647      0.683 0.647   0
@@ -648,16 +648,16 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ## Model hyperparameters:
 ##                                                     mean       sd 0.025quant
 ## Precision parameter for the Gamma observations    13.222    0.902     11.508
-## Precision for seaDist                          11358.282 9226.672   2567.539
-## Theta1 for field                                  -1.605    0.679     -3.036
-## Theta2 for field                                   1.236    0.286      0.696
-## Theta3 for field                                   0.707    0.669     -0.508
+## Precision for seaDist                          11364.219 9237.811   2567.792
+## Theta1 for field                                  -1.605    0.680     -3.038
+## Theta2 for field                                   1.235    0.286      0.694
+## Theta3 for field                                   0.708    0.670     -0.509
 ##                                                0.5quant 0.975quant     mode
 ## Precision parameter for the Gamma observations   13.203     15.055   13.181
-## Precision for seaDist                          8730.003  35648.150 5588.578
-## Theta1 for field                                 -1.561     -0.381   -1.407
-## Theta2 for field                                  1.226      1.822    1.192
-## Theta3 for field                                  0.664      2.125    0.511
+## Precision for seaDist                          8732.035  35683.064 5588.275
+## Theta1 for field                                 -1.562     -0.378   -1.407
+## Theta2 for field                                  1.226      1.822    1.191
+## Theta3 for field                                  0.665      2.128    0.511
 ## 
 ## Marginal log-Likelihood:  -1261.09 
 ## Posterior summaries for the linear predictor and the fitted values are computed
@@ -665,20 +665,20 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>Let us compare with the cost from the previous fit, with the default value of <code>nu_upper_bound</code> of 4:</p>
 <div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1"></a><span class="co"># nu_upper_bound = 4</span></span>
 <span id="cb35-2"><a href="#cb35-2"></a>rspde_fit<span class="op">$</span>cpu.used</span></code></pre></div>
-<pre><code>##         Pre     Running        Post       Total 
-##  3.60448098 20.51672506  0.09351587 24.21472192</code></pre>
+<pre><code>##        Pre    Running       Post      Total 
+##  4.2354169 25.6177189  0.0872221 29.9403579</code></pre>
 <div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1"></a><span class="co">#nu_upper_bound = 2</span></span>
 <span id="cb37-2"><a href="#cb37-2"></a>rspde_fit_<span class="dv">2</span><span class="op">$</span>cpu.used</span></code></pre></div>
-<pre><code>##        Pre    Running       Post      Total 
-##  3.3775239 11.5860009  0.0634191 15.0269439</code></pre>
+<pre><code>##         Pre     Running        Post       Total 
+##  3.96138716 12.22604585  0.07275915 16.26019216</code></pre>
 <p>We can see that the fit for <code>nu_upper_bound</code> equal to 2 was considerably faster.</p>
 <p>Finally, let us get the result the user’s scale and see the estimate for <span class="math inline">\(\nu\)</span>:</p>
 <div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1"></a>result_fit_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">rspde.result</span>(rspde_fit_<span class="dv">2</span>, <span class="st">&quot;field&quot;</span>, rspde_model_<span class="dv">2</span>)</span>
 <span id="cb39-2"><a href="#cb39-2"></a><span class="kw">summary</span>(result_fit_<span class="dv">2</span>)</span></code></pre></div>
 <pre><code>##           mean       sd 0.025quant 0.5quant 0.975quant     mode
-## tau   0.248309 0.166371  0.0485499 0.210154   0.683243 0.129655
-## kappa 3.580840 1.060380  2.0162800 3.408290   6.176990 3.076520
-## nu    1.307760 0.271641  0.7597390 1.320360   1.785860 1.342200</code></pre>
+## tau   0.248393 0.166655  0.0484216 0.210078   0.684151 0.129364
+## kappa 3.580310 1.061880  2.0138000 3.407450   6.180330 3.075260
+## nu    1.307970 0.271990  0.7591500 1.320650   1.786460 1.342520</code></pre>
 </div>
 <div id="changing-the-order-of-the-rational-approximation" class="section level3">
 <h3>Changing the order of the rational approximation</h3>
@@ -739,7 +739,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.95, Running = 16.2, Post = 0.084, Total = 20.3 
+##     Pre = 3.74, Running = 16.6, Post = 0.0741, Total = 20.4 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.486 0.014      0.459    0.486      0.512 0.486   0
@@ -769,12 +769,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>We can see in the above summary that the computational cost significantly increased. Let us compare the cost of having <code>rspde_order=3</code> and <code>nu_upper_bound=2</code> with the cost of having <code>rspde_order=2</code> and <code>nu_upper_bound=4</code>:</p>
 <div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1"></a><span class="co"># nu_upper_bound = 4</span></span>
 <span id="cb47-2"><a href="#cb47-2"></a>rspde_fit<span class="op">$</span>cpu.used</span></code></pre></div>
-<pre><code>##         Pre     Running        Post       Total 
-##  3.60448098 20.51672506  0.09351587 24.21472192</code></pre>
+<pre><code>##        Pre    Running       Post      Total 
+##  4.2354169 25.6177189  0.0872221 29.9403579</code></pre>
 <div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1"></a><span class="co">#nu_upper_bound = 2</span></span>
 <span id="cb49-2"><a href="#cb49-2"></a>rspde_fit_order_<span class="dv">3</span><span class="op">$</span>cpu.used</span></code></pre></div>
-<pre><code>##         Pre     Running        Post       Total 
-##  3.95062900 16.23769188  0.08404517 20.27236605</code></pre>
+<pre><code>##        Pre    Running       Post      Total 
+##  3.7438560 16.5903981  0.0741179 20.4083719</code></pre>
 <p>Let us now see the summary in the original scale:</p>
 <div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1"></a>result_fit_order_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="kw">rspde.result</span>(rspde_fit_order_<span class="dv">3</span>, <span class="st">&quot;field&quot;</span>, rspde_model_order_<span class="dv">3</span>)</span>
 <span id="cb51-2"><a href="#cb51-2"></a><span class="kw">summary</span>(result_fit_order_<span class="dv">3</span>)</span></code></pre></div>
@@ -837,7 +837,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.51, Running = 11.3, Post = 0.0602, Total = 14.9 
+##     Pre = 3.87, Running = 11.4, Post = 0.0641, Total = 15.4 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.648 0.018      0.613    0.648      0.684 0.648   0
@@ -921,7 +921,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.84, Running = 5.71, Post = 0.0468, Total = 9.59 
+##     Pre = 3.52, Running = 5.13, Post = 0.0457, Total = 8.69 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 1.945 0.054      1.838    1.945      2.051 1.945   0
@@ -934,12 +934,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ## Model hyperparameters:
 ##                                                     mean       sd 0.025quant
 ## Precision parameter for the Gamma observations    13.288 8.99e-01     11.587
-## Precision for seaDist                          11331.525 1.10e+04   2510.884
-## Theta1 for field                                  -0.894 2.74e-01     -1.420
+## Precision for seaDist                          11332.389 1.10e+04   2510.966
+## Theta1 for field                                  -0.894 2.74e-01     -1.419
 ## Theta2 for field                                   1.058 3.14e-01      0.421
 ##                                                0.5quant 0.975quant     mode
 ## Precision parameter for the Gamma observations   13.266     15.126   13.232
-## Precision for seaDist                          8006.115  40065.750 4838.863
+## Precision for seaDist                          8006.545  40070.631 4839.021
 ## Theta1 for field                                 -0.899     -0.343   -0.919
 ## Theta2 for field                                  1.066      1.658    1.095
 ## 
@@ -950,8 +950,8 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1"></a>rspde_result_int &lt;-<span class="st"> </span><span class="kw">rspde.result</span>(rspde_fix_int_<span class="dv">1</span>, <span class="st">&quot;field&quot;</span>, rspde_model_fix_int1)</span>
 <span id="cb66-2"><a href="#cb66-2"></a><span class="kw">summary</span>(rspde_result_int)</span></code></pre></div>
 <pre><code>##           mean       sd 0.025quant 0.5quant 0.975quant     mode
-## tau   0.424356 0.119265   0.242735  0.40699   0.711317 0.372867
-## kappa 3.020440 0.947741   1.531090  2.90546   5.245010 2.671860</code></pre>
+## tau   0.424374 0.119268   0.242743  0.40701   0.711337 0.372884
+## kappa 3.020290 0.947769   1.530960  2.90529   5.244990 2.671680</code></pre>
 </div>
 </div>
 <div id="changing-the-priors" class="section level3">
@@ -1016,7 +1016,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.91, Running = 11.4, Post = 0.0697, Total = 15.4 
+##     Pre = 3.48, Running = 11.4, Post = 0.067, Total = 15 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.648 0.019      0.611    0.648      0.685 0.648   0
@@ -1104,7 +1104,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.5, Running = 18.6, Post = 0.0789, Total = 22.2 
+##     Pre = 3.38, Running = 19.6, Post = 0.0763, Total = 23 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 0.486 0.014      0.459    0.486      0.513 0.486   0
@@ -1216,9 +1216,9 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb82-9"><a href="#cb82-9"></a>                           <span class="st">`</span><span class="dt">Total time</span><span class="st">`</span>)</span>
 <span id="cb82-10"><a href="#cb82-10"></a>result_table</span></code></pre></div>
 <pre><code>##             Model Time.to.create.model Time.to.fit.the.model    Total.time
-## 1     Opt &amp; sharp       1.3772192 secs              23.80815 25.18537 secs
-## 2 Opt &amp; not sharp       1.2162530 secs              27.85574 29.07199 secs
-## 3         Non-opt       0.9798689 secs              44.86047 45.84034 secs</code></pre>
+## 1     Opt &amp; sharp       1.3239961 secs              24.55609 25.88008 secs
+## 2 Opt &amp; not sharp       1.1887951 secs              29.97431 31.16311 secs
+## 3         Non-opt       0.8858609 secs              48.53630 49.42217 secs</code></pre>
 <p>Therefore, we see that for this example one benefits from using the optimized version.</p>
 </div>
 </div>
@@ -1324,33 +1324,33 @@ y_{i+29m} &amp;= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 ##    = inla.mode, safe = FALSE, debug = debug, &quot;, &quot; .parent.frame = 
 ##    .parent.frame)&quot;) 
 ## Time used:
-##     Pre = 3.35, Running = 211, Post = 1.39, Total = 215 
+##     Pre = 3.51, Running = 222, Post = 1.24, Total = 226 
 ## Random effects:
 ##   Name     Model
 ##     field RGeneric2
 ## 
 ## Model hyperparameters:
 ##                                          mean    sd 0.025quant 0.5quant
-## Precision for the Gaussian observations 93.24 5.282      83.94    92.79
+## Precision for the Gaussian observations 93.25 5.293      83.94    92.80
 ## Theta1 for field                        -2.74 0.090      -2.92    -2.74
 ## Theta2 for field                         3.10 0.028       3.04     3.10
 ## Theta3 for field                        -1.50 0.035      -1.57    -1.50
 ##                                         0.975quant  mode
-## Precision for the Gaussian observations     104.91 91.46
+## Precision for the Gaussian observations     104.95 91.46
 ## Theta1 for field                             -2.54 -2.74
 ## Theta2 for field                              3.16  3.10
 ## Theta3 for field                             -1.42 -1.50
 ## 
-## Marginal log-Likelihood:  -1582.48 
+## Marginal log-Likelihood:  -1582.47 
 ## Posterior summaries for the linear predictor and the fitted values are computed
 ## (Posterior marginals needs also &#39;control.compute=list(return.marginals.predictor=TRUE)&#39;)</code></pre>
 <p>and the summary in the user’s scale:</p>
 <div class="sourceCode" id="cb93"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1"></a>result_fit_rep &lt;-<span class="st"> </span><span class="kw">rspde.result</span>(rspde_fit.rep, <span class="st">&quot;field&quot;</span>, rspde_model.rep)</span>
 <span id="cb93-2"><a href="#cb93-2"></a><span class="kw">summary</span>(result_fit_rep)</span></code></pre></div>
 <pre><code>##             mean        sd 0.025quant   0.5quant 0.975quant       mode
-## tau    0.0646112 0.0058046  0.0540921  0.0644521  0.0770699  0.0638721
-## kappa 22.2884000 0.6158760 21.1292000 22.3043000 23.5585000 22.2848000
-## nu     0.7293630 0.0209235  0.6899420  0.7302550  0.7725430  0.7299460</code></pre>
+## tau    0.0646111 0.0058061  0.0540897  0.0644521  0.0770736  0.0638719
+## kappa 22.2884000 0.6160950 21.1288000 22.3043000 23.5590000 22.2848000
+## nu     0.7293600 0.0209316  0.6899280  0.7302550  0.7725610  0.7299460</code></pre>
 <div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1"></a>result_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">parameter =</span> <span class="kw">c</span>(<span class="st">&quot;tau&quot;</span>,<span class="st">&quot;kappa&quot;</span>,<span class="st">&quot;nu&quot;</span>),</span>
 <span id="cb95-2"><a href="#cb95-2"></a>                      <span class="dt">true =</span> <span class="kw">c</span>(tau, kappa, nu), </span>
 <span id="cb95-3"><a href="#cb95-3"></a>                      <span class="dt">mean =</span> <span class="kw">c</span>(result_fit_rep<span class="op">$</span>summary.tau<span class="op">$</span>mean, </span>
@@ -1361,9 +1361,9 @@ y_{i+29m} &amp;= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <span id="cb95-8"><a href="#cb95-8"></a>                                 result_fit_rep<span class="op">$</span>summary.nu<span class="op">$</span>mode))</span>
 <span id="cb95-9"><a href="#cb95-9"></a><span class="kw">print</span>(result_df)</span></code></pre></div>
 <pre><code>##   parameter        true        mean        mode
-## 1       tau  0.01410474  0.06461116  0.06387213
-## 2     kappa 20.00000000 22.28837243 22.28480013
-## 3        nu  0.50000000  0.72936322  0.72994645</code></pre>
+## 1       tau  0.01410474  0.06461106  0.06387194
+## 2     kappa 20.00000000 22.28837723 22.28477345
+## 3        nu  0.50000000  0.72936025  0.72994633</code></pre>
 </div>
 </div>
 <div id="references" class="section level2">
