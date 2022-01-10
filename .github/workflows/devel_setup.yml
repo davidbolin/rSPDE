@@ -30,6 +30,8 @@ jobs:
           then
             git rm vignettes/*.asis
           fi
+          Rscript -e "devtools::document()"
+          git add man
           git add R/inla_rspde.R
           git add .Rbuildignore
           git add DESCRIPTION
