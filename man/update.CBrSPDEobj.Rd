@@ -10,6 +10,7 @@
   user_kappa = NULL,
   user_sigma = NULL,
   user_m = NULL,
+  compute_higher_order = object$higher_order,
   ...
 )
 }
@@ -24,6 +25,8 @@ computed using \code{\link{matern.operators}}}
 \item{user_sigma}{If non-null, update the standard deviation of the covariance function.}
 
 \item{user_m}{If non-null, update the order of the rational approximation, which needs to be a positive integer.}
+
+\item{compute_higher_order}{Logical. Should the higher order finite element matrices be computed?}
 
 \item{...}{Currently not used.}
 }

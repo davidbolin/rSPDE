@@ -852,9 +852,12 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
   if(m_alpha == 0){
     L = (fem_matrices[["C"]] + fem_matrices[["G"]]/(kappa^2))
     Q = (L - p[1]*fem_matrices[["C"]])/r[1]
-    for(i in 2:length(r)){
-      Q = c(Q,(L - p[i]*fem_matrices[["C"]])/r[i])
+    if(length(r)>1){
+      for(i in 2:length(r)){
+        Q = c(Q,(L - p[i]*fem_matrices[["C"]])/r[i])
+      }
     }
+
   } else{
   
   if (m_alpha == 1){
@@ -894,7 +897,6 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
   if(sharp){
     if(m_alpha == 0){
       Kpart = fem_matrices[["C_less"]]
-      Kpart[Kpart!=0] = 1/(Kpart[Kpart!=0])
       Kpart = Kpart/k
     } else{
     if (m_alpha == 1){
@@ -911,7 +913,6 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
   } else{
     if(m_alpha == 0){
       Kpart = fem_matrices[["C"]]
-      Kpart[Kpart!=0] = 1/(Kpart[Kpart!=0])
       Kpart = Kpart/k
     } else{
     if (m_alpha == 1){
@@ -962,6 +963,7 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
 #' @param rspde_order The order of the rational approximation
 #' @param dim The dimension of the domain
 #' @param fem_mesh_matrices A list containing the FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.
+#' @param only_fractional Logical. Should only the fractional-order part of the precision matrix be returned?
 #' @return The precision matrix
 #' @export
 #' @examples 
@@ -975,7 +977,7 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
 #' nu = 2.6
 #' tau = sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
 #' op_cov <- matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa, sigma = sigma,
-#'                                   d=1,m = 2)
+#'                                   d=1,m = 2,compute_higher_order = TRUE)
 #' v <- t(rSPDE.A1d(x,0.5))
 #' c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
 #' Q <- rspde.matern.precision(kappa=kappa,nu=nu,tau=tau,rspde_order=2,d=1,
@@ -990,7 +992,8 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
 #'      xlab="h", main = "Matern covariance and rational approximations")
 #' lines(x, c.approx_cov, col = 2)
 
-rspde.matern.precision = function(kappa, nu, tau=NULL, sigma=NULL, rspde_order, dim, fem_mesh_matrices) {
+rspde.matern.precision = function(kappa, nu, tau=NULL, sigma=NULL, rspde_order, dim, fem_mesh_matrices,
+                                  only_fractional = FALSE) {
   
   if(is.null(tau)&&is.null(sigma)){
     stop("You should provide either tau or sigma!")
@@ -1018,72 +1021,95 @@ rspde.matern.precision = function(kappa, nu, tau=NULL, sigma=NULL, rspde_order, 
   
   k = approx(mt$alpha, mt$k, cut_decimals(2*beta))$y
   
-  if(m_alpha == 0){
-    L = ((kappa^2)*fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]])/kappa^2
-    Q = (L - p[1]*fem_mesh_matrices[["c0"]])/r[1]
-    for(i in 2:length(r)){
-      Q = bdiag(Q,(L - p[i]*fem_mesh_matrices[["c0"]])/r[i])
+  if(!only_fractional){
+    if(m_alpha == 0){
+      L = ((kappa^2)*fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]])/kappa^2
+      Q = (L - p[1]*fem_mesh_matrices[["c0"]])/r[1]
+      if(length(r)>1){
+        for(i in 2:length(r)){
+          Q = bdiag(Q,(L - p[i]*fem_mesh_matrices[["c0"]])/r[i])
+        }
+      }
+    } else{
+      if (m_alpha == 1){
+        Malpha =  (fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/(kappa^2))
+      } else if (m_alpha > 1){
+        Malpha =  fem_mesh_matrices[["c0"]] + m_alpha * fem_mesh_matrices[["g1"]]/(kappa^2)
+        for(j in 2:m_alpha){
+          Malpha = Malpha +  choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j)]]/(kappa^(2*j))
+        }
+      } else {
+        stop("Something is wrong with the value of nu!")
+      }
+      
+      
+      if (m_alpha == 1){
+        Malpha2 =  (fem_mesh_matrices[["g1"]] + fem_mesh_matrices[["g2"]]/(kappa^2))
+      } else if (m_alpha > 1){
+        Malpha2 =  fem_mesh_matrices[["g1"]] + m_alpha * fem_mesh_matrices[["g2"]]/(kappa^2)
+        for(j in 2:m_alpha){
+          Malpha2 = Malpha2 +  choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j+1)]]/(kappa^(2*j))
+        }
+      } else {
+        stop("Something is wrong with the value of nu!")
+      }
+      
+      Q = 1/r[1] * (Malpha + Malpha2/kappa^2 - p[1] * Malpha)
+      
+      if(length(r)>1){
+        for (i in 2:length(r)) {
+          Q = bdiag(Q, 1/r[i] * (Malpha + Malpha2/kappa^2 - p[i] * Malpha))
+        }
+      }
+      
     }
-  } else{
-    if (m_alpha == 1){
-    Malpha =  (fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/(kappa^2))
-  } else if (m_alpha > 1){
-    Malpha =  fem_mesh_matrices[["c0"]] + m_alpha * fem_mesh_matrices[["g1"]]/(kappa^2)
-    for(j in 2:m_alpha){
-      Malpha = Malpha +  choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j)]]/(kappa^(2*j))
-    }
-  } else {
-    stop("Something is wrong with the value of nu!")
-  }
-  
-  
-  if (m_alpha == 1){
-    Malpha2 =  (fem_mesh_matrices[["g1"]] + fem_mesh_matrices[["g2"]]/(kappa^2))
-  } else if (m_alpha > 1){
-    Malpha2 =  fem_mesh_matrices[["g1"]] + m_alpha * fem_mesh_matrices[["g2"]]/(kappa^2)
-    for(j in 2:m_alpha){
-      Malpha2 = Malpha2 +  choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j+1)]]/(kappa^(2*j))
-    }
-  } else {
-    stop("Something is wrong with the value of nu!")
-  }
-  
-  Q = 1/r[1] * (Malpha + Malpha2/kappa^2 - p[1] * Malpha)
-  
-  if(length(r)>1){
-    for (i in 2:length(r)) {
-      Q = bdiag(Q, 1/r[i] * (Malpha + Malpha2/kappa^2 - p[i] * Malpha))
-    }
-  }
-  
-  }
-  
-  # add k_part into Q
-  
+    
+    # add k_part into Q
+    
     if(m_alpha == 0){
       Kpart = fem_mesh_matrices[["c0"]]
-      Kpart@x = 1/(fem_mesh_matrices[["c0"]]@x)
       Kpart = Kpart/k
     } else{
-    if (m_alpha == 1){
-      Kpart = 1/k * (fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/(kappa^2))
-    } else if (m_alpha > 1){
-      Kpart = 1/k * fem_mesh_matrices[["c0"]] + 1/k * m_alpha * fem_mesh_matrices[["g1"]]/(kappa^2)
-      for(j in 2:m_alpha){
-        Kpart = Kpart + 1/k * choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j)]]/(kappa^(2*j))
+      if (m_alpha == 1){
+        Kpart = 1/k * (fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/(kappa^2))
+      } else if (m_alpha > 1){
+        Kpart = 1/k * fem_mesh_matrices[["c0"]] + 1/k * m_alpha * fem_mesh_matrices[["g1"]]/(kappa^2)
+        for(j in 2:m_alpha){
+          Kpart = Kpart + 1/k * choose(m_alpha, j) * fem_mesh_matrices[[paste0("g",j)]]/(kappa^(2*j))
+        }
+      } else {
+        stop("Something is wrong with the value of nu!")
       }
-    } else {
-      stop("Something is wrong with the value of nu!")
     }
+    
+    Q = bdiag(Q, Kpart)
+    
+    Q = Q * kappa ^ (4 * beta)
+    
+    Q = tau ^ 2 * Q
+    
+    return(Q)
+  } else{
+    L = ((kappa^2)*fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]])/kappa^2
+    
+    Q = (L-p[1]*fem_mesh_matrices[["c0"]])/r[1]
+    
+    if(n_m>1){
+      for(i in 2:(n_m)){
+       temp = (L-p[i]*fem_mesh_matrices[["c0"]])/r[i]
+       Q = bdiag(Q,temp)
+      }
     }
-  
-  Q = bdiag(Q, Kpart)
+    
+    Q = bdiag(Q,fem_mesh_matrices[["c0"]]/k)
 
-  Q = Q * kappa ^ (4 * beta)
-  
-  Q = tau ^ 2 * Q
-  
-  return(Q)
+    
+    Q = Q * kappa ^ (4 * beta)
+    
+    Q = tau ^ 2 * Q
+    return(Q)
+  }
+
 }
 
 

@@ -1,4 +1,9 @@
 # rSPDE (development version)
+* Improved covariance-based operator objects
+* Improved log-likelihood computation
+* Created 2d folded Matern under different boundary conditions.
+* Implemented different boundary conditions for 1d folded Matern.
+
 
 # rSPDE 1.1.1
 * Adjusts on donttest examples for CRAN.

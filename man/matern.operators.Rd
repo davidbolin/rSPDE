@@ -13,7 +13,8 @@ matern.operators(
   d = NULL,
   mesh = NULL,
   m = 1,
-  type = c("covariance", "operator")
+  type = c("covariance", "operator"),
+  compute_higher_order = FALSE
 )
 }
 \arguments{
@@ -36,6 +37,8 @@ The default value is 1.}
 
 \item{type}{The type of the rational approximation. The options are "covariance"
 and "operator". The default is "covariance".}
+
+\item{compute_higher_order}{Logical. Should the higher order finite element matrices be computed?}
 }
 \value{
 If \code{type} is "covariance", then \code{matern.operators} 
@@ -117,8 +120,7 @@ kappa=kappa,sigma=sigma,d=1,m=2)
 
 v = t(rSPDE.A1d(x,0.5))
 #Compute the precision matrix
-Q <- rspde.matern.precision(kappa=kappa,nu=nu,sigma=sigma,
-rspde_order=2,d=1,fem_mesh_matrices = op_cov$fem_mesh_matrices)
+Q <- op_cov$Q
 #A matrix here is the identity matrix
 A <- Diagonal(nobs)
 #We need to concatenate 3 A's since we are doing a covariance-based rational
@@ -127,7 +129,7 @@ Abar <- cbind(A,A,A)
 w <- rbind(v,v,v)
 #The approximate covariance function:
 c_cov.approx <- (Abar)\%*\%solve(Q,w)
-c.true <- folded.matern.covariance(rep(0.5,length(x)),abs(x), kappa, nu, sigma)
+c.true <- folded.matern.covariance.1d(rep(0.5,length(x)),abs(x), kappa, nu, sigma)
 
 #plot the result and compare with the true Matern covariance
 plot(x, c.true, type = "l", ylab = "C(h)",
@@ -152,7 +154,7 @@ op <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
                        
 v = t(rSPDE.A1d(x,0.5))
 c.approx = Sigma.mult(op,v)
-c.true <- folded.matern.covariance(rep(0.5,length(x)),abs(x), kappa, nu, sigma)
+c.true <- folded.matern.covariance.1d(rep(0.5,length(x)),abs(x), kappa, nu, sigma)
 
 #plot the result and compare with the true Matern covariance
 plot(x, c.true, type = "l", ylab = "C(h)",

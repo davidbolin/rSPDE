@@ -41,7 +41,7 @@ NULL
 #' @rdname operator.operations
 #' @export
 Pr.mult <- function(obj, v, transpose = FALSE) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj,"rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   if (transpose) {
@@ -67,7 +67,7 @@ Pr.mult <- function(obj, v, transpose = FALSE) {
 #' @rdname operator.operations
 #' @export
 Pr.solve <- function(obj, v, transpose = FALSE) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj,"rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   I <- Matrix::Diagonal(dim(obj$C)[1])
@@ -92,7 +92,7 @@ Pr.solve <- function(obj, v, transpose = FALSE) {
 #' @rdname operator.operations
 #' @export
 Pl.mult <- function(obj, v, transpose = FALSE) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj,"rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   I <- Matrix::Diagonal(dim(obj$C)[1])
@@ -129,7 +129,7 @@ Pl.mult <- function(obj, v, transpose = FALSE) {
 #' @rdname operator.operations
 #' @export
 Pl.solve <- function(obj, v, transpose = FALSE) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj,"rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   I <- Matrix::Diagonal(dim(obj$C)[1])
@@ -166,31 +166,59 @@ Pl.solve <- function(obj, v, transpose = FALSE) {
 #' @rdname operator.operations
 #' @export
 Q.mult <- function(obj, v) {
-  if (class(obj) != "rSPDEobj") {
-    stop("obj is not of class rSPDE.obj")
+  if (inherits(obj,"rSPDEobj")) {
+    v <- Pl.mult(obj, v)
+    v <- obj$Ci %*% v
+    v <- Pl.mult(obj, v, transpose = TRUE)
+    return(v)
+  } else if(inherits(obj,"CBrSPDEobj")){
+    Q.int <- obj$Q.int
+    order_Q_int <- Q.int$order
+    Q.int <- Q.int$Q.int
+    Q.frac <- obj$Q.frac
+    v = Q.frac%*% v
+    if(order_Q_int>0){
+      for(i in 1:order_Q_int){
+        v = Q.int %*% v
+      }
+    }
+    return(v)
+
+    } else{
+    stop("obj is not of class rSPDEobj")
   }
-  v <- Pl.mult(obj, v)
-  v <- obj$Ci %*% v
-  v <- Pl.mult(obj, v, transpose = TRUE)
-  return(v)
 }
 
 #' @rdname operator.operations
 #' @export
 Q.solve <- function(obj, v) {
-  if (class(obj) != "rSPDEobj") {
-    stop("obj is not of class rSPDE.obj")
+  if (inherits(obj,"rSPDEobj")) {
+    v <- Pl.solve(obj, v, transpose = TRUE)
+    v <- obj$C %*% v
+    v <- Pl.solve(obj, v)
+    return(v)
+  } else if(inherits(obj,"CBrSPDEobj")){
+    Q.int <- obj$Q.int
+    Q.frac <- obj$Q.frac
+    order_Q_int <- Q.int$order
+    Q.int <- as(Q.int$Q.int, "dgTMatrix")
+    prod_tmp <- solve(Q.int, v)
+    if(order_Q_int>1){
+      for(i in 2:order_Q_int){
+        prod_tmp <- solve(Q.int, prod_tmp)
+      }
+    }
+    v <- solve(Q.frac,prod_tmp)
+    return(v)
+  } else{
+    stop("obj is not of class rSPDEobj nor CBrSPDEobj")
   }
-  v <- Pl.solve(obj, v, transpose = TRUE)
-  v <- obj$C %*% v
-  v <- Pl.solve(obj, v)
-  return(v)
 }
 
 #' @rdname operator.operations
 #' @export
 Qsqrt.mult <- function(obj, v, transpose = FALSE) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj,"rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   if (transpose) {
@@ -206,7 +234,7 @@ Qsqrt.mult <- function(obj, v, transpose = FALSE) {
 #' @rdname operator.operations
 #' @export
 Qsqrt.solve <- function(obj, v, transpose = FALSE) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj,"rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   if (transpose) {
@@ -222,7 +250,7 @@ Qsqrt.solve <- function(obj, v, transpose = FALSE) {
 #' @rdname operator.operations
 #' @export
 Sigma.mult <- function(obj, v) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj,"rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   v <- Pr.mult(obj, v, transpose = TRUE)
@@ -234,7 +262,7 @@ Sigma.mult <- function(obj, v) {
 #' @rdname operator.operations
 #' @export
 Sigma.solve <- function(obj, v) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj,"rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   v <- Pr.solve(obj, v)
@@ -242,3 +270,7 @@ Sigma.solve <- function(obj, v) {
   v <- Pr.solve(obj, v, transpose = TRUE)
   return(v)
 }
+
+#' @rdname operator.operations
+#' @export
+#' 

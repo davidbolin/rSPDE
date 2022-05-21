@@ -13,8 +13,7 @@ test_that("Checking covariances of CBrSPDE",{
                                   d=1,m = 2)
   v <- t(rSPDE.A1d(s,0.5))
   c.true <- matern.covariance(abs(s - 0.5), kappa, nu, sigma)
-  Q <- rspde.matern.precision(kappa=kappa,nu=nu,sigma=sigma,rspde_order=2,dim=1,
-                              fem_mesh_matrices = op2$fem_mesh_matrices)
+  Q <- op2$Q
   A <- Diagonal(nobs)
   Abar <- cbind(A,A,A)
   w <- rbind(v,v,v)

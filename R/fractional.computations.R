@@ -81,6 +81,7 @@ simulate.rSPDEobj <- function(object,
 #' @param user_sigma If non-null, update the standard deviation of the covariance function.
 #' @param user_nu If non-null, update the shape parameter of the covariance function.
 #' @param user_m If non-null, update the order of the rational approximation, which needs to be a positive integer.
+#' @param compute_higher_order Logical. Should the higher order finite element matrices be computed?
 #' @param ... Currently not used.
 #' @return It returns an object of class "CBrSPDEobj. This object contains the
 #' same quantities listed in the output of \code{\link{matern.operators}}.
@@ -110,11 +111,17 @@ simulate.rSPDEobj <- function(object,
 update.CBrSPDEobj <- function(object, user_nu = NULL,
                                 user_kappa = NULL,
                                 user_sigma = NULL,
-                                user_m = NULL, ...){
+                                user_m = NULL, 
+                              compute_higher_order = object$higher_order,
+                              ...){
   new_object <- object
   d <- object$d
   
   fem_mesh_matrices <- object$fem_mesh_matrices
+  
+  if(is.null(user_nu) & !(object$higher_order) & compute_higher_order){
+    user_nu <- object$nu
+  }
   
   ## get parameters
   if(!is.null(user_nu)){
@@ -130,13 +137,16 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
     m_alpha <- floor(alpha)
     m_order <- m_alpha+1
     
-    if( m_order + 1 > length(object$fem_mesh_matrices) ){
-      old_m_order <- length(object$fem_mesh_matrices) - 1
-      GCi <- object$GCi
-      for (i in (old_m_order+1):m_order){
-        fem_mesh_matrices[[paste0("g",i)]] <- GCi %*% fem_mesh_matrices[[paste0("g",i-1)]]
+    if(compute_higher_order){
+      if( m_order + 1 > length(object$fem_mesh_matrices) ){
+        old_m_order <- length(object$fem_mesh_matrices) - 1
+        GCi <- object$GCi
+        for (i in (old_m_order+1):m_order){
+          fem_mesh_matrices[[paste0("g",i)]] <- GCi %*% fem_mesh_matrices[[paste0("g",i-1)]]
+        }
       }
     }
+ 
   }
   
   new_object[["fem_mesh_matrices"]] <- fem_mesh_matrices 
@@ -324,29 +334,35 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
                                 pivot = TRUE,
                                 ...)
 {
-  
-  object <- update.CBrSPDEobj(object,
-                                user_nu,
-                                user_kappa,
-                                user_tau,
-                                user_m)
-
   d <- object$d
-  kappa <- object$kappa
-  nu <- object$nu
-  tau <- object$tau
-  m <- object$m
-  
-  alpha <- nu + d/2
-  m_alpha <- max(1,floor(alpha))
-  
-  fem_mesh_matrices <- object$fem_mesh_matrices
+  nu_temp <- ifelse(is.null(user_nu), object$nu, user_nu)
+  alpha <- nu_temp + d/2
 
-  L = fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/kappa^2
-  sizeL = dim(L)[1]
   
   ## simulation 
   if (alpha%%1==0){# simulation in integer case
+    object <- update.CBrSPDEobj(object,
+                                user_nu,
+                                user_kappa,
+                                user_tau,
+                                user_m,
+                                compute_higher_order = TRUE)
+    
+
+    kappa <- object$kappa
+    nu <- object$nu
+    tau <- object$tau
+    m <- object$m
+    
+    alpha <- nu + d/2
+    m_alpha <- max(1,floor(alpha))
+    
+    fem_mesh_matrices <- object$fem_mesh_matrices
+    
+    L = fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/kappa^2
+    sizeL = dim(L)[1]
+    
+    
     Q <- rspde.matern.precision.integer(kappa=kappa, nu=nu, tau=tau, 
                                         dim=d, 
                                         fem_mesh_matrices = fem_mesh_matrices)
@@ -365,12 +381,36 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       X = solve(LQ,Z)
     }
   }else{
-    Q <- rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
-                                        dim=d, 
-                                        fem_mesh_matrices = fem_mesh_matrices,
-                                rspde_order = m)
-    Z = rnorm((m+1)*sizeL * nsim)
-    dim(Z) <- c((m+1)*sizeL, nsim)
+    object <- update.CBrSPDEobj(object,
+                                user_nu,
+                                user_kappa,
+                                user_tau,
+                                user_m,
+                                compute_higher_order = FALSE)
+    
+    # d <- object$d
+    # kappa <- object$kappa
+    # nu <- object$nu
+    # tau <- object$tau
+
+    # 
+    # alpha <- nu + d/2
+    # m_alpha <- max(1,floor(alpha))
+    # 
+    # fem_mesh_matrices <- object$fem_mesh_matrices
+    # 
+    # L = fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/kappa^2
+    # sizeL = dim(L)[1]
+    # Q <- rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
+    #                                     dim=d, 
+    #                                     fem_mesh_matrices = fem_mesh_matrices,
+    #                             rspde_order = m)
+    
+    m <- object$m
+    Q <- object$Q
+    
+    Z = rnorm(dim(Q)[1] * nsim)
+    dim(Z) <- c(dim(Q)[1], nsim)
     if(pivot){
       LQ = chol(forceSymmetric(Q), pivot = TRUE)
       reorder = attr(LQ,"pivot")
@@ -383,7 +423,7 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       LQ = chol(forceSymmetric(Q))
       X = solve(LQ,Z)
     }
-    A = Diagonal(sizeL)
+    A = Diagonal(dim(Q)[1]/(m+1))
     Abar = kronecker(matrix(1,1,m+1),A)
     X = Abar%*%X
   }
@@ -576,16 +616,26 @@ rSPDE.loglike <- function(obj,
     Q.e <- Diagonal(length(sigma.e),1/sigma.e^2)
     nugget = sigma.e^2
   }
+  
+
   R = Matrix::Cholesky(obj$Pl)
   prior.ld = 4 * c(determinant(R, logarithm = TRUE)$modulus) - sum(log(diag(obj$C)))
   
+  
   A = A %*% obj$Pr
   Q.post = obj$Q + t(A) %*% Q.e %*% A 
+  
+  
   R.post = Matrix::Cholesky(Q.post)
   posterior.ld = 2 * c(determinant(R.post, logarithm = TRUE)$modulus)
   
+
+  
   AtY = t(A) %*% Q.e %*% Y 
+  
+  
   mu.post <- mu + solve(R.post, AtY, system = "A")
+
   
   lik = n.rep * (prior.ld - posterior.ld - dim(A)[1] * log(2*pi) - sum(log(nugget))) / 2
   
@@ -823,19 +873,19 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
   }
   
   ## get relevant parameters
+  
   object <- update.CBrSPDEobj(object,
                                 user_nu,
                                 user_kappa,
                                 user_sigma,
                                 user_m)
+
   
   d <- object$d
   kappa <- object$kappa
   nu <- object$nu
   tau <- object$tau
   m <- object$m
-  
-  fem_mesh_matrices <- object$fem_mesh_matrices
   
   if(length(sigma.e)==1){
     Q.e <- Diagonal(n)/sigma.e^2
@@ -850,26 +900,33 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
   
   alpha <- nu + d/2
   beta <- alpha/2
-  m_alpha = max(1,floor(alpha))
-  ## get L matrix
-  L = fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/kappa^2
-  sizeL = dim(L)[1]
+  m_alpha = floor(alpha)
   
-  Q = rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
-                                rspde_order = m, dim=d, 
-                                fem_mesh_matrices=fem_mesh_matrices)
-    ## compute log|Q|
-    QR = chol(forceSymmetric(Q),pivot = TRUE)
-    logQ = 2*sum(log(diag(QR)))
+   Q.frac = object$Q.frac
+   Q.fracR = chol(forceSymmetric(Q.frac), pivot=TRUE)
+   logdetL = object$logdetL
+   logdetC = object$logdetC  
+   Q.int.order = object$Q.int$order
+   
+   if(Q.int.order>0){
+     logQ = 2*sum(log(diag(Q.fracR))) + (Q.int.order)*(m+1)*(logdetL-logdetC)
+   } else{
+     logQ = 2*sum(log(diag(Q.fracR)))
+   }
+    
     ## compute Q_x|y
+   Q = object$Q
     Abar = kronecker(matrix(1,1,m+1),A)
     Q_xgiveny = t(Abar)%*% Q.e %*% Abar + Q
     ## construct mu_x|y 
     
     mu_xgiveny = t(Abar) %*% Q.e %*% Y
     # upper triangle with reordering
+
     R = Matrix::Cholesky(forceSymmetric(Q_xgiveny))
+
     mu_xgiveny = solve(R, mu_xgiveny, system = "A")
+    
     mu_xgiveny <- mu + mu_xgiveny
     
     ## compute log|Q_xgiveny|
@@ -878,8 +935,10 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
     ## compute mu_x|y*Q*mu_x|y
     if(n.rep>1){
       mu_part = sum(colSums((mu_xgiveny -mu) * (Q %*% (mu_xgiveny-mu))))
+     ## mu_part = sum(colSums((mu_xgiveny -mu) * (Q.mult(object,mu_xgiveny-mu))))
     } else{
       mu_part = t(mu_xgiveny -mu) %*% Q %*% (mu_xgiveny-mu)      
+      ## mu_part = t(mu_xgiveny -mu) %*% Q.mult(object,mu_xgiveny-mu)      
     }
     ## compute central part
     if(n.rep>1){
@@ -1446,11 +1505,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu=0,
       
     }else{# loglikelihood in non-integer case
       
-      Q <- rspde.matern.precision(kappa=kappa, nu=nu,
-                                          tau=tau, 
-                                          dim=d,
-                                  rspde_order= m,
-                                          fem_mesh_matrices = fem_mesh_matrices)
+      Q <- object$Q
       
       R = chol(forceSymmetric(Q),pivot = pivot)
       logQ = 2*sum(log(diag(R)))
@@ -1496,9 +1551,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu=0,
     } else{
       Abar = kronecker(matrix(1,1,rspde_order+1),A)
       Aprd_bar = kronecker(matrix(1,1,rspde_order+1),Aprd)
-      Q <- rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, rspde_order=m, 
-                                  dim=d, 
-                      fem_mesh_matrices=fem_mesh_matrices)
+      Q <- object$Q
     }
   
     QiAt <- solve(Q, t(Abar))
@@ -1571,14 +1624,16 @@ precision.CBrSPDEobj <- function(object,
                               user_tau,
                               user_m)
   
-  d <- object$d
-  kappa <- object$kappa
-  nu <- object$nu
-  tau <- object$tau
-  m <- object$m
+  # d <- object$d
+  # kappa <- object$kappa
+  # nu <- object$nu
+  # tau <- object$tau
+  # m <- object$m
   
-  Q <- rspde.matern.precision(kappa=kappa,nu=nu,tau=tau,
-                              rspde_order=m,dim=d,
-                              fem_mesh_matrices = object$fem_mesh_matrices)
+  #Q <- rspde.matern.precision(kappa=kappa,nu=nu,tau=tau,
+  #                            rspde_order=m,dim=d,
+  #                            fem_mesh_matrices = object$fem_mesh_matrices,
+  #                            only_fractional=only_fractional)
+  Q <- object$Q
   return(Q)
 }

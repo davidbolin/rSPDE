@@ -97,41 +97,51 @@ matern.covariance <- function(h,
   return(as.matrix(C))
 }
 
-#' The folded Matern covariance function
+#' The 1d folded Matern covariance function
 #'
 #' @description 
-#' \code{matern.covariance} evaluates the folded Matern covariance function
+#' \code{folded.matern.covariance.1d} evaluates the 1d folded Matern covariance function
 #' over an interval \eqn{[0,L]}.
 #' 
 #' @details 
-#' \code{matern.covariance} evaluates the folded Matern covariance function
-#' over an interval \eqn{[0,L]}:
-#' \deqn{C(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL)+C(h+m-2kL)),}
-#' 
+#' \code{folded.matern.covariance.1d} evaluates the 1d folded Matern covariance function
+#' over an interval \eqn{[0,L]} under different boundary conditions. For periodic boundary conditions
+#' \deqn{C_{\mathcal{P}}(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL),}
+#' for Neumann boundary conditions
+#' \deqn{C_{\mathcal{N}}(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL)+C(h+m+2kL)),}
+#' and for Dirichlet boundary conditions:
+#' \deqn{C_{\mathcal{D}}(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL)-C(h+m+2kL)),}
 #' where \eqn{C(\cdot)} is the Matern covariance function:
 #' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
 #' 
 #' We consider the truncation:
-#' \deqn{C(h,m) = \sum_{k=-N}^{N} (C(h-m+2kL)+C(h+m-2kL)).}
+#' \deqn{C_{{\mathcal{P}},N}(h,m) = \sum_{k=-N}^{N} C(h-m+2kL), C_{\mathcal{N},N}(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL)+C(h+m+2kL)),}
+#' and
+#' \deqn{C_{\mathcal{D},N}(h,m) = \sum_{k=-N}^{N} (C(h-m+2kL)-C(h+m+2kL)).}
 #'
-#' @param h,m Arguments of the covariance function.
+#' @param h,m Vectors of arguments of the covariance function.
 #' @param kappa Range parameter.
 #' @param nu Shape parameter.
 #' @param sigma Standard deviation.
 #' @param L The upper bound of the interval [0,L]. By default, \code{L=1}.
 #' @param N The truncation parameter.
+#' @param boundary The boundary condition. The possible conditions are \code{"neumann"} (default), \code{"dirichlet"} or \code{"periodic"}.
 #'
-#' @return A vector with the values C(h).
+#' @return A matrix with the corresponding covariance values. 
 #' @export
 #'
 #' @examples
 #' x = seq(from = 0, to = 1, length.out = 101)
-#' plot(x, folded.matern.covariance(rep(0.5,length(x)),x, kappa = 10, nu = 1/5, sigma = 1),
+#' plot(x, folded.matern.covariance.1d(rep(0.5,length(x)),x, kappa = 10, nu = 1/5, sigma = 1),
 #'      type = "l", ylab = "C(h)", xlab = "h")
 
-folded.matern.covariance <- function(h, m, kappa, nu, sigma,
-                                     L=1, N=10)
+folded.matern.covariance.1d <- function(h, m, kappa, nu, sigma,
+                                     L=1, N=10, boundary = c("neumann","dirichlet","periodic"))
 {
+  boundary <- tolower(boundary[1])
+  if(!(boundary%in%c("neumann","dirichlet","periodic"))){
+    stop("The possible boundary conditions are 'neumann', 'dirichlet' or 'periodic'!")
+  }
   if(length(h)!=length(m)){
     stop("h and m should have the same length!")
   }
@@ -140,12 +150,101 @@ folded.matern.covariance <- function(h, m, kappa, nu, sigma,
     h-m+2*j*L
   })
   s2 <- sapply(-N:N, function(j){
-    h+m-2*j*L
+    h+m+2*j*L
   })
-  C <- rowSums(matern.covariance(h=s1, kappa=kappa, nu=nu, sigma=sigma)+
-             matern.covariance(h=s2, kappa=kappa, nu=nu, sigma=sigma))
+  if(boundary=="neumann"){
+    C <- rowSums(matern.covariance(h=s1, kappa=kappa, nu=nu, sigma=sigma)+
+                 matern.covariance(h=s2, kappa=kappa, nu=nu, sigma=sigma))
+  } else if(boundary=="dirichlet"){
+    C <- rowSums(matern.covariance(h=s1, kappa=kappa, nu=nu, sigma=sigma)-
+                 matern.covariance(h=s2, kappa=kappa, nu=nu, sigma=sigma))
+  } else{
+    C <- rowSums(matern.covariance(h=s1, kappa=kappa, nu=nu, sigma=sigma))
+  }
+  
+  if(length(h)==1){
+    return(sum(C))
+  }
   return(as.matrix(C))
 }
+
+#' The 2d folded Matern covariance function
+#'
+#' @description 
+#' \code{folded.matern.covariance.2d} evaluates the 2d folded Matern covariance function
+#' over an interval \eqn{[0,L]\times [0,L]}.
+#' 
+#' @details 
+#' \code{folded.matern.covariance.2d} evaluates the 1d folded Matern covariance function
+#' over an interval \eqn{[0,L]\times [0,L]} under different boundary conditions. For periodic boundary conditions
+#' \deqn{C_{\mathcal{P}}((h_1,h_2),(m_1,m_2)) = \sum_{k_2=-\infty}^\infty \sum_{k_1=-\infty}^{\infty} (C(\|(h_1-m_1+2k_1L,h_2-m_2+2k_2L)\|),}
+#' for Neumann boundary conditions
+#' \deqn{C_{\mathcal{N}}((h_1,h_2),(m_1,m_2)) = \sum_{k_2=-\infty}^\infty \sum_{k_1=-\infty}^{\infty} (C(\|(h_1-m_1+2k_1L,h_2-m_2+2k_2L)\|)+C(\|(h_1-m_1+2k_1L,h_2+m_2+2k_2L)\|)+C(\|(h_1+m_1+2k_1L,h_2-m_2+2k_2L)\|)+C(\|(h_1+m_1+2k_1L,h_2+m_2+2k_2L)\|)),}
+#' and for Dirichlet boundary conditions:
+#' \deqn{C_{\mathcal{D}}((h_1,h_2),(m_1,m_2)) = \sum_{k_2=-\infty}^\infty \sum_{k_1=-\infty}^{\infty} (C(\|(h_1-m_1+2k_1L,h_2-m_2+2k_2L)\|)-C(\|(h_1-m_1+2k_1L,h_2+m_2+2k_2L)\|)-C(\|(h_1+m_1+2k_1L,h_2-m_2+2k_2L)\|)+C(\|(h_1+m_1+2k_1L,h_2+m_2+2k_2L)\|)),}
+#' where \eqn{C(\cdot)} is the Matern covariance function:
+#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
+#' 
+#' We consider the truncation for \eqn{k_1,k_2} from \eqn{-N} to \eqn{N}.
+#'
+#' @param h,m Vectors with two coordinates.
+#' @param kappa Range parameter.
+#' @param nu Shape parameter.
+#' @param sigma Standard deviation.
+#' @param L The upper bound of the square \eqn{[0,L]\times [0,L]}. By default, \code{L=1}.
+#' @param N The truncation parameter.
+#' @param boundary The boundary condition. The possible conditions are \code{"neumann"} (default), \code{"dirichlet"}, \code{"periodic"} or \code{"R2"}.
+#'
+#' @return The correspoding covariance. 
+#' @export
+#'
+#' @examples
+#' h = c(0.5,0.5)
+#' m = c(0.5,0.5)
+#' folded.matern.covariance.2d(h,m, kappa = 10, nu = 1/5, sigma = 1)
+#' 
+
+folded.matern.covariance.2d <- function(h, m, kappa, nu, sigma,
+                                        L=1, N=10, boundary = c("neumann","dirichlet","periodic","R2"))
+{
+  boundary <- tolower(boundary[1])
+  if(!(boundary%in%c("neumann","dirichlet","periodic","r2"))){
+    stop("The possible boundary conditions are 'neumann', 'dirichlet', 'periodic' or 'R2'!")
+  }
+  if(!(is.vector(h) && is.vector(m))){
+    stop("h and m should be vectors!")
+  }
+  
+  if((length(h)!=2) || (length(m)!= 2)){
+    stop("The vectors h and m should have length 2!")
+  }
+  
+  list.comb <- expand.grid(-N:N, -N:N)
+  
+  s11 <- sqrt( (h[1]-m[1]+2*list.comb[,1]*L)^2 + (h[2]-m[2]+2*list.comb[,2]*L)^2 )
+  s12 <- sqrt( (h[1]-m[1]+2*list.comb[,1]*L)^2 + (h[2]+m[2]+2*list.comb[,2]*L)^2 )
+  s21 <- sqrt( (h[1]+m[1]+2*list.comb[,1]*L)^2 + (h[2]-m[2]+2*list.comb[,2]*L)^2 )
+  s22 <- sqrt( (h[1]+m[1]+2*list.comb[,1]*L)^2 + (h[2]+m[2]+2*list.comb[,2]*L)^2 )
+  if(boundary=="neumann"){
+    C <- sum(matern.covariance(h=s11, kappa=kappa, nu=nu, sigma=sigma)+
+                 matern.covariance(h=s12, kappa=kappa, nu=nu, sigma=sigma)+
+      matern.covariance(h=s21, kappa=kappa, nu=nu, sigma=sigma)+
+          matern.covariance(h=s22, kappa=kappa, nu=nu, sigma=sigma))
+  } else if(boundary=="dirichlet"){
+    C <- sum(matern.covariance(h=s11, kappa=kappa, nu=nu, sigma=sigma)-
+             matern.covariance(h=s12, kappa=kappa, nu=nu, sigma=sigma)-
+      matern.covariance(h=s21, kappa=kappa, nu=nu, sigma=sigma)+
+          matern.covariance(h=s22, kappa=kappa, nu=nu, sigma=sigma))
+  } else if(boundary=="r2"){
+    C <- matern.covariance(h=sqrt((h[1]-m[1])^2+(h[2]-m[2])^2), kappa = kappa, sigma = sigma, nu = nu)
+  } else{
+    C <- sum(matern.covariance(h=s11, kappa=kappa, nu=nu, sigma=sigma))
+  }
+  return(as.double(C))
+}
+
+
+
 
 #' Summarise rSPDE objects
 #'
@@ -830,3 +929,4 @@ print.summary.CBrSPDEobj <- function(x, ...)
 print.CBrSPDEobj <- function(x, ...) {
   print.summary.CBrSPDEobj(summary(x))
 }
+

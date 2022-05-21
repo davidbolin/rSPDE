@@ -12,7 +12,8 @@ rspde.matern.precision(
   sigma = NULL,
   rspde_order,
   dim,
-  fem_mesh_matrices
+  fem_mesh_matrices,
+  only_fractional = FALSE
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ rspde.matern.precision(
 \item{dim}{The dimension of the domain}
 
 \item{fem_mesh_matrices}{A list containing the FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.}
+
+\item{only_fractional}{Logical. Should only the fractional-order part of the precision matrix be returned?}
 }
 \value{
 The precision matrix
@@ -52,7 +55,7 @@ d <- 1
 nu = 2.6
 tau = sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
 op_cov <- matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa, sigma = sigma,
-                                  d=1,m = 2)
+                                  d=1,m = 2,compute_higher_order = TRUE)
 v <- t(rSPDE.A1d(x,0.5))
 c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
 Q <- rspde.matern.precision(kappa=kappa,nu=nu,tau=tau,rspde_order=2,d=1,

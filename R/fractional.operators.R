@@ -199,6 +199,7 @@ fractional.operators <- function(L,
 #' The default value is 1.
 #' @param type The type of the rational approximation. The options are "covariance"
 #' and "operator". The default is "covariance".
+#' @param compute_higher_order Logical. Should the higher order finite element matrices be computed?
 #'
 #' @return If \code{type} is "covariance", then \code{matern.operators} 
 #' returns an object of class "CBrSPDEobj". 
@@ -275,8 +276,7 @@ fractional.operators <- function(L,
 #'
 #' v = t(rSPDE.A1d(x,0.5))
 #' #Compute the precision matrix
-#' Q <- rspde.matern.precision(kappa=kappa,nu=nu,sigma=sigma,
-#' rspde_order=2,d=1,fem_mesh_matrices = op_cov$fem_mesh_matrices)
+#' Q <- op_cov$Q
 #' #A matrix here is the identity matrix
 #' A <- Diagonal(nobs)
 #' #We need to concatenate 3 A's since we are doing a covariance-based rational
@@ -285,7 +285,7 @@ fractional.operators <- function(L,
 #' w <- rbind(v,v,v)
 #' #The approximate covariance function:
 #' c_cov.approx <- (Abar)%*%solve(Q,w)
-#' c.true <- folded.matern.covariance(rep(0.5,length(x)),abs(x), kappa, nu, sigma)
+#' c.true <- folded.matern.covariance.1d(rep(0.5,length(x)),abs(x), kappa, nu, sigma)
 #' 
 #' #plot the result and compare with the true Matern covariance
 #' plot(x, c.true, type = "l", ylab = "C(h)",
@@ -310,7 +310,7 @@ fractional.operators <- function(L,
 #'                        
 #' v = t(rSPDE.A1d(x,0.5))
 #' c.approx = Sigma.mult(op,v)
-#' c.true <- folded.matern.covariance(rep(0.5,length(x)),abs(x), kappa, nu, sigma)
+#' c.true <- folded.matern.covariance.1d(rep(0.5,length(x)),abs(x), kappa, nu, sigma)
 #'
 #' #plot the result and compare with the true Matern covariance
 #' plot(x, c.true, type = "l", ylab = "C(h)",
@@ -325,7 +325,8 @@ matern.operators <- function(kappa,
                              d = NULL,
                              mesh = NULL,
                              m = 1,
-                             type = c("covariance", "operator"))
+                             type = c("covariance", "operator"),
+                             compute_higher_order = FALSE)
 {
   type = type[[1]]
   if(!type%in%c("covariance", "operator")){
@@ -363,7 +364,7 @@ matern.operators <- function(kappa,
     output$type <- "Matern approximation"
     return(output)
   } else{
-    return(CBrSPDE.matern.operators(C=C,G=G,mesh=mesh,nu=nu,kappa=kappa,sigma=sigma,m=m,d=d))
+    return(CBrSPDE.matern.operators(C=C,G=G,mesh=mesh,nu=nu,kappa=kappa,sigma=sigma,m=m,d=d,compute_higher_order = compute_higher_order))
   }
 
 }
@@ -439,8 +440,7 @@ matern.operators <- function(kappa,
 #'
 #' v = t(rSPDE.A1d(x,0.5))
 #' #Compute the precision matrix
-#' Q <- rspde.matern.precision(kappa=kappa,nu=nu,tau=tau,
-#' rspde_order=2,d=1,fem_mesh_matrices = op_cov$fem_mesh_matrices)
+#' Q <- op_cov$Q
 #' #A matrix here is the identity matrix
 #' A <- Diagonal(nobs)
 #' #We need to concatenate 3 A's since we are doing a covariance-based rational
@@ -462,29 +462,65 @@ CBrSPDE.matern.operators <- function(C,
                                  kappa,
                                  sigma,
                                  m=2,
-                                 d)
+                                 d,
+                                 compute_higher_order = FALSE)
 {
   
-  ## get alpha, m_alpha
-  alpha <- nu + d/2
-  m_alpha <- max(1,floor(alpha))
-  m_order <- m_alpha+1
-  tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
-  
+
   if(!is.null(mesh)){
-      d <- get_inla_mesh_dimension(inla_mesh = mesh)
-      fem <- INLA::inla.mesh.fem(mesh,order = m_alpha+1)
-      C <- fem$c0
-      G <- fem$g1
-      Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))  
-      GCi <- G%*%Ci
-      
-      Gk <- list()
-      Gk[[1]] <- G
-      for(i in 2:m_order){
-        Gk[[i]] <- fem[[paste0("g",i)]]
+    ## get alpha, m_alpha
+    d <- get_inla_mesh_dimension(inla_mesh = mesh)
+    alpha <- nu + d/2
+    m_alpha <- floor(alpha)
+    m_order <- m_alpha+1
+    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
+    
+
+      if(d>1){
+        if(compute_higher_order){
+          fem <- INLA::inla.mesh.fem(mesh,order = m_alpha+1)
+        } else{
+          fem <- INLA::inla.mesh.fem(mesh)
+        }
+
+        C <- fem$c0
+        G <- fem$g1
+        Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))  
+        GCi <- G%*%Ci
+        
+        Gk <- list()
+        Gk[[1]] <- G
+        for(i in 2:m_order){
+          Gk[[i]] <- fem[[paste0("g",i)]]
+        }
+      } else if(d==1){
+        fem <- INLA::inla.mesh.fem(mesh,order = 2)
+        C <- fem$c0
+        G <- fem$g1
+        Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))  
+        GCi <- G%*%Ci
+        
+        Gk <- list()
+        Gk[[1]] <- G
+        if(compute_higher_order){
+          Gk[[2]] <- fem$g2
+          if(m_order>2){
+            for(i in 3:m_order){
+              Gk[[i]] <- GCi %*% Gk[[i-1]]            
+            }
+          }
+        }
+
+
       }
+
   } else{
+    ## get alpha, m_alpha
+    alpha <- nu + d/2
+    m_alpha <- floor(alpha)
+    m_order <- m_alpha+1
+    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
+    
     ## get lumped mass matrix
     C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
     
@@ -499,26 +535,64 @@ CBrSPDE.matern.operators <- function(C,
     
     Gk[[1]] <- G
     # determine how many G_k matrices we want to create
-    for (i in 2:m_order){
-      Gk[[i]] <- GCi %*% Gk[[i-1]]
+    if(compute_higher_order){
+      for (i in 2:m_order){
+        Gk[[i]] <- GCi %*% Gk[[i-1]]
+      }
     }
-    
   }
 
   # create a list contains all the finite element related matrices
   fem_mesh_matrices <- list()
   fem_mesh_matrices[["c0"]] <- C
+  fem_mesh_matrices[["g1"]] <- G
   
-  for(i in 1:m_order){
-    fem_mesh_matrices[[paste0("g",i)]] <- Gk[[i]]
+  if(compute_higher_order){
+    for(i in 1:m_order){
+      fem_mesh_matrices[[paste0("g",i)]] <- Gk[[i]]
+    }
   }
+
+  
+  L = (G + kappa^2*C)/kappa^2
+  
+  Lchol = chol(L)
+  logdetL = 2*sum(log(diag(Lchol)))
+  
+  logdetC = sum(log(diag(C)))
+  
+  CiL = GCi/kappa^2 + Diagonal(dim(GCi)[1])
+  
+  if(m_alpha == 0){
+    aux_mat = Diagonal(dim(L)[1])
+  } else {
+    aux_mat = CiL
+  } 
+  
+  Q.int = list(Q.int = kronecker(Diagonal(m+1),aux_mat), order = m_alpha)
+  
+  Q.frac = rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
+                             rspde_order = m, dim=d, 
+                             fem_mesh_matrices=fem_mesh_matrices,only_fractional=TRUE)
+
+  Q = Q.frac
+  
+  if(m_alpha>0){
+    for(i in 1:m_alpha){
+      Q = Q.int$Q.int%*%Q
+    }
+  }  
   
   ## output
-  output <- list(C = C, Ci = Ci, GCi = GCi, Gk = Gk, 
+  output <- list(C = C, L = L, Ci = Ci, GCi = GCi, Gk = Gk, 
                  fem_mesh_matrices=fem_mesh_matrices,
                  alpha = alpha, nu = nu, kappa = kappa, 
                  tau = tau, m = m, d = d,
-                 sigma=sigma)
+                 sigma=sigma,
+                 logdetL = logdetL, logdetC = logdetC,
+                 Q.frac = Q.frac, Q.int = Q.int,
+                 Q = Q, sizeC = dim(C)[1],
+                 higher_order = compute_higher_order)
   output$type = "Covariance-Based Matern SPDE approximation"
   class(output) <- "CBrSPDEobj"
   return(output)
