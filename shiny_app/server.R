@@ -249,7 +249,7 @@ server <- function(input, output, session) {
     
     
     
-    fig <- fig +labs(y= "Loglikelihood relative error", x = "nu (smoothness parameter)")
+    fig <- fig +labs(y= "Loglikelihood relative error",  x = expression(nu~"(smoothness parameter)"))
     
     
     output$downloadPlotLogLik <- downloadHandler(
@@ -352,7 +352,7 @@ server <- function(input, output, session) {
           fig <- fig +geom_line(data = error_table_inla, aes(y = lik_error)) 
         }
         
-        fig <- fig +labs(y= "Loglikelihood relative error (mean)", x = expression(nu~"(smoothness parameter)"))
+        fig <- fig +labs(y= "Loglikelihood relative error (mean)", x = "\u028b (smoothness parameter)") 
         
         if(input$logScaleMean){
           fig <- fig + scale_y_log10()
