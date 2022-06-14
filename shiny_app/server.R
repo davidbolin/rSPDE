@@ -54,16 +54,22 @@ server <- function(input, output, session) {
     which_approx <- input$whichApprox
     includeINLA <- input$includeINLAcoverror
     
+    color_plot_options <- c("steelblue", 
+                    "limegreen", "red",
+                    "purple")
+    
     error_table_inla_cov <- as_tibble(error_inla[[mesh_size]][[range_val]])
     
     error_data_frame_inla <- error_table_inla_cov %>% select(nu, error_l2_inla) %>%
-          rename(INLA = error_l2_inla) %>% mutate(Norm = "L2", Order = "0")
+          rename("Covariance-based" = error_l2_inla) %>% mutate(Norm = "L2", Order = "0")
     tmp_tbl <- error_table_inla_cov %>% select(nu, error_sup_inla) %>%
-          rename(INLA = error_sup_inla) %>% mutate(Norm = "Sup", Order = "0")
+          rename("Covariance-based" = error_sup_inla) %>% mutate(Norm = "Sup", Order = "0")
     
     error_data_frame_inla <- bind_rows(error_data_frame_inla, tmp_tbl)
     
     if(!is.null(m_order)){
+      color_plot_used <- color_plot_options[as.numeric(m_order)]
+      
       m_order_tmp <- as.character(m_order[1])
       error_table_cov <- as_tibble(error_table[[m_order_tmp]][[mesh_size]][[range_val]]) %>% 
          select(nu, error_l2_cov_trick, error_l2_op_trick) %>% mutate(Order = m_order_tmp) %>%
@@ -115,7 +121,7 @@ server <- function(input, output, session) {
       error_data_frame_inla <- error_data_frame_inla %>% filter(Norm == norm_fun)
       
       error_data_frame <- error_data_frame %>% tidyr::pivot_longer(cols = ends_with("-based"), names_to = "Type", values_to = "error")
-      error_data_frame_inla <- error_data_frame_inla %>% tidyr::pivot_longer(cols = ends_with("INLA"), names_to = "Type", values_to = "error")
+      error_data_frame_inla <- error_data_frame_inla %>% tidyr::pivot_longer(cols = ends_with("-based"), names_to = "Type", values_to = "error")
       
       if(trick){
         error_data_frame <- error_data_frame %>% filter(Trick == "Yes")
@@ -129,9 +135,14 @@ server <- function(input, output, session) {
         updateCheckboxGroupInput(session, "whichApprox", selected= c("Covariance-based", "Operator-based"))
       }
 
+      if(includeINLA){
+        color_plot_used <- c("black", color_plot_used)
+      }
+      
       
       fig <- ggplot(error_data_frame, aes(x = nu, y = error, linetype=Type, color = Order,
-                                   group = interaction(Type, Order))) + geom_line()
+                                   group = interaction(Type, Order))) + geom_line() +
+        scale_color_manual(values = color_plot_used)
       
       if(includeINLA){
         fig <- fig + geom_line(data = error_data_frame_inla, aes(y = error)) 
@@ -149,6 +160,13 @@ server <- function(input, output, session) {
         filename = function() { paste0("Cov_error_plot.", input$fileExtensionCov) },
         content = function(file) {
           ggsave(file, plot = fig, device = input$fileExtensionCov)
+        }
+      )
+      
+      output$downloadDataFrameCov <- downloadHandler(
+        filename = function() { paste0("Cov_error_data_frame_range_",range_val,".RDS") },
+        content = function(file) {
+          saveRDS(bind_rows(error_data_frame,error_data_frame_inla), file = file)
         }
       )
       
@@ -241,6 +259,12 @@ server <- function(input, output, session) {
       }
     )
     
+    output$downloadDataFrameViolin <- downloadHandler(
+      filename = function() { paste0("Violin_loglik_data_frame_range_",range_val,".RDS") },
+      content = function(file) {
+        saveRDS(bind_rows(lik_table,error_table_inla), file = file)
+      }
+    )
     
     } else{
       updateCheckboxGroupInput(session, "smoothloglik", selected= nu_val_loglik)
@@ -340,6 +364,13 @@ server <- function(input, output, session) {
           filename = function() { paste0("LogLikMean_error_plot.", input$fileExtensionLogLikMean) },
           content = function(file) {
             ggsave(file, plot = fig, device = input$fileExtensionLogLikMean)
+          }
+        )
+        
+        output$downloadDataFrameMean <- downloadHandler(
+          filename = function() { paste0("Mean_loglik_data_frame_range_",range_val,".RDS") },
+          content = function(file) {
+            saveRDS(bind_rows(lik_table,error_table_inla), file = file)
           }
         )
         

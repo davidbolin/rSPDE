@@ -34,7 +34,8 @@ ui <- navbarPage(
                                       radioButtons(inputId = "fileExtensionCov", label = "File extension",
                                                    choices = c("png", "pdf"),
                                                    selected = "png",
-                                                   inline=TRUE)),
+                                                   inline=TRUE),
+                                      downloadButton('downloadDataFrameCov', 'Download Data Frame'),),
                          mainPanel(
                            width = 12 - 3,
                            plotlyOutput("raterrors")
@@ -70,7 +71,8 @@ ui <- navbarPage(
                                                            radioButtons(inputId = "fileExtensionLogLik", label = "File extension",
                                                                         choices = c("png", "pdf"),
                                                                         selected = "png",
-                                                                        inline=TRUE)),
+                                                                        inline=TRUE),
+                                                           downloadButton('downloadDataFrameViolin', 'Download Data Frame')),
                                               
                                               mainPanel(
                                                 width = 12 - 3,
@@ -105,7 +107,8 @@ ui <- navbarPage(
                                                           radioButtons(inputId = "fileExtensionLogLikMean", label = "File extension",
                                                                        choices = c("png", "pdf"),
                                                                        selected = "png",
-                                                                       inline=TRUE)),
+                                                                       inline=TRUE),
+                                                          downloadButton('downloadDataFrameMean', 'Download Data Frame')),
                                              
                                              mainPanel(
                                                width = 12 - 3,
