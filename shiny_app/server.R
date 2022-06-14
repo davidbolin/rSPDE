@@ -61,9 +61,9 @@ server <- function(input, output, session) {
     error_table_inla_cov <- as_tibble(error_inla[[mesh_size]][[range_val]])
     
     error_data_frame_inla <- error_table_inla_cov %>% select(nu, error_l2_inla) %>%
-          rename("Covariance-based" = error_l2_inla) %>% mutate(Norm = "L2", Order = "0")
+          rename("Covariance-based" = error_l2_inla) %>% mutate(Norm = "L2", Order = "0 (INLA)")
     tmp_tbl <- error_table_inla_cov %>% select(nu, error_sup_inla) %>%
-          rename("Covariance-based" = error_sup_inla) %>% mutate(Norm = "Sup", Order = "0")
+          rename("Covariance-based" = error_sup_inla) %>% mutate(Norm = "Sup", Order = "0 (INLA)")
     
     error_data_frame_inla <- bind_rows(error_data_frame_inla, tmp_tbl)
     
@@ -150,7 +150,7 @@ server <- function(input, output, session) {
       
       y_label_cov <- ifelse(norm_fun == "L2", "Error in L2-norm", "Error in Sup-norm")
       
-      fig <- fig +labs(y= y_label_cov, x = "nu (smoothness parameter)")
+      fig <- fig +labs(y= y_label_cov, x = "\u028b (smoothness parameter)")
       
       if(input$logScaleCoverror){
         fig <- fig + scale_y_log10()
@@ -352,7 +352,7 @@ server <- function(input, output, session) {
           fig <- fig +geom_line(data = error_table_inla, aes(y = lik_error)) 
         }
         
-        fig <- fig +labs(y= "Loglikelihood relative error (mean)", x = "nu (smoothness parameter)")
+        fig <- fig +labs(y= "Loglikelihood relative error (mean)", x = expression(nu~"(smoothness parameter)"))
         
         if(input$logScaleMean){
           fig <- fig + scale_y_log10()
