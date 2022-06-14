@@ -592,7 +592,8 @@ rSPDE.loglike <- function(obj,
                           Y, 
                           A, 
                           sigma.e, 
-                          mu=0)
+                          mu=0,
+                          print.times=FALSE)
 {
   Y = as.matrix(Y)
   if (length(dim(Y)) == 2) {
@@ -618,7 +619,15 @@ rSPDE.loglike <- function(obj,
   }
   
 
-  R = Matrix::Cholesky(obj$Pl)
+  if(print.times){
+    start.time.chol = Sys.time()
+    R = Matrix::Cholesky(obj$Pl)
+    end.time.chol = Sys.time()
+    print(paste("First Cholesky:",end.time.chol-start.time.chol))
+  } else{
+    R = Matrix::Cholesky(obj$Pl)
+  }
+
   prior.ld = 4 * c(determinant(R, logarithm = TRUE)$modulus) - sum(log(diag(obj$C)))
   
   
@@ -626,15 +635,27 @@ rSPDE.loglike <- function(obj,
   Q.post = obj$Q + t(A) %*% Q.e %*% A 
   
   
-  R.post = Matrix::Cholesky(Q.post)
-  posterior.ld = 2 * c(determinant(R.post, logarithm = TRUE)$modulus)
+  if(print.times){
+    start.time.chol = Sys.time()
+    R.post = Matrix::Cholesky(Q.post)
+    end.time.chol = Sys.time()
+    print(paste("Second Cholesky:",end.time.chol-start.time.chol))
+  } else{
+    R.post = Matrix::Cholesky(Q.post)
+  }
   
-
+  posterior.ld = 2 * c(determinant(R.post, logarithm = TRUE)$modulus)
   
   AtY = t(A) %*% Q.e %*% Y 
   
-  
-  mu.post <- mu + solve(R.post, AtY, system = "A")
+  if(print.times){
+    start.time.chol = Sys.time()
+    mu.post <- mu + solve(R.post, AtY, system = "A")
+    end.time.chol = Sys.time()
+    print(paste("Inversion:",end.time.chol-start.time.chol))
+  } else{
+    mu.post <- mu + solve(R.post, AtY, system = "A")
+  }
 
   
   lik = n.rep * (prior.ld - posterior.ld - dim(A)[1] * log(2*pi) - sum(log(nugget))) / 2
@@ -738,7 +759,8 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
                                    user_kappa = NULL,
                                    user_sigma = NULL,
                                    user_m = NULL,
-                                   pivot=TRUE)
+                                   pivot=TRUE,
+                                 print.times=FALSE)
 {
   if(inherits(object, "CBrSPDEobj")){
     return(CBrSPDE.matern.loglike(object=object,
@@ -749,7 +771,8 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
                                   user_kappa=user_kappa,
                                   user_sigma=user_sigma,
                                   user_m=user_m,
-                                  pivot=pivot))
+                                  pivot=pivot,
+                                  print.times=print.times))
   } else{
     if(inherits(object, "rSPDEobj")){
       if(object$type == "Matern approximation"){
@@ -758,7 +781,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
                                   user_kappa=user_kappa,
                                   user_sigma=user_sigma,
                                   user_m=user_m)
-        return(rSPDE.loglike(obj=object, Y=Y, A=A, sigma.e=sigma.e, mu=mu))
+        return(rSPDE.loglike(obj=object, Y=Y, A=A, sigma.e=sigma.e, mu=mu, print.times=print.times))
       } else{
         stop("The fractional operator should be of type 'Matern approximation'!")
       }
@@ -856,7 +879,8 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
                                      user_kappa = NULL,
                                      user_sigma = NULL,
                                      user_m = NULL,
-                                     pivot=TRUE)
+                                     pivot=TRUE,
+                                   print.times=FALSE)
 {
   
   Y = as.matrix(Y)
@@ -903,7 +927,15 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
   m_alpha = floor(alpha)
   
    Q.frac = object$Q.frac
-   Q.fracR = chol(forceSymmetric(Q.frac), pivot=TRUE)
+   if(print.times){
+     start.time.chol = Sys.time()
+     Q.fracR = chol(Q.frac, pivot=pivot)
+     end.time.chol = Sys.time()
+     print(paste("First Cholesky:",end.time.chol-start.time.chol))
+   } else{
+     Q.fracR = chol(Q.frac, pivot=pivot)
+   }
+
    logdetL = object$logdetL
    logdetC = object$logdetC  
    Q.int.order = object$Q.int$order
@@ -922,10 +954,26 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
     
     mu_xgiveny = t(Abar) %*% Q.e %*% Y
     # upper triangle with reordering
+    
+    if(print.times){
+      start.time.chol = Sys.time()
+      R = Matrix::Cholesky(Q_xgiveny)
+      #R = chol(Q_xgiveny, pivot=pivot)
+      end.time.chol = Sys.time()
+      print(paste("Second Cholesky:",end.time.chol-start.time.chol))
+    } else{
+      R = Matrix::Cholesky(Q_xgiveny)
+      #R = chol(Q_xgiveny, pivot=pivot)
+    }
 
-    R = Matrix::Cholesky(forceSymmetric(Q_xgiveny))
-
-    mu_xgiveny = solve(R, mu_xgiveny, system = "A")
+    if(print.times){
+      start.time.chol = Sys.time()
+      mu_xgiveny = solve(R, mu_xgiveny, system = "A")
+      end.time.chol = Sys.time()
+      print(paste("Invertion:",end.time.chol-start.time.chol))
+    } else{
+      mu_xgiveny = solve(R, mu_xgiveny, system = "A")
+    }
     
     mu_xgiveny <- mu + mu_xgiveny
     

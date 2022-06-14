@@ -326,7 +326,8 @@ matern.operators <- function(kappa,
                              mesh = NULL,
                              m = 1,
                              type = c("covariance", "operator"),
-                             compute_higher_order = FALSE)
+                             compute_higher_order = FALSE,
+                             return_block_list = FALSE)
 {
   type = type[[1]]
   if(!type%in%c("covariance", "operator")){
@@ -364,7 +365,7 @@ matern.operators <- function(kappa,
     output$type <- "Matern approximation"
     return(output)
   } else{
-    return(CBrSPDE.matern.operators(C=C,G=G,mesh=mesh,nu=nu,kappa=kappa,sigma=sigma,m=m,d=d,compute_higher_order = compute_higher_order))
+    return(CBrSPDE.matern.operators(C=C,G=G,mesh=mesh,nu=nu,kappa=kappa,sigma=sigma,m=m,d=d,compute_higher_order = compute_higher_order, return_block_list = return_block_list))
   }
 
 }
@@ -463,7 +464,8 @@ CBrSPDE.matern.operators <- function(C,
                                  sigma,
                                  m=2,
                                  d,
-                                 compute_higher_order = FALSE)
+                                 compute_higher_order = FALSE,
+                                 return_block_list = FALSE)
 {
   
 
@@ -569,19 +571,45 @@ CBrSPDE.matern.operators <- function(C,
     aux_mat = CiL
   } 
   
-  Q.int = list(Q.int = kronecker(Diagonal(m+1),aux_mat), order = m_alpha)
   
-  Q.frac = rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
-                             rspde_order = m, dim=d, 
-                             fem_mesh_matrices=fem_mesh_matrices,only_fractional=TRUE)
-
-  Q = Q.frac
-  
-  if(m_alpha>0){
-    for(i in 1:m_alpha){
-      Q = Q.int$Q.int%*%Q
+  if(return_block_list){
+    Q.int = aux_mat
+    
+    Q.frac = rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
+                                    rspde_order = m, dim=d, 
+                                    fem_mesh_matrices=fem_mesh_matrices,only_fractional=TRUE,
+                                    return_block_list = TRUE)
+    
+    Q = Q.frac
+    
+    if(m_alpha>0){
+      for(j in 1:length(Q)){
+        for(i in 1:m_alpha){
+          Q[[j]] = Q.int%*%Q[[j]]
+        }
+      }
     }
-  }  
+    
+    Q.int = list(Q.int = Q.int, order = m_alpha)
+    
+  } else{
+    Q.int = list(Q.int = kronecker(Diagonal(m+1),aux_mat), order = m_alpha)
+    
+    Q.frac = rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
+                                    rspde_order = m, dim=d, 
+                                    fem_mesh_matrices=fem_mesh_matrices,only_fractional=TRUE)
+    
+    Q = Q.frac
+    
+    if(m_alpha>0){
+      for(i in 1:m_alpha){
+        Q = Q.int$Q.int%*%Q
+      }
+    }  
+  }
+  
+
+
   
   ## output
   output <- list(C = C, L = L, Ci = Ci, GCi = GCi, Gk = Gk, 

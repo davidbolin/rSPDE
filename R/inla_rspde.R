@@ -993,7 +993,7 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
 #' lines(x, c.approx_cov, col = 2)
 
 rspde.matern.precision = function(kappa, nu, tau=NULL, sigma=NULL, rspde_order, dim, fem_mesh_matrices,
-                                  only_fractional = FALSE) {
+                                  only_fractional = FALSE, return_block_list = FALSE) {
   
   if(is.null(tau)&&is.null(sigma)){
     stop("You should provide either tau or sigma!")
@@ -1031,6 +1031,7 @@ rspde.matern.precision = function(kappa, nu, tau=NULL, sigma=NULL, rspde_order, 
         }
       }
     } else{
+      
       if (m_alpha == 1){
         Malpha =  (fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]]/(kappa^2))
       } else if (m_alpha > 1){
@@ -1053,16 +1054,20 @@ rspde.matern.precision = function(kappa, nu, tau=NULL, sigma=NULL, rspde_order, 
       } else {
         stop("Something is wrong with the value of nu!")
       }
+        
+        Q = 1/r[1] * (Malpha + Malpha2/kappa^2 - p[1] * Malpha)
       
-      Q = 1/r[1] * (Malpha + Malpha2/kappa^2 - p[1] * Malpha)
-      
-      if(length(r)>1){
-        for (i in 2:length(r)) {
-          Q = bdiag(Q, 1/r[i] * (Malpha + Malpha2/kappa^2 - p[i] * Malpha))
+        if(length(r)>1){
+          for (i in 2:length(r)) {
+            Q = bdiag(Q, 1/r[i] * (Malpha + Malpha2/kappa^2 - p[i] * Malpha))
+          }
         }
-      }
+        
+      
+
       
     }
+    
     
     # add k_part into Q
     
@@ -1081,33 +1086,57 @@ rspde.matern.precision = function(kappa, nu, tau=NULL, sigma=NULL, rspde_order, 
         stop("Something is wrong with the value of nu!")
       }
     }
+      
+      Q = bdiag(Q, Kpart)
+      
+      Q = Q * kappa ^ (4 * beta)
+      
+      Q = tau ^ 2 * Q
     
-    Q = bdiag(Q, Kpart)
-    
-    Q = Q * kappa ^ (4 * beta)
-    
-    Q = tau ^ 2 * Q
+ 
     
     return(Q)
   } else{
     L = ((kappa^2)*fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]])/kappa^2
     
-    Q = (L-p[1]*fem_mesh_matrices[["c0"]])/r[1]
-    
-    if(n_m>1){
-      for(i in 2:(n_m)){
-       temp = (L-p[i]*fem_mesh_matrices[["c0"]])/r[i]
-       Q = bdiag(Q,temp)
+    if(return_block_list){
+      Q <- list()
+      
+      Q[[length(Q)+1]] <- kappa ^ (4 * beta) * tau ^ 2 * (L-p[1]*fem_mesh_matrices[["c0"]])/r[1]
+      
+      
+      if(n_m>1){
+        for(i in 2:(n_m)){
+          Q[[length(Q)+1]] <- kappa ^ (4 * beta) * tau ^ 2 * (L-p[i]*fem_mesh_matrices[["c0"]])/r[i]
+        }
       }
+      
+      Q[[length(Q)+1]] = kappa ^ (4 * beta) * tau ^ 2 * fem_mesh_matrices[["c0"]]/k
+      
+      return(Q)
+      
+    } else{
+      
+      Q = (L-p[1]*fem_mesh_matrices[["c0"]])/r[1]
+      
+      if(n_m>1){
+        for(i in 2:(n_m)){
+          temp = (L-p[i]*fem_mesh_matrices[["c0"]])/r[i]
+          Q = bdiag(Q,temp)
+        }
+      }
+      
+      Q = bdiag(Q,fem_mesh_matrices[["c0"]]/k)
+      
+      
+      Q = Q * kappa ^ (4 * beta)
+      
+      Q = tau ^ 2 * Q
+      return(Q)
+      
     }
     
-    Q = bdiag(Q,fem_mesh_matrices[["c0"]]/k)
 
-    
-    Q = Q * kappa ^ (4 * beta)
-    
-    Q = tau ^ 2 * Q
-    return(Q)
   }
 
 }

@@ -211,36 +211,90 @@ folded.matern.covariance.2d <- function(h, m, kappa, nu, sigma,
   if(!(boundary%in%c("neumann","dirichlet","periodic","r2"))){
     stop("The possible boundary conditions are 'neumann', 'dirichlet', 'periodic' or 'R2'!")
   }
-  if(!(is.vector(h) && is.vector(m))){
-    stop("h and m should be vectors!")
+  
+  if(is.vector(h)){
+    if(!is.vector(m)){
+      stop("since 'h' is a vector, 'm' should be a vector!")
+    }
+    
+    if((length(h)!=2) || (length(m)!= 2)){
+      stop("The vectors h and m should have length 2!")
+    }
+    
+  } else if(is.matrix(h)){
+    if(!is.matrix(m)){
+      stop("since 'h' is a matrix, 'm' should be a matrix!")
+    }
+    if(ncol(h)!= 2){
+      stop("h must have two columns!")
+    }
+    if(!all(dim(h) == dim(m))){
+      stop("h and m must have the same dimensions!")
+    }
   }
   
-  if((length(h)!=2) || (length(m)!= 2)){
-    stop("The vectors h and m should have length 2!")
+  if(!is.vector(h) && !is.matrix(h)){
+    stop("h should be either a vector or a matrix!")
   }
   
   list.comb <- expand.grid(-N:N, -N:N)
   
-  s11 <- sqrt( (h[1]-m[1]+2*list.comb[,1]*L)^2 + (h[2]-m[2]+2*list.comb[,2]*L)^2 )
-  s12 <- sqrt( (h[1]-m[1]+2*list.comb[,1]*L)^2 + (h[2]+m[2]+2*list.comb[,2]*L)^2 )
-  s21 <- sqrt( (h[1]+m[1]+2*list.comb[,1]*L)^2 + (h[2]-m[2]+2*list.comb[,2]*L)^2 )
-  s22 <- sqrt( (h[1]+m[1]+2*list.comb[,1]*L)^2 + (h[2]+m[2]+2*list.comb[,2]*L)^2 )
-  if(boundary=="neumann"){
-    C <- sum(matern.covariance(h=s11, kappa=kappa, nu=nu, sigma=sigma)+
-                 matern.covariance(h=s12, kappa=kappa, nu=nu, sigma=sigma)+
-      matern.covariance(h=s21, kappa=kappa, nu=nu, sigma=sigma)+
-          matern.covariance(h=s22, kappa=kappa, nu=nu, sigma=sigma))
-  } else if(boundary=="dirichlet"){
-    C <- sum(matern.covariance(h=s11, kappa=kappa, nu=nu, sigma=sigma)-
-             matern.covariance(h=s12, kappa=kappa, nu=nu, sigma=sigma)-
-      matern.covariance(h=s21, kappa=kappa, nu=nu, sigma=sigma)+
-          matern.covariance(h=s22, kappa=kappa, nu=nu, sigma=sigma))
-  } else if(boundary=="r2"){
-    C <- matern.covariance(h=sqrt((h[1]-m[1])^2+(h[2]-m[2])^2), kappa = kappa, sigma = sigma, nu = nu)
+  if(is.matrix(h)){
+    h_matrix_1 <- matrix(rep(h[,1],length(list.comb[,1])),nrow=nrow(h))
+    h_matrix_2 <- matrix(rep(h[,2],length(list.comb[,1])),nrow=nrow(h))
+    m_matrix_1 <- matrix(rep(m[,1],length(list.comb[,1])),nrow=nrow(m))
+    m_matrix_2 <- matrix(rep(m[,2],length(list.comb[,1])),nrow=nrow(m))
+    list_comb_matrix_1 <- t(matrix(rep(list.comb[,1], nrow(h)),ncol=nrow(h)))
+    list_comb_matrix_2 <- t(matrix(rep(list.comb[,2], nrow(h)),ncol=nrow(h)))
+    
+    s11 <- sqrt( (h_matrix_1-m_matrix_1+2*list_comb_matrix_1*L)^2 + (h_matrix_2-m_matrix_2+2*list_comb_matrix_2*L)^2 )
+    s12 <- sqrt( (h_matrix_1-m_matrix_1+2*list_comb_matrix_1*L)^2 + (h_matrix_2+m_matrix_2+2*list_comb_matrix_2*L)^2 )
+    s21 <- sqrt( (h_matrix_1+m_matrix_1+2*list_comb_matrix_1*L)^2 + (h_matrix_2-m_matrix_2+2*list_comb_matrix_2*L)^2 )
+    s22 <- sqrt( (h_matrix_1+m_matrix_1+2*list_comb_matrix_1*L)^2 + (h_matrix_2+m_matrix_2+2*list_comb_matrix_2*L)^2 )
+    
+    if(boundary=="neumann"){
+      C <- rowSums(matern.covariance(h=s11, kappa=kappa, nu=nu, sigma=sigma)+
+                     matern.covariance(h=s12, kappa=kappa, nu=nu, sigma=sigma)+
+                     matern.covariance(h=s21, kappa=kappa, nu=nu, sigma=sigma)+
+                     matern.covariance(h=s22, kappa=kappa, nu=nu, sigma=sigma))
+    } else if(boundary=="dirichlet"){
+      C <- rowSums(matern.covariance(h=s11, kappa=kappa, nu=nu, sigma=sigma)-
+                     matern.covariance(h=s12, kappa=kappa, nu=nu, sigma=sigma)-
+                     matern.covariance(h=s21, kappa=kappa, nu=nu, sigma=sigma)+
+                     matern.covariance(h=s22, kappa=kappa, nu=nu, sigma=sigma))
+    } else if(boundary=="r2"){
+      C <- matern.covariance(h=sqrt((h[1]-m[1])^2+(h[2]-m[2])^2), kappa = kappa, sigma = sigma, nu = nu)
+    } else{
+      C <- rowSums(matern.covariance(h=s11, kappa=kappa, nu=nu, sigma=sigma))
+    }
+    return(as.double(C))
   } else{
-    C <- sum(matern.covariance(h=s11, kappa=kappa, nu=nu, sigma=sigma))
+    s11 <- sqrt( (h[1]-m[1]+2*list.comb[,1]*L)^2 + (h[2]-m[2]+2*list.comb[,2]*L)^2 )
+    s12 <- sqrt( (h[1]-m[1]+2*list.comb[,1]*L)^2 + (h[2]+m[2]+2*list.comb[,2]*L)^2 )
+    s21 <- sqrt( (h[1]+m[1]+2*list.comb[,1]*L)^2 + (h[2]-m[2]+2*list.comb[,2]*L)^2 )
+    s22 <- sqrt( (h[1]+m[1]+2*list.comb[,1]*L)^2 + (h[2]+m[2]+2*list.comb[,2]*L)^2 )
+    
+    if(boundary=="neumann"){
+      C <- sum(matern.covariance(h=s11, kappa=kappa, nu=nu, sigma=sigma)+
+                     matern.covariance(h=s12, kappa=kappa, nu=nu, sigma=sigma)+
+                     matern.covariance(h=s21, kappa=kappa, nu=nu, sigma=sigma)+
+                     matern.covariance(h=s22, kappa=kappa, nu=nu, sigma=sigma))
+    } else if(boundary=="dirichlet"){
+      C <- sum(matern.covariance(h=s11, kappa=kappa, nu=nu, sigma=sigma)-
+                     matern.covariance(h=s12, kappa=kappa, nu=nu, sigma=sigma)-
+                     matern.covariance(h=s21, kappa=kappa, nu=nu, sigma=sigma)+
+                     matern.covariance(h=s22, kappa=kappa, nu=nu, sigma=sigma))
+    } else if(boundary=="r2"){
+      C <- matern.covariance(h=sqrt((h[1]-m[1])^2+(h[2]-m[2])^2), kappa = kappa, sigma = sigma, nu = nu)
+    } else{
+      C <- sum(matern.covariance(h=s11, kappa=kappa, nu=nu, sigma=sigma))
+    }
+    return(as.double(C))
   }
-  return(as.double(C))
+
+  
+ 
+
 }
 
 
