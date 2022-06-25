@@ -12,36 +12,36 @@ nu_val_loglik = c("0.1","0.4","0.6","0.8","1.2", "1.8", "2.2","2.8","3.1")
 
 # GeomSpliViolin by jan-glx at https://stackoverflow.com/a/45614547
 
-GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
-                           draw_group = function(self, data, ..., draw_quantiles = NULL) {
-                             data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
-                             grp <- data[1, "group"]
-                             newdata <- plyr::arrange(transform(data, x = if (grp %% 2 == 1) xminv else xmaxv), if (grp %% 2 == 1) y else -y)
-                             newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
-                             newdata[c(1, nrow(newdata) - 1, nrow(newdata)), "x"] <- round(newdata[1, "x"])
-                             
-                             if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
-                               stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <=
-                                                                         1))
-                               quantiles <- ggplot2:::create_quantile_segment_frame(data, draw_quantiles)
-                               aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
-                               aesthetics$alpha <- rep(1, nrow(quantiles))
-                               both <- cbind(quantiles, aesthetics)
-                               quantile_grob <- GeomPath$draw_panel(both, ...)
-                               ggplot2:::ggname("geom_split_violin", grid::grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
-                             }
-                             else {
-                               ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
-                             }
-                           })
-
-geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
-                              draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
-                              show.legend = NA, inherit.aes = TRUE) {
-  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
-        position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
-        params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
-}
+# GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
+#                            draw_group = function(self, data, ..., draw_quantiles = NULL) {
+#                              data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+#                              grp <- data[1, "group"]
+#                              newdata <- plyr::arrange(transform(data, x = if (grp %% 2 == 1) xminv else xmaxv), if (grp %% 2 == 1) y else -y)
+#                              newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+#                              newdata[c(1, nrow(newdata) - 1, nrow(newdata)), "x"] <- round(newdata[1, "x"])
+#                              
+#                              if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+#                                stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <=
+#                                                                          1))
+#                                quantiles <- ggplot2:::create_quantile_segment_frame(data, draw_quantiles)
+#                                aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+#                                aesthetics$alpha <- rep(1, nrow(quantiles))
+#                                both <- cbind(quantiles, aesthetics)
+#                                quantile_grob <- GeomPath$draw_panel(both, ...)
+#                                ggplot2:::ggname("geom_split_violin", grid::grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+#                              }
+#                              else {
+#                                ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+#                              }
+#                            })
+# 
+# geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
+#                               draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
+#                               show.legend = NA, inherit.aes = TRUE) {
+#   layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
+#         position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
+#         params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+# }
 
 server <- function(input, output, session) {
   
@@ -188,106 +188,113 @@ server <- function(input, output, session) {
   })
   
   
-  observe({
-    range_val <- input$rangeParameterLoglik
-    m_order <- input$orderRatLoglik
-    sigma.e <- input$measError
-    
-    error_table_loglik_cov <- as_tibble(loglik_table[[m_order]][[range_val]][[sigma.e]][["covariance_based"]])
-    error_table_loglik_op <- as_tibble(loglik_table[[m_order]][[range_val]][[sigma.e]][["operator_based"]])
-    
-    error_table_inla <- as_tibble(loglik_inla[[range_val]][[sigma.e]][["inla"]]) 
-    
-    if(input$useAbsRelError){
-      error_table_loglik_cov <- abs(error_table_loglik_cov)
-      error_table_loglik_op <- abs(error_table_loglik_op)
-      error_table_inla <- abs(error_table_inla)
-    }
-    
-    error_table_loglik_cov <- error_table_loglik_cov %>% mutate(Type = "Covariance-based") %>% select(-Rel.error)
-    error_table_loglik_op <- error_table_loglik_op %>% mutate(Type = "Operator-based") %>% select(-Rel.error)
-    error_table_inla <- error_table_inla %>% mutate(Type = "INLA") %>% select(-Rel.error)
-
-    lik_table <- bind_rows(error_table_loglik_cov, error_table_loglik_op)
-    
-    lik_table <- lik_table %>% tidyr::pivot_longer(
-      cols = starts_with("nu =  "), 
-      names_to = "nu", 
-      values_to = "lik_error", 
-      names_prefix = "nu =  ")
-    
-    error_table_inla <- error_table_inla  %>% tidyr::pivot_longer(
-      cols = starts_with("nu =  "), 
-      names_to = "nu", 
-      values_to = "lik_error", 
-      names_prefix = "nu =  ")
-    
-    nu_loglik <- input$smoothloglik
-    
-    if(!is.null(nu_loglik)){
-    
-      lik_table <- lik_table %>% filter(nu %in% nu_loglik)
-      error_table_inla <- error_table_inla %>% filter(nu %in% nu_loglik)
-      
-      if(input$whichComparisonsLoglik == "Operator-based"){
-        lik_table <- lik_table %>% filter(Type == "Operator-based")
-      } else if(input$whichComparisonsLoglik == "Covariance-based"){
-        lik_table <- lik_table %>% filter(Type == "Covariance-based")
-      }
-      
-    fig <- ggplot(lik_table, aes(x = nu, y = lik_error, fill = Type))
-    
-    if(input$includeINLA){
-      fig <- fig +geom_violin(data = error_table_inla, aes(y = lik_error), scale="width") 
-    }
-    
-    if(input$whichComparisonsLoglik == "Both"){
-      fig <- fig + geom_split_violin(scale="width")
-    } else{
-      fig <- fig +geom_violin(data = lik_table, aes(y = lik_error), scale="width") 
-    }
-    
-    
-    
-    fig <- fig +labs(y= "Loglikelihood relative error",  x = expression(nu~"(smoothness parameter)"))
-    
-    
-    output$downloadPlotLogLik <- downloadHandler(
-      filename = function() { paste0("LogLik_error_plot.", input$fileExtensionLogLik) },
-      content = function(file) {
-        ggsave(file, plot = fig, device = input$fileExtensionLogLik)
-      }
-    )
-    
-    output$downloadDataFrameViolin <- downloadHandler(
-      filename = function() { paste0("Violin_loglik_data_frame_range_",range_val,".RDS") },
-      content = function(file) {
-        saveRDS(bind_rows(lik_table,error_table_inla), file = file)
-      }
-    )
-    
-    } else{
-      updateCheckboxGroupInput(session, "smoothloglik", selected= nu_val_loglik)
-      nu_loglik <- nu_val_loglik
-    }
-
-    output$loglikerrorsfig <- renderPlot({
-
-      fig
-
-    })
-  })
-  
-  
+  # observe({
+  #   range_val <- input$rangeParameterLoglik
+  #   m_order <- input$orderRatLoglik
+  #   sigma.e <- input$measError
+  #   
+  #   error_table_loglik_cov <- as_tibble(loglik_table[[m_order]][[range_val]][[sigma.e]][["covariance_based"]])
+  #   error_table_loglik_op <- as_tibble(loglik_table[[m_order]][[range_val]][[sigma.e]][["operator_based"]])
+  #   
+  #   error_table_inla <- as_tibble(loglik_inla[[range_val]][[sigma.e]][["inla"]]) 
+  #   
+  #   if(input$useAbsRelError){
+  #     error_table_loglik_cov <- abs(error_table_loglik_cov)
+  #     error_table_loglik_op <- abs(error_table_loglik_op)
+  #     error_table_inla <- abs(error_table_inla)
+  #   }
+  #   
+  #   error_table_loglik_cov <- error_table_loglik_cov %>% mutate(Type = "Covariance-based") %>% select(-Rel.error)
+  #   error_table_loglik_op <- error_table_loglik_op %>% mutate(Type = "Operator-based") %>% select(-Rel.error)
+  #   error_table_inla <- error_table_inla %>% mutate(Type = "INLA") %>% select(-Rel.error)
+  # 
+  #   lik_table <- bind_rows(error_table_loglik_cov, error_table_loglik_op)
+  #   
+  #   lik_table <- lik_table %>% tidyr::pivot_longer(
+  #     cols = starts_with("nu =  "), 
+  #     names_to = "nu", 
+  #     values_to = "lik_error", 
+  #     names_prefix = "nu =  ")
+  #   
+  #   error_table_inla <- error_table_inla  %>% tidyr::pivot_longer(
+  #     cols = starts_with("nu =  "), 
+  #     names_to = "nu", 
+  #     values_to = "lik_error", 
+  #     names_prefix = "nu =  ")
+  #   
+  #   nu_loglik <- input$smoothloglik
+  #   
+  #   if(!is.null(nu_loglik)){
+  #   
+  #     lik_table <- lik_table %>% filter(nu %in% nu_loglik)
+  #     error_table_inla <- error_table_inla %>% filter(nu %in% nu_loglik)
+  #     
+  #     if(input$whichComparisonsLoglik == "Operator-based"){
+  #       lik_table <- lik_table %>% filter(Type == "Operator-based")
+  #     } else if(input$whichComparisonsLoglik == "Covariance-based"){
+  #       lik_table <- lik_table %>% filter(Type == "Covariance-based")
+  #     }
+  #     
+  #   fig <- ggplot(lik_table, aes(x = nu, y = lik_error, fill = Type))
+  #   
+  #   if(input$includeINLA){
+  #     fig <- fig +geom_violin(data = error_table_inla, aes(y = lik_error), scale="width") 
+  #   }
+  #   
+  #   if(input$whichComparisonsLoglik == "Both"){
+  #     fig <- fig + geom_split_violin(scale="width")
+  #   } else{
+  #     fig <- fig +geom_violin(data = lik_table, aes(y = lik_error), scale="width") 
+  #   }
+  #   
+  #   
+  #   
+  #   fig <- fig +labs(y= "Loglikelihood relative error",  x = expression(nu~"(smoothness parameter)"))
+  #   
+  #   
+  #   output$downloadPlotLogLik <- downloadHandler(
+  #     filename = function() { paste0("LogLik_error_plot.", input$fileExtensionLogLik) },
+  #     content = function(file) {
+  #       ggsave(file, plot = fig, device = input$fileExtensionLogLik)
+  #     }
+  #   )
+  #   
+  #   output$downloadDataFrameViolin <- downloadHandler(
+  #     filename = function() { paste0("Violin_loglik_data_frame_range_",range_val,".RDS") },
+  #     content = function(file) {
+  #       saveRDS(bind_rows(lik_table,error_table_inla), file = file)
+  #     }
+  #   )
+  #   
+  #   } else{
+  #     updateCheckboxGroupInput(session, "smoothloglik", selected= nu_val_loglik)
+  #     nu_loglik <- nu_val_loglik
+  #   }
+  # 
+  #   output$loglikerrorsfig <- renderPlot({
+  # 
+  #     fig
+  # 
+  #   })
+  # })
+  # 
+  # 
   observe({
     range_val <- input$rangeParameterLoglikMean
     m_order <- input$orderRatLoglikMean
     sigma.e <- input$measErrorMean
     nu_loglik <- input$smoothloglikMean
     
+    color_plot_options <- c("steelblue", 
+                            "limegreen", "red",
+                            "purple")
+    
+    
     if(!is.null(m_order)){
       m_order <- as.numeric(m_order)
       m_order_tmp <- m_order[1]
+      color_plot_used <- color_plot_options[as.numeric(m_order)]
+      
       error_table_loglik_cov <- as_tibble(loglik_table[[m_order_tmp]][[range_val]][[sigma.e]][["covariance_based"]]) %>% mutate(Order = m_order_tmp)
       error_table_loglik_op <- as_tibble(loglik_table[[m_order_tmp]][[range_val]][[sigma.e]][["operator_based"]]) %>% mutate(Order = m_order_tmp)
       if(length(m_order)>1){
@@ -314,18 +321,55 @@ server <- function(input, output, session) {
       
       error_table_loglik_cov <- error_table_loglik_cov %>% select(-Rel.error)
       error_table_loglik_op <- error_table_loglik_op %>% select(-Rel.error) 
-      error_table_inla <- error_table_inla %>% select(-Rel.error) %>% summarise(across(everything(), mean), .groups = 'drop')
+      error_table_inla_tmp <- error_table_inla %>% select(-Rel.error) 
       
+      quantile_1 <- function(x){
+        q <- quantile(x,probs=c(0.05))
+        q <- q[[1]]
+        return(q)
+      }
+      
+      quantile_2 <- function(x){
+        q <- quantile(x,probs=c(0.95))
+        q <- q[[1]]
+        return(q)
+      }
+      
+      error_table_inla <- error_table_inla_tmp %>% summarise(across(everything(), median), .groups = 'drop')
+
+      error_table_inla_qlower <- error_table_inla_tmp %>% summarise(across(everything(), function(x){quantile(x,probs=c(0.05))[[1]]}), .groups = 'drop')
+      error_table_inla_qupper <- error_table_inla_tmp %>% summarise(across(everything(), function(x){quantile(x,probs=c(0.95))[[1]]}), .groups = 'drop')
+
       error_table_loglik_cov <- error_table_loglik_cov %>% mutate(Type = "Covariance-based") 
       error_table_loglik_op <- error_table_loglik_op %>% mutate(Type = "Operator-based") 
-      error_table_inla <- error_table_inla %>% mutate(Type = "INLA")
+      # error_table_inla <- error_table_inla %>% mutate(Type = "INLA")
+      error_table_inla <- error_table_inla %>% mutate(Type = "Covariance-based") %>% mutate(Order = "0 (INLA)")
+      error_table_inla_qlower <- error_table_inla_qlower %>% mutate(Type = "Covariance-based") %>% mutate(Order = "0 (INLA)")
+      error_table_inla_qupper <- error_table_inla_qupper %>% mutate(Type = "Covariance-based") %>% mutate(Order = "0 (INLA)")
+    
       
-      lik_table <- bind_rows(error_table_loglik_cov, error_table_loglik_op) %>% group_by(Type, Order) %>% summarise(across(everything(), mean), .groups = 'drop')
+      lik_table <- bind_rows(error_table_loglik_cov, error_table_loglik_op) %>% group_by(Type, Order) %>% summarise(across(everything(), median), .groups = 'drop')
+      
+      
+      lik_table_qlower <- bind_rows(error_table_loglik_cov, error_table_loglik_op) %>% group_by(Type, Order) %>% summarise(across(everything(), function(x){quantile(x,probs=c(0.05),na.rm=TRUE)[[1]]}), .groups = 'drop')
+      lik_table_qupper <- bind_rows(error_table_loglik_cov, error_table_loglik_op) %>% group_by(Type, Order) %>% summarise(across(everything(), function(x){quantile(x,probs=c(0.95),na.rm=TRUE)[[1]]}), .groups = 'drop')
       
       lik_table <- lik_table %>% tidyr::pivot_longer(
         cols = starts_with("nu =  "), 
         names_to = "nu", 
         values_to = "lik_error", 
+        names_prefix = "nu =  ")
+      
+      lik_table_qlower <- lik_table_qlower %>% tidyr::pivot_longer(
+        cols = starts_with("nu =  "), 
+        names_to = "nu", 
+        values_to = "lik_error_qlower", 
+        names_prefix = "nu =  ")
+      
+      lik_table_qupper <- lik_table_qupper %>% tidyr::pivot_longer(
+        cols = starts_with("nu =  "), 
+        names_to = "nu", 
+        values_to = "lik_error_qupper", 
         names_prefix = "nu =  ")
       
       error_table_inla <- error_table_inla  %>% tidyr::pivot_longer(
@@ -334,11 +378,32 @@ server <- function(input, output, session) {
         values_to = "lik_error", 
         names_prefix = "nu =  ")
       
+      error_table_inla_qlower <- error_table_inla_qlower  %>% tidyr::pivot_longer(
+        cols = starts_with("nu =  "), 
+        names_to = "nu", 
+        values_to = "lik_error_qlower", 
+        names_prefix = "nu =  ")
+      
+      error_table_inla_qupper <- error_table_inla_qupper  %>% tidyr::pivot_longer(
+        cols = starts_with("nu =  "), 
+        names_to = "nu", 
+        values_to = "lik_error_qupper", 
+        names_prefix = "nu =  ")
+      
+      
+      lik_table <- left_join(lik_table, lik_table_qlower, by = c("Type", "Order", "nu"))
+      lik_table <- left_join(lik_table, lik_table_qupper, by = c("Type", "Order", "nu"))
+      
+      error_table_inla <- left_join(error_table_inla, error_table_inla_qlower, by = c("Type", "Order", "nu"))
+      error_table_inla <- left_join(error_table_inla, error_table_inla_qupper, by = c("Type", "Order", "nu"))
+      #error_table_inla <- bind_cols(error_table_inla, error_table_inla_qlower, error_table_inla_qupper)
+      
       if(!is.null(nu_loglik)){
         
         lik_table <- lik_table %>% filter(nu %in% nu_loglik) %>% mutate(nu = as.numeric(nu), Order = as.character(Order)) 
-        error_table_inla <- error_table_inla %>% filter(nu %in% nu_loglik) %>% mutate(nu = as.numeric(nu), Order = as.character(0))
+        error_table_inla <- error_table_inla %>% filter(nu %in% nu_loglik) %>% mutate(nu = as.numeric(nu), Order = "0 (INLA)")
         
+
         if(input$whichComparisonsLoglikMean == "Operator-based"){
           lik_table <- lik_table %>% filter(Type == "Operator-based")
         } else if(input$whichComparisonsLoglikMean == "Covariance-based"){
@@ -352,11 +417,25 @@ server <- function(input, output, session) {
           fig <- fig +geom_line(data = error_table_inla, aes(y = lik_error)) 
         }
         
-        fig <- fig +labs(y= "Loglikelihood relative error (mean)", x = "\u028b (smoothness parameter)") 
+        fig <- fig +labs(y= "Loglikelihood relative error (median)", x = "\u028b (smoothness parameter)") 
         
         if(input$logScaleMean){
           fig <- fig + scale_y_log10()
         }
+        
+        if(input$includeINLAmean){
+          color_plot_used <- c("black", color_plot_used)
+        }
+        
+        if(input$includeBands){
+          fig <- fig + geom_ribbon(data = lik_table, aes(ymin=lik_error_qlower, ymax=lik_error_qupper), linetype=2, alpha=0.1)
+          if(input$includeINLAmean){
+            fig <- fig + geom_ribbon(data = error_table_inla, aes(ymin=lik_error_qlower, ymax=lik_error_qupper), linetype=2, alpha=0.1)
+          }
+        }
+        
+        fig <- fig +
+          scale_color_manual(values = color_plot_used)
         
         fig_plotly <- ggplotly(fig)
         

@@ -5,6 +5,11 @@ library(shinythemes)
 
 nu_val_loglik = c("0.1","0.4","0.6","0.8","1.2", "1.8", "2.2","2.8","3.1")
 
+nu_val <- seq(0.1,3.1,by=0.05)
+
+nu_val_loglik <- as.character(nu_val)
+
+
 ui <- navbarPage(
   "Rational SPDE Approach",
   tabPanel("Covariance error",
@@ -44,44 +49,44 @@ ui <- navbarPage(
            
   ),
   
-  tabPanel("Likelihood error", sidebarLayout(position = "left",
-                                              sidebarPanel(width = 3,
-                                                           radioButtons(inputId = "orderRatLoglik", label = "Order of the approximation",
-                                                                        choices = c("1", "2", "3", "4"),
-                                                                        selected = "2",
-                                                                        inline=TRUE),
-                                                           radioButtons(inputId = "rangeParameterLoglik", label = "Range Parameter",
-                                                                        choices = c("0.1", "0.5", "1"),
-                                                                        selected = "0.1",
-                                                                        inline=TRUE),
-                                                           radioButtons(inputId = "measError", label = "Measurment noise std. dev.",
-                                                                        choices = c("0.01", "0.1", "1"),
-                                                                        selected = "0.1",
-                                                                        inline=TRUE),
-                                                           checkboxGroupInput(inputId = "smoothloglik", label = "Smoothness parameters",
-                                                                              choices = nu_val_loglik, selected = nu_val_loglik,
-                                                                              inline=TRUE),
-                                                           checkboxInput("includeINLA", "Should INLA errors be included?", value = TRUE),
-                                                           radioButtons(inputId = "whichComparisonsLoglik", label = "Which approximations should be included?",
-                                                                        choices = c("Operator-based", "Covariance-based", "Both"),
-                                                                        selected = "Both",
-                                                                        inline=TRUE),
-                                                           checkboxInput("useAbsRelError", "Use absolute relative errors?", value = TRUE),
-                                                           downloadButton('downloadPlotLogLik', 'Download Plot'),
-                                                           radioButtons(inputId = "fileExtensionLogLik", label = "File extension",
-                                                                        choices = c("png", "pdf"),
-                                                                        selected = "png",
-                                                                        inline=TRUE),
-                                                           downloadButton('downloadDataFrameViolin', 'Download Data Frame')),
-                                              
-                                              mainPanel(
-                                                width = 12 - 3,
-                                                plotOutput("loglikerrorsfig")
-                                                
-                                              )
-  ),),
+  # tabPanel("Likelihood error", sidebarLayout(position = "left",
+  #                                             sidebarPanel(width = 3,
+  #                                                          radioButtons(inputId = "orderRatLoglik", label = "Order of the approximation",
+  #                                                                       choices = c("1", "2", "3", "4"),
+  #                                                                       selected = "2",
+  #                                                                       inline=TRUE),
+  #                                                          radioButtons(inputId = "rangeParameterLoglik", label = "Range Parameter",
+  #                                                                       choices = c("0.1", "0.5", "1"),
+  #                                                                       selected = "0.1",
+  #                                                                       inline=TRUE),
+  #                                                          radioButtons(inputId = "measError", label = "Measurment noise std. dev.",
+  #                                                                       choices = c("0.01", "0.1", "1"),
+  #                                                                       selected = "0.1",
+  #                                                                       inline=TRUE),
+  #                                                          checkboxGroupInput(inputId = "smoothloglik", label = "Smoothness parameters",
+  #                                                                             choices = nu_val_loglik, selected = nu_val_loglik,
+  #                                                                             inline=TRUE),
+  #                                                          checkboxInput("includeINLA", "Should INLA errors be included?", value = TRUE),
+  #                                                          radioButtons(inputId = "whichComparisonsLoglik", label = "Which approximations should be included?",
+  #                                                                       choices = c("Operator-based", "Covariance-based", "Both"),
+  #                                                                       selected = "Both",
+  #                                                                       inline=TRUE),
+  #                                                          checkboxInput("useAbsRelError", "Use absolute relative errors?", value = TRUE),
+  #                                                          downloadButton('downloadPlotLogLik', 'Download Plot'),
+  #                                                          radioButtons(inputId = "fileExtensionLogLik", label = "File extension",
+  #                                                                       choices = c("png", "pdf"),
+  #                                                                       selected = "png",
+  #                                                                       inline=TRUE),
+  #                                                          downloadButton('downloadDataFrameViolin', 'Download Data Frame')),
+  #                                             
+  #                                             mainPanel(
+  #                                               width = 12 - 3,
+  #                                               plotOutput("loglikerrorsfig")
+  #                                               
+  #                                             )
+  # ),),
   
-  tabPanel("Likelihood error - Mean", sidebarLayout(position = "left",
+  tabPanel("Likelihood error - Median", sidebarLayout(position = "left",
                                              sidebarPanel(width = 3,
                                                           checkboxGroupInput(inputId = "orderRatLoglikMean", label = "Order of the approximation",choices = c(1, 2,3,4), selected = 2,
                                                                              inline=TRUE),
@@ -97,6 +102,7 @@ ui <- navbarPage(
                                                                              choices = nu_val_loglik, selected = nu_val_loglik,
                                                                              inline=TRUE),
                                                           checkboxInput("includeINLAmean", "Should INLA errors be included?", value = TRUE),
+                                                          checkboxInput("includeBands", "Should confidence bands be included?", value = TRUE),
                                                           checkboxInput("logScaleMean", "Use log scale?", value = TRUE),
                                                           radioButtons(inputId = "whichComparisonsLoglikMean", label = "Which approximations should be included?",
                                                                        choices = c("Operator-based", "Covariance-based", "Both"),
