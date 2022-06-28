@@ -55,11 +55,13 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
       return(rSPDE::rspde.matern.precision.opt(kappa=kappa, nu=nu, tau=tau, 
                                    rspde_order=rspde_order, 
                                    d=d, fem_matrices = fem_matrices,
-                                   sharp=sharp, graph = NULL))
+                                   sharp=sharp, graph = NULL,
+                                   type_rational_approx = type.rational.approx))
     } else{
       return(rSPDE::rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
                                rspde_order=rspde_order, 
-                               d=d, fem_mesh_matrices = fem_matrices))
+                               d=d, fem_mesh_matrices = fem_matrices,
+                               type_rational_approx = type.rational.approx))
     }
   }
   
@@ -171,11 +173,13 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
       return(rSPDE::rspde.matern.precision.opt(kappa=kappa, nu=nu, tau=tau, 
                                    rspde_order=rspde_order, 
                                    d=d, fem_matrices = fem_matrices,
-                                   sharp=sharp, graph = NULL))
+                                   sharp=sharp, graph = NULL,
+                                   type_rational_approx = type.rational.approx))
     } else{
       return(rSPDE::rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
                                rspde_order=rspde_order, 
-                               d=d, fem_mesh_matrices = fem_matrices))
+                               d=d, fem_mesh_matrices = fem_matrices,
+                               type_rational_approx = type.rational.approx))
     }
   }
   
@@ -466,8 +470,11 @@ rspde.matern <- function(mesh,
                          start.nu = NULL,
                          start.ltau = NULL,
                          prior.nu.dist = c("beta", "lognormal"),
-                         nu.prec.inc = 1
+                         nu.prec.inc = 1,
+                         type.rational.approx = c("chebfun", "brasil", "chebfunLB")
 ){
+  
+  type.rational.approx = type.rational.approx[[1]]
   
   prior.nu.dist = prior.nu.dist[[1]]
   if(!prior.nu.dist%in%c("beta", "lognormal")){
@@ -729,6 +736,7 @@ if(is.null(prior.tau$sdlog)){
                                         start.lkappa = start.lkappa,
                                         start.nu = start.nu,
                                         start.ltau = start.ltau,
+                                        type.rational.approx=type.rational.approx,
                                         d = d, rspde_order = rspde_order, 
                                         prior.nu.dist=prior.nu.dist,
                                         n=ncol(C)*(rspde_order+1), 
@@ -757,6 +765,7 @@ if(is.null(prior.tau$sdlog)){
                                         prior.tau=prior.tau,
                                         start.lkappa = start.lkappa,
                                         start.ltau = start.ltau,
+                                        type.rational.approx=type.rational.approx,
                                         d = d, rspde_order = rspde_order, 
                                         n=ncol(C)*(rspde_order+1), 
                                         debug=debug,
@@ -780,6 +789,7 @@ if(is.null(prior.tau$sdlog)){
                                         prior.kappa=prior.kappa,
                                         prior.nu=prior.nu,
                                         prior.tau=prior.tau,
+                                        type.rational.approx=type.rational.approx,
                                         start.lkappa = start.lkappa,
                                         start.ltau = start.ltau,
                                         d = d,
@@ -828,11 +838,11 @@ if(is.null(prior.tau$sdlog)){
 #' @export
 
 rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matrices, graph=NULL,
-                          sharp) {
+                          sharp, type_rational_approx) {
   
   n_m <- rspde_order
   
-  mt <- get(paste0("m", n_m, "t"))
+  mt <- get_rational_coefficients(n_m, type_rational_approx)
   
   beta = nu / 2 + dim / 4
   
@@ -993,7 +1003,8 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
 #' lines(x, c.approx_cov, col = 2)
 
 rspde.matern.precision = function(kappa, nu, tau=NULL, sigma=NULL, rspde_order, dim, fem_mesh_matrices,
-                                  only_fractional = FALSE, return_block_list = FALSE) {
+                                  only_fractional = FALSE, return_block_list = FALSE,
+                                  type_rational_approx = "chebfun") {
   
   if(is.null(tau)&&is.null(sigma)){
     stop("You should provide either tau or sigma!")
@@ -1005,7 +1016,7 @@ rspde.matern.precision = function(kappa, nu, tau=NULL, sigma=NULL, rspde_order, 
   
   n_m <- rspde_order
   
-  mt <- get(paste0("m", n_m, "t"))
+  mt <- get_rational_coefficients(n_m, type_rational_approx)
   
   beta = nu / 2 + dim / 4
   

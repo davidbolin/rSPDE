@@ -327,7 +327,8 @@ matern.operators <- function(kappa,
                              m = 1,
                              type = c("covariance", "operator"),
                              compute_higher_order = FALSE,
-                             return_block_list = FALSE)
+                             return_block_list = FALSE,
+                             type_rational_approximation = c("chebfun", "brasil", "chebfunLB"))
 {
   type = type[[1]]
   if(!type%in%c("covariance", "operator")){
@@ -365,7 +366,9 @@ matern.operators <- function(kappa,
     output$type <- "Matern approximation"
     return(output)
   } else{
-    return(CBrSPDE.matern.operators(C=C,G=G,mesh=mesh,nu=nu,kappa=kappa,sigma=sigma,m=m,d=d,compute_higher_order = compute_higher_order, return_block_list = return_block_list))
+    type_rational_approximation = type_rational_approximation[[1]]
+    return(CBrSPDE.matern.operators(C=C,G=G,mesh=mesh,nu=nu,kappa=kappa,sigma=sigma,m=m,d=d,compute_higher_order = compute_higher_order, return_block_list = return_block_list,
+                                    type_rational_approximation=type_rational_approximation))
   }
 
 }
@@ -465,10 +468,11 @@ CBrSPDE.matern.operators <- function(C,
                                  m=2,
                                  d,
                                  compute_higher_order = FALSE,
-                                 return_block_list = FALSE)
+                                 return_block_list = FALSE,
+                                 type_rational_approximation = c("chebfun", "brasil","chebfunLB"))
 {
   
-
+  type_rational_approximation = type_rational_approximation[[1]]
   if(!is.null(mesh)){
     ## get alpha, m_alpha
     d <- get_inla_mesh_dimension(inla_mesh = mesh)
@@ -578,7 +582,8 @@ CBrSPDE.matern.operators <- function(C,
     Q.frac = rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
                                     rspde_order = m, dim=d, 
                                     fem_mesh_matrices=fem_mesh_matrices,only_fractional=TRUE,
-                                    return_block_list = TRUE)
+                                    return_block_list = TRUE,
+                                    type_rational_approx=type_rational_approximation)
     
     Q = Q.frac
     
@@ -597,7 +602,8 @@ CBrSPDE.matern.operators <- function(C,
     
     Q.frac = rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
                                     rspde_order = m, dim=d, 
-                                    fem_mesh_matrices=fem_mesh_matrices,only_fractional=TRUE)
+                                    fem_mesh_matrices=fem_mesh_matrices,only_fractional=TRUE,
+                                    type_rational_approx = type_rational_approximation)
     
     Q = Q.frac
     

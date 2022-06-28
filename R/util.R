@@ -984,3 +984,25 @@ print.CBrSPDEobj <- function(x, ...) {
   print.summary.CBrSPDEobj(summary(x))
 }
 
+
+
+#' @name get_rational_coefficients
+#' @title Get matrix with rational coefficients
+#' @description Get matrix with rational coefficients
+#' @param order order of the rational approximation
+#' @param type_rational_approx Type of the rational approximation. Options are "chebfun", "brasil" and "chebfunLB"
+#' @return A matrix with rational approximations.
+#' @noRd
+
+get_rational_coefficients <- function(order, type_rational_approx){
+  if(type_rational_approx == "chebfun"){
+    mt <- get(paste0("m", order, "t"))
+  } else if(type_rational_approx == "brasil"){
+    mt <- get(paste0("m_brasil", order, "t"))
+  } else if(type_rational_approx == "chebfunLB"){
+    mt <- get(paste0("m_chebfun", order, "t"))
+  } else{
+    stop("The options are 'chebfun', 'brasil' and 'chebfunLB'!")
+  }
+  return(mt)
+}
