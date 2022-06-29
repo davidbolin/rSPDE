@@ -2,7 +2,9 @@ library(shiny)
 library(dplyr)
 library(tidyr)
 
-error_table <- readRDS("list_errors.RDS")
+error_table_cheb <- readRDS("list_errors.RDS")
+error_table_brasil <- readRDS("list_errors_brasil.RDS")
+error_table_chebLB <- readRDS("list_errors_chebLB.RDS")
 loglik_table <- readRDS("list_errors_loglik.RDS")
 error_inla <- readRDS("list_inla_errors.RDS")
 loglik_inla <- readRDS("list_errors_loglik_inla.RDS")
@@ -53,6 +55,14 @@ server <- function(input, output, session) {
     m_order <- input$orderRat
     which_approx <- input$whichApprox
     includeINLA <- input$includeINLAcoverror
+    
+    if(input$whichRatApprox == "BRASIL"){
+      error_table <- error_table_brasil
+    } else if(input$whichRatApprox == "Chebfun"){
+      error_table <- error_table_cheb
+    } else if(input$whichRatApprox == "ChebfunLB"){
+      error_table <- error_table_chebLB
+    }
     
     color_plot_options <- c("steelblue", 
                     "limegreen", "red",
