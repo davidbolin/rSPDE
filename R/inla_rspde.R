@@ -1689,10 +1689,40 @@ if (!is.null(inla$marginals.hyperpar[[paste0("Theta1 for ", name)]])) {
 }
 
 if(compute.summary){
+
+  norm_const <- function(density_df){
+    min_x <- min(density_df[,"x"])
+    max_x <- max(density_df[,"x"])
+    denstemp <- function(x){
+      dens <- sapply(x, function(z){
+        if(z<min_x){
+          return(0)
+        } else if (z>max_x){
+          return(0)
+        } else{
+          return(approx(x = density_df[,"x"], y = density_df[,"y"], xout = z)$y)
+        }
+      })
+      return(dens)
+    } 
+    norm_const <- stats::integrate(f = function(z){denstemp(z)},lower = min_x, upper = max_x,
+                     subdivisions = nrow(density_df))$value
+    return(norm_const)
+  }
+
+  
+
+  
   result$summary.tau <- create_summary_from_density(result$marginals.tau$tau, name="tau")
+  norm_const_tau <- norm_const(result$summary.tau)
+  result$summary.tau[,"y"] <- result$summary.tau[,"y"]/norm_const_tau
   result$summary.kappa <- create_summary_from_density(result$marginals.kappa$kappa, name="kappa")
+  norm_const_kappa <- norm_const(result$summary.kappa)
+  result$summary.kappa[,"y"] <- result$summary.kappa[,"y"]/norm_const_kappa
   if(rspde$est_nu){
     result$summary.nu <- create_summary_from_density(result$marginals.nu$nu, name="nu")
+    norm_const_nu <- norm_const(result$summary.nu)
+    result$summary.nu[,"y"] <- result$summary.nu[,"y"]/norm_const_nu
   }
 }
 
