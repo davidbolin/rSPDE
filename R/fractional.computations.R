@@ -60,8 +60,8 @@ simulate.rSPDEobj <- function(object,
                               nsim = 1,
                               ...)
 {
-  if (class(object) != "rSPDEobj")
-    stop("input op is not of class rSPDEobj")
+  if (!inherits(object, "rSPDEobj"))
+    stop("input object is not of class rSPDEobj")
   m <- dim(object$Q)[1]
   z <- rnorm(nsim * m)
   dim(z) <- c(m, nsim)
