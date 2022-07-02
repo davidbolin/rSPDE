@@ -82,6 +82,8 @@ simulate.rSPDEobj <- function(object,
 #' @param user_nu If non-null, update the shape parameter of the covariance function.
 #' @param user_m If non-null, update the order of the rational approximation, which needs to be a positive integer.
 #' @param compute_higher_order Logical. Should the higher order finite element matrices be computed?
+#' @param return_block_list Logical. For \code{type = "covariance"}, should the block parts of the precision matrix be returned separately as a list?
+#' @param type_rational_approximation Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".
 #' @param ... Currently not used.
 #' @return It returns an object of class "CBrSPDEobj. This object contains the
 #' same quantities listed in the output of \code{\link{matern.operators}}.
@@ -113,6 +115,8 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
                                 user_sigma = NULL,
                                 user_m = NULL, 
                               compute_higher_order = object$higher_order,
+                              type_rational_approximation = object$type_rational_approximation,
+                              return_block_list = object$return_block_list,
                               ...){
   new_object <- object
   d <- object$d
@@ -185,6 +189,18 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
     }
     new_object$m <- as.integer(user_m)
   }
+  
+  new_object <- CBrSPDE.matern.operators(kappa=new_object$kappa,
+                                 sigma=new_object$sigma,
+                                 nu=new_object$nu,
+                                 G = new_object$G,
+                                 C = new_object$C,
+                                 d = new_object$d,
+                                 m = new_object$m,
+                                 return_block_list = return_block_list,
+                                 type_rational_approximation = type_rational_approximation,
+                                 mesh = NULL,
+                                 fem_mesh_matrices = new_object$fem_mesh_matrices)
   
   return(new_object)
 }
@@ -299,7 +315,7 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' computed using \code{\link{matern.operators}}
 #' @param nsim The number of simulations.
 #' @param user_kappa If non-null, update the range parameter of the covariance function.
-#' @param user_tau If non-null, update the standard deviation of the covariance function.
+#' @param user_sigma If non-null, update the standard deviation of the covariance function.
 #' @param user_nu If non-null, update the shape parameter of the covariance function.
 #' @param user_m If non-null, update the order of the rational approximation, which needs to be a positive integer.
 #' @param pivot Should pivoting be used for the Cholesky decompositions? Default is TRUE
@@ -329,7 +345,7 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 simulate.CBrSPDEobj <- function(object, nsim = 1,
                                 user_nu = NULL,
                                 user_kappa = NULL,
-                                user_tau = NULL,
+                                user_sigma = NULL,
                                 user_m = NULL,
                                 pivot = TRUE,
                                 ...)
@@ -341,11 +357,11 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
   
   ## simulation 
   if (alpha%%1==0){# simulation in integer case
-    object <- update.CBrSPDEobj(object,
-                                user_nu,
-                                user_kappa,
-                                user_tau,
-                                user_m,
+    object <- update.CBrSPDEobj(object = object,
+                                user_nu = user_nu,
+                                user_kappa = user_kappa,
+                                user_sigma = user_sigma,
+                                user_m = user_m,
                                 compute_higher_order = TRUE)
     
 
@@ -381,11 +397,11 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       X = solve(LQ,Z)
     }
   }else{
-    object <- update.CBrSPDEobj(object,
-                                user_nu,
-                                user_kappa,
-                                user_tau,
-                                user_m,
+    object <- update.CBrSPDEobj(object = object,
+                                user_nu = user_nu,
+                                user_kappa = user_kappa,
+                                user_sigma = user_sigma,
+                                user_m = user_m,
                                 compute_higher_order = FALSE)
     
     # d <- object$d
@@ -592,8 +608,7 @@ rSPDE.loglike <- function(obj,
                           Y, 
                           A, 
                           sigma.e, 
-                          mu=0,
-                          print.times=FALSE)
+                          mu=0)
 {
   Y = as.matrix(Y)
   if (length(dim(Y)) == 2) {
@@ -619,14 +634,8 @@ rSPDE.loglike <- function(obj,
   }
   
 
-  if(print.times){
-    start.time.chol = Sys.time()
-    R = Matrix::Cholesky(obj$Pl)
-    end.time.chol = Sys.time()
-    print(paste("First Cholesky:",end.time.chol-start.time.chol))
-  } else{
-    R = Matrix::Cholesky(obj$Pl)
-  }
+
+  R = Matrix::Cholesky(obj$Pl)
 
   prior.ld = 4 * c(determinant(R, logarithm = TRUE)$modulus) - sum(log(diag(obj$C)))
   
@@ -634,28 +643,15 @@ rSPDE.loglike <- function(obj,
   A = A %*% obj$Pr
   Q.post = obj$Q + t(A) %*% Q.e %*% A 
   
-  
-  if(print.times){
-    start.time.chol = Sys.time()
-    R.post = Matrix::Cholesky(Q.post)
-    end.time.chol = Sys.time()
-    print(paste("Second Cholesky:",end.time.chol-start.time.chol))
-  } else{
-    R.post = Matrix::Cholesky(Q.post)
-  }
+
+  R.post = Matrix::Cholesky(Q.post)
   
   posterior.ld = 2 * c(determinant(R.post, logarithm = TRUE)$modulus)
   
   AtY = t(A) %*% Q.e %*% Y 
   
-  if(print.times){
-    start.time.chol = Sys.time()
-    mu.post <- mu + solve(R.post, AtY, system = "A")
-    end.time.chol = Sys.time()
-    print(paste("Inversion:",end.time.chol-start.time.chol))
-  } else{
-    mu.post <- mu + solve(R.post, AtY, system = "A")
-  }
+
+  mu.post <- mu + solve(R.post, AtY, system = "A")
 
   
   lik = n.rep * (prior.ld - posterior.ld - dim(A)[1] * log(2*pi) - sum(log(nugget))) / 2
@@ -759,8 +755,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
                                    user_kappa = NULL,
                                    user_sigma = NULL,
                                    user_m = NULL,
-                                   pivot=TRUE,
-                                 print.times=FALSE)
+                                   pivot=TRUE)
 {
   if(inherits(object, "CBrSPDEobj")){
     return(CBrSPDE.matern.loglike(object=object,
@@ -771,8 +766,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
                                   user_kappa=user_kappa,
                                   user_sigma=user_sigma,
                                   user_m=user_m,
-                                  pivot=pivot,
-                                  print.times=print.times))
+                                  pivot=pivot))
   } else{
     if(inherits(object, "rSPDEobj")){
       if(object$type == "Matern approximation"){
@@ -781,7 +775,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
                                   user_kappa=user_kappa,
                                   user_sigma=user_sigma,
                                   user_m=user_m)
-        return(rSPDE.loglike(obj=object, Y=Y, A=A, sigma.e=sigma.e, mu=mu, print.times=print.times))
+        return(rSPDE.loglike(obj=object, Y=Y, A=A, sigma.e=sigma.e, mu=mu))
       } else{
         stop("The fractional operator should be of type 'Matern approximation'!")
       }
@@ -809,7 +803,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
 #' @param sigma.e The standard deviation of the measurement noise.
 #' @param mu Expectation vector of the latent field (default = 0). 
 #' @param user_kappa If non-null, update the range parameter of the covariance function.
-#' @param user_tau If non-null, update the standard deviation of the covariance function.
+#' @param user_sigma If non-null, update the standard deviation of the covariance function.
 #' @param user_nu If non-null, update the shape parameter of the covariance function.
 #' @param user_m If non-null, update the order of the rational approximation, which needs to be a positive integer.
 #' @param pivot Should pivoting be used for the Cholesky decompositions? Default is TRUE
@@ -879,8 +873,7 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
                                      user_kappa = NULL,
                                      user_sigma = NULL,
                                      user_m = NULL,
-                                     pivot=TRUE,
-                                   print.times=FALSE)
+                                     pivot=TRUE)
 {
   
   Y = as.matrix(Y)
@@ -898,11 +891,11 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
   
   ## get relevant parameters
   
-  object <- update.CBrSPDEobj(object,
-                                user_nu,
-                                user_kappa,
-                                user_sigma,
-                                user_m)
+  object <- update.CBrSPDEobj(object = object,
+                              user_nu = user_nu,
+                              user_kappa = user_kappa,
+                              user_sigma = user_sigma,
+                              user_m = user_m)
 
   
   d <- object$d
@@ -927,14 +920,8 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
   m_alpha = floor(alpha)
   
    Q.frac = object$Q.frac
-   if(print.times){
-     start.time.chol = Sys.time()
-     Q.fracR = chol(Q.frac, pivot=pivot)
-     end.time.chol = Sys.time()
-     print(paste("First Cholesky:",end.time.chol-start.time.chol))
-   } else{
-     Q.fracR = chol(Q.frac, pivot=pivot)
-   }
+
+   Q.fracR = chol(Q.frac, pivot=pivot)
 
    logdetL = object$logdetL
    logdetC = object$logdetC  
@@ -955,25 +942,12 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu=0,
     mu_xgiveny = t(Abar) %*% Q.e %*% Y
     # upper triangle with reordering
     
-    if(print.times){
-      start.time.chol = Sys.time()
-      R = Matrix::Cholesky(Q_xgiveny)
-      #R = chol(Q_xgiveny, pivot=pivot)
-      end.time.chol = Sys.time()
-      print(paste("Second Cholesky:",end.time.chol-start.time.chol))
-    } else{
-      R = Matrix::Cholesky(Q_xgiveny)
-      #R = chol(Q_xgiveny, pivot=pivot)
-    }
 
-    if(print.times){
-      start.time.chol = Sys.time()
-      mu_xgiveny = solve(R, mu_xgiveny, system = "A")
-      end.time.chol = Sys.time()
-      print(paste("Invertion:",end.time.chol-start.time.chol))
-    } else{
-      mu_xgiveny = solve(R, mu_xgiveny, system = "A")
-    }
+    R = Matrix::Cholesky(Q_xgiveny)
+
+
+
+    mu_xgiveny = solve(R, mu_xgiveny, system = "A")
     
     mu_xgiveny <- mu + mu_xgiveny
     
@@ -1631,7 +1605,7 @@ precision <- function(object,...) {
 #' @param object The covariance-based rational SPDE approximation, 
 #' computed using \code{\link{matern.operators}}
 #' @param user_kappa If non-null, update the range parameter of the covariance function.
-#' @param user_tau If non-null, update the standard deviation of the covariance function.
+#' @param user_sigma If non-null, update the standard deviation of the covariance function.
 #' @param user_nu If non-null, update the shape parameter of the covariance function.
 #' @param user_m If non-null, update the order of the rational approximation, which needs to be a positive integer.
 #' @param ... Currently not used.
@@ -1661,16 +1635,16 @@ precision <- function(object,...) {
 precision.CBrSPDEobj <- function(object,
                                 user_nu = NULL,
                                 user_kappa = NULL,
-                                user_tau = NULL,
+                                user_sigma = NULL,
                                 user_m = NULL,
                                 ...)
 {
   
-  object <- update.CBrSPDEobj(object,
-                              user_nu,
-                              user_kappa,
-                              user_tau,
-                              user_m)
+  object <- update.CBrSPDEobj(object = object,
+                              user_nu = user_nu,
+                              user_kappa = user_kappa,
+                              user_sigma = user_sigma,
+                              user_m = user_m)
   
   # d <- object$d
   # kappa <- object$kappa

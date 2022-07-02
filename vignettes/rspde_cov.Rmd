@@ -291,7 +291,7 @@ Let us now compute the true Matérn covariance function on the interval $(0,1)$,
 which is the folded Matérn, see Theorem 1 in [An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach](https://www.jstor.org/stable/41262260) for further details.
 
 ```{r}
-c.true <- folded.matern.covariance(rep(0.5,length(s)),abs(s), kappa, nu, sigma)
+c.true <- folded.matern.covariance.1d(rep(0.5,length(s)),abs(s), kappa, nu, sigma)
 ```
 
 The covariance function and the error compared with the Matérn covariance are shown in the following figure.
@@ -623,8 +623,8 @@ Let us then create the FEM mesh:
 
 ```{r, message=FALSE, warning=FALSE,fig.align = "center"}
 library(INLA)
-m =100
-loc_2d_mesh = matrix(runif(m*2),m,2)
+n_loc =500
+loc_2d_mesh = matrix(runif(n_loc*2),n_loc,2)
 mesh_2d = inla.mesh.2d(
   loc=loc_2d_mesh,
   cutoff=0.05,
@@ -665,7 +665,7 @@ A <- inla.spde.make.A(
   mesh=mesh_2d,
   loc=loc_2d_mesh)
 sigma.e <- 0.1
-Y = A %*% u + matrix(rnorm(m*n.rep),ncol=n.rep) * sigma.e
+Y = A %*% u + matrix(rnorm(n_loc*n.rep),ncol=n.rep) * sigma.e
 ```
 
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.

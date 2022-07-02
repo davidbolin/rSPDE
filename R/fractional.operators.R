@@ -200,6 +200,8 @@ fractional.operators <- function(L,
 #' @param type The type of the rational approximation. The options are "covariance"
 #' and "operator". The default is "covariance".
 #' @param compute_higher_order Logical. Should the higher order finite element matrices be computed?
+#' @param return_block_list Logical. For \code{type = "covariance"}, should the block parts of the precision matrix be returned separately as a list?
+#' @param type_rational_approximation Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".
 #'
 #' @return If \code{type} is "covariance", then \code{matern.operators} 
 #' returns an object of class "CBrSPDEobj". 
@@ -469,26 +471,28 @@ CBrSPDE.matern.operators <- function(C,
                                  d,
                                  compute_higher_order = FALSE,
                                  return_block_list = FALSE,
-                                 type_rational_approximation = c("chebfun", "brasil","chebfunLB"))
+                                 type_rational_approximation = c("chebfun", "brasil","chebfunLB"),
+                                 fem_mesh_matrices = NULL)
 {
   
   type_rational_approximation = type_rational_approximation[[1]]
-  if(!is.null(mesh)){
-    ## get alpha, m_alpha
-    d <- get_inla_mesh_dimension(inla_mesh = mesh)
-    alpha <- nu + d/2
-    m_alpha <- floor(alpha)
-    m_order <- m_alpha+1
-    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-    
-
+  if(is.null(fem_mesh_matrices)){
+    if(!is.null(mesh)){
+      ## get alpha, m_alpha
+      d <- get_inla_mesh_dimension(inla_mesh = mesh)
+      alpha <- nu + d/2
+      m_alpha <- floor(alpha)
+      m_order <- m_alpha+1
+      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
+      
+      
       if(d>1){
         if(compute_higher_order){
           fem <- INLA::inla.mesh.fem(mesh,order = m_alpha+1)
         } else{
           fem <- INLA::inla.mesh.fem(mesh)
         }
-
+        
         C <- fem$c0
         G <- fem$g1
         Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))  
@@ -516,46 +520,65 @@ CBrSPDE.matern.operators <- function(C,
             }
           }
         }
-
-
+        
+        
       }
-
+      
+    } else{
+      ## get alpha, m_alpha
+      alpha <- nu + d/2
+      m_alpha <- floor(alpha)
+      m_order <- m_alpha+1
+      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
+      
+      ## get lumped mass matrix
+      C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
+      
+      ## get G_k matrix: k is up to m_alpha if alpha is integer, k is up tp m_alpha + 1 otherwise.
+      # inverse lumped mass matrix
+      Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))  
+      
+      GCi <- G%*%Ci
+      # create a list to store all the G_k matrix
+      
+      Gk <- list()
+      
+      Gk[[1]] <- G
+      # determine how many G_k matrices we want to create
+      if(compute_higher_order){
+        for (i in 2:m_order){
+          Gk[[i]] <- GCi %*% Gk[[i-1]]
+        }
+      }
+    }
+    
+    # create a list contains all the finite element related matrices
+    fem_mesh_matrices <- list()
+    fem_mesh_matrices[["c0"]] <- C
+    fem_mesh_matrices[["g1"]] <- G
+    
+    if(compute_higher_order){
+      for(i in 1:m_order){
+        fem_mesh_matrices[[paste0("g",i)]] <- Gk[[i]]
+      }
+    }
+    
   } else{
-    ## get alpha, m_alpha
+    C <- fem_mesh_matrices$c0
+    G <- fem_mesh_matrices$g1
+    Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))  
+    GCi <- G%*%Ci
     alpha <- nu + d/2
     m_alpha <- floor(alpha)
     m_order <- m_alpha+1
-    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-    
-    ## get lumped mass matrix
-    C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
-    
-    ## get G_k matrix: k is up to m_alpha if alpha is integer, k is up tp m_alpha + 1 otherwise.
-    # inverse lumped mass matrix
-    Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))  
-    
-    GCi <- G%*%Ci
-    # create a list to store all the G_k matrix
-    
-    Gk <- list()
-    
-    Gk[[1]] <- G
-    # determine how many G_k matrices we want to create
-    if(compute_higher_order){
-      for (i in 2:m_order){
-        Gk[[i]] <- GCi %*% Gk[[i-1]]
-      }
+    if(!is.null(mesh)){
+      d <- get_inla_mesh_dimension(inla_mesh = mesh)
     }
-  }
-
-  # create a list contains all the finite element related matrices
-  fem_mesh_matrices <- list()
-  fem_mesh_matrices[["c0"]] <- C
-  fem_mesh_matrices[["g1"]] <- G
-  
-  if(compute_higher_order){
-    for(i in 1:m_order){
-      fem_mesh_matrices[[paste0("g",i)]] <- Gk[[i]]
+    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
+    Gk <- list()
+    Gk[[1]] <- G
+    for(i in 2:m_order){
+      Gk[[i]] <- fem_mesh_matrices[[paste0("g",i)]]
     }
   }
 
@@ -626,7 +649,9 @@ CBrSPDE.matern.operators <- function(C,
                  logdetL = logdetL, logdetC = logdetC,
                  Q.frac = Q.frac, Q.int = Q.int,
                  Q = Q, sizeC = dim(C)[1],
-                 higher_order = compute_higher_order)
+                 higher_order = compute_higher_order,
+                 type_rational_approximation = type_rational_approximation,
+                 return_block_list = return_block_list)
   output$type = "Covariance-Based Matern SPDE approximation"
   class(output) <- "CBrSPDEobj"
   return(output)

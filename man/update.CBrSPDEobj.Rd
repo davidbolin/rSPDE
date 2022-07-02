@@ -11,6 +11,8 @@
   user_sigma = NULL,
   user_m = NULL,
   compute_higher_order = object$higher_order,
+  type_rational_approximation = object$type_rational_approximation,
+  return_block_list = object$return_block_list,
   ...
 )
 }
@@ -27,6 +29,10 @@ computed using \code{\link{matern.operators}}}
 \item{user_m}{If non-null, update the order of the rational approximation, which needs to be a positive integer.}
 
 \item{compute_higher_order}{Logical. Should the higher order finite element matrices be computed?}
+
+\item{type_rational_approximation}{Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
+
+\item{return_block_list}{Logical. For \code{type = "covariance"}, should the block parts of the precision matrix be returned separately as a list?}
 
 \item{...}{Currently not used.}
 }

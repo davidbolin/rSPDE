@@ -1201,7 +1201,7 @@ nu = 0.5
 sigma = 1 
 range = 0.1
 kappa = sqrt(8*nu)/range
-tau = 1/(sqrt(4*pi)*kappa*sigma)
+tau = sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi) * gamma(nu + 1)))
 d=2
 operator_information = matern.operators (mesh=mesh_2d,
                                  nu=nu,
@@ -1259,10 +1259,11 @@ st.dat.rep=inla.stack(
   effects=mesh.index.rep)
 ```
 
-We now create the model object. 
+We now create the model object. For illustration purposes, we will use "BRASIL" 
+rational approximation algorithm to fit this model.
 
 ```{r}
-rspde_model.rep <- rspde.matern(mesh = mesh_2d)
+rspde_model.rep <- rspde.matern(mesh = mesh_2d, type.rational.approx="brasil")
 ```
 
 Finally, we create the formula and fit. It is extremely important

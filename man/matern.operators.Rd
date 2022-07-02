@@ -14,7 +14,9 @@ matern.operators(
   mesh = NULL,
   m = 1,
   type = c("covariance", "operator"),
-  compute_higher_order = FALSE
+  compute_higher_order = FALSE,
+  return_block_list = FALSE,
+  type_rational_approximation = c("chebfun", "brasil", "chebfunLB")
 )
 }
 \arguments{
@@ -39,6 +41,10 @@ The default value is 1.}
 and "operator". The default is "covariance".}
 
 \item{compute_higher_order}{Logical. Should the higher order finite element matrices be computed?}
+
+\item{return_block_list}{Logical. For \code{type = "covariance"}, should the block parts of the precision matrix be returned separately as a list?}
+
+\item{type_rational_approximation}{Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
 }
 \value{
 If \code{type} is "covariance", then \code{matern.operators} 

@@ -971,6 +971,7 @@ print.summary.CBrSPDEobj <- function(x, ...)
 {
   
   cat("Type of approximation: ", x$type,"\n")
+  cat("Type of rational approximation: ", x$type_rational_approximation,"\n")
   cat("Parameters of covariance function: kappa = ",
         x$kappa,", sigma = ", x$sigma, ", nu = ",x$nu, "\n")
   cat("Order or rational approximation: ", x$m, "\n")

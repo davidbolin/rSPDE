@@ -11,7 +11,7 @@ precision(object, ...)
   object,
   user_nu = NULL,
   user_kappa = NULL,
-  user_tau = NULL,
+  user_sigma = NULL,
   user_m = NULL,
   ...
 )
@@ -26,7 +26,7 @@ computed using \code{\link{matern.operators}}}
 
 \item{user_kappa}{If non-null, update the range parameter of the covariance function.}
 
-\item{user_tau}{If non-null, update the standard deviation of the covariance function.}
+\item{user_sigma}{If non-null, update the standard deviation of the covariance function.}
 
 \item{user_m}{If non-null, update the order of the rational approximation, which needs to be a positive integer.}
 }

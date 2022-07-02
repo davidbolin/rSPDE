@@ -12,7 +12,7 @@ folded.matern.covariance.2d(
   sigma,
   L = 1,
   N = 10,
-  boundary = c("neumann", "dirichlet", "periodic")
+  boundary = c("neumann", "dirichlet", "periodic", "R2")
 )
 }
 \arguments{
@@ -28,7 +28,7 @@ folded.matern.covariance.2d(
 
 \item{N}{The truncation parameter.}
 
-\item{boundary}{The boundary condition. The possible conditions are \code{"neumann"} (default), \code{"dirichlet"} or \code{"periodic"}.}
+\item{boundary}{The boundary condition. The possible conditions are \code{"neumann"} (default), \code{"dirichlet"}, \code{"periodic"} or \code{"R2"}.}
 }
 \value{
 The correspoding covariance.

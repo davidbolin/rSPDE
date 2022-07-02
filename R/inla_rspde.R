@@ -4,7 +4,7 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
                          "graph_opt","fem_matrices", "sharp",
                          "prior.kappa", "prior.nu", "prior.tau",
                          "start.lkappa", "start.ltau", "start.nu",
-                         "prior.nu.dist"))
+                         "prior.nu.dist", "type.rational.approx"))
 
 #' @importFrom stats dnorm pnorm dbeta
 #' @importFrom methods as
@@ -351,6 +351,8 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
 #' @param prior.nu.dist The distribution of the smoothness parameter. The current
 #' options are "beta" or "lognormal". The default is "beta".
 #' @param nu.prec.inc Amount to increase the precision in the beta prior distribution. Check details below.
+#' @param type.rational.approx Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#'
 #' @return An INLA model.
 #' @export
 #' @details This function constructs a stationary Matern rSPDE model to be used with the INLA interface.
@@ -834,6 +836,7 @@ if(is.null(prior.tau$sdlog)){
 #' of the elements will be returned, if non-NULL, a sparse matrix will be returned.
 #' @param sharp The sparsity graph should have the correct sparsity (costs more to perform
 #' a sparsity analysis) or an upper bound for the sparsity?
+#' @param type_rational_approx Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".
 #' @return The precision matrix
 #' @export
 
@@ -974,6 +977,9 @@ rspde.matern.precision.opt = function(kappa, nu, tau, rspde_order, dim, fem_matr
 #' @param dim The dimension of the domain
 #' @param fem_mesh_matrices A list containing the FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.
 #' @param only_fractional Logical. Should only the fractional-order part of the precision matrix be returned?
+#' @param return_block_list Logical. For \code{type = "covariance"}, should the block parts of the precision matrix be returned separately as a list?
+#' @param type_rational_approx Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#'
 #' @return The precision matrix
 #' @export
 #' @examples 

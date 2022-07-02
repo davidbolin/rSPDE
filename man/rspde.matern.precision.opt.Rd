@@ -12,7 +12,8 @@ rspde.matern.precision.opt(
   dim,
   fem_matrices,
   graph = NULL,
-  sharp
+  sharp,
+  type_rational_approx
 )
 }
 \arguments{
@@ -33,6 +34,8 @@ of the elements will be returned, if non-NULL, a sparse matrix will be returned.
 
 \item{sharp}{The sparsity graph should have the correct sparsity (costs more to perform
 a sparsity analysis) or an upper bound for the sparsity?}
+
+\item{type_rational_approx}{Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
 }
 \value{
 The precision matrix

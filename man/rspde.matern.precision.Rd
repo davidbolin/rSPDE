@@ -13,7 +13,9 @@ rspde.matern.precision(
   rspde_order,
   dim,
   fem_mesh_matrices,
-  only_fractional = FALSE
+  only_fractional = FALSE,
+  return_block_list = FALSE,
+  type_rational_approx = "chebfun"
 )
 }
 \arguments{
@@ -32,6 +34,10 @@ rspde.matern.precision(
 \item{fem_mesh_matrices}{A list containing the FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.}
 
 \item{only_fractional}{Logical. Should only the fractional-order part of the precision matrix be returned?}
+
+\item{return_block_list}{Logical. For \code{type = "covariance"}, should the block parts of the precision matrix be returned separately as a list?}
+
+\item{type_rational_approx}{Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
 }
 \value{
 The precision matrix

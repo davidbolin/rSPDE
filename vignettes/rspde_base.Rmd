@@ -178,7 +178,7 @@ Here $\boldsymbol{\mathrm{A}}$ is an identity matrix since we are evaluating the
 ```{r}
 v <- t(rSPDE.A1d(s,0.5))
 c.approx <- op$Pr %*% solve(op$Q, op$Pr %*% v)
-c.true <- folded.matern.covariance(rep(0.5,length(s)),abs(s), kappa, nu, sigma) 
+c.true <- folded.matern.covariance.1d(rep(0.5,length(s)),abs(s), kappa, nu, sigma) 
 ```
 
 The covariance function and the error compared with the Matérn covariance are shown in the following figure.

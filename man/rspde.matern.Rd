@@ -19,7 +19,8 @@ rspde.matern(
   start.nu = NULL,
   start.ltau = NULL,
   prior.nu.dist = c("beta", "lognormal"),
-  nu.prec.inc = 1
+  nu.prec.inc = 1,
+  type.rational.approx = c("chebfun", "brasil", "chebfunLB")
 )
 }
 \arguments{
@@ -63,6 +64,8 @@ the mean and standard deviation on the log scale.}
 options are "beta" or "lognormal". The default is "beta".}
 
 \item{nu.prec.inc}{Amount to increase the precision in the beta prior distribution. Check details below.}
+
+\item{type.rational.approx}{Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
 }
 \value{
 An INLA model.

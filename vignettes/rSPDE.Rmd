@@ -149,11 +149,11 @@ We will begin by defining a mesh over $[0,1]\times [0, 1]$:
 
 ```{r, message=FALSE, warning=FALSE, fig.align='center'}
 library(INLA)
-m = 500
-loc_2d_mesh = matrix(runif(m*2),m,2)
+n_loc = 2000
+loc_2d_mesh = matrix(runif(n_loc*2),n_loc,2)
 mesh_2d = inla.mesh.2d(
   loc=loc_2d_mesh,
-  cutoff=0.05,
+  cutoff=0.035,
   max.edge=c(0.1,0.5) )
 plot(mesh_2d, main = "")
 ```
@@ -198,7 +198,7 @@ A <- inla.spde.make.A(
   mesh=mesh_2d,
   loc=loc_2d_mesh)
 sigma.e <- 0.1
-y = A %*% u + rnorm(m) * sigma.e
+y = A %*% u + rnorm(n_loc) * sigma.e
 ```
 
 The observed data can be seen in the following image.
