@@ -4,7 +4,7 @@ simulation, of the fractional SPDE
 $$L^\beta (\tau u(s)) = W.$$
 Here \(L\) is a differential operator, \(\beta&amp;gt;0\) is
 the fractional power, \(\tau\) is a positive scalar or vector that scales the variance of the solution \(u\), and
-\(W\) is white noise."><title>Rational approximations of fractional operators — fractional.operators • rSPDE</title><!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png"><link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png"><link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png"><link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png"><link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png"><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.1.0/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.1.0/bootstrap.bundle.min.js"></script><link href="../deps/_Roboto%20Slab-0.4.0/font.css" rel="stylesheet"><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous"><!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Rational approximations of fractional operators — fractional.operators"><meta property="og:description" content="fractional.operators is used for computing an approximation, which can be used for inference and
+\(W\) is white noise."><title>Rational approximations of fractional operators — fractional.operators • rSPDE</title><!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png"><link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png"><link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png"><link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png"><link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png"><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.1.0/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.1.0/bootstrap.bundle.min.js"></script><link href="../deps/_Roboto%20Slab-0.4.1/font.css" rel="stylesheet"><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous"><!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Rational approximations of fractional operators — fractional.operators"><meta property="og:description" content="fractional.operators is used for computing an approximation, which can be used for inference and
 simulation, of the fractional SPDE
 $$L^\beta (\tau u(s)) = W.$$
 Here \(L\) is a differential operator, \(\beta&amp;gt;0\) is
@@ -27,7 +27,7 @@ the fractional power, \(\tau\) is a positive scalar or vector that scales the va
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div id="navbar" class="collapse navbar-collapse ms-2">
+    <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item">
   <a class="nav-link" href="../articles/rSPDE.html">Get started</a>
 </li>
@@ -83,53 +83,77 @@ the fractional power, \(\tau\) is a positive scalar or vector that scales the va
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">fractional.operators</span><span class="op">(</span><span class="va">L</span>, <span class="va">beta</span>, <span class="va">C</span>, <span class="va">scale.factor</span>, m <span class="op">=</span> <span class="fl">1</span>, tau <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">fractional.operators</span><span class="op">(</span><span class="va">L</span>, <span class="va">beta</span>, <span class="va">C</span>, <span class="va">scale.factor</span>, m <span class="op">=</span> <span class="fl">1</span>, tau <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>L</dt>
 <dd><p>A finite element discretization of the operator \(L\).</p></dd>
+
+
 <dt>beta</dt>
 <dd><p>The positive fractional power.</p></dd>
+
+
 <dt>C</dt>
 <dd><p>The mass matrix of the finite element discretization.</p></dd>
+
+
 <dt>scale.factor</dt>
 <dd><p>A constant \(c\) is a lower bound for the the smallest eigenvalue of the non-discretized
 operator \(L\).</p></dd>
+
+
 <dt>m</dt>
 <dd><p>The order of the rational approximation, which needs to be a positive integer. The default value is 1.
 Higer values gives a more accurate approximation, which are more computationally expensive to use for inference.
 Currently, the largest value of m that is implemented is 4.</p></dd>
+
+
 <dt>tau</dt>
 <dd><p>The constant or vector that scales the variance of the solution. The default value is 1.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p><code>fractional.operators</code> returns an object of class "rSPDEobj". This object contains the
+    
+
+<p><code>fractional.operators</code> returns an object of class "rSPDEobj". This object contains the
 following quantities:</p>
 <dl><dt>Pl</dt>
 <dd><p>The operator \(P_l\).</p></dd>
+
 <dt>Pr</dt>
 <dd><p>The operator \(P_r\).</p></dd>
+
 <dt>C</dt>
 <dd><p>The mass lumped mass matrix.</p></dd>
+
 <dt>Ci</dt>
 <dd><p>The inverse of <code>C</code>.</p></dd>
+
 <dt>m</dt>
 <dd><p>The order of the rational approximation.</p></dd>
+
 <dt>beta</dt>
 <dd><p>The fractional power.</p></dd>
+
 <dt>type</dt>
 <dd><p>String indicating the type of approximation.</p></dd>
+
 <dt>Q</dt>
 <dd><p>The matrix <code>t(Pl)%*%solve(C,Pl)</code>.</p></dd>
+
 <dt>type</dt>
 <dd><p>String indicating the type of approximation.</p></dd>
+
 <dt>Pl.factors</dt>
 <dd><p>List with elements that can be used to assemble \(P_l\).</p></dd>
+
 <dt>Pr.factors</dt>
 <dd><p>List with elements that can be used to assemble \(P_r\).</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -153,28 +177,28 @@ involving the matrices, since these methods are more numerically stable.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="co">#Compute rational approximation of a Gaussian process with a </span></span>
-<span class="r-in"><span class="co">#Matern covariance function on R</span></span>
-<span class="r-in"><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
-<span class="r-in"><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
-<span class="r-in"><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co">#create mass and stiffness matrices for a FEM discretization</span></span>
-<span class="r-in"><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">101</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="rSPDE.fem1d.html">rSPDE.fem1d</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co">#compute rational approximation of covariance function at 0.5</span></span>
-<span class="r-in"><span class="va">tau</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Special.html" class="external-link">gamma</a></span><span class="op">(</span><span class="va">nu</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">sigma</span><span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="va">kappa</span><span class="op">^</span><span class="op">(</span><span class="fl">2</span><span class="op">*</span><span class="va">nu</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="fl">4</span><span class="op">*</span><span class="va">pi</span><span class="op">)</span><span class="op">^</span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Special.html" class="external-link">gamma</a></span><span class="op">(</span><span class="va">nu</span><span class="op">+</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu">fractional.operators</span><span class="op">(</span>L <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span> <span class="op">+</span> <span class="va">kappa</span><span class="op">^</span><span class="fl">2</span><span class="op">*</span><span class="va">fem</span><span class="op">$</span><span class="va">C</span>, beta <span class="op">=</span> <span class="op">(</span><span class="va">nu</span> <span class="op">+</span> <span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="fl">2</span>,</span>
-<span class="r-in">                           C<span class="op">=</span><span class="va">fem</span><span class="op">$</span><span class="va">C</span>, scale.factor <span class="op">=</span> <span class="va">kappa</span><span class="op">^</span><span class="fl">2</span>, tau <span class="op">=</span> <span class="va">tau</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="va">v</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="rSPDE.A1d.html">rSPDE.A1d</a></span><span class="op">(</span><span class="va">x</span>,<span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">c.approx</span> <span class="op">=</span> <span class="fu"><a href="operator.operations.html">Sigma.mult</a></span><span class="op">(</span><span class="va">op</span>,<span class="va">v</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co">#plot the result and compare with the true Matern covariance</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="matern.covariance.html">matern.covariance</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">x</span> <span class="op">-</span> <span class="fl">0.5</span><span class="op">)</span>, <span class="va">kappa</span>, <span class="va">nu</span>, <span class="va">sigma</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"l"</span>, ylab <span class="op">=</span> <span class="st">"C(h)"</span>,</span>
-<span class="r-in">     xlab<span class="op">=</span><span class="st">"h"</span>, main <span class="op">=</span> <span class="st">"Matern covariance and rational approximations"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">c.approx</span>, col <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">#Compute rational approximation of a Gaussian process with a </span></span></span>
+<span class="r-in"><span><span class="co">#Matern covariance function on R</span></span></span>
+<span class="r-in"><span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">10</span></span></span>
+<span class="r-in"><span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span></span>
+<span class="r-in"><span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#create mass and stiffness matrices for a FEM discretization</span></span></span>
+<span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">101</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="rSPDE.fem1d.html">rSPDE.fem1d</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#compute rational approximation of covariance function at 0.5</span></span></span>
+<span class="r-in"><span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Special.html" class="external-link">gamma</a></span><span class="op">(</span><span class="va">nu</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">sigma</span><span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="va">kappa</span><span class="op">^</span><span class="op">(</span><span class="fl">2</span><span class="op">*</span><span class="va">nu</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="fl">4</span><span class="op">*</span><span class="va">pi</span><span class="op">)</span><span class="op">^</span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Special.html" class="external-link">gamma</a></span><span class="op">(</span><span class="va">nu</span><span class="op">+</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu">fractional.operators</span><span class="op">(</span>L <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span> <span class="op">+</span> <span class="va">kappa</span><span class="op">^</span><span class="fl">2</span><span class="op">*</span><span class="va">fem</span><span class="op">$</span><span class="va">C</span>, beta <span class="op">=</span> <span class="op">(</span><span class="va">nu</span> <span class="op">+</span> <span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="fl">2</span>,</span></span>
+<span class="r-in"><span>                           C<span class="op">=</span><span class="va">fem</span><span class="op">$</span><span class="va">C</span>, scale.factor <span class="op">=</span> <span class="va">kappa</span><span class="op">^</span><span class="fl">2</span>, tau <span class="op">=</span> <span class="va">tau</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">v</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="rSPDE.A1d.html">rSPDE.A1d</a></span><span class="op">(</span><span class="va">x</span>,<span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">c.approx</span> <span class="op">=</span> <span class="fu"><a href="operator.operations.html">Sigma.mult</a></span><span class="op">(</span><span class="va">op</span>,<span class="va">v</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#plot the result and compare with the true Matern covariance</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="matern.covariance.html">matern.covariance</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">x</span> <span class="op">-</span> <span class="fl">0.5</span><span class="op">)</span>, <span class="va">kappa</span>, <span class="va">nu</span>, <span class="va">sigma</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"l"</span>, ylab <span class="op">=</span> <span class="st">"C(h)"</span>,</span></span>
+<span class="r-in"><span>     xlab<span class="op">=</span><span class="st">"h"</span>, main <span class="op">=</span> <span class="st">"Matern covariance and rational approximations"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">c.approx</span>, col <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="fractional.operators-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
@@ -187,7 +211,7 @@ involving the matrices, since these methods are more numerically stable.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.1.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
     </footer></div>
