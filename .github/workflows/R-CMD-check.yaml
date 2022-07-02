@@ -80,12 +80,11 @@ jobs:
           brew install proj@9
           brew install gdal
           
-      - name: Install dependencies
-        run: |
-          remotes::install_deps(dependencies = TRUE)
-          remotes::install_cran("rcmdcheck")
-        shell: Rscript {0}
-
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: '"all"'
+          extra-packages: |
+             rcmdcheck
       - name: Session info
         run: |
           options(width = 100)
@@ -93,20 +92,8 @@ jobs:
           sessioninfo::session_info(pkgs, include_base = TRUE)
         shell: Rscript {0}
 
-      - name: Check
+      - uses: r-lib/actions/check-r-package@v2
         env:
-          _R_CHECK_CRAN_INCOMING_: false
-        run: rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), error_on = "warning", check_dir = "check")
-        shell: Rscript {0}
-
-      - name: Show testthat output
-        if: always()
-        run: find check -name 'testthat.Rout*' -exec cat '{}' \; || true
-        shell: bash
-
-      - name: Upload check results
-        if: failure()
-        uses: actions/upload-artifact@main
+          _R_CHECK_CRAN_INCOMING_REMOTE_: false
         with:
-          name: ${{ runner.os }}-r${{ matrix.config.r }}-results
-          path: check
+          args: 'c("--no-manual", "--as-cran")'
