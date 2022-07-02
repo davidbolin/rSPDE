@@ -860,8 +860,8 @@ symmetric_part_matrix <- function(M){
 #' @noRd
 
 create_summary_from_density <- function(density_df, name){
-  min_x <- density_df[1,"x"]
-  max_x <- density_df[nrow(density_df),"x"]
+  min_x <- min(density_df[,"x"])
+  max_x <- max(density_df[,"x"])
   denstemp <- function(x){
     dens <- sapply(x, function(z){
       if(z<min_x){
@@ -869,7 +869,7 @@ create_summary_from_density <- function(density_df, name){
       } else if (z>max_x){
         return(0)
       } else{
-        return(approx(density_df[,"x"], density_df[,"y"], z)$y)
+        return(approx(x = density_df[,"x"], y = density_df[,"y"], xout = z)$y)
       }
     })
     return(dens)
@@ -882,7 +882,7 @@ create_summary_from_density <- function(density_df, name){
       } else if(v>=max_x){
         return(1)
       } else{
-        stats::integrate(denstemp,lower = min_x, upper = v,
+        stats::integrate(f = denstemp,lower = min_x, upper = v,
                          subdivisions = min(nrow(density_df),500))$value
       }
     })
