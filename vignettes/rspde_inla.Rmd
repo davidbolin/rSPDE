@@ -323,19 +323,14 @@ Here `-1` is added to remove R's implicit intercept, which is replaced
 by the explicit `+Intercept` from when we created the stack. 
 
 To fit the model we proceed as in the standard SPDE approach and
-we simply call `inla()`. It is noteworthy that we can have
-a performance enhancement by using the argument `inla.mode = "experimental"`.
-As argued in `r inla_link()`'s man page, not all features are available in
-`inla.mode="experimental"`, and we will need to use the `"classic"` mode (the default mode)
-instead of `"experimental"` whenever we are doing predictions.
+we simply call `inla()`.
 
 
 ```{r fit_model, message=FALSE, warning=FALSE}
 rspde_fit <- inla(f.s, family = "Gamma", data = inla.stack.data(stk.dat), 
             verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
-            inla.mode = "experimental")
+            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
 ```
 
 ### INLA results
@@ -461,7 +456,6 @@ stk.all <- inla.stack(stk.dat, stk.prd)
 
 Doing the joint estimation takes a while, and we therefore turn off the computation of certain things that we are not interested in, such as the marginals for the random effect. 
 We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes.
-Since we are doing predictions, we should not use `r inla_link()`'s experimental mode.
 
 ```{r fit_prd, message=FALSE, warning=FALSE}
 rspde_fitprd <- inla(f.s, family = "Gamma", 
@@ -549,8 +543,7 @@ f.s.2 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
 rspde_fit_2 <- inla(f.s.2, family = "Gamma", data = inla.stack.data(stk.dat), 
             verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
-            inla.mode = "experimental")
+            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
 ```
 
 Let us see the summary of the fit:
@@ -631,8 +624,7 @@ f.s.3 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
 rspde_fit_order_3 <- inla(f.s.3, family = "Gamma", data = inla.stack.data(stk.dat.3), 
                     verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE),
-            inla.mode = "experimental")
+            control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE))
 ```
 
 Let us see the summary:
@@ -727,8 +719,7 @@ f.s.fix <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
 rspde_fix <- inla(f.s.fix, family = "Gamma", data = inla.stack.data(stk.dat), 
                 verbose = FALSE, 
               control.inla=list(int.strategy='eb'),
-              control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
-            inla.mode = "experimental")
+              control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
 ```
 
 Here we have the summary:
@@ -790,8 +781,7 @@ rspde_fix_int_1 <- inla(f.s.fix.int.1, family = "Gamma",
                       data = inla.stack.data(stk.dat.int), verbose = FALSE, 
                   control.inla=list(int.strategy='eb'),
                   control.predictor = list(A = inla.stack.A(stk.dat.int), 
-                                           compute = TRUE),
-            inla.mode = "experimental")
+                                           compute = TRUE))
 ```
 
 Let us check the summary:
@@ -944,8 +934,7 @@ f.s.ln <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
 rspde_fit_ln <- inla(f.s.ln, family = "Gamma", data = inla.stack.data(stk.dat), 
             verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
-            inla.mode = "experimental")
+            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
 ```
 
 We have the summary:
@@ -1003,8 +992,7 @@ rspde_fit_order_3_start <- inla(f.s.3.start, family = "Gamma",
                     verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
             control.predictor = list(A = inla.stack.A(stk.dat.3), 
-                                     compute = TRUE),
-            inla.mode = "experimental")
+                                     compute = TRUE))
 ```
 
 We have the summary:
@@ -1087,8 +1075,7 @@ rspde_fit_opt_sharp <- inla(f.s.opt.sharp, family = "Gamma",
                             verbose = FALSE, 
                             control.inla=list(int.strategy='eb'),
                             control.predictor=list(A=inla.stack.A(stk.dat.1), 
-                                                     compute = FALSE),
-            inla.mode = "experimental")
+                                                     compute = FALSE))
 
 f.s.opt.notsharp <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
   f(field, model = rspde_model_opt_notsharp) 
@@ -1098,8 +1085,7 @@ rspde_fit_opt_notsharp <- inla(f.s.opt.notsharp, family = "Gamma",
                                verbose = FALSE, 
                                control.inla=list(int.strategy='eb'),
                                control.predictor=list(A=inla.stack.A(stk.dat.1), 
-                                                        compute = FALSE),
-            inla.mode = "experimental")
+                                                        compute = FALSE))
 
 f.s.nonopt <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
   f(field, model = rspde_model_nonopt) 
@@ -1109,8 +1095,7 @@ rspde_fit_nonopt <- inla(f.s.nonopt, family = "Gamma",
                          verbose = FALSE, 
                          control.inla=list(int.strategy='eb'),
                          control.predictor=list(A=inla.stack.A(stk.dat.1), 
-                                                  compute = FALSE),
-            inla.mode = "experimental")
+                                                  compute = FALSE))
 ```
 
 Finally, let us compare the times:
@@ -1280,8 +1265,7 @@ rspde_fit.rep =
        data=inla.stack.data(st.dat.rep),
        family="gaussian",
        control.predictor=
-         list(A=inla.stack.A(st.dat.rep)),
-            inla.mode = "experimental")
+         list(A=inla.stack.A(st.dat.rep)))
 ```
 
 We can get the summary:
