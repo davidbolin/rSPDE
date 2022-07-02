@@ -1710,19 +1710,22 @@ if(compute.summary){
     return(norm_const)
   }
 
+  norm_const_tau <- norm_const(result$marginals.tau$tau)
+  result$marginals.tau$tau[,"y"] <- result$marginals.tau$tau[,"y"]/norm_const_tau
   
-
+  norm_const_kappa <- norm_const(result$marginals.kappa$kappa)
+  result$marginals.kappa$kappa[,"y"] <- result$marginals.kappa$kappa[,"y"]/norm_const_kappa
+  
+  
+  
   
   result$summary.tau <- create_summary_from_density(result$marginals.tau$tau, name="tau")
-  norm_const_tau <- norm_const(result$summary.tau)
-  result$summary.tau[,"y"] <- result$summary.tau[,"y"]/norm_const_tau
   result$summary.kappa <- create_summary_from_density(result$marginals.kappa$kappa, name="kappa")
-  norm_const_kappa <- norm_const(result$summary.kappa)
-  result$summary.kappa[,"y"] <- result$summary.kappa[,"y"]/norm_const_kappa
   if(rspde$est_nu){
+    norm_const_nu <- norm_const(result$marginals.nu$nu)
+    result$marginals.nu$nu[,"y"] <- result$marginals.nu$nu[,"y"]/norm_const_nu
+    
     result$summary.nu <- create_summary_from_density(result$marginals.nu$nu, name="nu")
-    norm_const_nu <- norm_const(result$summary.nu)
-    result$summary.nu[,"y"] <- result$summary.nu[,"y"]/norm_const_nu
   }
 }
 
