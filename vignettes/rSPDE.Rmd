@@ -85,8 +85,10 @@ references:
 ---
 
 ```{r setup, include = FALSE}
+library(ragg)
 knitr::opts_chunk$set(
   collapse = TRUE,
+  dev = "ragg_png",
   comment = "#>"
 )
 
@@ -206,8 +208,7 @@ The observed data can be seen in the following image.
 ```{r,fig.align = "center", echo=FALSE}
 library(ggplot2)
 df  <- data.frame(x1 = as.double(loc_2d_mesh[,1]), x2 = as.double(loc_2d_mesh[,2]), y = as.double(y))
-p <- tryCatch({ggplot(df,aes(x=x1,y=x2,col=y))+geom_point()+scale_color_gradient(low="yellow", high="red")}, error = function(e){print("Could not run the example")})
-p
+ggplot(df,aes(x=x1,y=x2,col=y))+geom_point()+scale_color_gradient(low="yellow", high="red")
 ```
 
 The simulated random field is shown in the following figure.
@@ -218,8 +219,7 @@ field <- inla.mesh.project(proj, field = as.vector(u))
 grd = expand.grid(1:100, 1:100)/100
 field.df <- cbind(grd,as.vector(field))
 colnames(field.df) <- c("x1","x2","y")
-p <- tryCatch({ggplot(field.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(low="yellow", high="red")}, error = function(e){print("Could not run the example")})
-p
+ggplot(field.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(low="yellow", high="red")
 ```
 
 ## Fitting the model with `R-INLA` implementation of the rational SPDE approach
