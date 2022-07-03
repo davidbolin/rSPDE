@@ -217,20 +217,20 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span><span class="co">#&gt;    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span></span>
 <span><span class="co">#&gt;    .parent.frame)") </span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 3.32, Running = 9.88, Post = 0.0942, Total = 13.3 </span></span>
+<span><span class="co">#&gt;     Pre = 3.9, Running = 15.3, Post = 0.0893, Total = 19.3 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field RGeneric2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model hyperparameters:</span></span>
 <span><span class="co">#&gt;                                           mean    sd 0.025quant 0.5quant</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations 101.78 3.542     94.974  101.720</span></span>
-<span><span class="co">#&gt; Theta1 for field                         -3.49 0.356     -4.227   -3.482</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations 101.78 3.542     94.975  101.720</span></span>
+<span><span class="co">#&gt; Theta1 for field                         -3.49 0.356     -4.228   -3.482</span></span>
 <span><span class="co">#&gt; Theta2 for field                          2.61 0.133      2.352    2.603</span></span>
 <span><span class="co">#&gt; Theta3 for field                         -0.22 0.184     -0.572   -0.224</span></span>
 <span><span class="co">#&gt;                                         0.975quant    mode</span></span>
 <span><span class="co">#&gt; Precision for the Gaussian observations    108.927 101.605</span></span>
-<span><span class="co">#&gt; Theta1 for field                            -2.809  -3.445</span></span>
+<span><span class="co">#&gt; Theta1 for field                            -2.808  -3.445</span></span>
 <span><span class="co">#&gt; Theta2 for field                             2.879   2.590</span></span>
 <span><span class="co">#&gt; Theta3 for field                             0.161  -0.243</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -242,10 +242,10 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             mean        sd 0.025quant  0.5quant 0.975quant       mode</span></span>
-<span><span class="co">#&gt; tau    0.0324514 0.0114995  0.0148499  0.030872  0.0595233  0.0277996</span></span>
-<span><span class="co">#&gt; kappa 13.6623000 1.8241500 10.5484000 13.488600 17.6966000 13.1104000</span></span>
-<span><span class="co">#&gt; nu     0.8911410 0.0898239  0.7245140  0.887413  1.0759500  0.8773040</span></span>
+<span><span class="co">#&gt;             mean        sd 0.025quant   0.5quant 0.975quant       mode</span></span>
+<span><span class="co">#&gt; tau    0.0324555 0.0115083  0.0148452  0.0308732  0.0595528  0.0277993</span></span>
+<span><span class="co">#&gt; kappa 13.6622000 1.8249600 10.5468000 13.4886000 17.6983000 13.1102000</span></span>
+<span><span class="co">#&gt; nu     0.8911270 0.0898819  0.7243830  0.8874010  1.0760400  0.8772850</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>,<span class="st">"kappa"</span>,<span class="st">"nu"</span><span class="op">)</span>,</span>
 <span>                        true <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tau</span>, <span class="va">kappa</span>, <span class="va">nu</span><span class="op">)</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">$</span><span class="va">summary.tau</span><span class="op">$</span><span class="va">mean</span>, </span>
@@ -256,9 +256,9 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span>                                                           <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.nu</span><span class="op">$</span><span class="va">mode</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter       true        mean        mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.1261566  0.03245137  0.02779963</span></span>
-<span><span class="co">#&gt; 2     kappa 10.0000000 13.66226191 13.11040145</span></span>
-<span><span class="co">#&gt; 3        nu  0.5000000  0.89114077  0.87730420</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       tau  0.1261566  0.03245553  0.02779925</span></span>
+<span><span class="co">#&gt; 2     kappa 10.0000000 13.66222434 13.11016993</span></span>
+<span><span class="co">#&gt; 3        nu  0.5000000  0.89112690  0.87728530</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kringing-with-r-inla-implementation-of-the-rational-spde-approach">Kringing with <code>R-INLA</code> implementation of the rational SPDE approach<a class="anchor" aria-label="anchor" href="#kringing-with-r-inla-implementation-of-the-rational-spde-approach"></a>
@@ -353,7 +353,7 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span><span class="co">#&gt; Estimate 1.014695  9.377185 0.5480289 0.09913223</span></span>
 <span><span class="co">#Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 12.12824 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 14.67737 secs</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kringing-with-rspde">Kringing with <code>rSPDE</code><a class="anchor" aria-label="anchor" href="#kringing-with-rspde"></a>
