@@ -140,11 +140,14 @@ alt <- PRprec$Altitude[ind]
 
 Let us build a plot for the precipitations:
 
-```{r plot_precipitations, message=FALSE, fig.align = "center"}
-ggplot() + geom_point(aes(x = coords[, 1], y = coords[, 2], colour = Y), size = 2, 
+```{r plot_precipitations, message=FALSE, fig.align = "center", echo=FALSE}
+p <- ggplot() + geom_point(aes(x = coords[, 1], y = coords[, 2], colour = Y), size = 2, 
     alpha = 1) + scale_colour_gradientn(colours = tim.colors(100)) + geom_path(aes(x = PRborder[, 
     1], y = PRborder[, 2])) + geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[1034:1078, 
     2]), colour = "red")
+tryCatch({print(p)}, error=function(e) {
+      print('Unable to build the plot')
+    })
 ```
 
 The red line in the figure shows the coast line, and we expect the distance to 

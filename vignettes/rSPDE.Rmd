@@ -208,7 +208,9 @@ library(ggplot2)
 library(gridExtra)
 df  <- data.frame(x1 = as.double(loc_2d_mesh[,1]), x2 = as.double(loc_2d_mesh[,2]), y = as.double(y))
 p <- ggplot(df,aes(x=x1,y=x2,col=y))+geom_point()+scale_color_gradient(low="yellow", high="red")
-gridExtra::grid.arrange(p)
+tryCatch({print(p)}, error=function(e) {
+      print('Unable to build the plot')
+    })
 ```
 
 The simulated random field is shown in the following figure.
@@ -220,7 +222,9 @@ grd = expand.grid(1:100, 1:100)/100
 field.df <- cbind(grd,as.vector(field))
 colnames(field.df) <- c("x1","x2","y")
 p<- ggplot(field.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(low="yellow", high="red")
-gridExtra::grid.arrange(p)
+tryCatch({print(p)}, error=function(e) {
+      print('Unable to build the plot')
+    })
 ```
 
 ## Fitting the model with `R-INLA` implementation of the rational SPDE approach
