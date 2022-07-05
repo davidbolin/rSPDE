@@ -25,10 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-         # - {os: macOS-latest,   r: 'devel'} # INLA not installed properly
-          - {os: macOS-latest,   r: 'release'}
-          - {os: ubuntu-22.04,   r: 'devel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest", http-user-agent: 'release'}
-          - {os: ubuntu-latest,   r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          - {os: windows-latest, r: 'release', rtools-version: '42'}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -97,4 +94,5 @@ jobs:
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
         with:
-          args: 'c("--no-manual", "--as-cran")'
+          build_args: 'c("--no-manual", "--no-build-vignettes")'
+          args: 'c("--no-manual", "--ignore-vignettes", "--as-cran")'
