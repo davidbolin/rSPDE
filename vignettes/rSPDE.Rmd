@@ -365,7 +365,10 @@ Finally, we plot the results. First the mean:
 grd = expand.grid(1:100, 1:100)/100
 field.pred.df <- cbind(grd,as.vector(m.prd))
 colnames(field.pred.df) <- c("x1","x2","y")
-ggplot(field.pred.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(low="yellow", high="red")
+p <- ggplot(field.pred.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(low="yellow", high="red")
+tryCatch({print(p)}, error=function(e) {
+      print('Unable to build the plot')
+    })
 ```
 
 Then, the std. deviations:
@@ -373,7 +376,10 @@ Then, the std. deviations:
 ```{r plot_pred_sd, fig.align='center', echo=FALSE}
 field.pred.sd.df <- cbind(grd,as.vector(sd.prd))
 colnames(field.pred.sd.df) <- c("x1","x2","y")
-ggplot(field.pred.sd.df,aes(x=x1,y=x2,fill=y))+geom_raster()
+p <- ggplot(field.pred.sd.df,aes(x=x1,y=x2,fill=y))+geom_raster()
+tryCatch({print(p)}, error=function(e) {
+      print('Unable to build the plot')
+    })
 ```
 
 
@@ -486,7 +492,10 @@ Finally, we plot the results. First the mean:
 ```{r plot_pred2, fig.align='center', echo=FALSE}
 field.pred2.df <- cbind(grd,as.vector(pred.rspde$mean))
 colnames(field.pred2.df) <- c("x1","x2","y")
-ggplot(field.pred2.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(low="yellow", high="red")
+p <- ggplot(field.pred2.df,aes(x=x1,y=x2,fill=y))+geom_raster()+scale_fill_gradient(low="yellow", high="red")
+tryCatch({print(p)}, error=function(e) {
+      print('Unable to build the plot')
+    })
 ```
 
 Then, the std. deviations:
@@ -494,7 +503,10 @@ Then, the std. deviations:
 ```{r plot_pred_sd2, fig.align='center', echo=FALSE}
 field.pred2.sd.df <- cbind(grd,as.vector(sqrt(pred.rspde$variance)))
 colnames(field.pred2.sd.df) <- c("x1","x2","y")
-ggplot(field.pred2.sd.df,aes(x=x1,y=x2,fill=y))+geom_raster()
+p <- ggplot(field.pred2.sd.df,aes(x=x1,y=x2,fill=y))+geom_raster()
+tryCatch({print(p)}, error=function(e) {
+      print('Unable to build the plot')
+    })
 ```
 
 
