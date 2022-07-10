@@ -450,7 +450,7 @@ utils::globalVariables(c("C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
 #' f(field, model = rspde_model)  
 #' 
 #' #Fitting the model
-#' rspde_fit <- inla(f.s, family = "Gamma", data = inla.stack.data(stk.dat), 
+#' rspde_fit <- rspde.inla(f.s, family = "Gamma", data = inla.stack.data(stk.dat), 
 #' control.inla=list(int.strategy='eb'),
 #' control.predictor = list(A = inla.stack.A(stk.dat)))
 #' 
@@ -1433,7 +1433,7 @@ rspde.make.A <- function(mesh=NULL,
 #' rspde_model <- rspde.matern(mesh = mesh_2d,
 #'                             nu_upper_bound = 1)
 #' f = y ~ -1 + f(field, model=rspde_model)
-#' rspde_fit = inla(f,
+#' rspde_fit = rspde.inla(f,
 #'       data=inla.stack.data(st.dat),
 #'       family="gaussian",
 #'       control.predictor=
@@ -1618,7 +1618,7 @@ rspde.precision <- function(rspde,
 #' rspde_model <- rspde.matern(mesh = mesh_2d,
 #'                             nu_upper_bound = 1)
 #' f = y ~ -1 + f(field, model=rspde_model)
-#' rspde_fit = inla(f,
+#' rspde_fit = rspde.inla(f,
 #'       data=inla.stack.data(st.dat),
 #'       family="gaussian",
 #'       control.predictor=
@@ -1780,7 +1780,7 @@ return(result)
 #' rspde_model <- rspde.matern(mesh = mesh_2d,
 #'                             nu_upper_bound = 1)
 #' f = y ~ -1 + f(field, model=rspde_model)
-#' rspde_fit = inla(f,
+#' rspde_fit = rspde.inla(f,
 #'       data=inla.stack.data(st.dat),
 #'       family="gaussian",
 #'       control.predictor=
@@ -1888,7 +1888,7 @@ plot.rspde.result <- function(x, which = c("tau","kappa","nu"),
 #' rspde_model <- rspde.matern(mesh = mesh_2d,
 #'                             nu_upper_bound = 1)
 #' f = y ~ -1 + f(field, model=rspde_model)
-#' rspde_fit = inla(f,
+#' rspde_fit = rspde.inla(f,
 #'       data=inla.stack.data(st.dat),
 #'       family="gaussian",
 #'       control.predictor=
@@ -2113,7 +2113,7 @@ rspde.inla <- function(..., n.tries = 10)
   
   while(!success){
     success = TRUE
-    rspde_fit <- tryCatch({inla(...)},
+    rspde_fit <- tryCatch({INLA::inla(...)},
                           error=function(e){FALSE})
     if(!is.list(rspde_fit)){
       success = FALSE
