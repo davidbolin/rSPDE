@@ -264,7 +264,7 @@ Finally, we create the formula and fit:
 f =
   y ~ -1 + f(field, model=rspde_model)
 rspde_fit =
-  inla(f,
+  rspde.inla(f,
        data=inla.stack.data(st.dat),
        family="gaussian",
        control.predictor=
@@ -341,7 +341,7 @@ Doing the joint estimation takes a while, and we therefore turn off the computat
 We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes:
 
 ```{r fit_prd, message=FALSE, warning=FALSE}
-rspde_fitprd <- inla(f, family = "Gaussian", 
+rspde_fitprd <- rspde.inla(f, family = "Gaussian", 
              data = inla.stack.data(st.all), 
              control.predictor = list(A = inla.stack.A(st.all),
                                       compute = TRUE, link = 1),

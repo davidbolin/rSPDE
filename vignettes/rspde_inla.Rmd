@@ -42,7 +42,7 @@ references:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-set.seed(1)
+set.seed(1, kind = "Mersenne-Twister", normal.kind = "Inversion")
 ```
 
 ```{r inla_link, include = FALSE}
@@ -330,7 +330,7 @@ we simply call `inla()`.
 
 
 ```{r fit_model, message=FALSE, warning=FALSE}
-rspde_fit <- inla(f.s, family = "Gamma", data = inla.stack.data(stk.dat), 
+rspde_fit <-rspde.inla(f.s, family = "Gamma", data = inla.stack.data(stk.dat), 
             verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
             control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
@@ -461,7 +461,7 @@ Doing the joint estimation takes a while, and we therefore turn off the computat
 We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes.
 
 ```{r fit_prd, message=FALSE, warning=FALSE}
-rspde_fitprd <- inla(f.s, family = "Gamma", 
+rspde_fitprd <-rspde.inla(f.s, family = "Gamma", 
              data = inla.stack.data(stk.all), 
              control.predictor = list(A = inla.stack.A(stk.all),
                                       compute = TRUE, link = 1),
@@ -543,7 +543,7 @@ update the formula and fit the model:
 f.s.2 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
   f(field, model = rspde_model_2) 
 
-rspde_fit_2 <- inla(f.s.2, family = "Gamma", data = inla.stack.data(stk.dat), 
+rspde_fit_2 <-rspde.inla(f.s.2, family = "Gamma", data = inla.stack.data(stk.dat), 
             verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
             control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
@@ -624,7 +624,7 @@ stk.dat.3 <- inla.stack(
 f.s.3 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
   f(field, model = rspde_model_order_3)
 
-rspde_fit_order_3 <- inla(f.s.3, family = "Gamma", data = inla.stack.data(stk.dat.3), 
+rspde_fit_order_3 <-rspde.inla(f.s.3, family = "Gamma", data = inla.stack.data(stk.dat.3), 
                     verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
             control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE))
@@ -719,7 +719,7 @@ Let us now fit the model:
 f.s.fix <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
   f(field, model = rspde_model_fix)
 
-rspde_fix <- inla(f.s.fix, family = "Gamma", data = inla.stack.data(stk.dat), 
+rspde_fix <-rspde.inla(f.s.fix, family = "Gamma", data = inla.stack.data(stk.dat), 
                 verbose = FALSE, 
               control.inla=list(int.strategy='eb'),
               control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
@@ -780,7 +780,7 @@ stk.dat.int <- inla.stack(
 f.s.fix.int.1 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
   f(field, model = rspde_model_fix_int1)
 
-rspde_fix_int_1 <- inla(f.s.fix.int.1, family = "Gamma", 
+rspde_fix_int_1 <-rspde.inla(f.s.fix.int.1, family = "Gamma", 
                       data = inla.stack.data(stk.dat.int), verbose = FALSE, 
                   control.inla=list(int.strategy='eb'),
                   control.predictor = list(A = inla.stack.A(stk.dat.int), 
@@ -934,7 +934,7 @@ Therefore, all we have to do is update the formula and fit the model:
 f.s.ln <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
   f(field, model = rspde_model_ln) 
 
-rspde_fit_ln <- inla(f.s.ln, family = "Gamma", data = inla.stack.data(stk.dat), 
+rspde_fit_ln <-rspde.inla(f.s.ln, family = "Gamma", data = inla.stack.data(stk.dat), 
             verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
             control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
@@ -990,7 +990,7 @@ all we have to do is to update the formula and fit:
 f.s.3.start <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
   f(field, model = rspde_model_order_3_start)
 
-rspde_fit_order_3_start <- inla(f.s.3.start, family = "Gamma", 
+rspde_fit_order_3_start <-rspde.inla(f.s.3.start, family = "Gamma", 
                                 data = inla.stack.data(stk.dat.3), 
                     verbose = FALSE, 
             control.inla=list(int.strategy='eb'),
@@ -1073,7 +1073,7 @@ Now, let us fit the models:
 f.s.opt.sharp <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
   f(field, model = rspde_model_opt_sharp) 
 
-rspde_fit_opt_sharp <- inla(f.s.opt.sharp, family = "Gamma",
+rspde_fit_opt_sharp <-rspde.inla(f.s.opt.sharp, family = "Gamma",
                             data = inla.stack.data(stk.dat.1), 
                             verbose = FALSE, 
                             control.inla=list(int.strategy='eb'),
@@ -1083,7 +1083,7 @@ rspde_fit_opt_sharp <- inla(f.s.opt.sharp, family = "Gamma",
 f.s.opt.notsharp <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
   f(field, model = rspde_model_opt_notsharp) 
 
-rspde_fit_opt_notsharp <- inla(f.s.opt.notsharp, family = "Gamma", 
+rspde_fit_opt_notsharp <-rspde.inla(f.s.opt.notsharp, family = "Gamma", 
                                data = inla.stack.data(stk.dat.1), 
                                verbose = FALSE, 
                                control.inla=list(int.strategy='eb'),
@@ -1093,7 +1093,7 @@ rspde_fit_opt_notsharp <- inla(f.s.opt.notsharp, family = "Gamma",
 f.s.nonopt <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
   f(field, model = rspde_model_nonopt) 
 
-rspde_fit_nonopt <- inla(f.s.nonopt, family = "Gamma", 
+rspde_fit_nonopt <-rspde.inla(f.s.nonopt, family = "Gamma", 
                          data = inla.stack.data(stk.dat.1), 
                          verbose = FALSE, 
                          control.inla=list(int.strategy='eb'),
@@ -1264,7 +1264,7 @@ f.rep =
   y ~ -1 + f(field, model=rspde_model.rep,
     replicate=field.repl)
 rspde_fit.rep =
-  inla(f.rep,
+ rspde.inla(f.rep,
        data=inla.stack.data(st.dat.rep),
        family="gaussian",
        control.predictor=

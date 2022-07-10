@@ -2093,3 +2093,36 @@ rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
   return(list(A = Abar, ok = (loc >= mesh$interval[1]) & (loc <= 
                                                          mesh$interval[2])))
 }
+
+
+
+
+
+
+#' @name rspde.inla
+#' @title rSPDE wrapper to run INLA
+#' @description Wrapper to run INLA
+#' @param ... Arguments for `inla` function.
+#' @param n.tries The number of tries
+#' @export
+
+rspde.inla <- function(..., n.tries = 10)
+{
+  success <- FALSE
+  temp = 0
+  
+  while(!success){
+    success = TRUE
+    rspde_fit <- tryCatch({inla(...)},
+                          error=function(e){FALSE})
+    if(!is.list(rspde_fit)){
+      success = FALSE
+    }
+    temp = temp + 1
+    if(temp >= n.tries){
+      stop("INLA FAILED TO CONVERGE")
+      break;
+    }
+  }
+  return(rspde_fit)
+}
