@@ -2,7 +2,7 @@
 % Please edit documentation in R/util.R
 \name{rational.type<-}
 \alias{rational.type<-}
-\title{Change the type of the rational approximation}
+\title{Changing the type of the rational approximation}
 \usage{
 rational.type(x) <- value
 }
@@ -15,5 +15,5 @@ rational.type(x) <- value
 An object of the same class with the new rational approximation.
 }
 \description{
-Change the type of the rational approximation
+Changing the type of the rational approximation
 }

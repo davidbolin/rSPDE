@@ -2,7 +2,7 @@
 % Please edit documentation in R/util.R
 \name{rational.order<-}
 \alias{rational.order<-}
-\title{Change the order of the rational approximation}
+\title{Changing the order of the rational approximation}
 \usage{
 rational.order(x) <- value
 }
@@ -15,5 +15,5 @@ rational.order(x) <- value
 An object of the same class with the new order of rational approximation.
 }
 \description{
-Change the order of the rational approximation
+Changing the order of the rational approximation
 }
