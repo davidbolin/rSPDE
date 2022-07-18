@@ -959,6 +959,7 @@ summary.CBrSPDEobj <- function(object, ...)
   out$nu = object$nu
   out$m = object$m
   out$n = dim(object$C)[1]
+  out[["type_rational_approximation"]] = object[["type_rational_approximation"]]
   return(out)
 }
 
@@ -971,7 +972,7 @@ print.summary.CBrSPDEobj <- function(x, ...)
 {
   
   cat("Type of approximation: ", x$type,"\n")
-  cat("Type of rational approximation: ", x$type_rational_approximation,"\n")
+  cat("Type of rational approximation: ", x[["type_rational_approximation"]],"\n")
   cat("Parameters of covariance function: kappa = ",
         x$kappa,", sigma = ", x$sigma, ", nu = ",x$nu, "\n")
   cat("Order or rational approximation: ", x$m, "\n")
@@ -1007,3 +1008,189 @@ get_rational_coefficients <- function(order, type_rational_approx){
   }
   return(mt)
 }
+
+
+
+
+#' Changing the type of the rational approximation
+#'
+#' @param x A \code{CBrSPDE} or an \code{rpsde.inla} object
+#' @param value The type of rational approximation. The current options are "chebfun", "brasil" and "chebfunLB"
+#'
+#' @return An object of the same class with the new rational approximation.
+#' @export
+#'
+`rational.type<-` <- function(x, value){
+  object <- x
+  type_rational_approximation <- value
+  type_rational_approximation <- type_rational_approximation[[1]]
+  if(!(type_rational_approximation %in% c("chebfun","brasil","chebfunLB"))){
+    stop('The possible types are "chebfun", "brasil" and "chebfunLB"!')
+  }
+  if(inherits(object, "CBrSPDEobj")){
+    model <- update(x, type_rational_approximation = value)
+  } else if(inherits(object, "inla.rspde")){
+    
+    fem_mesh <- object$fem_mesh
+    optimize <- object$optimize
+    rgeneric_type <- object$rgeneric_type
+    d <- object$dim
+    est_nu <- object$est_nu
+    n.spde <- object$n.spde
+    nu_upper_bound <- object$nu_upper_bound
+    prior.nu.dist <- object$prior.nu.dist
+    graph_opt <- object$f$rgeneric$definition(cmd="graph")
+    
+    nu <- object[["nu"]]
+    prior.kappa <- object$prior.kappa
+    prior.nu <- object$prior.nu 
+    prior.tau <- object$prior.tau 
+    start.lkappa <- object$start.lkappa 
+    start.ltau <- object$start.ltau
+    start.nu <- object$start.nu 
+    rspde_order <- object$rspde_order
+    sharp <- object$sharp
+    fem_matrices <- object$fem_matrices
+    C <- fem_mesh$c0
+    debug <- object$debug
+    
+    if(rgeneric_type == "general"){
+      model <- INLA::inla.rgeneric.define(inla.rgeneric.cov_rspde_general,
+                                          nu_upper_bound=nu_upper_bound,
+                                          fem_matrices=fem_matrices, 
+                                          graph_opt=graph_opt,
+                                          sharp=sharp,
+                                          prior.kappa=prior.kappa,
+                                          prior.nu=prior.nu,
+                                          prior.tau=prior.tau,
+                                          start.lkappa = start.lkappa,
+                                          start.nu = start.nu,
+                                          start.ltau = start.ltau,
+                                          type.rational.approx=type_rational_approximation,
+                                          d = d, rspde_order = rspde_order, 
+                                          prior.nu.dist=prior.nu.dist,
+                                          n=ncol(C)*(rspde_order+1), 
+                                          debug=debug,
+                                          do_optimize=optimize, optimize=optimize)
+    } else if(rgeneric_type == "frac_alpha"){
+      model <- INLA::inla.rgeneric.define(inla.rgeneric.cov_rspde_frac_alpha,
+                                          nu = nu,
+                                          fem_matrices=fem_matrices, 
+                                          graph_opt=graph_opt,
+                                          sharp=sharp,
+                                          prior.kappa=prior.kappa,
+                                          prior.nu=prior.nu,
+                                          prior.tau=prior.tau,
+                                          start.lkappa = start.lkappa,
+                                          start.ltau = start.ltau,
+                                          type.rational.approx=type.rational.approx,
+                                          d = d, rspde_order = rspde_order, 
+                                          n=ncol(C)*(rspde_order+1), 
+                                          debug=debug,
+                                          do_optimize=optimize, optimize=optimize)
+    } else if(rgeneric_type == "int_alpha"){
+      model <- INLA::inla.rgeneric.define(inla.rgeneric.cov_rspde_int_alpha,
+                                          nu = nu,
+                                          fem_matrices=fem_matrices, 
+                                          graph_opt=graph_opt,
+                                          prior.kappa=prior.kappa,
+                                          prior.nu=prior.nu,
+                                          prior.tau=prior.tau,
+                                          type.rational.approx=type.rational.approx,
+                                          start.lkappa = start.lkappa,
+                                          start.ltau = start.ltau,
+                                          d = d,
+                                          n=ncol(C), 
+                                          debug=debug,
+                                          do_optimize=optimize, optimize=optimize)
+    } else{
+      stop("Something is wrong with the rspde model!")
+    }
+    model$optimize = optimize
+    model$nu <- nu
+    model$prior.kappa <- prior.kappa
+    model$prior.nu <- prior.nu
+    model$prior.tau <- prior.tau
+    model$start.lkappa <- start.lkappa
+    model$start.ltau <- start.ltau
+    model$start.nu <- start.nu
+    model$rspde_order <- rspde_order
+    class(model) <- c(class(model), "inla.rspde")
+    model$dim = d
+    model$est_nu = est_nu
+    model$n.spde = n.spde
+    model$nu_upper_bound = nu_upper_bound
+    model$prior.nu.dist = prior.nu.dist
+    model$type.rational.approx = type_rational_approximation
+    model$sharp = sharp
+    model$debug = debug
+    model$mesh = object$mesh
+    model$fem_mesh <- fem_mesh
+    model$fem_matrices <- fem_matrices
+  } else{
+    stop("The object must be of class 'CBrSPDE' or 'inla.rspde'!")
+  }
+  return(model)
+}
+
+
+
+
+
+
+#' Changing the order of the rational approximation
+#'
+#' @param x A \code{CBrSPDE} or an \code{rpsde.inla} object
+#' @param value The order of rational approximation.
+#' 
+#' @return An object of the same class with the new order of rational approximation.
+#' @export
+#'
+`rational.order<-` <- function(x, value){
+  object <- x
+  rspde_order <- value
+  rspde_order <- rspde_order[[1]]
+
+  if(inherits(object, "CBrSPDEobj") || inherits(object, "rSPDEobj")){
+    model <- update(object, user_m = rspde_order)
+  } else if(inherits(object, "inla.rspde")){
+    
+    optimize <- object$optimize
+    nu_upper_bound <- object$nu_upper_bound
+    prior.nu.dist <- object$prior.nu.dist
+    mesh = object$mesh
+    nu <- object[["nu"]]
+    prior.kappa <- object$prior.kappa
+    prior.nu <- object$prior.nu 
+    prior.tau <- object$prior.tau 
+    start.lkappa <- object$start.lkappa 
+    start.ltau <- object$start.ltau
+    start.nu <- object$start.nu 
+    type_rational_approximation <- object$type.rational.approx
+    sharp <- object$sharp
+    debug <- object$debug
+    
+    
+    model <- rspde.matern(mesh, 
+      nu_upper_bound = nu_upper_bound,
+      rspde_order = rspde_order,
+      nu = nu, sharp = sharp,
+      debug = debug,
+      optimize=optimize, 
+      prior.kappa = prior.kappa,
+      prior.nu = prior.nu,
+      prior.tau = prior.tau,
+      start.lkappa = start.lkappa,
+      start.nu = start.nu,
+      start.ltau = start.ltau,
+      prior.nu.dist = prior.nu.dist,
+      type.rational.approx = type_rational_approximation
+    )
+    
+  } else{
+    stop("The object must be of class 'CBrSPDE' or 'inla.rspde'!")
+  }
+  return(model)
+}
+
+

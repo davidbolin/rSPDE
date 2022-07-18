@@ -641,7 +641,7 @@ CBrSPDE.matern.operators <- function(C,
 
   
   ## output
-  output <- list(C = C, L = L, Ci = Ci, GCi = GCi, Gk = Gk, 
+  output <- list(C = C, G = G, L = L, Ci = Ci, GCi = GCi, Gk = Gk, 
                  fem_mesh_matrices=fem_mesh_matrices,
                  alpha = alpha, nu = nu, kappa = kappa, 
                  tau = tau, m = m, d = d,

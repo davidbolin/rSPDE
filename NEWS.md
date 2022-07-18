@@ -1,4 +1,6 @@
 # rSPDE (development version)
+* Added "rational.order" and "rational.type" functions
+* Added the BRASIL rational approximation
 * Improved covariance-based operator objects
 * Improved log-likelihood computation
 * Created 2d folded Matern under different boundary conditions.

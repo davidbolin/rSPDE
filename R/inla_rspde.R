@@ -744,6 +744,8 @@ if(is.null(prior.tau$sdlog)){
                                         n=ncol(C)*(rspde_order+1), 
                                         debug=debug,
                                         do_optimize=optimize, optimize=optimize)
+    model$rgeneric_type = "general"
+    model$optimize = optimize
   } else if(!integer_alpha){
     if(optimize){
       graph_opt <- rSPDE::get.sparsity.graph.rspde(fem_mesh_matrices = fem_mesh, dim=d,
@@ -772,6 +774,8 @@ if(is.null(prior.tau$sdlog)){
                                         n=ncol(C)*(rspde_order+1), 
                                         debug=debug,
                                         do_optimize=optimize, optimize=optimize)
+    model$rgeneric_type = "frac_alpha"
+    model$optimize = optimize
   } else{
     if(optimize){
       graph_opt <- rSPDE::get.sparsity.graph.rspde(fem_mesh_matrices = fem_mesh, dim=d,
@@ -798,20 +802,30 @@ if(is.null(prior.tau$sdlog)){
                                         n=ncol(C), 
                                         debug=debug,
                                         do_optimize=optimize, optimize=optimize)
+    model$rgeneric_type = "int_alpha"
+    model$optimize = optimize
   }
   
+  model$nu <- nu
+  model$prior.kappa <- prior.kappa
+  model$prior.nu <- prior.nu
+  model$prior.tau <- prior.tau
+  model$start.lkappa <- start.lkappa
+  model$start.ltau <- start.ltau
+  model$start.nu <- start.nu
+  model$rspde_order <- rspde_order
   class(model) <- c(class(model), "inla.rspde")
   model$dim = d
   model$est_nu = !fixed_nu
   model$n.spde = mesh$n
   model$nu_upper_bound = nu_upper_bound
   model$prior.nu.dist = prior.nu.dist
-
-  if(optimize){
-    model$fem_mesh <- fem_mesh
-  } else{
-    model$fem_matrices <- fem_matrices
-  }
+  model$sharp = sharp
+  model$debug = debug
+  model$type.rational.approx = type.rational.approx
+  model$mesh <- mesh
+  model$fem_mesh <- fem_mesh
+  model$fem_matrices <- fem_matrices
 
   return(model)
 }

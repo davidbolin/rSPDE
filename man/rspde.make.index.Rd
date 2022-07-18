@@ -73,7 +73,7 @@ st.dat=inla.stack(data=list(y=as.vector(y)),
 rspde_model <- rspde.matern(mesh = mesh_2d,
                             nu_upper_bound = 1)
 f = y ~ -1 + f(field, model=rspde_model)
-rspde_fit = inla(f,
+rspde_fit = rspde.inla(f,
       data=inla.stack.data(st.dat),
       family="gaussian",
       control.predictor=
