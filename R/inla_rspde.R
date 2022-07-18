@@ -483,6 +483,7 @@ rspde.matern <- function(mesh,
     stop("prior.nu.dist should be either beta or lognormal!")
   }
   
+  integer.nu <- FALSE
   
   if(mesh$manifold == "R1"){
     d = 1
@@ -531,6 +532,7 @@ rspde.matern <- function(mesh,
     m_alpha = floor(2 * beta)
     
     if(integer_alpha){
+      integer.nu <- TRUE
       if(d==1){
         fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha+1)
       } else{
@@ -550,6 +552,7 @@ rspde.matern <- function(mesh,
     m_alpha = floor(2 * beta)
   
     if(integer_alpha){
+      integer.nu <- TRUE
       if(d==1){
         fem_matrices <- fem_mesh_order_1d(mesh, m_order = m_alpha+1)
       } else{
@@ -814,6 +817,10 @@ if(is.null(prior.tau$sdlog)){
   model$start.lkappa <- start.lkappa
   model$start.ltau <- start.ltau
   model$start.nu <- start.nu
+  model$integer.nu <- integer.nu
+  if(integer.nu){
+    rspde_order <- 0
+  }
   model$rspde_order <- rspde_order
   class(model) <- c(class(model), "inla.rspde")
   model$dim = d

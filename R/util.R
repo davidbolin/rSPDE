@@ -1041,7 +1041,7 @@ get_rational_coefficients <- function(order, type_rational_approx){
     nu_upper_bound <- object$nu_upper_bound
     prior.nu.dist <- object$prior.nu.dist
     graph_opt <- object$f$rgeneric$definition(cmd="graph")
-    
+    integer.nu <- object$integer.nu
     nu <- object[["nu"]]
     prior.kappa <- object$prior.kappa
     prior.nu <- object$prior.nu 
@@ -1116,6 +1116,7 @@ get_rational_coefficients <- function(order, type_rational_approx){
     model$start.ltau <- start.ltau
     model$start.nu <- start.nu
     model$rspde_order <- rspde_order
+    model$integer.nu <- integer.nu
     class(model) <- c(class(model), "inla.rspde")
     model$dim = d
     model$est_nu = est_nu
@@ -1173,7 +1174,10 @@ rational.type <- function(object){
   if(inherits(object, "CBrSPDEobj") || inherits(object, "rSPDEobj")){
     model <- update(object, user_m = rspde_order)
   } else if(inherits(object, "inla.rspde")){
-    
+    if(rspde_order > 0 && object$integer.nu){
+      warning("The order was not changed since there is no rational approximation (an integer model was considered).")
+      return(object)
+    }
     optimize <- object$optimize
     nu_upper_bound <- object$nu_upper_bound
     prior.nu.dist <- object$prior.nu.dist
