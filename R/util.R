@@ -1022,6 +1022,7 @@ get_rational_coefficients <- function(order, type_rational_approx){
 #'
 `rational.type<-` <- function(x, value){
   object <- x
+  
   type_rational_approximation <- value
   type_rational_approximation <- type_rational_approximation[[1]]
   if(!(type_rational_approximation %in% c("chebfun","brasil","chebfunLB"))){
@@ -1135,7 +1136,24 @@ get_rational_coefficients <- function(order, type_rational_approx){
 
 
 
-
+#' Get type of rational approximation.
+#'
+#' @param object A \code{CBrSPDEobj} object or an \code{inla.rspde} object.
+#'
+#' @return The type of rational approximation.
+#' @export
+#'
+rational.type <- function(object){
+    if(inherits(object, "CBrSPDEobj")){
+      return(object$type_rational_approximation)
+    } else if(inherits(object, "inla.rspde")){
+      return(object$type.rational.approx)
+    } else if(inherits(object, "rSPDEobj")){
+      return("chebfun")
+    } else {
+      stop("Not a valid rSPDE object!")
+    }
+}
 
 
 #' Changing the order of the rational approximation
@@ -1148,6 +1166,7 @@ get_rational_coefficients <- function(order, type_rational_approx){
 #'
 `rational.order<-` <- function(x, value){
   object <- x
+
   rspde_order <- value
   rspde_order <- rspde_order[[1]]
 
@@ -1187,6 +1206,53 @@ get_rational_coefficients <- function(order, type_rational_approx){
       type.rational.approx = type_rational_approximation
     )
     
+  } else if(!is.null(attr(object, "inla.rspde.Amatrix"))){
+      n_temp <- ncol(object)
+      old_rspde_order <- attr(object,"rspde_order")
+      orig_dim <- n_temp/(old_rspde_order+1)
+      A <- object[, 1:orig_dim]
+      Abar = kronecker(matrix(1,1,rspde_order+1),A)
+      attr(Abar, "inla.rspde.Amatrix") <- TRUE
+      attr(Abar,"rspde_order") <- rspde_order
+      integer_nu <- attr(object, "integer_nu")
+      if(integer_nu && rspde_order > 0){
+        warning("The order was not changed since there is no rational approximation (an integer model was considered).")
+        return(object)
+      }
+      attr(Abar, "integer_nu") <- integer_nu
+      return(Abar)
+  } else if(inherits(object, "inla.rspde.index")) {
+
+    integer_nu <- attr(object, "integer_nu") 
+    
+    if(integer_nu && rspde_order > 0){
+      warning("The order was not changed since there is no rational approximation (an integer model was considered).")
+      return(object)
+    }
+    
+    n_mesh <- attr(object, "n.mesh")
+    name <- attr(object, "name")
+    n.group <- attr(object, "n.group")
+    n.repl <- attr(object, "n.repl")
+    
+    factor_rspde = rspde_order+1
+    
+    name.group <- paste(name, ".group", sep = "")
+    name.repl <- paste(name, ".repl", sep = "")
+    
+    out <- list()
+    out[[name]] <- as.vector(sapply(1:factor_rspde, function(i){rep(rep(((i-1)*n_mesh+1):(i*n_mesh), times = n.group), times = n.repl)}))
+    out[[name.group]] <- rep(rep(rep(1:n.group, each = n_mesh), times = n.repl), times = factor_rspde)
+    out[[name.repl]] <- rep(rep(1:n.repl, each = n_mesh * n.group), times = factor_rspde)
+    class(out) <- c(class(out), "inla.rspde.index")
+    attr(out, "rspde_order") <- rspde_order
+    attr(out, "integer_nu") <- integer_nu
+    attr(out, "n.mesh") <- n_mesh
+    attr(out, "name") <- name
+    attr(out, "n.group") <- n.group
+    attr(out, "n.repl") <- n.repl
+    return(out)
+    
   } else{
     stop("The object must be of class 'CBrSPDE' or 'inla.rspde'!")
   }
@@ -1194,3 +1260,23 @@ get_rational_coefficients <- function(order, type_rational_approx){
 }
 
 
+#' Get the order of rational approximation.
+#'
+#' @param object A \code{CBrSPDEobj} object or an \code{inla.rspde} object.
+#'
+#' @return The order of rational approximation.
+#' @export
+#'
+rational.order <- function(object){
+  if(inherits(object, "CBrSPDEobj") || inherits(object, "rSPDEobj")){
+    return(object$m)
+  } else if(inherits(object, "inla.rspde")){
+    return(object$rspde_order)
+  } else if(!is.null(attr(object, "inla.rspde.Amatrix"))){
+    return(attr(object,"rspde_order"))
+  } else if(inherits(object, "inla.rspde.index")){
+    return(attr(object,"rspde_order"))
+  } else{
+    stop("Not a valid rSPDE object!")
+  }
+}

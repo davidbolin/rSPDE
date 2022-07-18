@@ -1389,13 +1389,25 @@ rspde.make.A <- function(mesh=NULL,
     integer_alpha <- (alpha%%1 == 0)
     if(integer_alpha){
       Abar = A
+      integer_nu <- TRUE
     } else{
       Abar = kronecker(matrix(1,1,rspde_order+1),A)
+      integer_nu <- FALSE
     }
     
   } else{
     Abar = kronecker(matrix(1,1,rspde_order+1),A)
+    integer_nu <- FALSE
   }
+  
+  if(integer_nu){
+    rspde_order <- 0
+  }
+  
+  
+  attr(Abar, "inla.rspde.Amatrix") <- TRUE
+  attr(Abar,"rspde_order") <- rspde_order
+  attr(Abar, "integer_nu") <- integer_nu
   return(Abar)
 }
 
@@ -1502,18 +1514,31 @@ rspde.make.index <- function(name, n.spde=NULL, n.group = 1,
     
     if(integer_alpha){
       factor_rspde = 1
+      integer_nu <- TRUE
     } else{
       factor_rspde = rspde_order+1
+      integer_nu <- FALSE
     }
     
   } else{
     factor_rspde = rspde_order+1
+    integer_nu <- FALSE
   }
   
   out <- list()
   out[[name]] <- as.vector(sapply(1:factor_rspde, function(i){rep(rep(((i-1)*n_mesh+1):(i*n_mesh), times = n.group), times = n.repl)}))
   out[[name.group]] <- rep(rep(rep(1:n.group, each = n_mesh), times = n.repl), times = factor_rspde)
   out[[name.repl]] <- rep(rep(1:n.repl, each = n_mesh * n.group), times = factor_rspde)
+  class(out) <- c(class(out), "inla.rspde.index")
+  if(integer_nu){
+    rspde_order <- 0
+  }
+  attr(out, "rspde_order") <- rspde_order
+  attr(out, "integer_nu") <- integer_nu
+  attr(out, "n.mesh") <- n_mesh
+  attr(out, "name") <- name
+  attr(out, "n.group") <- n.group
+  attr(out, "n.repl") <- n.repl
   return(out)
 }
 
