@@ -544,6 +544,7 @@ rspde.matern <- function(mesh,
       }
     }
   } else{
+    fem_mesh <- NULL
     beta = nu_order / 2 + d / 4
     
     m_alpha = floor(2 * beta)
