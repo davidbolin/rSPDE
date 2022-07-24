@@ -12,7 +12,8 @@ rational.order(x) <- value
 \item{value}{The order of rational approximation.}
 }
 \value{
-An object of the same class with the new order of rational approximation.
+An object of the same class with the new order
+of rational approximation.
 }
 \description{
 Changing the order of the rational approximation

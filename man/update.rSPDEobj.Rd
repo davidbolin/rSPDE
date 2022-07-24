@@ -14,16 +14,20 @@
 )
 }
 \arguments{
-\item{object}{The operator-based rational SPDE approximation, 
+\item{object}{The operator-based rational SPDE approximation,
 computed using \code{\link{matern.operators}} with \code{type="operator"}}
 
-\item{user_nu}{If non-null, update the shape parameter of the covariance function.}
+\item{user_nu}{If non-null, update the shape parameter
+of the covariance function.}
 
-\item{user_kappa}{If non-null, update the range parameter of the covariance function.}
+\item{user_kappa}{If non-null, update the range parameter
+of the covariance function.}
 
-\item{user_sigma}{If non-null, update the standard deviation of the covariance function.}
+\item{user_sigma}{If non-null, update the standard
+deviation of the covariance function.}
 
-\item{user_m}{If non-null, update the order of the rational approximation, which needs to be a positive integer.}
+\item{user_m}{If non-null, update the order of the rational
+approximation, which needs to be a positive integer.}
 
 \item{...}{Currently not used.}
 }
@@ -35,24 +39,27 @@ same quantities listed in the output of \code{\link{matern.operators}}.
 Function to change the parameters of a rSPDEobj object
 }
 \examples{
-#Compute the operator-based rational approximation of a 
-#Gaussian process with a Matern covariance function on R
+# Compute the operator-based rational approximation of a
+# Gaussian process with a Matern covariance function on R
 kappa <- 10
 sigma <- 1
 nu <- 0.8
 
-#create mass and stiffness matrices for a FEM discretization
+# create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 
-#compute rational approximation of covariance function at 0.5
-op <- matern.operators(C=fem$C, G=fem$G,nu=nu,
-kappa=kappa,sigma=sigma,d=1,m=2, type="operator")
+# compute rational approximation of covariance function at 0.5
+op <- matern.operators(
+  C = fem$C, G = fem$G, nu = nu,
+  kappa = kappa, sigma = sigma, d = 1, m = 2, type = "operator"
+)
 op
 
-#Update the range parameter of the model:
-op <- update(op, user_kappa=20)
+# Update the range parameter of the model:
+op <- update(op, user_kappa = 20)
 op
+
 }
 \seealso{
 \code{\link{simulate.rSPDEobj}}, \code{\link{matern.operators}}

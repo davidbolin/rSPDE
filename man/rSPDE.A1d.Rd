@@ -17,18 +17,20 @@ The sparse matrix \code{A}.
 \description{
 A finite element discretization on R can be written as
 \eqn{u(s) = \sum_i^n u_i \varphi_i(s)}{u(s) = \sum_i^n u_i \varphi_i(s)}
-where \eqn{\varphi_i(s)} is a piecewise linear "hat function" centered at location
-\eqn{x_i}{x_i}. This function computes an \eqn{m\times n}{m x n} matrix \eqn{A}{A}
+where \eqn{\varphi_i(s)} is a piecewise linear
+"hat function" centered at location
+\eqn{x_i}{x_i}. This function computes an
+\eqn{m\times n}{m x n} matrix \eqn{A}{A}
 that links the basis function in the expansion to specified locations
 \eqn{s = (s_1,\ldots, s_m)} in the domain through
 \eqn{A_ij = \varphi_j(s_i)}{A_ij = \varphi_j(s_i)}.
 }
 \examples{
-#create mass and stiffness matrices for a FEM discretization on [0,1]
-x = seq(from = 0, to = 1, length.out = 101)
+# create mass and stiffness matrices for a FEM discretization on [0,1]
+x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 
-#create the observation matrix for some locations in the domain
+# create the observation matrix for some locations in the domain
 obs.loc <- runif(n = 10, min = 0, max = 1)
 A <- rSPDE.A1d(x, obs.loc)
 }

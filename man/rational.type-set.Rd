@@ -9,7 +9,8 @@ rational.type(x) <- value
 \arguments{
 \item{x}{A \code{CBrSPDE} or an \code{rpsde.inla} object}
 
-\item{value}{The type of rational approximation. The current options are "chebfun", "brasil" and "chebfunLB"}
+\item{value}{The type of rational approximation.
+The current options are "chebfun", "brasil" and "chebfunLB"}
 }
 \value{
 An object of the same class with the new rational approximation.

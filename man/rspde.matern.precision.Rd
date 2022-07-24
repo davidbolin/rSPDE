@@ -2,7 +2,7 @@
 % Please edit documentation in R/inla_rspde.R
 \name{rspde.matern.precision}
 \alias{rspde.matern.precision}
-\title{Precision matrix of the covariance-based rational approximation of 
+\title{Precision matrix of the covariance-based rational approximation of
 stationary Gaussian Matern random fields}
 \usage{
 rspde.matern.precision(
@@ -23,21 +23,27 @@ rspde.matern.precision(
 
 \item{nu}{Shape parameter of the covariance function.}
 
-\item{tau}{Scale parameter of the covariance function. If sigma is not provided, tau should be provided.}
+\item{tau}{Scale parameter of the covariance function. If sigma is
+not provided, tau should be provided.}
 
-\item{sigma}{Standard deviation of the covariance function. If tau is not provided, sigma should be provided.}
+\item{sigma}{Standard deviation of the covariance function. If tau is
+not provided, sigma should be provided.}
 
 \item{rspde_order}{The order of the rational approximation}
 
 \item{dim}{The dimension of the domain}
 
-\item{fem_mesh_matrices}{A list containing the FEM-related matrices. The list should contain elements c0, g1, g2, g3, etc.}
+\item{fem_mesh_matrices}{A list containing the FEM-related matrices. The
+list should contain elements c0, g1, g2, g3, etc.}
 
-\item{only_fractional}{Logical. Should only the fractional-order part of the precision matrix be returned?}
+\item{only_fractional}{Logical. Should only the fractional-order part of
+the precision matrix be returned?}
 
-\item{return_block_list}{Logical. For \code{type = "covariance"}, should the block parts of the precision matrix be returned separately as a list?}
+\item{return_block_list}{Logical. For \code{type = "covariance"}, should the
+block parts of the precision matrix be returned separately as a list?}
 
-\item{type_rational_approx}{Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
+\item{type_rational_approx}{Which type of rational approximation should be
+used? The current types are "chebfun", "brasil" or "chebfunLB".}
 }
 \value{
 The precision matrix
@@ -47,32 +53,40 @@ The precision matrix
 precision matrix of the
 covariance-based rational SPDE approximation of a stationary Gaussian random
 fields on \eqn{R^d} with a Matern covariance function
-\deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
-(\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
+\deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu
+K_\nu(\kappa h)}{C(h) = (\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu
+K_\nu(\kappa h)}
 }
 \examples{
 set.seed(123)
-nobs = 101
+nobs <- 101
 x <- seq(from = 0, to = 1, length.out = nobs)
 fem <- rSPDE.fem1d(x)
 kappa <- 40
 sigma <- 1
 d <- 1
-nu = 2.6
-tau = sqrt(gamma(nu) / (kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-op_cov <- matern.operators(C=fem$C, G=fem$G,nu = nu,kappa = kappa, sigma = sigma,
-                                  d=1,m = 2,compute_higher_order = TRUE)
-v <- t(rSPDE.A1d(x,0.5))
+nu <- 2.6
+tau <- sqrt(gamma(nu) / (kappa^(2 * nu) * (4 * pi)^(d / 2) *
+gamma(nu + d / 2)))
+op_cov <- matern.operators(
+  C = fem$C, G = fem$G, nu = nu, kappa = kappa, sigma = sigma,
+  d = 1, m = 2, compute_higher_order = TRUE
+)
+v <- t(rSPDE.A1d(x, 0.5))
 c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
-Q <- rspde.matern.precision(kappa=kappa,nu=nu,tau=tau,rspde_order=2,d=1,
-fem_mesh_matrices = op_cov$fem_mesh_matrices)
+Q <- rspde.matern.precision(
+  kappa = kappa, nu = nu, tau = tau, rspde_order = 2, d = 1,
+  fem_mesh_matrices = op_cov$fem_mesh_matrices
+)
 A <- Diagonal(nobs)
-Abar <- cbind(A,A,A)
-w <- rbind(v,v,v)
-c.approx_cov <- (Abar)\%*\%solve(Q,w)
+Abar <- cbind(A, A, A)
+w <- rbind(v, v, v)
+c.approx_cov <- (Abar) \%*\% solve(Q, w)
 
-#plot the result and compare with the true Matern covariance
-plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
-     xlab="h", main = "Matern covariance and rational approximations")
+# plot the result and compare with the true Matern covariance
+plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma),
+  type = "l", ylab = "C(h)",
+  xlab = "h", main = "Matern covariance and rational approximations"
+)
 lines(x, c.approx_cov, col = 2)
 }

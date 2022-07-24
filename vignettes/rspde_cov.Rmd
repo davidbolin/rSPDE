@@ -257,8 +257,10 @@ We can now use `matern.operators()` to construct a rational SPDE approximation o
 kappa <- 20
 sigma <- 2
 nu <- 0.8
-op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
-                                   kappa=kappa,sigma=sigma,d=1,m=2)
+op_cov <- matern.operators(
+  C = fem$C, G = fem$G, nu = nu,
+  kappa = kappa, sigma = sigma, d = 1, m = 2
+)
 ```
 The object `op_cov` contains the matrices needed for evaluating the distribution of the stochastic weights $\boldsymbol{\mathrm{u}}$. If we want to evaluate $u_h(s)$ at some locations $s_1,\ldots, s_n$, we need to multiply the weights with the basis functions $\varphi_i(s)$ evaluated at the locations. For this, we can construct the observation matrix $\boldsymbol{\mathrm{A}}$, with elements $A_{ij} = \varphi_j(s_i)$, which links the FEM basis functions to the locations. 
 This matrix can be constructed using the function `rSPDE.A1d()`. However, as observed in the introduction of this vignette, we have decomposed the stochastic weights $\boldsymbol{\mathrm{u}}$ into a vector of latent variables.
@@ -280,95 +282,115 @@ $$
 $$
 Here, $\boldsymbol{\mathrm{Q}}$ is the precision matrix obtained from the covariance-based rational approximation, $\boldsymbol{\mathrm{A}}$ is an identity matrix since we are evaluating the approximation in the nodes of the FEM mesh, $\overline{\boldsymbol{\mathrm{v}}}$ is the $(m+1)$-fold vertical concatenation of the vector $\boldsymbol{\mathrm{v}}$, where $\boldsymbol{\mathrm{v}}$ is a vector with all basis functions evaluated in $s=0.5$.
 ```{r}
-v <- t(rSPDE.A1d(s,0.5))
-v_bar <- kronecker(matrix(1,nrow=3),v)
+v <- t(rSPDE.A1d(s, 0.5))
+v_bar <- kronecker(matrix(1, nrow = 3), v)
 A <- Diagonal(101)
-A_bar <- kronecker(matrix(1,ncol=3),A)
-c_cov.approx <- (A_bar)%*%solve(Q,v_bar)
+A_bar <- kronecker(matrix(1, ncol = 3), A)
+c_cov.approx <- (A_bar) %*% solve(Q, v_bar)
 ```
 
 Let us now compute the true Matérn covariance function on the interval $(0,1)$,
 which is the folded Matérn, see Theorem 1 in [An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach](https://www.jstor.org/stable/41262260) for further details.
 
 ```{r}
-c.true <- folded.matern.covariance.1d(rep(0.5,length(s)),abs(s), kappa, nu, sigma)
+c.true <- folded.matern.covariance.1d(rep(0.5, length(s)), abs(s), kappa, nu, sigma)
 ```
 
 The covariance function and the error compared with the Matérn covariance are shown in the following figure.
 ```{r, fig.show='hold', fig.align = "center",echo=FALSE}
-opar <- par(mfrow = c(1,2),mgp = c(1.3, 0.5, 0),
-            mar = c(2,2,0.5,0.5) + 0.1)
-plot(s, c.true, type = "l", ylab = "C(|s-0.5|)", xlab = "s",ylim=c(0,5),
-     cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
+opar <- par(
+  mfrow = c(1, 2), mgp = c(1.3, 0.5, 0),
+  mar = c(2, 2, 0.5, 0.5) + 0.1
+)
+plot(s, c.true,
+  type = "l", ylab = "C(|s-0.5|)", xlab = "s", ylim = c(0, 5),
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
 lines(s, c_cov.approx, col = 2)
-legend("topright", bty = "n",
-       legend = c("Matérn", "m=2 CBrSPDE"),
-       col = c("black", "red"),
-       lty = rep(1,2), ncol = 1,
-       cex = 0.8)
+legend("topright",
+  bty = "n",
+  legend = c("Matérn", "m=2 CBrSPDE"),
+  col = c("black", "red"),
+  lty = rep(1, 2), ncol = 1,
+  cex = 0.8
+)
 
-plot(s, c.true - c_cov.approx, type = "l", ylab = "Error", xlab = "s",
-     cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
+plot(s, c.true - c_cov.approx,
+  type = "l", ylab = "Error", xlab = "s",
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
 par(opar)
 ```
 
 To improve the approximation we can increase the degree of the polynomials, by increasing $m$, and/or increase the number of basis functions used for the FEM approximation. Let us, for example, compute the approximation with $m=4$ using the same mesh, as well as the approximation when we increase the number of basis functions and use $m=2$ and $m=4$. 
 
 ```{r}
-op_cov2 <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
-                       G = fem$G, C = fem$C, d = 1, m = 4)
+op_cov2 <- matern.operators(
+  kappa = kappa, sigma = sigma, nu = nu,
+  G = fem$G, C = fem$C, d = 1, m = 4
+)
 Q2 <- precision(op_cov2)
-v_bar2 <- kronecker(matrix(1,nrow=5),v)
-A_bar2 <- kronecker(matrix(1,ncol=5),A)
-c_cov.approx2 <- (A_bar2)%*%solve(Q2,v_bar2)
+v_bar2 <- kronecker(matrix(1, nrow = 5), v)
+A_bar2 <- kronecker(matrix(1, ncol = 5), A)
+c_cov.approx2 <- (A_bar2) %*% solve(Q2, v_bar2)
 
 s2 <- seq(from = 0, to = 1, length.out = 501)
 fem2 <- rSPDE.fem1d(s2)
-op_cov <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
-                       G = fem2$G, C = fem2$C, d = 1, m=2)
+op_cov <- matern.operators(
+  kappa = kappa, sigma = sigma, nu = nu,
+  G = fem2$G, C = fem2$C, d = 1, m = 2
+)
 Q3 <- precision(op_cov)
-A2 <- rSPDE.A1d(s2,s)
-v2 <- t(rSPDE.A1d(s2,0.5))
-v2_bar <- kronecker(matrix(1,nrow=3),v2)
-A2_bar <- kronecker(matrix(1,ncol=3),A2)
-c_cov.approx3 <- (A2_bar)%*%solve(Q3,v2_bar)
+A2 <- rSPDE.A1d(s2, s)
+v2 <- t(rSPDE.A1d(s2, 0.5))
+v2_bar <- kronecker(matrix(1, nrow = 3), v2)
+A2_bar <- kronecker(matrix(1, ncol = 3), A2)
+c_cov.approx3 <- (A2_bar) %*% solve(Q3, v2_bar)
 
-op_cov <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
-                       G = fem2$G, C = fem2$C, d = 1, m=4)
+op_cov <- matern.operators(
+  kappa = kappa, sigma = sigma, nu = nu,
+  G = fem2$G, C = fem2$C, d = 1, m = 4
+)
 Q4 <- precision(op_cov)
-v2_bar2 <- kronecker(matrix(1,nrow=5),v2)
-A2_bar2 <- kronecker(matrix(1,ncol=5),A2)
-c_cov.approx4 <- (A2_bar2)%*%solve(Q4,v2_bar2)
+v2_bar2 <- kronecker(matrix(1, nrow = 5), v2)
+A2_bar2 <- kronecker(matrix(1, ncol = 5), A2)
+c_cov.approx4 <- (A2_bar2) %*% solve(Q4, v2_bar2)
 ```
 
 The resulting errors are shown in the following figure. 
 
 ```{r, fig.show='hold',fig.align = "center",echo=FALSE}
-opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2,2,0.5,0.5) + 0.1)
-plot(s, c.true - c_cov.approx, type = "l", ylab = "Error", xlab = "s", col = 1,
-     cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
+opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
+plot(s, c.true - c_cov.approx,
+  type = "l", ylab = "Error", xlab = "s", col = 1,
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
 lines(s, c.true - c_cov.approx2, col = 2)
 lines(s, c.true - c_cov.approx3, col = 3)
 lines(s, c.true - c_cov.approx4, col = 4)
-legend("bottomright", bty = "n",
-       legend = c("m=2 coarse mesh", "m=4 coarse mesh", "m=2 fine mesh", "m=4 fine mesh"),
-       col = c(1,2,3,4),
-       lty = rep(1,2), ncol = 1,
-       cex = 0.8)
+legend("bottomright",
+  bty = "n",
+  legend = c("m=2 coarse mesh", "m=4 coarse mesh", "m=2 fine mesh", "m=4 fine mesh"),
+  col = c(1, 2, 3, 4),
+  lty = rep(1, 2), ncol = 1,
+  cex = 0.8
+)
 par(opar)
 ```
 
 Since the error induced by the rational approximation decreases exponentially in $m$, there is in general rarely a need for an approximation with a large value of $m$. This is good because the size of $\boldsymbol{\mathrm{Q}}$ increases with $m$, which makes the approximation more computationally costly to use. To illustrate this, let us compute the norm of the approximation error for different $m$.
 ```{r}
-errors <- rep(0,4)
-for(i in 1:4){
-  op_cov <- matern.operators(kappa = kappa, sigma=sigma, nu = nu,
-                       G = fem2$G, C = fem2$C, d = 1, m = i)
-  Q = precision(op_cov)
-  v_bar <- kronecker(matrix(1,nrow=i+1),v2)
-  A_bar <- kronecker(matrix(1,ncol=i+1),A2)
-  c_cov.approx <- (A_bar)%*%solve(Q,v_bar)
-  errors[i] <- norm(c.true-c_cov.approx)
+errors <- rep(0, 4)
+for (i in 1:4) {
+  op_cov <- matern.operators(
+    kappa = kappa, sigma = sigma, nu = nu,
+    G = fem2$G, C = fem2$C, d = 1, m = i
+  )
+  Q <- precision(op_cov)
+  v_bar <- kronecker(matrix(1, nrow = i + 1), v2)
+  A_bar <- kronecker(matrix(1, ncol = i + 1), A2)
+  c_cov.approx <- (A_bar) %*% solve(Q, v_bar)
+  errors[i] <- norm(c.true - c_cov.approx)
 }
 print(errors)
 ```
@@ -399,7 +421,7 @@ of replicates. For instance, to generate two replicates of the model, we
 simply do:
 
 ```{r}
-u.rep <- simulate(op_cov, nsim=2)
+u.rep <- simulate(op_cov, nsim = 2)
 ```
 
 ### Fitting a model
@@ -420,8 +442,10 @@ with $\kappa=20, \sigma=2$ and $\nu=0.8$:
 kappa <- 20
 sigma <- 2
 nu <- 0.8
-op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
-                                   kappa=kappa,sigma=sigma,d=1,m=2)
+op_cov <- matern.operators(
+  C = fem$C, G = fem$G, nu = nu,
+  kappa = kappa, sigma = sigma, d = 1, m = 2
+)
 u <- simulate(op_cov)
 
 sigma.e <- 0.3
@@ -435,13 +459,15 @@ the loglikelihood function parametrized using the logarithm of each
 parameter to avoid constrained optimization. 
 
 ```{r}
-mlik_cov <- function(theta, Y, A, op_cov){
-sigma = exp(theta[1])
-kappa = exp(theta[2])
-nu = exp(theta[3])
-return(-rSPDE::rSPDE.matern.loglike(object = op_cov, Y=Y,
-                                  A = A, user_kappa=kappa, user_sigma = sigma,
-                                 user_nu=nu, sigma.e = exp(theta[4])))
+mlik_cov <- function(theta, Y, A, op_cov) {
+  sigma <- exp(theta[1])
+  kappa <- exp(theta[2])
+  nu <- exp(theta[3])
+  return(-rSPDE::rSPDE.matern.loglike(
+    object = op_cov, Y = Y,
+    A = A, user_kappa = kappa, user_sigma = sigma,
+    user_nu = nu, sigma.e = exp(theta[4])
+  ))
 }
 ```
 
@@ -449,21 +475,27 @@ We will now get suitable initial values for the optimization using
 the `get.inital.values.rSPDE()`. We then add an initial guess for `sigma.e`.
 
 ```{r, message=FALSE, warning=FALSE}
-theta0 <- c(get.inital.values.rSPDE(mesh.range = 1, dim = 1),
-            log(0.1*sqrt(var(as.vector(Y)))))
+theta0 <- c(
+  get.inital.values.rSPDE(mesh.range = 1, dim = 1),
+  log(0.1 * sqrt(var(as.vector(Y))))
+)
 
 start_time <- Sys.time()
-theta <- optim(theta0, mlik_cov, Y = Y, A = A, op_cov = op_cov,
-method = "L-BFGS-B")
+theta <- optim(theta0, mlik_cov,
+  Y = Y, A = A, op_cov = op_cov,
+  method = "L-BFGS-B"
+)
 end_time <- Sys.time()
 
 time_optim <- end_time - start_time
 
-print(data.frame(sigma = c(sigma,exp(theta$par[1])), kappa = c(kappa,exp(theta$par[2])),
-                  nu = c(nu,exp(theta$par[3])), sigma.e = c(sigma.e,exp(theta$par[4])),
-                  row.names = c("Truth","Estimates")))
+print(data.frame(
+  sigma = c(sigma, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
+  nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
+  row.names = c("Truth", "Estimates")
+))
 
-#Total time
+# Total time
 print(time_optim)
 ```
 
@@ -474,34 +506,37 @@ want to use:
 
 ```{r, message=FALSE, warning=FALSE}
 library(optimParallel)
-#Preparing the parallel
+# Preparing the parallel
 
-#Checking if we have a limit to the number of cores
+# Checking if we have a limit to the number of cores
 chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
 if (nzchar(chk) && chk == "TRUE") {
-    n_cores <- 2L
+  n_cores <- 2L
 } else {
-    n_cores <- parallel::detectCores() - 1
+  n_cores <- parallel::detectCores() - 1
 }
 
 cl <- makeCluster(n_cores)
-setDefaultCluster(cl=cl)
+setDefaultCluster(cl = cl)
 
 start_time <- Sys.time()
-theta_parallel <- optimParallel(theta0, mlik_cov, 
-                                               Y = Y, A = A, 
-                                               op_cov = op_cov)
+theta_parallel <- optimParallel(theta0, mlik_cov,
+  Y = Y, A = A,
+  op_cov = op_cov
+)
 end_time <- Sys.time()
 
 time_optim <- end_time - start_time
 
-print(data.frame(sigma = c(sigma,exp(theta_parallel$par[1])), 
-                 kappa = c(kappa,exp(theta_parallel$par[2])),
-                  nu = c(nu,exp(theta_parallel$par[3])), 
-                 sigma.e = c(sigma.e,exp(theta_parallel$par[4])),
-                  row.names = c("Truth","Estimates")))
+print(data.frame(
+  sigma = c(sigma, exp(theta_parallel$par[1])),
+  kappa = c(kappa, exp(theta_parallel$par[2])),
+  nu = c(nu, exp(theta_parallel$par[3])),
+  sigma.e = c(sigma.e, exp(theta_parallel$par[4])),
+  row.names = c("Truth", "Estimates")
+))
 
-#Total time
+# Total time
 print(time_optim)
 ```
 
@@ -516,13 +551,15 @@ Let us update the `CBrSPDEobj` object (returned by the `matern.operators()` func
 with the fitted parameters:
 
 ```{r}
-sigma_est = exp(theta$par[1])
-kappa_est = exp(theta$par[2])
-nu_est = exp(theta$par[3])
+sigma_est <- exp(theta$par[1])
+kappa_est <- exp(theta$par[2])
+nu_est <- exp(theta$par[3])
 
-op_cov <- update(op_cov, user_kappa=kappa_est,
-                 user_sigma = sigma_est,
-                 user_nu = nu_est)
+op_cov <- update(op_cov,
+  user_kappa = kappa_est,
+  user_sigma = sigma_est,
+  user_nu = nu_est
+)
 ```
 
 We can now perform kringing with the `predict()` method:
@@ -535,10 +572,12 @@ u.krig <- predict(op_cov, A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e)
 The simulated process, the observed data, and the kriging prediction are shown in the following figure.
 
 ```{r, fig.show='hold',fig.align = "center",echo=FALSE}
-opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2,2,0.5,0.5) + 0.1)
-plot(obs.loc, Y, ylab = "u(s)", xlab = "s", 
-     ylim = c(min(c(min(u), min(Y))), max(c(max(u), max(Y)))),
-          cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
+opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
+plot(obs.loc, Y,
+  ylab = "u(s)", xlab = "s",
+  ylim = c(min(c(min(u), min(Y))), max(c(max(u), max(Y)))),
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
 lines(s, u)
 lines(s, u.krig$mean, col = 2)
 par(opar)
@@ -558,15 +597,15 @@ the previous example, namely `op_cov`.
 
 ```{r}
 set.seed(123)
-n.rep = 20
-u.rep <- simulate(op_cov, nsim=n.rep)
+n.rep <- 20
+u.rep <- simulate(op_cov, nsim = n.rep)
 ```
 
 Now, let us generate the observed values $Y$:
 
 ```{r}
 sigma.e <- 0.3
-Y.rep <- A %*% u.rep + sigma.e * matrix(rnorm(n.obs*n.rep), ncol=n.rep)
+Y.rep <- A %*% u.rep + sigma.e * matrix(rnorm(n.obs * n.rep), ncol = n.rep)
 ```
 
 Notice that $Y$ is a matrix with 20 columns, each column containing 
@@ -575,21 +614,27 @@ The `rSPDE.matern.loglike()` function automatically identifies the replicates
 from the fact that $Y$ is a matrix with more than one column.
 
 ```{r, message=FALSE, warning=FALSE}
-theta0 <- c(get.inital.values.rSPDE(mesh.range = 1, dim = 1),
-            log(0.1*sqrt(var(as.vector(Y)))))
+theta0 <- c(
+  get.inital.values.rSPDE(mesh.range = 1, dim = 1),
+  log(0.1 * sqrt(var(as.vector(Y))))
+)
 
 start_time <- Sys.time()
-theta <- optimParallel(theta0, mlik_cov, Y = Y.rep, A = A, op_cov = op_cov,
-method = "L-BFGS-B")
+theta <- optimParallel(theta0, mlik_cov,
+  Y = Y.rep, A = A, op_cov = op_cov,
+  method = "L-BFGS-B"
+)
 end_time <- Sys.time()
 
 time_optim <- end_time - start_time
 
-print(data.frame(sigma = c(sigma,exp(theta$par[1])), kappa = c(kappa,exp(theta$par[2])),
-                  nu = c(nu,exp(theta$par[3])), sigma.e = c(sigma.e,exp(theta$par[4])),
-                  row.names = c("Truth","Estimates")))
+print(data.frame(
+  sigma = c(sigma, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
+  nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
+  row.names = c("Truth", "Estimates")
+))
 
-#Total time
+# Total time
 print(time_optim)
 ```
 
@@ -623,15 +668,16 @@ Let us then create the FEM mesh:
 
 ```{r, message=FALSE, warning=FALSE,fig.align = "center"}
 library(INLA)
-n_loc =500
-loc_2d_mesh = matrix(runif(n_loc*2),n_loc,2)
-mesh_2d = inla.mesh.2d(
-  loc=loc_2d_mesh,
-  cutoff=0.05,
-  offset=c(0.1,0.4),
-  max.edge=c(0.05,0.5) )
+n_loc <- 500
+loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
+mesh_2d <- inla.mesh.2d(
+  loc = loc_2d_mesh,
+  cutoff = 0.05,
+  offset = c(0.1, 0.4),
+  max.edge = c(0.05, 0.5)
+)
 plot(mesh_2d, main = "")
-points(loc_2d_mesh[,1],loc_2d_mesh[,2])
+points(loc_2d_mesh[, 1], loc_2d_mesh[, 2])
 ```
 
 We can now use this mesh to define a rational SPDE approximation of order
@@ -642,16 +688,18 @@ range $0.1$. We will use $\nu=0.5$ so that the model has an exponential covarian
 To this end we create a model object with the `matern.operators()` function:
 
 ```{r}
-nu = 0.5
-sigma = 1 
-range = 0.1
-kappa = sqrt(8*nu)/range
-d = 2
-op_cov_2d = matern.operators(mesh=mesh_2d,
-                                 nu=nu,
-                                 kappa=kappa,
-                                 sigma=sigma,
-                                 m=2)
+nu <- 0.5
+sigma <- 1
+range <- 0.1
+kappa <- sqrt(8 * nu) / range
+d <- 2
+op_cov_2d <- matern.operators(
+  mesh = mesh_2d,
+  nu = nu,
+  kappa = kappa,
+  sigma = sigma,
+  m = 2
+)
 ```
 
 Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `r inla_link()` function `inla.spde.make.A()`.
@@ -659,24 +707,29 @@ Recall that we will simulate the data
 with 30 replicates. 
 
 ```{r}
-n.rep = 30
-u <- simulate(op_cov_2d, nsim=n.rep)
+n.rep <- 30
+u <- simulate(op_cov_2d, nsim = n.rep)
 A <- inla.spde.make.A(
-  mesh=mesh_2d,
-  loc=loc_2d_mesh)
+  mesh = mesh_2d,
+  loc = loc_2d_mesh
+)
 sigma.e <- 0.1
-Y = A %*% u + matrix(rnorm(n_loc*n.rep),ncol=n.rep) * sigma.e
+Y <- A %*% u + matrix(rnorm(n_loc * n.rep), ncol = n.rep) * sigma.e
 ```
 
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
 
 ```{r, fig.show='hold',fig.align = "center",echo=FALSE}
-opar <- par(mfrow = c(1,2),mgp = c(1.2, 0.5, 0), mar = c(2,2,0.5,0.5) + 0.1)
+opar <- par(mfrow = c(1, 2), mgp = c(1.2, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 proj <- inla.mesh.projector(mesh_2d, dims = c(70, 70))
-image(inla.mesh.project(proj, field = as.vector(u[,1])),xlab="",ylab="",
-      cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
-plot(loc_2d_mesh[,1],loc_2d_mesh[,2],cex=0.2,pch=16,xlab="",ylab="",
-     cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
+image(inla.mesh.project(proj, field = as.vector(u[, 1])),
+  xlab = "", ylab = "",
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
+plot(loc_2d_mesh[, 1], loc_2d_mesh[, 2],
+  cex = 0.2, pch = 16, xlab = "", ylab = "",
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
 par(opar)
 ```
 
@@ -694,31 +747,37 @@ parameter to avoid constrained optimization.
 
 ```{r}
 mlik_2d <- function(theta, Y, A, op_cov_2d) {
-  sigma = exp(theta[1])
-  kappa = exp(theta[2])
-  nu = exp(theta[3])
-  return(-rSPDE::rSPDE.matern.loglike(object = op_cov_2d, Y=Y,
-                                  A = A, user_kappa=kappa, user_sigma = sigma,
-                                 user_nu=nu, sigma.e = exp(theta[4])))
-}    
+  sigma <- exp(theta[1])
+  kappa <- exp(theta[2])
+  nu <- exp(theta[3])
+  return(-rSPDE::rSPDE.matern.loglike(
+    object = op_cov_2d, Y = Y,
+    A = A, user_kappa = kappa, user_sigma = sigma,
+    user_nu = nu, sigma.e = exp(theta[4])
+  ))
+}
 ```
 
 We can now estimate the parameter using `optimParallel()`:
 
 ```{r}
-theta0_2d = c(get.inital.values.rSPDE(mesh=mesh_2d),
-              log(0.1*sqrt(var(as.vector(Y)))))
+theta0_2d <- c(
+  get.inital.values.rSPDE(mesh = mesh_2d),
+  log(0.1 * sqrt(var(as.vector(Y))))
+)
 start_time <- Sys.time()
-pars <- optimParallel(theta0_2d, mlik_2d, Y = Y, A = A, op_cov_2d=op_cov_2d)
+pars <- optimParallel(theta0_2d, mlik_2d, Y = Y, A = A, op_cov_2d = op_cov_2d)
 end_time <- Sys.time()
 total_time <- end_time - start_time
-results <- data.frame(sigma = c(sigma, exp(pars$par[1])), 
-                      kappa = c(kappa, exp(pars$par[2])),
-                      nu = c(nu, exp(pars$par[3])),
-                      sigma.e = c(sigma.e, exp(pars$par[4])),
-                      row.names = c("True", "Estimate"))
+results <- data.frame(
+  sigma = c(sigma, exp(pars$par[1])),
+  kappa = c(kappa, exp(pars$par[2])),
+  nu = c(nu, exp(pars$par[3])),
+  sigma.e = c(sigma.e, exp(pars$par[4])),
+  row.names = c("True", "Estimate")
+)
 print(results)
-#Total time
+# Total time
 print(total_time)
 ```
 

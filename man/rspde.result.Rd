@@ -7,11 +7,14 @@
 rspde.result(inla, name, rspde, compute.summary = TRUE)
 }
 \arguments{
-\item{inla}{An \code{inla} object obtained from a call to \code{inla()}.}
+\item{inla}{An \code{inla} object obtained from a call to
+\code{inla()}.}
 
-\item{name}{A character string with the name of the rSPDE effect in the inla formula.}
+\item{name}{A character string with the name of the rSPDE effect
+in the inla formula.}
 
-\item{rspde}{The \code{inla.rspde} object used for the effect in the inla formula.}
+\item{rspde}{The \code{inla.rspde} object used for the effect in
+the inla formula.}
 
 \item{compute.summary}{Should the summary be computed?}
 }
@@ -27,58 +30,74 @@ Returns a list containing:
 \item{summary.values}{Summary statistics for the field values}
 If nu was estimated, then the list will also contain
 \item{marginals.nu}{Marginal densities for nu}
-If nu was estimated and a beta prior was used, then the list will also contain
+If nu was estimated and a beta prior was used, then the list will
+also contain
 \item{marginals.logit.nu}{Marginal densities for logit(nu)}
 \item{summary.logit.nu}{Marginal densities for logit(nu)}
-If nu was estimated and a truncated lognormal prior was used, then the list will also contain
+If nu was estimated and a truncated lognormal prior was used,
+then the list will also contain
 \item{marginals.log.nu}{Marginal densities for log(nu)}
 \item{summary.log.nu}{Marginal densities for log(nu)}
 If \code{compute.summary} is \code{TRUE}, then the list will also contain
 \item{summary.kappa}{Summary statistics for kappa}
 \item{summary.tau}{Summary statistics for tau}
-If nu was estimated and \code{compute.summary} is \code{TRUE}, then the list will also contain
+If nu was estimated and \code{compute.summary} is \code{TRUE},
+then the list will also contain
 \item{summary.nu}{Summary statistics for nu}
 }
 \description{
-Extract field and parameter values and distributions for an rspde effect from an inla result object.
+Extract field and parameter values and distributions
+for an rspde effect from an inla result object.
 }
 \examples{
-\donttest{ #devel version
+\donttest{
+# devel version
 library(INLA)
 set.seed(123)
 
-m = 100
-loc_2d_mesh = matrix(runif(m*2),m,2)
-mesh_2d = inla.mesh.2d(loc=loc_2d_mesh,
-                       cutoff=0.05,
-                       max.edge=c(0.1,0.5) )
+m <- 100
+loc_2d_mesh <- matrix(runif(m * 2), m, 2)
+mesh_2d <- inla.mesh.2d(
+  loc = loc_2d_mesh,
+  cutoff = 0.05,
+  max.edge = c(0.1, 0.5)
+)
 sigma <- 0.01
 range <- 0.2
 nu <- 0.8
-kappa <- sqrt(8*nu)/range
-op <- matern.operators(mesh=mesh_2d,nu=nu,
-                       kappa=kappa,sigma=sigma,m=2)
+kappa <- sqrt(8 * nu) / range
+op <- matern.operators(
+  mesh = mesh_2d, nu = nu,
+  kappa = kappa, sigma = sigma, m = 2
+)
 u <- simulate(op)
-A <- inla.spde.make.A(mesh=mesh_2d,
-                      loc=loc_2d_mesh)
+A <- inla.spde.make.A(
+  mesh = mesh_2d,
+  loc = loc_2d_mesh
+)
 sigma.e <- 0.1
-y = A \%*\% u + rnorm(m) * sigma.e
+y <- A \%*\% u + rnorm(m) * sigma.e
 Abar <- rspde.make.A(mesh = mesh_2d, loc = loc_2d_mesh)
 mesh.index <- rspde.make.index(name = "field", mesh = mesh_2d)
-st.dat=inla.stack(data=list(y=as.vector(y)),
-                  A=Abar,
-                  effects=mesh.index)
-rspde_model <- rspde.matern(mesh = mesh_2d,
-                            nu_upper_bound = 1)
-f = y ~ -1 + f(field, model=rspde_model)
-rspde_fit = rspde.inla(f,
-      data=inla.stack.data(st.dat),
-      family="gaussian",
-      control.predictor=
-        list(A=inla.stack.A(st.dat)))
+st.dat <- inla.stack(
+  data = list(y = as.vector(y)),
+  A = Abar,
+  effects = mesh.index
+)
+rspde_model <- rspde.matern(
+  mesh = mesh_2d,
+  nu_upper_bound = 1
+)
+f <- y ~ -1 + f(field, model = rspde_model)
+rspde_fit <- rspde.inla(f,
+  data = inla.stack.data(st.dat),
+  family = "gaussian",
+  control.predictor =
+    list(A = inla.stack.A(st.dat))
+)
 result <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result)
 plot(result)
-#devel.tag
+# devel.tag
 }
 }

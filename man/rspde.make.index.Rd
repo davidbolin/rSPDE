@@ -29,10 +29,10 @@ an \code{inla.mesh.1d} object.}
 
 \item{rspde_order}{The order of the rational approximation}
 
-\item{nu}{If \code{NULL}, then the model will assume that nu will be estimated. If
-nu is fixed, you should provide the value of nu.}
+\item{nu}{If \code{NULL}, then the model will assume that nu will
+be estimated. If nu is fixed, you should provide the value of nu.}
 
-\item{dim}{the dimension of the domain. Should only be provided if 
+\item{dim}{the dimension of the domain. Should only be provided if
 \code{mesh} is not provided.}
 }
 \value{
@@ -45,41 +45,53 @@ A list of named index vectors.
 Generates a list of named index vectors for an rSPDE model.
 }
 \examples{
-\donttest{ #devel version
+\donttest{
+# devel version
 library(INLA)
 set.seed(123)
 
-m = 100
-loc_2d_mesh = matrix(runif(m*2),m,2)
-mesh_2d = inla.mesh.2d(loc=loc_2d_mesh,
-                       cutoff=0.05,
-                       max.edge=c(0.1,0.5) )
+m <- 100
+loc_2d_mesh <- matrix(runif(m * 2), m, 2)
+mesh_2d <- inla.mesh.2d(
+  loc = loc_2d_mesh,
+  cutoff = 0.05,
+  max.edge = c(0.1, 0.5)
+)
 sigma <- 0.01
 range <- 0.2
 nu <- 0.8
-kappa <- sqrt(8*nu)/range
-op <- matern.operators(mesh=mesh_2d,nu=nu,
-                       kappa=kappa,sigma=sigma,m=2)
+kappa <- sqrt(8 * nu) / range
+op <- matern.operators(
+  mesh = mesh_2d, nu = nu,
+  kappa = kappa, sigma = sigma, m = 2
+)
 u <- simulate(op)
-A <- inla.spde.make.A(mesh=mesh_2d,
-                      loc=loc_2d_mesh)
+A <- inla.spde.make.A(
+  mesh = mesh_2d,
+  loc = loc_2d_mesh
+)
 sigma.e <- 0.1
-y = A \%*\% u + rnorm(m) * sigma.e
+y <- A \%*\% u + rnorm(m) * sigma.e
 Abar <- rspde.make.A(mesh = mesh_2d, loc = loc_2d_mesh)
 mesh.index <- rspde.make.index(name = "field", mesh = mesh_2d)
-st.dat=inla.stack(data=list(y=as.vector(y)),
-                  A=Abar,
-                  effects=mesh.index)
-rspde_model <- rspde.matern(mesh = mesh_2d,
-                            nu_upper_bound = 1)
-f = y ~ -1 + f(field, model=rspde_model)
-rspde_fit = rspde.inla(f,
-      data=inla.stack.data(st.dat),
-      family="gaussian",
-      control.predictor=
-        list(A=inla.stack.A(st.dat)))
+st.dat <- inla.stack(
+  data = list(y = as.vector(y)),
+  A = Abar,
+  effects = mesh.index
+)
+rspde_model <- rspde.matern(
+  mesh = mesh_2d,
+  nu_upper_bound = 1
+)
+f <- y ~ -1 + f(field, model = rspde_model)
+rspde_fit <- rspde.inla(f,
+  data = inla.stack.data(st.dat),
+  family = "gaussian",
+  control.predictor =
+    list(A = inla.stack.A(st.dat))
+)
 result <- rspde.result(rspde_fit, "field", rspde_model)
 plot(result)
-#devel.tag
+# devel.tag
 }
 }

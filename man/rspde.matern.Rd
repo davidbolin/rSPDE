@@ -31,28 +31,31 @@ an \code{inla.mesh.1d} object.}
 
 \item{rspde_order}{The order of the covariance-based rational SPDE approach.}
 
-\item{nu}{If nu is set to a parameter, nu will be kept fixed and will not be estimated.
-If nu is \code{NULL}, it will be estimated.}
+\item{nu}{If nu is set to a parameter, nu will be kept fixed and will not
+be estimated. If nu is \code{NULL}, it will be estimated.}
 
-\item{sharp}{The sparsity graph should have the correct sparsity (costs more to perform
-a sparsity analysis) or an upper bound for the sparsity? If \code{TRUE}, the graph
-will have the correct sparsity.}
+\item{sharp}{The sparsity graph should have the correct sparsity (costs
+more to perform a sparsity analysis) or an upper bound for the sparsity? If
+\code{TRUE}, the graph will have the correct sparsity.}
 
 \item{debug}{INLA debug argument.}
 
 \item{optimize}{Should the model be optimized? In this case the sparsities of
 the matrices will be analyzed.}
 
-\item{prior.kappa}{a \code{list} containing the elements \code{meanlog} and \code{sdlog}, that is,
-the mean and standard deviation on the log scale.}
+\item{prior.kappa}{a \code{list} containing the elements \code{meanlog} and
+\code{sdlog}, that is, the mean and standard deviation on the log scale.}
 
-\item{prior.nu}{a list containing the elements \code{mean} and \code{prec} for beta distribution,
-or \code{loglocation} and \code{logscale} for a truncated lognormal distribution. \code{loglocation} stands for
-the location parameter of the truncated lognormal distribution in the log scale. \code{prec} stands for the precision of a beta distribution.
-\code{logscale} stands for the scale of the truncated lognormal distribution on the log scale. Check details below.}
+\item{prior.nu}{a list containing the elements \code{mean} and \code{prec}
+for beta distribution, or \code{loglocation} and \code{logscale} for a
+truncated lognormal distribution. \code{loglocation} stands for
+the location parameter of the truncated lognormal distribution in the log
+scale. \code{prec} stands for the precision of a beta distribution.
+\code{logscale} stands for the scale of the truncated lognormal
+distribution on the log scale. Check details below.}
 
-\item{prior.tau}{a list containing the elements \code{meanlog} and \code{sdlog}, that is,
-the mean and standard deviation on the log scale.}
+\item{prior.tau}{a list containing the elements \code{meanlog} and
+\code{sdlog}, that is, the mean and standard deviation on the log scale.}
 
 \item{start.lkappa}{Starting value for log of kappa.}
 
@@ -60,78 +63,91 @@ the mean and standard deviation on the log scale.}
 
 \item{start.ltau}{Starting value for log of tau.}
 
-\item{prior.nu.dist}{The distribution of the smoothness parameter. The current
-options are "beta" or "lognormal". The default is "beta".}
+\item{prior.nu.dist}{The distribution of the smoothness parameter.
+The current options are "beta" or "lognormal". The default is "beta".}
 
-\item{nu.prec.inc}{Amount to increase the precision in the beta prior distribution. Check details below.}
+\item{nu.prec.inc}{Amount to increase the precision in the beta prior
+distribution. Check details below.}
 
-\item{type.rational.approx}{Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
+\item{type.rational.approx}{Which type of rational approximation
+should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
 }
 \value{
 An INLA model.
 }
 \description{
-Creates an INLA object for a stationary Matern model with general 
-smoothness parameter.
+Creates an INLA object for a stationary Matern model with
+general smoothness parameter.
 }
 \details{
-This function constructs a stationary Matern rSPDE model to be used with the INLA interface.
-The parameters are the range parameter \eqn{\kappa}, the smoothness parameter
-\eqn{\nu} and the variance rescaling parameter \eqn{\tau}. 
+This function constructs a stationary Matern rSPDE model to
+be used with the INLA interface. The parameters are the range
+parameter \eqn{\kappa}, the smoothness parameter
+\eqn{\nu} and the variance rescaling parameter \eqn{\tau}.
 
-For this model, an upper bound for the smoothness parameter \eqn{\nu} should be given. It is
-given by the \code{nu_upper_bound} argument. 
+For this model, an upper bound for the smoothness parameter
+\eqn{\nu} should be given. It is given by the
+\code{nu_upper_bound} argument.
 
-It is very important to notice that the larger the value of \code{nu_upper_bound}
-the higher the computational cost to fit the model. So, it is generally best
-to initially fit a model with a small value of \code{nu_upper_bound} and increase it
-only if it is really needed (for instance, if the estimated smoothness parameter was
-very close to \code{nu_upper_bound}).
+It is very important to notice that the larger the value
+of \code{nu_upper_bound} the higher the computational cost
+to fit the model. So, it is generally best to initially fit
+a model with a small value of \code{nu_upper_bound} and
+increase it only if it is really needed (for instance, if
+the estimated smoothness parameter was very close to
+\code{nu_upper_bound}).
 
 The following parameterization is used:
 \deqn{\log(\tau) = \theta_1,}
 \deqn{\log(\kappa) = \theta_2}
 and for \eqn{\theta_3} we can have a beta prior
 or a truncated lognormal prior distribution. In each case,
-the prior distribution has support on the interval \eqn{(0,\nu_{UB})}, where \eqn{\nu_{UB}} is
+the prior distribution has support on the interval
+\eqn{(0,\nu_{UB})}, where \eqn{\nu_{UB}} is
 \code{nu_upper_bound}. Then, the following parameterization
 is considered:
 \deqn{\log\Big(\frac{\nu}{\nu_{UB}-\nu}\Big) = \theta_3.}
 
 By default, an optimized version of this model is considered. The optimized
 version is generally much faster for larger datasets, however it takes more
-time to build the model as the sparsity of the graph should be analyzed. 
-However, for small datasets, it is possible that the time taken to analyze sparsity
-plus fitting the model is larger than the time taken to fit an unoptimized model.
-So, for a small dataset it might be convenient to set \code{optimize=FALSE}.
+time to build the model as the sparsity of the graph should be analyzed.
+However, for small datasets, it is possible that the time taken to
+analyze sparsity plus fitting the model is larger than the time taken
+to fit an unoptimized model. So, for a small dataset it might be
+convenient to set \code{optimize=FALSE}.
 
 A way to use the optimized version but reduce the cost of sparsity analysis
-is to set \code{sharp} to \code{FALSE}. However, it should increase 
+is to set \code{sharp} to \code{FALSE}. However, it should increase
 the cost of fitting the model. Therefore, one
-usually would not benefit from setting the \code{sharp} argument to \code{FALSE} when
-fitting the model to large datasets.
+usually would not benefit from setting the \code{sharp} argument to
+\code{FALSE} when fitting the model to large datasets.
 
-Finally, when considering a beta prior, the beta distribution will be parameterized
-in terms of its mean, say \eqn{\mu} and a precision parameter \eqn{\phi}, which
-is such that the variance of the beta distribution is given by \eqn{\mu(\nu_{UB}-\mu)/(1+\phi)}. 
+Finally, when considering a beta prior, the beta distribution will be
+parameterized in terms of its mean, say \eqn{\mu} and a precision
+parameter \eqn{\phi}, which is such that the variance of the beta
+distribution is given by \eqn{\mu(\nu_{UB}-\mu)/(1+\phi)}.
 The mean of the beta prior is determined by the \code{prior.nu$mean}, whereas
-the precision parameter is determined by the \code{prior.nu$prec}. If \code{prior.nu$prec}
-is \code{NULL} (which is the default case), the precision parameter is taken
-as 
-\deqn{\phi = \max\Big\{\frac{\nu_{UB}}{\mu}, \frac{\nu_{UB}}{\nu_{UB}-\mu}\Big\} + \textrm{nu.prec.inc},}
+the precision parameter is determined by the \code{prior.nu$prec}. If
+\code{prior.nu$prec} is \code{NULL} (which is the default case), the
+precision parameter is taken
+as
+\deqn{\phi = \max\Big\{\frac{\nu_{UB}}{\mu},
+\frac{\nu_{UB}}{\nu_{UB}-\mu}\Big\} + \textrm{nu.prec.inc},}
 where \eqn{\mu} is the prior mean of the smoothness parameter.
 
 This choice of precision parameter is to ensure that the prior beta density
 has boundary values equal to zero (where the boundary values are defined
 either by continuity or by limits).
 
-Hence, the higher the value of \code{nu.prec.inc} the more informative the prior is.
+Hence, the higher the value of \code{nu.prec.inc} the more informative
+the prior is.
 }
 \examples{
-\donttest{ #devel version
+\donttest{
+# devel version
 library(INLA)
 
-#Organizing the data
+# Organizing the data
 data(PRprec)
 data(PRborder)
 
@@ -141,42 +157,56 @@ Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 alt <- PRprec$Altitude[ind]
 
-seaDist <- apply(spDists(coords, PRborder[1034:1078, ], longlat = TRUE), 
-1, min)
+seaDist <- apply(
+  spDists(coords, PRborder[1034:1078, ], longlat = TRUE),
+  1, min
+)
 
-#Creating INLA mesh
-prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(80, 80))
-prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.6, 1.2), cutoff = 0.3)
+# Creating INLA mesh
+prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05,
+resolution = c(80, 80))
+prmesh <- inla.mesh.2d(boundary = prdomain,
+max.edge = c(0.6, 1.2), cutoff = 0.3)
 
-#Building the A matrix
+# Building the A matrix
 Abar <- rspde.make.A(mesh = prmesh, loc = coords)
 
-#Building the index
+# Building the index
 mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
 
-#Creating the model
+# Creating the model
 rspde_model <- rspde.matern(mesh = prmesh)
 
-#INLA stack
-stk.dat <- inla.stack(data = list(y = Y), A = list(Abar, 1), tag = "est", 
-  effects = list(c(mesh.index, 
-                   list(Intercept = 1)), 
-                   list(long = inla.group(coords[, 1]), 
-                   lat = inla.group(coords[,2]),
-                   seaDist = inla.group(seaDist))))
+# INLA stack
+stk.dat <- inla.stack(
+  data = list(y = Y), A = list(Abar, 1), tag = "est",
+  effects = list(
+    c(
+      mesh.index,
+      list(Intercept = 1)
+    ),
+    list(
+      long = inla.group(coords[, 1]),
+      lat = inla.group(coords[, 2]),
+      seaDist = inla.group(seaDist)
+    )
+  )
+)
 
-#INLA formula
-f.s <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
-f(field, model = rspde_model)  
+# INLA formula
+f.s <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
+  f(field, model = rspde_model)
 
-#Fitting the model
-rspde_fit <- rspde.inla(f.s, family = "Gamma", data = inla.stack.data(stk.dat), 
-control.inla=list(int.strategy='eb'),
-control.predictor = list(A = inla.stack.A(stk.dat)))
+# Fitting the model
+rspde_fit <- rspde.inla(f.s,
+  family = "Gamma", data = inla.stack.data(stk.dat),
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(A = inla.stack.A(stk.dat))
+)
 
-#The result
+# The result
 summary(rspde_fit)
-#devel.tag
+# devel.tag
 }
 
 }

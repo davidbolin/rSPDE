@@ -10,7 +10,8 @@ simulate(object, nsim, ...)
 \method{simulate}{rSPDEobj}(object, nsim = 1, ...)
 }
 \arguments{
-\item{object}{The rational SPDE approximation, computed using \code{\link{fractional.operators}},
+\item{object}{The rational SPDE approximation, computed
+using \code{\link{fractional.operators}},
 \code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.}
 
 \item{nsim}{The number of simulations.}
@@ -21,25 +22,29 @@ simulate(object, nsim, ...)
 A matrix with the \code{n} samples as columns.
 }
 \description{
-The function samples a Gaussian random field based on a pre-computed rational SPDE approximation.
+The function samples a Gaussian random field based on a
+pre-computed rational SPDE approximation.
 }
 \examples{
-#Sample a Gaussian Matern process on R using a rational approximation
+# Sample a Gaussian Matern process on R using a rational approximation
 kappa <- 10
 sigma <- 1
 nu <- 0.8
 
-#create mass and stiffness matrices for a FEM discretization
+# create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 
-#compute rational approximation
-op <- matern.operators(kappa = kappa, sigma = sigma,
-                       nu = nu, G=fem$G, C=fem$C, d = 1)
+# compute rational approximation
+op <- matern.operators(
+  kappa = kappa, sigma = sigma,
+  nu = nu, G = fem$G, C = fem$C, d = 1
+)
 
-#Sample the model and plot the result
+# Sample the model and plot the result
 Y <- simulate(op)
 plot(x, Y, type = "l", ylab = "u(x)", xlab = "x")
+
 }
 \seealso{
 \code{\link{simulate.CBrSPDEobj}}

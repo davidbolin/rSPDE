@@ -20,10 +20,13 @@ A vector with the values C(h).
 }
 \description{
 \code{matern.covariance} evaluates the Matern covariance function
-\deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
+\deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu
+K_\nu(\kappa h).}
 }
 \examples{
-x = seq(from = 0, to = 1, length.out = 101)
-plot(x, matern.covariance(abs(x - 0.5), kappa = 10, nu = 1/5, sigma = 1),
-     type = "l", ylab = "C(h)", xlab = "h")
+x <- seq(from = 0, to = 1, length.out = 101)
+plot(x, matern.covariance(abs(x - 0.5), kappa = 10, nu = 1 / 5, sigma = 1),
+  type = "l", ylab = "C(h)", xlab = "h"
+)
+
 }

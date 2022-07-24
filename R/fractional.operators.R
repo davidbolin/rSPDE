@@ -17,25 +17,28 @@
 
 #' Rational approximations of fractional operators
 #'
-#' \code{fractional.operators} is used for computing an approximation, which can be used for inference and
-#' simulation, of the fractional SPDE
+#' \code{fractional.operators} is used for computing an approximation,
+#' which can be used for inference and simulation, of the fractional SPDE
 #' \deqn{L^\beta (\tau u(s)) = W.}
 #' Here \eqn{L} is a differential operator, \eqn{\beta>0} is
-#' the fractional power, \eqn{\tau} is a positive scalar or vector that scales the variance of the solution \eqn{u}, and
-#' \eqn{W} is white noise.
+#' the fractional power, \eqn{\tau} is a positive scalar or vector that
+#' scales the variance of the solution \eqn{u}, and \eqn{W} is white noise.
 #'
 #' @param L A finite element discretization of the operator \eqn{L}{L}.
 #' @param beta The positive fractional power.
 #' @param C The mass matrix of the finite element discretization.
-#' @param scale.factor A constant \eqn{c} is a lower bound for the the smallest eigenvalue of the non-discretized
-#' operator \eqn{L}{L}.
-#' @param m The order of the rational approximation, which needs to be a positive integer. The default value is 1.
-#' Higer values gives a more accurate approximation, which are more computationally expensive to use for inference.
-#' Currently, the largest value of m that is implemented is 4. 
-#' @param tau The constant or vector that scales the variance of the solution. The default value is 1.
+#' @param scale.factor A constant \eqn{c} is a lower bound for the the smallest
+#' eigenvalue of the non-discretized operator \eqn{L}{L}.
+#' @param m The order of the rational approximation, which needs to be a
+#' positive integer. The default value is 1.
+#' Higer values gives a more accurate approximation, which are more
+#' computationally expensive to use for inference. Currently, the largest value
+#' of m that is implemented is 4.
+#' @param tau The constant or vector that scales the variance of the solution.
+#' The default value is 1.
 #'
-#' @return \code{fractional.operators} returns an object of class "rSPDEobj". This object contains the
-#' following quantities:
+#' @return \code{fractional.operators} returns an object of class "rSPDEobj".
+#' This object contains the following quantities:
 #' \item{Pl}{The operator \eqn{P_l}.}
 #' \item{Pr}{The operator \eqn{P_r}.}
 #' \item{C}{The mass lumped mass matrix.}
@@ -50,66 +53,73 @@
 #' @export
 #' @seealso \code{\link{matern.operators}}, \code{\link{spde.matern.operators}},
 #' \code{\link{matern.operators}}
-#' @details The approximation is based on a rational approximation of the fractional operator,
-#' resulting in an
+#' @details The approximation is based on a rational approximation of
+#' the fractional operator, resulting in an
 #' approximate model on the form \deqn{P_l u(s) = P_r W,}
-#' where \eqn{P_j = p_j(L)} are non-fractional operators defined in terms of polynomials \eqn{p_j} for
-#' \eqn{j=l,r}. The order of \eqn{p_r} is given by \code{m} and the order of \eqn{p_l} is \eqn{m + m_\beta}
+#' where \eqn{P_j = p_j(L)} are non-fractional operators defined in terms of
+#' polynomials \eqn{p_j} for \eqn{j=l,r}. The order of \eqn{p_r} is given by
+#' \code{m} and the order of \eqn{p_l} is \eqn{m + m_\beta}
 #' where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and
 #' \eqn{m_\beta = 1} otherwise.
 #'
-#' The discrete approximation can be written as \eqn{u = P_r x} where \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
-#' and \eqn{Q = P_l^T C^{-1} P_l}. Note that the matrices \eqn{P_r} and \eqn{Q} may be be ill-conditioned for \eqn{m>1}.
-#' In this case, the methods in \code{\link{operator.operations}} should be used for operations
-#' involving the matrices, since these methods are more numerically stable.   
+#' The discrete approximation can be written as \eqn{u = P_r x} where
+#' \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})} and \eqn{Q = P_l^T C^{-1} P_l}.
+#' Note that the matrices \eqn{P_r} and \eqn{Q} may be be ill-conditioned
+#' for \eqn{m>1}. In this case, the methods in \code{\link{operator.operations}}
+#' should be used for operations involving the matrices, since these methods
+#' are more numerically stable.
 #'
 #' @examples
-#' #Compute rational approximation of a Gaussian process with a 
-#' #Matern covariance function on R
+#' # Compute rational approximation of a Gaussian process with a
+#' # Matern covariance function on R
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
 #'
-#' #create mass and stiffness matrices for a FEM discretization
+#' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
-#' #compute rational approximation of covariance function at 0.5
-#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
-#' op <- fractional.operators(L = fem$G + kappa^2*fem$C, beta = (nu + 1/2)/2,
-#'                            C=fem$C, scale.factor = kappa^2, tau = tau)
+#' # compute rational approximation of covariance function at 0.5
+#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+#'   (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
+#' op <- fractional.operators(
+#'   L = fem$G + kappa^2 * fem$C, beta = (nu + 1 / 2) / 2,
+#'   C = fem$C, scale.factor = kappa^2, tau = tau
+#' )
 #'
-#' v = t(rSPDE.A1d(x,0.5))
-#' c.approx = Sigma.mult(op,v)
-#' 
-#' #plot the result and compare with the true Matern covariance
-#' plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
-#'      xlab="h", main = "Matern covariance and rational approximations")
+#' v <- t(rSPDE.A1d(x, 0.5))
+#' c.approx <- Sigma.mult(op, v)
+#'
+#' # plot the result and compare with the true Matern covariance
+#' plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma),
+#'   type = "l", ylab = "C(h)",
+#'   xlab = "h", main = "Matern covariance and rational approximations"
+#' )
 #' lines(x, c.approx, col = 2)
-
+#'
 fractional.operators <- function(L,
                                  beta,
                                  C,
                                  scale.factor,
                                  m = 1,
-                                 tau = 1)
-{
-  if(min(tau)<0){
+                                 tau = 1) {
+  if (min(tau) < 0) {
     stop("tau should be positive")
   }
-  if((m %% 1) != 0 || m < 0){
+  if ((m %% 1) != 0 || m < 0) {
     stop("m must be a positive integer")
   }
-  if(scale.factor <= 0){
+  if (scale.factor <= 0) {
     stop("the scaling factor must be positive")
   }
-  
+
   C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
   Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
   I <- Matrix::Diagonal(dim(C)[1])
-  L <- L/scale.factor
+  L <- L / scale.factor
   CiL <- Ci %*% L
-  if (beta %% 1 == 0) { #not fractional
+  if (beta %% 1 == 0) { # not fractional
     Pr <- I
     Pl <- L
     if (beta > 1) {
@@ -119,7 +129,7 @@ fractional.operators <- function(L,
     }
     Pl.roots <- Pl.factors <- NULL
     Pl.k <- beta
-    Pl.scaling <- scale.factor ^ beta 
+    Pl.scaling <- scale.factor^beta
     Pr.roots <- Pr.factors <- NULL
   } else {
     roots <- get.roots(m, beta)
@@ -127,15 +137,13 @@ fractional.operators <- function(L,
     Pr.roots <- roots$rc
     m_beta <- max(1, floor(beta))
     Pr.factors <- Pl.factors <- list()
-    #construct Pl
+    # construct Pl
     Pl <- I - CiL * roots$rb[1]
     Pl.factors[[1]] <- I - CiL * roots$rb[1]
-    if (length(roots$rb) > 1)
-    {
-      for (i in 2:length(roots$rb))
-      {
+    if (length(roots$rb) > 1) {
+      for (i in 2:length(roots$rb)) {
         Pl <- Pl %*% (I - CiL * roots$rb[i])
-        Pl.factors[[i]] <- I - CiL * roots$rb[i]    
+        Pl.factors[[i]] <- I - CiL * roots$rb[i]
       }
     }
     Lp <- C
@@ -145,10 +153,10 @@ fractional.operators <- function(L,
       }
     }
     Pl.k <- m_beta - 1
-    Pl.scaling <- scale.factor ^ beta / roots$factor
+    Pl.scaling <- scale.factor^beta / roots$factor
     Pl <- Lp %*% Pl
-    
-    #construct Pr
+
+    # construct Pr
     Pr <- I - CiL * roots$rc[1]
     Pr.factors[[1]] <- I - CiL * roots$rc[1]
     if (length(roots$rc) > 1) {
@@ -158,60 +166,79 @@ fractional.operators <- function(L,
       }
     }
   }
-  Pl <- Pl * Pl.scaling 
-  Phi <- Matrix::Diagonal(dim(C)[1], 1/tau)
-  output <- list(Q = t(Pl) %*% Ci %*% Pl,
-                 Pl = Pl,
-                 Pr = Phi %*% Pr,
-                 Ci = Ci,
-                 C = C,
-                 CiL = CiL,
-                 L = L,
-                 Pl.factors = list(scaling = Pl.scaling,
-                                   roots = Pl.roots,
-                                   factor = Pl.factors,
-                                   k = Pl.k),
-                 Pr.factors = list(roots = Pr.roots,
-                                   factor = Pr.factors,
-                                   Phi = Phi),
-                 m = m,
-                 beta = beta,
-                 type = "fractional approximation")
+  Pl <- Pl * Pl.scaling
+  Phi <- Matrix::Diagonal(dim(C)[1], 1 / tau)
+  output <- list(
+    Q = t(Pl) %*% Ci %*% Pl,
+    Pl = Pl,
+    Pr = Phi %*% Pr,
+    Ci = Ci,
+    C = C,
+    CiL = CiL,
+    L = L,
+    Pl.factors = list(
+      scaling = Pl.scaling,
+      roots = Pl.roots,
+      factor = Pl.factors,
+      k = Pl.k
+    ),
+    Pr.factors = list(
+      roots = Pr.roots,
+      factor = Pr.factors,
+      Phi = Phi
+    ),
+    m = m,
+    beta = beta,
+    type = "fractional approximation"
+  )
   class(output) <- "rSPDEobj"
   return(output)
 }
 
 #' Rational approximations of stationary Gaussian Matern random fields
 #'
-#' \code{matern.operators} is used for computing a rational SPDE approximation of a stationary Gaussian random
-#' fields on \eqn{R^d} with a Matern covariance function
-#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
-#' (\sigma^2/(2^{\nu-1}\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h).}
+#' \code{matern.operators} is used for computing a rational SPDE approximation
+#' of a stationary Gaussian random fields on \eqn{R^d} with a Matern covariance
+#' function
+#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}
+#' (\kappa h)^\nu K_\nu(\kappa h)}{C(h) = (\sigma^2/(2^{\nu-1}\Gamma(\nu))
+#' (\kappa h)^\nu K_\nu(\kappa h).}
 #'
 #' @param kappa Range parameter of the covariance function.
 #' @param sigma Standard deviation of the covariance function.
 #' @param nu Shape parameter of the covariance function.
-#' @param G The stiffness matrix of a finite element discretization of the domain of interest. Does not need to be given if \code{mesh} is used.
-#' @param C The mass matrix of a finite element discretization of the domain of interest. Does not need to be given if \code{mesh} is used.
-#' @param mesh An optional inla mesh. \code{d}, \code{C} and \code{G} must be given if \code{mesh} is not given.
-#' @param d The dimension of the domain. Does not need to be given if \code{mesh} is used.
-#' @param m The order of the rational approximation, which needs to be a positive integer.
-#' The default value is 1.
-#' @param type The type of the rational approximation. The options are "covariance"
-#' and "operator". The default is "covariance".
-#' @param compute_higher_order Logical. Should the higher order finite element matrices be computed?
-#' @param return_block_list Logical. For \code{type = "covariance"}, should the block parts of the precision matrix be returned separately as a list?
-#' @param type_rational_approximation Which type of rational approximation should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#' @param G The stiffness matrix of a finite element discretization of the
+#' domain of interest. Does not need to be given if \code{mesh} is used.
+#' @param C The mass matrix of a finite element discretization of the domain
+#' of interest. Does not need to be given if \code{mesh} is used.
+#' @param mesh An optional inla mesh. \code{d}, \code{C} and \code{G}
+#' must be given if \code{mesh} is not given.
+#' @param d The dimension of the domain. Does not need to be given if
+#' \code{mesh} is used.
+#' @param m The order of the rational approximation, which needs to be a
+#' positive integer. The default value is 1.
+#' @param type The type of the rational approximation. The options are
+#' "covariance" and "operator". The default is "covariance".
+#' @param compute_higher_order Logical. Should the higher order finite
+#' element matrices be computed?
+#' @param return_block_list Logical. For \code{type = "covariance"},
+#' should the block parts of the precision matrix be returned
+#' separately as a list?
+#' @param type_rational_approximation Which type of rational
+#' approximation should be used? The current types are
+#' "chebfun", "brasil" or "chebfunLB".
 #'
-#' @return If \code{type} is "covariance", then \code{matern.operators} 
-#' returns an object of class "CBrSPDEobj". 
+#' @return If \code{type} is "covariance", then \code{matern.operators}
+#' returns an object of class "CBrSPDEobj".
 #' This object is a list containing the
 #' following quantities:
 #' \item{C}{The mass lumped mass matrix.}
 #' \item{Ci}{The inverse of \code{C}.}
 #' \item{GCi}{The stiffness matrix G times \code{Ci}}
-#' \item{Gk}{The stiffness matrix G along with the higher-order FEM-related matrices G2, G3, etc.}
-#' \item{fem_mesh_matrices}{A list containing the mass lumped mass matrix, the stiffness matrix and 
+#' \item{Gk}{The stiffness matrix G along with the higher-order
+#' FEM-related matrices G2, G3, etc.}
+#' \item{fem_mesh_matrices}{A list containing the mass
+#' lumped mass matrix, the stiffness matrix and
 #' the higher-order FEM-related matrices.}
 #' \item{m}{The order of the rational approximation.}
 #' \item{alpha}{The fractional power of the precision operator.}
@@ -222,143 +249,162 @@ fractional.operators <- function(L,
 #' \item{tau}{Scale parameter of the covariance function.}
 #' \item{sigma}{Standard deviation of the covariance function.}
 #' \item{type}{String indicating the type of approximation.}
-#' 
+#'
 #' If \code{type} is "operator", then \code{matern.operators}
 #'  returns an object of class "rSPDEobj". This object contains the
 #' quantities listed in the output of \code{\link{fractional.operators}},
-#' the \code{G} matrix, the dimension of the domain, as well as the 
+#' the \code{G} matrix, the dimension of the domain, as well as the
 #' parameters of the covariance function.
-#' 
-#' @details If \code{type} is "covariance", we use the 
+#'
+#' @details If \code{type} is "covariance", we use the
 #' covariance-based rational approximation of the fractional operator.
-#' In the SPDE approach, we model \eqn{u} as the solution of the following SPDE: 
+#' In the SPDE approach, we model \eqn{u} as the solution of the following SPDE:
 #' \deqn{L^{\alpha/2}(\tau u) = \mathcal{W},}
-#' where 
-#' \eqn{L  = -\Delta +\kappa^2 I} and \eqn{\mathcal{W}} is the standard Gaussian white noise. 
-#' The covariance operator of \eqn{u} is given by \eqn{L^{-\alpha}}. 
-#' Now, let \eqn{L_h} be a finite-element approximation of \eqn{L}. We can use 
+#' where
+#' \eqn{L  = -\Delta +\kappa^2 I} and \eqn{\mathcal{W}} is the standard
+#' Gaussian white noise. The covariance operator of \eqn{u} is given
+#' by \eqn{L^{-\alpha}}. Now, let \eqn{L_h} be a finite-element
+#' approximation of \eqn{L}. We can use
 #' a rational approximation of order \eqn{m} on \eqn{L_h^{-\alpha}} to
 #' obtain the following approximation:
 #' \deqn{L_{h,m}^{-\alpha} = L_h^{-m_\alpha} p(L_h^{-1})q(L_h^{-1})^{-1},}
-#' where \eqn{m_\alpha = \lfloor \alpha\rfloor}, \eqn{p} and \eqn{q} are polynomials arising from such rational approximation.
-#' From this approximation we construct an approximate precision matrix for \eqn{u}.
-#' 
-#' If \code{type} is "operator", the approximation is based on a 
+#' where \eqn{m_\alpha = \lfloor \alpha\rfloor}, \eqn{p} and \eqn{q} are
+#' polynomials arising from such rational approximation.
+#' From this approximation we construct an approximate precision
+#' matrix for \eqn{u}.
+#'
+#' If \code{type} is "operator", the approximation is based on a
 #' rational approximation of the fractional operator
 #' \eqn{(\kappa^2 -\Delta)^\beta}, where \eqn{\beta = (\nu + d/2)/2}.
 #' This results in an approximate model of the form \deqn{P_l u(s) = P_r W,}
-#' where \eqn{P_j = p_j(L)} are non-fractional operators defined in terms of polynomials \eqn{p_j} for
-#' \eqn{j=l,r}. The order of \eqn{p_r} is given by \code{m} and the order of \eqn{p_l} is \eqn{m + m_\beta}
+#' where \eqn{P_j = p_j(L)} are non-fractional operators defined in terms
+#' of polynomials \eqn{p_j} for \eqn{j=l,r}. The order of \eqn{p_r} is given
+#' by \code{m} and the order of \eqn{p_l} is \eqn{m + m_\beta}
 #' where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and
 #' \eqn{m_\beta = 1} otherwise.
 #'
-#' The discrete approximation can be written as \eqn{u = P_r x} where \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
-#' and \eqn{Q = P_l^T C^{-1} P_l}. Note that the matrices \eqn{P_r} and \eqn{Q} may be be ill-conditioned for \eqn{m>1}.
-#' In this case, the methods in \code{\link{operator.operations}} should be used for operations
-#' involving the matrices, since these methods are more numerically stable.   
+#' The discrete approximation can be written as \eqn{u = P_r x} where
+#' \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})} and \eqn{Q = P_l^T C^{-1} P_l}.
+#' Note that the matrices \eqn{P_r} and \eqn{Q} may be be
+#' ill-conditioned for \eqn{m>1}. In this case, the methods in
+#' \code{\link{operator.operations}} should be used for operations involving
+#' the matrices, since these methods are more numerically stable.
 #' @export
-#' @seealso \code{\link{fractional.operators}}, \code{\link{spde.matern.operators}},
+#' @seealso \code{\link{fractional.operators}},
+#' \code{\link{spde.matern.operators}},
 #' \code{\link{matern.operators}}
 #'
 #' @examples
-#' #Compute the covariance-based rational approximation of a 
-#' #Gaussian process with a Matern covariance function on R
+#' # Compute the covariance-based rational approximation of a
+#' # Gaussian process with a Matern covariance function on R
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
 #'
-#' #create mass and stiffness matrices for a FEM discretization
-#' nobs = 101
+#' # create mass and stiffness matrices for a FEM discretization
+#' nobs <- 101
 #' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
-#' #compute rational approximation of covariance function at 0.5
-#' op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
-#' kappa=kappa,sigma=sigma,d=1,m=2)
+#' # compute rational approximation of covariance function at 0.5
+#' op_cov <- matern.operators(
+#'   C = fem$C, G = fem$G, nu = nu,
+#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#' )
 #'
-#' v = t(rSPDE.A1d(x,0.5))
-#' #Compute the precision matrix
+#' v <- t(rSPDE.A1d(x, 0.5))
+#' # Compute the precision matrix
 #' Q <- op_cov$Q
-#' #A matrix here is the identity matrix
+#' # A matrix here is the identity matrix
 #' A <- Diagonal(nobs)
-#' #We need to concatenate 3 A's since we are doing a covariance-based rational
-#' #approximation of order 2
-#' Abar <- cbind(A,A,A)
-#' w <- rbind(v,v,v)
-#' #The approximate covariance function:
-#' c_cov.approx <- (Abar)%*%solve(Q,w)
-#' c.true <- folded.matern.covariance.1d(rep(0.5,length(x)),abs(x), kappa, nu, sigma)
-#' 
-#' #plot the result and compare with the true Matern covariance
-#' plot(x, c.true, type = "l", ylab = "C(h)",
-#'      xlab="h", main = "Matern covariance and rational approximations")
+#' # We need to concatenate 3 A's since we are doing a covariance-based rational
+#' # approximation of order 2
+#' Abar <- cbind(A, A, A)
+#' w <- rbind(v, v, v)
+#' # The approximate covariance function:
+#' c_cov.approx <- (Abar) %*% solve(Q, w)
+#' c.true <- folded.matern.covariance.1d(rep(0.5, length(x)),
+#'    abs(x), kappa, nu, sigma)
+#'
+#' # plot the result and compare with the true Matern covariance
+#' plot(x, c.true,
+#'   type = "l", ylab = "C(h)",
+#'   xlab = "h", main = "Matern covariance and rational approximations"
+#' )
 #' lines(x, c_cov.approx, col = 2)
-#' 
-#' 
-#' #Compute the operator-based rational approximation of a Gaussian 
-#' #process with a Matern covariance function on R
+#'
+#'
+#' # Compute the operator-based rational approximation of a Gaussian
+#' # process with a Matern covariance function on R
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
 #'
-#' #create mass and stiffness matrices for a FEM discretization
+#' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
-#' #compute rational approximation of covariance function at 0.5
-#' op <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
-#'                        G = fem$G, C = fem$C, d = 1,
-#'                        type="operator")
-#'                        
-#' v = t(rSPDE.A1d(x,0.5))
-#' c.approx = Sigma.mult(op,v)
-#' c.true <- folded.matern.covariance.1d(rep(0.5,length(x)),abs(x), kappa, nu, sigma)
+#' # compute rational approximation of covariance function at 0.5
+#' op <- matern.operators(
+#'   kappa = kappa, sigma = sigma, nu = nu,
+#'   G = fem$G, C = fem$C, d = 1,
+#'   type = "operator"
+#' )
 #'
-#' #plot the result and compare with the true Matern covariance
-#' plot(x, c.true, type = "l", ylab = "C(h)",
-#'      xlab="h", main = "Matern covariance and rational approximation")
-#' lines(x,c.approx,col=2)
-
+#' v <- t(rSPDE.A1d(x, 0.5))
+#' c.approx <- Sigma.mult(op, v)
+#' c.true <- folded.matern.covariance.1d(rep(0.5, length(x)),
+#'   abs(x), kappa, nu, sigma)
+#'
+#' # plot the result and compare with the true Matern covariance
+#' plot(x, c.true,
+#'   type = "l", ylab = "C(h)",
+#'   xlab = "h", main = "Matern covariance and rational approximation"
+#' )
+#' lines(x, c.approx, col = 2)
 matern.operators <- function(kappa,
                              sigma,
                              nu,
-                             G=NULL,
-                             C=NULL,
+                             G = NULL,
+                             C = NULL,
                              d = NULL,
                              mesh = NULL,
                              m = 1,
                              type = c("covariance", "operator"),
                              compute_higher_order = FALSE,
                              return_block_list = FALSE,
-                             type_rational_approximation = c("chebfun", "brasil", "chebfunLB"))
-{
-  type = type[[1]]
-  if(!type%in%c("covariance", "operator")){
+                             type_rational_approximation = c("chebfun",
+                             "brasil", "chebfunLB")) {
+  type <- type[[1]]
+  if (!type %in% c("covariance", "operator")) {
     stop("The type should be 'covariance' or 'operator'!")
   }
-  if(is.null(d) && is.null(mesh)){
+  if (is.null(d) && is.null(mesh)) {
     stop("You should give either the dimension d or the mesh!")
   }
-  
-  if( (is.null(C) || is.null(G) ) && is.null(mesh)){
+
+  if ((is.null(C) || is.null(G)) && is.null(mesh)) {
     stop("You should either provide mesh, or provide C *and* G!")
   }
-  
-  if(type=="operator"){
-    if(!is.null(mesh)){
+
+  if (type == "operator") {
+    if (!is.null(mesh)) {
       d <- get_inla_mesh_dimension(inla_mesh = mesh)
       fem <- INLA::inla.mesh.fem(mesh)
       C <- fem$c0
       G <- fem$g1
     }
-    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-    beta <- (nu + d/2)/2
-    operators <- fractional.operators(L = G + C*kappa^2,
-                                      beta = beta,
-                                      C = C,
-                                      scale.factor = kappa^2,
-                                      m = m,
-                                      tau = tau)
+    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+    beta <- (nu + d / 2) / 2
+    operators <- fractional.operators(
+      L = G + C * kappa^2,
+      beta = beta,
+      C = C,
+      scale.factor = kappa^2,
+      m = m,
+      tau = tau
+    )
     output <- operators
     output$kappa <- kappa
     output$sigma <- sigma
@@ -367,40 +413,50 @@ matern.operators <- function(kappa,
     output$G <- G
     output$type <- "Matern approximation"
     return(output)
-  } else{
-    type_rational_approximation = type_rational_approximation[[1]]
-    return(CBrSPDE.matern.operators(C=C,G=G,mesh=mesh,nu=nu,kappa=kappa,sigma=sigma,m=m,d=d,compute_higher_order = compute_higher_order, return_block_list = return_block_list,
-                                    type_rational_approximation=type_rational_approximation))
+  } else {
+    type_rational_approximation <- type_rational_approximation[[1]]
+    return(CBrSPDE.matern.operators(
+      C = C, G = G, mesh = mesh, nu = nu, kappa = kappa, sigma = sigma,
+      m = m, d = d, compute_higher_order = compute_higher_order,
+      return_block_list = return_block_list,
+      type_rational_approximation = type_rational_approximation
+    ))
   }
-
 }
 
 
 
 #' @name CBrSPDE.matern.operators
-#' @title Covariance-based rational approximations of stationary Gaussian Matern random fields
-#' @description \code{CBrSPDE.matern.operators} is used for computing a 
+#' @title Covariance-based rational approximations of stationary Gaussian
+#' Matern random fields
+#' @description \code{CBrSPDE.matern.operators} is used for computing a
 #' covariance-based rational SPDE approximation of stationary Gaussian random
 #' fields on \eqn{R^d} with a Matern covariance function
-#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
+#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu
+#' K_\nu(\kappa h)}{C(h) =
 #' (\sigma^2/(2^{\nu-1}\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
 #' @param kappa Range parameter of the covariance function.
 #' @param sigma Standard deviation of the covariance function.
 #' @param nu Shape parameter of the covariance function.
-#' @param G The stiffness matrix of a finite element discretization of the domain of interest.
-#' @param C The mass matrix of a finite element discretization of the domain of interest.
+#' @param G The stiffness matrix of a finite element discretization
+#' of the domain of interest.
+#' @param C The mass matrix of a finite element discretization of
+#' the domain of interest.
 #' @param mesh An inla mesh.
 #' @param d The dimension of the domain.
-#' @param m The order of the rational approximation, which needs to be a positive integer.
+#' @param m The order of the rational approximation, which needs
+#' to be a positive integer.
 #' The default value is 2.
-#' @return \code{CBrSPDE.matern.operators} returns an object of class "CBrSPDEobj". 
-#' This object is a list containing the
+#' @return \code{CBrSPDE.matern.operators} returns an object of
+#' class "CBrSPDEobj". This object is a list containing the
 #' following quantities:
 #' \item{C}{The mass lumped mass matrix.}
 #' \item{Ci}{The inverse of \code{C}.}
 #' \item{GCi}{The stiffness matrix G times \code{Ci}}
-#' \item{Gk}{The stiffness matrix G along with the higher-order FEM-related matrices G2, G3, etc.}
-#' \item{fem_mesh_matrices}{A list containing the mass lumped mass matrix, the stiffness matrix and 
+#' \item{Gk}{The stiffness matrix G along with the higher-order
+#' FEM-related matrices G2, G3, etc.}
+#' \item{fem_mesh_matrices}{A list containing the mass lumped mass
+#' matrix, the stiffness matrix and
 #' the higher-order FEM-related matrices.}
 #' \item{m}{The order of the rational approximation.}
 #' \item{alpha}{The fractional power of the precision operator.}
@@ -413,246 +469,258 @@ matern.operators <- function(kappa,
 #' \item{type}{String indicating the type of approximation.}
 #' @noRd
 #' @seealso \code{\link{matern.operators}}, \code{\link{spde.matern.operators}}
-#' @details We use the covariance-based rational approximation of the fractional operator.
-#' In the SPDE approach, we model \eqn{u} as the solution of the following SPDE: 
+#' @details We use the covariance-based rational approximation of the
+#' fractional operator. In the SPDE approach, we model \eqn{u} as the
+#' solution of the following SPDE:
 #' \deqn{L^{\alpha/2}(\tau u) = \mathcal{W},}
-#' where 
-#' \eqn{L  = -\Delta +\kappa^2 I} and \eqn{\mathcal{W}} is the standard Gaussian white noise. 
-#' The covariance operator of \eqn{u} is given by \eqn{L^{-\alpha}}. 
-#' Now, let \eqn{L_h} be a finite-element approximation of \eqn{L}. We can use 
-#' a rational approximation of order \eqn{m} on \eqn{L_h^{-\alpha}} to
-#' obtain the following approximation:
-#' \deqn{L_{h,m}^{-\alpha} = L_h^{-m_\alpha} p(L_h^{-1})q(L_h^{-1})^{-1},}
-#' where \eqn{m_\alpha = \max\{1,\lfloor \alpha\rfloor\}}, \eqn{p} and \eqn{q} are polynomials arising from such rational approximation.
-#' From this approximation we construct an approximate precision matrix for \eqn{u}.
-#' 
+#' where
+#' \eqn{L  = -\Delta +\kappa^2 I} and \eqn{\mathcal{W}} is
+#' the standard Gaussian white noise. The covariance operator of \eqn{u}
+#' is given by \eqn{L^{-\alpha}}. Now, let \eqn{L_h} be a finite-element
+#' approximation of \eqn{L}. We can use a rational approximation of order
+#' \eqn{m} on \eqn{L_h^{-\alpha}} to obtain the following approximation:
+#' \deqn{L_{h,m}^{-\alpha} = L_h^{-m_\alpha}
+#' p(L_h^{-1})q(L_h^{-1})^{-1},}
+#' where \eqn{m_\alpha = \max\{1,\lfloor \alpha\rfloor\}},
+#' \eqn{p} and \eqn{q} are polynomials arising from such rational approximation.
+#' From this approximation we construct an approximate precision
+#' matrix for \eqn{u}.
+#'
 #'
 #' @examples
-#' #Compute the covariance-based rational approximation of a 
-#' #Gaussian process with a Matern covariance function on R
+#' # Compute the covariance-based rational approximation of a
+#' # Gaussian process with a Matern covariance function on R
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
 #'
-#' #create mass and stiffness matrices for a FEM discretization
-#' nobs = 101
+#' # create mass and stiffness matrices for a FEM discretization
+#' nobs <- 101
 #' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
-#' #compute rational approximation of covariance function at 0.5
-#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
-#' op_cov <- CBrSPDE.matern.operators(C=fem$C, G=fem$G,nu=nu,
-#' kappa=kappa,tau=tau,d=1,m=2)
+#' # compute rational approximation of covariance function at 0.5
+#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+#' (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
+#' op_cov <- CBrSPDE.matern.operators(
+#'   C = fem$C, G = fem$G, nu = nu,
+#'   kappa = kappa, tau = tau, d = 1, m = 2
+#' )
 #'
-#' v = t(rSPDE.A1d(x,0.5))
-#' #Compute the precision matrix
+#' v <- t(rSPDE.A1d(x, 0.5))
+#' # Compute the precision matrix
 #' Q <- op_cov$Q
-#' #A matrix here is the identity matrix
+#' # A matrix here is the identity matrix
 #' A <- Diagonal(nobs)
-#' #We need to concatenate 3 A's since we are doing a covariance-based rational
-#' #approximation of order 2
-#' Abar <- cbind(A,A,A)
-#' w <- rbind(v,v,v)
-#' #The approximate covariance function:
-#' c_cov.approx <- (Abar)%*%solve(Q,w)
-#' 
-#' #plot the result and compare with the true Matern covariance
-#' plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma), type = "l", ylab = "C(h)",
-#'      xlab="h", main = "Matern covariance and rational approximations")
+#' # We need to concatenate 3 A's since we are doing a covariance-based rational
+#' # approximation of order 2
+#' Abar <- cbind(A, A, A)
+#' w <- rbind(v, v, v)
+#' # The approximate covariance function:
+#' c_cov.approx <- (Abar) %*% solve(Q, w)
+#'
+#' # plot the result and compare with the true Matern covariance
+#' plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma),
+#'   type = "l", ylab = "C(h)",
+#'   xlab = "h", main = "Matern covariance and rational approximations"
+#' )
 #' lines(x, c_cov.approx, col = 2)
-
 CBrSPDE.matern.operators <- function(C,
-                                 G,
-                                 mesh,
-                                 nu,
-                                 kappa,
-                                 sigma,
-                                 m=2,
-                                 d,
-                                 compute_higher_order = FALSE,
-                                 return_block_list = FALSE,
-                                 type_rational_approximation = c("chebfun", "brasil","chebfunLB"),
-                                 fem_mesh_matrices = NULL)
-{
-  
-  type_rational_approximation = type_rational_approximation[[1]]
-  if(is.null(fem_mesh_matrices)){
-    if(!is.null(mesh)){
+                                     G,
+                                     mesh,
+                                     nu,
+                                     kappa,
+                                     sigma,
+                                     m = 2,
+                                     d,
+                                     compute_higher_order = FALSE,
+                                     return_block_list = FALSE,
+                                     type_rational_approximation = c("chebfun",
+                                     "brasil", "chebfunLB"),
+                                     fem_mesh_matrices = NULL) {
+  type_rational_approximation <- type_rational_approximation[[1]]
+  if (is.null(fem_mesh_matrices)) {
+    if (!is.null(mesh)) {
       ## get alpha, m_alpha
       d <- get_inla_mesh_dimension(inla_mesh = mesh)
-      alpha <- nu + d/2
+      alpha <- nu + d / 2
       m_alpha <- floor(alpha)
-      m_order <- m_alpha+1
-      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-      
-      
-      if(d>1){
-        if(compute_higher_order){
-          fem <- INLA::inla.mesh.fem(mesh,order = m_alpha+1)
-        } else{
+      m_order <- m_alpha + 1
+      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+      (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+
+
+      if (d > 1) {
+        if (compute_higher_order) {
+          fem <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+        } else {
           fem <- INLA::inla.mesh.fem(mesh)
         }
-        
+
         C <- fem$c0
         G <- fem$g1
-        Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))  
-        GCi <- G%*%Ci
-        
+        Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
+        GCi <- G %*% Ci
+
         Gk <- list()
         Gk[[1]] <- G
-        for(i in 2:m_order){
-          Gk[[i]] <- fem[[paste0("g",i)]]
+        for (i in 2:m_order) {
+          Gk[[i]] <- fem[[paste0("g", i)]]
         }
-      } else if(d==1){
-        fem <- INLA::inla.mesh.fem(mesh,order = 2)
+      } else if (d == 1) {
+        fem <- INLA::inla.mesh.fem(mesh, order = 2)
         C <- fem$c0
         G <- fem$g1
-        Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))  
-        GCi <- G%*%Ci
-        
+        Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
+        GCi <- G %*% Ci
+
         Gk <- list()
         Gk[[1]] <- G
-        if(compute_higher_order){
+        if (compute_higher_order) {
           Gk[[2]] <- fem$g2
-          if(m_order>2){
-            for(i in 3:m_order){
-              Gk[[i]] <- GCi %*% Gk[[i-1]]            
+          if (m_order > 2) {
+            for (i in 3:m_order) {
+              Gk[[i]] <- GCi %*% Gk[[i - 1]]
             }
           }
         }
-        
-        
       }
-      
-    } else{
+    } else {
       ## get alpha, m_alpha
-      alpha <- nu + d/2
+      alpha <- nu + d / 2
       m_alpha <- floor(alpha)
-      m_order <- m_alpha+1
-      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
-      
+      m_order <- m_alpha + 1
+      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+      (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+
       ## get lumped mass matrix
       C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
-      
-      ## get G_k matrix: k is up to m_alpha if alpha is integer, k is up tp m_alpha + 1 otherwise.
+
+      ## get G_k matrix: k is up to m_alpha if alpha is integer,
+      # k is up to m_alpha + 1 otherwise.
       # inverse lumped mass matrix
-      Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))  
-      
-      GCi <- G%*%Ci
+      Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
+
+      GCi <- G %*% Ci
       # create a list to store all the G_k matrix
-      
+
       Gk <- list()
-      
+
       Gk[[1]] <- G
       # determine how many G_k matrices we want to create
-      if(compute_higher_order){
-        for (i in 2:m_order){
-          Gk[[i]] <- GCi %*% Gk[[i-1]]
+      if (compute_higher_order) {
+        for (i in 2:m_order) {
+          Gk[[i]] <- GCi %*% Gk[[i - 1]]
         }
       }
     }
-    
+
     # create a list contains all the finite element related matrices
     fem_mesh_matrices <- list()
     fem_mesh_matrices[["c0"]] <- C
     fem_mesh_matrices[["g1"]] <- G
-    
-    if(compute_higher_order){
-      for(i in 1:m_order){
-        fem_mesh_matrices[[paste0("g",i)]] <- Gk[[i]]
+
+    if (compute_higher_order) {
+      for (i in 1:m_order) {
+        fem_mesh_matrices[[paste0("g", i)]] <- Gk[[i]]
       }
     }
-    
-  } else{
+  } else {
     C <- fem_mesh_matrices$c0
     G <- fem_mesh_matrices$g1
-    Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))  
-    GCi <- G%*%Ci
-    alpha <- nu + d/2
+    Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
+    GCi <- G %*% Ci
+    alpha <- nu + d / 2
     m_alpha <- floor(alpha)
-    m_order <- m_alpha+1
-    if(!is.null(mesh)){
+    m_order <- m_alpha + 1
+    if (!is.null(mesh)) {
       d <- get_inla_mesh_dimension(inla_mesh = mesh)
     }
-    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(d /2) * gamma(nu + d/2)))
+    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
     Gk <- list()
     Gk[[1]] <- G
-    for(i in 2:m_order){
-      Gk[[i]] <- fem_mesh_matrices[[paste0("g",i)]]
+    for (i in 2:m_order) {
+      Gk[[i]] <- fem_mesh_matrices[[paste0("g", i)]]
     }
   }
 
-  
-  L = (G + kappa^2*C)/kappa^2
-  
-  Lchol = chol(L)
-  logdetL = 2*sum(log(diag(Lchol)))
-  
-  logdetC = sum(log(diag(C)))
-  
-  CiL = GCi/kappa^2 + Diagonal(dim(GCi)[1])
-  
-  if(m_alpha == 0){
-    aux_mat = Diagonal(dim(L)[1])
+
+  L <- (G + kappa^2 * C) / kappa^2
+
+  Lchol <- chol(L)
+  logdetL <- 2 * sum(log(diag(Lchol)))
+
+  logdetC <- sum(log(diag(C)))
+
+  CiL <- GCi / kappa^2 + Diagonal(dim(GCi)[1])
+
+  if (m_alpha == 0) {
+    aux_mat <- Diagonal(dim(L)[1])
   } else {
-    aux_mat = CiL
-  } 
-  
-  
-  if(return_block_list){
-    Q.int = aux_mat
-    
-    Q.frac = rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
-                                    rspde_order = m, dim=d, 
-                                    fem_mesh_matrices=fem_mesh_matrices,only_fractional=TRUE,
-                                    return_block_list = TRUE,
-                                    type_rational_approx=type_rational_approximation)
-    
-    Q = Q.frac
-    
-    if(m_alpha>0){
-      for(j in 1:length(Q)){
-        for(i in 1:m_alpha){
-          Q[[j]] = Q.int%*%Q[[j]]
+    aux_mat <- CiL
+  }
+
+
+  if (return_block_list) {
+    Q.int <- aux_mat
+
+    Q.frac <- rspde.matern.precision(
+      kappa = kappa, nu = nu, tau = tau,
+      rspde_order = m, dim = d,
+      fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
+      return_block_list = TRUE,
+      type_rational_approx = type_rational_approximation
+    )
+
+    Q <- Q.frac
+
+    if (m_alpha > 0) {
+      for (j in seq_len(length(Q))) {
+        for (i in 1:m_alpha) {
+          Q[[j]] <- Q.int %*% Q[[j]]
         }
       }
     }
-    
-    Q.int = list(Q.int = Q.int, order = m_alpha)
-    
-  } else{
-    Q.int = list(Q.int = kronecker(Diagonal(m+1),aux_mat), order = m_alpha)
-    
-    Q.frac = rspde.matern.precision(kappa=kappa, nu=nu, tau=tau, 
-                                    rspde_order = m, dim=d, 
-                                    fem_mesh_matrices=fem_mesh_matrices,only_fractional=TRUE,
-                                    type_rational_approx = type_rational_approximation)
-    
-    Q = Q.frac
-    
-    if(m_alpha>0){
-      for(i in 1:m_alpha){
-        Q = Q.int$Q.int%*%Q
+
+    Q.int <- list(Q.int = Q.int, order = m_alpha)
+  } else {
+    Q.int <- list(Q.int = kronecker(Diagonal(m + 1), aux_mat), order = m_alpha)
+
+    Q.frac <- rspde.matern.precision(
+      kappa = kappa, nu = nu, tau = tau,
+      rspde_order = m, dim = d,
+      fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
+      type_rational_approx = type_rational_approximation
+    )
+
+    Q <- Q.frac
+
+    if (m_alpha > 0) {
+      for (i in 1:m_alpha) {
+        Q <- Q.int$Q.int %*% Q
       }
-    }  
+    }
   }
-  
 
 
-  
+
+
   ## output
-  output <- list(C = C, G = G, L = L, Ci = Ci, GCi = GCi, Gk = Gk, 
-                 fem_mesh_matrices=fem_mesh_matrices,
-                 alpha = alpha, nu = nu, kappa = kappa, 
-                 tau = tau, m = m, d = d,
-                 sigma=sigma,
-                 logdetL = logdetL, logdetC = logdetC,
-                 Q.frac = Q.frac, Q.int = Q.int,
-                 Q = Q, sizeC = dim(C)[1],
-                 higher_order = compute_higher_order,
-                 type_rational_approximation = type_rational_approximation,
-                 return_block_list = return_block_list)
-  output$type = "Covariance-Based Matern SPDE approximation"
+  output <- list(
+    C = C, G = G, L = L, Ci = Ci, GCi = GCi, Gk = Gk,
+    fem_mesh_matrices = fem_mesh_matrices,
+    alpha = alpha, nu = nu, kappa = kappa,
+    tau = tau, m = m, d = d,
+    sigma = sigma,
+    logdetL = logdetL, logdetC = logdetC,
+    Q.frac = Q.frac, Q.int = Q.int,
+    Q = Q, sizeC = dim(C)[1],
+    higher_order = compute_higher_order,
+    type_rational_approximation = type_rational_approximation,
+    return_block_list = return_block_list
+  )
+  output$type <- "Covariance-Based Matern SPDE approximation"
   class(output) <- "CBrSPDEobj"
   return(output)
 }
@@ -660,88 +728,106 @@ CBrSPDE.matern.operators <- function(C,
 
 #' Rational approximations of non-stationary Gaussian SPDE Matern random fields
 #'
-#' \code{spde.matern.operators} is used for computing a rational SPDE approximation of a Gaussian random
+#' \code{spde.matern.operators} is used for computing a rational SPDE
+#' approximation of a Gaussian random
 #' fields on \eqn{R^d} defined as a solution to the SPDE
 #' \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.}
 #'
-#' @param kappa Vector with the, possibly spatially varying, range parameter evaluated at the locations
+#' @param kappa Vector with the, possibly spatially varying, range parameter
+#' evaluated at the locations of the mesh used for the finite element
+#' discretization of the SPDE.
+#' @param tau Vector with the, possibly spatially varying, precision
+#' parameter evaluated at the locations
 #' of the mesh used for the finite element discretization of the SPDE.
-#' @param tau Vector with the, possibly spatially varying, precision parameter evaluated at the locations
-#' of the mesh used for the finite element discretization of the SPDE.
-#' @param nu Shape parameter of the covariance function, related to \eqn{\beta} through the equation
+#' @param nu Shape parameter of the covariance function, related to
+#' \eqn{\beta} through the equation
 #' \eqn{\beta = (\nu + d/2)/2}.
-#' @param G The stiffness matrix of a finite element discretization of the domain of interest.
-#' @param C The mass matrix of a finite element discretization of the domain of interest.
+#' @param G The stiffness matrix of a finite element discretization of
+#' the domain of interest.
+#' @param C The mass matrix of a finite element discretization of the
+#' domain of interest.
 #' @param d The dimension of the domain.
-#' @param m The order of the rational approximation, which needs to be a positive integer.
+#' @param m The order of the rational approximation, which needs to
+#' be a positive integer.
 #' The default value is 1.
 #'
 #'
-#' @details The approximation is based on a rational approximation of the fractional operator
-#' \eqn{(\kappa(s)^2 -\Delta)^\beta}, where \eqn{\beta = (\nu + d/2)/2}.
-#' This results in an approximate model on the form \deqn{P_l u(s) = P_r W,}
-#' where \eqn{P_j = p_j(L)} are non-fractional operators defined in terms of polynomials \eqn{p_j} for
-#' \eqn{j=l,r}. The order of \eqn{p_r} is given by \code{m} and the order of \eqn{p_l} is \eqn{m + m_\beta}
-#' where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and \eqn{m_\beta = 1} otherwise.
+#' @details The approximation is based on a rational approximation of the
+#' fractional operator \eqn{(\kappa(s)^2 -\Delta)^\beta}, where
+#' \eqn{\beta = (\nu + d/2)/2}. This results in an approximate model
+#' on the form \deqn{P_l u(s) = P_r W,} where \eqn{P_j = p_j(L)} are
+#' non-fractional operators defined in terms of polynomials \eqn{p_j} for
+#' \eqn{j=l,r}. The order of \eqn{p_r} is given by \code{m} and the order
+#' of \eqn{p_l} is \eqn{m + m_\beta} where \eqn{m_\beta} is the integer
+#' part of \eqn{\beta} if \eqn{\beta>1} and \eqn{m_\beta = 1} otherwise.
 #'
-#' The discrete approximation can be written as \eqn{u = P_r x} where \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
-#' and \eqn{Q = P_l^T C^{-1} P_l}. Note that the matrices \eqn{P_r} and \eqn{Q} may be be ill-conditioned for \eqn{m>1}.
-#' In this case, the metehods in \code{\link{operator.operations}} should be used for operations
-#' involving the matrices, since these methods are more numerically stable.   
+#' The discrete approximation can be written as \eqn{u = P_r x} where
+#' \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
+#' and \eqn{Q = P_l^T C^{-1} P_l}. Note that the matrices \eqn{P_r} and
+#' \eqn{Q} may be be ill-conditioned for \eqn{m>1}.
+#' In this case, the metehods in \code{\link{operator.operations}}
+#' should be used for operations involving the matrices, since
+#' these methods are more numerically stable.
 #'
-#' @return \code{spde.matern.operators} returns an object of class "rSPDEobj. This object contains the
-#' quantities listed in the output of \code{\link{fractional.operators}} as well as the smoothness parameter \eqn{\nu}.
+#' @return \code{spde.matern.operators} returns an object of
+#' class "rSPDEobj. This object contains the
+#' quantities listed in the output of \code{\link{fractional.operators}}
+#' as well as the smoothness parameter \eqn{\nu}.
 #' @export
-#' @seealso \code{\link{fractional.operators}}, \code{\link{spde.matern.operators}},
+#' @seealso \code{\link{fractional.operators}},
+#' \code{\link{spde.matern.operators}},
 #' \code{\link{matern.operators}}
 #'
 #' @examples
-#' #Sample non-stationary Matern field on R
+#' # Sample non-stationary Matern field on R
 #' tau <- 1
 #' nu <- 0.8
 #'
-#' #create mass and stiffness matrices for a FEM discretization
+#' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
-#'  #define a non-stationary range parameter
-#'  kappa <- seq(from = 2, to = 20, length.out = length(x))
+#' # define a non-stationary range parameter
+#' kappa <- seq(from = 2, to = 20, length.out = length(x))
 #'
-#' #compute rational approximation
-#' op <- spde.matern.operators(kappa = kappa, tau = tau, nu = nu,
-#'                             G = fem$G, C = fem$C, d = 1)
+#' # compute rational approximation
+#' op <- spde.matern.operators(
+#'   kappa = kappa, tau = tau, nu = nu,
+#'   G = fem$G, C = fem$C, d = 1
+#' )
 #'
-#' #sample the field
+#' # sample the field
 #' u <- simulate(op)
 #'
-#' #plot the sample
+#' # plot the sample
 #' plot(x, u, type = "l", ylab = "u(s)", xlab = "s")
-
+#'
 spde.matern.operators <- function(kappa,
                                   tau,
                                   nu,
                                   G,
                                   C,
                                   d,
-                                  m = 1)
-{
-  if(is.null(d)){
+                                  m = 1) {
+  if (is.null(d)) {
     stop("the dimension d must be supplied")
   }
-  if(nu < 0){
+  if (nu < 0) {
     stop("nu must be positive")
   }
-  beta <- (nu + d/2)/2
+  beta <- (nu + d / 2) / 2
   kp <- Matrix::Diagonal(dim(C)[1], kappa^2)
-  
-  operators <- fractional.operators(L = G + C %*% kp,
-                                    beta = beta,
-                                    C = C,
-                                    scale.factor = min(kappa)^2,
-                                    m = m,
-                                    tau = tau)
+
+  operators <- fractional.operators(
+    L = G + C %*% kp,
+    beta = beta,
+    C = C,
+    scale.factor = min(kappa)^2,
+    m = m,
+    tau = tau
+  )
   output <- operators
-  output$beta = beta
-  output$type = "Matern SPDE approximation"
+  output$beta <- beta
+  output$type <- "Matern SPDE approximation"
   return(output)
 }

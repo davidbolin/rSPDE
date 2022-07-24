@@ -28,33 +28,45 @@ folded.matern.covariance.1d(
 
 \item{N}{The truncation parameter.}
 
-\item{boundary}{The boundary condition. The possible conditions are \code{"neumann"} (default), \code{"dirichlet"} or \code{"periodic"}.}
+\item{boundary}{The boundary condition. The possible conditions
+are \code{"neumann"} (default), \code{"dirichlet"} or
+\code{"periodic"}.}
 }
 \value{
 A matrix with the corresponding covariance values.
 }
 \description{
-\code{folded.matern.covariance.1d} evaluates the 1d folded Matern covariance function
-over an interval \eqn{[0,L]}.
+\code{folded.matern.covariance.1d} evaluates the 1d
+folded Matern covariance function over an interval \eqn{[0,L]}.
 }
 \details{
-\code{folded.matern.covariance.1d} evaluates the 1d folded Matern covariance function
-over an interval \eqn{[0,L]} under different boundary conditions. For periodic boundary conditions
+\code{folded.matern.covariance.1d} evaluates the 1d folded Matern
+covariance function over an interval \eqn{[0,L]} under different
+boundary conditions. For periodic boundary conditions
 \deqn{C_{\mathcal{P}}(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL),}
 for Neumann boundary conditions
-\deqn{C_{\mathcal{N}}(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL)+C(h+m+2kL)),}
+\deqn{C_{\mathcal{N}}(h,m) = \sum_{k=-\infty}^{\infty}
+(C(h-m+2kL)+C(h+m+2kL)),}
 and for Dirichlet boundary conditions:
-\deqn{C_{\mathcal{D}}(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL)-C(h+m+2kL)),}
+\deqn{C_{\mathcal{D}}(h,m) = \sum_{k=-\infty}^{\infty}
+(C(h-m+2kL)-C(h+m+2kL)),}
 where \eqn{C(\cdot)} is the Matern covariance function:
-\deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
+\deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu
+K_\nu(\kappa h).}
 
 We consider the truncation:
-\deqn{C_{{\mathcal{P}},N}(h,m) = \sum_{k=-N}^{N} C(h-m+2kL), C_{\mathcal{N},N}(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL)+C(h+m+2kL)),}
+\deqn{C_{{\mathcal{P}},N}(h,m) = \sum_{k=-N}^{N} C(h-m+2kL),
+C_{\mathcal{N},N}(h,m) = \sum_{k=-\infty}^{\infty}
+(C(h-m+2kL)+C(h+m+2kL)),}
 and
-\deqn{C_{\mathcal{D},N}(h,m) = \sum_{k=-N}^{N} (C(h-m+2kL)-C(h+m+2kL)).}
+\deqn{C_{\mathcal{D},N}(h,m) = \sum_{k=-N}^{N}
+(C(h-m+2kL)-C(h+m+2kL)).}
 }
 \examples{
-x = seq(from = 0, to = 1, length.out = 101)
-plot(x, folded.matern.covariance.1d(rep(0.5,length(x)),x, kappa = 10, nu = 1/5, sigma = 1),
-     type = "l", ylab = "C(h)", xlab = "h")
+x <- seq(from = 0, to = 1, length.out = 101)
+plot(x, folded.matern.covariance.1d(rep(0.5, length(x)), x,
+kappa = 10, nu = 1 / 5, sigma = 1),
+  type = "l", ylab = "C(h)", xlab = "h"
+)
+
 }

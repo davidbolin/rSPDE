@@ -141,13 +141,25 @@ alt <- PRprec$Altitude[ind]
 Let us build a plot for the precipitations:
 
 ```{r plot_precipitations, message=FALSE, fig.align = "center", echo=FALSE}
-p <- ggplot() + geom_point(aes(x = coords[, 1], y = coords[, 2], colour = Y), size = 2, 
-    alpha = 1) + scale_colour_gradientn(colours = tim.colors(100)) + geom_path(aes(x = PRborder[, 
-    1], y = PRborder[, 2])) + geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[1034:1078, 
-    2]), colour = "red")
-tryCatch({print(p)}, error=function(e) {
-      print('Unable to build the plot')
-    })
+p <- ggplot() +
+  geom_point(aes(
+    x = coords[, 1], y = coords[, 2],
+    colour = Y
+  ), size = 2, alpha = 1) +
+  scale_colour_gradientn(colours = tim.colors(100)) +
+  geom_path(aes(x = PRborder[, 1], y = PRborder[, 2])) +
+  geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[
+    1034:1078,
+    2
+  ]), colour = "red")
+tryCatch(
+  {
+    print(p)
+  },
+  error = function(e) {
+    print("Unable to build the plot")
+  }
+)
 ```
 
 The red line in the figure shows the coast line, and we expect the distance to 
@@ -157,8 +169,9 @@ This covariate is not
 available, so let us calculate it for each observation location:
 
 ```{r getting_seaDist, message=FALSE}
-seaDist <- apply(spDists(coords, PRborder[1034:1078, ], 
-                         longlat = TRUE), 1, min)
+seaDist <- apply(spDists(coords, PRborder[1034:1078, ],
+  longlat = TRUE
+), 1, min)
 ```
 
 Now, let us plot the precipitation as a function of the possible covariates:
@@ -287,12 +300,19 @@ We can then create the stack in a standard manner:
 
 ```{r create_stack, message=FALSE}
 stk.dat <- inla.stack(
-  data = list(y = Y), A = list(Abar, 1), tag = "est", 
-  effects = list(c(mesh.index, 
-                   list(Intercept = 1)), 
-                 list(long = inla.group(coords[, 1]), 
-                      lat = inla.group(coords[,2]),
-                      seaDist = inla.group(seaDist))))
+  data = list(y = Y), A = list(Abar, 1), tag = "est",
+  effects = list(
+    c(
+      mesh.index,
+      list(Intercept = 1)
+    ),
+    list(
+      long = inla.group(coords[, 1]),
+      lat = inla.group(coords[, 2]),
+      seaDist = inla.group(seaDist)
+    )
+  )
+)
 ```
 
 Here the observation matrix $A$ is applied to the spatial effect and the 
@@ -319,8 +339,8 @@ as a covariate through an improper CAR(1) model with
 $\beta_{ij}=1(i\sim j)$, which `r inla_link()` calls a random walk of order 1.
 
 ```{r create_formula, message=FALSE}
-f.s <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
-  f(field, model = rspde_model) 
+f.s <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
+  f(field, model = rspde_model)
 ```
 Here `-1` is added to remove R's implicit intercept, which is replaced 
 by the explicit `+Intercept` from when we created the stack. 
@@ -330,10 +350,12 @@ we simply call `inla()`.
 
 
 ```{r fit_model, message=FALSE, warning=FALSE}
-rspde_fit <-rspde.inla(f.s, family = "Gamma", data = inla.stack.data(stk.dat), 
-            verbose = FALSE, 
-            control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
+rspde_fit <- rspde.inla(f.s,
+  family = "Gamma", data = inla.stack.data(stk.dat),
+  verbose = FALSE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
+)
 ```
 
 ### INLA results
@@ -377,8 +399,8 @@ summary(result_fit)
 We can also plot the posterior densities:
 
 ```{r plot_post, fig.align='center'}
-par(mfrow=c(1,3))
-plot(result_fit, caption=c("tau","kappa","nu"))
+par(mfrow = c(1, 3))
+plot(result_fit, caption = c("tau", "kappa", "nu"))
 ```
 
 This function is reminiscent to the `inla.spde.result()` function with the main
@@ -399,8 +421,10 @@ proceed in the same fashion as we would in `r inla_link()`'s standard SPDE imple
 
 ```{r create_proj_grid}
 nxy <- c(150, 100)
-projgrid <- rspde.mesh.projector(prmesh, xlim = range(PRborder[, 1]), 
-ylim = range(PRborder[,2]), dims = nxy)
+projgrid <- rspde.mesh.projector(prmesh,
+  xlim = range(PRborder[, 1]),
+  ylim = range(PRborder[, 2]), dims = nxy
+)
 ```
 
 This lattice contains 150 × 100 locations. 
@@ -439,21 +463,31 @@ A.prd <- projgrid$proj$A[xy.in, ]
 Since we are using distance to the sea as a covariate, we also have to calculate this covariate for the prediction locations.
 
 ```{r pred_seaDist}
-seaDist.prd <- apply(spDists(coord.prd, 
-    PRborder[1034:1078, ], longlat = TRUE), 1, min)
+seaDist.prd <- apply(spDists(coord.prd,
+  PRborder[1034:1078, ],
+  longlat = TRUE
+), 1, min)
 ```
 
 We now make a stack for the prediction locations. We have no data at the prediction locations, so we set `y=
 NA`. We then join this stack with the estimation stack.
 
 ```{r stk.prd}
-ef.prd = list(c(mesh.index, list(Intercept = 1)), 
-    list(long = inla.group(coord.prd[, 
-    1]), lat = inla.group(coord.prd[, 2]), 
-    seaDist = inla.group(seaDist.prd)))
-stk.prd <- inla.stack(data = list(y = NA), 
-    A = list(A.prd, 1), tag = "prd", 
-    effects = ef.prd)
+ef.prd <- list(
+  c(mesh.index, list(Intercept = 1)),
+  list(
+    long = inla.group(coord.prd[
+      ,
+      1
+    ]), lat = inla.group(coord.prd[, 2]),
+    seaDist = inla.group(seaDist.prd)
+  )
+)
+stk.prd <- inla.stack(
+  data = list(y = NA),
+  A = list(A.prd, 1), tag = "prd",
+  effects = ef.prd
+)
 stk.all <- inla.stack(stk.dat, stk.prd)
 ```
 
@@ -461,13 +495,19 @@ Doing the joint estimation takes a while, and we therefore turn off the computat
 We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes.
 
 ```{r fit_prd, message=FALSE, warning=FALSE}
-rspde_fitprd <-rspde.inla(f.s, family = "Gamma", 
-             data = inla.stack.data(stk.all), 
-             control.predictor = list(A = inla.stack.A(stk.all),
-                                      compute = TRUE, link = 1),
-             control.compute = list(return.marginals = FALSE, 
-                                    return.marginals.predictor = FALSE),
-             control.inla = list(int.strategy = "eb"))
+rspde_fitprd <- rspde.inla(f.s,
+  family = "Gamma",
+  data = inla.stack.data(stk.all),
+  control.predictor = list(
+    A = inla.stack.A(stk.all),
+    compute = TRUE, link = 1
+  ),
+  control.compute = list(
+    return.marginals = FALSE,
+    return.marginals.predictor = FALSE
+  ),
+  control.inla = list(int.strategy = "eb")
+)
 ```
 
 We then extract the indices to the prediction nodes and then extract the mean and the standard deviation of the response:
@@ -477,19 +517,24 @@ id.prd <- inla.stack.index(stk.all, "prd")$data
 sd.prd <- m.prd <- matrix(NA, nxy[1], nxy[2])
 m.prd[xy.in] <- rspde_fitprd$summary.fitted.values$mean[id.prd]
 sd.prd[xy.in] <- rspde_fitprd$summary.fitted.values$sd[id.prd]
-
 ```
 
 Finally, we plot the results:
 
 ```{r plot_pred, fig.align = "center", fig.width=7, fig.height=15}
-#Plot the predictions
-grid.arrange(levelplot(m.prd, col.regions = tim.colors(99), 
-             xlab = "", ylab = "", main = "mean", 
-                       scales = list(draw = FALSE)), 
-             levelplot(sd.prd, col.regions = topo.colors(99), 
-             xlab = "", ylab = "", scales = list(draw = FALSE), 
-                       main = "standard deviation"))
+# Plot the predictions
+grid.arrange(
+  levelplot(m.prd,
+    col.regions = tim.colors(99),
+    xlab = "", ylab = "", main = "mean",
+    scales = list(draw = FALSE)
+  ),
+  levelplot(sd.prd,
+    col.regions = topo.colors(99),
+    xlab = "", ylab = "", scales = list(draw = FALSE),
+    main = "standard deviation"
+  )
+)
 ```
 
 
@@ -540,13 +585,15 @@ mesh index objects are the same as the previous ones. Let us then
 update the formula and fit the model:
 
 ```{r formula_fit_rspde_ub, message=FALSE, warning=FALSE}
-f.s.2 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
-  f(field, model = rspde_model_2) 
+f.s.2 <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
+  f(field, model = rspde_model_2)
 
-rspde_fit_2 <-rspde.inla(f.s.2, family = "Gamma", data = inla.stack.data(stk.dat), 
-            verbose = FALSE, 
-            control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
+rspde_fit_2 <- rspde.inla(f.s.2,
+  family = "Gamma", data = inla.stack.data(stk.dat),
+  verbose = FALSE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
+)
 ```
 
 Let us see the summary of the fit:
@@ -561,7 +608,7 @@ of `nu_upper_bound` of 4:
 ```{r}
 # nu_upper_bound = 4
 rspde_fit$cpu.used
-#nu_upper_bound = 2
+# nu_upper_bound = 2
 rspde_fit_2$cpu.used
 ```
 
@@ -595,8 +642,10 @@ matrix and the mesh index. Therefore, we proceed as follows:
 
 * We build a new model:
 ```{r model_order_3, message=FALSE}
-rspde_model_order_3 <- rspde.matern(mesh = prmesh, rspde_order = 3, 
-                              nu_upper_bound = 2)
+rspde_model_order_3 <- rspde.matern(
+  mesh = prmesh, rspde_order = 3,
+  nu_upper_bound = 2
+)
 ```
 
 * We create a new $A$ matrix:
@@ -606,28 +655,39 @@ Abar_3 <- rspde.make.A(mesh = prmesh, loc = coords, rspde_order = 3)
 
 * We create a new index:
 ```{r mesh_order_3, message=FALSE}
-mesh.index.3 <- rspde.make.index(name = "field", mesh = prmesh, 
-                                 rspde_order = 3)
+mesh.index.3 <- rspde.make.index(
+  name = "field", mesh = prmesh,
+  rspde_order = 3
+)
 ```
 
 Now the remaining is standard:
 
 ```{r fit_order_3, message=FALSE, warning=FALSE}
 stk.dat.3 <- inla.stack(
-  data = list(y = Y), A = list(Abar_3, 1), tag = "est", 
-  effects = list(c(mesh.index.3, 
-                   list(Intercept = 1)), 
-                 list(long = inla.group(coords[, 1]), 
-                      lat = inla.group(coords[,2]),
-                      seaDist = inla.group(seaDist))))
+  data = list(y = Y), A = list(Abar_3, 1), tag = "est",
+  effects = list(
+    c(
+      mesh.index.3,
+      list(Intercept = 1)
+    ),
+    list(
+      long = inla.group(coords[, 1]),
+      lat = inla.group(coords[, 2]),
+      seaDist = inla.group(seaDist)
+    )
+  )
+)
 
-f.s.3 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
+f.s.3 <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model_order_3)
 
-rspde_fit_order_3 <-rspde.inla(f.s.3, family = "Gamma", data = inla.stack.data(stk.dat.3), 
-                    verbose = FALSE, 
-            control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE))
+rspde_fit_order_3 <- rspde.inla(f.s.3,
+  family = "Gamma", data = inla.stack.data(stk.dat.3),
+  verbose = FALSE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE)
+)
 ```
 
 Let us see the summary:
@@ -642,22 +702,23 @@ Let us compare the cost of having `rspde_order=3` and
 ```{r}
 # nu_upper_bound = 4
 rspde_fit$cpu.used
-#nu_upper_bound = 2
+# nu_upper_bound = 2
 rspde_fit_order_3$cpu.used
 ```
 
 Let us now see the summary in the original scale:
 
 ```{r summary_results_order_3}
-result_fit_order_3 <- rspde.result(rspde_fit_order_3, "field", rspde_model_order_3)
+result_fit_order_3 <- rspde.result(rspde_fit_order_3,
+"field", rspde_model_order_3)
 summary(result_fit_order_3)
 ```
 
 Let us see the plots of the posterior marginal densities:
 
 ```{r plot_post_order_3, fig.align='center'}
-par(mfrow=c(1,3))
-plot(result_fit_order_3, caption=c("tau","kappa","nu"))
+par(mfrow = c(1, 3))
+plot(result_fit_order_3, caption = c("tau", "kappa", "nu"))
 ```
 
 ### Estimating models with fixed smoothness
@@ -709,20 +770,24 @@ Therefore, all we have to do is build a new model in which we set
  `nu` to `1.21`:
 
 ```{r message=FALSE}
-rspde_model_fix <- rspde.matern(mesh = prmesh, rspde_order = 2,
-                                       nu = 1.21)
+rspde_model_fix <- rspde.matern(
+  mesh = prmesh, rspde_order = 2,
+  nu = 1.21
+)
 ```
 
 Let us now fit the model:
 
 ```{r , message=FALSE, warning=FALSE}
-f.s.fix <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
+f.s.fix <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model_fix)
 
-rspde_fix <-rspde.inla(f.s.fix, family = "Gamma", data = inla.stack.data(stk.dat), 
-                verbose = FALSE, 
-              control.inla=list(int.strategy='eb'),
-              control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
+rspde_fix <- rspde.inla(f.s.fix,
+  family = "Gamma", data = inla.stack.data(stk.dat),
+  verbose = FALSE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
+)
 ```
 
 Here we have the summary:
@@ -748,43 +813,60 @@ let us fit the model with $\nu=1$.
 To this end we need to compute a new $A$ matrix:
 
 ```{r message=FALSE}
-Abar.int <- rspde.make.A(mesh = prmesh, loc = coords,
-                       nu = 1)
+Abar.int <- rspde.make.A(
+  mesh = prmesh, loc = coords,
+  nu = 1
+)
 ```
 
 a new index:
 
 ```{r message=FALSE}
-mesh.index.int <- rspde.make.index(name = "field", mesh = prmesh,
-                                  nu = 1)
+mesh.index.int <- rspde.make.index(
+  name = "field", mesh = prmesh,
+  nu = 1
+)
 ```
 
 create a new model (remember to set `nu=1`):
 
 ```{r message=FALSE}
-rspde_model_fix_int1 <- rspde.matern(mesh = prmesh,
-                                     nu = 1)
+rspde_model_fix_int1 <- rspde.matern(
+  mesh = prmesh,
+  nu = 1
+)
 ```
 
 The remaining is standard:
 
 ```{r, message=FALSE, warning=FALSE}
 stk.dat.int <- inla.stack(
-  data = list(y = Y), A = list(Abar.int, 1), tag = "est", 
-  effects = list(c(mesh.index.int, 
-                   list(Intercept = 1)), 
-                 list(long = inla.group(coords[, 1]), 
-                      lat = inla.group(coords[,2]),
-                      seaDist = inla.group(seaDist))))
+  data = list(y = Y), A = list(Abar.int, 1), tag = "est",
+  effects = list(
+    c(
+      mesh.index.int,
+      list(Intercept = 1)
+    ),
+    list(
+      long = inla.group(coords[, 1]),
+      lat = inla.group(coords[, 2]),
+      seaDist = inla.group(seaDist)
+    )
+  )
+)
 
-f.s.fix.int.1 <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
+f.s.fix.int.1 <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model_fix_int1)
 
-rspde_fix_int_1 <-rspde.inla(f.s.fix.int.1, family = "Gamma", 
-                      data = inla.stack.data(stk.dat.int), verbose = FALSE, 
-                  control.inla=list(int.strategy='eb'),
-                  control.predictor = list(A = inla.stack.A(stk.dat.int), 
-                                           compute = TRUE))
+rspde_fix_int_1 <- rspde.inla(f.s.fix.int.1,
+  family = "Gamma",
+  data = inla.stack.data(stk.dat.int), verbose = FALSE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(
+    A = inla.stack.A(stk.dat.int),
+    compute = TRUE
+  )
+)
 ```
 
 Let us check the summary:
@@ -921,8 +1003,10 @@ where we change the prior distribution of $\nu$ from beta to lognormal. Let us
 also set `nu_upper_bound` to 2.
 
 ```{r}
-rspde_model_ln <- rspde.matern(mesh = prmesh, prior.nu.dist = "lognormal",
-                            nu_upper_bound = 2)
+rspde_model_ln <- rspde.matern(
+  mesh = prmesh, prior.nu.dist = "lognormal",
+  nu_upper_bound = 2
+)
 ```
 
 Since we did not change `rspde_order` and are not fixing $\nu$, we can
@@ -931,13 +1015,15 @@ use the same $A$ matrix and same index from the first example.
 Therefore, all we have to do is update the formula and fit the model:
 
 ```{r create_formula_ln, message=FALSE, warning=FALSE}
-f.s.ln <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
-  f(field, model = rspde_model_ln) 
+f.s.ln <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
+  f(field, model = rspde_model_ln)
 
-rspde_fit_ln <-rspde.inla(f.s.ln, family = "Gamma", data = inla.stack.data(stk.dat), 
-            verbose = FALSE, 
-            control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
+rspde_fit_ln <- rspde.inla(f.s.ln,
+  family = "Gamma", data = inla.stack.data(stk.dat),
+  verbose = FALSE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
+)
 ```
 
 We have the summary:
@@ -954,8 +1040,8 @@ summary(result_fit_ln)
 ```
 and the plot of the posterior marginal densities
 ```{r fig.align = "center"}
-par(mfrow=c(1,3))
-plot(result_fit_ln, caption=c("tau","kappa","nu"))
+par(mfrow = c(1, 3))
+plot(result_fit_ln, caption = c("tau", "kappa", "nu"))
 ```
 
 ### Changing the initial values
@@ -976,26 +1062,32 @@ change the initial values to the ones close to the fitted value when considering
 default `rspde_order` (which is 2):
 
 ```{r}
-rspde_model_order_3_start <- rspde.matern(mesh = prmesh, rspde_order = 3, 
-                              nu_upper_bound = 2,
-                              start.lkappa = result_fit$summary.log.kappa$mean,
-                              start.ltau = result_fit$summary.log.tau$mean,
-                              start.nu = result_fit$summary.nu$mean)
+rspde_model_order_3_start <- rspde.matern(
+  mesh = prmesh, rspde_order = 3,
+  nu_upper_bound = 2,
+  start.lkappa = result_fit$summary.log.kappa$mean,
+  start.ltau = result_fit$summary.log.tau$mean,
+  start.nu = result_fit$summary.nu$mean
+)
 ```
 
 Since we already computed the $A$ matrix and the index for `rspde_order=3`,
 all we have to do is to update the formula and fit:
 
 ```{r fit_order_3_start, message=FALSE, warning=FALSE}
-f.s.3.start <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") +
+f.s.3.start <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model_order_3_start)
 
-rspde_fit_order_3_start <-rspde.inla(f.s.3.start, family = "Gamma", 
-                                data = inla.stack.data(stk.dat.3), 
-                    verbose = FALSE, 
-            control.inla=list(int.strategy='eb'),
-            control.predictor = list(A = inla.stack.A(stk.dat.3), 
-                                     compute = TRUE))
+rspde_fit_order_3_start <- rspde.inla(f.s.3.start,
+  family = "Gamma",
+  data = inla.stack.data(stk.dat.3),
+  verbose = FALSE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(
+    A = inla.stack.A(stk.dat.3),
+    compute = TRUE
+  )
+)
 ```
 
 We have the summary:
@@ -1028,41 +1120,54 @@ We begin by creating the $A$ matrix, index and `inla.stack` object that all
 the three models will use:
 
 ```{r}
-Abar.1 <- rspde.make.A(mesh = prmesh, loc = coords, rspde_order=1)
-mesh.index.1 <- rspde.make.index(name = "field", mesh = prmesh, rspde_order=1)
+Abar.1 <- rspde.make.A(mesh = prmesh, loc = coords, rspde_order = 1)
+mesh.index.1 <- rspde.make.index(name = "field", mesh = prmesh, rspde_order = 1)
 stk.dat.1 <- inla.stack(
-  data = list(y = Y), A = list(Abar.1, 1), tag = "est", 
-  effects = list(c(mesh.index.1, 
-                   list(Intercept = 1)), 
-                 list(long = inla.group(coords[, 1]), 
-                      lat = inla.group(coords[,2]),
-                      seaDist = inla.group(seaDist))))
+  data = list(y = Y), A = list(Abar.1, 1), tag = "est",
+  effects = list(
+    c(
+      mesh.index.1,
+      list(Intercept = 1)
+    ),
+    list(
+      long = inla.group(coords[, 1]),
+      lat = inla.group(coords[, 2]),
+      seaDist = inla.group(seaDist)
+    )
+  )
+)
 ```
 
 Now, let us create the three models and compute the time it took to
 create the model objects:
 
 ```{r}
-#Creating the optimized and sharp model
+# Creating the optimized and sharp model
 start_time <- Sys.time()
-rspde_model_opt_sharp <- rspde.matern(mesh = prmesh, 
-                                      rspde_order = 1)
+rspde_model_opt_sharp <- rspde.matern(
+  mesh = prmesh,
+  rspde_order = 1
+)
 end_time <- Sys.time()
 time_opt_sharp <- end_time - start_time
 
-#Creating the optimized non-sharp model
+# Creating the optimized non-sharp model
 start_time <- Sys.time()
-rspde_model_opt_notsharp <- rspde.matern(mesh = prmesh, 
-                                         rspde_order = 1,
-                                         sharp=FALSE)
+rspde_model_opt_notsharp <- rspde.matern(
+  mesh = prmesh,
+  rspde_order = 1,
+  sharp = FALSE
+)
 end_time <- Sys.time()
 time_opt_notsharp <- end_time - start_time
 
-#Creating the non-optimized model
+# Creating the non-optimized model
 start_time <- Sys.time()
-rspde_model_nonopt <- rspde.matern(mesh = prmesh, 
-                                   rspde_order = 1,
-                                    optimize = FALSE)
+rspde_model_nonopt <- rspde.matern(
+  mesh = prmesh,
+  rspde_order = 1,
+  optimize = FALSE
+)
 end_time <- Sys.time()
 time_nonopt <- end_time - start_time
 ```
@@ -1070,49 +1175,65 @@ time_nonopt <- end_time - start_time
 Now, let us fit the models:
 
 ```{r, message=FALSE, warning=FALSE}
-f.s.opt.sharp <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
-  f(field, model = rspde_model_opt_sharp) 
+f.s.opt.sharp <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
+  f(field, model = rspde_model_opt_sharp)
 
-rspde_fit_opt_sharp <-rspde.inla(f.s.opt.sharp, family = "Gamma",
-                            data = inla.stack.data(stk.dat.1), 
-                            verbose = FALSE, 
-                            control.inla=list(int.strategy='eb'),
-                            control.predictor=list(A=inla.stack.A(stk.dat.1), 
-                                                     compute = FALSE))
+rspde_fit_opt_sharp <- rspde.inla(f.s.opt.sharp,
+  family = "Gamma",
+  data = inla.stack.data(stk.dat.1),
+  verbose = FALSE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(
+    A = inla.stack.A(stk.dat.1),
+    compute = FALSE
+  )
+)
 
-f.s.opt.notsharp <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
-  f(field, model = rspde_model_opt_notsharp) 
+f.s.opt.notsharp <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
+  f(field, model = rspde_model_opt_notsharp)
 
-rspde_fit_opt_notsharp <-rspde.inla(f.s.opt.notsharp, family = "Gamma", 
-                               data = inla.stack.data(stk.dat.1), 
-                               verbose = FALSE, 
-                               control.inla=list(int.strategy='eb'),
-                               control.predictor=list(A=inla.stack.A(stk.dat.1), 
-                                                        compute = FALSE))
+rspde_fit_opt_notsharp <- rspde.inla(f.s.opt.notsharp,
+  family = "Gamma",
+  data = inla.stack.data(stk.dat.1),
+  verbose = FALSE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(
+    A = inla.stack.A(stk.dat.1),
+    compute = FALSE
+  )
+)
 
-f.s.nonopt <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
-  f(field, model = rspde_model_nonopt) 
+f.s.nonopt <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
+  f(field, model = rspde_model_nonopt)
 
-rspde_fit_nonopt <-rspde.inla(f.s.nonopt, family = "Gamma", 
-                         data = inla.stack.data(stk.dat.1), 
-                         verbose = FALSE, 
-                         control.inla=list(int.strategy='eb'),
-                         control.predictor=list(A=inla.stack.A(stk.dat.1), 
-                                                  compute = FALSE))
+rspde_fit_nonopt <- rspde.inla(f.s.nonopt,
+  family = "Gamma",
+  data = inla.stack.data(stk.dat.1),
+  verbose = FALSE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(
+    A = inla.stack.A(stk.dat.1),
+    compute = FALSE
+  )
+)
 ```
 
 Finally, let us compare the times:
 
 ```{r}
 `Time to create model` <- c(time_opt_sharp, time_opt_notsharp, time_nonopt)
-`Time to fit the model` <- c(rspde_fit_opt_sharp$cpu.used[[2]], 
-                             rspde_fit_opt_notsharp$cpu.used[[2]],
-                             rspde_fit_nonopt$cpu.used[[2]])
+`Time to fit the model` <- c(
+  rspde_fit_opt_sharp$cpu.used[[2]],
+  rspde_fit_opt_notsharp$cpu.used[[2]],
+  rspde_fit_nonopt$cpu.used[[2]]
+)
 `Total time` <- `Time to create model` + `Time to fit the model`
 Model <- c("Opt & sharp", "Opt & not sharp", "Non-opt")
-result_table <- data.frame(Model, `Time to create model`, 
-                           `Time to fit the model`, 
-                           `Total time`)
+result_table <- data.frame(
+  Model, `Time to create model`,
+  `Time to fit the model`,
+  `Total time`
+)
 result_table
 ```
 
@@ -1155,27 +1276,29 @@ latent vector described in the introduction of the
 We begin by creating the mesh:
 
 ```{r fig.align = "center"}
-m = 200
-loc_2d_mesh = matrix(runif(m*2),m,2)
-mesh_2d = inla.mesh.2d(
-  loc=loc_2d_mesh,
-  cutoff=0.05,
-  offset=c(0.1,0.4),
-  max.edge=c(0.05,0.5) )
-plot(mesh_2d, main="")
-points(loc_2d_mesh[,1],loc_2d_mesh[,2])
+m <- 200
+loc_2d_mesh <- matrix(runif(m * 2), m, 2)
+mesh_2d <- inla.mesh.2d(
+  loc = loc_2d_mesh,
+  cutoff = 0.05,
+  offset = c(0.1, 0.4),
+  max.edge = c(0.05, 0.5)
+)
+plot(mesh_2d, main = "")
+points(loc_2d_mesh[, 1], loc_2d_mesh[, 2])
 ```
 
 We then compute the $A$ matrix, which is needed for simulation, and connects the observation
 locations to the mesh:
 
 ```{r}
-n.rep = 30
-A=inla.spde.make.A(
-  mesh=mesh_2d,
-  loc=loc_2d_mesh,
-  index=rep(1:m,times=n.rep),
-  repl=rep(1:n.rep,each=m))
+n.rep <- 30
+A <- inla.spde.make.A(
+  mesh = mesh_2d,
+  loc = loc_2d_mesh,
+  index = rep(1:m, times = n.rep),
+  repl = rep(1:n.rep, each = m)
+)
 ```
 
 Notice that for the simulated data, we should use the $A$ matrix from `inla.spde.make.A()` function.
@@ -1185,17 +1308,19 @@ range $0.1$. We will use $\nu=0.5$ so that the model has an exponential covarian
 To this end we create a model object with the `matern.operators()` function:
 
 ```{r}
-nu = 0.5
-sigma = 1 
-range = 0.1
-kappa = sqrt(8*nu)/range
-tau = sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi) * gamma(nu + 1)))
-d=2
-operator_information = matern.operators (mesh=mesh_2d,
-                                 nu=nu,
-                                 kappa=kappa,
-                                 sigma=sigma,
-                                 m=2)
+nu <- 0.5
+sigma <- 1
+range <- 0.1
+kappa <- sqrt(8 * nu) / range
+tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) * (4 * pi) * gamma(nu + 1)))
+d <- 2
+operator_information <- matern.operators(
+  mesh = mesh_2d,
+  nu = nu,
+  kappa = kappa,
+  sigma = sigma,
+  m = 2
+)
 ```
 More details on this function can be found at the [Rational approximation with the rSPDE package](rspde_cov.html) vignette.
 
@@ -1205,20 +1330,25 @@ by connecting with the $A$ matrix and adding the gaussian noise.
 
 ```{r}
 set.seed(1)
-u = simulate(operator_information, nsim=n.rep)
-y = as.vector(A %*% as.vector(u)) +
-  rnorm(m*n.rep)*0.1
+u <- simulate(operator_information, nsim = n.rep)
+y <- as.vector(A %*% as.vector(u)) +
+  rnorm(m * n.rep) * 0.1
 ```
 
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
 
 ```{r, fig.show='hold', fig.align = "center",echo=FALSE}
-opar <- par(mfrow = c(1,2),mgp = c(1.2, 0.5, 0), mar = c(2,2,0.5,0.5) + 0.1)
+opar <- par(mfrow = c(1, 2), mgp = c(1.2, 0.5, 0),
+   mar = c(2, 2, 0.5, 0.5) + 0.1)
 proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
-image(inla.mesh.project(proj, field = as.vector(u[,1])),xlab="",ylab="",
-      cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
-plot(loc_2d_mesh[,1],loc_2d_mesh[,2],cex=0.2,pch=16,xlab="",ylab="",
-     cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8)
+image(inla.mesh.project(proj, field = as.vector(u[, 1])),
+  xlab = "", ylab = "",
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
+plot(loc_2d_mesh[, 1], loc_2d_mesh[, 2],
+  cex = 0.2, pch = 16, xlab = "", ylab = "",
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
 par(opar)
 ```
 
@@ -1236,22 +1366,27 @@ identically as in their
 `r inla_link()`'s counterparts, namely, `inla.spde.make.A()` and `inla.make.index()`.
 
 ```{r}
-Abar.rep <- rspde.make.A(mesh = mesh_2d, loc = loc_2d_mesh, index=rep(1:m,times=n.rep),
-                     repl=rep(1:n.rep,each=m) )
-mesh.index.rep <- rspde.make.index(name = "field", mesh = mesh_2d,
-                                n.repl=n.rep)
+Abar.rep <- rspde.make.A(
+  mesh = mesh_2d, loc = loc_2d_mesh, index = rep(1:m, times = n.rep),
+  repl = rep(1:n.rep, each = m)
+)
+mesh.index.rep <- rspde.make.index(
+  name = "field", mesh = mesh_2d,
+  n.repl = n.rep
+)
 
-st.dat.rep=inla.stack(
-  data=list(y=y),
-  A=Abar.rep,
-  effects=mesh.index.rep)
+st.dat.rep <- inla.stack(
+  data = list(y = y),
+  A = Abar.rep,
+  effects = mesh.index.rep
+)
 ```
 
 We now create the model object. For illustration purposes, we will use "BRASIL" 
 rational approximation algorithm to fit this model.
 
 ```{r}
-rspde_model.rep <- rspde.matern(mesh = mesh_2d, type.rational.approx="brasil")
+rspde_model.rep <- rspde.matern(mesh = mesh_2d, type.rational.approx = "brasil")
 ```
 
 Finally, we create the formula and fit. It is extremely important
@@ -1260,15 +1395,18 @@ as `inla()` function will not produce warning and might fit some
 meaningless model.
 
 ```{r, message=FALSE, warning=FALSE}
-f.rep =
-  y ~ -1 + f(field, model=rspde_model.rep,
-    replicate=field.repl)
-rspde_fit.rep =
- rspde.inla(f.rep,
-       data=inla.stack.data(st.dat.rep),
-       family="gaussian",
-       control.predictor=
-         list(A=inla.stack.A(st.dat.rep)))
+f.rep <-
+  y ~ -1 + f(field,
+    model = rspde_model.rep,
+    replicate = field.repl
+  )
+rspde_fit.rep <-
+  rspde.inla(f.rep,
+    data = inla.stack.data(st.dat.rep),
+    family = "gaussian",
+    control.predictor =
+      list(A = inla.stack.A(st.dat.rep))
+  )
 ```
 
 We can get the summary:
@@ -1280,14 +1418,20 @@ and the summary in the user's scale:
 ```{r}
 result_fit_rep <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 summary(result_fit_rep)
-result_df <- data.frame(parameter = c("tau","kappa","nu"),
-                      true = c(tau, kappa, nu), 
-                      mean = c(result_fit_rep$summary.tau$mean, 
-                              result_fit_rep$summary.kappa$mean,
-                              result_fit_rep$summary.nu$mean),
-                        mode = c(result_fit_rep$summary.tau$mode, 
-                                 result_fit_rep$summary.kappa$mode,
-                                 result_fit_rep$summary.nu$mode))
+result_df <- data.frame(
+  parameter = c("tau", "kappa", "nu"),
+  true = c(tau, kappa, nu),
+  mean = c(
+    result_fit_rep$summary.tau$mean,
+    result_fit_rep$summary.kappa$mean,
+    result_fit_rep$summary.nu$mean
+  ),
+  mode = c(
+    result_fit_rep$summary.tau$mode,
+    result_fit_rep$summary.kappa$mode,
+    result_fit_rep$summary.nu$mode
+  )
+)
 print(result_df)
 ```
 
