@@ -14,8 +14,8 @@
 <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.1.0/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.1.0/bootstrap.bundle.min.js"></script><link href="../deps/_Roboto%20Slab-0.4.1/font.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.1.3/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.2/font.css" rel="stylesheet">
 <!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="An introduction to the rSPDE package">
@@ -93,7 +93,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>An introduction to the rSPDE package</h1>
                         <h4 data-toc-skip class="author">David Bolin and Alexandre B. Simas</h4>
             
-            <h4 data-toc-skip class="date">2022-07-18</h4>
+            <h4 data-toc-skip class="date">2022-07-24</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rSPDE.Rmd" class="external-link"><code>vignettes/rSPDE.Rmd</code></a></small>
       <div class="d-none name"><code>rSPDE.Rmd</code></div>
@@ -130,12 +130,13 @@
 <p>We will begin by defining a mesh over <span class="math inline">\([0,1]\times [0, 1]\)</span>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span>
-<span><span class="va">n_loc</span> <span class="op">=</span> <span class="fl">2000</span></span>
-<span><span class="va">loc_2d_mesh</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n_loc</span><span class="op">*</span><span class="fl">2</span><span class="op">)</span>,<span class="va">n_loc</span>,<span class="fl">2</span><span class="op">)</span></span>
-<span><span class="va">mesh_2d</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.2d.html" class="external-link">inla.mesh.2d</a></span><span class="op">(</span></span>
-<span>  loc<span class="op">=</span><span class="va">loc_2d_mesh</span>,</span>
-<span>  cutoff<span class="op">=</span><span class="fl">0.05</span>,</span>
-<span>  max.edge<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>,<span class="fl">0.5</span><span class="op">)</span> <span class="op">)</span></span>
+<span><span class="va">n_loc</span> <span class="op">&lt;-</span> <span class="fl">2000</span></span>
+<span><span class="va">loc_2d_mesh</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n_loc</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span>, <span class="va">n_loc</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">mesh_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.2d.html" class="external-link">inla.mesh.2d</a></span><span class="op">(</span></span>
+<span>  loc <span class="op">=</span> <span class="va">loc_2d_mesh</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  max.edge <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mesh_2d</span>, main <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></code></pre></div>
 <p><img src="rSPDE_files/figure-html/unnamed-chunk-1-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>We will now use the <code><a href="../reference/matern.operators.html">matern.operators()</a></code> function to construct a rational SPDE approximation of order <span class="math inline">\(m=2\)</span> for a Gaussian random field with a Matérn covariance function on <span class="math inline">\([0,1]\times [0, 1]\)</span>. We choose <span class="math inline">\(\nu=0.5\)</span> which corresponds to exponential covariance. We also set <span class="math inline">\(\sigma=1\)</span> and the range as <span class="math inline">\(0.2\)</span>.</p>
@@ -144,9 +145,11 @@
 <span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
 <span><span class="va">range</span> <span class="op">&lt;-</span> <span class="fl">0.2</span></span>
 <span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.5</span></span>
-<span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">8</span><span class="op">*</span><span class="va">nu</span><span class="op">)</span><span class="op">/</span><span class="va">range</span></span>
-<span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/matern.operators.html">matern.operators</a></span><span class="op">(</span>mesh<span class="op">=</span><span class="va">mesh_2d</span>,nu<span class="op">=</span><span class="va">nu</span>,</span>
-<span>                                   kappa<span class="op">=</span><span class="va">kappa</span>,sigma<span class="op">=</span><span class="va">sigma</span>,m<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">8</span> <span class="op">*</span> <span class="va">nu</span><span class="op">)</span> <span class="op">/</span> <span class="va">range</span></span>
+<span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/matern.operators.html">matern.operators</a></span><span class="op">(</span></span>
+<span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span>
+<span>  kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, m <span class="op">=</span> <span class="fl">2</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>We are now in a position to simulate the latent field <span class="math inline">\(u\)</span>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate.rSPDEobj.html">simulate</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
@@ -158,10 +161,11 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <p>We now obtain a realization of <span class="math inline">\(y\)</span>. We will use the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> function <code><a href="https://rdrr.io/pkg/INLA/man/inla.spde.make.A.html" class="external-link">inla.spde.make.A()</a></code> to construct the observation matrix.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.spde.make.A.html" class="external-link">inla.spde.make.A</a></span><span class="op">(</span></span>
-<span>  mesh<span class="op">=</span><span class="va">mesh_2d</span>,</span>
-<span>  loc<span class="op">=</span><span class="va">loc_2d_mesh</span><span class="op">)</span></span>
+<span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
+<span>  loc <span class="op">=</span> <span class="va">loc_2d_mesh</span></span>
+<span><span class="op">)</span></span>
 <span><span class="va">sigma.e</span> <span class="op">&lt;-</span> <span class="fl">0.1</span></span>
-<span><span class="va">y</span> <span class="op">=</span> <span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">u</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n_loc</span><span class="op">)</span> <span class="op">*</span> <span class="va">sigma.e</span></span></code></pre></div>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">u</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n_loc</span><span class="op">)</span> <span class="op">*</span> <span class="va">sigma.e</span></span></code></pre></div>
 <p>The observed data can be seen in the following image.</p>
 <p><img src="rSPDE_files/figure-html/unnamed-chunk-5-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>The simulated random field is shown in the following figure.</p>
@@ -176,24 +180,28 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <code class="sourceCode R"><span><span class="va">Abar</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.make.A.html">rspde.make.A</a></span><span class="op">(</span>mesh <span class="op">=</span> <span class="va">mesh_2d</span>, loc <span class="op">=</span> <span class="va">loc_2d_mesh</span><span class="op">)</span></span>
 <span><span class="va">mesh.index</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.make.index.html">rspde.make.index</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"field"</span>, mesh <span class="op">=</span> <span class="va">mesh_2d</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">st.dat</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack</a></span><span class="op">(</span></span>
-<span>  data<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  A<span class="op">=</span><span class="va">Abar</span>,</span>
-<span>  effects<span class="op">=</span><span class="va">mesh.index</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">st.dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack</a></span><span class="op">(</span></span>
+<span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  A <span class="op">=</span> <span class="va">Abar</span>,</span>
+<span>  effects <span class="op">=</span> <span class="va">mesh.index</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>We now create the model object. We need to set an upper bound for the smoothness parameter <span class="math inline">\(\nu\)</span>. When we increase the upper bound for <span class="math inline">\(\nu\)</span> we also increase the computational cost. For this example we set <code>nu_upper_bound=1</code>. See the <a href="rspde_inla.html">R-INLA implementation of the rational SPDE approach</a> for further details.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rspde_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.matern.html">rspde.matern</a></span><span class="op">(</span>mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
-<span>                            nu_upper_bound <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">rspde_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.matern.html">rspde.matern</a></span><span class="op">(</span></span>
+<span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
+<span>  nu_upper_bound <span class="op">=</span> <span class="fl">2</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>Finally, we create the formula and fit:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">f</span> <span class="op">=</span></span>
-<span>  <span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/f.html" class="external-link">f</a></span><span class="op">(</span><span class="va">field</span>, model<span class="op">=</span><span class="va">rspde_model</span><span class="op">)</span></span>
-<span><span class="va">rspde_fit</span> <span class="op">=</span></span>
+<code class="sourceCode R"><span><span class="va">f</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/f.html" class="external-link">f</a></span><span class="op">(</span><span class="va">field</span>, model <span class="op">=</span> <span class="va">rspde_model</span><span class="op">)</span></span>
+<span><span class="va">rspde_fit</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/rspde.inla.html">rspde.inla</a></span><span class="op">(</span><span class="va">f</span>,</span>
-<span>       data<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.data</a></span><span class="op">(</span><span class="va">st.dat</span><span class="op">)</span>,</span>
-<span>       family<span class="op">=</span><span class="st">"gaussian"</span>,</span>
-<span>       control.predictor<span class="op">=</span></span>
-<span>         <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>A<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.A</a></span><span class="op">(</span><span class="va">st.dat</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>    data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.data</a></span><span class="op">(</span><span class="va">st.dat</span><span class="op">)</span>,</span>
+<span>    family <span class="op">=</span> <span class="st">"gaussian"</span>,</span>
+<span>    control.predictor <span class="op">=</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>A <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.A</a></span><span class="op">(</span><span class="va">st.dat</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
 <p>We can get the summary:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span>
@@ -217,7 +225,7 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span><span class="co">#&gt;    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span></span>
 <span><span class="co">#&gt;    .parent.frame)") </span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 3.29, Running = 10.4, Post = 0.0903, Total = 13.8 </span></span>
+<span><span class="co">#&gt;     Pre = 3.1, Running = 9.72, Post = 0.087, Total = 12.9 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field RGeneric2</span></span>
@@ -229,7 +237,7 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span><span class="co">#&gt; Theta2 for field                          2.61 0.133      2.352    2.603</span></span>
 <span><span class="co">#&gt; Theta3 for field                         -0.22 0.184     -0.572   -0.224</span></span>
 <span><span class="co">#&gt;                                         0.975quant    mode</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations    108.925 101.605</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations    108.926 101.605</span></span>
 <span><span class="co">#&gt; Theta1 for field                            -2.809  -3.445</span></span>
 <span><span class="co">#&gt; Theta2 for field                             2.879   2.590</span></span>
 <span><span class="co">#&gt; Theta3 for field                             0.161  -0.243</span></span>
@@ -242,23 +250,29 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             mean        sd 0.025quant   0.5quant 0.975quant      mode</span></span>
-<span><span class="co">#&gt; tau    0.0324523 0.0114942  0.0148571  0.0308742  0.0595102  0.027816</span></span>
-<span><span class="co">#&gt; kappa 13.6619000 1.8227600 10.5500000 13.4885000 17.6928000 13.110600</span></span>
-<span><span class="co">#&gt; nu     0.8911180 0.0897823  0.7245590  0.8873950  1.0758300  0.877291</span></span>
+<span><span class="co">#&gt;             mean        sd 0.025quant   0.5quant 0.975quant       mode</span></span>
+<span><span class="co">#&gt; tau    0.0324566 0.0115033  0.0148522  0.0308754  0.0595408  0.0278027</span></span>
+<span><span class="co">#&gt; kappa 13.6617000 1.8240300 10.5476000 13.4882000 17.6954000 13.1100000</span></span>
+<span><span class="co">#&gt; nu     0.8911040 0.0898382  0.7244320  0.8873830  1.0759200  0.8772730</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
-<span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>,<span class="st">"kappa"</span>,<span class="st">"nu"</span><span class="op">)</span>,</span>
-<span>                        true <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tau</span>, <span class="va">kappa</span>, <span class="va">nu</span><span class="op">)</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">$</span><span class="va">summary.tau</span><span class="op">$</span><span class="va">mean</span>, </span>
-<span>                                                           <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.kappa</span><span class="op">$</span><span class="va">mean</span>,</span>
-<span>                                                           <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.nu</span><span class="op">$</span><span class="va">mean</span><span class="op">)</span>,</span>
-<span>                        mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">$</span><span class="va">summary.tau</span><span class="op">$</span><span class="va">mode</span>, </span>
-<span>                                                           <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.kappa</span><span class="op">$</span><span class="va">mode</span>,</span>
-<span>                                                           <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.nu</span><span class="op">$</span><span class="va">mode</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
+<span>  true <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tau</span>, <span class="va">kappa</span>, <span class="va">nu</span><span class="op">)</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.tau</span><span class="op">$</span><span class="va">mean</span>,</span>
+<span>    <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.kappa</span><span class="op">$</span><span class="va">mean</span>,</span>
+<span>    <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.nu</span><span class="op">$</span><span class="va">mean</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.tau</span><span class="op">$</span><span class="va">mode</span>,</span>
+<span>    <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.kappa</span><span class="op">$</span><span class="va">mode</span>,</span>
+<span>    <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.nu</span><span class="op">$</span><span class="va">mode</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter       true        mean        mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.1261566  0.03245227  0.02781603</span></span>
-<span><span class="co">#&gt; 2     kappa 10.0000000 13.66191012 13.11055300</span></span>
-<span><span class="co">#&gt; 3        nu  0.5000000  0.89111775  0.87729118</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       tau  0.1261566  0.03245657  0.02780269</span></span>
+<span><span class="co">#&gt; 2     kappa 10.0000000 13.66171473 13.11001345</span></span>
+<span><span class="co">#&gt; 3        nu  0.5000000  0.89110410  0.87727297</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kringing-with-r-inla-implementation-of-the-rational-spde-approach">Kringing with <code>R-INLA</code> implementation of the rational SPDE approach<a class="anchor" aria-label="anchor" href="#kringing-with-r-inla-implementation-of-the-rational-spde-approach"></a>
@@ -266,8 +280,10 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <p>Let us now obtain predictions (i.e., do kriging) of the latent field on a dense grid in the region.</p>
 <p>We begin by creating the grid in which we want to do the predictions. To this end, we can use the <code><a href="../reference/rspde.mesh.project.html">rspde.mesh.projector()</a></code> function. This function has the same arguments as the function <code><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.project.html" class="external-link">inla.mesh.projector()</a></code> the only difference being that the rSPDE version also has an argument <code>nu</code> and an argument <code>rspde_order</code>. Thus, we proceed in the same fashion as we would in <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a>’s standard SPDE implementation:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">projgrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.mesh.project.html">rspde.mesh.projector</a></span><span class="op">(</span><span class="va">mesh_2d</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>, </span>
-<span>ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">projgrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.mesh.project.html">rspde.mesh.projector</a></span><span class="op">(</span><span class="va">mesh_2d</span>,</span>
+<span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>This lattice contains 100 × 100 locations (the default).</p>
 <p>Let us plot the locations that we will do prediction:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
@@ -279,25 +295,33 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <code class="sourceCode R"><span><span class="va">A.prd</span> <span class="op">&lt;-</span> <span class="va">projgrid</span><span class="op">$</span><span class="va">proj</span><span class="op">$</span><span class="va">A</span></span></code></pre></div>
 <p>We now make a stack for the prediction locations. We have no data at the prediction locations, so we set <code>y= NA</code>. We then join this stack with the estimation stack.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ef.prd</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mesh.index</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">st.prd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span>, </span>
-<span>    A <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">A.prd</span><span class="op">)</span>, tag <span class="op">=</span> <span class="st">"prd"</span>, </span>
-<span>    effects <span class="op">=</span> <span class="va">ef.prd</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">ef.prd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mesh.index</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">st.prd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack</a></span><span class="op">(</span></span>
+<span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span>,</span>
+<span>  A <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">A.prd</span><span class="op">)</span>, tag <span class="op">=</span> <span class="st">"prd"</span>,</span>
+<span>  effects <span class="op">=</span> <span class="va">ef.prd</span></span>
+<span><span class="op">)</span></span>
 <span><span class="va">st.all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack</a></span><span class="op">(</span><span class="va">st.dat</span>, <span class="va">st.prd</span><span class="op">)</span></span></code></pre></div>
 <p>Doing the joint estimation takes a while, and we therefore turn off the computation of certain things that we are not interested in, such as the marginals for the random effect. We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command <code>control.inla = list(int.strategy = "eb")</code>, i.e. empirical Bayes:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rspde_fitprd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.inla.html">rspde.inla</a></span><span class="op">(</span><span class="va">f</span>, family <span class="op">=</span> <span class="st">"Gaussian"</span>, </span>
-<span>             data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.data</a></span><span class="op">(</span><span class="va">st.all</span><span class="op">)</span>, </span>
-<span>             control.predictor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>A <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.A</a></span><span class="op">(</span><span class="va">st.all</span><span class="op">)</span>,</span>
-<span>                                      compute <span class="op">=</span> <span class="cn">TRUE</span>, link <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>             control.compute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>return.marginals <span class="op">=</span> <span class="cn">FALSE</span>, </span>
-<span>                                    return.marginals.predictor <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
-<span>             control.inla <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>int.strategy <span class="op">=</span> <span class="st">"eb"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">rspde_fitprd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.inla.html">rspde.inla</a></span><span class="op">(</span><span class="va">f</span>,</span>
+<span>  family <span class="op">=</span> <span class="st">"Gaussian"</span>,</span>
+<span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.data</a></span><span class="op">(</span><span class="va">st.all</span><span class="op">)</span>,</span>
+<span>  control.predictor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    A <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.A</a></span><span class="op">(</span><span class="va">st.all</span><span class="op">)</span>,</span>
+<span>    compute <span class="op">=</span> <span class="cn">TRUE</span>, link <span class="op">=</span> <span class="fl">1</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  control.compute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    return.marginals <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>    return.marginals.predictor <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  control.inla <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>int.strategy <span class="op">=</span> <span class="st">"eb"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>We then extract the indices to the prediction nodes and then extract the mean and the standard deviation of the response:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">id.prd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.index</a></span><span class="op">(</span><span class="va">st.all</span>, <span class="st">"prd"</span><span class="op">)</span><span class="op">$</span><span class="va">data</span></span>
-<span><span class="va">m.prd</span><span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">rspde_fitprd</span><span class="op">$</span><span class="va">summary.fitted.values</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="va">id.prd</span><span class="op">]</span>,<span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span></span>
-<span><span class="va">sd.prd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">rspde_fitprd</span><span class="op">$</span><span class="va">summary.fitted.values</span><span class="op">$</span><span class="va">sd</span><span class="op">[</span><span class="va">id.prd</span><span class="op">]</span>,<span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">m.prd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">rspde_fitprd</span><span class="op">$</span><span class="va">summary.fitted.values</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="va">id.prd</span><span class="op">]</span>, <span class="fl">100</span>, <span class="fl">100</span><span class="op">)</span></span>
+<span><span class="va">sd.prd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">rspde_fitprd</span><span class="op">$</span><span class="va">summary.fitted.values</span><span class="op">$</span><span class="va">sd</span><span class="op">[</span><span class="va">id.prd</span><span class="op">]</span>, <span class="fl">100</span>, <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
 <p>Finally, we plot the results. First the mean:</p>
 <p><img src="rSPDE_files/figure-html/plot_pred-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Then, the std. deviations:</p>
@@ -312,48 +336,54 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <p>To simplify parameter estimation, we create an objective function to minimize which is the negative log-likelihood, parametrized using the logarithm of each parameter to avoid constrained optimization.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mlik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">Y</span>, <span class="va">A</span>, <span class="va">op</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">kappa</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">nu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="fu">rSPDE</span><span class="fu">::</span><span class="fu"><a href="../reference/rSPDE.matern.loglike.html">rSPDE.matern.loglike</a></span><span class="op">(</span>object <span class="op">=</span> <span class="va">op</span>, Y<span class="op">=</span><span class="va">Y</span>,</span>
-<span>                                  A <span class="op">=</span> <span class="va">A</span>, user_kappa<span class="op">=</span><span class="va">kappa</span>, user_sigma <span class="op">=</span> <span class="va">sigma</span>,</span>
-<span>                                 user_nu<span class="op">=</span><span class="va">nu</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span>    </span></code></pre></div>
+<span>  <span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="va">nu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="fu">rSPDE</span><span class="fu">::</span><span class="fu"><a href="../reference/rSPDE.matern.loglike.html">rSPDE.matern.loglike</a></span><span class="op">(</span></span>
+<span>    object <span class="op">=</span> <span class="va">op</span>, Y <span class="op">=</span> <span class="va">Y</span>,</span>
+<span>    A <span class="op">=</span> <span class="va">A</span>, user_kappa <span class="op">=</span> <span class="va">kappa</span>, user_sigma <span class="op">=</span> <span class="va">sigma</span>,</span>
+<span>    user_nu <span class="op">=</span> <span class="va">nu</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
 <p>We can now estimate the parameter using <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> (one can also use <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code>):</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/florafauna/optimParallel-R" class="external-link">optimParallel</a></span><span class="op">)</span></span>
-<span><span class="co">#Preparing the parallel</span></span>
+<span><span class="co"># Preparing the parallel</span></span>
 <span></span>
-<span><span class="co">#Checking if we have a limit to the number of cores</span></span>
+<span><span class="co"># Checking if we have a limit to the number of cores</span></span>
 <span><span class="va">chk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"_R_CHECK_LIMIT_CORES_"</span>, <span class="st">""</span><span class="op">)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="va">chk</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="va">chk</span> <span class="op">==</span> <span class="st">"TRUE"</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">n_cores</span> <span class="op">&lt;-</span> <span class="fl">2L</span></span>
+<span>  <span class="va">n_cores</span> <span class="op">&lt;-</span> <span class="fl">2L</span></span>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
-<span>    <span class="va">n_cores</span> <span class="op">&lt;-</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span>
+<span>  <span class="va">n_cores</span> <span class="op">&lt;-</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">cl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">makeCluster</a></span><span class="op">(</span><span class="va">n_cores</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">setDefaultCluster</a></span><span class="op">(</span>cl<span class="op">=</span><span class="va">cl</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">setDefaultCluster</a></span><span class="op">(</span>cl <span class="op">=</span> <span class="va">cl</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co">#Fitting the model</span></span>
-<span><span class="va">theta0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/get.inital.values.rSPDE.html">get.inital.values.rSPDE</a></span><span class="op">(</span>mesh<span class="op">=</span><span class="va">mesh_2d</span><span class="op">)</span>,</span>
-<span>              <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># Fitting the model</span></span>
+<span><span class="va">theta0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/get.inital.values.rSPDE.html">get.inital.values.rSPDE</a></span><span class="op">(</span>mesh <span class="op">=</span> <span class="va">mesh_2d</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel</a></span><span class="op">(</span><span class="va">theta0</span>, <span class="va">mlik</span>, Y <span class="op">=</span> <span class="va">y</span>, A <span class="op">=</span> <span class="va">A</span>, op<span class="op">=</span><span class="va">op</span><span class="op">)</span></span>
+<span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel</a></span><span class="op">(</span><span class="va">theta0</span>, <span class="va">mlik</span>, Y <span class="op">=</span> <span class="va">y</span>, A <span class="op">=</span> <span class="va">A</span>, op <span class="op">=</span> <span class="va">op</span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, </span>
-<span>                      kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                      nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                      sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             sigma     kappa        nu    sigma.e</span></span>
 <span><span class="co">#&gt; True     1.000000 10.000000 0.5000000 0.10000000</span></span>
 <span><span class="co">#&gt; Estimate 1.014695  9.377185 0.5480289 0.09913223</span></span>
-<span><span class="co">#Total time</span></span>
+<span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 11.72513 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 11.84054 secs</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kringing-with-rspde">Kringing with <code>rSPDE</code><a class="anchor" aria-label="anchor" href="#kringing-with-rspde"></a>
@@ -362,19 +392,25 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <p>Observe that we need an <span class="math inline">\(A\)</span> matrix connecting the mesh to the prediction locations.</p>
 <p>Let us now create the <span class="math inline">\(A\)</span> matrix for the same prediction locations we used for the previous case (using the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> implementation):</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">predgrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.project.html" class="external-link">inla.mesh.projector</a></span><span class="op">(</span><span class="va">mesh_2d</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>, </span>
-<span>ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">predgrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.project.html" class="external-link">inla.mesh.projector</a></span><span class="op">(</span><span class="va">mesh_2d</span>,</span>
+<span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span><span class="va">A.prd2</span> <span class="op">&lt;-</span> <span class="va">predgrid</span><span class="op">$</span><span class="va">proj</span><span class="op">$</span><span class="va">A</span></span></code></pre></div>
 <p>We will now use the <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> method on the <code>rSPDE</code> model object with the argument <code>compute.variances</code> set to <code>TRUE</code> so that we can plot the standard deviations. Let us also update the values of the <code>rSPDE</code> model object to the fitted ones, and also save the estimated value of <code>sigma.e</code>.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sigma.e.est</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="va">op.prd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">op</span>, user_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>                 user_kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>                 user_nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">op.prd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">op</span>,</span>
+<span>  user_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  user_kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  user_nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">pred.rspde</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">op.prd</span>, A <span class="op">=</span> <span class="va">A</span>, Aprd <span class="op">=</span> <span class="va">A.prd2</span>, Y <span class="op">=</span> <span class="va">y</span>, </span>
-<span>                      sigma.e <span class="op">=</span> <span class="va">sigma.e.est</span>,</span>
-<span>                      compute.variances <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">pred.rspde</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">op.prd</span>,</span>
+<span>  A <span class="op">=</span> <span class="va">A</span>, Aprd <span class="op">=</span> <span class="va">A.prd2</span>, Y <span class="op">=</span> <span class="va">y</span>,</span>
+<span>  sigma.e <span class="op">=</span> <span class="va">sigma.e.est</span>,</span>
+<span>  compute.variances <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>Finally, we plot the results. First the mean:</p>
 <p><img src="rSPDE_files/figure-html/plot_pred2-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Then, the std. deviations:</p>
