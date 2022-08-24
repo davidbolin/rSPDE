@@ -97,7 +97,7 @@ rspde_model <- rspde.matern(
   nu_upper_bound = 1
 )
 f <- y ~ -1 + f(field, model = rspde_model)
-rspde_fit <- rspde.inla(f,
+rspde_fit <- inla(f,
   data = inla.stack.data(st.dat),
   family = "gaussian",
   control.predictor =

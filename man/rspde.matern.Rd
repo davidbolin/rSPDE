@@ -198,7 +198,7 @@ f.s <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model)
 
 # Fitting the model
-rspde_fit <- rspde.inla(f.s,
+rspde_fit <- inla(f.s,
   family = "Gamma", data = inla.stack.data(stk.dat),
   control.inla = list(int.strategy = "eb"),
   control.predictor = list(A = inla.stack.A(stk.dat))
