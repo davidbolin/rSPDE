@@ -93,7 +93,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Rational approximation with the rSPDE package</h1>
                         <h4 data-toc-skip class="author">David Bolin, Alexandre B. Simas, Zhen Xiong</h4>
             
-            <h4 data-toc-skip class="date">2022-07-24</h4>
+            <h4 data-toc-skip class="date">2022-08-24</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_cov.Rmd" class="external-link"><code>vignettes/rspde_cov.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_cov.Rmd</code></div>
@@ -112,7 +112,7 @@
 <ul>
 <li><a href="rspde_base.html">Operator-based rational approximation</a></li>
 </ul>
-<p>For the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> implementation of the rational SPDE approach we refer the reader to the <a href="rspde_inla.html">R-INLA implementation of the rational SPDE approach</a> vignette.</p>
+<p>For the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> implementation of the rational SPDE approach we refer the reader to the <a href="inla.html">R-INLA implementation of the rational SPDE approach</a> vignette.</p>
 </div>
 <div class="section level2">
 <h2 id="covariance-based-rational-spde-approach">Covariance-based rational SPDE approach<a class="anchor" aria-label="anchor" href="#covariance-based-rational-spde-approach"></a>
@@ -141,7 +141,7 @@
 <h2 id="constructing-the-approximation">Constructing the approximation<a class="anchor" aria-label="anchor" href="#constructing-the-approximation"></a>
 </h2>
 <p>In this section, we explain how to to use the function <code><a href="../reference/matern.operators.html">matern.operators()</a></code> with the default argument <code>type</code>, that is, <code>type="covariance"</code>, which is constructs the covariance-based rational approximation. We will also illustrate the usage of several methods and functions related to the covariance-based rational approximation. We will use functions to sample from Gaussian fields with stationary Matérn covariance function, compute the log-likelihood function, perform predicitions (i.e., do kringing), etc.</p>
-<p>The first step for performing the covariance-based rational SPDE approximation is to define the FEM mesh. For illustration purposes, the <code>rSPDE</code> package contains a simple FEM implementation for models on <span class="math inline">\(\mathbb{R}\)</span> which we will use first. We will also illustrate how spatial models can be constructed if the FEM implementation of the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> package is used instead. When using the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> package, we also recommend the usage of our <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> implementation of the rational SPDE approach. For more details see the <a href="rspde_inla.html">R-INLA implementation of the rational SPDE approach</a> vignette.</p>
+<p>The first step for performing the covariance-based rational SPDE approximation is to define the FEM mesh. For illustration purposes, the <code>rSPDE</code> package contains a simple FEM implementation for models on <span class="math inline">\(\mathbb{R}\)</span> which we will use first. We will also illustrate how spatial models can be constructed if the FEM implementation of the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> package is used instead. When using the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> package, we also recommend the usage of our <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> implementation of the rational SPDE approach. For more details see the <a href="inla.html">R-INLA implementation of the rational SPDE approach</a> vignette.</p>
 <p>We begin by loading the <code>rSPDE</code> package:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://davidbolin.github.io/rSPDE/">rSPDE</a></span><span class="op">)</span></span></code></pre></div>
@@ -302,7 +302,7 @@
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 8.510005 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 9.270328 secs</span></span></code></pre>
 <p>We can also speed up the optimization by using the <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> function from the <code>optimParallel</code> package. To such an end, we simply replace the <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> function by <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> and set the number of cores we want to use:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/florafauna/optimParallel-R" class="external-link">optimParallel</a></span><span class="op">)</span></span>
@@ -341,7 +341,7 @@
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 5.943197 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 6.447156 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kringing">Kringing<a class="anchor" aria-label="anchor" href="#kringing"></a>
@@ -408,13 +408,13 @@
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 4.117075 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 4.400411 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
 </h2>
 <p>The functions used in the previous examples also work for spatial models. We then need to construct a mesh over the domain of interest and then compute the matrices needed to define the operator. These tasks can be performed, for example, using the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> package. Let us start by defining a mesh over <span class="math inline">\([0,1]\times [0, 1]\)</span> and compute the mass and stiffness matrices for that mesh.</p>
-<p>It is important to mention that when using the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> package we recommend the usage of the <a href="rspde_inla.html">R-INLA implementation of the rational SPDE approach</a>.</p>
+<p>It is important to mention that when using the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> package we recommend the usage of the <a href="inla.html">R-INLA implementation of the rational SPDE approach</a>.</p>
 <p>Let us then consider a simple Gaussian linear model with 30 independent replicates of a latent spatial field <span class="math inline">\(u(\mathbf{s})\)</span>, observed at the same <span class="math inline">\(m\)</span> locations, <span class="math inline">\(\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}\)</span>, for each replicate. For each <span class="math inline">\(i = 1,\ldots,m,\)</span> we have</p>
 <p><span class="math display">\[\begin{align} 
 y_i &amp;= u_1(\mathbf{s}_i)+\varepsilon_i,\\
@@ -500,7 +500,7 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 12.67737 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 13.88506 secs</span></span></code></pre>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

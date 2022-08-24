@@ -143,7 +143,7 @@ their original scales.</p>
 <span class="r-in"><span>  nu_upper_bound <span class="op">=</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">f</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/f.html" class="external-link">f</a></span><span class="op">(</span><span class="va">field</span>, model <span class="op">=</span> <span class="va">rspde_model</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">rspde_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde.inla.html">rspde.inla</a></span><span class="op">(</span><span class="va">f</span>,</span></span>
+<span class="r-in"><span><span class="va">rspde_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.html" class="external-link">inla</a></span><span class="op">(</span><span class="va">f</span>,</span></span>
 <span class="r-in"><span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.data</a></span><span class="op">(</span><span class="va">st.dat</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  family <span class="op">=</span> <span class="st">"gaussian"</span>,</span></span>
 <span class="r-in"><span>  control.predictor <span class="op">=</span></span></span>
@@ -152,9 +152,9 @@ their original scales.</p>
 <span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           mean         sd 0.025quant 0.5quant 0.975quant     mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> tau   0.706561 0.01145950   0.683236 0.706914   0.728146 0.708018</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> kappa 5.050490 0.11285400   4.873430 5.034820   5.306870 4.981990</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> nu    0.751873 0.00442189   0.741786 0.752507   0.758722 0.754685</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau   0.484112 0.00454153   0.475766 0.483902   0.493580 0.483205</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> kappa 7.046540 0.07674210   6.877850 7.055000   7.174010 7.082800</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nu    0.713258 0.00161781   0.710169 0.713212   0.716523 0.713068</span>
 <span class="r-in"><span><span class="co"># devel.tag</span></span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
