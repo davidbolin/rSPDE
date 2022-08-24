@@ -48,6 +48,7 @@ and `gcc`'s version might need to be changed depending on the version of `Rtools
 
 # Upcoming features
 
+- Rewrite the INLA generic model in `cgeneric`.
 - Implementation of covariance-based non-stationary models.
 - Implementation of the covariance-based rational approximation on R-STAN interface.
 - Implementation of covariance-based method to more general SPDE models.
