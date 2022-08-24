@@ -13,6 +13,16 @@ For illustration purposes, the package contains a simple FEM implementation for 
 introductions to how to create and fit rSPDE models. For an introduction to the R-INLA implementation
 of the rSPDE models see the [R-INLA implementation of the rational SPDE approach][ref3]. The [`rSPDE` documentation][ref7] contains descriptions and examples of the functions in the `rSPDE` package.
 
+# Running the shiny app
+
+You can run the shiny app directly from GitHub by using the following command (you may need to install some of the dependencies):
+
+```r
+# install.packages("shiny", "shinythemes", "plotly")
+# install.packages("tidyr", "dplyr")
+shiny::runGitHub("davidbolin/rSPDE", subdir="shiny_app")
+```
+
 # Reference #
 D. Bolin and K. Kirchner (2020) [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Journal of Computational and Graphical Statistics, 29:2, 274-285.
 

@@ -1,3 +1,5 @@
+context("inla_rspde")
+
 test_that("Checking equality of optimized and non-opt.
 Prec. matrices for non-integer case", {
   testthat::skip_on_cran()

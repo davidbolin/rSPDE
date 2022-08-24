@@ -506,7 +506,7 @@ utils::globalVariables(c(
 #'   f(field, model = rspde_model)
 #'
 #' # Fitting the model
-#' rspde_fit <- rspde.inla(f.s,
+#' rspde_fit <- inla(f.s,
 #'   family = "Gamma", data = inla.stack.data(stk.dat),
 #'   control.inla = list(int.strategy = "eb"),
 #'   control.predictor = list(A = inla.stack.A(stk.dat))
@@ -767,7 +767,7 @@ rspde.matern <- function(mesh,
     }
   }
   if (is.null(prior.kappa$sdlog)) {
-    prior.kappa$sdlog <- 1
+    prior.kappa$sdlog <- sqrt(10)
   }
   if (is.null(prior.nu$prec)) {
     mu_temp <- prior.nu[["mean"]] / nu_upper_bound
@@ -779,7 +779,7 @@ rspde.matern <- function(mesh,
   }
 
   if (is.null(prior.tau$sdlog)) {
-    prior.tau$sdlog <- 1
+    prior.tau$sdlog <- sqrt(10)
   }
 
   if (is.null(start.lkappa)) {
@@ -1630,7 +1630,7 @@ rspde.make.A <- function(mesh = NULL,
 #'   nu_upper_bound = 1
 #' )
 #' f <- y ~ -1 + f(field, model = rspde_model)
-#' rspde_fit <- rspde.inla(f,
+#' rspde_fit <- inla(f,
 #'   data = inla.stack.data(st.dat),
 #'   family = "gaussian",
 #'   control.predictor =
@@ -1849,7 +1849,7 @@ rspde.precision <- function(rspde,
 #'   nu_upper_bound = 1
 #' )
 #' f <- y ~ -1 + f(field, model = rspde_model)
-#' rspde_fit <- rspde.inla(f,
+#' rspde_fit <- inla(f,
 #'   data = inla.stack.data(st.dat),
 #'   family = "gaussian",
 #'   control.predictor =
@@ -2070,7 +2070,7 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #'   nu_upper_bound = 1
 #' )
 #' f <- y ~ -1 + f(field, model = rspde_model)
-#' rspde_fit <- rspde.inla(f,
+#' rspde_fit <- inla(f,
 #'   data = inla.stack.data(st.dat),
 #'   family = "gaussian",
 #'   control.predictor =
@@ -2200,7 +2200,7 @@ plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
 #'   nu_upper_bound = 1
 #' )
 #' f <- y ~ -1 + f(field, model = rspde_model)
-#' rspde_fit <- rspde.inla(f,
+#' rspde_fit <- inla(f,
 #'   data = inla.stack.data(st.dat),
 #'   family = "gaussian",
 #'   control.predictor =
@@ -2429,38 +2429,3 @@ rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
 
 
 
-
-
-
-#' @name rspde.inla
-#' @title rSPDE wrapper to run INLA
-#' @description Wrapper to run INLA
-#' @param ... Arguments for `inla` function.
-#' @param n.tries The number of tries
-#' @export
-
-rspde.inla <- function(..., n.tries = 10) {
-  success <- FALSE
-  temp <- 0
-
-  while (!success) {
-    success <- TRUE
-    rspde_fit <- tryCatch(
-      {
-        INLA::inla(...)
-      },
-      error = function(e) {
-        FALSE
-      }
-    )
-    if (!is.list(rspde_fit)) {
-      success <- FALSE
-    }
-    temp <- temp + 1
-    if (temp >= n.tries) {
-      stop("INLA FAILED TO CONVERGE")
-      break
-    }
-  }
-  return(rspde_fit)
-}

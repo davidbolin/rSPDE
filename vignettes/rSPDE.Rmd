@@ -115,7 +115,7 @@ We will analyze the same data set using both approaches.
 We also have specific vignettes for each of the aforementioned family. More precisely,
 we have the following additional vignettes:
 
-* [R-INLA implementation of the rational SPDE approach](rspde_inla.html)
+* [R-INLA implementation of the rational SPDE approach](inla.html)
 
 * [Rational approximation with the rSPDE package](rspde_cov.html)
 
@@ -250,7 +250,7 @@ tryCatch(
 
 We will now fit the model of the toy data set using our `r inla_link()` implementation of the
 rational SPDE approach. Further details on this implementation can be found in
- [R-INLA implementation of the rational SPDE approach](rspde_inla.html).
+ [R-INLA implementation of the rational SPDE approach](inla.html).
  
 We begin by creating the $A$ matrix, the index, and the
 `inla.stack` object.
@@ -270,7 +270,7 @@ We now create the model object. We need to set
 an upper bound for the smoothness parameter $\nu$. When
 we increase the upper bound for $\nu$
 we also increase the computational cost. For this example we set `nu_upper_bound=1`.
-See the  [R-INLA implementation of the rational SPDE approach](rspde_inla.html)
+See the  [R-INLA implementation of the rational SPDE approach](inla.html)
 for further details.
 
 ```{r}
@@ -286,7 +286,7 @@ Finally, we create the formula and fit:
 f <-
   y ~ -1 + f(field, model = rspde_model)
 rspde_fit <-
-  rspde.inla(f,
+  inla(f,
     data = inla.stack.data(st.dat),
     family = "gaussian",
     control.predictor =
@@ -374,7 +374,7 @@ Doing the joint estimation takes a while, and we therefore turn off the computat
 We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes:
 
 ```{r fit_prd, message=FALSE, warning=FALSE}
-rspde_fitprd <- rspde.inla(f,
+rspde_fitprd <- inla(f,
   family = "Gaussian",
   data = inla.stack.data(st.all),
   control.predictor = list(
