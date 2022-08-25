@@ -290,7 +290,8 @@ rspde_fit <-
     data = inla.stack.data(st.dat),
     family = "gaussian",
     control.predictor =
-      list(A = inla.stack.A(st.dat))
+      list(A = inla.stack.A(st.dat)),
+       inla.mode = "experimental"
   )
 ```
 

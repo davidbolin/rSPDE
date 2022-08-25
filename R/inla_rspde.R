@@ -509,7 +509,8 @@ utils::globalVariables(c(
 #' rspde_fit <- inla(f.s,
 #'   family = "Gamma", data = inla.stack.data(stk.dat),
 #'   control.inla = list(int.strategy = "eb"),
-#'   control.predictor = list(A = inla.stack.A(stk.dat))
+#'   control.predictor = list(A = inla.stack.A(stk.dat)),
+#'            inla.mode = "experimental"
 #' )
 #'
 #' # The result
@@ -1634,7 +1635,8 @@ rspde.make.A <- function(mesh = NULL,
 #'   data = inla.stack.data(st.dat),
 #'   family = "gaussian",
 #'   control.predictor =
-#'     list(A = inla.stack.A(st.dat))
+#'     list(A = inla.stack.A(st.dat)),
+#'            inla.mode = "experimental"
 #' )
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' plot(result)
@@ -1853,7 +1855,8 @@ rspde.precision <- function(rspde,
 #'   data = inla.stack.data(st.dat),
 #'   family = "gaussian",
 #'   control.predictor =
-#'     list(A = inla.stack.A(st.dat))
+#'     list(A = inla.stack.A(st.dat)),
+#'            inla.mode = "experimental"
 #' )
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
@@ -2074,7 +2077,8 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #'   data = inla.stack.data(st.dat),
 #'   family = "gaussian",
 #'   control.predictor =
-#'     list(A = inla.stack.A(st.dat))
+#'     list(A = inla.stack.A(st.dat)),
+#'            inla.mode = "experimental"
 #' )
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' plot(result)
@@ -2204,7 +2208,8 @@ plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
 #'   data = inla.stack.data(st.dat),
 #'   family = "gaussian",
 #'   control.predictor =
-#'     list(A = inla.stack.A(st.dat))
+#'     list(A = inla.stack.A(st.dat)),
+#'            inla.mode = "experimental"
 #' )
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)

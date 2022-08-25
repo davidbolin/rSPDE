@@ -201,7 +201,8 @@ f.s <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
 rspde_fit <- inla(f.s,
   family = "Gamma", data = inla.stack.data(stk.dat),
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat))
+  control.predictor = list(A = inla.stack.A(stk.dat)),
+           inla.mode = "experimental"
 )
 
 # The result

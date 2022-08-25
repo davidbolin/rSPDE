@@ -195,7 +195,7 @@ library(rSPDE)
 
 The `rSPDE`-`INLA` implementation is very reminiscent of `r inla_link()`, so its usage should be
 straightforward for `r inla_link()` users. For instance, to create a `rSPDE` model, one would
-`rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),)` in place of `inla.spde2.matern()`. To create an index, one should use
+`rspde.matern()` in place of `inla.spde2.matern()`. To create an index, one should use
 `rspde.make.index()` in place of `inla.spde.make.index()`. To create the `A` matrix, one
 should use `rspde.make.A()` in place of `inla.spde.make.A()`, and so on.
 
@@ -267,10 +267,10 @@ Later in this vignette we will also see other options for setting up `rSPDE` mod
 the smoothness parameter fixed and/or increasing the order of the covariance-based
 rational approximation.
 
-Therefore, to set up a model all we have to do is use the `rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),)` function:
+Therefore, to set up a model all we have to do is use the `rspde.matern()` function:
 
 ```{r create_model, message=FALSE}
-rspde_model <- rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),mesh = prmesh)
+rspde_model <- rspde.matern(mesh = prmesh)
 ```
 
 Notice that this function is very reminiscent of `r inla_link()`'s `inla.spde2.matern()` function.
@@ -346,7 +346,11 @@ Here `-1` is added to remove R's implicit intercept, which is replaced
 by the explicit `+Intercept` from when we created the stack. 
 
 To fit the model we proceed as in the standard SPDE approach and
-we simply call `inla()`.
+we simply call `inla()`. It is noteworthy that we can have
+a performance enhancement by using the argument `inla.mode = "experimental"`.
+As argued in `r inla_link()`'s man page, not all features are available in
+`inla.mode="experimental"`, and we will need to use the `"classic"` mode (the default mode)
+instead of `"experimental"` whenever we are doing predictions.
 
 
 ```{r fit_model, message=FALSE, warning=FALSE}
@@ -354,7 +358,8 @@ rspde_fit <- inla(f.s,
   family = "Gamma", data = inla.stack.data(stk.dat),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
+            inla.mode = "experimental"
 )
 ```
 
@@ -493,6 +498,7 @@ stk.all <- inla.stack(stk.dat, stk.prd)
 
 Doing the joint estimation takes a while, and we therefore turn off the computation of certain things that we are not interested in, such as the marginals for the random effect. 
 We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes.
+Since we are doing predictions, we should not use `r inla_link()`'s experimental mode.
 
 ```{r fit_prd, message=FALSE, warning=FALSE}
 rspde_fitprd <- inla(f.s,
@@ -548,7 +554,7 @@ In each case we will provide an illustrative example.
 
 ### Changing the upper bound for the smoothness parameter
 
-When we fit a `rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),)` model we need to provide an upper bound
+When we fit a `rspde.matern()` model we need to provide an upper bound
 for the smoothness parameter $\nu$. The reason for that is that the sparsity
 of the precision matrix should be kept fixed during `r inla_link()`'s estimation and the higher
 the value of $\nu$ the denser the precision matrix gets. 
@@ -574,10 +580,10 @@ Let us illustrate by considering the same model we considered above for the prec
 in Paraná region in Brazil and consider `nu_upper_bound` equal to 2, which is generally
 a good choice for `nu_upper_bound`.
 
-We simply use the function `rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),)` with the argument `nu_upper_bound` set to 2:
+We simply use the function `rspde.matern()` with the argument `nu_upper_bound` set to 2:
 
 ```{r create_model_ub}
-rspde_model_2 <- rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),mesh = prmesh, nu_upper_bound = 2)
+rspde_model_2 <- rspde.matern(mesh = prmesh, nu_upper_bound = 2)
 ```
 
 Since we are considering the default `rspde_order`, the $A$ matrix and the
@@ -592,7 +598,8 @@ rspde_fit_2 <- inla(f.s.2,
   family = "Gamma", data = inla.stack.data(stk.dat),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
+            inla.mode = "experimental"
 )
 ```
 
@@ -642,8 +649,8 @@ matrix and the mesh index. Therefore, we proceed as follows:
 
 * We build a new model:
 ```{r model_order_3, message=FALSE}
-rspde_model_order_3 <- rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),
-  mesh = prmesh, rspde_order = 3,
+rspde_model_order_3 <- rspde.matern(mesh = prmesh, 
+  rspde_order = 3,
   nu_upper_bound = 2
 )
 ```
@@ -686,7 +693,8 @@ rspde_fit_order_3 <- inla(f.s.3,
   family = "Gamma", data = inla.stack.data(stk.dat.3),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE)
+  control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE),
+            inla.mode = "experimental"
 )
 ```
 
@@ -770,8 +778,7 @@ Therefore, all we have to do is build a new model in which we set
  `nu` to `1.21`:
 
 ```{r message=FALSE}
-rspde_model_fix <- rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),
-  mesh = prmesh, rspde_order = 2,
+rspde_model_fix <- rspde.matern(mesh = prmesh, rspde_order = 2,
   nu = 1.21
 )
 ```
@@ -786,7 +793,8 @@ rspde_fix <- inla(f.s.fix,
   family = "Gamma", data = inla.stack.data(stk.dat),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),,
+            inla.mode = "experimental"
 )
 ```
 
@@ -831,8 +839,7 @@ mesh.index.int <- rspde.make.index(
 create a new model (remember to set `nu=1`):
 
 ```{r message=FALSE}
-rspde_model_fix_int1 <- rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),
-  mesh = prmesh,
+rspde_model_fix_int1 <- rspde.matern(mesh = prmesh,
   nu = 1
 )
 ```
@@ -865,7 +872,8 @@ rspde_fix_int_1 <- inla(f.s.fix.int.1,
   control.predictor = list(
     A = inla.stack.A(stk.dat.int),
     compute = TRUE
-  )
+  ),
+            inla.mode = "experimental"
 )
 ```
 
@@ -898,9 +906,9 @@ We begin by dealing with $\tau$ and $\kappa$.
 
 We have that
 $$\tau = \exp(\theta_1),\quad \kappa = \exp(\theta_2).$$
-The `rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),)` function assumes a lognormal prior distribution for $\tau$ and $\kappa$. This prior distribution is obtained by assuming
+The `rspde.matern()` function assumes a lognormal prior distribution for $\tau$ and $\kappa$. This prior distribution is obtained by assuming
 that $\theta_1$ and $\theta_2$ follow normal distributions. By default we assume $\theta_1$ and $\theta_2$ to be independent and to follow normal
-distributions $\theta_1\sim N(\log(\tau_0), 1)$ and $\theta_2\sim N(\log(\kappa_0), 1)$. 
+distributions $\theta_1\sim N(\log(\tau_0), 10)$ and $\theta_2\sim N(\log(\kappa_0), 10)$. 
 
 $\kappa_0$ is suitably defined in terms of the mesh and $\tau_0$ is defined in terms of $\kappa_0$ and on 
 the prior of the smoothness parameter.
@@ -938,7 +946,7 @@ $$\phi_0 = \max\Big\{\frac{\nu_{UB}}{\nu_0}, \frac{\nu_{UB}}{\nu_{UB}-\nu_0}\Big
 The parameter $\phi_{inc}$ is an increment to ensure that the prior beta density has boundary 
 values equal to zero (where the boundary values are defined either by continuity or by limits). 
 The default value of $\phi_{inc}$ is 1. The value of $\phi_{inc}$ can be changed by
-changing the argument `nu.prec.inc` in the `rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),)` function. The higher
+changing the argument `nu.prec.inc` in the `rspde.matern()` function. The higher
 the value of $\phi_{inc}$ (that is, the value of `nu.prec.inc`) the more informative
 the prior distribution becomes.
 
@@ -1003,8 +1011,7 @@ where we change the prior distribution of $\nu$ from beta to lognormal. Let us
 also set `nu_upper_bound` to 2.
 
 ```{r}
-rspde_model_ln <- rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),
-  mesh = prmesh, prior.nu.dist = "lognormal",
+rspde_model_ln <- rspde.matern(mesh = prmesh, prior.nu.dist = "lognormal",
   nu_upper_bound = 2
 )
 ```
@@ -1022,7 +1029,8 @@ rspde_fit_ln <- inla(f.s.ln,
   family = "Gamma", data = inla.stack.data(stk.dat),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
+            inla.mode = "experimental"
 )
 ```
 
@@ -1062,8 +1070,7 @@ change the initial values to the ones close to the fitted value when considering
 default `rspde_order` (which is 2):
 
 ```{r}
-rspde_model_order_3_start <- rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),
-  mesh = prmesh, rspde_order = 3,
+rspde_model_order_3_start <- rspde.matern(mesh = prmesh, rspde_order = 3,
   nu_upper_bound = 2,
   start.lkappa = result_fit$summary.log.kappa$mean,
   start.ltau = result_fit$summary.log.tau$mean,
@@ -1086,7 +1093,8 @@ rspde_fit_order_3_start <- inla(f.s.3.start,
   control.predictor = list(
     A = inla.stack.A(stk.dat.3),
     compute = TRUE
-  )
+  ),
+            inla.mode = "experimental"
 )
 ```
 
@@ -1098,7 +1106,7 @@ summary(rspde_fit_order_3_start)
 
 ### Choosing between the optimized and non-optimized versions
 
-The `rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),)` function has an optimized version, which is the default
+The `rspde.matern()` function has an optimized version, which is the default
 and a non-optimized version.
 
 It will take less time to fit the optimized object than to fit the non-optimized one. However
@@ -1144,8 +1152,7 @@ create the model objects:
 ```{r}
 # Creating the optimized and sharp model
 start_time <- Sys.time()
-rspde_model_opt_sharp <- rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),
-  mesh = prmesh,
+rspde_model_opt_sharp <- rspde.matern(mesh = prmesh,
   rspde_order = 1
 )
 end_time <- Sys.time()
@@ -1153,8 +1160,7 @@ time_opt_sharp <- end_time - start_time
 
 # Creating the optimized non-sharp model
 start_time <- Sys.time()
-rspde_model_opt_notsharp <- rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),
-  mesh = prmesh,
+rspde_model_opt_notsharp <- rspde.matern(mesh = prmesh,
   rspde_order = 1,
   sharp = FALSE
 )
@@ -1163,8 +1169,7 @@ time_opt_notsharp <- end_time - start_time
 
 # Creating the non-optimized model
 start_time <- Sys.time()
-rspde_model_nonopt <- rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),
-  mesh = prmesh,
+rspde_model_nonopt <- rspde.matern(mesh = prmesh,
   rspde_order = 1,
   optimize = FALSE
 )
@@ -1186,7 +1191,7 @@ rspde_fit_opt_sharp <- inla(f.s.opt.sharp,
   control.predictor = list(
     A = inla.stack.A(stk.dat.1),
     compute = FALSE
-  )
+  ), inla.mode = "experimental"
 )
 
 f.s.opt.notsharp <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
@@ -1200,7 +1205,8 @@ rspde_fit_opt_notsharp <- inla(f.s.opt.notsharp,
   control.predictor = list(
     A = inla.stack.A(stk.dat.1),
     compute = FALSE
-  )
+  ),
+            inla.mode = "experimental"
 )
 
 f.s.nonopt <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
@@ -1214,7 +1220,8 @@ rspde_fit_nonopt <- inla(f.s.nonopt,
   control.predictor = list(
     A = inla.stack.A(stk.dat.1),
     compute = FALSE
-  )
+  ),
+            inla.mode = "experimental"
 )
 ```
 
@@ -1386,7 +1393,7 @@ We now create the model object. For illustration purposes, we will use "BRASIL"
 rational approximation algorithm to fit this model.
 
 ```{r}
-rspde_model.rep <- rspde.matern(prior.tau=list(sdlog=sqrt(10)), prior.kappa=list(sdlog=sqrt(10)),mesh = mesh_2d, type.rational.approx = "brasil")
+rspde_model.rep <- rspde.matern(mesh = mesh_2d) 
 ```
 
 Finally, we create the formula and fit. It is extremely important
@@ -1395,6 +1402,7 @@ as `inla()` function will not produce warning and might fit some
 meaningless model.
 
 ```{r, message=FALSE, warning=FALSE}
+
 f.rep <-
   y ~ -1 + f(field,
     model = rspde_model.rep,
@@ -1405,7 +1413,8 @@ rspde_fit.rep <-
     data = inla.stack.data(st.dat.rep),
     family = "gaussian",
     control.predictor =
-      list(A = inla.stack.A(st.dat.rep))
+      list(A = inla.stack.A(st.dat.rep)),
+            inla.mode = "experimental"
   )
 ```
 
