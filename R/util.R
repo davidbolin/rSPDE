@@ -1438,3 +1438,87 @@ rational.order <- function(object) {
     stop("Not a valid rSPDE object!")
   }
 }
+
+
+#' Check user input.
+#'
+#' @param parameter A parameter.
+#' @param label Label for the parameter
+#' @param check_null Check if parameter is null.
+#' 
+#' @return Check the parameter.
+#' @noRd 
+#'
+
+rspde_check_user_input <- function(param, label, lower_bound = NULL){
+  if(is.null(lower_bound)){
+    if (!is.numeric(param)) {
+      stop(paste(param,"should be a number!"))
+    }
+    if (length(param) > 1) {
+      stop(paste(param,"should be a number!"))
+    }
+    return(param)
+  } else{
+    if (!is.numeric(param)) {
+      stop(paste(param,"should be a number greater or equal to",lower_bound))
+    }
+    if (length(param) > 1) {
+      stop(paste(param,"should be a number greater or equal to",lower_bound))
+    }
+    if (param < lower_bound) {
+      stop(paste(param,"should be a number greater or equal to",lower_bound))
+    }
+    return(param)
+  }
+  }
+
+
+  #' Process inputs likelihood
+  #' 
+  #' @param user_kappa kappa
+  #' @param user_sigma sigma
+  #' @param user_nu nu
+  #' @param sigma.e sigma.e
+  #' 
+  #' @return List with the positions
+  #' @noRd
+  
+likelihood_process_inputs <- function(user_kappa, user_sigma, user_nu, sigma.e){
+  param_vector <- c("kappa", "sigma", "nu", "sigma.e")
+  if(!is.null(user_kappa)){
+    param_vector <- setdiff(param_vector, "kappa")
+  }
+  if(!is.null(user_sigma)){
+    param_vector <- setdiff(param_vector, "sigma")
+  }
+  if(!is.null(user_nu)){
+    param_vector <- setdiff(param_vector, "nu")
+  }
+  if(!is.null(sigma.e)){
+    param_vector <- setdiff(param_vector, "sigma.e")
+  }
+  if(length(param_vector)==0){
+    stop("You should leave at least one parameter free.")
+  }
+  return(param_vector)
+}
+  
+#' Process parameters likelihood
+#' 
+#' @param theta vector of parameters
+#' @param param_vector vector of parameters to be used
+#' @param which_par which parameter to consider
+#' @param logscale log scale?
+#' 
+#' @return The value in the correct scale
+
+likelihood_process_parameters <- function(theta, param_vector, which_par, logscale){
+  coord_par <- which(which_par == param_vector)
+  if(logscale){
+    param_value <- exp(theta[[coord_par]])
+  } else{
+    param_value <- theta[[coord_par]]
+  }
+  return(param_value)
+}

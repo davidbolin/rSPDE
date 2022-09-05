@@ -144,13 +144,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 
   ## get parameters
   if (!is.null(user_nu)) {
-    if (!is.numeric(user_nu)) {
-      stop("nu should be a number!")
-    }
-    if (length(user_nu) > 1) {
-      stop("nu should be a number!")
-    }
-    new_object$nu <- user_nu
+    new_object$nu <- rspde_check_user_input(user_nu, "nu")
     nu <- user_nu
     alpha <- nu + d / 2
     m_alpha <- floor(alpha)
@@ -170,39 +164,16 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 
   new_object[["fem_mesh_matrices"]] <- fem_mesh_matrices
 
-
   if (!is.null(user_kappa)) {
-    if (!is.numeric(user_kappa)) {
-      stop("kappa should be a number!")
-    }
-    if (length(user_kappa) > 1) {
-      stop("kappa should be a number!")
-    }
-    new_object$kappa <- user_kappa
+    new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
   }
 
   if (!is.null(user_sigma)) {
-    if (!is.numeric(user_sigma)) {
-      stop("sigma should be a number!")
-    }
-    if (length(user_sigma) > 1) {
-      stop("sigma should be a number!")
-    }
-    new_object$sigma <- user_sigma
+    new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
   }
 
-
   if (!is.null(user_m)) {
-    if (!is.numeric(user_m)) {
-      stop("m should be a number greater or equal to 1")
-    }
-    if (length(user_m) > 1) {
-      stop("m should be a number greater or equal to 1")
-    }
-    if (user_m < 1) {
-      stop("m should be a number greater or equal to 1")
-    }
-    new_object$m <- as.integer(user_m)
+    new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
   }
 
   new_object <- CBrSPDE.matern.operators(
@@ -272,48 +243,19 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 
   ## get parameters
   if (!is.null(user_nu)) {
-    if (!is.numeric(user_nu)) {
-      stop("nu should be a number!")
-    }
-    if (length(user_nu) > 1) {
-      stop("nu should be a number!")
-    }
-    new_object$nu <- user_nu
+    new_object$nu <- rspde_check_user_input(user_nu, "nu")
   }
 
-
   if (!is.null(user_kappa)) {
-    if (!is.numeric(user_kappa)) {
-      stop("kappa should be a number!")
-    }
-    if (length(user_kappa) > 1) {
-      stop("kappa should be a number!")
-    }
-    new_object$kappa <- user_kappa
+    new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
   }
 
   if (!is.null(user_sigma)) {
-    if (!is.numeric(user_sigma)) {
-      stop("sigma should be a number!")
-    }
-    if (length(user_sigma) > 1) {
-      stop("sigma should be a number!")
-    }
-    new_object$sigma <- user_sigma
+    new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
   }
 
-
   if (!is.null(user_m)) {
-    if (!is.numeric(user_m)) {
-      stop("m should be a number greater or equal to 1")
-    }
-    if (length(user_m) > 1) {
-      stop("m should be a number greater or equal to 1")
-    }
-    if (user_m < 1) {
-      stop("m should be a number greater or equal to 1")
-    }
-    new_object$m <- as.integer(user_m)
+    new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
   }
 
   new_object <- matern.operators(
@@ -1804,3 +1746,158 @@ precision.CBrSPDEobj <- function(object,
   Q <- object$Q
   return(Q)
 }
+
+
+#' @name rSPDE.construct.matern.loglike
+#' @title Constructor of Matern loglikelihood functions.
+#' @description This function returns a log-likelihood function for a
+#' Gaussian process with a Matern covariance
+#' function, that is observed under Gaussian measurement noise:
+#' \eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = u(s_i) + \epsilon_i}, where
+#' \eqn{\epsilon_i}{\epsilon_i} are
+#' iid mean-zero Gaussian variables. The latent model is approximated using
+#' the a rational approximation
+#' of the fractional SPDE model corresponding to the Gaussian process.
+#' @param object The rational SPDE approximation,
+#' computed using \code{\link{matern.operators}}
+#' @param Y The observations, either a vector or a matrix where
+#' the columns correspond to independent replicates of observations.
+#' @param A An observation matrix that links the measurement location to the
+#' finite element basis.
+#' @param sigma.e IF non-null, the standard deviation of the measurement noise will be kept fixed in 
+#' the returned likelihood.
+#' @param mu Expectation vector of the latent field (default = 0).
+#' @param user_kappa If non-null, the range parameter will be kept fixed in the returned likelihood. 
+#' @param user_sigma If non-null, the standard deviation will be kept fixed in the returned likelihood.
+#' @param user_nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
+#' @param user_m If non-null, update the order of the rational approximation,
+#' which needs to be a positive integer.
+#' @param log_scale Should the parameters be evaluated in log-scale?
+#' @param return_negative_likelihood Return minus the likelihood to turn the maximization into a minimization?
+#' @param pivot Should pivoting be used for the Cholesky decompositions? Default
+#' is TRUE
+#' @return The log-likelihood function. The parameters of the returned function
+#' are given in the order kappa, sigma, nu, sigma.e, whenever they are available.
+#' @export
+#' @seealso \code{\link{matern.operators}}, \code{\link{predict.CBrSPDEobj}}
+#' @examples
+#' # this example illustrates how the function can be used for maximum
+#' # likelihood estimation
+#'
+#' set.seed(123)
+#' # Sample a Gaussian Matern process on R using a rational approximation
+#' nu <- 0.8
+#' kappa <- 5
+#' sigma <- 1
+#' sigma.e <- 0.1
+#' n.rep <- 10
+#' n.obs <- 100
+#' n.x <- 51
+#'
+#' # create mass and stiffness matrices for a FEM discretization
+#' x <- seq(from = 0, to = 1, length.out = n.x)
+#' fem <- rSPDE.fem1d(x)
+#'
+#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+#' (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
+#'
+#' # Compute the covariance-based rational approximation
+#' op_cov <- matern.operators(
+#'   C = fem$C, G = fem$G, nu = nu,
+#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#' )
+#'
+#' # Sample the model
+#' u <- simulate(op_cov, n.rep)
+#'
+#' # Create some data
+#' obs.loc <- runif(n = n.obs, min = 0, max = 1)
+#' A <- rSPDE.A1d(x, obs.loc)
+#' noise <- rnorm(n.obs * n.rep)
+#' dim(noise) <- c(n.obs, n.rep)
+#' Y <- as.matrix(A %*% u + sigma.e * noise)
+#'
+#' # Define the negative likelihood function for optimization
+#' # using CBrSPDE.matern.loglike
+#'
+#' # Notice that we are also using sigma instead of tau, so it can be compared
+#' # to matern.loglike()
+#' loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A) 
+#' 
+#' # The parameters can now be estimated by minimizing mlik with optim
+#' \donttest{
+#' # Choose some reasonable starting values depending on the size of the domain
+#' theta0 <- log(c(sqrt(8), 1 / sqrt(var(c(Y))), 0.9, 0.01))
+#'
+#' # run estimation and display the results
+#' theta <- optim(theta0, loglike,
+#'   method = "L-BFGS-B"
+#' )
+#'
+#' print(data.frame(
+#'   kappa = c(kappa, exp(theta$par[1])), sigma = c(sigma, exp(theta$par[2])),
+#'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
+#'   row.names = c("Truth", "Estimates")
+#' ))
+#' }
+#'
+rSPDE.construct.matern.loglike <- function(object, Y, A, 
+                                 sigma.e = NULL, mu = 0,
+                                 user_nu = NULL,
+                                 user_kappa = NULL,
+                                 user_sigma = NULL,
+                                 user_m = NULL,
+                                 log_scale = TRUE,
+                                 return_negative_likelihood = TRUE,
+                                 pivot = TRUE){
+        param_vector <- likelihood_process_inputs(user_kappa, user_sigma, user_nu, sigma.e)
+
+        loglik <- function(theta){
+          if(is.null(user_kappa)){
+          kappa <- likelihood_process_parameters(theta = theta, 
+                  param_vector = param_vector, 
+                  which_par = "kappa", 
+                  logscale = log_scale)
+          } else{
+            kappa <- user_kappa
+          }
+          if(is.null(user_sigma)){
+          sigma <- likelihood_process_parameters(theta = theta, 
+                  param_vector = param_vector, 
+                  which_par = "sigma", 
+                  logscale = log_scale)
+          } else{
+            sigma <- user_sigma
+          }
+          if(is.null(user_nu)){
+          nu <- likelihood_process_parameters(theta = theta, 
+                  param_vector = param_vector, 
+                  which_par = "nu", 
+                  logscale = log_scale)
+         
+          } else{
+            nu <- user_nu
+          }
+          if(is.null(sigma.e)){
+          sigma.e <- likelihood_process_parameters(theta = theta, 
+                  param_vector = param_vector, 
+                  which_par = "sigma.e", 
+                  logscale = log_scale)
+          } 
+          loglike <- rSPDE.matern.loglike(object = object, Y=Y, A=A,
+          sigma.e = sigma.e,
+          mu = mu,
+          user_kappa = kappa,
+          user_nu = nu,
+          user_sigma=sigma,
+          user_m = user_m,
+          pivot = pivot)
+          if(return_negative_likelihood){
+            return(-loglike)
+          } else{
+            return(loglike)
+          }
+        }
+        return(loglik)
+}
+

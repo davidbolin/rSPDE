@@ -542,14 +542,7 @@ rspde.matern <- function(mesh,
 
   integer.nu <- FALSE
 
-  if (mesh$manifold == "R1") {
-    d <- 1
-  } else if (mesh$manifold == "R2") {
-    d <- 2
-  } else {
-    stop("The domain must be flat manifolds of dimension 1 or 2, that is,
-         the domain must be a line or a plane.")
-  }
+  d <- get_inla_mesh_dimension(mesh)
 
   if (nu_upper_bound - floor(nu_upper_bound) == 0) {
     nu_upper_bound <- nu_upper_bound - 1e-5
@@ -1507,18 +1500,10 @@ rspde.make.A <- function(mesh = NULL,
     cond1 <- inherits(mesh, "inla.mesh.1d")
     cond2 <- inherits(mesh, "inla.mesh")
     stopifnot(cond1 || cond2)
-    if (mesh$manifold == "R1") {
-      dim <- 1
-    } else if (mesh$manifold == "R2") {
-      dim <- 2
-    } else {
-      stop("The domain must be flat manifolds of dimension 1 or 2, that is,
-         the domain must be a line or a plane.")
-    }
+    dim <- get_inla_mesh_dimension(mesh)  
   } else if (is.null(dim)) {
     stop("If mesh is not provided, then you should provide the dimension d!")
   }
-
   if (!is.null(mesh)) {
     if (is.null(loc)) {
       stop("If you provided mesh, you should also provide the locations, loc.")
@@ -1651,15 +1636,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 
   if (!is.null(mesh)) {
     n_mesh <- mesh$n
-
-    if (mesh$manifold == "R1") {
-      dim <- 1
-    } else if (mesh$manifold == "R2") {
-      dim <- 2
-    } else {
-      stop("The domain must be flat manifolds of dimension 1 or 2, that is,
-         the domain must be a line or a plane.")
-    }
+    dim <- get_inla_mesh_dimension(mesh)
   } else {
     n_mesh <- n.spde
     if (is.null(dim)) {
@@ -2305,14 +2282,7 @@ rspde.mesh.projector <- function(mesh,
   }
   args_list[["dims"]] <- dims
   out <- do.call(INLA::inla.mesh.projector, args_list)
-  if (mesh$manifold == "R1") {
-    dim <- 1
-  } else if (mesh$manifold == "R2") {
-    dim <- 2
-  } else {
-    stop("The domain must be flat manifolds of dimension 1 or 2, that is,
-         the domain must be a line or a plane.")
-  }
+  dim <- get_inla_mesh_dimension(mesh)
 
   out$proj$A <- rspde.make.A(
     A = out$proj$A, rspde_order = rspde_order, dim = dim,
