@@ -1512,6 +1512,7 @@ likelihood_process_inputs <- function(user_kappa, user_sigma, user_nu, sigma.e){
 #' @param logscale log scale?
 #' 
 #' @return The value in the correct scale
+#' @noRd 
 
 likelihood_process_parameters <- function(theta, param_vector, which_par, logscale){
   coord_par <- which(which_par == param_vector)
