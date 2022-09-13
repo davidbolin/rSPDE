@@ -1,5 +1,5 @@
 
-#' 
+#'
 #' @title rSPDE inlabru mapper
 #' @name bru_mapper.inla.rspde
 #' @param model An `inla_rspde` object to use as a mapper
@@ -7,8 +7,8 @@
 
 bru_mapper.inla_rspde <- function(model,...) {
   mapper <- list(model = model)
-  class(mapper) <- c("bru_mapper_inla_rspde", "list")
-  inlabru::bru_mapper(mapper)
+  # Note: from inlabru > 2.5.3, use bru_mapper_define instead.
+  inlabru::bru_mapper.default(mapper, new_class = "bru_mapper_inla_rspde")
 }
 
 #' @rdname bru_mapper.inla_rspde
@@ -48,10 +48,10 @@ ibm_amatrix.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   if(model$est_nu){
     nu <- NULL
   } else{
-   nu <- model$nu 
-  } 
+   nu <- model$nu
+  }
   rspde_order <- model$rspde_order
-  rSPDE::rspde.make.A(mesh = model$mesh, loc=input, 
+  rSPDE::rspde.make.A(mesh = model$mesh, loc=input,
                                 rspde_order = rspde_order,
                                 nu=nu)
 }
@@ -59,5 +59,5 @@ ibm_amatrix.bru_mapper_inla_rspde <- function(mapper, input, ...) {
 #' @param x The model to be passed to obtain the mapper.
 #' @rdname bru_mapper.inla_rspde
 bru_get_mapper.inla_rspde <- function(model, ...){
- inlabru::bru_mapper(model) 
+ inlabru::bru_mapper(model)
 }
