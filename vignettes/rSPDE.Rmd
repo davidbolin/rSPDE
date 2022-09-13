@@ -454,7 +454,8 @@ the observation locations to the mesh, and we simply called it `A`.
 
 To simplify parameter estimation, we create an objective function to minimize 
 which is the negative log-likelihood, parametrized using the logarithm of each 
-parameter to avoid constrained optimization. 
+parameter to avoid constrained optimization. This objective function is
+created by the function factory `rSPDE.construct.matern.loglike()` :
 
 ```{r}
 mlik <- rSPDE.construct.matern.loglike(object = op, Y=y, A=A)
@@ -483,6 +484,9 @@ theta0 <- c(
   get.inital.values.rSPDE(mesh = mesh_2d),
   log(0.1 * sqrt(var(as.vector(y))))
 )
+
+# We need to pass "obj=op" as an argument because of the
+# parallelization (this is not needed in the regular optim function)
 start_time <- Sys.time()
 pars <- optimParallel(theta0, mlik, obj=op)
 end_time <- Sys.time()

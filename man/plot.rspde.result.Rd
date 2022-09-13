@@ -2,7 +2,7 @@
 % Please edit documentation in R/inla_rspde.R
 \name{plot.rspde.result}
 \alias{plot.rspde.result}
-\title{Posterior plots for field parameters for an \code{inla.rspde} model
+\title{Posterior plots for field parameters for an \code{inla_rspde} model
 from a \code{rspde.result} object}
 \usage{
 \method{plot}{rspde.result}(

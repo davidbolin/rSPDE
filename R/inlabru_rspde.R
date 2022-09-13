@@ -1,24 +1,19 @@
-#' @importFrom inlabru bru_mapper ibm_amatrix ibm_n ibm_values
+#' @importFrom inlabru bru_mapper ibm_amatrix ibm_n ibm_values bru_get_mapper
 #' 
 #' @title rSPDE inlabru mapper
 #' @name bru_mapper.inla.rspde
-#' @param model An `inla.mesh.1d` or `inla.mesh.2d` object to use as a mapper
-#' @param indexed logical; If `TRUE`, the `ibm_values()` output will be the
-#' integer indexing sequence for the latent variables. If `FALSE`, the knot
-#' locations are returned (useful as an interpolator for `rw2` models
-#' and similar).
-#' Default: `TRUE`
+#' @param model An `inla_rspde` object to use as a mapper
 #' @export
-#' @rdname bru_mapper.inla.rspde
+#' @rdname bru_mapper.inla_rspde
 
-bru_mapper.inla.rspde <- function(model,...) {
+bru_mapper.inla_rspde <- function(model,...) {
   mapper <- list(model = model)
   class(mapper) <- c("bru_mapper_inla_rspde", "list")
   bru_mapper(mapper)
 }
 
 #' @export
-#' @rdname bru_mapper.inla.rspde
+#' @rdname bru_mapper.inla_rspde
 ibm_n.bru_mapper_inla_rspde <- function(mapper, ...) {
   model <- mapper[["model"]]
   integer_nu <- model$integer.nu
@@ -31,7 +26,7 @@ ibm_n.bru_mapper_inla_rspde <- function(mapper, ...) {
   factor_rspde*model$n.spde
 }
 #' @export
-#' @rdname bru_mapper.inla.rspde
+#' @rdname bru_mapper.inla_rspde
 ibm_values.bru_mapper_inla_rspde <- function(mapper, ...) {
   model <- mapper[["model"]]
   integer_nu <- model$integer.nu
@@ -45,7 +40,7 @@ ibm_values.bru_mapper_inla_rspde <- function(mapper, ...) {
 }
 #' @param input The values for which to produce a mapping matrix
 #' @export
-#' @rdname bru_mapper.inla.rspde
+#' @rdname bru_mapper.inla_rspde
 ibm_amatrix.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   if (is.null(input)) {
     return(Matrix::Matrix(0, 0, ibm_n(mapper)))
@@ -63,4 +58,12 @@ ibm_amatrix.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   rSPDE::rspde.make.A(mesh = model$mesh, loc=input, 
                                 rspde_order = rspde_order,
                                 nu=nu)
+}
+
+#' @param x The model to be passed to obtain the mapper.
+#' @export bru_get_mapper.inla_rspde
+#' @export 
+#' @rdname bru_mapper.inla_rspde
+bru_get_mapper.inla_rspde <- function(model, ...){
+ bru_mapper(model) 
 }

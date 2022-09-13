@@ -38,6 +38,31 @@ references:
   type: article-journal
   issued:
     year: 2011
+- id: xiong22
+  title: "Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference"
+  author: 
+  - family: Xiong
+    given: Zhen
+  - family: Simas
+    give: Alexandre B.
+  - family: Bolin
+    given: David
+  container-title: arXiv:2209.04670
+  type: preprint
+  issued:
+    year: 2022
+- id: Hofreither21
+  title: "An algorithm for best rational approximation based on barycentric rational interpolation"
+  author:
+  - family: Hofreither
+    given: Clemens
+  container-title: Numerical Algorithms
+  volume: 88
+  issue: 1
+  page: 365--388
+  type: article-journal
+  issued:
+    year: 2021 
 ---
 
 ```{r setup, include=FALSE}
@@ -255,7 +280,7 @@ We will fit in `inlabru`'s  style.
 
 ```{r create_formula, message=FALSE}
 cmp <- y ~ Intercept(1) + distSea(seaDist, model="rw1") +
-field(coordinates, model = rspde_model, mapper=bru_mapper(rspde_model))
+field(coordinates, model = rspde_model)
 ```
 
 To fit the model we simply use the `bru()` function:
