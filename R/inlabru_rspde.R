@@ -1,9 +1,8 @@
-#' @importFrom inlabru bru_mapper ibm_amatrix ibm_n ibm_values bru_get_mapper
+
 #' 
 #' @title rSPDE inlabru mapper
 #' @name bru_mapper.inla.rspde
 #' @param model An `inla_rspde` object to use as a mapper
-#' @export
 #' @rdname bru_mapper.inla_rspde
 
 bru_mapper.inla_rspde <- function(model,...) {
@@ -12,7 +11,6 @@ bru_mapper.inla_rspde <- function(model,...) {
   bru_mapper(mapper)
 }
 
-#' @export
 #' @rdname bru_mapper.inla_rspde
 ibm_n.bru_mapper_inla_rspde <- function(mapper, ...) {
   model <- mapper[["model"]]
@@ -25,7 +23,6 @@ ibm_n.bru_mapper_inla_rspde <- function(mapper, ...) {
   }
   factor_rspde*model$n.spde
 }
-#' @export
 #' @rdname bru_mapper.inla_rspde
 ibm_values.bru_mapper_inla_rspde <- function(mapper, ...) {
   model <- mapper[["model"]]
@@ -39,7 +36,6 @@ ibm_values.bru_mapper_inla_rspde <- function(mapper, ...) {
   seq_len(factor_rspde*model$n.spde)
 }
 #' @param input The values for which to produce a mapping matrix
-#' @export
 #' @rdname bru_mapper.inla_rspde
 ibm_amatrix.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   if (is.null(input)) {
@@ -61,8 +57,6 @@ ibm_amatrix.bru_mapper_inla_rspde <- function(mapper, input, ...) {
 }
 
 #' @param x The model to be passed to obtain the mapper.
-#' @export bru_get_mapper.inla_rspde
-#' @export 
 #' @rdname bru_mapper.inla_rspde
 bru_get_mapper.inla_rspde <- function(model, ...){
  bru_mapper(model) 
