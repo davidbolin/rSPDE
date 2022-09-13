@@ -9,15 +9,15 @@
 \alias{bru_get_mapper.inla_rspde}
 \title{rSPDE inlabru mapper}
 \usage{
-\method{bru_mapper}{inla_rspde}(model, ...)
+bru_mapper.inla_rspde(model, ...)
 
-\method{ibm_n}{bru_mapper_inla_rspde}(mapper, ...)
+ibm_n.bru_mapper_inla_rspde(mapper, ...)
 
-\method{ibm_values}{bru_mapper_inla_rspde}(mapper, ...)
+ibm_values.bru_mapper_inla_rspde(mapper, ...)
 
-\method{ibm_amatrix}{bru_mapper_inla_rspde}(mapper, input, ...)
+ibm_amatrix.bru_mapper_inla_rspde(mapper, input, ...)
 
-\method{bru_get_mapper}{inla_rspde}(model, ...)
+bru_get_mapper.inla_rspde(model, ...)
 }
 \arguments{
 \item{model}{An `inla_rspde` object to use as a mapper}
