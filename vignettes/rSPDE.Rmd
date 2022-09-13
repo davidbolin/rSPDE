@@ -82,6 +82,19 @@ references:
   type: article-journal
   issued:
     year: 2020 
+- id: xiong22
+  title: "Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference"
+  author: 
+  - family: Xiong
+    given: Zhen
+  - family: Simas
+    give: Alexandre B.
+  - family: Bolin
+    given: David
+  container-title: arXiv:2209.04670
+  type: preprint
+  issued:
+    year: 2022
 ---
 
 ```{r setup, include = FALSE}
@@ -107,9 +120,9 @@ we will analyze this data set using the `rSPDE` package.
 
 We have two main "families" of functions inside the `rSPDE` package:
 
-* The `r inla_link()` implementation of the rational SPDE approach of [@bolin19](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537);
+* The `r inla_link()` implementation of the covariance-based rational SPDE approach [@xiong22](https://arxiv.org/abs/2209.04670);
 
-* The rational SPDE approach.
+* The rational SPDE approach of [@bolin19](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537).
 
 We will analyze the same data set using both approaches.
 We also have specific vignettes for each of the aforementioned family. More precisely,
@@ -250,7 +263,7 @@ tryCatch(
 
 We will now fit the model of the toy data set using our `r inla_link()` implementation of the
 rational SPDE approach. Further details on this implementation can be found in
- [R-INLA implementation of the rational SPDE approach](inla.html).
+ [R-INLA implementation of the rational SPDE approach](rspde_inla.html).
  
 We begin by creating the $A$ matrix, the index, and the
 `inla.stack` object.
@@ -435,6 +448,152 @@ tryCatch(
 ```
 
 
+
+## Fitting the model with `inlabru` implementation of the rational SPDE approach
+
+We will now fit the same model of the toy data set using our [`inlabru`](http://inlabru.org/) implementation of the
+rational SPDE approach. Further details on this implementation can be found in
+ [`inlabru` implementation of the rational SPDE approach](rspde_inlabru.html).
+
+ We begin by loading the `inlabru` package:
+
+ ```{r message=FALSE}
+ library(inlabru)
+ ```
+ 
+We can directly create the model object. Just as in `R-INLA`'s case, we need to set
+an upper bound for the smoothness parameter $\nu$. When
+we increase the upper bound for $\nu$
+we also increase the computational cost. For this example we set `nu_upper_bound=1`.
+See the  [R-INLA implementation of the rational SPDE approach](rspde_inlabru.html)
+for further details.
+
+```{r}
+rspde_model <- rspde.matern(
+  mesh = mesh_2d,
+  nu_upper_bound = 2
+)
+```
+
+Let us create a `data.frame()` with the data:
+
+```{r}
+toy_df <- data.frame(coord1 = loc_2d_mesh[,1],
+                     coord2 = loc_2d_mesh[,2],
+                     y = as.vector(y))
+coordinates(toy_df) <- c("coord1", "coord2")
+```
+
+Finally, we create the component and fit:
+
+```{r message=FALSE, warning=FALSE}
+cmp <-
+  y ~ -1 + field(coordinates, model = rspde_model)
+rspde_bru_fit <-
+  bru(cmp,
+      data=toy_df,
+    options=list(
+    family = "gaussian",
+    inla.mode = "experimental")
+  )
+```
+
+We can get the summary:
+```{r}
+summary(rspde_bru_fit)
+```
+
+and the summary in the user's scale:
+```{r}
+result_fit <- rspde.result(rspde_bru_fit, "field", rspde_model)
+summary(result_fit)
+tau <- op$tau
+result_df <- data.frame(
+  parameter = c("tau", "kappa", "nu"),
+  true = c(tau, kappa, nu), mean = c(
+    result_fit$summary.tau$mean,
+    result_fit$summary.kappa$mean,
+    result_fit$summary.nu$mean
+  ),
+  mode = c(
+    result_fit$summary.tau$mode,
+    result_fit$summary.kappa$mode,
+    result_fit$summary.nu$mode
+  )
+)
+print(result_df)
+```
+
+
+## Kringing with `inlabru` implementation of the rational SPDE approach
+
+Let us now obtain predictions (i.e., do kriging) of the latent field on 
+a dense grid in the region.
+
+We begin by creating the grid in which we want to do the predictions. We begin
+by creating a regular grid in which we want to do precictions:
+```{r}
+grd <- expand.grid(1:100, 1:100) / 100
+```
+
+We will now use extract the coordinates of the previous grid:
+
+```{r}
+pred_coords <- data.frame(x1 = grd[,1],
+                          x2 = grd[,2])
+coordinates(pred_coords) <- c("x1", "x2")
+```
+
+Let us obtain the predictions:
+
+```{r}
+field_pred <- predict(rspde_bru_fit, pred_coords, ~field)
+```
+
+Let us now build the data frame with the results:
+
+```{r}
+field_pred_df <- field_pred@data
+field_pred_df <- cbind(field_pred_df, field_pred@coords)
+```
+
+Finally, we plot the results. First the predicted mean:
+
+```{r, echo=FALSE, fig.align='center'}
+p <- ggplot(field_pred_df, aes(x = x1, y = x2, fill = mean)) +
+  geom_raster() +
+  scale_fill_gradient(low = "yellow", high = "red")
+p
+```
+
+Then, the std. deviations:
+
+```{r plot_pred_sd_bru, fig.align='center', echo=FALSE}
+p <- ggplot(field_pred_df, aes(x = x1, y = x2, fill = sd)) +
+  geom_raster()
+p
+```
+
+An alternative and very simple approach is to use the `pixel()` function:
+
+```{r}
+ pxl <- pixels(mesh_2d)
+```
+
+Let us now calculate the predictions. To this end we will use the `predict()`
+method in `inlabru`:
+
+```{r}
+field_pred <- predict(rspde_bru_fit, pxl, ~field)
+```
+
+Finally, we plot the results. 
+
+```{r plot_pred_pxl, echo=FALSE, fig.align='center'}
+ggplot() + gg(field_pred) +
+  scale_fill_gradient(low = "yellow", high = "red")
+```
+
 ## Fitting the model with `rSPDE`
 
 We will now fit the model of the toy data set without using `r inla_link()`.
@@ -478,6 +637,9 @@ if (nzchar(chk) && chk == "TRUE") {
 
 cl <- makeCluster(n_cores)
 setDefaultCluster(cl = cl)
+
+# Exporting the needed objects to the parallel cores
+# This step is not necessary for the regular optim
 parallel::clusterExport(cl, "op")
 parallel::clusterExport(cl, "y")
 parallel::clusterExport(cl, "A")
@@ -493,8 +655,8 @@ pars <- optimParallel(theta0, mlik)
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  sigma = c(sigma, exp(pars$par[1])),
-  kappa = c(kappa, exp(pars$par[2])),
+  kappa = c(kappa, exp(pars$par[1])),
+  sigma = c(sigma, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),
   row.names = c("True", "Estimate")
