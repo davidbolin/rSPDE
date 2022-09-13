@@ -1,10 +1,10 @@
 ---
-title: "R-INLA implementation of the rational SPDE approach"
+title: "`inlabru` implementation of the rational SPDE approach"
 author: "David Bolin and Alexandre B. Simas"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{R-INLA implementation of the rational SPDE approach}
+  %\VignetteIndexEntry{inlabru implementation of the rational SPDE approach}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 references:
@@ -78,10 +78,10 @@ inla_link <- function() {
 
 ## Introduction 
 
-In this vignette we will present the `r inla_link()` implementation of the rational
-SPDE approach. For theoretical details we refer the reader to 
+In this vignette we will present the [`inlabru`](http://inlabru.org/) implementation of the covariance-based
+rational SPDE approach. See the
 the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette
-and to [@bolin19](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537).
+and [@xiong22](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537).
 
 We begin by providing a 
 step-by-step illustration on how to use our implementation. To this end we 
@@ -99,7 +99,7 @@ how to enable the PARDISO sparse library.
 
 ## Example with real data
 
-To illustrate our implementation of `rSPDE` in `r inla_link()` we will consider a dataset
+To illustrate our implementation of `rSPDE` in [`inlabru`](http://inlabru.org/) we will consider a dataset
 available in `r inla_link()`. This data has also been used to illustrate the SPDE approach,
 see for instance the book [Advanced Spatial Modeling with Stochastic Partial Differential Equations Using R and INLA](https://www.routledge.com/Advanced-Spatial-Modeling-with-Stochastic-Partial-Differential-Equations/Krainski-Gomez-Rubio-Bakka-Lenzi-Castro-Camilo-Simpson-Lindgren-Rue/p/book/9780367570644) and also the vignette [Spatial Statistics using R-INLA and Gaussian Markov random fields](https://sites.stat.washington.edu/peter/591/INLA.html).
 See also [@lindgren11](https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x)
@@ -126,7 +126,8 @@ including smoothness of the field. That is, by using the `rSPDE` model we will
 also be able to estimate the smoothness of the latent field.
 
 ### Examining the data
-We will be using `r inla_link()`. To install `r inla_link()` go to [R-INLA Project](https://www.r-inla.org/download-install).
+We will be using [`inlabru`](http://inlabru.org/). The `inlabru` package is available on CRAN and 
+also on [GitHub](https://github.com/inlabru-org/inlabru).
 
 We begin by loading some libraries we need to get the data and build the plots.
 
@@ -214,21 +215,13 @@ par(mfrow = c(1, 1))
 
 ### Creating the rSPDE model
 
-To use the `r inla_link()` implementation of the `rSPDE` model we need to load the functions:
+To use the [`inlabru`](http://inlabru.org/) implementation of the `rSPDE` model we need to load the functions:
 ```{r load_rspde_lib, message=FALSE}
 library(rSPDE)
 ```
 
-The `rSPDE`-`INLA` implementation is very reminiscent of `r inla_link()`, so its usage should be
-straightforward for `r inla_link()` users. For instance, to create a `rSPDE` model, one would
-`rspde.matern()` in place of `inla.spde2.matern()`. To create an index, one should use
-`rspde.make.index()` in place of `inla.spde.make.index()`. To create the `A` matrix, one
-should use `rspde.make.A()` in place of `inla.spde.make.A()`, and so on.
-
-The main differences when comparing the arguments between the `rSPDE`-`INLA` implementation
-and the standard SPDE implementation in `r inla_link()`, are the `nu` and `rspde_order` arguments,
-which are present in `rSPDE`-`INLA` implementation. We will see below how use these
-arguments.
+To create a `rSPDE` model, one would the `rspde.matern()` function in a similar fashion as one would
+use the `inla.spde2.matern()` function. 
 
 #### Mesh
 
@@ -246,6 +239,9 @@ points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
 
 
 #### Setting up the data frame
+
+In place of a `inla.stack`, we can set up a `data.frame()` to use [`inlabru`](http://inlabru.org/). We refer the
+reader to vignettes in https://inlabru-org.github.io/inlabru/index.html for further details.
 
 ```{r}
 prdata <- data.frame(long = coords[,1], lat = coords[,2], 
@@ -276,7 +272,8 @@ Notice that this function is very reminiscent of `r inla_link()`'s `inla.spde2.m
 We will build a model using the distance to the sea $x_i$ 
 as a covariate through an improper CAR(1) model with 
 $\beta_{ij}=1(i\sim j)$, which `r inla_link()` calls a random walk of order 1.
-We will fit in `inlabru`'s  style.
+We will fit it in `inlabru`'s  style. For `inlabru` version `2.5.3.9002` or higher
+we can use the following compact synthax:
 
 ```{r create_formula, message=FALSE}
 cmp <- y ~ Intercept(1) + distSea(seaDist, model="rw1") +
@@ -409,71 +406,32 @@ seaDist.prd <- apply(spDists(coord.prd,
 We now make a stack for the prediction locations. We have no data at the prediction locations, so we set `y=
 NA`. We then join this stack with the estimation stack.
 
-```{r stk.prd}
-ef.prd <- list(
-  c(mesh.index, list(Intercept = 1)),
-  list(
-    long = inla.group(coord.prd[
-      ,
-      1
-    ]), lat = inla.group(coord.prd[, 2]),
-    seaDist = inla.group(seaDist.prd)
-  )
-)
-stk.prd <- inla.stack(
-  data = list(y = NA),
-  A = list(A.prd, 1), tag = "prd",
-  effects = ef.prd
-)
-stk.all <- inla.stack(stk.dat, stk.prd)
-```
 
 Doing the joint estimation takes a while, and we therefore turn off the computation of certain things that we are not interested in, such as the marginals for the random effect. 
 We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes.
 Since we are doing predictions, we should not use `r inla_link()`'s experimental mode.
 
-```{r fit_prd, message=FALSE, warning=FALSE}
-rspde_fitprd <- inla(f.s,
-  family = "Gamma",
-  data = inla.stack.data(stk.all),
-  control.predictor = list(
-    A = inla.stack.A(stk.all),
-    compute = TRUE, link = 1
-  ),
-  control.compute = list(
-    return.marginals = FALSE,
-    return.marginals.predictor = FALSE
-  ),
-  control.inla = list(int.strategy = "eb")
-)
-```
 
 We then extract the indices to the prediction nodes and then extract the mean and the standard deviation of the response:
 
-```{r stk.mean.sd}
-id.prd <- inla.stack.index(stk.all, "prd")$data
-sd.prd <- m.prd <- matrix(NA, nxy[1], nxy[2])
-m.prd[xy.in] <- rspde_fitprd$summary.fitted.values$mean[id.prd]
-sd.prd[xy.in] <- rspde_fitprd$summary.fitted.values$sd[id.prd]
-```
 
 Finally, we plot the results:
 
-```{r plot_pred, fig.align = "center", fig.width=7, fig.height=15}
-# Plot the predictions
-grid.arrange(
-  levelplot(m.prd,
-    col.regions = tim.colors(99),
-    xlab = "", ylab = "", main = "mean",
-    scales = list(draw = FALSE)
-  ),
-  levelplot(sd.prd,
-    col.regions = topo.colors(99),
-    xlab = "", ylab = "", scales = list(draw = FALSE),
-    main = "standard deviation"
-  )
-)
-```
+<!-- # ```{r plot_pred, fig.align = "center", fig.width=7, fig.height=15}
+# # Plot the predictions
+# grid.arrange(
+#   levelplot(m.prd,
+#     col.regions = tim.colors(99),
+#     xlab = "", ylab = "", main = "mean",
+#     scales = list(draw = FALSE)
+#   ),
+#   levelplot(sd.prd,
+#     col.regions = topo.colors(99),
+#     xlab = "", ylab = "", scales = list(draw = FALSE),
+#     main = "standard deviation"
+#   )
+# )
+# ``` -->
 
 
 ## Further options of the `rSPDE`-`INLA` implementation
@@ -718,30 +676,10 @@ rspde_model_fix <- rspde.matern(mesh = prmesh, rspde_order = 2,
 
 Let us now fit the model:
 
-```{r , message=FALSE, warning=FALSE}
-f.s.fix <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
-  f(field, model = rspde_model_fix)
-
-rspde_fix <- inla(f.s.fix,
-  family = "Gamma", data = inla.stack.data(stk.dat),
-  verbose = FALSE,
-  control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),,
-            inla.mode = "experimental"
-)
-```
-
 Here we have the summary:
-```{r}
-summary(rspde_fix)
-```
 
 Now, the summary in the original scale:
 
-```{r}
-result_fix <- rspde.result(rspde_fix, "field", rspde_model_fix)
-summary(result_fix)
-```
 
 #### Estimating models with fixed smoothness and integer $\alpha$
 
@@ -954,36 +892,17 @@ use the same $A$ matrix and same index from the first example.
 
 Therefore, all we have to do is update the formula and fit the model:
 
-```{r create_formula_ln, message=FALSE, warning=FALSE}
-f.s.ln <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
-  f(field, model = rspde_model_ln)
-
-rspde_fit_ln <- inla(f.s.ln,
-  family = "Gamma", data = inla.stack.data(stk.dat),
-  verbose = FALSE,
-  control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
-            inla.mode = "experimental"
-)
-```
 
 We have the summary:
 
-```{r}
-summary(rspde_fit_ln)
-```
 
 Also, we can have the summary in the user's scale:
 
-```{r}
-result_fit_ln <- rspde.result(rspde_fit_ln, "field", rspde_model_ln)
-summary(result_fit_ln)
-```
 and the plot of the posterior marginal densities
-```{r fig.align = "center"}
-par(mfrow = c(1, 3))
-plot(result_fit_ln, caption = c("tau", "kappa", "nu"))
-```
+<!-- # ```{r fig.align = "center"}
+# par(mfrow = c(1, 3))
+# plot(result_fit_ln, caption = c("tau", "kappa", "nu"))
+# ``` -->
 
 ### Changing the initial values
 

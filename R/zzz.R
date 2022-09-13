@@ -25,13 +25,19 @@ register_s3_method <- function(pkg, generic, class, fun = NULL) {
 }
 
 register_all_s3_methods = function() {
-  register_s3_method("inlabru", "bru_mapper", "inla_rspde")
-  register_s3_method("inlabru", "ibm_n", "bru_mapper_inla_rspde") 
-  register_s3_method("inlabru", "ibm_values", "bru_mapper_inla_rspde")
-  register_s3_method("inlabru", "ibm_amatrix", "bru_mapper_inla_rspde")
-  register_s3_method("inlabru", "bru_get_mapper", "inla_rspde")
-}
+  inlabru_installed <- "inlabru" %in% rownames(installed.packages())
+  if(inlabru_installed){
+    register_s3_method("inlabru", "bru_mapper", "inla_rspde")
+    register_s3_method("inlabru", "ibm_n", "bru_mapper_inla_rspde") 
+    register_s3_method("inlabru", "ibm_values", "bru_mapper_inla_rspde")
+    register_s3_method("inlabru", "ibm_amatrix", "bru_mapper_inla_rspde")
 
+    inlabru_version <- packageVersion("inlabru")
+    if(inlabru_version >= "2.5.3.9002"){
+    register_s3_method("inlabru", "bru_get_mapper", "inla_rspde")
+    }
+  }
+}
 
 .onLoad = function(libname, pkgname) {
   register_all_s3_methods()

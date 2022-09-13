@@ -17,7 +17,7 @@
 
 \method{ibm_amatrix}{bru_mapper_inla_rspde}(mapper, input, ...)
 
-\method{bru_get_mapper}{inla_rspde}(model, ...)
+bru_get_mapper.inla_rspde(model, ...)
 }
 \arguments{
 \item{model}{An `inla_rspde` object to use as a mapper}
