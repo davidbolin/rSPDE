@@ -82,6 +82,31 @@ references:
   type: article-journal
   issued:
     year: 2020 
+- id: Hofreither21
+  title: "An algorithm for best rational approximation based on barycentric rational interpolation"
+  author:
+  - family: Hofreither
+    given: Clemens
+  container-title: Numerical Algorithms
+  volume: 88
+  issue: 1
+  page: 365--388
+  type: article-journal
+  issued:
+    year: 2021 
+- id: xiong22
+  title: "Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference"
+  author: 
+  - family: Xiong
+    given: Zhen
+  - family: Simas
+    give: Alexandre B.
+  - family: Bolin
+    given: David
+  container-title: arXiv:2209.04670
+  type: preprint
+  issued:
+    year: 2022    
 ---
 
 ```{r setup, include=FALSE}
@@ -103,7 +128,8 @@ rational approximation is related to the operator-based [rational approximation 
 
 The covariance-based rational approximation is an efficient alternative 
 to the operator-based rational approximation when one has SPDE driven
-by Gaussian white noise.
+by Gaussian white noise. We refer the reader to [@xiong22](https://arxiv.org/abs/2209.04670)
+for the theoretical details.
 
 When dealing with fractional SPDE models driven by non-Gaussian white noises,
 the operator-based rational approximations might be useful.
@@ -459,16 +485,7 @@ the loglikelihood function parametrized using the logarithm of each
 parameter to avoid constrained optimization. 
 
 ```{r}
-mlik_cov <- function(theta, Y, A, op_cov) {
-  sigma <- exp(theta[1])
-  kappa <- exp(theta[2])
-  nu <- exp(theta[3])
-  return(-rSPDE::rSPDE.matern.loglike(
-    object = op_cov, Y = Y,
-    A = A, user_kappa = kappa, user_sigma = sigma,
-    user_nu = nu, sigma.e = exp(theta[4])
-  ))
-}
+mlik_cov <- rSPDE.construct.matern.loglike(op_cov, Y=Y, A=A)
 ```
 
 We will now get suitable initial values for the optimization using
@@ -482,7 +499,6 @@ theta0 <- c(
 
 start_time <- Sys.time()
 theta <- optim(theta0, mlik_cov,
-  Y = Y, A = A, op_cov = op_cov,
   method = "L-BFGS-B"
 )
 end_time <- Sys.time()
@@ -520,10 +536,7 @@ cl <- makeCluster(n_cores)
 setDefaultCluster(cl = cl)
 
 start_time <- Sys.time()
-theta_parallel <- optimParallel(theta0, mlik_cov,
-  Y = Y, A = A,
-  op_cov = op_cov
-)
+theta_parallel <- optimParallel(theta0, mlik_cov, obj=op_cov)
 end_time <- Sys.time()
 
 time_optim <- end_time - start_time
@@ -620,8 +633,7 @@ theta0 <- c(
 )
 
 start_time <- Sys.time()
-theta <- optimParallel(theta0, mlik_cov,
-  Y = Y.rep, A = A, op_cov = op_cov,
+theta <- optimParallel(theta0, mlik_cov, obj = op_cov,
   method = "L-BFGS-B"
 )
 end_time <- Sys.time()
@@ -746,16 +758,7 @@ which is the negative log-likelihood, parametrized using the logarithm of each
 parameter to avoid constrained optimization. 
 
 ```{r}
-mlik_2d <- function(theta, Y, A, op_cov_2d) {
-  sigma <- exp(theta[1])
-  kappa <- exp(theta[2])
-  nu <- exp(theta[3])
-  return(-rSPDE::rSPDE.matern.loglike(
-    object = op_cov_2d, Y = Y,
-    A = A, user_kappa = kappa, user_sigma = sigma,
-    user_nu = nu, sigma.e = exp(theta[4])
-  ))
-}
+mlik_2d <- rSPDE.construct.matern.loglike(op_cov_2d, Y=Y, A=A)
 ```
 
 We can now estimate the parameter using `optimParallel()`:
@@ -766,7 +769,7 @@ theta0_2d <- c(
   log(0.1 * sqrt(var(as.vector(Y))))
 )
 start_time <- Sys.time()
-pars <- optimParallel(theta0_2d, mlik_2d, Y = Y, A = A, op_cov_2d = op_cov_2d)
+pars <- optimParallel(theta0_2d, mlik_2d, obj = op_cov_2d)
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(

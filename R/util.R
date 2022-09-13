@@ -648,14 +648,14 @@ cut_decimals <- function(nu) {
 }
 
 #' @name check_class_inla_rspde
-#' @title Check if the object inherits from inla.rspde class
-#' @description Check if the object inherits from inla.rspde class
-#' @param model A model to test if it inherits from inla.rspde
-#' @return Gives an error if the object does not inherit from inla.rspde
+#' @title Check if the object inherits from inla_rspde class
+#' @description Check if the object inherits from inla_rspde class
+#' @param model A model to test if it inherits from inla_rspde
+#' @return Gives an error if the object does not inherit from inla_rspde
 #' @noRd
 
 check_class_inla_rspde <- function(model) {
-  if (!inherits(model, "inla.rspde")) {
+  if (!inherits(model, "inla_rspde")) {
     stop("You should provide a rSPDE model!")
   }
 }
@@ -1173,7 +1173,7 @@ get_rational_coefficients <- function(order, type_rational_approx) {
   }
   if (inherits(object, "CBrSPDEobj")) {
     model <- update(x, type_rational_approximation = value)
-  } else if (inherits(object, "inla.rspde")) {
+  } else if (inherits(object, "inla_rspde")) {
     fem_mesh <- object$fem_mesh
     optimize <- object$optimize
     rgeneric_type <- object$rgeneric_type
@@ -1262,7 +1262,7 @@ get_rational_coefficients <- function(order, type_rational_approx) {
     model$start.nu <- start.nu
     model$rspde_order <- rspde_order
     model$integer.nu <- integer.nu
-    class(model) <- c(class(model), "inla.rspde")
+    class(model) <- c(class(model), "inla_rspde")
     model$dim <- d
     model$est_nu <- est_nu
     model$n.spde <- n.spde
@@ -1275,7 +1275,7 @@ get_rational_coefficients <- function(order, type_rational_approx) {
     model$fem_mesh <- fem_mesh
     model$fem_matrices <- fem_matrices
   } else {
-    stop("The object must be of class 'CBrSPDE' or 'inla.rspde'!")
+    stop("The object must be of class 'CBrSPDE' or 'inla_rspde'!")
   }
   return(model)
 }
@@ -1284,7 +1284,7 @@ get_rational_coefficients <- function(order, type_rational_approx) {
 
 #' Get type of rational approximation.
 #'
-#' @param object A \code{CBrSPDEobj} object or an \code{inla.rspde} object.
+#' @param object A \code{CBrSPDEobj} object or an \code{inla_rspde} object.
 #'
 #' @return The type of rational approximation.
 #' @export
@@ -1292,7 +1292,7 @@ get_rational_coefficients <- function(order, type_rational_approx) {
 rational.type <- function(object) {
   if (inherits(object, "CBrSPDEobj")) {
     return(object$type_rational_approximation)
-  } else if (inherits(object, "inla.rspde")) {
+  } else if (inherits(object, "inla_rspde")) {
     return(object$type.rational.approx)
   } else if (inherits(object, "rSPDEobj")) {
     return("chebfun")
@@ -1319,7 +1319,7 @@ rational.type <- function(object) {
 
   if (inherits(object, "CBrSPDEobj") || inherits(object, "rSPDEobj")) {
     model <- update(object, user_m = rspde_order)
-  } else if (inherits(object, "inla.rspde")) {
+  } else if (inherits(object, "inla_rspde")) {
     if (rspde_order > 0 && object$integer.nu) {
       warning("The order was not changed since there is no
       rational approximation (an integer model was
@@ -1357,13 +1357,13 @@ rational.type <- function(object) {
       prior.nu.dist = prior.nu.dist,
       type.rational.approx = type_rational_approximation
     )
-  } else if (!is.null(attr(object, "inla.rspde.Amatrix"))) {
+  } else if (!is.null(attr(object, "inla_rspde_Amatrix"))) {
     n_temp <- ncol(object)
     old_rspde_order <- attr(object, "rspde_order")
     orig_dim <- n_temp / (old_rspde_order + 1)
     A <- object[, 1:orig_dim]
     Abar <- kronecker(matrix(1, 1, rspde_order + 1), A)
-    attr(Abar, "inla.rspde.Amatrix") <- TRUE
+    attr(Abar, "inla_rspde_Amatrix") <- TRUE
     attr(Abar, "rspde_order") <- rspde_order
     integer_nu <- attr(object, "integer_nu")
     if (integer_nu && rspde_order > 0) {
@@ -1374,7 +1374,7 @@ rational.type <- function(object) {
     }
     attr(Abar, "integer_nu") <- integer_nu
     return(Abar)
-  } else if (inherits(object, "inla.rspde.index")) {
+  } else if (inherits(object, "inla_rspde_index")) {
     integer_nu <- attr(object, "integer_nu")
 
     if (integer_nu && rspde_order > 0) {
@@ -1403,7 +1403,7 @@ rational.type <- function(object) {
     times = n.repl), times = factor_rspde)
     out[[name.repl]] <- rep(rep(1:n.repl, each = n_mesh * n.group),
     times = factor_rspde)
-    class(out) <- c(class(out), "inla.rspde.index")
+    class(out) <- c(class(out), "inla_rspde_index")
     attr(out, "rspde_order") <- rspde_order
     attr(out, "integer_nu") <- integer_nu
     attr(out, "n.mesh") <- n_mesh
@@ -1412,7 +1412,7 @@ rational.type <- function(object) {
     attr(out, "n.repl") <- n.repl
     return(out)
   } else {
-    stop("The object must be of class 'CBrSPDE' or 'inla.rspde'!")
+    stop("The object must be of class 'CBrSPDE' or 'inla_rspde'!")
   }
   return(model)
 }
@@ -1420,7 +1420,7 @@ rational.type <- function(object) {
 
 #' Get the order of rational approximation.
 #'
-#' @param object A \code{CBrSPDEobj} object or an \code{inla.rspde} object.
+#' @param object A \code{CBrSPDEobj} object or an \code{inla_rspde} object.
 #'
 #' @return The order of rational approximation.
 #' @export
@@ -1428,11 +1428,11 @@ rational.type <- function(object) {
 rational.order <- function(object) {
   if (inherits(object, "CBrSPDEobj") || inherits(object, "rSPDEobj")) {
     return(object$m)
-  } else if (inherits(object, "inla.rspde")) {
+  } else if (inherits(object, "inla_rspde")) {
     return(object$rspde_order)
-  } else if (!is.null(attr(object, "inla.rspde.Amatrix"))) {
+  } else if (!is.null(attr(object, "inla_rspde_Amatrix"))) {
     return(attr(object, "rspde_order"))
-  } else if (inherits(object, "inla.rspde.index")) {
+  } else if (inherits(object, "inla_rspde_index")) {
     return(attr(object, "rspde_order"))
   } else {
     stop("Not a valid rSPDE object!")

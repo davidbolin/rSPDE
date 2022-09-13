@@ -457,16 +457,7 @@ which is the negative log-likelihood, parametrized using the logarithm of each
 parameter to avoid constrained optimization. 
 
 ```{r}
-mlik <- function(theta, Y, A, op) {
-  sigma <- exp(theta[1])
-  kappa <- exp(theta[2])
-  nu <- exp(theta[3])
-  return(-rSPDE::rSPDE.matern.loglike(
-    object = op, Y = Y,
-    A = A, user_kappa = kappa, user_sigma = sigma,
-    user_nu = nu, sigma.e = exp(theta[4])
-  ))
-}
+mlik <- rSPDE.construct.matern.loglike(object = op, Y=y, A=A)
 ```
 
 We can now estimate the parameter using `optimParallel()` (one can also
@@ -493,7 +484,7 @@ theta0 <- c(
   log(0.1 * sqrt(var(as.vector(y))))
 )
 start_time <- Sys.time()
-pars <- optimParallel(theta0, mlik, Y = y, A = A, op = op)
+pars <- optimParallel(theta0, mlik, obj=op)
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(

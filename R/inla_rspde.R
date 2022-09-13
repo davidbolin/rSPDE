@@ -915,7 +915,7 @@ rspde.matern <- function(mesh,
     rspde_order <- 0
   }
   model$rspde_order <- rspde_order
-  class(model) <- c(class(model), "inla.rspde")
+  class(model) <- c("inla_rspde", class(model))
   model$dim <- d
   model$est_nu <- !fixed_nu
   model$n.spde <- mesh$n
@@ -1550,7 +1550,7 @@ rspde.make.A <- function(mesh = NULL,
   }
 
 
-  attr(Abar, "inla.rspde.Amatrix") <- TRUE
+  attr(Abar, "inla_rspde_Amatrix") <- TRUE
   attr(Abar, "rspde_order") <- rspde_order
   attr(Abar, "integer_nu") <- integer_nu
   return(Abar)
@@ -1680,7 +1680,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
   times = n.repl), times = factor_rspde)
   out[[name.repl]] <- rep(rep(1:n.repl, each = n_mesh * n.group),
   times = factor_rspde)
-  class(out) <- c(class(out), "inla.rspde.index")
+  class(out) <- c("inla_rspde_index", class(out))
   if (integer_nu) {
     rspde_order <- 0
   }
@@ -1694,12 +1694,12 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 }
 
 #' @name rspde.precision
-#' @title Precision matrices for \code{inla.rspde} objects
+#' @title Precision matrices for \code{inla_rspde} objects
 #' @description Precision matrices for rSPDE models
 #'
 #' Calculates the precision matrix
-#' for given parameter values based on an \code{inla.rspde} model object.
-#' @param rspde An \code{inla.rspde} object.
+#' for given parameter values based on an \code{inla_rspde} model object.
+#' @param rspde An \code{inla_rspde} object.
 #' @param theta The parameter vector. See the details in
 #' \code{\link{rspde.matern}} to see the parameterizations.
 #' @param optimized Logical indicating if only the elements
@@ -1759,7 +1759,7 @@ rspde.precision <- function(rspde,
 #' \code{inla()}.
 #' @param name A character string with the name of the rSPDE effect
 #' in the inla formula.
-#' @param rspde The \code{inla.rspde} object used for the effect in
+#' @param rspde The \code{inla_rspde} object used for the effect in
 #' the inla formula.
 #' @param compute.summary Should the summary be computed?
 #' @return Returns a list containing:
@@ -1987,7 +1987,7 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 }
 
 #' @name plot.rspde.result
-#' @title Posterior plots for field parameters for an \code{inla.rspde} model
+#' @title Posterior plots for field parameters for an \code{inla_rspde} model
 #' from a \code{rspde.result} object
 #' @description Posterior plots for rSPDE field parameters in their
 #' original scales.
@@ -2130,7 +2130,7 @@ plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
 
 
 #' @name summary.rspde.result
-#' @title Summary for posteriors of field parameters for an \code{inla.rspde}
+#' @title Summary for posteriors of field parameters for an \code{inla_rspde}
 #' model from a \code{rspde.result} object
 #' @description Summary for posteriors of rSPDE field parameters in
 #' their original scales.
@@ -2289,7 +2289,7 @@ rspde.mesh.projector <- function(mesh,
     nu = nu
   )
 
-  class(out) <- c(class(out), "rspde.mesh.projector")
+  class(out) <- c("rspde.mesh.projector",class(out))
   return(out)
 }
 

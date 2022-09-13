@@ -1,4 +1,5 @@
 # rSPDE (development version)
+* Added an inlabru interface
 * Added "rational.order" and "rational.type" functions
 * Added the BRASIL rational approximation
 * Improved covariance-based operator objects
