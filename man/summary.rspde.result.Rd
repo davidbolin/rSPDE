@@ -2,7 +2,7 @@
 % Please edit documentation in R/inla_rspde.R
 \name{summary.rspde.result}
 \alias{summary.rspde.result}
-\title{Summary for posteriors of field parameters for an \code{inla.rspde}
+\title{Summary for posteriors of field parameters for an \code{inla_rspde}
 model from a \code{rspde.result} object}
 \usage{
 \method{summary}{rspde.result}(object, digits = 6, ...)

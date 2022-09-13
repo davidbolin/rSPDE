@@ -7,7 +7,7 @@
 rational.type(object)
 }
 \arguments{
-\item{object}{A \code{CBrSPDEobj} object or an \code{inla.rspde} object.}
+\item{object}{A \code{CBrSPDEobj} object or an \code{inla_rspde} object.}
 }
 \value{
 The type of rational approximation.
