@@ -24,11 +24,12 @@ register_s3_method <- function(pkg, generic, class, fun = NULL) {
   )
 }
 
+#' @importFrom utils installed.packages
 register_all_s3_methods = function() {
   inlabru_installed <- "inlabru" %in% rownames(installed.packages())
   if(inlabru_installed){
     register_s3_method("inlabru", "bru_mapper", "inla_rspde")
-    register_s3_method("inlabru", "ibm_n", "bru_mapper_inla_rspde") 
+    register_s3_method("inlabru", "ibm_n", "bru_mapper_inla_rspde")
     register_s3_method("inlabru", "ibm_values", "bru_mapper_inla_rspde")
     register_s3_method("inlabru", "ibm_amatrix", "bru_mapper_inla_rspde")
 
