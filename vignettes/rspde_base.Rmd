@@ -130,23 +130,19 @@ $$
 $$
 the function `spde.matern.operators()` can be used. 
 
-For the covariance-based rational approximation, we refer the reader to the [Rational approximation with the rSPDE package](rspde_cov.html) vignette.
 
-It is noteworthy that the covariance-based rational approximation only applies to fractional SPDE models
+For the alternative covariance-based rational approximation, we refer the reader to the [Rational approximation with the rSPDE package](rspde_cov.html) vignette. It is worth noting that the covariance-based rational approximation only applies to fractional SPDE models
 with Gaussian noise, whereas the operator-based rational approximation can be used 
-for more general noises such as the type-G Lévy noises. We refer
-the reader to [@wallin15](https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141), 
-[@bolin13](https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046) and
-[@asar20](https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405)
-for examples of models driven by type-G Lévy noises. We also refer the reader
-to the [`ngme` package](https://github.com/davidbolin/ngme) where one can fit such models.
+for more general models such as the models driven by type-G Lévy noise considered in [@wallin15](https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141), 
+[@bolin13](https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046), and
+[@asar20](https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405). 
 
-Once the approximation has been constructed, it can be included manually in statistical models just as for the non-fractional case. The package has some built-in functions for basic use of the approximation, such as `simulate()` which can be applied for simulation of the field. There are also functions for likelihood evaluation and kriging prediction for geostatistical models with Gaussian measurement noise where $u$ is included. In the following sections, we will illustrate the usage of these functions. 
+Once the approximation has been constructed, it can be included manually in statistical models just as for the non-fractional case. The package has some built-in functions for basic use of the approximation, such as `simulate()` which can be applied for simulation of the field. There are also functions for likelihood evaluation and kriging prediction for geostatistical models with Gaussian measurement noise. In the following sections, we illustrate the usage of these functions. 
 
 ### Constructing the approximation
 
 In this section, we explain how the different main functions can be used for constructing the rational approximation. 
-The first step for constructing the rational SPDE approximation is to define the FEM mesh. For illustration purposes, the `rSPDE` package contains a simple FEM implementation for models on $\mathbb{R}$ which we will use first. We will then illustrate how spatial models can be constructed, if the FEM implementation of the `r inla_link()` package is used instead.
+The first step for constructing the rational SPDE approximation is to define the FEM mesh. In this section, we use the simple FEM implementation in the `rSPDE` package for models defined on an interval. 
 
 Assume that we want to define a model on the interval $[0,1]$. We then start by defining a vector with mesh nodes $s_i$ where the basis functions $\varphi_i$ are centered. 
 ```{r}
@@ -171,8 +167,8 @@ op <- matern.operators(
 ```
 The object `op` contains the matrices needed for evaluating the distribution of the stochastic weights $\boldsymbol{\mathrm{u}}$. If we want to evaluate $u_h(s)$ at some locations $s_1,\ldots, s_n$, we need to multiply the weights with the basis functions $\varphi_i(s)$ evaluated at the locations. For this, we can construct the observation matrix $\boldsymbol{\mathrm{A}}$ with elements $A_{ij} = \varphi_j(s_i)$, which links the FEM basis functions to the locations. This matrix can be constructed using the function `rSPDE.A1d()`.
 
-To evaluate the accuracy of the approximation, let us compute the covariance function between the process at $s=0.5$ and all other locations in `s` and compare with the true Matérn covariance function,
-which is the folded Matérn, see Theorem 1 in [An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach](https://www.jstor.org/stable/41262260) for further details. The covariances can be calculated as 
+To evaluate the accuracy of the approximation, let us compute the covariance function between the process at $s=0.5$ and all other locations in `s` and compare with the true covariance function,
+which is the folded Matérn covariance, see Theorem 1 in [An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach](https://www.jstor.org/stable/41262260). The covariances can be calculated as 
 $$
 \boldsymbol{\mathrm{A}} \boldsymbol{\mathrm{P}}_r \boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T\boldsymbol{\mathrm{v}}.
 $$
@@ -210,7 +206,7 @@ plot(s, c.true - c.approx,
 par(opar)
 ```
 
-To improve the approximation we can increase the degree of the polynomials, by increasing $m$, and/or increase the number of basis functions used for the FEM approximation. Let us, for example, compute the approximation with $m=2$ using the same mesh, as well as the approximation when we increase the number of basis functions and use $m=1$ and $m=2$. 
+To improve the approximation we can increase the degree of the polynomials, by increasing $m$, and/or increase the number of basis functions used for the FEM approximation. Let us, as an example, compute the approximation with $m=2$ using the same mesh, as well as the approximation when we increase the number of basis functions and use $m=1$ and $m=2$. 
 
 ```{r}
 op2 <- matern.operators(
@@ -260,7 +256,7 @@ legend("bottomright",
 par(opar)
 ```
 
-Since the error induced by the rational approximation decreases exponentially in $m$, there is in general rarely a need for an approximation with a large value of $m$. This is good because the number of non-zero elements in $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increases with $m$, which makes the approximation more computationally costly to use. Further, the condition number of $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increases with $m$, which can cause numerical problems when working with these matrices. To illustrate this, let us compute the norm of the approximation error for different $m$.
+Since the error induced by the rational approximation decreases exponentially in $m$, there is rarely a need for an approximation with a large value of $m$. This is good because the number of non-zero elements in $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increases with $m$, which makes the approximation more computationally costly to use. Further, the condition numbers of $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increase with $m$, which can cause numerical problems when working with these matrices. To illustrate this, let us compute the norm of the approximation error for different $m$.
 ```{r}
 errors <- rep(0, 4)
 for (i in 1:4) {
@@ -274,14 +270,12 @@ for (i in 1:4) {
 }
 print(errors)
 ```
-We see that the error decreases when increasing $m$ from $1$ to $2$, but is very large for $m=3$ and $m=4$. The reason for this is not that the approximation is bad, but that the numerical accuracy of the product $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ is low due to the high condition numbers of the matrices. 
+We see that the error decreases when increasing $m$ from $1$ to $2$, but is very large for $m=3$ and $m=4$. The reason for this is not that the approximation is bad, but that the numerical accuracy of the product $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ is low due to the large condition numbers of the matrices. 
 
-It is important to notice that the covariance-based rational approximation is more numerically stable, the main reason being that its clever
-decomposition of the latent field into a vector of random fields remove the need of higher order finite element matrices to have higher
-order rational approximations. We refer the reader to the [Rational approximation with the rSPDE package](rspde_cov.html) vignette
+It is important to note that the alternative covariance-based rational approximation is more numerically stable. The main reason for this is that it relies on a decomposition of the field $u$ into a sum of random fields, which removes the need of computing higher order finite element matrices for large values of $m$. See the [Rational approximation with the rSPDE package](rspde_cov.html) vignette
 for further details.
 
-To solve this issue for the operator-based rational approximation, the package contains functions for performing operations such as $\boldsymbol{\mathrm{P}}_rv$ or $\boldsymbol{\mathrm{P}}_r^{-1}v$ that takes advantage of the structure of $\boldsymbol{\mathrm{P}}_r$ to avoid numerical issues. A complete list of these function can be seen by typing `?operator.operations`. One of these functions is `Sigma.mult()`, which performs the multiplication $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ in a more numerically stable way. Let us use this function to compute the errors of the approximations again to see that we indeed get better approximations as $m$ increases. 
+To handle this issue for the operator-based rational approximation, the package contains functions for performing operations such as $\boldsymbol{\mathrm{P}}_rv$ or $\boldsymbol{\mathrm{P}}_r^{-1}v$ that takes advantage of the structure of $\boldsymbol{\mathrm{P}}_r$ to avoid numerical instabilities. A complete list of these function can be seen by typing `?operator.operations`. One of these functions is `Sigma.mult()`, which performs the multiplication $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ in a more numerically stable way. Let us use this function to compute the errors of the approximations again to see that we indeed get better approximations as $m$ increases. 
 ```{r}
 errors2 <- rep(0, 4)
 for (i in 1:4) {
@@ -297,8 +291,7 @@ print(errors2)
 ```
 ## A non-stationary model
 
-Let us now examine a non-stationary model $(\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W}$ with $\kappa(s) = 10(1+2s^2)$ and $\tau(s) = 0.1(1 - 0.7s^2)$. We can then use `spde.matern.operators()`,
-which currently is only available for operator-based rational approximation, to create the rational approximation with $m=1$ as follows.
+Let us now examine a non-stationary model $(\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W}$ with $\kappa(s) = 10(1+2s^2)$ and $\tau(s) = 0.1(1 - 0.7s^2)$. We can then use `spde.matern.operators()` to create the rational approximation with $m=1$ as follows.
 ```{r}
 s <- seq(from = 0, to = 1, length.out = 501)
 fem <- rSPDE.fem1d(s)
@@ -327,7 +320,7 @@ par(opar)
 ```
 
 We see that this choice of $\kappa(s)$ and $\tau(s)$ results in a model with longer range for small values of $s$ and smaller variance in the middle of the domain. 
-We can also apply the general function `fractional.operators()` to construct the approximation. This function requires that one supplies a discretization of the non-fractional operator $L$, as well as a scaling factor $c>0$ which is a lower bound for the smallest eigenvalue of $L$. In our case we have $L = \kappa(s)^2 - \Delta$, and the eigenvalues of this operator is bounded from below by $c = \min_s \kappa(s)^2$. We compute this constant and the discrete operator. 
+We can also apply the general function `fractional.operators()` to construct the approximation. This function requires that the user supplies a discretization of the non-fractional operator $L$, as well as a scaling factor $c>0$ which is a lower bound for the smallest eigenvalue of $L$. In our case we have $L = \kappa(s)^2 - \Delta$, and the eigenvalues of this operator is bounded from below by $c = \min_s \kappa(s)^2$. We compute this constant and the discrete operator. 
 ```{r}
 c <- min(kappa)^2
 L <- fem$G + fem$C %*% Diagonal(501, kappa^2)
@@ -406,8 +399,8 @@ fem_mesh_2d <- inla.mesh.fem(mesh_2d)
 C <- fem_mesh_2d$c0
 G <- fem_mesh_2d$g1
 ```
-We can now use these matrices to define a rational SPDE approximation of degree $m=1$ for a Matérn model in the same was as before. We will now simulate a latent process with standard deviation $\sigma=1$ and 
-range $0.1$. We will use $\nu=0.5$ so that the model has an exponential covariance function.
+We can now use these matrices to define a rational SPDE approximation of degree $m=1$ for a Matérn model in the same was as before. To illustrate this, we  simulate a latent process with standard deviation $\sigma=1$ and 
+range $0.1$. We choose $\nu=0.5$ so that the model corresponds to a Gaussian process with an exponential covariance function.
 ```{r}
 nu <- 0.5
 sigma <- 1
@@ -417,8 +410,7 @@ tau <- 1 / (sqrt(4 * pi) * kappa * sigma)
 op <- spde.matern.operators(kappa = kappa, tau = tau,
 nu = nu, G = G, C = C, d = 2, m = 1)
 ```
-Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `r inla_link()` function `inla.spde.make.A()`. We will
-sample 30 replicates of the latent field.
+Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `r inla_link()` function `inla.spde.make.A()`. We sample 30 replicates of the latent field.
 ```{r}
 n.rep <- 30
 u <- simulate(op, nsim = n.rep)
