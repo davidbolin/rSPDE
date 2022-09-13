@@ -4,18 +4,18 @@
 [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)
 [![R-CMD-check](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml)
 
-`rSPDE` is an R package used for computing rational approximations of fractional SPDEs. These rational approximations can be used for computatially efficient statistical inference.
+`rSPDE` is an R package used for computing rational approximations of fractional SPDEs. These rational approximations can be used for computationally efficient statistical inference.
 
-Basic statistical operations such as likelihood evaluations and kriging predictions using the fractional approximations are also implemented. The package also contains an interface to [R-INLA][ref4].
+Basic statistical operations such as likelihood evaluations and kriging predictions using the fractional approximations are also implemented. The package also contains interfaces to [R-INLA][ref4] and [inlabru][ref8].
 
 For illustration purposes, the package contains a simple FEM implementation for models on `R`. See the 
 [Getting Started to the rSPDE package][ref2] vignette for an introduction to the package. The [Rational approximation with the rSPDE package][ref6] and [Operator-based rational approximation ][ref5] vignettes provide
 introductions to how to create and fit rSPDE models. For an introduction to the R-INLA implementation
 of the rSPDE models see the [R-INLA implementation of the rational SPDE approach][ref3]. The [`rSPDE` documentation][ref7] contains descriptions and examples of the functions in the `rSPDE` package.
 
-# Running the shiny app
+# Shiny app
 
-You can run the shiny app directly from GitHub by using the following command (you may need to install some of the dependencies):
+The paper [Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference][ref9] contains a study on the accuracy of the various rational approximations that are implemented in the `rSPDE` package. These are summarized in a shiny app that can be run directly from GitHub by using the following command (you may need to install some of the dependencies):
 
 ```r
 # install.packages("shiny", "shinythemes", "plotly")
@@ -23,7 +23,9 @@ You can run the shiny app directly from GitHub by using the following command (y
 shiny::runGitHub("davidbolin/rSPDE", subdir="shiny_app")
 ```
 
-# Reference #
+# References #
+Z. Xiong, A. Simas, D. Bolin (2022) [Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference][ref9]. 	ArXiv:2209.04670
+
 D. Bolin and K. Kirchner (2020) [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Journal of Computational and Graphical Statistics, 29:2, 274-285.
 
 # Installation instructions #
@@ -45,14 +47,6 @@ Sys.setenv(PATH = paste(c(gcc, rtools, Sys.getenv("PATH")), collapse = ";"))
 ```
 where the variables `rtools` and `gcc` need to be changed if `Rtools` is not installed directly on `C:`,
 and `gcc`'s version might need to be changed depending on the version of `Rtools`.
-
-# Upcoming features
-
-- Rewrite the INLA generic model in `cgeneric`.
-- Implementation of covariance-based non-stationary models.
-- Implementation of the covariance-based rational approximation on R-STAN interface.
-- Implementation of covariance-based method to more general SPDE models.
-- Implementation of PC-priors for R-INLA `rSPDE` models.
 
 # Repository branch workflows #
 The package version format for released versions is `major.minor.bugfix`. All regular development should be performed on the `devel` branch or in a feature branch, managed with `git flow feature`. Ideally, all the changes should be made on the `devel` branch. The `devel` version of the package should contain unit tests and examples for all important functions. Several functions may depend on `INLA`. Examples and tests for such functions might create problems when submitting to CRAN. To solve this problem, we created some Github Actions scripts that get the examples and tests depending on `INLA` on the `devel` branch and adapt to versions that will not fail on CRAN. Therefore, the best way to handle these situations is to avoid as much as possible to do any push to the `stable` branch. The idea is to update the `stable` branch by merges following the workflow that will be described below. 
@@ -128,3 +122,5 @@ git flow hotfix finish hotfix_branch_name
 [ref5]: https://davidbolin.github.io/rSPDE//articles/rspde_base.html
 [ref6]: https://davidbolin.github.io/rSPDE//articles/rspde_cov.html
 [ref7]: https://davidbolin.github.io/rSPDE/reference/index.html "`rSPDE` documentation."
+[ref8]: https://sites.google.com/inlabru.org/inlabru "inlabru homepage"
+[ref9]: https://arxiv.org/abs/2209.04670 "Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference"
