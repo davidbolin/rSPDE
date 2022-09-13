@@ -1852,10 +1852,7 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
                                  pivot = TRUE){
         param_vector <- likelihood_process_inputs(user_kappa, user_sigma, user_nu, sigma.e)
         
-        loglik <- function(theta, obj = NULL){
-          if(!is.null(obj)){
-            object <- obj
-          }
+        loglik <- function(theta){
           if(is.null(user_kappa)){
           kappa <- likelihood_process_parameters(theta = theta, 
                   param_vector = param_vector, 

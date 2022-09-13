@@ -8,7 +8,7 @@
 bru_mapper.inla_rspde <- function(model,...) {
   mapper <- list(model = model)
   class(mapper) <- c("bru_mapper_inla_rspde", "list")
-  bru_mapper(mapper)
+  inlabru::bru_mapper(mapper)
 }
 
 #' @rdname bru_mapper.inla_rspde
@@ -59,5 +59,5 @@ ibm_amatrix.bru_mapper_inla_rspde <- function(mapper, input, ...) {
 #' @param x The model to be passed to obtain the mapper.
 #' @rdname bru_mapper.inla_rspde
 bru_get_mapper.inla_rspde <- function(model, ...){
- bru_mapper(model) 
+ inlabru::bru_mapper(model) 
 }

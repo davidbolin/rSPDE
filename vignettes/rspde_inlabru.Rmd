@@ -280,6 +280,13 @@ cmp <- y ~ Intercept(1) + distSea(seaDist, model="rw1") +
 field(coordinates, model = rspde_model)
 ```
 
+For the current CRAN version of `inlabru` (version 2.5.3), one should use:
+
+```{r create_formula2, message=FALSE}
+cmp <- y ~ Intercept(1) + distSea(seaDist, model="rw1") +
+field(coordinates, model = rspde_model, mapper = bru_mapper(rspde_model))
+```
+
 To fit the model we simply use the `bru()` function:
 
 ```{r fit_model, message=FALSE, warning=FALSE}

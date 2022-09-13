@@ -478,6 +478,9 @@ if (nzchar(chk) && chk == "TRUE") {
 
 cl <- makeCluster(n_cores)
 setDefaultCluster(cl = cl)
+parallel::clusterExport(cl, "op")
+parallel::clusterExport(cl, "y")
+parallel::clusterExport(cl, "A")
 
 # Fitting the model
 theta0 <- c(
@@ -485,10 +488,8 @@ theta0 <- c(
   log(0.1 * sqrt(var(as.vector(y))))
 )
 
-# We need to pass "obj=op" as an argument because of the
-# parallelization (this is not needed in the regular optim function)
 start_time <- Sys.time()
-pars <- optimParallel(theta0, mlik, obj=op)
+pars <- optimParallel(theta0, mlik)
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
