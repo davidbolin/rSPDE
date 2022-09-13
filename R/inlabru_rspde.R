@@ -7,8 +7,10 @@
 
 bru_mapper.inla_rspde <- function(model,...) {
   mapper <- list(model = model)
-  # Note: from inlabru > 2.5.3, use bru_mapper_define instead.
-  inlabru::bru_mapper.default(mapper, new_class = "bru_mapper_inla_rspde")
+  # Note 1: From inlabru > 2.5.3, use bru_mapper_define instead.
+  # Note 2: bru_mapper.default is not exported from inlabru, so
+  # must call the generic bru_mapper()
+  inlabru::bru_mapper(mapper, new_class = "bru_mapper_inla_rspde")
 }
 
 #' @rdname bru_mapper.inla_rspde
