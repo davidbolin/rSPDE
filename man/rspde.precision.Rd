@@ -2,12 +2,12 @@
 % Please edit documentation in R/inla_rspde.R
 \name{rspde.precision}
 \alias{rspde.precision}
-\title{Precision matrices for \code{inla.rspde} objects}
+\title{Precision matrices for \code{inla_rspde} objects}
 \usage{
 rspde.precision(rspde, theta, optimized = FALSE)
 }
 \arguments{
-\item{rspde}{An \code{inla.rspde} object.}
+\item{rspde}{An \code{inla_rspde} object.}
 
 \item{theta}{The parameter vector. See the details in
 \code{\link{rspde.matern}} to see the parameterizations.}
@@ -23,7 +23,7 @@ A sparse precision matrix.
 Precision matrices for rSPDE models
 
 Calculates the precision matrix
-for given parameter values based on an \code{inla.rspde} model object.
+for given parameter values based on an \code{inla_rspde} model object.
 }
 \examples{
 \donttest{

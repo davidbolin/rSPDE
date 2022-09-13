@@ -13,7 +13,7 @@ rspde.result(inla, name, rspde, compute.summary = TRUE)
 \item{name}{A character string with the name of the rSPDE effect
 in the inla formula.}
 
-\item{rspde}{The \code{inla.rspde} object used for the effect in
+\item{rspde}{The \code{inla_rspde} object used for the effect in
 the inla formula.}
 
 \item{compute.summary}{Should the summary be computed?}
