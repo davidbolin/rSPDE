@@ -4,7 +4,13 @@
 #' @name bru_mapper.inla.rspde
 #' @param model An `inla_rspde` object to use as a mapper
 #' @rdname bru_mapper.inla_rspde
-
+#' @rawNamespace if (getRversion() >= "3.6.0") {
+#'   S3method(inlabru::bru_mapper, inla_rspde)
+#'   # S3method(inlabru::bru_get_mapper, inla_rspde)
+#'   S3method(inlabru::ibm_n, bru_mapper_inla_rspde)
+#'   S3method(inlabru::ibm_values, bru_mapper_inla_rspde)
+#'   S3method(inlabru::ibm_amatrix, bru_mapper_inla_rspde)
+#' }
 bru_mapper.inla_rspde <- function(model,...) {
   mapper <- list(model = model)
   # Note 1: From inlabru > 2.5.3, use bru_mapper_define instead.

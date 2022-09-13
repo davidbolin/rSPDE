@@ -61,6 +61,13 @@ export(rspde.result)
 export(simulate)
 export(spde.matern.loglike)
 export(spde.matern.operators)
+if (getRversion() >= "3.6.0") {
+  S3method(inlabru::bru_mapper, inla_rspde)
+  # S3method(inlabru::bru_get_mapper, inla_rspde)
+  S3method(inlabru::ibm_n, bru_mapper_inla_rspde)
+  S3method(inlabru::ibm_values, bru_mapper_inla_rspde)
+  S3method(inlabru::ibm_amatrix, bru_mapper_inla_rspde)
+}
 import(Matrix)
 importFrom(methods,as)
 importFrom(stats,approx)

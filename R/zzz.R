@@ -28,14 +28,18 @@ register_s3_method <- function(pkg, generic, class, fun = NULL) {
 register_all_s3_methods = function() {
   inlabru_installed <- "inlabru" %in% rownames(installed.packages())
   if(inlabru_installed){
-    register_s3_method("inlabru", "bru_mapper", "inla_rspde")
-    register_s3_method("inlabru", "ibm_n", "bru_mapper_inla_rspde")
-    register_s3_method("inlabru", "ibm_values", "bru_mapper_inla_rspde")
-    register_s3_method("inlabru", "ibm_amatrix", "bru_mapper_inla_rspde")
+    ## Delayed registration of these are handled
+    ## by S3Method NAMESPACE directives instead
+    # register_s3_method("inlabru", "bru_mapper", "inla_rspde")
+    # register_s3_method("inlabru", "ibm_n", "bru_mapper_inla_rspde")
+    # register_s3_method("inlabru", "ibm_values", "bru_mapper_inla_rspde")
+    # register_s3_method("inlabru", "ibm_amatrix", "bru_mapper_inla_rspde")
 
+    ## After inlabru > 2.5.3 is released on cran, change this to an
+    ## S3Method directive in inlabru_rspde.R instead.
     inlabru_version <- packageVersion("inlabru")
     if(inlabru_version >= "2.5.3.9002"){
-    register_s3_method("inlabru", "bru_get_mapper", "inla_rspde")
+      register_s3_method("inlabru", "bru_get_mapper", "inla_rspde")
     }
   }
 }
