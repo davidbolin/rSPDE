@@ -20,7 +20,7 @@ rSPDE.matern.loglike(
 }
 \arguments{
 \item{object}{The rational SPDE approximation,
-computed using \code{\link{matern.operators}}}
+computed using \code{\link[=matern.operators]{matern.operators()}}}
 
 \item{Y}{The observations, either a vector or a matrix where
 the columns correspond to independent replicates of observations.}
@@ -133,5 +133,5 @@ print(data.frame(
 
 }
 \seealso{
-\code{\link{matern.operators}}, \code{\link{predict.CBrSPDEobj}}
+\code{\link[=matern.operators]{matern.operators()}}, \code{\link[=predict.CBrSPDEobj]{predict.CBrSPDEobj()}}
 }

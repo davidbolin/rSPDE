@@ -19,11 +19,11 @@
 \method{bru_get_mapper}{inla_rspde}(model, ...)
 }
 \arguments{
-\item{model}{The model to be passed to obtain the mapper.}
+\item{model}{An \code{inla_rspde} for which to construct or extract a mapper}
 
-\item{...}{Additional parameters to be passed.}
+\item{\dots}{Arguments passed on to other methods}
 
-\item{mapper}{A mapper S3 object.}
+\item{mapper}{A \code{bru_mapper.inla_rspde} object}
 
 \item{input}{The values for which to produce a mapping matrix}
 }

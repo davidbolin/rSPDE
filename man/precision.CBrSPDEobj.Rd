@@ -18,7 +18,7 @@ precision(object, ...)
 }
 \arguments{
 \item{object}{The covariance-based rational SPDE approximation,
-computed using \code{\link{matern.operators}}}
+computed using \code{\link[=matern.operators]{matern.operators()}}}
 
 \item{...}{Currently not used.}
 
@@ -64,5 +64,5 @@ prec_matrix <- precision(op_cov)
 
 }
 \seealso{
-\code{\link{simulate.CBrSPDEobj}}, \code{\link{matern.operators}}
+\code{\link[=simulate.CBrSPDEobj]{simulate.CBrSPDEobj()}}, \code{\link[=matern.operators]{matern.operators()}}
 }

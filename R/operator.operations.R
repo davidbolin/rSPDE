@@ -33,11 +33,11 @@
 #'
 #' @return A vector with the values of the operation
 #'
-#' @details \code{Pl.mult}, \code{Pr.mult}, and \code{Q.mult}
+#' @details `Pl.mult`, `Pr.mult`, and `Q.mult`
 #' multiplies the vector with the respective object.
-#' Changing \code{mult} to \code{solve} in the function names
+#' Changing `mult` to `solve` in the function names
 #' multiplies the vector with the inverse of the object.
-#' \code{Qsqrt.mult} and \code{Qsqrt.solve} performs the
+#' `Qsqrt.mult` and `Qsqrt.solve` performs the
 #' operations with the square-root type object
 #' \eqn{Q_r = C^{-1/2}P_l} defined so that \eqn{Q = Q_r^T Q_r}.
 #'

@@ -9,8 +9,8 @@ rSPDE.loglike(obj, Y, A, sigma.e, mu = 0)
 }
 \arguments{
 \item{obj}{The rational SPDE approximation, computed using
-\code{\link{fractional.operators}},
-\code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.}
+\code{\link[=fractional.operators]{fractional.operators()}},
+\code{\link[=matern.operators]{matern.operators()}}, or \code{\link[=spde.matern.operators]{spde.matern.operators()}}.}
 
 \item{Y}{The observations, either a vector or a matrix where
 the columns correspond to independent replicates of observations.}
@@ -38,7 +38,7 @@ are iid mean-zero Gaussian variables and \eqn{x(s) =
 }
 \note{
 This example below shows how the function can be used to evaluate
-the likelihood of a latent Matern model. Se \code{\link{matern.loglike}}
+the likelihood of a latent Matern model. Se \code{\link[=matern.loglike]{matern.loglike()}}
 for an example of how this can be used for maximum
 likelihood estimation.
 }
@@ -73,5 +73,5 @@ lik1 <- rSPDE.loglike(op, Y, A, sigma.e)
 cat(lik1)
 }
 \seealso{
-\code{\link{matern.loglike}}, \code{\link{spde.matern.loglike}}
+\code{\link[=matern.loglike]{matern.loglike()}}, \code{\link[=spde.matern.loglike]{spde.matern.loglike()}}
 }

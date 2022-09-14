@@ -1,3 +1,6 @@
+#' @importFrom stats simulate
+
+###########################################
 ## fractional.computations.R
 ##
 ##   Copyright (C) 2018, 2019, David Bolin
@@ -15,27 +18,20 @@
 ##   You should have received a copy of the GNU General Public License
 ##   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#' @rdname simulate.rSPDEobj
-#' @export
-simulate <- function(object,
-                     nsim,
-                     ...) {
-  UseMethod("simulate", object)
-}
-
-#' Simulation of a fractional SPDE using a rational SPDE approximation
+#' @title Simulation of a fractional SPDE using a rational SPDE approximation
 #'
-#' The function samples a Gaussian random field based on a
+#' @description The function samples a Gaussian random field based on a
 #' pre-computed rational SPDE approximation.
 #'
 #' @param object The rational SPDE approximation, computed
-#' using \code{\link{fractional.operators}},
-#' \code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.
+#' using [fractional.operators()],
+#' [matern.operators()], or [spde.matern.operators()].
 #' @param nsim The number of simulations.
+#' @param seed an object specifying if and how the random number generator should be initialized (‘seeded’).
 #' @param ... Currently not used.
 #'
-#' @return A matrix with the \code{n} samples as columns.
-#' @seealso \code{\link{simulate.CBrSPDEobj}}
+#' @return A matrix with the `n` samples as columns.
+#' @seealso [simulate.CBrSPDEobj()]
 #' @export
 #' @method simulate rSPDEobj
 #'
@@ -61,7 +57,12 @@ simulate <- function(object,
 #'
 simulate.rSPDEobj <- function(object,
                               nsim = 1,
+                              seed = NULL,
                               ...) {
+  if(!is.null(seed)){
+    set.seed(seed)
+  }
+  
   if (!inherits(object, "rSPDEobj")) {
     stop("input object is not of class rSPDEobj")
   }
@@ -79,7 +80,7 @@ simulate.rSPDEobj <- function(object,
 #' @title Update parameters of CBrSPDEobj objects
 #' @description Function to change the parameters of a CBrSPDEobj object
 #' @param object The covariance-based rational SPDE approximation,
-#' computed using \code{\link{matern.operators}}
+#' computed using [matern.operators()]
 #' @param user_kappa If non-null, update the range parameter
 #' of the covariance function.
 #' @param user_sigma If non-null, update the standard deviation of
@@ -90,7 +91,7 @@ simulate.rSPDEobj <- function(object,
 #' approximation, which needs to be a positive integer.
 #' @param compute_higher_order Logical. Should the higher order
 #' finite element matrices be computed?
-#' @param return_block_list Logical. For \code{type = "covariance"},
+#' @param return_block_list Logical. For `type = "covariance"`,
 #' should the block parts of the precision matrix be returned
 #' separately as a list?
 #' @param type_rational_approximation Which type of rational
@@ -98,9 +99,9 @@ simulate.rSPDEobj <- function(object,
 #' "brasil" or "chebfunLB".
 #' @param ... Currently not used.
 #' @return It returns an object of class "CBrSPDEobj. This object contains the
-#' same quantities listed in the output of \code{\link{matern.operators}}.
+#' same quantities listed in the output of [matern.operators()].
 #' @method update CBrSPDEobj
-#' @seealso \code{\link{simulate.CBrSPDEobj}}, \code{\link{matern.operators}}
+#' @seealso [simulate.CBrSPDEobj()], [matern.operators()]
 #' @export
 #' @examples
 #' # Compute the covariance-based rational approximation of a
@@ -198,7 +199,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 #' @title Update parameters of rSPDEobj objects
 #' @description Function to change the parameters of a rSPDEobj object
 #' @param object The operator-based rational SPDE approximation,
-#' computed using \code{\link{matern.operators}} with \code{type="operator"}
+#' computed using [matern.operators()] with `type="operator"`
 #' @param user_kappa If non-null, update the range parameter
 #' of the covariance function.
 #' @param user_sigma If non-null, update the standard
@@ -209,9 +210,9 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 #' approximation, which needs to be a positive integer.
 #' @param ... Currently not used.
 #' @return It returns an object of class "rSPDEobj. This object contains the
-#' same quantities listed in the output of \code{\link{matern.operators}}.
+#' same quantities listed in the output of [matern.operators()].
 #' @method update rSPDEobj
-#' @seealso \code{\link{simulate.rSPDEobj}}, \code{\link{matern.operators}}
+#' @seealso [simulate.rSPDEobj()], [matern.operators()]
 #' @export
 #' @examples
 #' # Compute the operator-based rational approximation of a
@@ -279,8 +280,9 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' @description The function samples a Gaussian random field based using the
 #' covariance-based rational SPDE approximation.
 #' @param object The covariance-based rational SPDE approximation,
-#' computed using \code{\link{matern.operators}}
+#' computed using [matern.operators()]
 #' @param nsim The number of simulations.
+#' @param seed An object specifying if and how the random number generator should be initialized (‘seeded’).
 #' @param user_kappa If non-null, update the range parameter
 #' of the covariance function.
 #' @param user_sigma If non-null, update the standard deviation
@@ -292,7 +294,7 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' @param pivot Should pivoting be used for the Cholesky
 #' decompositions? Default is TRUE
 #' @param ... Currently not used.
-#' @return A matrix with the \code{n} samples as columns.
+#' @return A matrix with the `n` samples as columns.
 #' @method simulate CBrSPDEobj
 #' @export
 #' @examples
@@ -318,12 +320,16 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' plot(x, Y, type = "l", ylab = "u(x)", xlab = "x")
 #'
 simulate.CBrSPDEobj <- function(object, nsim = 1,
+                                seed = NULL,
                                 user_nu = NULL,
                                 user_kappa = NULL,
                                 user_sigma = NULL,
                                 user_m = NULL,
                                 pivot = TRUE,
                                 ...) {
+  if(!is.null(seed)){
+    set.seed(seed)
+  }
   d <- object$d
   nu_temp <- ifelse(is.null(user_nu), object$nu, user_nu)
   alpha <- nu_temp + d / 2
@@ -418,8 +424,8 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 #' \eqn{W}{W} is Gaussian white noise.
 #'
 #' @param object The rational SPDE approximation, computed using
-#' \code{\link{fractional.operators}},
-#' \code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.
+#' [fractional.operators()],
+#' [matern.operators()], or [spde.matern.operators()].
 #' @param A A matrix linking the measurement locations to the basis of the
 #' FEM approximation of the latent model.
 #' @param Aprd A matrix linking the prediction locations to the basis of the
@@ -544,8 +550,8 @@ predict.rSPDEobj <- function(object,
 #' \eqn{\mu(s)}{\mu(s)} is the expectation vector of the latent field.
 #'
 #' @param obj The rational SPDE approximation, computed using
-#' \code{\link{fractional.operators}},
-#' \code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.
+#' [fractional.operators()],
+#' [matern.operators()], or [spde.matern.operators()].
 #' @param Y The observations, either a vector or a matrix where
 #' the columns correspond to independent replicates of observations.
 #' @param A An observation matrix that links the measurement location
@@ -555,10 +561,10 @@ predict.rSPDEobj <- function(object,
 #' @return The log-likelihood value.
 #' @export
 #' @note This example below shows how the function can be used to evaluate
-#' the likelihood of a latent Matern model. Se \code{\link{matern.loglike}}
+#' the likelihood of a latent Matern model. Se [matern.loglike()]
 #' for an example of how this can be used for maximum
 #' likelihood estimation.
-#' @seealso \code{\link{matern.loglike}}, \code{\link{spde.matern.loglike}}
+#' @seealso [matern.loglike()], [spde.matern.loglike()]
 #'
 #' @examples
 #' # Sample a Gaussian Matern process on R using a rational approximation
@@ -666,7 +672,7 @@ rSPDE.loglike <- function(obj,
 #' the a rational approximation
 #' of the fractional SPDE model corresponding to the Gaussian process.
 #' @param object The rational SPDE approximation,
-#' computed using \code{\link{matern.operators}}
+#' computed using [matern.operators()]
 #' @param Y The observations, either a vector or a matrix where
 #' the columns correspond to independent replicates of observations.
 #' @param A An observation matrix that links the measurement location to the
@@ -685,7 +691,7 @@ rSPDE.loglike <- function(obj,
 #' is TRUE
 #' @return The log-likelihood value.
 #' @export
-#' @seealso \code{\link{matern.operators}}, \code{\link{predict.CBrSPDEobj}}
+#' @seealso [matern.operators()], [predict.CBrSPDEobj()]
 #' @examples
 #' # this example illustrates how the function can be used for maximum
 #' # likelihood estimation
@@ -808,7 +814,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' the covariance-based rational approximation
 #' of the fractional SPDE model corresponding to the Gaussian process.
 #' @param object The covariance-based rational SPDE approximation,
-#' computed using \code{\link{matern.operators}}
+#' computed using [matern.operators()]
 #' @param Y The observations, either a vector or a matrix where
 #' the columns correspond to independent replicates of observations.
 #' @param A An observation matrix that links the measurement location
@@ -827,7 +833,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' Default is TRUE
 #' @return The log-likelihood value.
 #' @noRd
-#' @seealso \code{\link{matern.operators}}, \code{\link{predict.CBrSPDEobj}}
+#' @seealso [matern.operators()], [predict.CBrSPDEobj()]
 #' @examples
 #' # this example illustrates how the function can be used for maximum
 #' likelihood estimation
@@ -1037,8 +1043,8 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #'
 #' @return The log-likelihood value.
 #' @export
-#' @seealso \code{\link{spde.matern.loglike}}, \code{\link{rSPDE.loglike}},
-#' \code{\link{matern.operators}}.
+#' @seealso [spde.matern.loglike()], [rSPDE.loglike()],
+#' [matern.operators()].
 #'
 #' @examples
 #' # this example illustrates how the function can be used for maximum
@@ -1248,7 +1254,7 @@ matern.loglike <- function(kappa,
 #' Default is TRUE
 #' @return The log-likelihood value.
 #' @noRd
-#' @seealso \code{\link{matern.operators}}, \code{\link{predict.CBrSPDEobj}}
+#' @seealso [matern.operators()], [predict.CBrSPDEobj()]
 #' @examples
 #' # this example illustrates how the function can be used for maximum
 #' # likelihood estimation
@@ -1389,7 +1395,7 @@ CBrSPDE.matern.loglike2 <- function(kappa,
 #'
 #' @return The log-likelihood value.
 #' @export
-#' @seealso \code{\link{matern.loglike}}, \code{\link{rSPDE.loglike}}.
+#' @seealso [matern.loglike()], [rSPDE.loglike()].
 #'
 #' @examples
 #' # this example illustrates how the function can be used for maximum
@@ -1474,7 +1480,7 @@ spde.matern.loglike <- function(kappa,
 #' where \eqn{W}{W} is Gaussian white noise and \eqn{\alpha = \nu + d/2},
 #' where \eqn{d} is the dimension of the domain.
 #' @param object The covariance-based rational SPDE approximation,
-#' computed using \code{\link{matern.operators}}
+#' computed using [matern.operators()]
 #' @param A A matrix linking the measurement locations to the basis of the FEM
 #' approximation of the latent model.
 #' @param Aprd A matrix linking the prediction locations to the basis of the
@@ -1693,7 +1699,7 @@ precision <- function(object, ...) {
 #' @title Get the precision matrix of CBrSPDEobj objects
 #' @description Function to get the precision matrix of a CBrSPDEobj object
 #' @param object The covariance-based rational SPDE approximation,
-#' computed using \code{\link{matern.operators}}
+#' computed using [matern.operators()]
 #' @param user_kappa If non-null, update the range parameter of
 #' the covariance function.
 #' @param user_sigma If non-null, update the standard deviation of
@@ -1705,7 +1711,7 @@ precision <- function(object, ...) {
 #' @param ... Currently not used.
 #' @return The precision matrix.
 #' @method precision CBrSPDEobj
-#' @seealso \code{\link{simulate.CBrSPDEobj}}, \code{\link{matern.operators}}
+#' @seealso [simulate.CBrSPDEobj()], [matern.operators()]
 #' @export
 #' @examples
 #' # Compute the covariance-based rational approximation of a
@@ -1759,7 +1765,7 @@ precision.CBrSPDEobj <- function(object,
 #' the a rational approximation
 #' of the fractional SPDE model corresponding to the Gaussian process.
 #' @param object The rational SPDE approximation,
-#' computed using \code{\link{matern.operators}}
+#' computed using [matern.operators()]
 #' @param Y The observations, either a vector or a matrix where
 #' the columns correspond to independent replicates of observations.
 #' @param A An observation matrix that links the measurement location to the
@@ -1779,7 +1785,7 @@ precision.CBrSPDEobj <- function(object,
 #' @return The log-likelihood function. The parameters of the returned function
 #' are given in the order sigma, kappa, nu, sigma.e, whenever they are available.
 #' @export
-#' @seealso \code{\link{matern.operators}}, \code{\link{predict.CBrSPDEobj}}
+#' @seealso [matern.operators()], [predict.CBrSPDEobj()]
 #' @examples
 #' # this example illustrates how the function can be used for maximum
 #' # likelihood estimation

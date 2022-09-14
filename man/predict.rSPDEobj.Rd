@@ -8,8 +8,8 @@
 }
 \arguments{
 \item{object}{The rational SPDE approximation, computed using
-\code{\link{fractional.operators}},
-\code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.}
+\code{\link[=fractional.operators]{fractional.operators()}},
+\code{\link[=matern.operators]{matern.operators()}}, or \code{\link[=spde.matern.operators]{spde.matern.operators()}}.}
 
 \item{A}{A matrix linking the measurement locations to the basis of the
 FEM approximation of the latent model.}

@@ -17,7 +17,7 @@
 
 #' Rational approximations of fractional operators
 #'
-#' \code{fractional.operators} is used for computing an approximation,
+#' `fractional.operators` is used for computing an approximation,
 #' which can be used for inference and simulation, of the fractional SPDE
 #' \deqn{L^\beta (\tau u(s)) = W.}
 #' Here \eqn{L} is a differential operator, \eqn{\beta>0} is
@@ -37,35 +37,35 @@
 #' @param tau The constant or vector that scales the variance of the solution.
 #' The default value is 1.
 #'
-#' @return \code{fractional.operators} returns an object of class "rSPDEobj".
+#' @return `fractional.operators` returns an object of class "rSPDEobj".
 #' This object contains the following quantities:
 #' \item{Pl}{The operator \eqn{P_l}.}
 #' \item{Pr}{The operator \eqn{P_r}.}
 #' \item{C}{The mass lumped mass matrix.}
-#' \item{Ci}{The inverse of \code{C}.}
+#' \item{Ci}{The inverse of `C`.}
 #' \item{m}{The order of the rational approximation.}
 #' \item{beta}{The fractional power.}
 #' \item{type}{String indicating the type of approximation.}
-#' \item{Q}{The matrix \code{t(Pl)\%*\%solve(C,Pl)}.}
+#' \item{Q}{The matrix `t(Pl) %*% solve(C,Pl)`.}
 #' \item{type}{String indicating the type of approximation.}
 #' \item{Pl.factors}{List with elements that can be used to assemble \eqn{P_l}.}
 #' \item{Pr.factors}{List with elements that can be used to assemble \eqn{P_r}.}
 #' @export
-#' @seealso \code{\link{matern.operators}}, \code{\link{spde.matern.operators}},
-#' \code{\link{matern.operators}}
+#' @seealso [matern.operators()], [spde.matern.operators()],
+#' [matern.operators()]
 #' @details The approximation is based on a rational approximation of
 #' the fractional operator, resulting in an
 #' approximate model on the form \deqn{P_l u(s) = P_r W,}
 #' where \eqn{P_j = p_j(L)} are non-fractional operators defined in terms of
 #' polynomials \eqn{p_j} for \eqn{j=l,r}. The order of \eqn{p_r} is given by
-#' \code{m} and the order of \eqn{p_l} is \eqn{m + m_\beta}
+#' `m` and the order of \eqn{p_l} is \eqn{m + m_\beta}
 #' where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and
 #' \eqn{m_\beta = 1} otherwise.
 #'
 #' The discrete approximation can be written as \eqn{u = P_r x} where
 #' \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})} and \eqn{Q = P_l^T C^{-1} P_l}.
 #' Note that the matrices \eqn{P_r} and \eqn{Q} may be be ill-conditioned
-#' for \eqn{m>1}. In this case, the methods in \code{\link{operator.operations}}
+#' for \eqn{m>1}. In this case, the methods in [operator.operations()]
 #' should be used for operations involving the matrices, since these methods
 #' are more numerically stable.
 #'
@@ -197,7 +197,7 @@ fractional.operators <- function(L,
 
 #' Rational approximations of stationary Gaussian Matern random fields
 #'
-#' \code{matern.operators} is used for computing a rational SPDE approximation
+#' `matern.operators` is used for computing a rational SPDE approximation
 #' of a stationary Gaussian random fields on \eqn{R^d} with a Matern covariance
 #' function
 #' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}
@@ -208,33 +208,33 @@ fractional.operators <- function(L,
 #' @param sigma Standard deviation of the covariance function.
 #' @param nu Shape parameter of the covariance function.
 #' @param G The stiffness matrix of a finite element discretization of the
-#' domain of interest. Does not need to be given if \code{mesh} is used.
+#' domain of interest. Does not need to be given if `mesh` is used.
 #' @param C The mass matrix of a finite element discretization of the domain
-#' of interest. Does not need to be given if \code{mesh} is used.
-#' @param mesh An optional inla mesh. \code{d}, \code{C} and \code{G}
-#' must be given if \code{mesh} is not given.
+#' of interest. Does not need to be given if `mesh` is used.
+#' @param mesh An optional inla mesh. `d`, `C` and `G`
+#' must be given if `mesh` is not given.
 #' @param d The dimension of the domain. Does not need to be given if
-#' \code{mesh} is used.
+#' `mesh` is used.
 #' @param m The order of the rational approximation, which needs to be a
 #' positive integer. The default value is 1.
 #' @param type The type of the rational approximation. The options are
 #' "covariance" and "operator". The default is "covariance".
 #' @param compute_higher_order Logical. Should the higher order finite
 #' element matrices be computed?
-#' @param return_block_list Logical. For \code{type = "covariance"},
+#' @param return_block_list Logical. For `type = "covariance"`,
 #' should the block parts of the precision matrix be returned
 #' separately as a list?
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
 #' "chebfun", "brasil" or "chebfunLB".
 #'
-#' @return If \code{type} is "covariance", then \code{matern.operators}
+#' @return If `type` is "covariance", then `matern.operators`
 #' returns an object of class "CBrSPDEobj".
 #' This object is a list containing the
 #' following quantities:
 #' \item{C}{The mass lumped mass matrix.}
-#' \item{Ci}{The inverse of \code{C}.}
-#' \item{GCi}{The stiffness matrix G times \code{Ci}}
+#' \item{Ci}{The inverse of `C`.}
+#' \item{GCi}{The stiffness matrix G times `Ci`}
 #' \item{Gk}{The stiffness matrix G along with the higher-order
 #' FEM-related matrices G2, G3, etc.}
 #' \item{fem_mesh_matrices}{A list containing the mass
@@ -250,13 +250,13 @@ fractional.operators <- function(L,
 #' \item{sigma}{Standard deviation of the covariance function.}
 #' \item{type}{String indicating the type of approximation.}
 #'
-#' If \code{type} is "operator", then \code{matern.operators}
+#' If `type` is "operator", then `matern.operators`
 #'  returns an object of class "rSPDEobj". This object contains the
-#' quantities listed in the output of \code{\link{fractional.operators}},
-#' the \code{G} matrix, the dimension of the domain, as well as the
+#' quantities listed in the output of [fractional.operators()],
+#' the `G` matrix, the dimension of the domain, as well as the
 #' parameters of the covariance function.
 #'
-#' @details If \code{type} is "covariance", we use the
+#' @details If `type` is "covariance", we use the
 #' covariance-based rational approximation of the fractional operator.
 #' In the SPDE approach, we model \eqn{u} as the solution of the following SPDE:
 #' \deqn{L^{\alpha/2}(\tau u) = \mathcal{W},}
@@ -273,13 +273,13 @@ fractional.operators <- function(L,
 #' From this approximation we construct an approximate precision
 #' matrix for \eqn{u}.
 #'
-#' If \code{type} is "operator", the approximation is based on a
+#' If `type` is "operator", the approximation is based on a
 #' rational approximation of the fractional operator
 #' \eqn{(\kappa^2 -\Delta)^\beta}, where \eqn{\beta = (\nu + d/2)/2}.
 #' This results in an approximate model of the form \deqn{P_l u(s) = P_r W,}
 #' where \eqn{P_j = p_j(L)} are non-fractional operators defined in terms
 #' of polynomials \eqn{p_j} for \eqn{j=l,r}. The order of \eqn{p_r} is given
-#' by \code{m} and the order of \eqn{p_l} is \eqn{m + m_\beta}
+#' by `m` and the order of \eqn{p_l} is \eqn{m + m_\beta}
 #' where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and
 #' \eqn{m_\beta = 1} otherwise.
 #'
@@ -287,12 +287,12 @@ fractional.operators <- function(L,
 #' \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})} and \eqn{Q = P_l^T C^{-1} P_l}.
 #' Note that the matrices \eqn{P_r} and \eqn{Q} may be be
 #' ill-conditioned for \eqn{m>1}. In this case, the methods in
-#' \code{\link{operator.operations}} should be used for operations involving
+#' [operator.operations()] should be used for operations involving
 #' the matrices, since these methods are more numerically stable.
 #' @export
-#' @seealso \code{\link{fractional.operators}},
-#' \code{\link{spde.matern.operators}},
-#' \code{\link{matern.operators}}
+#' @seealso [fractional.operators()],
+#' [spde.matern.operators()],
+#' [matern.operators()]
 #'
 #' @examples
 #' # Compute the covariance-based rational approximation of a
@@ -429,7 +429,7 @@ matern.operators <- function(kappa,
 #' @name CBrSPDE.matern.operators
 #' @title Covariance-based rational approximations of stationary Gaussian
 #' Matern random fields
-#' @description \code{CBrSPDE.matern.operators} is used for computing a
+#' @description `CBrSPDE.matern.operators` is used for computing a
 #' covariance-based rational SPDE approximation of stationary Gaussian random
 #' fields on \eqn{R^d} with a Matern covariance function
 #' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu
@@ -447,12 +447,12 @@ matern.operators <- function(kappa,
 #' @param m The order of the rational approximation, which needs
 #' to be a positive integer.
 #' The default value is 2.
-#' @return \code{CBrSPDE.matern.operators} returns an object of
+#' @return `CBrSPDE.matern.operators` returns an object of
 #' class "CBrSPDEobj". This object is a list containing the
 #' following quantities:
 #' \item{C}{The mass lumped mass matrix.}
-#' \item{Ci}{The inverse of \code{C}.}
-#' \item{GCi}{The stiffness matrix G times \code{Ci}}
+#' \item{Ci}{The inverse of `C`.}
+#' \item{GCi}{The stiffness matrix G times `Ci`}
 #' \item{Gk}{The stiffness matrix G along with the higher-order
 #' FEM-related matrices G2, G3, etc.}
 #' \item{fem_mesh_matrices}{A list containing the mass lumped mass
@@ -468,7 +468,7 @@ matern.operators <- function(kappa,
 #' \item{sigma}{Standard deviation of the covariance function.}
 #' \item{type}{String indicating the type of approximation.}
 #' @noRd
-#' @seealso \code{\link{matern.operators}}, \code{\link{spde.matern.operators}}
+#' @seealso [matern.operators()], [spde.matern.operators()]
 #' @details We use the covariance-based rational approximation of the
 #' fractional operator. In the SPDE approach, we model \eqn{u} as the
 #' solution of the following SPDE:
@@ -728,7 +728,7 @@ CBrSPDE.matern.operators <- function(C,
 
 #' Rational approximations of non-stationary Gaussian SPDE Matern random fields
 #'
-#' \code{spde.matern.operators} is used for computing a rational SPDE
+#' `spde.matern.operators` is used for computing a rational SPDE
 #' approximation of a Gaussian random
 #' fields on \eqn{R^d} defined as a solution to the SPDE
 #' \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.}
@@ -757,7 +757,7 @@ CBrSPDE.matern.operators <- function(C,
 #' \eqn{\beta = (\nu + d/2)/2}. This results in an approximate model
 #' on the form \deqn{P_l u(s) = P_r W,} where \eqn{P_j = p_j(L)} are
 #' non-fractional operators defined in terms of polynomials \eqn{p_j} for
-#' \eqn{j=l,r}. The order of \eqn{p_r} is given by \code{m} and the order
+#' \eqn{j=l,r}. The order of \eqn{p_r} is given by `m` and the order
 #' of \eqn{p_l} is \eqn{m + m_\beta} where \eqn{m_\beta} is the integer
 #' part of \eqn{\beta} if \eqn{\beta>1} and \eqn{m_\beta = 1} otherwise.
 #'
@@ -765,18 +765,18 @@ CBrSPDE.matern.operators <- function(C,
 #' \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})}
 #' and \eqn{Q = P_l^T C^{-1} P_l}. Note that the matrices \eqn{P_r} and
 #' \eqn{Q} may be be ill-conditioned for \eqn{m>1}.
-#' In this case, the metehods in \code{\link{operator.operations}}
+#' In this case, the metehods in [operator.operations()]
 #' should be used for operations involving the matrices, since
 #' these methods are more numerically stable.
 #'
-#' @return \code{spde.matern.operators} returns an object of
+#' @return `spde.matern.operators` returns an object of
 #' class "rSPDEobj. This object contains the
-#' quantities listed in the output of \code{\link{fractional.operators}}
+#' quantities listed in the output of [fractional.operators()]
 #' as well as the smoothness parameter \eqn{\nu}.
 #' @export
-#' @seealso \code{\link{fractional.operators}},
-#' \code{\link{spde.matern.operators}},
-#' \code{\link{matern.operators}}
+#' @seealso [fractional.operators()],
+#' [spde.matern.operators()],
+#' [matern.operators()]
 #'
 #' @examples
 #' # Sample non-stationary Matern field on R

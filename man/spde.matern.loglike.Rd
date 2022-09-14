@@ -111,5 +111,5 @@ print(data.frame(
 }
 }
 \seealso{
-\code{\link{matern.loglike}}, \code{\link{rSPDE.loglike}}.
+\code{\link[=matern.loglike]{matern.loglike()}}, \code{\link[=rSPDE.loglike]{rSPDE.loglike()}}.
 }

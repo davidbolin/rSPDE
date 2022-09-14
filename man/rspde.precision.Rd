@@ -10,7 +10,7 @@ rspde.precision(rspde, theta, optimized = FALSE)
 \item{rspde}{An \code{inla_rspde} object.}
 
 \item{theta}{The parameter vector. See the details in
-\code{\link{rspde.matern}} to see the parameterizations.}
+\code{\link[=rspde.matern]{rspde.matern()}} to see the parameterizations.}
 
 \item{optimized}{Logical indicating if only the elements
 (the \code{x} slot) of the precision

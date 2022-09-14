@@ -25,6 +25,7 @@ register_s3_method <- function(pkg, generic, class, fun = NULL) {
 }
 
 #' @importFrom utils installed.packages
+#' @importFrom utils packageVersion
 register_all_s3_methods = function() {
   inlabru_installed <- "inlabru" %in% rownames(installed.packages())
   if(inlabru_installed){

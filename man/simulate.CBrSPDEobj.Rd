@@ -8,6 +8,7 @@ covariance-based rational SPDE approximation}
 \method{simulate}{CBrSPDEobj}(
   object,
   nsim = 1,
+  seed = NULL,
   user_nu = NULL,
   user_kappa = NULL,
   user_sigma = NULL,
@@ -18,9 +19,11 @@ covariance-based rational SPDE approximation}
 }
 \arguments{
 \item{object}{The covariance-based rational SPDE approximation,
-computed using \code{\link{matern.operators}}}
+computed using \code{\link[=matern.operators]{matern.operators()}}}
 
 \item{nsim}{The number of simulations.}
+
+\item{seed}{An object specifying if and how the random number generator should be initialized (‘seeded’).}
 
 \item{user_nu}{If non-null, update the shape parameter of the
 covariance function.}

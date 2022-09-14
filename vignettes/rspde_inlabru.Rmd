@@ -1126,7 +1126,8 @@ cmp.opt.sharp <- y ~ Intercept(1) + distSea(seaDist, model = "rw1") +
 
 # For inlabru 2.5.3: 
 cmp.opt.sharp <- y ~ Intercept(1) + distSea(seaDist, model = "rw1") +
-  field(coordinates, model = rspde_model_opt_sharp)
+  field(coordinates, model = rspde_model_opt_sharp, mapper = 
+  bru_mapper(rspde_model_opt_sharp))
 
 rspde_fit_opt_sharp <- bru(cmp.opt.sharp,
   family = "Gamma",

@@ -15,7 +15,7 @@
 }
 \arguments{
 \item{object}{The operator-based rational SPDE approximation,
-computed using \code{\link{matern.operators}} with \code{type="operator"}}
+computed using \code{\link[=matern.operators]{matern.operators()}} with \code{type="operator"}}
 
 \item{user_nu}{If non-null, update the shape parameter
 of the covariance function.}
@@ -33,7 +33,7 @@ approximation, which needs to be a positive integer.}
 }
 \value{
 It returns an object of class "rSPDEobj. This object contains the
-same quantities listed in the output of \code{\link{matern.operators}}.
+same quantities listed in the output of \code{\link[=matern.operators]{matern.operators()}}.
 }
 \description{
 Function to change the parameters of a rSPDEobj object
@@ -62,5 +62,5 @@ op
 
 }
 \seealso{
-\code{\link{simulate.rSPDEobj}}, \code{\link{matern.operators}}
+\code{\link[=simulate.rSPDEobj]{simulate.rSPDEobj()}}, \code{\link[=matern.operators]{matern.operators()}}
 }
