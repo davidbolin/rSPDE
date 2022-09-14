@@ -61,6 +61,11 @@ jobs:
           sed -i .bak 's/donttest{ #tryCatch version/donttest{ #devel version/' R/inla_rspde.R
           sed -i .bak 's/#stable\.tag/#devel\.tag/' R/inla_rspde.R
           sed -i .bak 's/#stable\.tryCatch/#devel\.tag/' R/inla_rspde.R
+          sed -i .bak '/#'\'' tryCatch({/d' R/inlabru_rspde.R
+          sed -i .bak '/Could not run the example/d' R/inlabru_rspde.R
+          sed -i .bak 's/donttest{ #tryCatch version/donttest{ #devel version/' R/inlabru_rspde.R
+          sed -i .bak 's/#stable\.tag/#devel\.tag/' R/inlabru_rspde.R
+          sed -i .bak 's/#stable\.tryCatch/#devel\.tag/' R/inlabru_rspde.R
           sed -i .bak 's/R.rsp/knitr/' DESCRIPTION
           html_files=$(shopt -s nullglob dotglob; echo vignettes/*.html)
           asis_files=$(shopt -s nullglob dotglob; echo vignettes/*.asis)
@@ -75,6 +80,7 @@ jobs:
           Rscript -e "devtools::document()"
           git add man
           git add R/inla_rspde.R
+          git add R/inlabru_rspde.R
           git add .Rbuildignore
           git add DESCRIPTION
           git commit -m "Doing the setup"
