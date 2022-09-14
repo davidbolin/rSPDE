@@ -1,8 +1,10 @@
 
 #'
 #' @title rSPDE inlabru mapper
-#' @name bru_mapper.inla.rspde
+#' @name bru_mapper.inla_rspde
 #' @param model An `inla_rspde` object to use as a mapper
+#' @param mapper A mapper S3 object.
+#' @param input The values for which to produce validity information.
 #' @rdname bru_mapper.inla_rspde
 #' @rawNamespace if (getRversion() >= "3.6.0") {
 #'   S3method(inlabru::bru_mapper, inla_rspde)
@@ -56,7 +58,8 @@ ibm_amatrix.bru_mapper_inla_rspde <- function(mapper, input, ...) {
                                 nu=nu)
 }
 
-#' @param x The model to be passed to obtain the mapper.
+#' @param model The model to be passed to obtain the mapper.
+#' @param ... Additional parameters to be passed.
 #' @rdname bru_mapper.inla_rspde
 bru_get_mapper.inla_rspde <- function(model, ...){
  inlabru::bru_mapper(model)

@@ -37,7 +37,7 @@ register_all_s3_methods = function() {
 
     ## After inlabru > 2.5.3 is released on cran, change this to an
     ## S3Method directive in inlabru_rspde.R instead.
-    inlabru_version <- packageVersion("inlabru")
+    inlabru_version <- utils::packageVersion("inlabru")
     if(inlabru_version >= "2.5.3.9002"){
       register_s3_method("inlabru", "bru_get_mapper", "inla_rspde")
     }
