@@ -21,7 +21,7 @@ rSPDE.construct.matern.loglike(
 }
 \arguments{
 \item{object}{The rational SPDE approximation,
-computed using \code{\link{matern.operators}}}
+computed using \code{\link[=matern.operators]{matern.operators()}}}
 
 \item{Y}{The observations, either a vector or a matrix where
 the columns correspond to independent replicates of observations.}
@@ -29,7 +29,7 @@ the columns correspond to independent replicates of observations.}
 \item{A}{An observation matrix that links the measurement location to the
 finite element basis.}
 
-\item{sigma.e}{IF non-null, the standard deviation of the measurement noise will be kept fixed in 
+\item{sigma.e}{IF non-null, the standard deviation of the measurement noise will be kept fixed in
 the returned likelihood.}
 
 \item{mu}{Expectation vector of the latent field (default = 0).}
@@ -127,5 +127,5 @@ print(data.frame(
 
 }
 \seealso{
-\code{\link{matern.operators}}, \code{\link{predict.CBrSPDEobj}}
+\code{\link[=matern.operators]{matern.operators()}}, \code{\link[=predict.CBrSPDEobj]{predict.CBrSPDEobj()}}
 }

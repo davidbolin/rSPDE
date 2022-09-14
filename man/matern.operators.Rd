@@ -79,8 +79,8 @@ the higher-order FEM-related matrices.}
 \item{type}{String indicating the type of approximation.}
 
 If \code{type} is "operator", then \code{matern.operators}
- returns an object of class "rSPDEobj". This object contains the
-quantities listed in the output of \code{\link{fractional.operators}},
+returns an object of class "rSPDEobj". This object contains the
+quantities listed in the output of \code{\link[=fractional.operators]{fractional.operators()}},
 the \code{G} matrix, the dimension of the domain, as well as the
 parameters of the covariance function.
 }
@@ -124,7 +124,7 @@ The discrete approximation can be written as \eqn{u = P_r x} where
 \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})} and \eqn{Q = P_l^T C^{-1} P_l}.
 Note that the matrices \eqn{P_r} and \eqn{Q} may be be
 ill-conditioned for \eqn{m>1}. In this case, the methods in
-\code{\link{operator.operations}} should be used for operations involving
+\code{\link[=operator.operations]{operator.operations()}} should be used for operations involving
 the matrices, since these methods are more numerically stable.
 }
 \examples{
@@ -197,7 +197,7 @@ plot(x, c.true,
 lines(x, c.approx, col = 2)
 }
 \seealso{
-\code{\link{fractional.operators}},
-\code{\link{spde.matern.operators}},
-\code{\link{matern.operators}}
+\code{\link[=fractional.operators]{fractional.operators()}},
+\code{\link[=spde.matern.operators]{spde.matern.operators()}},
+\code{\link[=matern.operators]{matern.operators()}}
 }

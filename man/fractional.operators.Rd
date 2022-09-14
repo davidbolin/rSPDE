@@ -35,7 +35,7 @@ This object contains the following quantities:
 \item{m}{The order of the rational approximation.}
 \item{beta}{The fractional power.}
 \item{type}{String indicating the type of approximation.}
-\item{Q}{The matrix \code{t(Pl)\%*\%solve(C,Pl)}.}
+\item{Q}{The matrix \verb{t(Pl)\\\%*\\\%solve(C,Pl)}.}
 \item{type}{String indicating the type of approximation.}
 \item{Pl.factors}{List with elements that can be used to assemble \eqn{P_l}.}
 \item{Pr.factors}{List with elements that can be used to assemble \eqn{P_r}.}
@@ -61,7 +61,7 @@ where \eqn{m_\beta} is the integer part of \eqn{\beta} if \eqn{\beta>1} and
 The discrete approximation can be written as \eqn{u = P_r x} where
 \eqn{x \sim N(0,Q^{-1})}{x ~ N(0,Q^{-1})} and \eqn{Q = P_l^T C^{-1} P_l}.
 Note that the matrices \eqn{P_r} and \eqn{Q} may be be ill-conditioned
-for \eqn{m>1}. In this case, the methods in \code{\link{operator.operations}}
+for \eqn{m>1}. In this case, the methods in \code{\link[=operator.operations]{operator.operations()}}
 should be used for operations involving the matrices, since these methods
 are more numerically stable.
 }
@@ -96,6 +96,6 @@ lines(x, c.approx, col = 2)
 
 }
 \seealso{
-\code{\link{matern.operators}}, \code{\link{spde.matern.operators}},
-\code{\link{matern.operators}}
+\code{\link[=matern.operators]{matern.operators()}}, \code{\link[=spde.matern.operators]{spde.matern.operators()}},
+\code{\link[=matern.operators]{matern.operators()}}
 }

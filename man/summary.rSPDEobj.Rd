@@ -14,13 +14,13 @@
 }
 \arguments{
 \item{object}{an object of class "rSPDEobj", usually, a result of a call
-to \code{\link{fractional.operators}}, \code{\link{matern.operators}}, or
-\code{\link{spde.matern.operators}}.}
+to \code{\link[=fractional.operators]{fractional.operators()}}, \code{\link[=matern.operators]{matern.operators()}}, or
+\code{\link[=spde.matern.operators]{spde.matern.operators()}}.}
 
 \item{...}{further arguments passed to or from other methods.}
 
 \item{x}{an object of class "summary.rSPDEobj", usually, a result of a call
-to \code{\link{summary.rSPDEobj}}.}
+to \code{\link[=summary.rSPDEobj]{summary.rSPDEobj()}}.}
 }
 \description{
 Summary method for class "rSPDEobj"

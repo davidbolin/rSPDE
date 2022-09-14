@@ -14,12 +14,12 @@
 }
 \arguments{
 \item{object}{an object of class "CBrSPDEobj", usually, a result of a call
-to \code{\link{matern.operators}}.}
+to \code{\link[=matern.operators]{matern.operators()}}.}
 
 \item{...}{further arguments passed to or from other methods.}
 
 \item{x}{an object of class "summary.CBrSPDEobj", usually, a result of a call
-to \code{\link{summary.CBrSPDEobj}}.}
+to \code{\link[=summary.CBrSPDEobj]{summary.CBrSPDEobj()}}.}
 }
 \description{
 Summary method for class "CBrSPDEobj"

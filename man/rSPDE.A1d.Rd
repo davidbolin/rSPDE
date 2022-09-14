@@ -35,7 +35,7 @@ obs.loc <- runif(n = 10, min = 0, max = 1)
 A <- rSPDE.A1d(x, obs.loc)
 }
 \seealso{
-\code{\link{rSPDE.fem1d}}
+\code{\link[=rSPDE.fem1d]{rSPDE.fem1d()}}
 }
 \author{
 David Bolin \email{davidbolin@gmail.com}

@@ -27,7 +27,7 @@ x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 }
 \seealso{
-\code{\link{rSPDE.A1d}}
+\code{\link[=rSPDE.A1d]{rSPDE.A1d()}}
 }
 \author{
 David Bolin \email{davidbolin@gmail.com}
