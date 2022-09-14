@@ -1,3 +1,6 @@
+#' @importFrom stats simulate
+
+###########################################
 ## fractional.computations.R
 ##
 ##   Copyright (C) 2018, 2019, David Bolin
@@ -15,23 +18,16 @@
 ##   You should have received a copy of the GNU General Public License
 ##   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#' @rdname simulate.rSPDEobj
-#' @export
-simulate <- function(object,
-                     nsim,
-                     ...) {
-  UseMethod("simulate", object)
-}
-
-#' Simulation of a fractional SPDE using a rational SPDE approximation
+#' @title Simulation of a fractional SPDE using a rational SPDE approximation
 #'
-#' The function samples a Gaussian random field based on a
+#' @description The function samples a Gaussian random field based on a
 #' pre-computed rational SPDE approximation.
 #'
 #' @param object The rational SPDE approximation, computed
 #' using [fractional.operators()],
 #' [matern.operators()], or [spde.matern.operators()].
 #' @param nsim The number of simulations.
+#' @param seed an object specifying if and how the random number generator should be initialized (‘seeded’).
 #' @param ... Currently not used.
 #'
 #' @return A matrix with the `n` samples as columns.
@@ -61,7 +57,12 @@ simulate <- function(object,
 #'
 simulate.rSPDEobj <- function(object,
                               nsim = 1,
+                              seed = NULL,
                               ...) {
+  if(!is.null(seed)){
+    set.seed(seed)
+  }
+  
   if (!inherits(object, "rSPDEobj")) {
     stop("input object is not of class rSPDEobj")
   }
@@ -281,6 +282,7 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' @param object The covariance-based rational SPDE approximation,
 #' computed using [matern.operators()]
 #' @param nsim The number of simulations.
+#' @param seed An object specifying if and how the random number generator should be initialized (‘seeded’).
 #' @param user_kappa If non-null, update the range parameter
 #' of the covariance function.
 #' @param user_sigma If non-null, update the standard deviation
@@ -318,12 +320,16 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' plot(x, Y, type = "l", ylab = "u(x)", xlab = "x")
 #'
 simulate.CBrSPDEobj <- function(object, nsim = 1,
+                                seed = NULL,
                                 user_nu = NULL,
                                 user_kappa = NULL,
                                 user_sigma = NULL,
                                 user_m = NULL,
                                 pivot = TRUE,
                                 ...) {
+  if(!is.null(seed)){
+    set.seed(seed)
+  }
   d <- object$d
   nu_temp <- ifelse(is.null(user_nu), object$nu, user_nu)
   alpha <- nu_temp + d / 2
