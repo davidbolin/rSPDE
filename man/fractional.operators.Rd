@@ -35,7 +35,7 @@ This object contains the following quantities:
 \item{m}{The order of the rational approximation.}
 \item{beta}{The fractional power.}
 \item{type}{String indicating the type of approximation.}
-\item{Q}{The matrix \verb{t(Pl)\\\%*\\\%solve(C,Pl)}.}
+\item{Q}{The matrix \code{t(Pl) \%*\% solve(C,Pl)}.}
 \item{type}{String indicating the type of approximation.}
 \item{Pl.factors}{List with elements that can be used to assemble \eqn{P_l}.}
 \item{Pr.factors}{List with elements that can be used to assemble \eqn{P_r}.}
