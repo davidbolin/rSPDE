@@ -453,6 +453,7 @@ utils::globalVariables(c(
 #' @examples
 #' \donttest{
 #' # devel version
+#' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #'
 #' # Organizing the data
@@ -515,6 +516,7 @@ utils::globalVariables(c(
 #'
 #' # The result
 #' summary(rspde_fit)
+#' }
 #' # devel.tag
 #' }
 #'
@@ -1474,8 +1476,9 @@ sigma = NULL, dim, fem_mesh_matrices) {
 #' @examples
 #' \donttest{
 #' # devel version
+#' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
-#'
+#' 
 #' set.seed(123)
 #' loc <- matrix(runif(100 * 2) * 100, 100, 2)
 #' mesh <- inla.mesh.2d(
@@ -1484,6 +1487,7 @@ sigma = NULL, dim, fem_mesh_matrices) {
 #'   max.edge = c(50, 500)
 #' )
 #' A <- rspde.make.A(mesh, loc = loc, rspde_order = 3)
+#' }
 #' # devel.tag
 #' }
 rspde.make.A <- function(mesh = NULL,
@@ -1579,7 +1583,9 @@ rspde.make.A <- function(mesh = NULL,
 #' @examples
 #' \donttest{
 #' # devel version
+#' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
+#' 
 #' set.seed(123)
 #'
 #' m <- 100
@@ -1613,7 +1619,7 @@ rspde.make.A <- function(mesh = NULL,
 #' )
 #' rspde_model <- rspde.matern(
 #'   mesh = mesh_2d,
-#'   nu_upper_bound = 1
+#'   nu_upper_bound = 2
 #' )
 #' f <- y ~ -1 + f(field, model = rspde_model)
 #' rspde_fit <- inla(f,
@@ -1625,6 +1631,7 @@ rspde.make.A <- function(mesh = NULL,
 #' )
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' plot(result)
+#' }
 #' # devel.tag
 #' }
 rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
@@ -1710,8 +1717,9 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' @examples
 #' \donttest{
 #' # devel version
+#' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
-#'
+#' 
 #' set.seed(1)
 #' n <- 10
 #'
@@ -1724,6 +1732,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #'
 #' rspde_model <- rspde.matern(mesh)
 #' prec <- rspde.precision(rspde_model, theta = log(c(1, 3, 1.2)))
+#' }
 #' # devel.tag
 #' }
 rspde.precision <- function(rspde,
@@ -1791,7 +1800,9 @@ rspde.precision <- function(rspde,
 #' @examples
 #' \donttest{
 #' # devel version
+#' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
+#' 
 #' set.seed(123)
 #'
 #' m <- 100
@@ -1825,7 +1836,7 @@ rspde.precision <- function(rspde,
 #' )
 #' rspde_model <- rspde.matern(
 #'   mesh = mesh_2d,
-#'   nu_upper_bound = 1
+#'   nu_upper_bound = 2
 #' )
 #' f <- y ~ -1 + f(field, model = rspde_model)
 #' rspde_fit <- inla(f,
@@ -1838,6 +1849,7 @@ rspde.precision <- function(rspde,
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
 #' plot(result)
+#' }
 #' # devel.tag
 #' }
 rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
@@ -2013,7 +2025,9 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #' @examples
 #' \donttest{
 #' # devel version
+#' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
+#' 
 #' set.seed(123)
 #'
 #' m <- 100
@@ -2047,7 +2061,7 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #' )
 #' rspde_model <- rspde.matern(
 #'   mesh = mesh_2d,
-#'   nu_upper_bound = 1
+#'   nu_upper_bound = 2
 #' )
 #' f <- y ~ -1 + f(field, model = rspde_model)
 #' rspde_fit <- inla(f,
@@ -2059,6 +2073,7 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #' )
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' plot(result)
+#' }
 #' # devel.tag
 #' }
 plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
@@ -2144,7 +2159,9 @@ plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
 #' @examples
 #' \donttest{
 #' # devel version
+#' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
+#' 
 #' set.seed(123)
 #'
 #' m <- 100
@@ -2178,7 +2195,7 @@ plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
 #' )
 #' rspde_model <- rspde.matern(
 #'   mesh = mesh_2d,
-#'   nu_upper_bound = 1
+#'   nu_upper_bound = 2
 #' )
 #' f <- y ~ -1 + f(field, model = rspde_model)
 #' rspde_fit <- inla(f,
@@ -2190,6 +2207,7 @@ plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
 #' )
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
+#' }
 #' # devel.tag
 #' }
 #'

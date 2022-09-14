@@ -25,7 +25,9 @@ their original scales.
 \examples{
 \donttest{
 # devel version
+if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
+
 set.seed(123)
 
 m <- 100
@@ -59,7 +61,7 @@ st.dat <- inla.stack(
 )
 rspde_model <- rspde.matern(
   mesh = mesh_2d,
-  nu_upper_bound = 1
+  nu_upper_bound = 2
 )
 f <- y ~ -1 + f(field, model = rspde_model)
 rspde_fit <- inla(f,
@@ -71,6 +73,7 @@ rspde_fit <- inla(f,
 )
 result <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result)
+}
 # devel.tag
 }
 

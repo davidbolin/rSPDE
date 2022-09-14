@@ -59,6 +59,7 @@ for rSPDE models based on \code{inla.mesh} or
 \examples{
 \donttest{
 # devel version
+if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
 
 set.seed(123)
@@ -69,6 +70,7 @@ mesh <- inla.mesh.2d(
   max.edge = c(50, 500)
 )
 A <- rspde.make.A(mesh, loc = loc, rspde_order = 3)
+}
 # devel.tag
 }
 }

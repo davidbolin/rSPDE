@@ -28,6 +28,7 @@ for given parameter values based on an \code{inla_rspde} model object.
 \examples{
 \donttest{
 # devel version
+if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
 
 set.seed(1)
@@ -42,6 +43,7 @@ prec_int <- rspde.precision(rspde_model_int, theta = log(c(1, 3)))
 
 rspde_model <- rspde.matern(mesh)
 prec <- rspde.precision(rspde_model, theta = log(c(1, 3, 1.2)))
+}
 # devel.tag
 }
 }
