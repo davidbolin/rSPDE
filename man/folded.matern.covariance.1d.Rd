@@ -24,7 +24,7 @@ folded.matern.covariance.1d(
 
 \item{sigma}{Standard deviation.}
 
-\item{L}{The upper bound of the interval \link{0,L}. By default, \code{L=1}.}
+\item{L}{The upper bound of the interval \eqn{[0,L]}. By default, \code{L=1}.}
 
 \item{N}{The truncation parameter.}
 

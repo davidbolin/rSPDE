@@ -131,7 +131,7 @@ matern.covariance <- function(h,
 #' @param kappa Range parameter.
 #' @param nu Shape parameter.
 #' @param sigma Standard deviation.
-#' @param L The upper bound of the interval [0,L]. By default, `L=1`.
+#' @param L The upper bound of the interval \eqn{[0,L]}. By default, `L=1`.
 #' @param N The truncation parameter.
 #' @param boundary The boundary condition. The possible conditions
 #' are `"neumann"` (default), `"dirichlet"` or
@@ -1445,9 +1445,9 @@ rational.order <- function(object) {
 #' @param parameter A parameter.
 #' @param label Label for the parameter
 #' @param check_null Check if parameter is null.
-#' 
+#'
 #' @return Check the parameter.
-#' @noRd 
+#' @noRd
 #'
 
 rspde_check_user_input <- function(param, label, lower_bound = NULL){
@@ -1475,15 +1475,15 @@ rspde_check_user_input <- function(param, label, lower_bound = NULL){
 
 
   #' Process inputs likelihood
-  #' 
+  #'
   #' @param user_kappa kappa
   #' @param user_sigma sigma
   #' @param user_nu nu
   #' @param sigma.e sigma.e
-  #' 
+  #'
   #' @return List with the positions
   #' @noRd
-  
+
 likelihood_process_inputs <- function(user_kappa, user_sigma, user_nu, sigma.e){
   param_vector <- c("kappa", "sigma", "nu", "sigma.e")
   if(!is.null(user_kappa)){
@@ -1503,16 +1503,16 @@ likelihood_process_inputs <- function(user_kappa, user_sigma, user_nu, sigma.e){
   }
   return(param_vector)
 }
-  
+
 #' Process parameters likelihood
-#' 
+#'
 #' @param theta vector of parameters
 #' @param param_vector vector of parameters to be used
 #' @param which_par which parameter to consider
 #' @param logscale log scale?
-#' 
+#'
 #' @return The value in the correct scale
-#' @noRd 
+#' @noRd
 
 likelihood_process_parameters <- function(theta, param_vector, which_par, logscale){
   coord_par <- which(which_par == param_vector)
