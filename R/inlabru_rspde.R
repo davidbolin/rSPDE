@@ -1,7 +1,7 @@
 
 #'
 #' @title rSPDE inlabru mapper
-#' @name bru_mapper.inla.rspde
+#' @name bru_mapper.inla_rspde
 #' @param model An `inla_rspde` for which to construct or extract a mapper
 #' @param \dots Arguments passed on to other methods
 #' @rdname bru_mapper.inla_rspde
