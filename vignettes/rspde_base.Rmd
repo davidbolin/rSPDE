@@ -437,28 +437,36 @@ plot(loc_2d_mesh[, 1], loc_2d_mesh[, 2],
 par(opar)
 ```
 
-For each type of rational approximation of degree $m$, there is a corresponding likelihood function that can be used for likelihood-based parameter estimation. Since we constructed the model with `spde.matern.operators()`, we can use the function `spde.matern.loglike()` to define the likelihood. To simplify parameter estimation, we create an objective function to minimize which is the negative log-likelihood, parametrized using the logarithm of each parameter to avoid constrained optimization. 
+For each type of rational approximation of degree $m$, there is a corresponding likelihood function that can be used for likelihood-based parameter estimation. 
+Since we constructed the model with `spde.matern.operators()`, we can use the function `spde.matern.loglike()` to define the likelihood. 
+To simplify parameter estimation, we create an object containing the `rSPDE` model (we are assigning the meaningless value 1 for the parameters because they will not be used):
+
 ```{r}
-mlik <- function(theta, Y, G, C, A) {
-  return(-spde.matern.loglike(
-    tau = exp(theta[1]), kappa = exp(theta[2]),
-    nu = exp(theta[3]), sigma.e = exp(theta[4]),
-    Y = Y, G = G, C = C, A = A, d = 2, m = 1
-  ))
-}
+op_obj <- matern.operators(
+    kappa = 1, sigma = 1, nu = 1,
+    G = G, C = C, d = 2, m = 1,
+    type = "operator"
+  )
+```
+
+We can now obtain the objective function to minimize, which is the negative log-likelihood, parametrized using the logarithm of 
+each parameter to avoid constrained optimization, using the `rSPDE.construct.matern.loglike()` function factory:
+```{r}
+mlik <- rSPDE.construct.matern.loglike(op_obj, Y=Y, A=A)
 ```
 We can now estimate the parameter using `optim()`.
 ```{r}
 theta0 <- c(
-  get.inital.values.rSPDE(mesh = mesh_2d, include.tau = TRUE),
+  get.inital.values.rSPDE(mesh = mesh_2d),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
+
 start_time <- Sys.time()
-pars <- optim(theta0, mlik, Y = Y, G = G, C = C, A = A, method = "L-BFGS-B")
+pars <- optim(theta0, mlik, method = "L-BFGS-B")
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  tau = c(tau, exp(pars$par[1])),
+  sigma = c(sigma, exp(pars$par[1])),
   kappa = c(kappa, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),
@@ -470,6 +478,34 @@ print(results)
 print(total_time)
 ```
 
+
+Finally, we observe that we can use the `rational.order()` function, to check
+the order of the rational approximation of the `rSPDE` object, as well
+as to use the `rational.order<-()` function to assign new orders:
+
+```{r}
+rational.order(op_obj)
+
+rational.order(op_obj) <- 2
+
+mlik_order2 <- rSPDE.construct.matern.loglike(op_obj, Y=Y, A=A)
+
+start_time <- Sys.time()
+pars <- optim(theta0, mlik_order2, method = "L-BFGS-B")
+end_time <- Sys.time()
+total_time <- end_time - start_time
+results <- data.frame(
+  sigma = c(sigma, exp(pars$par[1])),
+  kappa = c(kappa, exp(pars$par[2])),
+  nu = c(nu, exp(pars$par[3])),
+  sigma.e = c(sigma.e, exp(pars$par[4])),
+  row.names = c("True", "Estimate")
+)
+print(results)
+
+# Total time
+print(total_time)
+```
 
 
 ## References

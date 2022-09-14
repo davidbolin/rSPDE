@@ -332,8 +332,6 @@ stk.dat <- inla.stack(
       list(Intercept = 1)
     ),
     list(
-      long = inla.group(coords[, 1]),
-      lat = inla.group(coords[, 2]),
       seaDist = inla.group(seaDist)
     )
   )
@@ -352,7 +350,7 @@ log-expectation of the observations, i.e. $\eta(s)$, through the $A$-matrix.
 The covariates, on the other hand, are linked directly to $\eta(s)$. 
 The `stk.dat` object defined above implies the following principal linkage 
 between model components and observations 
-$$\eta(s) \sim A x(s) + A \text{ Intercept} + \text{long} + \text{lat}+ \text{seaDist}.$$
+$$\eta(s) \sim A x(s) + A \text{ Intercept} + \text{seaDist}.$$
 $\eta(s)$ will then be used in the observation-likelihood, 
 $$y_i\mid \eta(s_i),\theta \sim \Gamma(\exp(\eta (s_i)), c\phi).$$
 
@@ -1551,8 +1549,7 @@ st.dat.rep <- inla.stack(
 )
 ```
 
-We now create the model object. For illustration purposes, we will use "BRASIL" 
-rational approximation algorithm to fit this model.
+We now create the model object. 
 
 ```{r}
 rspde_model.rep <- rspde.matern(mesh = mesh_2d) 
@@ -1564,7 +1561,6 @@ as `inla()` function will not produce warning and might fit some
 meaningless model.
 
 ```{r, message=FALSE, warning=FALSE}
-
 f.rep <-
   y ~ -1 + f(field,
     model = rspde_model.rep,

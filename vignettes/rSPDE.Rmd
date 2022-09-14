@@ -645,9 +645,9 @@ parallel::clusterExport(cl, "y")
 parallel::clusterExport(cl, "A")
 
 # Fitting the model
-theta0 <- c(
-  get.inital.values.rSPDE(mesh = mesh_2d),
+theta0 <- c(get.inital.values.rSPDE(mesh = mesh_2d),
   log(0.1 * sqrt(var(as.vector(y))))
+
 )
 
 start_time <- Sys.time()
@@ -655,8 +655,8 @@ pars <- optimParallel(theta0, mlik)
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  kappa = c(kappa, exp(pars$par[1])),
-  sigma = c(sigma, exp(pars$par[2])),
+  sigma = c(sigma, exp(pars$par[1])),
+  kappa = c(kappa, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),
   row.names = c("True", "Estimate")

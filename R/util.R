@@ -1260,9 +1260,10 @@ get_rational_coefficients <- function(order, type_rational_approx) {
     model$start.lkappa <- start.lkappa
     model$start.ltau <- start.ltau
     model$start.nu <- start.nu
+    model$rgeneric_type <- rgeneric_type
     model$rspde_order <- rspde_order
     model$integer.nu <- integer.nu
-    class(model) <- c(class(model), "inla_rspde")
+    class(model) <- c("inla_rspde", class(model))
     model$dim <- d
     model$est_nu <- est_nu
     model$n.spde <- n.spde
@@ -1403,7 +1404,7 @@ rational.type <- function(object) {
     times = n.repl), times = factor_rspde)
     out[[name.repl]] <- rep(rep(1:n.repl, each = n_mesh * n.group),
     times = factor_rspde)
-    class(out) <- c(class(out), "inla_rspde_index")
+    class(out) <- c("inla_rspde_index", class(out))
     attr(out, "rspde_order") <- rspde_order
     attr(out, "integer_nu") <- integer_nu
     attr(out, "n.mesh") <- n_mesh
@@ -1485,12 +1486,12 @@ rspde_check_user_input <- function(param, label, lower_bound = NULL){
   #' @noRd
   
 likelihood_process_inputs <- function(user_kappa, user_sigma, user_nu, sigma.e){
-  param_vector <- c("kappa", "sigma", "nu", "sigma.e")
-  if(!is.null(user_kappa)){
-    param_vector <- setdiff(param_vector, "kappa")
-  }
+  param_vector <- c("sigma", "kappa", "nu", "sigma.e")
   if(!is.null(user_sigma)){
     param_vector <- setdiff(param_vector, "sigma")
+  } 
+  if(!is.null(user_kappa)){
+    param_vector <- setdiff(param_vector, "kappa")
   }
   if(!is.null(user_nu)){
     param_vector <- setdiff(param_vector, "nu")

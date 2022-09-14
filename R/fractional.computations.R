@@ -1777,7 +1777,7 @@ precision.CBrSPDEobj <- function(object,
 #' @param pivot Should pivoting be used for the Cholesky decompositions? Default
 #' is TRUE
 #' @return The log-likelihood function. The parameters of the returned function
-#' are given in the order kappa, sigma, nu, sigma.e, whenever they are available.
+#' are given in the order sigma, kappa, nu, sigma.e, whenever they are available.
 #' @export
 #' @seealso \code{\link{matern.operators}}, \code{\link{predict.CBrSPDEobj}}
 #' @examples
@@ -1853,14 +1853,6 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
         param_vector <- likelihood_process_inputs(user_kappa, user_sigma, user_nu, sigma.e)
         
         loglik <- function(theta){
-          if(is.null(user_kappa)){
-          kappa <- likelihood_process_parameters(theta = theta, 
-                  param_vector = param_vector, 
-                  which_par = "kappa", 
-                  logscale = log_scale)
-          } else{
-            kappa <- user_kappa
-          }
           if(is.null(user_sigma)){
           sigma <- likelihood_process_parameters(theta = theta, 
                   param_vector = param_vector, 
@@ -1868,6 +1860,14 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
                   logscale = log_scale)
           } else{
             sigma <- user_sigma
+          }
+          if(is.null(user_kappa)){
+          kappa <- likelihood_process_parameters(theta = theta, 
+                  param_vector = param_vector, 
+                  which_par = "kappa", 
+                  logscale = log_scale)
+          } else{
+            kappa <- user_kappa
           }
           if(is.null(user_nu)){
           nu <- likelihood_process_parameters(theta = theta, 
