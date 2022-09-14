@@ -52,7 +52,7 @@ is TRUE}
 }
 \value{
 The log-likelihood function. The parameters of the returned function
-are given in the order kappa, sigma, nu, sigma.e, whenever they are available.
+are given in the order sigma, kappa, nu, sigma.e, whenever they are available.
 }
 \description{
 This function returns a log-likelihood function for a
