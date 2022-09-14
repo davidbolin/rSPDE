@@ -33,21 +33,13 @@ ibm_n.bru_mapper_inla_rspde <- function(mapper, ...) {
 }
 #' @rdname bru_mapper.inla_rspde
 ibm_values.bru_mapper_inla_rspde <- function(mapper, ...) {
-  model <- mapper[["model"]]
-  integer_nu <- model$integer.nu
-  rspde_order <- model$rspde_order
-  if(integer_nu){
-            factor_rspde <- 1
-  } else{
-            factor_rspde <- rspde_order + 1
-  }
-  seq_len(factor_rspde*model$n.spde)
+  seq_len(inlabru::ibm_n(mapper))
 }
 #' @param input The values for which to produce a mapping matrix
 #' @rdname bru_mapper.inla_rspde
 ibm_amatrix.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   if (is.null(input)) {
-    return(Matrix::Matrix(0, 0, ibm_n(mapper)))
+    return(Matrix::Matrix(0, 0, inlabru::ibm_n(mapper)))
   }
   if (!is.matrix(input) && !inherits(input, "Spatial")) {
     input <- as.matrix(input)
