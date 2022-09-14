@@ -19,7 +19,7 @@ rational SPDE approximation}
 }
 \arguments{
 \item{object}{The covariance-based rational SPDE approximation,
-computed using \code{\link{matern.operators}}}
+computed using \code{\link[=matern.operators]{matern.operators()}}}
 
 \item{A}{A matrix linking the measurement locations to the basis of the FEM
 approximation of the latent model.}

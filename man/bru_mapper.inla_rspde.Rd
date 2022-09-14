@@ -20,11 +20,13 @@ ibm_amatrix.bru_mapper_inla_rspde(mapper, input, ...)
 bru_get_mapper.inla_rspde(model, ...)
 }
 \arguments{
-\item{model}{An `inla_rspde` object to use as a mapper}
+\item{model}{An \code{inla_rspde} for which to construct or extract a mapper}
+
+\item{\dots}{Arguments passed on to other methods}
+
+\item{mapper}{A \code{bru_mapper.inla_rspde} object}
 
 \item{input}{The values for which to produce a mapping matrix}
-
-\item{x}{The model to be passed to obtain the mapper.}
 }
 \description{
 rSPDE inlabru mapper

@@ -17,19 +17,19 @@ inference and simulation.
 
 The main functions for computing rational approximation objects are:
 \itemize{
-\item{\code{\link{fractional.operators}}}{works for general
+\item{\code{\link[=fractional.operators]{fractional.operators()}}}{works for general
 rational operators}
-\item{\code{\link{matern.operators}}}{ works for random fields with
+\item{\code{\link[=matern.operators]{matern.operators()}}}{ works for random fields with
 stationary Matern covariance functions}
-\item{\code{\link{spde.matern.operators}}}{ works for random fields with
+\item{\code{\link[=spde.matern.operators]{spde.matern.operators()}}}{ works for random fields with
 defined as solutions to a possibly non-stationary Matern-type SPDE model.}
-\item{\code{\link{rspde.matern}}} {R-INLA implementation of the
+\item{\code{\link[=rspde.matern]{rspde.matern()}}} {R-INLA implementation of the
 covariance-based rational approximation for random fields with
 stationary Matern covariance functions}
 }
 Basic statistical operations such as likelihood evaluations (see
-\code{\link{rSPDE.loglike}, \link{rSPDE.matern.loglike}}) and kriging
-predictions (see \code{\link{predict.rSPDEobj}, \link{predict.CBrSPDEobj}})
+\verb{[rSPDE.loglike], [rSPDE.matern.loglike]}) and kriging
+predictions (see \verb{[predict.rSPDEobj], [predict.CBrSPDEobj]})
 using the rational approximations are also implemented.
 
 For illustration purposes, the package contains a simple FEM implementation

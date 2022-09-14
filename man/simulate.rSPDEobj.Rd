@@ -11,8 +11,8 @@ simulate(object, nsim, ...)
 }
 \arguments{
 \item{object}{The rational SPDE approximation, computed
-using \code{\link{fractional.operators}},
-\code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.}
+using \code{\link[=fractional.operators]{fractional.operators()}},
+\code{\link[=matern.operators]{matern.operators()}}, or \code{\link[=spde.matern.operators]{spde.matern.operators()}}.}
 
 \item{nsim}{The number of simulations.}
 
@@ -47,5 +47,5 @@ plot(x, Y, type = "l", ylab = "u(x)", xlab = "x")
 
 }
 \seealso{
-\code{\link{simulate.CBrSPDEobj}}
+\code{\link[=simulate.CBrSPDEobj]{simulate.CBrSPDEobj()}}
 }

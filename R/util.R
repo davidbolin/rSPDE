@@ -66,7 +66,7 @@ get.roots <- function(m, beta) {
 
 #' The Matern covariance function
 #'
-#' \code{matern.covariance} evaluates the Matern covariance function
+#' `matern.covariance` evaluates the Matern covariance function
 #' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu
 #' K_\nu(\kappa h).}
 #'
@@ -101,11 +101,11 @@ matern.covariance <- function(h,
 #' The 1d folded Matern covariance function
 #'
 #' @description
-#' \code{folded.matern.covariance.1d} evaluates the 1d
+#' `folded.matern.covariance.1d` evaluates the 1d
 #' folded Matern covariance function over an interval \eqn{[0,L]}.
 #'
 #' @details
-#' \code{folded.matern.covariance.1d} evaluates the 1d folded Matern
+#' `folded.matern.covariance.1d` evaluates the 1d folded Matern
 #' covariance function over an interval \eqn{[0,L]} under different
 #' boundary conditions. For periodic boundary conditions
 #' \deqn{C_{\mathcal{P}}(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL),}
@@ -131,11 +131,11 @@ matern.covariance <- function(h,
 #' @param kappa Range parameter.
 #' @param nu Shape parameter.
 #' @param sigma Standard deviation.
-#' @param L The upper bound of the interval [0,L]. By default, \code{L=1}.
+#' @param L The upper bound of the interval \eqn{[0,L]}. By default, `L=1`.
 #' @param N The truncation parameter.
 #' @param boundary The boundary condition. The possible conditions
-#' are \code{"neumann"} (default), \code{"dirichlet"} or
-#' \code{"periodic"}.
+#' are `"neumann"` (default), `"dirichlet"` or
+#' `"periodic"`.
 #'
 #' @return A matrix with the corresponding covariance values.
 #' @export
@@ -190,12 +190,12 @@ folded.matern.covariance.1d <- function(h, m, kappa, nu, sigma,
 #' The 2d folded Matern covariance function
 #'
 #' @description
-#' \code{folded.matern.covariance.2d} evaluates the 2d
+#' `folded.matern.covariance.2d` evaluates the 2d
 #' folded Matern covariance function over an interval
 #' \eqn{[0,L]\times [0,L]}.
 #'
 #' @details
-#' \code{folded.matern.covariance.2d} evaluates the 1d folded
+#' `folded.matern.covariance.2d` evaluates the 1d folded
 #' Matern covariance function over an interval
 #' \eqn{[0,L]\times [0,L]} under different boundary conditions.
 #' For periodic boundary conditions
@@ -224,11 +224,11 @@ folded.matern.covariance.1d <- function(h, m, kappa, nu, sigma,
 #' @param nu Shape parameter.
 #' @param sigma Standard deviation.
 #' @param L The upper bound of the square \eqn{[0,L]\times [0,L]}.
-#' By default, \code{L=1}.
+#' By default, `L=1`.
 #' @param N The truncation parameter.
 #' @param boundary The boundary condition. The possible conditions
-#' are \code{"neumann"} (default), \code{"dirichlet"},
-#' \code{"periodic"} or \code{"R2"}.
+#' are `"neumann"` (default), `"dirichlet"`,
+#' `"periodic"` or `"R2"`.
 #'
 #' @return The correspoding covariance.
 #' @export
@@ -375,8 +375,8 @@ folded.matern.covariance.2d <- function(h, m, kappa, nu, sigma,
 #' Summary method for class "rSPDEobj"
 #'
 #' @param object an object of class "rSPDEobj", usually, a result of a call
-#'   to \code{\link{fractional.operators}}, \code{\link{matern.operators}}, or
-#'   \code{\link{spde.matern.operators}}.
+#'   to [fractional.operators()], [matern.operators()], or
+#'   [spde.matern.operators()].
 #' @param ... further arguments passed to or from other methods.
 #' @export
 #' @method summary rSPDEobj
@@ -395,7 +395,7 @@ summary.rSPDEobj <- function(object, ...) {
 }
 
 #' @param x an object of class "summary.rSPDEobj", usually, a result of a call
-#'   to \code{\link{summary.rSPDEobj}}.
+#'   to [summary.rSPDEobj()].
 #' @export
 #' @method print summary.rSPDEobj
 #' @rdname summary.rSPDEobj
@@ -433,10 +433,10 @@ print.rSPDEobj <- function(x, ...) {
 #' @param x The locations of the nodes in the FEM discretization.
 #' @param loc The locations \eqn{(s_1,\ldots, s_m)}
 #'
-#' @return The sparse matrix \code{A}.
+#' @return The sparse matrix `A`.
 #' @export
 #' @author David Bolin \email{davidbolin@@gmail.com}
-#' @seealso \code{\link{rSPDE.fem1d}}
+#' @seealso [rSPDE.fem1d()]
 #'
 #' @examples
 #' # create mass and stiffness matrices for a FEM discretization on [0,1]
@@ -489,7 +489,7 @@ rSPDE.A1d <- function(x, loc) {
 #' \item{C }{The mass matrix.}
 #' @export
 #' @author David Bolin \email{davidbolin@@gmail.com}
-#' @seealso \code{\link{rSPDE.A1d}}
+#' @seealso [rSPDE.A1d()]
 #' @examples
 #' # create mass and stiffness matrices for a FEM discretization on [0,1]
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -519,21 +519,21 @@ rSPDE.fem1d <- function(x) {
 #'
 #' @param package The name of a package, given as a character string.
 #' @param lib.loc a character vector describing the location of R library trees
-#' to search through, or \code{NULL}.  The default value of \code{NULL}
-#' corresponds to all libraries currently known to \code{.libPaths()}.
+#' to search through, or `NULL`.  The default value of `NULL`
+#' corresponds to all libraries currently known to `.libPaths()`.
 #' Non-existent library trees are silently ignored.
-#' @param character.only a logical indicating whether \code{package} can be
+#' @param character.only a logical indicating whether `package` can be
 #' assumed to be a character string.
 #'
-#' @return \code{require.nowarnings} returns (invisibly)
-#' \code{TRUE} if it succeeds, otherwise \code{FALSE}
-#' @details \code{require(package)} acts the same as
-#' \code{require(package, quietly = TRUE)} but with warnings turned off.
+#' @return `require.nowarnings` returns (invisibly)
+#' `TRUE` if it succeeds, otherwise `FALSE`
+#' @details `require(package)` acts the same as
+#' `require(package, quietly = TRUE)` but with warnings turned off.
 #' In particular, no warning or error is given if the package is unavailable.
-#' Most cases should use \code{requireNamespace(package,
-#' quietly = TRUE)} instead,
+#' Most cases should use `requireNamespace(package,
+#' quietly = TRUE)` instead,
 #' which doesn't produce warnings.
-#' @seealso \code{\link{require}}
+#' @seealso [require()]
 #' @export
 #' @examples
 #' ## This should produce no output:
@@ -963,7 +963,7 @@ analyze_sparsity_rspde <- function(nu_upper_bound, dim, rspde_order,
 #' @title Gets the upper triangular part of a matrix
 #' @description Gets the upper triangular part of a matrix
 #' @param M A matrix or a sparse matrix
-#' @return A sparse matrix formed by the upper triangular part of \code{M}.
+#' @return A sparse matrix formed by the upper triangular part of `M`.
 #' @noRd
 
 symmetric_part_matrix <- function(M) {
@@ -1064,7 +1064,7 @@ create_summary_from_density <- function(density_df, name) {
 #' Summary method for class "CBrSPDEobj"
 #'
 #' @param object an object of class "CBrSPDEobj", usually, a result of a call
-#'   to \code{\link{matern.operators}}.
+#'   to [matern.operators()].
 #' @param ... further arguments passed to or from other methods.
 #' @export
 #' @method summary CBrSPDEobj
@@ -1103,7 +1103,7 @@ summary.CBrSPDEobj <- function(object, ...) {
 }
 
 #' @param x an object of class "summary.CBrSPDEobj", usually, a result of a call
-#'   to \code{\link{summary.CBrSPDEobj}}.
+#'   to [summary.CBrSPDEobj()].
 #' @export
 #' @method print summary.CBrSPDEobj
 #' @rdname summary.CBrSPDEobj
@@ -1156,7 +1156,7 @@ get_rational_coefficients <- function(order, type_rational_approx) {
 
 #' Changing the type of the rational approximation
 #'
-#' @param x A \code{CBrSPDE} or an \code{rpsde.inla} object
+#' @param x A `CBrSPDE` or an `rpsde.inla` object
 #' @param value The type of rational approximation.
 #' The current options are "chebfun", "brasil" and "chebfunLB"
 #'
@@ -1285,7 +1285,7 @@ get_rational_coefficients <- function(order, type_rational_approx) {
 
 #' Get type of rational approximation.
 #'
-#' @param object A \code{CBrSPDEobj} object or an \code{inla_rspde} object.
+#' @param object A `CBrSPDEobj` object or an `inla_rspde` object.
 #'
 #' @return The type of rational approximation.
 #' @export
@@ -1305,7 +1305,7 @@ rational.type <- function(object) {
 
 #' Changing the order of the rational approximation
 #'
-#' @param x A \code{CBrSPDE} or an \code{rpsde.inla} object
+#' @param x A `CBrSPDE` or an `rpsde.inla` object
 #' @param value The order of rational approximation.
 #'
 #' @return An object of the same class with the new order
@@ -1421,7 +1421,7 @@ rational.type <- function(object) {
 
 #' Get the order of rational approximation.
 #'
-#' @param object A \code{CBrSPDEobj} object or an \code{inla_rspde} object.
+#' @param object A `CBrSPDEobj` object or an `inla_rspde` object.
 #'
 #' @return The order of rational approximation.
 #' @export
@@ -1446,9 +1446,9 @@ rational.order <- function(object) {
 #' @param parameter A parameter.
 #' @param label Label for the parameter
 #' @param check_null Check if parameter is null.
-#' 
+#'
 #' @return Check the parameter.
-#' @noRd 
+#' @noRd
 #'
 
 rspde_check_user_input <- function(param, label, lower_bound = NULL){
@@ -1476,15 +1476,15 @@ rspde_check_user_input <- function(param, label, lower_bound = NULL){
 
 
   #' Process inputs likelihood
-  #' 
+  #'
   #' @param user_kappa kappa
   #' @param user_sigma sigma
   #' @param user_nu nu
   #' @param sigma.e sigma.e
-  #' 
+  #'
   #' @return List with the positions
   #' @noRd
-  
+
 likelihood_process_inputs <- function(user_kappa, user_sigma, user_nu, sigma.e){
   param_vector <- c("sigma", "kappa", "nu", "sigma.e")
   if(!is.null(user_sigma)){
@@ -1504,16 +1504,16 @@ likelihood_process_inputs <- function(user_kappa, user_sigma, user_nu, sigma.e){
   }
   return(param_vector)
 }
-  
+
 #' Process parameters likelihood
-#' 
+#'
 #' @param theta vector of parameters
 #' @param param_vector vector of parameters to be used
 #' @param which_par which parameter to consider
 #' @param logscale log scale?
-#' 
+#'
 #' @return The value in the correct scale
-#' @noRd 
+#' @noRd
 
 likelihood_process_parameters <- function(theta, param_vector, which_par, logscale){
   coord_par <- which(which_par == param_vector)

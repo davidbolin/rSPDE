@@ -9,6 +9,7 @@ on:
     branches:
       - devel
       - stable
+      - bugfix
   pull_request:
     branches:
       - devel
@@ -38,7 +39,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.config.r }}
@@ -80,7 +81,7 @@ jobs:
           brew install pkg-config
           brew install proj@9
           brew install gdal
-          
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           dependencies: '"all"'

@@ -353,29 +353,29 @@ utils::globalVariables(c(
 #' @title Matern rSPDE model object for INLA
 #' @description Creates an INLA object for a stationary Matern model with
 #' general smoothness parameter.
-#' @param mesh The mesh to build the model. Should be an \code{inla.mesh} or
-#' an \code{inla.mesh.1d} object.
+#' @param mesh The mesh to build the model. Should be an `inla.mesh` or
+#' an `inla.mesh.1d` object.
 #' @param nu_upper_bound Upper bound for the smoothness parameter.
 #' @param rspde_order The order of the covariance-based rational SPDE approach.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
-#' be estimated. If nu is \code{NULL}, it will be estimated.
+#' be estimated. If nu is `NULL`, it will be estimated.
 #' @param sharp The sparsity graph should have the correct sparsity (costs
 #' more to perform a sparsity analysis) or an upper bound for the sparsity? If
-#' \code{TRUE}, the graph will have the correct sparsity.
+#' `TRUE`, the graph will have the correct sparsity.
 #' @param debug INLA debug argument.
 #' @param optimize Should the model be optimized? In this case the sparsities of
 #' the matrices will be analyzed.
-#' @param prior.kappa a \code{list} containing the elements \code{meanlog} and
-#' \code{sdlog}, that is, the mean and standard deviation on the log scale.
-#' @param prior.nu a list containing the elements \code{mean} and \code{prec}
-#' for beta distribution, or \code{loglocation} and \code{logscale} for a
-#' truncated lognormal distribution. \code{loglocation} stands for
+#' @param prior.kappa a `list` containing the elements `meanlog` and
+#' `sdlog`, that is, the mean and standard deviation on the log scale.
+#' @param prior.nu a list containing the elements `mean` and `prec`
+#' for beta distribution, or `loglocation` and `logscale` for a
+#' truncated lognormal distribution. `loglocation` stands for
 #' the location parameter of the truncated lognormal distribution in the log
-#' scale. \code{prec} stands for the precision of a beta distribution.
-#' \code{logscale} stands for the scale of the truncated lognormal
+#' scale. `prec` stands for the precision of a beta distribution.
+#' `logscale` stands for the scale of the truncated lognormal
 #' distribution on the log scale. Check details below.
-#' @param prior.tau a list containing the elements \code{meanlog} and
-#' \code{sdlog}, that is, the mean and standard deviation on the log scale.
+#' @param prior.tau a list containing the elements `meanlog` and
+#' `sdlog`, that is, the mean and standard deviation on the log scale.
 #' @param start.lkappa Starting value for log of kappa.
 #' @param start.nu Starting value for nu.
 #' @param start.ltau Starting value for log of tau.
@@ -395,15 +395,15 @@ utils::globalVariables(c(
 #'
 #' For this model, an upper bound for the smoothness parameter
 #' \eqn{\nu} should be given. It is given by the
-#' \code{nu_upper_bound} argument.
+#' `nu_upper_bound` argument.
 #'
 #' It is very important to notice that the larger the value
-#' of \code{nu_upper_bound} the higher the computational cost
+#' of `nu_upper_bound` the higher the computational cost
 #' to fit the model. So, it is generally best to initially fit
-#' a model with a small value of \code{nu_upper_bound} and
+#' a model with a small value of `nu_upper_bound` and
 #' increase it only if it is really needed (for instance, if
 #' the estimated smoothness parameter was very close to
-#' \code{nu_upper_bound}).
+#' `nu_upper_bound`).
 #'
 #' The following parameterization is used:
 #' \deqn{\log(\tau) = \theta_1,}
@@ -412,7 +412,7 @@ utils::globalVariables(c(
 #' or a truncated lognormal prior distribution. In each case,
 #' the prior distribution has support on the interval
 #' \eqn{(0,\nu_{UB})}, where \eqn{\nu_{UB}} is
-#' \code{nu_upper_bound}. Then, the following parameterization
+#' `nu_upper_bound`. Then, the following parameterization
 #' is considered:
 #' \deqn{\log\Big(\frac{\nu}{\nu_{UB}-\nu}\Big) = \theta_3.}
 #'
@@ -422,21 +422,21 @@ utils::globalVariables(c(
 #' However, for small datasets, it is possible that the time taken to
 #' analyze sparsity plus fitting the model is larger than the time taken
 #' to fit an unoptimized model. So, for a small dataset it might be
-#' convenient to set \code{optimize=FALSE}.
+#' convenient to set `optimize=FALSE`.
 #'
 #' A way to use the optimized version but reduce the cost of sparsity analysis
-#' is to set \code{sharp} to \code{FALSE}. However, it should increase
+#' is to set `sharp` to `FALSE`. However, it should increase
 #' the cost of fitting the model. Therefore, one
-#' usually would not benefit from setting the \code{sharp} argument to
-#' \code{FALSE} when fitting the model to large datasets.
+#' usually would not benefit from setting the `sharp` argument to
+#' `FALSE` when fitting the model to large datasets.
 #'
 #' Finally, when considering a beta prior, the beta distribution will be
 #' parameterized in terms of its mean, say \eqn{\mu} and a precision
 #' parameter \eqn{\phi}, which is such that the variance of the beta
 #' distribution is given by \eqn{\mu(\nu_{UB}-\mu)/(1+\phi)}.
-#' The mean of the beta prior is determined by the \code{prior.nu$mean}, whereas
-#' the precision parameter is determined by the \code{prior.nu$prec}. If
-#' \code{prior.nu$prec} is \code{NULL} (which is the default case), the
+#' The mean of the beta prior is determined by the `prior.nu$mean`, whereas
+#' the precision parameter is determined by the `prior.nu$prec`. If
+#' `prior.nu$prec` is `NULL` (which is the default case), the
 #' precision parameter is taken
 #' as
 #' \deqn{\phi = \max\Big\{\frac{\nu_{UB}}{\mu},
@@ -447,7 +447,7 @@ utils::globalVariables(c(
 #' has boundary values equal to zero (where the boundary values are defined
 #' either by continuity or by limits).
 #'
-#' Hence, the higher the value of \code{nu.prec.inc} the more informative
+#' Hence, the higher the value of `nu.prec.inc` the more informative
 #' the prior is.
 #'
 #' @examples
@@ -937,7 +937,7 @@ rspde.matern <- function(mesh,
 #' @name rspde.matern.precision.opt
 #' @title Optimized precision matrix of the covariance-based rational
 #' approximation
-#' @description \code{rspde.matern.precision} is used for computing the
+#' @description `rspde.matern.precision` is used for computing the
 #' optimized version of the precision matrix of the
 #' covariance-based rational SPDE approximation of a stationary Gaussian random
 #' fields on \eqn{R^d} with a Matern covariance function
@@ -1090,7 +1090,7 @@ dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
 #' @name rspde.matern.precision
 #' @title Precision matrix of the covariance-based rational approximation of
 #' stationary Gaussian Matern random fields
-#' @description \code{rspde.matern.precision} is used for computing the
+#' @description `rspde.matern.precision` is used for computing the
 #' precision matrix of the
 #' covariance-based rational SPDE approximation of a stationary Gaussian random
 #' fields on \eqn{R^d} with a Matern covariance function
@@ -1109,7 +1109,7 @@ dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
 #' list should contain elements c0, g1, g2, g3, etc.
 #' @param only_fractional Logical. Should only the fractional-order part of
 #' the precision matrix be returned?
-#' @param return_block_list Logical. For \code{type = "covariance"}, should the
+#' @param return_block_list Logical. For `type = "covariance"`, should the
 #' block parts of the precision matrix be returned separately as a list?
 #' @param type_rational_approx Which type of rational approximation should be
 #' used? The current types are "chebfun", "brasil" or "chebfunLB".
@@ -1306,7 +1306,7 @@ type_rational_approx = "chebfun") {
 #' @name rspde.matern.precision.integer.opt
 #' @title Optimized precision matrix of stationary Gaussian Matern
 #' random fields with integer covariance exponent
-#' @description \code{rspde.matern.precision.integer.opt} is used
+#' @description `rspde.matern.precision.integer.opt` is used
 #' for computing the optimized version of the precision matrix of
 #' stationary Gaussian random fields on \eqn{R^d} with a Matern
 #' covariance function
@@ -1365,7 +1365,7 @@ rspde.matern.precision.integer.opt <- function(kappa,
 #' @name rspde.matern.precision.integer
 #' @title Precision matrix of stationary Gaussian Matern
 #' random fields with integer covariance exponent
-#' @description \code{rspde.matern.precision.integer.opt} is
+#' @description `rspde.matern.precision.integer.opt` is
 #' used for computing the precision matrix of stationary
 #' Gaussian random fields on \eqn{R^d} with a Matern
 #' covariance function
@@ -1449,21 +1449,21 @@ sigma = NULL, dim, fem_mesh_matrices) {
 #' @name rspde.make.A
 #' @title Observation/prediction matrices for rSPDE models.
 #' @description Constructs observation/prediction weight matrices
-#' for rSPDE models based on \code{inla.mesh} or
-#' \code{inla.mesh.1d} objects.
-#' @param mesh An \code{inla.mesh} or
-#' an \code{inla.mesh.1d} object.
+#' for rSPDE models based on `inla.mesh` or
+#' `inla.mesh.1d` objects.
+#' @param mesh An `inla.mesh` or
+#' an `inla.mesh.1d` object.
 #' @param loc Locations, needed if an INLA mesh is provided
 #' @param A The A matrix from the standard SPDE approach, such as the matrix
-#' returned by \code{inla.spde.make.A}. Should only be provided if
-#' \code{mesh} is not provided.
+#' returned by `inla.spde.make.A`. Should only be provided if
+#' `mesh` is not provided.
 #' @param dim the dimension. Should only be provided if an
-#' \code{mesh} is not provided.
+#' `mesh` is not provided.
 #' @param rspde_order The order of the covariance-based rational SPDE approach.
-#' @param nu If \code{NULL}, then the model will assume that nu will
+#' @param nu If `NULL`, then the model will assume that nu will
 #' be estimated. If nu is fixed, you should provide the value of nu.
 #' @param index For each observation/prediction value, an index into loc.
-#' Default is \code{seq_len(nrow(A.loc))}.
+#' Default is `seq_len(nrow(A.loc))`.
 #' @param group For each observation/prediction value, an index into
 #' the group model.
 #' @param repl For each observation/prediction value, the replicate index.
@@ -1561,16 +1561,16 @@ rspde.make.A <- function(mesh = NULL,
 #' @title rSPDE model index vector generation
 #' @description Generates a list of named index vectors for an rSPDE model.
 #' @param name A character string with the base name of the effect.
-#' @param mesh An \code{inla.mesh} or
-#' an \code{inla.mesh.1d} object.
+#' @param mesh An `inla.mesh` or
+#' an `inla.mesh.1d` object.
 #' @param rspde_order The order of the rational approximation
-#' @param nu If \code{NULL}, then the model will assume that nu will
+#' @param nu If `NULL`, then the model will assume that nu will
 #' be estimated. If nu is fixed, you should provide the value of nu.
 #' @param n.spde The number of basis functions in the mesh model.
 #' @param n.group The size of the group model.
 #' @param n.repl The total number of replicates.
 #' @param dim the dimension of the domain. Should only be provided if
-#' \code{mesh} is not provided.
+#' `mesh` is not provided.
 #' @return A list of named index vectors.
 #' \item{name}{Indices into the vector of latent variables}
 #' \item{name.group}{'group' indices}
@@ -1694,16 +1694,16 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 }
 
 #' @name rspde.precision
-#' @title Precision matrices for \code{inla_rspde} objects
+#' @title Precision matrices for `inla_rspde` objects
 #' @description Precision matrices for rSPDE models
 #'
 #' Calculates the precision matrix
-#' for given parameter values based on an \code{inla_rspde} model object.
-#' @param rspde An \code{inla_rspde} object.
+#' for given parameter values based on an `inla_rspde` model object.
+#' @param rspde An `inla_rspde` object.
 #' @param theta The parameter vector. See the details in
-#' \code{\link{rspde.matern}} to see the parameterizations.
+#' [rspde.matern()] to see the parameterizations.
 #' @param optimized Logical indicating if only the elements
-#' (the \code{x} slot) of the precision
+#' (the `x` slot) of the precision
 #' matrix should be returned.
 #' @return A sparse precision matrix.
 #' @export
@@ -1755,11 +1755,11 @@ rspde.precision <- function(rspde,
 #' @title rSPDE result extraction from INLA estimation results
 #' @description Extract field and parameter values and distributions
 #' for an rspde effect from an inla result object.
-#' @param inla An \code{inla} object obtained from a call to
-#' \code{inla()}.
+#' @param inla An `inla` object obtained from a call to
+#' `inla()`.
 #' @param name A character string with the name of the rSPDE effect
 #' in the inla formula.
-#' @param rspde The \code{inla_rspde} object used for the effect in
+#' @param rspde The `inla_rspde` object used for the effect in
 #' the inla formula.
 #' @param compute.summary Should the summary be computed?
 #' @return Returns a list containing:
@@ -1781,10 +1781,10 @@ rspde.precision <- function(rspde,
 #' then the list will also contain
 #' \item{marginals.log.nu}{Marginal densities for log(nu)}
 #' \item{summary.log.nu}{Marginal densities for log(nu)}
-#' If \code{compute.summary} is \code{TRUE}, then the list will also contain
+#' If `compute.summary` is `TRUE`, then the list will also contain
 #' \item{summary.kappa}{Summary statistics for kappa}
 #' \item{summary.tau}{Summary statistics for tau}
-#' If nu was estimated and \code{compute.summary} is \code{TRUE},
+#' If nu was estimated and `compute.summary` is `TRUE`,
 #' then the list will also contain
 #' \item{summary.nu}{Summary statistics for nu}
 #' @export
@@ -1987,18 +1987,18 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 }
 
 #' @name plot.rspde.result
-#' @title Posterior plots for field parameters for an \code{inla_rspde} model
-#' from a \code{rspde.result} object
+#' @title Posterior plots for field parameters for an `inla_rspde` model
+#' from a `rspde.result` object
 #' @description Posterior plots for rSPDE field parameters in their
 #' original scales.
-#' @param x A \code{rspde.result} object.
+#' @param x A `rspde.result` object.
 #' @param which For which parameters the posterior should be plotted?
 #' @param caption captions to appear above the plots; character
 #' vector or list of
 #' valid graphics annotations. Can be set to "" or NA to suppress all captions.
 #' @param sub.caption	common title-above the figures if there are more than one.
 #' @param type_plot what type of plot should be drawn. The default is 'l'.
-#' @param ask logical; if \code{TRUE}, the user is asked before each plot.
+#' @param ask logical; if `TRUE`, the user is asked before each plot.
 #' @param main character; title to be placed at each plot additionally
 #' (and above) all captions.
 #' @param cex.caption	controls the size of caption.
@@ -2130,14 +2130,14 @@ plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
 
 
 #' @name summary.rspde.result
-#' @title Summary for posteriors of field parameters for an \code{inla_rspde}
-#' model from a \code{rspde.result} object
+#' @title Summary for posteriors of field parameters for an `inla_rspde`
+#' model from a `rspde.result` object
 #' @description Summary for posteriors of rSPDE field parameters in
 #' their original scales.
-#' @param object A \code{rspde.result} object.
+#' @param object A `rspde.result` object.
 #' @param digits integer, used for number formatting with signif()
 #' @param ... Currently not used.
-#' @return Returns a \code{data.frame}
+#' @return Returns a `data.frame`
 #' containing the summary.
 #' @export
 #' @method summary rspde.result
@@ -2213,22 +2213,22 @@ summary.rspde.result <- function(object,
 
 
 #' @name rspde.mesh.project
-#' @title Calculate a lattice projection to/from an \code{inla.mesh} for
+#' @title Calculate a lattice projection to/from an `inla.mesh` for
 #' rSPDE objects
 #' @aliases rspde.mesh.project rspde.mesh.projector rspde.mesh.project.inla.mesh
 #' rspde.mesh.project.rspde.mesh.projector rspde.mesh.project.inla.mesh.1d
-#' @description Calculate a lattice projection to/from an \code{inla.mesh} for
+#' @description Calculate a lattice projection to/from an `inla.mesh` for
 #' rSPDE objects
-#' @param mesh An \code{inla.mesh} or \code{inla.mesh.1d} object.
-#' @param nu The smoothness parameter. If \code{NULL}, it will be assumed that
+#' @param mesh An `inla.mesh` or `inla.mesh.1d` object.
+#' @param nu The smoothness parameter. If `NULL`, it will be assumed that
 #' nu was estimated.
 #' @param rspde_order The order of the rational approximation.
 #' @param loc	Projection locations. Can be a matrix or a SpatialPoints or a
 #' SpatialPointsDataFrame object.
 #' @param field Basis function weights, one per mesh basis function, describing
 #' the function to be evaluated at the projection locations.
-#' @param projector A \code{rspde.mesh.projector} object.
-#' @param lattice An \code{inla.mesh.lattice} object.
+#' @param projector A `rspde.mesh.projector` object.
+#' @param lattice An `inla.mesh.lattice` object.
 #' @param xlim X-axis limits for a lattice. For R2 meshes, defaults to covering
 #' the domain.
 #' @param ylim Y-axis limits for a lattice. For R2 meshes, defaults to covering

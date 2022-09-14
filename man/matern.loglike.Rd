@@ -199,6 +199,6 @@ print(data.frame(
 }
 }
 \seealso{
-\code{\link{spde.matern.loglike}}, \code{\link{rSPDE.loglike}},
-\code{\link{matern.operators}}.
+\code{\link[=spde.matern.loglike]{spde.matern.loglike()}}, \code{\link[=rSPDE.loglike]{rSPDE.loglike()}},
+\code{\link[=matern.operators]{matern.operators()}}.
 }

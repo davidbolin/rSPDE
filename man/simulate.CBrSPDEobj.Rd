@@ -18,7 +18,7 @@ covariance-based rational SPDE approximation}
 }
 \arguments{
 \item{object}{The covariance-based rational SPDE approximation,
-computed using \code{\link{matern.operators}}}
+computed using \code{\link[=matern.operators]{matern.operators()}}}
 
 \item{nsim}{The number of simulations.}
 

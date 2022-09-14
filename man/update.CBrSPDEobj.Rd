@@ -18,7 +18,7 @@
 }
 \arguments{
 \item{object}{The covariance-based rational SPDE approximation,
-computed using \code{\link{matern.operators}}}
+computed using \code{\link[=matern.operators]{matern.operators()}}}
 
 \item{user_nu}{If non-null, update the shape parameter of the
 covariance function.}
@@ -47,7 +47,7 @@ separately as a list?}
 }
 \value{
 It returns an object of class "CBrSPDEobj. This object contains the
-same quantities listed in the output of \code{\link{matern.operators}}.
+same quantities listed in the output of \code{\link[=matern.operators]{matern.operators()}}.
 }
 \description{
 Function to change the parameters of a CBrSPDEobj object
@@ -76,5 +76,5 @@ op_cov
 
 }
 \seealso{
-\code{\link{simulate.CBrSPDEobj}}, \code{\link{matern.operators}}
+\code{\link[=simulate.CBrSPDEobj]{simulate.CBrSPDEobj()}}, \code{\link[=matern.operators]{matern.operators()}}
 }
