@@ -105,18 +105,19 @@
 <div class="section level3">
 <h3 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h3>
-<p>In this vignette we provide a brief introduction to the <code>rSPDE</code> package. We begin by using the package to generate a simple data set. Then, we will analyze this data set using the <code>rSPDE</code> package.</p>
-<p>We have two main “families” of functions inside the <code>rSPDE</code> package:</p>
+<p>In this vignette we provide a brief introduction to the <code>rSPDE</code> package. The main approach for constructing the rational approximations is the covariance-based rational SPDE approach of <span class="citation">(Xiong, Simas, and Bolin 2022)</span>(<a href="https://arxiv.org/abs/2209.04670" class="external-link uri">https://arxiv.org/abs/2209.04670</a>). The package contains three main “families” of functions that implement the approach:</p>
 <ul>
-<li><p>The <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> implementation of the covariance-based rational SPDE approach <span class="citation">(Xiong, Simas, and Bolin 2022)</span>(<a href="https://arxiv.org/abs/2209.04670" class="external-link uri">https://arxiv.org/abs/2209.04670</a>);</p></li>
-<li><p>The rational SPDE approach of <span class="citation">(Bolin and Kirchner 2020)</span>(<a href="https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537" class="external-link uri">https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537</a>).</p></li>
+<li><p>an interface to <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a>;</p></li>
+<li><p>an interface to <a href="http://inlabru.org/" class="external-link"><code>inlabru</code></a>;</p></li>
+<li><p>a stand-alone implementation of the approach.</p></li>
 </ul>
-<p>We will analyze the same data set using both approaches. We also have specific vignettes for each of the aforementioned family. More precisely, we have the following additional vignettes:</p>
+<p>To illustrate these different functions, we begin by using the package to generate a simple data set, which then will be analyzed using the different approaches.Further details on each family of functions is given in the following additional vignettes:</p>
 <ul>
 <li><p><a href="inla.html">R-INLA implementation of the rational SPDE approach</a></p></li>
+<li><p><a href="rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a></p></li>
 <li><p><a href="rspde_cov.html">Rational approximation with the rSPDE package</a></p></li>
 </ul>
-<p>We also have a separate group of functions for performing operator-based rational approximations. These will be useful when performing rational approximations for fractional SPDE models with non-Gaussian noise. An example in which such approximation is suitable is when one has the so-called type-G Lévy noises.</p>
+<p>The <code>rSPDE</code> package also has a separate group of functions for performing the operator-based rational approximations introduced in <span class="citation">(Bolin and Kirchner 2020)</span>(<a href="https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537" class="external-link uri">https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537</a>). These are especially useful when performing rational approximations for fractional SPDE models with non-Gaussian noise. An example in which such approximation is suitable is when one has the so-called type-G Lévy noises.</p>
 <p>We refer the reader to <span class="citation">(Wallin and Bolin 2015)</span>(<a href="https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141" class="external-link uri">https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141</a>), <span class="citation">(Bolin 2013)</span>(<a href="https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046" class="external-link uri">https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046</a>) and <span class="citation">(Asar et al. 2020)</span>(<a href="https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405" class="external-link uri">https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405</a>) for examples of models driven by type-G Lévy noises. We also refer the reader to the <a href="https://github.com/davidbolin/ngme" class="external-link"><code>ngme</code> package</a> where one can fit such models.</p>
 <p>We explore the functions for performing the operator-based rational approximation on the vignette:</p>
 <ul>
@@ -140,7 +141,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mesh_2d</span>, main <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></code></pre></div>
 <p><img src="rSPDE_files/figure-html/unnamed-chunk-1-1.png" width="700" style="display: block; margin: auto;"></p>
-<p>We will now use the <code><a href="../reference/matern.operators.html">matern.operators()</a></code> function to construct a rational SPDE approximation of order <span class="math inline">\(m=2\)</span> for a Gaussian random field with a Matérn covariance function on <span class="math inline">\([0,1]\times [0, 1]\)</span>. We choose <span class="math inline">\(\nu=0.5\)</span> which corresponds to exponential covariance. We also set <span class="math inline">\(\sigma=1\)</span> and the range as <span class="math inline">\(0.2\)</span>.</p>
+<p>We now use the <code><a href="../reference/matern.operators.html">matern.operators()</a></code> function to construct a rational SPDE approximation of order <span class="math inline">\(m=2\)</span> for a Gaussian random field with a Matérn covariance function on <span class="math inline">\([0,1]\times [0, 1]\)</span>. We choose <span class="math inline">\(\nu=0.5\)</span> which corresponds to exponential covariance. We also set <span class="math inline">\(\sigma=1\)</span> and the range as <span class="math inline">\(0.2\)</span>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://davidbolin.github.io/rSPDE/">rSPDE</a></span><span class="op">)</span></span>
 <span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
@@ -151,15 +152,15 @@
 <span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span>
 <span>  kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, m <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>We are now in a position to simulate the latent field <span class="math inline">\(u\)</span>:</p>
+<p>We can now use the <code>simulate</code> function to simulate a realization of the field <span class="math inline">\(u\)</span>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
-<p>Let us then consider a simple Gaussian linear model of a latent spatial field <span class="math inline">\(u(\mathbf{s})\)</span>, observed at <span class="math inline">\(m\)</span> locations, <span class="math inline">\(\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}\)</span>. For each <span class="math inline">\(i = 1,\ldots,m,\)</span> we have <span class="math display">\[
+<p>Let us now consider a simple Gaussian linear model where the spatial field <span class="math inline">\(u(\mathbf{s})\)</span> is observed at <span class="math inline">\(m\)</span> locations, <span class="math inline">\(\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}\)</span> under Gaussian measurement noise. For each <span class="math inline">\(i = 1,\ldots,m,\)</span> we have <span class="math display">\[
 \begin{align} 
 y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 \end{align},
 \]</span> where <span class="math inline">\(\varepsilon_1,\ldots,\varepsilon_{m}\)</span> are iid normally distributed with mean 0 and standard deviation 0.1.</p>
-<p>We now obtain a realization of <span class="math inline">\(y\)</span>. We will use the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> function <code><a href="https://rdrr.io/pkg/INLA/man/inla.spde.make.A.html" class="external-link">inla.spde.make.A()</a></code> to construct the observation matrix.</p>
+<p>To generate a data set <code>y</code> from this model, we first draw some observation locations at random in the domain and then use the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> function <code><a href="https://rdrr.io/pkg/INLA/man/inla.spde.make.A.html" class="external-link">inla.spde.make.A()</a></code> to construct the observation matrix which can be used to evaluate the simulated field <span class="math inline">\(u\)</span> at the observation locations. After this we simply add the measurment noise.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.spde.make.A.html" class="external-link">inla.spde.make.A</a></span><span class="op">(</span></span>
 <span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
@@ -167,7 +168,7 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span><span class="op">)</span></span>
 <span><span class="va">sigma.e</span> <span class="op">&lt;-</span> <span class="fl">0.1</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">u</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n_loc</span><span class="op">)</span> <span class="op">*</span> <span class="va">sigma.e</span></span></code></pre></div>
-<p>The observed data can be seen in the following image.</p>
+<p>The generated data can be seen in the following image.</p>
 <p><img src="rSPDE_files/figure-html/unnamed-chunk-5-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>The simulated random field is shown in the following figure.</p>
 <p><img src="rSPDE_files/figure-html/unnamed-chunk-6-1.png" width="700" style="display: block; margin: auto;"></p>
@@ -186,13 +187,13 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span>  A <span class="op">=</span> <span class="va">Abar</span>,</span>
 <span>  effects <span class="op">=</span> <span class="va">mesh.index</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>We now create the model object. We need to set an upper bound for the smoothness parameter <span class="math inline">\(\nu\)</span>. When we increase the upper bound for <span class="math inline">\(\nu\)</span> we also increase the computational cost. For this example we set <code>nu_upper_bound=1</code>. See the <a href="inla.html">R-INLA implementation of the rational SPDE approach</a> for further details.</p>
+<p>We now create the model object. We need to set an upper bound for the smoothness parameter <span class="math inline">\(\nu\)</span>. The default value for this is <span class="math inline">\(4\)</span>. If we increase the upper bound for <span class="math inline">\(\nu\)</span> we also increase the computational cost, and if we decrease the upper bound we also decrease the computatoinal cost. For this example we set <code>nu_upper_bound=2</code>. See the <a href="inla.html">R-INLA implementation of the rational SPDE approach</a> for further details.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rspde_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.matern.html">rspde.matern</a></span><span class="op">(</span></span>
 <span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
 <span>  nu_upper_bound <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>Finally, we create the formula and fit:</p>
+<p>Finally, we create the formula and fit the model to the data:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/f.html" class="external-link">f</a></span><span class="op">(</span><span class="va">field</span>, model <span class="op">=</span> <span class="va">rspde_model</span><span class="op">)</span></span>
@@ -204,7 +205,7 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span>      <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>A <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.A</a></span><span class="op">(</span><span class="va">st.dat</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>       inla.mode <span class="op">=</span> <span class="st">"experimental"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p>We can get the summary:</p>
+<p>We can get a summary of the fit:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -227,35 +228,35 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span><span class="co">#&gt;    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span></span>
 <span><span class="co">#&gt;    .parent.frame)") </span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 3.28, Running = 5.97, Post = 0.124, Total = 9.38 </span></span>
+<span><span class="co">#&gt;     Pre = 3.25, Running = 5.93, Post = 0.131, Total = 9.31 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field RGeneric2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model hyperparameters:</span></span>
-<span><span class="co">#&gt;                                           mean    sd 0.025quant 0.5quant</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations 101.72 3.390     95.093  101.709</span></span>
-<span><span class="co">#&gt; Theta1 for field                         -4.05 0.557     -5.620   -4.214</span></span>
-<span><span class="co">#&gt; Theta2 for field                          2.74 0.134      2.644    2.775</span></span>
-<span><span class="co">#&gt; Theta3 for field                          0.08 0.297     -0.119    0.168</span></span>
+<span><span class="co">#&gt;                                            mean    sd 0.025quant 0.5quant</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations 101.718 3.388     95.092  101.707</span></span>
+<span><span class="co">#&gt; Theta1 for field                         -4.048 0.555     -5.616   -4.213</span></span>
+<span><span class="co">#&gt; Theta2 for field                          2.738 0.134      2.644    2.775</span></span>
+<span><span class="co">#&gt; Theta3 for field                          0.079 0.296     -0.118    0.167</span></span>
 <span><span class="co">#&gt;                                         0.975quant   mode</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations    108.450 101.76</span></span>
-<span><span class="co">#&gt; Theta1 for field                            -3.677  -3.60</span></span>
-<span><span class="co">#&gt; Theta2 for field                             3.113   2.63</span></span>
-<span><span class="co">#&gt; Theta3 for field                             0.918  -0.16</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations    108.443 101.76</span></span>
+<span><span class="co">#&gt; Theta1 for field                            -3.679  -3.60</span></span>
+<span><span class="co">#&gt; Theta2 for field                             3.112   2.63</span></span>
+<span><span class="co">#&gt; Theta3 for field                             0.916  -0.16</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Marginal log-Likelihood:  1031.81 </span></span>
 <span><span class="co">#&gt;  is computed </span></span>
 <span><span class="co">#&gt; Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">#&gt; (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre></div>
-<p>and the summary in the user’s scale:</p>
+<p>To get a summary of the fit of the random field only, we can do the following:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             mean         sd 0.025quant   0.5quant 0.975quant       mode</span></span>
-<span><span class="co">#&gt; tau    0.0198457 0.00844228  0.0044796  0.0209026  0.0335464  0.0264919</span></span>
-<span><span class="co">#&gt; kappa 15.5839000 2.24600000 13.1716000 14.8306000 21.4301000 13.8182000</span></span>
-<span><span class="co">#&gt; nu     1.0369000 0.14252800  0.8665700  0.9920050  1.3829700  0.9196280</span></span>
+<span><span class="co">#&gt;            mean         sd  0.025quant   0.5quant 0.975quant       mode</span></span>
+<span><span class="co">#&gt; tau    0.019868 0.00842194  0.00450132  0.0209477  0.0334913  0.0264804</span></span>
+<span><span class="co">#&gt; kappa 15.575500 2.23814000 13.17540000 14.8205000 21.4038000 13.8191000</span></span>
+<span><span class="co">#&gt; nu     1.036410 0.14213400  0.86698700  0.9912630  1.3818000  0.9197850</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
@@ -271,23 +272,22 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   parameter       true        mean        mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.1261566  0.01984566  0.02649187</span></span>
-<span><span class="co">#&gt; 2     kappa 10.0000000 15.58391694 13.81822464</span></span>
-<span><span class="co">#&gt; 3        nu  0.5000000  1.03690469  0.91962790</span></span></code></pre></div>
+<span><span class="co">#&gt;   parameter       true        mean       mode</span></span>
+<span><span class="co">#&gt; 1       tau  0.1261566  0.01986804  0.0264804</span></span>
+<span><span class="co">#&gt; 2     kappa 10.0000000 15.57547869 13.8190975</span></span>
+<span><span class="co">#&gt; 3        nu  0.5000000  1.03640932  0.9197851</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kringing-with-r-inla-implementation-of-the-rational-spde-approach">Kringing with <code>R-INLA</code> implementation of the rational SPDE approach<a class="anchor" aria-label="anchor" href="#kringing-with-r-inla-implementation-of-the-rational-spde-approach"></a>
 </h3>
 <p>Let us now obtain predictions (i.e., do kriging) of the latent field on a dense grid in the region.</p>
-<p>We begin by creating the grid in which we want to do the predictions. To this end, we can use the <code><a href="../reference/rspde.mesh.project.html">rspde.mesh.projector()</a></code> function. This function has the same arguments as the function <code><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.project.html" class="external-link">inla.mesh.projector()</a></code> the only difference being that the rSPDE version also has an argument <code>nu</code> and an argument <code>rspde_order</code>. Thus, we proceed in the same fashion as we would in <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a>’s standard SPDE implementation:</p>
+<p>We begin by creating the grid of locations where we want to compute the predictions. To this end, we can use the <code><a href="../reference/rspde.mesh.project.html">rspde.mesh.projector()</a></code> function. This function has the same arguments as the function <code><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.project.html" class="external-link">inla.mesh.projector()</a></code> the only difference being that the rSPDE version also has an argument <code>nu</code> and an argument <code>rspde_order</code>. Thus, we proceed in the same fashion as we would in <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a>’s standard SPDE implementation:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">projgrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.mesh.project.html">rspde.mesh.projector</a></span><span class="op">(</span><span class="va">mesh_2d</span>,</span>
 <span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>This lattice contains 100 × 100 locations (the default).</p>
-<p>Let us plot the locations that we will do prediction:</p>
+<p>This lattice contains 100 × 100 locations (the default) which are shown in the following figure:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">coord.prd</span> <span class="op">&lt;-</span> <span class="va">projgrid</span><span class="op">$</span><span class="va">lattice</span><span class="op">$</span><span class="va">loc</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">coord.prd</span>, type <span class="op">=</span> <span class="st">"p"</span>, cex <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span></code></pre></div>
@@ -326,7 +326,7 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span><span class="va">sd.prd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">rspde_fitprd</span><span class="op">$</span><span class="va">summary.fitted.values</span><span class="op">$</span><span class="va">sd</span><span class="op">[</span><span class="va">id.prd</span><span class="op">]</span>, <span class="fl">100</span>, <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
 <p>Finally, we plot the results. First the mean:</p>
 <p><img src="rSPDE_files/figure-html/plot_pred-1.png" width="700" style="display: block; margin: auto;"></p>
-<p>Then, the std. deviations:</p>
+<p>Then, the marginal standard deviations:</p>
 <p><img src="rSPDE_files/figure-html/plot_pred_sd-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
@@ -336,13 +336,13 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <p>We begin by loading the <code>inlabru</code> package:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://www.inlabru.org" class="external-link">inlabru</a></span><span class="op">)</span></span></code></pre></div>
-<p>We can directly create the model object. Just as in <code>R-INLA</code>’s case, we need to set an upper bound for the smoothness parameter <span class="math inline">\(\nu\)</span>. When we increase the upper bound for <span class="math inline">\(\nu\)</span> we also increase the computational cost. For this example we set <code>nu_upper_bound=1</code>. See the <a href="rspde_inlabru.html">R-INLA implementation of the rational SPDE approach</a> for further details.</p>
+<p>The creation of the model object is the same as in <code>R-INLA</code>’s case:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rspde_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.matern.html">rspde.matern</a></span><span class="op">(</span></span>
 <span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
 <span>  nu_upper_bound <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>Let us create a <code><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame()</a></code> with the data:</p>
+<p>The advantage with <code>inlabru</code> is that we do not need to form the stack manually, but can simply collect the required data in a <code><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame()</a></code>:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">toy_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>coord1 <span class="op">=</span> <span class="va">loc_2d_mesh</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>,</span>
 <span>                     coord2 <span class="op">=</span> <span class="va">loc_2d_mesh</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>,</span>
@@ -364,11 +364,11 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span>    family <span class="op">=</span> <span class="st">"gaussian"</span>,</span>
 <span>    inla.mode <span class="op">=</span> <span class="st">"experimental"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p>We can get the summary:</p>
+<p>Note here that the creation of the model component needs to include the <code>mapper</code> argument if a version of <code>inlabru</code> up to version 2.5.3 is used, whereas this mapper argument is not required for later versions of <code>inlabru</code>. At this stage, we can get a summary of the fit just as in the <code>R-INLA</code> case:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_bru_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; inlabru version: 2.5.3</span></span>
-<span><span class="co">#&gt; INLA version: 22.09.02</span></span>
+<span><span class="co">#&gt; INLA version: 22.09.15</span></span>
 <span><span class="co">#&gt; Components:</span></span>
 <span><span class="co">#&gt;   field: Model types main='rgeneric', group='exchangeable', replicate='iid'</span></span>
 <span><span class="co">#&gt; Likelihoods:</span></span>
@@ -376,22 +376,22 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span><span class="co">#&gt;     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">#&gt;     Predictor: y ~ .</span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 3.06, Running = 6.06, Post = 0.516, Total = 9.64 </span></span>
+<span><span class="co">#&gt;     Pre = 3.09, Running = 6.21, Post = 0.542, Total = 9.84 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field RGeneric2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model hyperparameters:</span></span>
 <span><span class="co">#&gt;                                            mean    sd 0.025quant 0.5quant</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations 101.718 3.387     95.092  101.706</span></span>
-<span><span class="co">#&gt; Theta1 for field                         -4.047 0.554     -5.614   -4.212</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations 101.718 3.388     95.092  101.707</span></span>
+<span><span class="co">#&gt; Theta1 for field                         -4.048 0.555     -5.616   -4.213</span></span>
 <span><span class="co">#&gt; Theta2 for field                          2.738 0.134      2.644    2.775</span></span>
 <span><span class="co">#&gt; Theta3 for field                          0.079 0.296     -0.118    0.167</span></span>
 <span><span class="co">#&gt;                                         0.975quant   mode</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations    108.441 101.76</span></span>
-<span><span class="co">#&gt; Theta1 for field                            -3.680  -3.60</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations    108.442 101.76</span></span>
+<span><span class="co">#&gt; Theta1 for field                            -3.679  -3.60</span></span>
 <span><span class="co">#&gt; Theta2 for field                             3.111   2.63</span></span>
-<span><span class="co">#&gt; Theta3 for field                             0.915  -0.16</span></span>
+<span><span class="co">#&gt; Theta3 for field                             0.916  -0.16</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Deviance Information Criterion (DIC) ...............: -3277.18</span></span>
 <span><span class="co">#&gt; Deviance Information Criterion (DIC, saturated) ....: -2034.92</span></span>
@@ -404,14 +404,14 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span><span class="co">#&gt;  is computed </span></span>
 <span><span class="co">#&gt; Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">#&gt; (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre></div>
-<p>and the summary in the user’s scale:</p>
+<p>and also obtain a summary of the field only:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_bru_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             mean         sd  0.025quant   0.5quant 0.975quant       mode</span></span>
-<span><span class="co">#&gt; tau    0.0198801 0.00841075  0.00451318  0.0209787   0.033461  0.0264846</span></span>
-<span><span class="co">#&gt; kappa 15.5708000 2.23391000 13.17740000 14.8149000  21.389600 13.8200000</span></span>
-<span><span class="co">#&gt; nu     1.0361300 0.14191900  0.86713800  0.9908690   1.381200  0.9198640</span></span>
+<span><span class="co">#&gt; tau    0.0198707 0.00841911  0.00450355  0.0209557  0.0334819  0.0264813</span></span>
+<span><span class="co">#&gt; kappa 15.5745000 2.23710000 13.17620000 14.8191000 21.4005000 13.8192000</span></span>
+<span><span class="co">#&gt; nu     1.0363500 0.14209000  0.86699100  0.9911610  1.3816900  0.9197820</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
@@ -427,39 +427,33 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   parameter       true        mean        mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.1261566  0.01988011  0.02648463</span></span>
-<span><span class="co">#&gt; 2     kappa 10.0000000 15.57077282 13.81999283</span></span>
-<span><span class="co">#&gt; 3        nu  0.5000000  1.03613375  0.91986413</span></span></code></pre></div>
+<span><span class="co">#&gt;   parameter       true        mean       mode</span></span>
+<span><span class="co">#&gt; 1       tau  0.1261566  0.01987069  0.0264813</span></span>
+<span><span class="co">#&gt; 2     kappa 10.0000000 15.57445115 13.8191716</span></span>
+<span><span class="co">#&gt; 3        nu  0.5000000  1.03634875  0.9197816</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kringing-with-inlabru-implementation-of-the-rational-spde-approach">Kringing with <code>inlabru</code> implementation of the rational SPDE approach<a class="anchor" aria-label="anchor" href="#kringing-with-inlabru-implementation-of-the-rational-spde-approach"></a>
 </h3>
 <p>Let us now obtain predictions (i.e., do kriging) of the latent field on a dense grid in the region.</p>
-<p>We begin by creating the grid in which we want to do the predictions. We begin by creating a regular grid in which we want to do precictions:</p>
+<p>We begin by creating the grid of the locations where we want to evaluate the predictions. We begin by creating a regular grid in and then extract the coorinates:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">grd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">)</span> <span class="op">/</span> <span class="fl">100</span></span></code></pre></div>
-<p>We will now use extract the coordinates of the previous grid:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pred_coords</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="va">grd</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>,</span>
+<code class="sourceCode R"><span><span class="va">grd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">)</span> <span class="op">/</span> <span class="fl">100</span></span>
+<span><span class="va">pred_coords</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="va">grd</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>,</span>
 <span>                          x2 <span class="op">=</span> <span class="va">grd</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/sp/man/coordinates.html" class="external-link">coordinates</a></span><span class="op">(</span><span class="va">pred_coords</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span></span></code></pre></div>
-<p>Let us obtain the predictions:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<p>Let us now compute the predictions. An advantage with <code>inlabru</code> is that we can do this after fitting the model to the data:</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">field_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">rspde_bru_fit</span>, <span class="va">pred_coords</span>, <span class="op">~</span><span class="va">field</span><span class="op">)</span></span></code></pre></div>
-<p>Let us now build the data frame with the results:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">field_pred_df</span> <span class="op">&lt;-</span> <span class="va">field_pred</span><span class="op">@</span><span class="va">data</span></span>
-<span><span class="va">field_pred_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">field_pred_df</span>, <span class="va">field_pred</span><span class="op">@</span><span class="va">coords</span><span class="op">)</span></span></code></pre></div>
-<p>Finally, we plot the results. First the predicted mean:</p>
-<p><img src="rSPDE_files/figure-html/unnamed-chunk-22-1.png" width="700" style="display: block; margin: auto;"></p>
-<p>Then, the std. deviations:</p>
+<p>The following figure shows the mean of these predictions:</p>
+<p><img src="rSPDE_files/figure-html/unnamed-chunk-20-1.png" width="700" style="display: block; margin: auto;"></p>
+<p>The following figure shows the marginal standard deviations of the predictions:</p>
 <p><img src="rSPDE_files/figure-html/plot_pred_sd_bru-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>An alternative and very simple approach is to use the <code>pixel()</code> function:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">pxl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/pixels.html" class="external-link">pixels</a></span><span class="op">(</span><span class="va">mesh_2d</span><span class="op">)</span></span></code></pre></div>
 <p>Let us now calculate the predictions. To this end we will use the <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> method in <code>inlabru</code>:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">field_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">rspde_bru_fit</span>, <span class="va">pxl</span>, <span class="op">~</span><span class="va">field</span><span class="op">)</span></span></code></pre></div>
 <p>Finally, we plot the results.</p>
 <p><img src="rSPDE_files/figure-html/plot_pred_pxl-1.png" width="700" style="display: block; margin: auto;"></p>
@@ -467,14 +461,14 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <div class="section level3">
 <h3 id="fitting-the-model-with-rspde">Fitting the model with <code>rSPDE</code><a class="anchor" aria-label="anchor" href="#fitting-the-model-with-rspde"></a>
 </h3>
-<p>We will now fit the model of the toy data set without using <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a>. To this end we will use the rational approximation functions from <code>rSPDE</code> package. Further details can be found in the vignette <a href="rspde_cov.html">Rational approximation with the rSPDE package</a>.</p>
-<p>We will now use the function <code><a href="../reference/rSPDE.matern.loglike.html">rSPDE.matern.loglike()</a></code> to define the likelihood. This function is object-based, in the sense that it obtains several of the quantities it needs from the <code>rSPDE</code> model object.</p>
+<p>We will now fit the model of the toy data set without using <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> or <code>inlabru</code>. To this end we will use the rational approximation functions from <code>rSPDE</code> package. Further details can be found in the vignette <a href="rspde_cov.html">Rational approximation with the rSPDE package</a>.</p>
+<p>We use the function <code><a href="../reference/rSPDE.matern.loglike.html">rSPDE.matern.loglike()</a></code> to define the likelihood. This function is object-based, in the sense that it obtains several of the quantities it needs from the <code>rSPDE</code> model object.</p>
 <p>Notice that we already created a <code>rSPDE</code> model object to simulate the data. We will, then, use the same model object. Recall that the <code>rSPDE</code> model object we created is <code>op</code>. We also already have the <span class="math inline">\(A\)</span> matrix connecting the observation locations to the mesh, and we simply called it <code>A</code>.</p>
 <p>To simplify parameter estimation, we create an objective function to minimize which is the negative log-likelihood, parametrized using the logarithm of each parameter to avoid constrained optimization. This objective function is created by the function factory <code><a href="../reference/rSPDE.construct.matern.loglike.html">rSPDE.construct.matern.loglike()</a></code> :</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mlik</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rSPDE.construct.matern.loglike.html">rSPDE.construct.matern.loglike</a></span><span class="op">(</span>object <span class="op">=</span> <span class="va">op</span>, Y<span class="op">=</span><span class="va">y</span>, A<span class="op">=</span><span class="va">A</span><span class="op">)</span></span></code></pre></div>
 <p>We can now estimate the parameter using <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> (one can also use <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code>):</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/florafauna/optimParallel-R" class="external-link">optimParallel</a></span><span class="op">)</span></span>
 <span><span class="co"># Preparing the parallel</span></span>
 <span></span>
@@ -518,7 +512,7 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span><span class="co">#&gt; Estimate 1.014695  9.377185 0.5480289 0.09913223</span></span>
 <span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 11.37737 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 10.71709 secs</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kringing-with-rspde">Kringing with <code>rSPDE</code><a class="anchor" aria-label="anchor" href="#kringing-with-rspde"></a>
@@ -526,14 +520,14 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <p>We will now do kringing on the same dense grid we did for the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a>-based rational SPDE approach, but now using the <code>rSPDE</code> functions. To this end we will use the <code>predict</code> method on the <code>rSPDE</code> model object.</p>
 <p>Observe that we need an <span class="math inline">\(A\)</span> matrix connecting the mesh to the prediction locations.</p>
 <p>Let us now create the <span class="math inline">\(A\)</span> matrix for the same prediction locations we used for the previous case (using the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> implementation):</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">predgrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.project.html" class="external-link">inla.mesh.projector</a></span><span class="op">(</span><span class="va">mesh_2d</span>,</span>
 <span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">A.prd2</span> <span class="op">&lt;-</span> <span class="va">predgrid</span><span class="op">$</span><span class="va">proj</span><span class="op">$</span><span class="va">A</span></span></code></pre></div>
 <p>We will now use the <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> method on the <code>rSPDE</code> model object with the argument <code>compute.variances</code> set to <code>TRUE</code> so that we can plot the standard deviations. Let us also update the values of the <code>rSPDE</code> model object to the fitted ones, and also save the estimated value of <code>sigma.e</code>.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sigma.e.est</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">op.prd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">op</span>,</span>
 <span>  user_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
@@ -548,7 +542,7 @@ y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 <span><span class="op">)</span></span></code></pre></div>
 <p>Finally, we plot the results. First the mean:</p>
 <p><img src="rSPDE_files/figure-html/plot_pred2-1.png" width="700" style="display: block; margin: auto;"></p>
-<p>Then, the std. deviations:</p>
+<p>Then, the standard deviations:</p>
 <p><img src="rSPDE_files/figure-html/plot_pred_sd2-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
