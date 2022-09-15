@@ -324,7 +324,7 @@
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 5.96477 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 6.893259 secs</span></span></code></pre>
 <p>We can also speed up the optimization by using the <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> function from the <code>optimParallel</code> package. To such an end, we simply replace the <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> function by <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> and set the number of cores we want to use:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/florafauna/optimParallel-R" class="external-link">optimParallel</a></span><span class="op">)</span></span>
@@ -366,7 +366,7 @@
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 5.501834 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 5.882222 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kringing">Kringing<a class="anchor" aria-label="anchor" href="#kringing"></a>
@@ -449,7 +449,7 @@
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 3.223527 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 3.514865 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -551,7 +551,7 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 12.44316 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 13.17412 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="changing-the-type-and-the-order-of-the-rational-approximation">Changing the type and the order of the rational approximation<a class="anchor" aria-label="anchor" href="#changing-the-type-and-the-order-of-the-rational-approximation"></a>
@@ -601,7 +601,7 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 11.60661 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 13.16263 secs</span></span></code></pre>
 <p>Finally, we can check the type of rational approximation with the <code><a href="../reference/rational.type.html">rational.type()</a></code> function and assign a new type by using the <code>rational.type&lt;-()</code> function:</p>
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.type.html">rational.type</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span></span></code></pre></div>
@@ -635,7 +635,7 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 18.17965 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 20.33488 secs</span></span></code></pre>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
