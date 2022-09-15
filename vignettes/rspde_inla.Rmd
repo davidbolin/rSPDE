@@ -89,7 +89,6 @@ will consider a real world data set that consists of precipitation measurements
 from the Paraná region in Brazil. 
 
 After the initial model fitting, we will show how to change some parameters of the model.
-
 In the end, we will also provide an example in which we have replicates.
 
 It is important to mention that one can improve the performance
@@ -114,10 +113,10 @@ at 616 gauge stations in Paraná state, south of Brazil, for each day in 2011.
 We will follow the vignette [Spatial Statistics using R-INLA and Gaussian Markov random fields](https://sites.stat.washington.edu/peter/591/INLA.html). 
 As precipitation data are always positive, we will assume it is Gamma distributed. 
 `r inla_link()` uses the following parameterization of the Gamma distribution, 
-$$\Gamma(\mu, c\phi): \pi (y) = \frac{1}{\Gamma(c\phi)} \left(\frac{c\phi}{\mu}\right)^{c\phi} y^{c\phi - 1} \exp\left(-\frac{c\phi y}{\mu}\right) .$$
-In this parameterization, the distribution has expected value $E(x) = \mu$ and variance $V(x) = \mu^2/(c\phi)$, where $c$ is a fixed (known) scaling parameter and $1/\phi$ is a dispersion parameter.
+$$\Gamma(\mu, \phi): \pi (y) = \frac{1}{\Gamma(\phi)} \left(\frac{\phi}{\mu}\right)^{\phi} y^{\phi - 1} \exp\left(-\frac{\phi y}{\mu}\right) .$$
+In this parameterization, the distribution has expected value $E(x) = \mu$ and variance $V(x) = \mu^2/(\phi)$, where$1/\phi$ is a dispersion parameter.
 
-In this example $\mu$ will be modelled using a stochastic model that includes both covariates 
+In this example $\mu$ will be modeled using a stochastic model that includes both covariates 
 and spatial structure, resulting in the latent Gaussian model for the precipitation measurements
 $$\begin{align} y_i\mid \mu(s_i), \theta &\sim \Gamma(\mu(s_i),c\phi)\\ \log (\mu(s)) &= \eta(s) = \sum_k f_k(c_k(s))+u(s)\\ \theta &\sim \pi(\theta) \end{align},$$
 
@@ -163,7 +162,7 @@ coords <- as.matrix(PRprec[ind, 1:2])
 alt <- PRprec$Altitude[ind]
 ```
 
-Let us build a plot for the precipitations:
+Let us build plot the precipitation observations using `ggplot`:
 
 ```{r plot_precipitations, message=FALSE, fig.align = "center", echo=FALSE}
 p <- ggplot() +
@@ -188,9 +187,7 @@ tryCatch(
 ```
 
 The red line in the figure shows the coast line, and we expect the distance to 
-the coast to be a good covariate for precipitation. 
-
-This covariate is not 
+the coast to be a good covariate for precipitation. This covariate is not 
 available, so let us calculate it for each observation location:
 
 ```{r getting_seaDist, message=FALSE}
@@ -219,7 +216,7 @@ library(rSPDE)
 ```
 
 The `rSPDE`-`INLA` implementation is very reminiscent of `r inla_link()`, so its usage should be
-straightforward for `r inla_link()` users. For instance, to create a `rSPDE` model, one would
+straightforward for `r inla_link()` users. For instance, to create a `rSPDE` model, one would use
 `rspde.matern()` in place of `inla.spde2.matern()`. To create an index, one should use
 `rspde.make.index()` in place of `inla.spde.make.index()`. To create the `A` matrix, one
 should use `rspde.make.A()` in place of `inla.spde.make.A()`, and so on.
@@ -243,7 +240,7 @@ lines(PRborder, col = 3)
 points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
 ```
 
-#### The observation matrix (A)
+#### The observation matrix 
 
 We now create the $A$ matrix, that connects the mesh to the observation 
 locations and then create the `rSPDE` model.
@@ -257,23 +254,17 @@ can be found in the introduction of the [Rational approximation with the `rSPDE`
 
 The default order is 2 for our covariance-based rational approximation. 
 As mentioned in the introduction of the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette, an approximation of order 2 in the covariance-based
-rational approximation has approximately the same computational cost as the standard rational approximation
+rational approximation has approximately the same computational cost as the operator-based rational approximation
 of order 1.
 
 Recall that the latent process $u$ is a solution of
 $$(\kappa^2 I-\Delta)^{\alpha/2}(\tau u) = \mathcal{W},$$
-where $\alpha = \nu + d/2$.
-
-We want to estimate $\tau,\kappa$ and $\nu$.
-
-There is also an option to fix the smoothness parameter $\nu$ to some predefined value and only estimate $\tau$ and $\kappa$.
-
-By default the `rSPDE`-`INLA` implementation estimates all the three parameters. 
+where $\alpha = \nu + d/2$. We want to estimate all three parameters $\tau,\kappa$ and $\nu$, which is the default option of  
+the `rSPDE`-`INLA` implementation. However, there is also an option to fix 
+the smoothness parameter $\nu$ to some predefined value and only estimate $\tau$ and $\kappa$. This will be discussed later. 
 
 In this first example we will assume we want a rational approximation of order
-2, where we also want to estimate the smoothness parameter $\nu$.
-
-To this end we can use the `rspde.make.A()` function. Since we will assume order
+2. To this end we can use the `rspde.make.A()` function. Since we will assume order
 2 and that we want to estimate smoothness, which are the default options in this
 function, the required parameters are simply 
 the mesh and the locations:
@@ -298,9 +289,8 @@ Therefore, to set up a model all we have to do is use the `rspde.matern()` funct
 rspde_model <- rspde.matern(mesh = prmesh)
 ```
 
-Notice that this function is very reminiscent of `r inla_link()`'s `inla.spde2.matern()` function.
-
-This is a pattern we tried to keep consistent. All the `rSPDE` versions of some `r inla_link()` function 
+Note that this function is very reminiscent of `r inla_link()`'s `inla.spde2.matern()` function.
+This is a pattern we have tried to keep consistent in the package: All the `rSPDE` versions of some `r inla_link()` function 
 will either replace `inla` or `inla.spde` or `inla.spde2` by `rspde`.
 
 #### The `inla.stack`
@@ -644,7 +634,7 @@ rspde_fit_2$cpu.used
 
 We can see that the fit for `nu_upper_bound` equal to 2 was considerably faster.
 
-Finally, let us get the result the user's scale and see the estimate for $\nu$:
+Finally, let us get the result results for the field and see the estimate of $\nu$:
 
 ```{r get_summary_results_ub}
 result_fit_2 <- rspde.result(rspde_fit_2, "field", rspde_model_2)
@@ -666,7 +656,7 @@ for further details on the order of the rational approximation and some comparis
 with the Matérn covariance.
 
 Let us fit the above model with the covariance-based rational approximation
-of order `3`. Notice that since we are changing the order of the rational approximation,
+of order `3`. Since we are changing the order of the rational approximation,
 that is, we are changing the `rspde_order` argument, we need to recompute the $A$
 matrix and the mesh index. Therefore, we proceed as follows:
 
@@ -691,7 +681,7 @@ mesh.index.3 <- rspde.make.index(
 )
 ```
 
-Now the remaining is standard:
+Now the remaining steps are the same as before:
 
 ```{r fit_order_3, message=FALSE, warning=FALSE}
 stk.dat.3 <- inla.stack(
@@ -737,7 +727,7 @@ rspde_fit$cpu.used
 rspde_fit_order_3$cpu.used
 ```
 
-Let us now see the summary in the original scale:
+Let us now see the summary of the fit in the original scale:
 
 ```{r summary_results_order_3}
 result_fit_order_3 <- rspde.result(rspde_fit_order_3,
@@ -745,7 +735,7 @@ result_fit_order_3 <- rspde.result(rspde_fit_order_3,
 summary(result_fit_order_3)
 ```
 
-Let us see the plots of the posterior marginal densities:
+The following figure shows the posterior marginal densities of the three parameters:
 
 ```{r plot_post_order_3, fig.align='center'}
 par(mfrow = c(1, 3))
@@ -900,7 +890,7 @@ When the smoothness, $\nu$, is fixed, we can have two possibilities:
 
 * $\alpha = \nu + d/2$ is not integer.
 
-The first case, i.e., when $\alpha$ is integer, has much less computational
+The first case, i.e., when $\alpha$ is integer, has less computational
 cost. Furthermore, the $A$ matrix is different than the $A$ matrix for the 
 non-integer $\alpha$. 
 
@@ -917,7 +907,7 @@ of $\nu$ such that $\alpha$ is non-integer for that `rspde_order`. The same hold
 If $\nu$ is fixed, we have that the parameters returned by `r inla_link()` are
 $$\kappa = \exp(\theta_1)\quad\hbox{and}\quad\tau = \exp(\theta_2).$$
 We will now provide illustrations for both scenarios. 
-It is also noteworthy that just as with the case in which we estimate $\nu$, we can also change
+It is also noteworthy that just as for the case in which we estimate $\nu$, we can also change
 the order of the rational approximation by changing the value of `rspde_order`. 
 For both illustrations with fixed $\nu$ below, we will only consider the order of the rational approximation
 of 2, that is, the default order.
