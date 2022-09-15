@@ -228,17 +228,9 @@ library(ggplot2)
 library(gridExtra)
 df <- data.frame(x1 = as.double(loc_2d_mesh[, 1]),
    x2 = as.double(loc_2d_mesh[, 2]), y = as.double(y))
-p <- ggplot(df, aes(x = x1, y = x2, col = y)) +
+ggplot(df, aes(x = x1, y = x2, col = y)) +
   geom_point() +
   scale_color_gradient(low = "yellow", high = "red")
-tryCatch(
-  {
-    print(p)
-  },
-  error = function(e) {
-    print("Unable to build the plot")
-  }
-)
 ```
 
 The simulated random field is shown in the following figure. 
@@ -249,17 +241,9 @@ field <- inla.mesh.project(proj, field = as.vector(u))
 grd <- expand.grid(1:100, 1:100) / 100
 field.df <- cbind(grd, as.vector(field))
 colnames(field.df) <- c("x1", "x2", "y")
-p <- ggplot(field.df, aes(x = x1, y = x2, fill = y)) +
+ggplot(field.df, aes(x = x1, y = x2, fill = y)) +
   geom_raster() +
   scale_fill_gradient(low = "yellow", high = "red")
-tryCatch(
-  {
-    print(p)
-  },
-  error = function(e) {
-    print("Unable to build the plot")
-  }
-)
 ```
 
 ## Fitting the model with `R-INLA` implementation of the rational SPDE approach
@@ -420,17 +404,9 @@ Finally, we plot the results. First the mean:
 grd <- expand.grid(1:100, 1:100) / 100
 field.pred.df <- cbind(grd, as.vector(m.prd))
 colnames(field.pred.df) <- c("x1", "x2", "y")
-p <- ggplot(field.pred.df, aes(x = x1, y = x2, fill = y)) +
+ggplot(field.pred.df, aes(x = x1, y = x2, fill = y)) +
   geom_raster() +
   scale_fill_gradient(low = "yellow", high = "red")
-tryCatch(
-  {
-    print(p)
-  },
-  error = function(e) {
-    print("Unable to build the plot")
-  }
-)
 ```
 
 Then, the marginal standard deviations:
@@ -438,16 +414,8 @@ Then, the marginal standard deviations:
 ```{r plot_pred_sd, fig.align='center', echo=TRUE}
 field.pred.sd.df <- cbind(grd, as.vector(sd.prd))
 colnames(field.pred.sd.df) <- c("x1", "x2", "y")
-p <- ggplot(field.pred.sd.df, aes(x = x1, y = x2, fill = y)) +
+ggplot(field.pred.sd.df, aes(x = x1, y = x2, fill = y)) +
   geom_raster()
-tryCatch(
-  {
-    print(p)
-  },
-  error = function(e) {
-    print("Unable to build the plot")
-  }
-)
 ```
 
 
@@ -698,17 +666,9 @@ Finally, we plot the results. First the mean:
 ```{r plot_pred2, fig.align='center', echo=TRUE}
 field.pred2.df <- cbind(grd, as.vector(pred.rspde$mean))
 colnames(field.pred2.df) <- c("x1", "x2", "y")
-p <- ggplot(field.pred2.df, aes(x = x1, y = x2, fill = y)) +
+ggplot(field.pred2.df, aes(x = x1, y = x2, fill = y)) +
   geom_raster() +
   scale_fill_gradient(low = "yellow", high = "red")
-tryCatch(
-  {
-    print(p)
-  },
-  error = function(e) {
-    print("Unable to build the plot")
-  }
-)
 ```
 
 Then, the standard deviations:
@@ -716,16 +676,8 @@ Then, the standard deviations:
 ```{r plot_pred_sd2, fig.align='center', echo=TRUE}
 field.pred2.sd.df <- cbind(grd, as.vector(sqrt(pred.rspde$variance)))
 colnames(field.pred2.sd.df) <- c("x1", "x2", "y")
-p <- ggplot(field.pred2.sd.df, aes(x = x1, y = x2, fill = y)) +
+ggplot(field.pred2.sd.df, aes(x = x1, y = x2, fill = y)) +
   geom_raster()
-tryCatch(
-  {
-    print(p)
-  },
-  error = function(e) {
-    print("Unable to build the plot")
-  }
-)
 ```
 
 

@@ -165,7 +165,7 @@ alt <- PRprec$Altitude[ind]
 Let us build plot the precipitation observations using `ggplot`:
 
 ```{r plot_precipitations, message=FALSE, fig.align = "center", echo=TRUE}
-p <- ggplot() +
+ggplot() +
   geom_point(aes(
     x = coords[, 1], y = coords[, 2],
     colour = Y
@@ -176,14 +176,6 @@ p <- ggplot() +
     1034:1078,
     2
   ]), colour = "red")
-tryCatch(
-  {
-    print(p)
-  },
-  error = function(e) {
-    print("Unable to build the plot")
-  }
-)
 ```
 
 The red line in the figure shows the coast line, and we expect the distance to 
