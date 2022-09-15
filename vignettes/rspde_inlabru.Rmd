@@ -79,7 +79,7 @@ inla_link <- function() {
 ## Introduction 
 
 In this vignette we will present the [`inlabru`](http://inlabru.org/) implementation of the covariance-based
-rational SPDE approach. See the
+rational SPDE approach. For further technical details on the covariance-based approach, see 
 the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette
 and [@xiong22](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537).
 
@@ -88,16 +88,15 @@ step-by-step illustration on how to use our implementation. To this end we
 will consider a real world data set that consists of precipitation measurements 
 from the Paraná region in Brazil. 
 
-After the initial model fitting, we will show how to change some parameters of the model.
+After the initial model fitting, we will show how to change some parameters of the model. In the end, we will also provide an example in which we have replicates.
 
-In the end, we will also provide an example in which we have replicates.
-
-It is important to mention that one can improve the performance
+The examples in this vignette are the same as those in the [R-INLA implementation of the rational SPDE approach](rspde_inla.html) vignette. 
+As in that case, it is important to mention that one can improve the performance
 by using the PARDISO solver. Please, go to https://www.pardiso-project.org/r-inla/#license
 to apply for a license. Also, use `inla.pardiso()` for instructions on 
 how to enable the PARDISO sparse library.
 
-## Example with real data
+## An example with real data
 
 To illustrate our implementation of `rSPDE` in [`inlabru`](http://inlabru.org/) we will consider a dataset
 available in `r inla_link()`. This data has also been used to illustrate the SPDE approach,
@@ -114,8 +113,8 @@ at 616 gauge stations in Paraná state, south of Brazil, for each day in 2011.
 We will follow the vignette [Spatial Statistics using R-INLA and Gaussian Markov random fields](https://sites.stat.washington.edu/peter/591/INLA.html). 
 As precipitation data are always positive, we will assume it is Gamma distributed. 
 `r inla_link()` uses the following parameterization of the Gamma distribution, 
-$$\Gamma(\mu, c\phi): \pi (y) = \frac{1}{\Gamma(c\phi)} \left(\frac{c\phi}{\mu}\right)^{c\phi} y^{c\phi - 1} \exp\left(-\frac{c\phi y}{\mu}\right) .$$
-In this parameterization, the distribution has expected value $E(x) = \mu$ and variance $V(x) = \mu^2/(c\phi)$, where $c$ is a fixed (known) scaling parameter and $1/\phi$ is a dispersion parameter.
+$$\Gamma(\mu, \phi): \pi (y) = \frac{1}{\Gamma(\phi)} \left(\frac{\phi}{\mu}\right)^{\phi} y^{\phi - 1} \exp\left(-\frac{\phi y}{\mu}\right) .$$
+In this parameterization, the distribution has expected value $E(x) = \mu$ and variance $V(x) = \mu^2/\phi$, where $1/\phi$ is a dispersion parameter.
 
 In this example $\mu$ will be modelled using a stochastic model that includes both covariates 
 and spatial structure, resulting in the latent Gaussian model for the precipitation measurements

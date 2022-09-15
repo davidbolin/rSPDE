@@ -122,37 +122,17 @@ inla_link <- function() {
 
 ## Introduction
 
-In this vignette we will illustrate how to do statistical inference with 
-the covariance-based rational SPDE approach. The covariance-based
-rational approximation is related to the operator-based [rational approximation by @bolin19](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537).
+In this vignette we will introduce the covariance-based rational SPDE approach and illustrate how to perform statistical inference with it. 
 
-The covariance-based rational approximation is an efficient alternative 
-to the operator-based rational approximation when one has SPDE driven
+The covariance-based approach is an efficient alternative 
+to the operator-based rational SPDE approach by [@bolin19](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537)
+which works when one has SPDE driven
 by Gaussian white noise. We refer the reader to [@xiong22](https://arxiv.org/abs/2209.04670)
-for the theoretical details.
+for the theoretical details of the approach.
 
-When dealing with fractional SPDE models driven by non-Gaussian white noises,
-the operator-based rational approximations might be useful.
-For instance, consider the SPDE: 
-$$L^{\alpha/2}(\tau u) = \widetilde{\mathcal{W}},$$ 
-where 
-$L  = -\Delta +\kappa^2 I$ and $\widetilde{\mathcal{W}}$ is a non-Gaussian white noise. 
-An example in which the operator-based rational approximation is suitable, is when one has the
-above SPDE with the white noise being the so-called type-G Lévy noises. 
-
-We refer the reader to  [@wallin15](https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141), 
-[@bolin13](https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046) and
-[@asar20](https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405)
-for examples of models driven by type-G Lévy noises. We also refer the reader
-to the [`ngme` package](https://github.com/davidbolin/ngme) where one can fit such models.
-
-We explore the functions for performing the operator-based rational approximation
-on the vignette:
-
-* [Operator-based rational approximation](rspde_base.html)
-
-For the `r inla_link()` implementation of the rational SPDE approach we refer the reader to
-the [R-INLA implementation of the rational SPDE approach](inla.html) vignette.
+Details about the operator-based rational SPDE approach are given in the [Operator-based rational approximation](rspde_base.html) vignette. 
+For the `r inla_link()` and `inlabru` implementations of the covariance-based rational SPDE approach we refer the reader to
+the vignettes [R-INLA implementation of the rational SPDE approach](rspde_inla.html) and [inlabru implementation of the rational SPDE approach](rspde_inlabru.html) respectively.
 
 ## Covariance-based rational SPDE approach
 
@@ -167,44 +147,41 @@ where
 $L  = -\Delta +\kappa^2 I$ and $\mathcal{W}$ is the standard Gaussian white noise. 
 Here, $\alpha$, $\kappa$ and $\tau$ are three parameters we want to estimate. In
 the standard SPDE approach, we write, for a general dimension $d$, 
-$\alpha = \nu + d/2$ and assume $\nu$ to be fixed. In the rational SPDE approach
-we are able to estimate a general smoothness $\nu$ from the data.
+$\alpha = \nu + d/2$ and assume $\nu$ to be fixed so that $\alpha$ is an integer. 
+In the rational SPDE approach we can use any value of $\nu>0$ and also estimate it from data.
 
 Now let us briefly describe how covariance based rational SPDE approach works 
 in statistical inference. 
-
-The central idea is to perform the rational approximation directly on the
+The main idea is to perform the rational approximation directly on the
 covariance operator, which is given by $L^{-\alpha}$, instead of on the solution 
 $u$.
-
 To this end, we begin by obtaining an approximation of the random field $u$, which is the solution of the
-SPDE written above, by using the finite element method (FEM): 
+SPDE above, by using the finite element method (FEM): 
 $$u_h(\mathbf{s}_i)=\sum_{j=1}^{n_h} \hat{u}_j \varphi_j(\mathbf{s}_i),$$ 
-where $\{\hat{u}_j\}_{j = 1}^{n_h}$ are stochastic weights and $\{\varphi_j(\mathbf{s}_i)\}_{j = 1}^{n_h}$ are fixed basis functions.
-We then obtain finite element approximation of the operator $L$, which is given by $L_h$, and the covariance operator of $u_h$ is
+where $\{\hat{u}_j\}_{j = 1}^{n_h}$ are stochastic weights and $\{\varphi_j(\mathbf{s}_i)\}_{j = 1}^{n_h}$ are fixed piecewise linear and continuous basis functions obtained from a triangulation of the spatial domain.
+We then obtain a FEM approximation of the operator $L$, which is given by $L_h$, and the covariance operator of $u_h$ is
 given by $L_h^{-\alpha}$. 
 
 Now, by using the rational approximation on $L_h$, we can approximate covariance operator 
 $L_h^{-\alpha}$ as 
-$$L_{h,m}^{-\alpha} = L_h^{-m_\alpha} p(L_h^{-1})q(L_h^{-1})^{-1},$$
-where $m_{\alpha} = \lfloor\alpha\rfloor$,
-$m$ is the order of rational approximation, 
+$$L_{h,m}^{-\alpha} = L_h^{-\lfloor\alpha\rfloor} p(L_h^{-1})q(L_h^{-1})^{-1},$$
+where $\lfloor\alpha\rfloor$ denotes the integer part of $\alpha$, $m$ is the order of rational approximation, 
 $p(L_h^{-1}) = \sum_{i=0}^m a_i L_h^{m-i}$ and 
 $q(L_h^{-1}) = \sum_{j=0}^m b_j L_h^{m-i}$, with 
 $\{a_i\}_{i = 0}^m$ and $\{b_j\}_{j = 0}^m$ being known coefficients 
-obtained from the rational approximation. 
+obtained from a rational approximation of the function $x^{\alpha - \lfloor\alpha\rfloor}$. 
 
-The next step is to obtain the decomposition of $p(L_h^{-1})q(L_h^{-1})^{-1}$ 
-into partial fractions to get the new representation: 
-$$L_{h,m}^{-\alpha} =L_h^{-m_\alpha} \left(\sum_{i=1}^{m}  r_i  (L_h-p_i I)^{-1} +k\right).$$
+The next step is to perform a partial fraction decomposition of the rational function $p(L_h^{-1})q(L_h^{-1})^{-1}$, which yields the 
+representation 
+$$L_{h,m}^{-\alpha} =L_h^{-\lfloor\alpha\rfloor} \left(\sum_{i=1}^{m}  r_i  (L_h-p_i I)^{-1} +k\right).$$
 Based on the above operator equation, we can write the covariance matrix of the stochastic weights $\hat{\textbf{u}}$, where $\hat{\textbf{u}}=[\hat{u}_1,...,\hat{u}_{n_h}]^\top$, 
 as 
-$$\mathbf{\Sigma}_{\hat{\textbf{u}}} = (\textbf{L}^{-1}\textbf{C})^{m_{\alpha}} \sum_{i=1}^{m}r_i(\textbf{L}-p_i\textbf{C})^{-1}+\textbf{K}, $$
+$$\mathbf{\Sigma}_{\hat{\textbf{u}}} = (\textbf{L}^{-1}\textbf{C})^{\lfloor\alpha\rfloor} \sum_{i=1}^{m}r_i(\textbf{L}-p_i\textbf{C})^{-1}+\textbf{K}, $$
 where $\textbf{C} = \{C_{ij}\}_{i,j=1}^{n_h}$, $C_{ij} = (\varphi_i,\varphi_j)_{L_2(\mathcal{D})}$, is the mass matrix, $\textbf{L} = \kappa^2\textbf{C}+\textbf{G}$, $\textbf{G} = \{G_{ij}\}_{i,j=1}^{n_h}$, $G_{ij}=(\nabla\varphi_i,\nabla\varphi_j)_{L_2(\mathcal{D})}$, is the stiffness matrix, and
 $$\textbf{K}=\left\{
 	\begin{array}{lcl}
-		k\textbf{C}      &      & {m_{\alpha}=0}\\
-		k\textbf{L}^{-1}(\textbf{C}\textbf{L}^{-1})^{m_{\alpha}-1}    &      & {m_{\alpha}>=1}\\
+		k\textbf{C}      &      & {\lfloor\alpha\rfloor=0}\\
+		k\textbf{L}^{-1}(\textbf{C}\textbf{L}^{-1})^{\lfloor\alpha\rfloor-1}    &      & {\lfloor\alpha\rfloor\geq 1}\\
 	\end{array} \right. .$$
 	
 
@@ -215,7 +192,7 @@ $$\textbf{x}_i \sim N(\textbf{0},\textbf{Q}_i^{-1}),$$
 and $\textbf{Q}_i$ is the precision matrix of $\textbf{x}_i$, which is given by 
 $$\textbf{Q}_i=\left \{
 	\begin{array}{lcl}
-		(\textbf{L}-p_i\textbf{C})(\textbf{C}^{-1}\textbf{L})^{m_{\alpha}}/r_i,      &      & {i = 1,...,m}\\
+		(\textbf{L}-p_i\textbf{C})(\textbf{C}^{-1}\textbf{L})^{\lfloor\alpha\rfloor}/r_i,      &      & {i = 1,...,m}\\
 		 \textbf{K}^{-1},   &      & {i = m+1}\\
 	\end{array}. \right.$$
 
@@ -235,12 +212,7 @@ $$\textbf{A}=\begin{bmatrix}\varphi_1(s_1)&\cdots&\varphi_{n_h}(s_1)\\\vdots&\vd
 We then arrive at the following hierarchical model:
 $$\begin{align} \textbf{y}\mid \textbf{X} &\sim N(0,\sigma_\varepsilon\textbf{I})\\ \textbf{X}&\sim N(0,\textbf{Q}^{-1}) \end{align}.$$
 
-With these elements, we can use `r inla_link()` to compute the posterior distribution of the three parameters we want to estimate.
-
-The covariance-based method has a computational advantage when compared to
-the standard rational approximation:
-the computational cost of a covariance-based rational approximation of order $m$ 
-is approximately the same as the standard rational approximation of order $m/2$.
+With these elements, we can, for example, use `r inla_link()` to compute the posterior distribution of the three parameters we want to estimate.
 
 
 ## Constructing the approximation
@@ -250,15 +222,14 @@ with the default argument `type`, that is, `type="covariance"`, which is
 constructs the covariance-based rational approximation. We will
 also illustrate the usage of several methods and functions related to
 the covariance-based rational approximation. We will use functions to sample from Gaussian fields
-with stationary Matérn covariance function, compute the log-likelihood function,
-perform predicitions (i.e., do kringing), etc.
+with stationary Matérn covariance function, compute the log-likelihood function, and do spatial prediction.
 
 The first step for performing the covariance-based rational SPDE approximation is to define the FEM mesh. 
 For illustration purposes, the `rSPDE` package contains a simple FEM implementation for 
 models on $\mathbb{R}$ which we will use first. We will also illustrate how spatial models 
 can be constructed if the FEM implementation of the `r inla_link()` package is used instead. 
 When using the `r inla_link()` package, we also recommend the usage of our `r inla_link()` implementation
-of the rational SPDE approach. For more details see the [R-INLA implementation of the rational SPDE approach](inla.html) vignette.
+of the rational SPDE approach. For more details, see the [R-INLA implementation of the rational SPDE approach](inla.html) vignette.
 
 We begin by loading the `rSPDE` package:
 
@@ -335,7 +306,7 @@ plot(s, c.true,
 lines(s, c_cov.approx, col = 2)
 legend("topright",
   bty = "n",
-  legend = c("Matérn", "m=2 CBrSPDE"),
+  legend = c("Matérn", "Rational"),
   col = c("black", "red"),
   lty = rep(1, 2), ncol = 1,
   cex = 0.8
@@ -426,12 +397,6 @@ rational approximation when compared to the operator-based rational approximatio
 See [Operator-based rational approximation](rspde_base.html)
 for details on the numerical instability of the operator-based rational approximation.
 
-The main reason for the numerical stability of the covariance-based method is that
-its clever
-decomposition of the latent field into a vector of random fields (see the introduction for
-further details) remove the need of higher order finite element matrices to have higher
-order rational approximations.
-
 ## Using the approximation 
 
 When we use the function `matern.operators()`, we can simulate from the model using the
@@ -452,7 +417,7 @@ u.rep <- simulate(op_cov, nsim = 2)
 
 ### Fitting a model
 
-There is also built-in support for computing loglikelihood function and performing kriging prediction. To illustrate this, we use the simulation to create some noisy observations of the process. For this, we first construct the observation matrix linking the FEM basis functions to the locations where we want to simulate. We first randomly generate some observation locations and then construct the matrix.
+There is built-in support for computing log-likelihood functions and performing kriging prediction in the `rSPDE` package. To illustrate this, we use the simulation to create some noisy observations of the process. For this, we first construct the observation matrix linking the FEM basis functions to the locations where we want to simulate. We first randomly generate some observation locations and then construct the matrix.
 ```{r}
 set.seed(1)
 s <- seq(from = 0, to = 1, length.out = 501)
@@ -604,13 +569,11 @@ par(opar)
 
 ## Fitting a model with replicates
 
-Let us illustrate how to simulate a dataset with replicates. Then,
-we will show how to fit parameters on such a dataset.
-
+Let us illustrate how to simulate a dataset with replicates and then fit a model to such data.
 Recall that to simulate a latent model with replicates, all we do is set
 the `nsim` argument to the number of replicates.
 
-Let us simulate the dataset. We will use the same `CBrSPDEobj` object (returned
+We will use the `CBrSPDEobj` object (returned
 from the `matern.operators()` function) from
 the previous example, namely `op_cov`.
 
@@ -627,8 +590,8 @@ sigma.e <- 0.3
 Y.rep <- A %*% u.rep + sigma.e * matrix(rnorm(n.obs * n.rep), ncol = n.rep)
 ```
 
-Notice that $Y$ is a matrix with 20 columns, each column containing 
-a replicate. Now, the remaining of the code is identical to the previous case.
+Note that $Y$ is a matrix with 20 columns, each column containing 
+one replicate. Now, the remaining of the code is identical to the previous case.
 The `rSPDE.matern.loglike()` function automatically identifies the replicates 
 from the fact that $Y$ is a matrix with more than one column.
 
@@ -673,9 +636,11 @@ using the `r inla_link()` package. Let us start by defining a mesh over $[0,1]\t
 and compute the mass and stiffness matrices for that mesh. 
 
 It is important to mention that when using the `r inla_link()` package we recommend
-the usage of the [R-INLA implementation of the rational SPDE approach](inla.html).
+the usage of the [R-INLA implementation of the rational SPDE approach](inla.html). 
+The purpose of this section is to show that we can estimate the model without `R-INLA`
+and using a maximum likelihood approach instead. 
 
-Let us then consider a simple Gaussian linear model with 30 independent replicates 
+We consider a simple Gaussian linear model with 30 independent replicates 
 of a latent spatial field $u(\mathbf{s})$, observed at the same 
 $m$ locations, $\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}$, for each replicate.
 For each $i = 1,\ldots,m,$ we have
@@ -690,7 +655,7 @@ y_{i+29m} &= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 where $\varepsilon_1,\ldots,\varepsilon_{30m}$ are iid normally distributed
 with mean 0 and standard deviation 0.1.
 
-Let us then create the FEM mesh:
+Let us create the FEM mesh:
 
 ```{r, message=FALSE, warning=FALSE,fig.align = "center"}
 library(INLA)
@@ -709,7 +674,7 @@ points(loc_2d_mesh[, 1], loc_2d_mesh[, 2])
 We can now use this mesh to define a rational SPDE approximation of order
 $m=2$ for a Matérn model in the same fashion as we did above in
 the one-dimensional case.
-We will now simulate a latent process with standard deviation $\sigma=1$ and 
+We now simulate a latent process with standard deviation $\sigma=1$ and 
 range $0.1$. We will use $\nu=0.5$ so that the model has an exponential covariance function.
 To this end we create a model object with the `matern.operators()` function:
 
@@ -761,8 +726,7 @@ par(opar)
 
 
 
-We will now use the 
-function `rSPDE.matern.loglike()` to define the likelihood. This function
+We now use the function `rSPDE.matern.loglike()` to define the likelihood. This function
 is object-based, in the sense that it obtains several of the quantities
 it needs from the `rSPDE` model object. In our case, for this example,
 the object `op_cov_2d`.
@@ -821,11 +785,6 @@ For instance, we can create an `rSPDE` object with a `chebfunLB` rational
 approximation by
 
 ```{r}
-nu <- 0.5
-sigma <- 1
-range <- 0.1
-kappa <- sqrt(8 * nu) / range
-d <- 2
 op_cov_2d_type <- matern.operators(
   mesh = mesh_2d,
   nu = nu,
