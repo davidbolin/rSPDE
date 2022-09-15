@@ -88,7 +88,7 @@ references:
   - family: Xiong
     given: Zhen
   - family: Simas
-    give: Alexandre B.
+    given: Alexandre B.
   - family: Bolin
     given: David
   container-title: arXiv:2209.04670
@@ -124,9 +124,9 @@ package. The main approach for constructing the rational approximations is the c
 * a stand-alone implementation of the approach.
 
 To illustrate these different functions, we begin by using the package to generate a simple data set, which then will be analyzed using 
-the different approaches.Further details on each family of functions is given in the following additional vignettes:
+the different approaches. Further details on each family of functions is given in the following additional vignettes:
 
-* [R-INLA implementation of the rational SPDE approach](inla.html)
+* [R-INLA implementation of the rational SPDE approach](rspde_inla.html)
 
 * [inlabru implementation of the rational SPDE approach](rspde_inlabru.html)
 
@@ -223,7 +223,7 @@ y <- A %*% u + rnorm(n_loc) * sigma.e
 
 The generated data can be seen in the following image.
 
-```{r,fig.align = "center", echo=FALSE}
+```{r,fig.align = "center", echo=TRUE}
 library(ggplot2)
 library(gridExtra)
 df <- data.frame(x1 = as.double(loc_2d_mesh[, 1]),
@@ -243,7 +243,7 @@ tryCatch(
 
 The simulated random field is shown in the following figure. 
 
-```{r, fig.show='hold', fig.align = "center",echo=FALSE}
+```{r, fig.show='hold', fig.align = "center",echo=TRUE}
 proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
 field <- inla.mesh.project(proj, field = as.vector(u))
 grd <- expand.grid(1:100, 1:100) / 100
@@ -416,7 +416,7 @@ sd.prd <- matrix(rspde_fitprd$summary.fitted.values$sd[id.prd], 100, 100)
 
 Finally, we plot the results. First the mean:
 
-```{r plot_pred, echo=FALSE, fig.align='center'}
+```{r plot_pred, echo=TRUE, fig.align='center'}
 grd <- expand.grid(1:100, 1:100) / 100
 field.pred.df <- cbind(grd, as.vector(m.prd))
 colnames(field.pred.df) <- c("x1", "x2", "y")
@@ -435,7 +435,7 @@ tryCatch(
 
 Then, the marginal standard deviations:
 
-```{r plot_pred_sd, fig.align='center', echo=FALSE}
+```{r plot_pred_sd, fig.align='center', echo=TRUE}
 field.pred.sd.df <- cbind(grd, as.vector(sd.prd))
 colnames(field.pred.sd.df) <- c("x1", "x2", "y")
 p <- ggplot(field.pred.sd.df, aes(x = x1, y = x2, fill = y)) +
@@ -551,7 +551,7 @@ field_pred <- predict(rspde_bru_fit, pred_coords, ~field)
 
 The following figure shows the mean of these predictions:
 
-```{r, echo=FALSE, fig.align='center'}
+```{r, echo=TRUE, fig.align='center'}
 field_pred_df <- field_pred@data
 field_pred_df <- cbind(field_pred_df, field_pred@coords)
 p <- ggplot(field_pred_df, aes(x = x1, y = x2, fill = mean)) +
@@ -562,7 +562,7 @@ p
 
 The following figure shows the marginal standard deviations of the predictions:
 
-```{r plot_pred_sd_bru, fig.align='center', echo=FALSE}
+```{r plot_pred_sd_bru, fig.align='center', echo=TRUE}
 p <- ggplot(field_pred_df, aes(x = x1, y = x2, fill = sd)) +
   geom_raster()
 p
@@ -571,7 +571,7 @@ p
 An alternative and very simple approach is to use the `pixel()` function:
 
 ```{r plot_pred_pxl, fig.align='center'}
- pxl <- pixels(mesh_2d)
+pxl <- pixels(mesh_2d)
 
 field_pred <- predict(rspde_bru_fit, pxl, ~field)
 
@@ -587,7 +587,7 @@ To this end we will use the rational approximation functions from
 [Rational approximation with the rSPDE package](rspde_cov.html).
 
 We use the 
-function `rSPDE.matern.loglike()` to define the likelihood. This function
+function `rSPDE.construct.matern.loglike()` to define the likelihood. This function
 is object-based, in the sense that it obtains several of the quantities
 it needs from the `rSPDE` model object. 
 
@@ -596,10 +596,9 @@ We will, then, use the same model object. Recall that the `rSPDE` model
 object we created is `op`. We also already have the $A$ matrix connecting
 the observation locations to the mesh, and we simply called it `A`.
 
-To simplify parameter estimation, we create an objective function to minimize 
-which is the negative log-likelihood, parametrized using the logarithm of each 
-parameter to avoid constrained optimization. This objective function is
-created by the function factory `rSPDE.construct.matern.loglike()` :
+To simplify parameter estimation, `rSPDE.construct.matern.loglike()` is a function
+factory and returns the negative of log-likelihood function, parametrized using the logarithm of each 
+parameter to avoid constrained optimization:
 
 ```{r}
 mlik <- rSPDE.construct.matern.loglike(object = op, Y=y, A=A)
@@ -696,7 +695,7 @@ pred.rspde <- predict(op.prd,
 
 Finally, we plot the results. First the mean:
 
-```{r plot_pred2, fig.align='center', echo=FALSE}
+```{r plot_pred2, fig.align='center', echo=TRUE}
 field.pred2.df <- cbind(grd, as.vector(pred.rspde$mean))
 colnames(field.pred2.df) <- c("x1", "x2", "y")
 p <- ggplot(field.pred2.df, aes(x = x1, y = x2, fill = y)) +
@@ -714,7 +713,7 @@ tryCatch(
 
 Then, the standard deviations:
 
-```{r plot_pred_sd2, fig.align='center', echo=FALSE}
+```{r plot_pred_sd2, fig.align='center', echo=TRUE}
 field.pred2.sd.df <- cbind(grd, as.vector(sqrt(pred.rspde$variance)))
 colnames(field.pred2.sd.df) <- c("x1", "x2", "y")
 p <- ggplot(field.pred2.sd.df, aes(x = x1, y = x2, fill = y)) +

@@ -65,9 +65,10 @@ Sys.setenv(PATH = paste(c(gcc, rtools, Sys.getenv("PATH")), collapse = ";"))
 where the variables `rtools` and `gcc` need to be changed if `Rtools` is not installed directly on `C:`,
 and `gcc`'s version might need to be changed depending on the version of `Rtools`.
 
-# Example
+# Example with rSPDE - INLA
 
-We will illustrate the `rSPDE` package with a kriging example. 
+We will illustrate the `rSPDE` package with a kriging example using our `R-INLA` interface to
+`rSPDE`. 
 
 The data consist of precipitation measurements from the Paraná region in Brazil
 and were provided by the Brazilian National Water Agency. The data were collected
@@ -239,11 +240,212 @@ grid.arrange(levelplot(m.prd, col.regions = tim.colors(99),
 ```
 <img src="articles/rspde_inla_files/figure-html/plot_pred-1.png">
 
+
+# Example with rSPDE - inlabru
+
+We will now illustrate the `rSPDE` the same kriging example above with our `inlabru`
+interface to `rSPDE`. We will make this description self-contained, so we will not use
+any information or codes from the example above.
+
+The data consist of precipitation measurements from the Paraná region in Brazil
+and were provided by the Brazilian National Water Agency. The data were collected
+at 616 gauge stations in Paraná state, south of Brazil, for each day in 2011.
+We will not analyse the full spatio-temporal data set, but instead look at the 
+total precipitation in January
+
+For further details on the dataset and on the commands we refer the reader
+to the [rSPDE-inlabru Vignette][ref9].
+
+```r
+library(rSPDE)
+library(ggplot2)
+library(INLA)
+library(inlabru)
+library(fields)
+library(splancs)
+library(gridExtra)
+library(lattice)
+
+#Load the data
+data(PRprec)
+data(PRborder)
+
+#Get the precipitation in January
+Y <- rowMeans(PRprec[, 3 + 1:31])
+
+#Treat the data and plot
+ind <- !is.na(Y)
+Y <- Y[ind]
+coords <- as.matrix(PRprec[ind, 1:2])
+alt <- PRprec$Altitude[ind]
+
+ggplot() + geom_point(aes(x = coords[, 1], y = coords[, 2], colour = Y),
+                      size = 2,
+                      alpha = 1) + 
+  scale_colour_gradientn(colours = tim.colors(100)) + 
+  geom_path(aes(x = PRborder[, 1], y = PRborder[, 2])) + 
+  geom_path(aes(x = PRborder[1034:1078, 1], 
+                y = PRborder[1034:1078, 2]), colour = "red")
+```
+
+<img src="articles/rspde_inla_files/figure-html/plot_precipitations-1.png">
+
+```r
+#Get distance from the sea
+seaDist <- apply(spDists(coords, PRborder[1034:1078, ], longlat = TRUE), 1, 
+                 min)
+                 
+#Create the mesh
+prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
+prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
+plot(prmesh, asp = 1, main = "")
+lines(PRborder, col = 3)
+points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
+```
+
+<img src="articles/rspde_inla_files/figure-html/mesh_creation-1.png">
+
+```r
+#Create the rspde model object
+rspde_model <- rspde.matern(mesh = prmesh)
+
+#Create the data.frame
+prdata <- data.frame(long = coords[,1], lat = coords[,2], 
+                        seaDist = inla.group(seaDist), y = Y)
+coordinates(prdata) <- c("long","lat")
+                      
+#Create the component
+
+# The following synthax is available for inlabru version 2.5.3.9002 and above:
+cmp <- y ~ Intercept(1) + distSea(seaDist, model="rw1") +
+field(coordinates, model = rspde_model)
+
+# For inlabru version 2.5.3 one should use:
+cmp <- y ~ Intercept(1) + distSea(seaDist, model="rw1") +
+field(coordinates, model = rspde_model, mapper = bru_mapper(rspde_model))
+
+# Fit the model
+  
+rspde_fit <- bru(cmp, family = "Gamma", 
+            data = prdata,
+            options = list(
+            verbose = FALSE, 
+            control.inla=list(int.strategy='eb'),
+            control.predictor = list(compute = TRUE))
+)
+            
+summary(rspde_fit)
+#>
+#> 
+#> inlabru version: 2.5.3
+#> INLA version: 22.09.15
+#> Components:
+#>   Intercept: Model types main='linear', group='exchangeable', replicate='iid'
+#>   distSea: Model types main='rw1', group='exchangeable', replicate='iid'
+#>   field: Model types main='rgeneric', group='exchangeable', replicate='iid'
+#> Likelihoods:
+#>   Family: 'Gamma'
+#>     Data class: 'SpatialPointsDataFrame'
+#>     Predictor: y ~ .
+#> Time used:
+#>     Pre = 0.385, Running = 17.8, Post = 0.0281, Total = 18.2 
+#> Fixed effects:
+#>            mean    sd 0.025quant 0.5quant 0.975quant mode   kld
+#> Intercept 1.944 0.055      1.836    1.943      2.051   NA 0.006
+#> 
+#> Random effects:
+#>   Name    Model
+#>     distSea RW1 model
+#>    field RGeneric2
+#> 
+#> Model hyperparameters:
+#>                                                     mean       sd 0.025quant 0.5quant 0.975quant    mode
+#> Precision parameter for the Gamma observations    13.201    0.946     11.415   13.175     15.142   13.14
+#> Precision for distSea                          10491.542 8262.891   2687.725 8135.913  32467.634 5357.16
+#> Theta1 for field                                  -0.982    0.499     -1.912   -1.001      0.052   -1.08
+#> Theta2 for field                                   1.047    0.354      0.316    1.060      1.708    1.11
+#> Theta3 for field                                  -0.968    0.322     -1.601   -0.968     -0.333   -0.97
+#> 
+#> Deviance Information Criterion (DIC) ...............: 2503.45
+#> Deviance Information Criterion (DIC, saturated) ....: 4750.55
+#> Effective number of parameters .....................: 83.48
+#> 
+#> Watanabe-Akaike information criterion (WAIC) ...: 2504.40
+#> Effective number of parameters .................: 74.86
+#> 
+#> Marginal log-Likelihood:  -1263.54 
+#>  is computed 
+#> Posterior summaries for the linear predictor and the fitted values are computed
+#> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
+
+
+#Get the summary on the user's scale
+result_fit <- rspde.result(rspde_fit, "field", rspde_model)
+summary(result_fit)
+#>     
+#>           mean       sd 0.025quant 0.5quant 0.975quant     mode
+#> tau   0.425204 0.234382   0.149134  0.36643    1.04198 0.279711
+#> kappa 3.026290 1.057290   1.381990  2.89078    5.48392 2.612380
+#> nu    1.118830 0.254024   0.674592  1.10071    1.66459 1.061370
+
+#Plot the posterior densities
+par(mfrow=c(1,3))
+plot(result_fit)
+```
+<img src="articles/rspde_inlabru_files/figure-html/plot_post-1.png">
+
+```r
+#Create a grid to predict
+nxy <- c(150, 100)
+projgrid <- rspde.mesh.projector(prmesh, xlim = range(PRborder[, 1]), 
+ylim = range(PRborder[,2]), dims = nxy)
+xy.in <- inout(projgrid$lattice$loc, cbind(PRborder[, 1], PRborder[, 2]))
+coord.prd <- projgrid$lattice$loc[xy.in, ]
+
+#Compute seaDist at predict locations 
+seaDist.prd <- apply(spDists(coord.prd, 
+    PRborder[1034:1078, ], longlat = TRUE), 1, min)
+
+# Build the prediction data.frame()
+coord.prd.df <- data.frame(x1 = coord.prd[,1],
+                            x2 = coord.prd[,2])
+coordinates(coord.prd.df) <- c("x1", "x2")
+coord.prd.df$seaDist <- seaDist.prd
+
+# Obtain prediction at the locations
+pred_obs <- predict(rspde_fit, coord.prd.df, 
+        ~exp(Intercept + field + distSea))
+
+# Prepare the plotting data.frame()
+pred_df <- pred_obs@data
+pred_df <- cbind(pred_df, pred_obs@coords)
+```
+
+Finally, we plot the results. First the predicted mean:
+
+```r
+p <- ggplot(pred_df, aes(x = x1, y = x2, fill = mean)) +
+  geom_raster() +
+  scale_fill_gradient(low = "yellow", high = "red")
+p
+```
+<img src="articles/rspde_inlabru_files/figure-html/unnamed-chunk-5-1.png">
+
+Then, the std. deviations:
+
+```r
+p <- ggplot(pred_df, aes(x = x1, y = x2, fill = sd)) +
+  geom_raster()
+p
+```
+<img src="articles/rspde_inlabru_files/figure-html/plot_pred_sd_bru-1.png">
+
 [ref]: https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537  "The rational SPDE approach for Gaussian random fields with general smoothness"
 [ref2]: https://davidbolin.github.io/rSPDE//articles/rSPDE.html "An introduction to the rSPDE package"
-[ref3]: https://davidbolin.github.io/rSPDE//articles/rspde_inla.html "INLA Vignette"
+[ref3]: https://davidbolin.github.io/rSPDE//articles/rspde_inla.html "INLA vignette"
 [ref4]: https://www.r-inla.org "INLA homepage"
 [ref5]: https://davidbolin.github.io/rSPDE//articles/rspde_base.html
 [ref6]: https://davidbolin.github.io/rSPDE//articles/rspde_cov.html
 [ref7]: https://davidbolin.github.io/rSPDE/reference/index.html "`rSPDE` documentation."
 [ref8]: https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x "An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach"
+[ref9]: https://davidbolin.github.io/rSPDE//articles/rspde_inlabru.html "inlabru vignette"

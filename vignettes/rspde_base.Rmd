@@ -181,7 +181,7 @@ abs(s), kappa, nu, sigma)
 ```
 
 The covariance function and the error compared with the Matérn covariance are shown in the following figure.
-```{r, fig.show='hold',fig.align = "center",echo=FALSE}
+```{r, fig.show='hold',fig.align = "center",echo=TRUE}
 opar <- par(
   mfrow = c(1, 2), mgp = c(1.3, 0.5, 0),
   mar = c(2, 2, 0.5, 0.5) + 0.1
@@ -236,7 +236,7 @@ c.approx4 <- A %*% op$Pr %*% solve(op$Q, op$Pr %*% v)
 
 The resulting errors are shown in the following figure. 
 
-```{r, fig.show='hold',fig.align = "center",echo=FALSE}
+```{r, fig.show='hold',fig.align = "center",echo=TRUE}
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 plot(s, c.true - c.approx,
   type = "l", ylab = "Error", xlab = "s", col = 1,
@@ -308,7 +308,7 @@ v <- t(rSPDE.A1d(s, c(0.1, 0.5, 0.9)))
 covs <- Sigma.mult(op, v)
 ```
 The three covariances are shown in the following figure.
-```{r, fig.show='hold', fig.align = "center",echo=FALSE}
+```{r, fig.show='hold', fig.align = "center",echo=TRUE}
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 plot(s, covs[, 1],
   type = "l", ylab = "C(s,s_i)", xlab = "s",
@@ -367,7 +367,7 @@ u.krig <- predict(op, A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e)
 ```
 The process simulation, the observed data, and the kriging prediction are shown in the following figure.
 
-```{r, fig.show='hold', fig.align = "center",echo=FALSE}
+```{r, fig.show='hold', fig.align = "center",echo=TRUE}
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 plot(obs.loc, Y,
   ylab = "u(s)", xlab = "s",
@@ -422,7 +422,7 @@ sigma.e <- 0.1
 Y <- A %*% u + matrix(rnorm(m * n.rep), ncol = n.rep) * sigma.e
 ```
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
-```{r, fig.show='hold', fig.align = "center",echo=FALSE}
+```{r, fig.show='hold', fig.align = "center",echo=TRUE}
 opar <- par(mfrow = c(1, 2), mgp = c(1.2, 0.5, 0),
 mar = c(2, 2, 0.5, 0.5) + 0.1)
 proj <- inla.mesh.projector(mesh_2d, dims = c(70, 70))

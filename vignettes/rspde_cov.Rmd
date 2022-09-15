@@ -100,7 +100,7 @@ references:
   - family: Xiong
     given: Zhen
   - family: Simas
-    give: Alexandre B.
+    given: Alexandre B.
   - family: Bolin
     given: David
   container-title: arXiv:2209.04670
@@ -294,7 +294,7 @@ c.true <- folded.matern.covariance.1d(rep(0.5, length(s)), abs(s), kappa, nu, si
 ```
 
 The covariance function and the error compared with the Matérn covariance are shown in the following figure.
-```{r, fig.show='hold', fig.align = "center",echo=FALSE}
+```{r, fig.show='hold', fig.align = "center",echo=TRUE}
 opar <- par(
   mfrow = c(1, 2), mgp = c(1.3, 0.5, 0),
   mar = c(2, 2, 0.5, 0.5) + 0.1
@@ -356,7 +356,7 @@ c_cov.approx4 <- (A2_bar2) %*% solve(Q4, v2_bar2)
 
 The resulting errors are shown in the following figure. 
 
-```{r, fig.show='hold',fig.align = "center",echo=FALSE}
+```{r, fig.show='hold',fig.align = "center",echo=TRUE}
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 plot(s, c.true - c_cov.approx,
   type = "l", ylab = "Error", xlab = "s", col = 1,
@@ -555,7 +555,7 @@ u.krig <- predict(op_cov, A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e)
 
 The simulated process, the observed data, and the kriging prediction are shown in the following figure.
 
-```{r, fig.show='hold',fig.align = "center",echo=FALSE}
+```{r, fig.show='hold',fig.align = "center",echo=TRUE}
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 plot(obs.loc, Y,
   ylab = "u(s)", xlab = "s",
@@ -636,7 +636,7 @@ using the `r inla_link()` package. Let us start by defining a mesh over $[0,1]\t
 and compute the mass and stiffness matrices for that mesh. 
 
 It is important to mention that when using the `r inla_link()` package we recommend
-the usage of the [R-INLA implementation of the rational SPDE approach](inla.html). 
+the usage of the [R-INLA implementation of the rational SPDE approach](rspde_inla.html). 
 The purpose of this section is to show that we can estimate the model without `R-INLA`
 and using a maximum likelihood approach instead. 
 
@@ -710,7 +710,7 @@ Y <- A %*% u + matrix(rnorm(n_loc * n.rep), ncol = n.rep) * sigma.e
 
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
 
-```{r, fig.show='hold',fig.align = "center",echo=FALSE}
+```{r, fig.show='hold',fig.align = "center",echo=TRUE}
 opar <- par(mfrow = c(1, 2), mgp = c(1.2, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 proj <- inla.mesh.projector(mesh_2d, dims = c(70, 70))
 image(inla.mesh.project(proj, field = as.vector(u[, 1])),
