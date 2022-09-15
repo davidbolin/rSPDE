@@ -570,20 +570,11 @@ p
 
 An alternative and very simple approach is to use the `pixel()` function:
 
-```{r}
+```{r plot_pred_pxl, fig.align='center'}
  pxl <- pixels(mesh_2d)
-```
 
-Let us now calculate the predictions. To this end we will use the `predict()`
-method in `inlabru`:
-
-```{r}
 field_pred <- predict(rspde_bru_fit, pxl, ~field)
-```
 
-Finally, we plot the results. 
-
-```{r plot_pred_pxl, echo=FALSE, fig.align='center'}
 ggplot() + gg(field_pred) +
   scale_fill_gradient(low = "yellow", high = "red")
 ```
