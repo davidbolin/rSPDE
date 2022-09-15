@@ -38,6 +38,7 @@ scales the variance of the solution \(u\), and \(W\) is white noise."><meta prop
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-vignettes">Vignettes</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-vignettes">
     <a class="dropdown-item" href="../articles/rspde_inla.html">R-INLA implementation of the rational SPDE approach</a>
+    <a class="dropdown-item" href="../articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a>
     <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a>
   </div>
@@ -146,7 +147,7 @@ This object contains the following quantities:</p>
 <dd><p>String indicating the type of approximation.</p></dd>
 
 <dt>Q</dt>
-<dd><p>The matrix <code>t(Pl)%*%solve(C,Pl)</code>.</p></dd>
+<dd><p>The matrix <code>t(Pl) %*% solve(C,Pl)</code>.</p></dd>
 
 <dt>type</dt>
 <dd><p>String indicating the type of approximation.</p></dd>
@@ -171,14 +172,14 @@ where \(m_\beta\) is the integer part of \(\beta\) if \(\beta&gt;1\) and
 <p>The discrete approximation can be written as \(u = P_r x\) where
 \(x \sim N(0,Q^{-1})\) and \(Q = P_l^T C^{-1} P_l\).
 Note that the matrices \(P_r\) and \(Q\) may be be ill-conditioned
-for \(m&gt;1\). In this case, the methods in <code><a href="operator.operations.html">operator.operations</a></code>
+for \(m&gt;1\). In this case, the methods in <code><a href="operator.operations.html">operator.operations()</a></code>
 should be used for operations involving the matrices, since these methods
 are more numerically stable.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="matern.operators.html">matern.operators</a></code>, <code><a href="spde.matern.operators.html">spde.matern.operators</a></code>,
-<code><a href="matern.operators.html">matern.operators</a></code></p></div>
+    <div class="dont-index"><p><code><a href="matern.operators.html">matern.operators()</a></code>, <code><a href="spde.matern.operators.html">spde.matern.operators()</a></code>,
+<code><a href="matern.operators.html">matern.operators()</a></code></p></div>
     </div>
 
     <div class="section level2">

@@ -53,6 +53,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-vignettes">Vignettes</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-vignettes">
     <a class="dropdown-item" href="../articles/rspde_inla.html">R-INLA implementation of the rational SPDE approach</a>
+    <a class="dropdown-item" href="../articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a>
     <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a>
   </div>
@@ -93,7 +94,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Rational approximation with the rSPDE package</h1>
                         <h4 data-toc-skip class="author">David Bolin, Alexandre B. Simas, Zhen Xiong</h4>
             
-            <h4 data-toc-skip class="date">2022-08-25</h4>
+            <h4 data-toc-skip class="date">2022-09-15</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_cov.Rmd" class="external-link"><code>vignettes/rspde_cov.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_cov.Rmd</code></div>
@@ -105,7 +106,7 @@
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
 <p>In this vignette we will illustrate how to do statistical inference with the covariance-based rational SPDE approach. The covariance-based rational approximation is related to the operator-based <span class="citation">(rational approximation by Bolin and Kirchner 2020)</span>(<a href="https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537" class="external-link uri">https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537</a>).</p>
-<p>The covariance-based rational approximation is an efficient alternative to the operator-based rational approximation when one has SPDE driven by Gaussian white noise.</p>
+<p>The covariance-based rational approximation is an efficient alternative to the operator-based rational approximation when one has SPDE driven by Gaussian white noise. We refer the reader to <span class="citation">(Xiong, Simas, and Bolin 2022)</span>(<a href="https://arxiv.org/abs/2209.04670" class="external-link uri">https://arxiv.org/abs/2209.04670</a>) for the theoretical details.</p>
 <p>When dealing with fractional SPDE models driven by non-Gaussian white noises, the operator-based rational approximations might be useful. For instance, consider the SPDE: <span class="math display">\[L^{\alpha/2}(\tau u) = \widetilde{\mathcal{W}},\]</span> where <span class="math inline">\(L = -\Delta +\kappa^2 I\)</span> and <span class="math inline">\(\widetilde{\mathcal{W}}\)</span> is a non-Gaussian white noise. An example in which the operator-based rational approximation is suitable, is when one has the above SPDE with the white noise being the so-called type-G Lévy noises.</p>
 <p>We refer the reader to <span class="citation">(Wallin and Bolin 2015)</span>(<a href="https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141" class="external-link uri">https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141</a>), <span class="citation">(Bolin 2013)</span>(<a href="https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046" class="external-link uri">https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046</a>) and <span class="citation">(Asar et al. 2020)</span>(<a href="https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405" class="external-link uri">https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405</a>) for examples of models driven by type-G Lévy noises. We also refer the reader to the <a href="https://github.com/davidbolin/ngme" class="external-link"><code>ngme</code> package</a> where one can fit such models.</p>
 <p>We explore the functions for performing the operator-based rational approximation on the vignette:</p>
@@ -233,12 +234,12 @@
 <div class="section level2">
 <h2 id="using-the-approximation">Using the approximation<a class="anchor" aria-label="anchor" href="#using-the-approximation"></a>
 </h2>
-<p>When we use the function <code><a href="../reference/matern.operators.html">matern.operators()</a></code>, we can simulate from the model using the <code><a href="../reference/simulate.rSPDEobj.html">simulate()</a></code> method. To such an end we simply apply the <code><a href="../reference/simulate.rSPDEobj.html">simulate()</a></code> method to the object returned by the <code><a href="../reference/matern.operators.html">matern.operators()</a></code> function:</p>
+<p>When we use the function <code><a href="../reference/matern.operators.html">matern.operators()</a></code>, we can simulate from the model using the <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> method. To such an end we simply apply the <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> method to the object returned by the <code><a href="../reference/matern.operators.html">matern.operators()</a></code> function:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate.rSPDEobj.html">simulate</a></span><span class="op">(</span><span class="va">op_cov</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op_cov</span><span class="op">)</span></span></code></pre></div>
 <p>If we want replicates, we simply set the argument <code>nsim</code> to the desired number of replicates. For instance, to generate two replicates of the model, we simply do:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">u.rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate.rSPDEobj.html">simulate</a></span><span class="op">(</span><span class="va">op_cov</span>, nsim <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">u.rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op_cov</span>, nsim <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="fitting-a-model">Fitting a model<a class="anchor" aria-label="anchor" href="#fitting-a-model"></a>
 </h3>
@@ -259,22 +260,13 @@
 <span>  C <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span>, G <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span>
 <span>  kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, d <span class="op">=</span> <span class="fl">1</span>, m <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate.rSPDEobj.html">simulate</a></span><span class="op">(</span><span class="va">op_cov</span><span class="op">)</span></span>
+<span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op_cov</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sigma.e</span> <span class="op">&lt;-</span> <span class="fl">0.3</span></span>
 <span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">u</span> <span class="op">+</span> <span class="va">sigma.e</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n.obs</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Let us now fit the model. To this end we first must compute the loglikelihood function as function of the parameters we want to estimate. We define the loglikelihood function parametrized using the logarithm of each parameter to avoid constrained optimization.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mlik_cov</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">Y</span>, <span class="va">A</span>, <span class="va">op_cov</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">nu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="fu">rSPDE</span><span class="fu">::</span><span class="fu"><a href="../reference/rSPDE.matern.loglike.html">rSPDE.matern.loglike</a></span><span class="op">(</span></span>
-<span>    object <span class="op">=</span> <span class="va">op_cov</span>, Y <span class="op">=</span> <span class="va">Y</span>,</span>
-<span>    A <span class="op">=</span> <span class="va">A</span>, user_kappa <span class="op">=</span> <span class="va">kappa</span>, user_sigma <span class="op">=</span> <span class="va">sigma</span>,</span>
-<span>    user_nu <span class="op">=</span> <span class="va">nu</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">mlik_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rSPDE.construct.matern.loglike.html">rSPDE.construct.matern.loglike</a></span><span class="op">(</span><span class="va">op_cov</span>, Y<span class="op">=</span><span class="va">Y</span>, A<span class="op">=</span><span class="va">A</span><span class="op">)</span></span></code></pre></div>
 <p>We will now get suitable initial values for the optimization using the <code><a href="../reference/get.inital.values.rSPDE.html">get.inital.values.rSPDE()</a></code>. We then add an initial guess for <code>sigma.e</code>.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">theta0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -284,7 +276,6 @@
 <span></span>
 <span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim</a></span><span class="op">(</span><span class="va">theta0</span>, <span class="va">mlik_cov</span>,</span>
-<span>  Y <span class="op">=</span> <span class="va">Y</span>, A <span class="op">=</span> <span class="va">A</span>, op_cov <span class="op">=</span> <span class="va">op_cov</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"L-BFGS-B"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -302,7 +293,7 @@
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 9.03304 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 5.826447 secs</span></span></code></pre>
 <p>We can also speed up the optimization by using the <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> function from the <code>optimParallel</code> package. To such an end, we simply replace the <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> function by <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> and set the number of cores we want to use:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/florafauna/optimParallel-R" class="external-link">optimParallel</a></span><span class="op">)</span></span>
@@ -319,11 +310,14 @@
 <span><span class="va">cl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">makeCluster</a></span><span class="op">(</span><span class="va">n_cores</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">setDefaultCluster</a></span><span class="op">(</span>cl <span class="op">=</span> <span class="va">cl</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Exporting the needed objects to the parallel cores</span></span>
+<span><span class="co"># This step is not necessary for the regular optim</span></span>
+<span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="st">"op_cov"</span><span class="op">)</span></span>
+<span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="st">"Y"</span><span class="op">)</span></span>
+<span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="st">"A"</span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">theta_parallel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel</a></span><span class="op">(</span><span class="va">theta0</span>, <span class="va">mlik_cov</span>,</span>
-<span>  Y <span class="op">=</span> <span class="va">Y</span>, A <span class="op">=</span> <span class="va">A</span>,</span>
-<span>  op_cov <span class="op">=</span> <span class="va">op_cov</span></span>
-<span><span class="op">)</span></span>
+<span><span class="va">theta_parallel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel</a></span><span class="op">(</span><span class="va">theta0</span>, <span class="va">mlik_cov</span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">time_optim</span> <span class="op">&lt;-</span> <span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
@@ -341,7 +335,7 @@
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 6.259692 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 5.016766 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kringing">Kringing<a class="anchor" aria-label="anchor" href="#kringing"></a>
@@ -376,7 +370,7 @@
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">n.rep</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
-<span><span class="va">u.rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate.rSPDEobj.html">simulate</a></span><span class="op">(</span><span class="va">op_cov</span>, nsim <span class="op">=</span> <span class="va">n.rep</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">u.rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op_cov</span>, nsim <span class="op">=</span> <span class="va">n.rep</span><span class="op">)</span></span></code></pre></div>
 <p>Now, let us generate the observed values <span class="math inline">\(Y\)</span>:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sigma.e</span> <span class="op">&lt;-</span> <span class="fl">0.3</span></span>
@@ -388,9 +382,16 @@
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
+<span><span class="va">mlik_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rSPDE.construct.matern.loglike.html">rSPDE.construct.matern.loglike</a></span><span class="op">(</span><span class="va">op_cov</span>, Y<span class="op">=</span><span class="va">Y.rep</span>, A<span class="op">=</span><span class="va">A</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Exporting the needed objects to the parallel cores</span></span>
+<span><span class="co"># This step is not necessary for the regular optim</span></span>
+<span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="st">"op_cov"</span><span class="op">)</span></span>
+<span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="st">"Y.rep"</span><span class="op">)</span></span>
+<span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="st">"A"</span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel</a></span><span class="op">(</span><span class="va">theta0</span>, <span class="va">mlik_cov</span>,</span>
-<span>  Y <span class="op">=</span> <span class="va">Y.rep</span>, A <span class="op">=</span> <span class="va">A</span>, op_cov <span class="op">=</span> <span class="va">op_cov</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"L-BFGS-B"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -408,7 +409,7 @@
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 4.390862 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 3.05596 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -454,7 +455,7 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <p>Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> function <code><a href="https://rdrr.io/pkg/INLA/man/inla.spde.make.A.html" class="external-link">inla.spde.make.A()</a></code>. Recall that we will simulate the data with 30 replicates.</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n.rep</span> <span class="op">&lt;-</span> <span class="fl">30</span></span>
-<span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate.rSPDEobj.html">simulate</a></span><span class="op">(</span><span class="va">op_cov_2d</span>, nsim <span class="op">=</span> <span class="va">n.rep</span><span class="op">)</span></span>
+<span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op_cov_2d</span>, nsim <span class="op">=</span> <span class="va">n.rep</span><span class="op">)</span></span>
 <span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.spde.make.A.html" class="external-link">inla.spde.make.A</a></span><span class="op">(</span></span>
 <span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
 <span>  loc <span class="op">=</span> <span class="va">loc_2d_mesh</span></span>
@@ -466,24 +467,22 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <p>We will now use the function <code><a href="../reference/rSPDE.matern.loglike.html">rSPDE.matern.loglike()</a></code> to define the likelihood. This function is object-based, in the sense that it obtains several of the quantities it needs from the <code>rSPDE</code> model object. In our case, for this example, the object <code>op_cov_2d</code>.</p>
 <p>To simplify parameter estimation, we create an objective function to minimize which is the negative log-likelihood, parametrized using the logarithm of each parameter to avoid constrained optimization.</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mlik_2d</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">Y</span>, <span class="va">A</span>, <span class="va">op_cov_2d</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">nu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="fu">rSPDE</span><span class="fu">::</span><span class="fu"><a href="../reference/rSPDE.matern.loglike.html">rSPDE.matern.loglike</a></span><span class="op">(</span></span>
-<span>    object <span class="op">=</span> <span class="va">op_cov_2d</span>, Y <span class="op">=</span> <span class="va">Y</span>,</span>
-<span>    A <span class="op">=</span> <span class="va">A</span>, user_kappa <span class="op">=</span> <span class="va">kappa</span>, user_sigma <span class="op">=</span> <span class="va">sigma</span>,</span>
-<span>    user_nu <span class="op">=</span> <span class="va">nu</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">mlik_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rSPDE.construct.matern.loglike.html">rSPDE.construct.matern.loglike</a></span><span class="op">(</span><span class="va">op_cov_2d</span>, Y<span class="op">=</span><span class="va">Y</span>, A<span class="op">=</span><span class="va">A</span><span class="op">)</span></span></code></pre></div>
 <p>We can now estimate the parameter using <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code>:</p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">theta0_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/get.inital.values.rSPDE.html">get.inital.values.rSPDE</a></span><span class="op">(</span>mesh <span class="op">=</span> <span class="va">mesh_2d</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Exporting the needed objects to the parallel cores</span></span>
+<span><span class="co"># This step is not necessary for the regular optim</span></span>
+<span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="st">"op_cov_2d"</span><span class="op">)</span></span>
+<span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="st">"Y"</span><span class="op">)</span></span>
+<span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="st">"A"</span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel</a></span><span class="op">(</span><span class="va">theta0_2d</span>, <span class="va">mlik_2d</span>, Y <span class="op">=</span> <span class="va">Y</span>, A <span class="op">=</span> <span class="va">A</span>, op_cov_2d <span class="op">=</span> <span class="va">op_cov_2d</span><span class="op">)</span></span>
+<span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel</a></span><span class="op">(</span><span class="va">theta0_2d</span>, <span class="va">mlik_2d</span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -500,7 +499,96 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 13.5863 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 11.49757 secs</span></span></code></pre>
+</div>
+<div class="section level2">
+<h2 id="changing-the-type-and-the-order-of-the-rational-approximation">Changing the type and the order of the rational approximation<a class="anchor" aria-label="anchor" href="#changing-the-type-and-the-order-of-the-rational-approximation"></a>
+</h2>
+<p>We have three rational approximations available. The BRASIL algorithm <span class="citation">(Hofreither 2021)</span>(<a href="https://doi.org/10.1007/s11075-020-01042-0" class="external-link uri">https://doi.org/10.1007/s11075-020-01042-0</a>), and two “versions” of the Clenshaw-Lord Chebyshev-Pade algorithm, one with lower bound zero and another with the lower bound given in <span class="citation">(Xiong, Simas, and Bolin 2022)</span>(<a href="https://arxiv.org/abs/2209.04670" class="external-link uri">https://arxiv.org/abs/2209.04670</a>).</p>
+<p>The type of rational approximation can be chosen by setting the <code>type_rational_approximation</code> argument in the <code>matern.operators</code> function. The BRASIL algorithm corresponds to the choice <code>brasil</code>, the Clenshaw-Lord Chebyshev pade with zero lower bound and non-zero lower bounds are given, respectively, by the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
+<p>For instance, we can create an <code>rSPDE</code> object with a <code>chebfunLB</code> rational approximation by</p>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.5</span></span>
+<span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">range</span> <span class="op">&lt;-</span> <span class="fl">0.1</span></span>
+<span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">8</span> <span class="op">*</span> <span class="va">nu</span><span class="op">)</span> <span class="op">/</span> <span class="va">range</span></span>
+<span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
+<span><span class="va">op_cov_2d_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/matern.operators.html">matern.operators</a></span><span class="op">(</span></span>
+<span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
+<span>  nu <span class="op">=</span> <span class="va">nu</span>,</span>
+<span>  kappa <span class="op">=</span> <span class="va">kappa</span>,</span>
+<span>  sigma <span class="op">=</span> <span class="va">sigma</span>,</span>
+<span>  m <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  type_rational_approximation <span class="op">=</span> <span class="st">"chebfunLB"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>We can check the order of the rational approximation with the <code><a href="../reference/rational.order.html">rational.order()</a></code> function and assign a new order with the <code>rational.order&lt;-()</code> function:</p>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.order.html">rational.order</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 2</span></span></code></pre>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.order.html">rational.order</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fl">3</span></span></code></pre></div>
+<p>Let us fit a model using the data from the previous example:</p>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mlik_2d_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rSPDE.construct.matern.loglike.html">rSPDE.construct.matern.loglike</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span>, Y<span class="op">=</span><span class="va">Y</span>, A<span class="op">=</span><span class="va">A</span><span class="op">)</span></span></code></pre></div>
+<p>We can now estimate the parameter using <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code>:</p>
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Exporting the needed objects to the parallel cores</span></span>
+<span><span class="co"># This step is not necessary for the regular optim</span></span>
+<span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="st">"op_cov_2d_type"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel</a></span><span class="op">(</span><span class="va">theta0_2d</span>, <span class="va">mlik_2d_type</span><span class="op">)</span></span>
+<span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##             sigma    kappa        nu   sigma.e</span></span>
+<span><span class="co">## True     1.000000 20.00000 0.5000000 0.1000000</span></span>
+<span><span class="co">## Estimate 1.050229 18.76927 0.3978261 0.1004293</span></span></code></pre>
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Total time</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Time difference of 10.77812 secs</span></span></code></pre>
+<p>Finally, we can check the type of rational approximation with the <code><a href="../reference/rational.type.html">rational.type()</a></code> function and assign a new type by using the <code>rational.type&lt;-()</code> function:</p>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.type.html">rational.type</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "chebfunLB"</span></span></code></pre>
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.type.html">rational.type</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"brasil"</span></span></code></pre></div>
+<p>Let us now fit this model, with the data from the previous example, with <code>brasil</code> rational approximation:</p>
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mlik_2d_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rSPDE.construct.matern.loglike.html">rSPDE.construct.matern.loglike</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span>, Y<span class="op">=</span><span class="va">Y</span>, A<span class="op">=</span><span class="va">A</span><span class="op">)</span></span></code></pre></div>
+<p>We can now estimate the parameter using <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code>:</p>
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Exporting the needed objects to the parallel cores</span></span>
+<span><span class="co"># This step is not necessary for the regular optim</span></span>
+<span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="st">"op_cov_2d_type"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel</a></span><span class="op">(</span><span class="va">theta0_2d</span>, <span class="va">mlik_2d_type</span><span class="op">)</span></span>
+<span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##             sigma    kappa        nu   sigma.e</span></span>
+<span><span class="co">## True     1.000000 20.00000 0.5000000 0.1000000</span></span>
+<span><span class="co">## Estimate 1.042359 19.04997 0.4124101 0.1004302</span></span></code></pre>
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Total time</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Time difference of 17.14095 secs</span></span></code></pre>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -515,11 +603,17 @@ Bolin, David. 2013. <span>“Spatial Matérn Fields Driven by Non-Gaussian Noise
 <div id="ref-bolin19" class="csl-entry">
 Bolin, David, and Kristin Kirchner. 2020. <span>“The Rational SPDE Approach for Gaussian Random Fields with General Smoothness.”</span> <em>Journal of Computational and Graphical Statistics</em> 29 (2): 274–85.
 </div>
+<div id="ref-Hofreither21" class="csl-entry">
+Hofreither, Clemens. 2021. <span>“An Algorithm for Best Rational Approximation Based on Barycentric Rational Interpolation.”</span> <em>Numerical Algorithms</em> 88 (1): 365–88.
+</div>
 <div id="ref-lindgren11" class="csl-entry">
 Lindgren, Finn, Håvard Rue, and Johan Lindström. 2011. <span>“An Explicit Link Between Gaussian Fields and Gaussian Markov Random Fields: The Stochastic Partial Differential Equation Approach.”</span> <em>Journal of the Royal Statistical Society. Series B. Statistical Methodology</em> 73 (4): 423–98.
 </div>
 <div id="ref-wallin15" class="csl-entry">
 Wallin, Jonas, and David Bolin. 2015. <span>“Geostatistical Modelling Using Non-Gaussian Matérn Fields.”</span> <em>Scandinavian Journal of Statistics</em> 42 (3): 872–90.
+</div>
+<div id="ref-xiong22" class="csl-entry">
+Xiong, Zhen, Simas, and David Bolin. 2022. <span>“Covariance-Based Rational Approximations of Fractional SPDEs for Computationally Efficient Bayesian Inference.”</span> <em>arXiv:2209.04670</em>.
 </div>
 </div>
 </div>

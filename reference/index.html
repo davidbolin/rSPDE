@@ -28,6 +28,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-vignettes">Vignettes</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-vignettes">
     <a class="dropdown-item" href="../articles/rspde_inla.html">R-INLA implementation of the rational SPDE approach</a>
+    <a class="dropdown-item" href="../articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a>
     <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a>
   </div>
@@ -142,6 +143,11 @@ using a rational SPDE approximation</dd>
         </dt>
         <dd>Parameter-based log-likelihood for a latent Gaussian Matern SPDE model
 using a rational SPDE approximation</dd>
+      </dl><dl><dt>
+          
+          <code><a href="rSPDE.construct.matern.loglike.html">rSPDE.construct.matern.loglike()</a></code> 
+        </dt>
+        <dd>Constructor of Matern loglikelihood functions.</dd>
       </dl></div><div class="section level2">
       <h2 id="computation-of-precision-matrices">Computation of precision matrices<a class="anchor" aria-label="anchor" href="#computation-of-precision-matrices"></a></h2>
       
@@ -183,7 +189,7 @@ random fields with integer covariance exponent</dd>
         <dd>Prediction of a fractional SPDE using a rational SPDE approximation</dd>
       </dl><dl><dt>
           
-          <code><a href="simulate.rSPDEobj.html">simulate()</a></code> 
+          <code><a href="simulate.rSPDEobj.html">simulate(<i>&lt;rSPDEobj&gt;</i>)</a></code> 
         </dt>
         <dd>Simulation of a fractional SPDE using a rational SPDE approximation</dd>
       </dl><dl><dt>
@@ -254,7 +260,7 @@ rSPDE objects</dd>
           
           <code><a href="rspde.precision.html">rspde.precision()</a></code> 
         </dt>
-        <dd>Precision matrices for <code>inla.rspde</code> objects</dd>
+        <dd>Precision matrices for <code>inla_rspde</code> objects</dd>
       </dl><dl><dt>
           
           <code><a href="rspde.result.html">rspde.result()</a></code> 
@@ -264,14 +270,30 @@ rSPDE objects</dd>
           
           <code><a href="plot.rspde.result.html">plot(<i>&lt;rspde.result&gt;</i>)</a></code> 
         </dt>
-        <dd>Posterior plots for field parameters for an <code>inla.rspde</code> model
+        <dd>Posterior plots for field parameters for an <code>inla_rspde</code> model
 from a <code>rspde.result</code> object</dd>
       </dl><dl><dt>
           
           <code><a href="summary.rspde.result.html">summary(<i>&lt;rspde.result&gt;</i>)</a></code> 
         </dt>
-        <dd>Summary for posteriors of field parameters for an <code>inla.rspde</code>
+        <dd>Summary for posteriors of field parameters for an <code>inla_rspde</code>
 model from a <code>rspde.result</code> object</dd>
+      </dl></div><div class="section level2">
+      <h2 id="functions-and-methods-for-rspde-interface-for-inlabru">Functions and methods for rSPDE interface for inlabru<a class="anchor" aria-label="anchor" href="#functions-and-methods-for-rspde-interface-for-inlabru"></a></h2>
+      
+      
+
+      
+    </div><div id="" class="section level2">
+      
+      
+      
+
+      <dl><dt>
+          
+          <code><a href="bru_mapper.inla_rspde.html">bru_mapper(<i>&lt;inla_rspde&gt;</i>)</a></code> <code><a href="bru_mapper.inla_rspde.html">ibm_n(<i>&lt;bru_mapper_inla_rspde&gt;</i>)</a></code> <code><a href="bru_mapper.inla_rspde.html">ibm_values(<i>&lt;bru_mapper_inla_rspde&gt;</i>)</a></code> <code><a href="bru_mapper.inla_rspde.html">ibm_amatrix(<i>&lt;bru_mapper_inla_rspde&gt;</i>)</a></code> <code><a href="bru_mapper.inla_rspde.html">bru_get_mapper.inla_rspde()</a></code> 
+        </dt>
+        <dd>rSPDE inlabru mapper</dd>
       </dl></div><div class="section level2">
       <h2 id="finite-element-related-functions">Finite element-related functions<a class="anchor" aria-label="anchor" href="#finite-element-related-functions"></a></h2>
       

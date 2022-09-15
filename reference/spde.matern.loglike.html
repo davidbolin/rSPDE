@@ -34,6 +34,7 @@ $$(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.$$"><meta property="og:image" con
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-vignettes">Vignettes</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-vignettes">
     <a class="dropdown-item" href="../articles/rspde_inla.html">R-INLA implementation of the rational SPDE approach</a>
+    <a class="dropdown-item" href="../articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a>
     <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a>
   </div>
@@ -147,7 +148,7 @@ rational approximation of the fractional SPDE model.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="matern.loglike.html">matern.loglike</a></code>, <code><a href="rSPDE.loglike.html">rSPDE.loglike</a></code>.</p></div>
+    <div class="dont-index"><p><code><a href="matern.loglike.html">matern.loglike()</a></code>, <code><a href="rSPDE.loglike.html">rSPDE.loglike()</a></code>.</p></div>
     </div>
 
     <div class="section level2">
@@ -176,7 +177,7 @@ rational approximation of the fractional SPDE model.</p>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Sample the model</span></span></span>
-<span class="r-in"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate.rSPDEobj.html">simulate</a></span><span class="op">(</span><span class="va">op</span>, <span class="va">n.rep</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op</span>, <span class="va">n.rep</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Create some data</span></span></span>
 <span class="r-in"><span><span class="va">obs.loc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">n.obs</span>, min <span class="op">=</span> <span class="fl">0</span>, max <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>

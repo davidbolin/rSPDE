@@ -36,6 +36,7 @@ $$C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-vignettes">Vignettes</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-vignettes">
     <a class="dropdown-item" href="../articles/rspde_inla.html">R-INLA implementation of the rational SPDE approach</a>
+    <a class="dropdown-item" href="../articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a>
     <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a>
   </div>
@@ -217,7 +218,7 @@ the higher-order FEM-related matrices.</p></dd>
 
 
 <p>returns an object of class "rSPDEobj". This object contains the
-quantities listed in the output of <code><a href="fractional.operators.html">fractional.operators</a></code>,
+quantities listed in the output of <code><a href="fractional.operators.html">fractional.operators()</a></code>,
 the <code>G</code> matrix, the dimension of the domain, as well as the
 parameters of the covariance function.</p>
     </div>
@@ -252,14 +253,14 @@ where \(m_\beta\) is the integer part of \(\beta\) if \(\beta&gt;1\) and
 \(x \sim N(0,Q^{-1})\) and \(Q = P_l^T C^{-1} P_l\).
 Note that the matrices \(P_r\) and \(Q\) may be be
 ill-conditioned for \(m&gt;1\). In this case, the methods in
-<code><a href="operator.operations.html">operator.operations</a></code> should be used for operations involving
+<code><a href="operator.operations.html">operator.operations()</a></code> should be used for operations involving
 the matrices, since these methods are more numerically stable.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="fractional.operators.html">fractional.operators</a></code>,
-<code><a href="spde.matern.operators.html">spde.matern.operators</a></code>,
-<code>matern.operators</code></p></div>
+    <div class="dont-index"><p><code><a href="fractional.operators.html">fractional.operators()</a></code>,
+<code><a href="spde.matern.operators.html">spde.matern.operators()</a></code>,
+<code>matern.operators()</code></p></div>
     </div>
 
     <div class="section level2">
