@@ -371,12 +371,12 @@ summary(rspde_fit)
 #> Theta1 for field                                  -0.982    0.499     -1.912 
 #> Theta2 for field                                   1.047    0.354      0.316 
 #> Theta3 for field                                  -0.968    0.322     -1.601
-#>                                                0.5quant 0.975quant    mode
-#> Precision parameter for the Gamma observations   13.175     15.142   13.14 
-#> Precision for distSea                          8135.913  32467.634 5357.16 
-#> Theta1 for field                                 -1.001      0.052   -1.08
-#> Theta2 for field                                  1.060      1.708    1.11
-#> Theta3 for field                                 -0.968     -0.333   -0.97
+#>                                                  0.5quant 0.975quant    mode
+#> Precision parameter for the Gamma observations     13.175     15.142   13.14 
+#> Precision for distSea                            8135.913  32467.634 5357.16 
+#> Theta1 for field                                   -1.001      0.052   -1.08
+#> Theta2 for field                                    1.060      1.708    1.11
+#> Theta3 for field                                   -0.968     -0.333   -0.97
 #> 
 #> Deviance Information Criterion (DIC) ...............: 2503.45
 #> Deviance Information Criterion (DIC, saturated) ....: 4750.55
