@@ -172,13 +172,19 @@ summary(rspde_fit)
 #>    field RGeneric2
 #> 
 #> Model hyperparameters:
-#>                                                    mean       sd 0.025quant 0.5quant 0.975quant     mode
-#> Precision parameter for the Gamma observations   13.200    0.876     11.548   13.177     14.990   13.139
-#> Precision for seaDist                          9378.627 6990.227   2651.630 7372.387  27837.501 5025.442
-#> Theta1 for field                                 -1.147    0.311     -1.788   -1.157     -0.521   -1.174
-#> Theta2 for field                                  1.089    0.116      0.846    1.090      1.315    1.099
-#> Theta3 for field                                 -0.899    0.179     -1.293   -0.898     -0.531   -0.884
-#> 
+#>                                                    mean       sd 0.025quant 
+#> Precision parameter for the Gamma observations   13.200    0.876     11.548 
+#> Precision for seaDist                          9378.627 6990.227   2651.630 
+#> Theta1 for field                                 -1.147    0.311     -1.788 
+#> Theta2 for field                                  1.089    0.116      0.846 
+#> Theta3 for field                                 -0.899    0.179     -1.293 
+#>                                                0.5quant 0.975quant     mode
+#> Precision parameter for the Gamma observations   13.177     14.990   13.139
+#> Precision for seaDist                          7372.387  27837.501 5025.442
+#> Theta1 for field                                 -1.157     -0.521   -1.174
+#> Theta2 for field                                  1.090      1.315    1.099
+#> Theta3 for field                                 -0.898     -0.531   -0.884
+#>   
 #> Marginal log-Likelihood:  -1261.74 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -359,12 +365,18 @@ summary(rspde_fit)
 #>    field RGeneric2
 #> 
 #> Model hyperparameters:
-#>                                                     mean       sd 0.025quant 0.5quant 0.975quant    mode
-#> Precision parameter for the Gamma observations    13.201    0.946     11.415   13.175     15.142   13.14
-#> Precision for distSea                          10491.542 8262.891   2687.725 8135.913  32467.634 5357.16
-#> Theta1 for field                                  -0.982    0.499     -1.912   -1.001      0.052   -1.08
-#> Theta2 for field                                   1.047    0.354      0.316    1.060      1.708    1.11
-#> Theta3 for field                                  -0.968    0.322     -1.601   -0.968     -0.333   -0.97
+#>                                                     mean       sd 0.025quant 
+#> Precision parameter for the Gamma observations    13.201    0.946     11.415 
+#> Precision for distSea                          10491.542 8262.891   2687.725 
+#> Theta1 for field                                  -0.982    0.499     -1.912 
+#> Theta2 for field                                   1.047    0.354      0.316 
+#> Theta3 for field                                  -0.968    0.322     -1.601
+#>                                                0.5quant 0.975quant    mode
+#> Precision parameter for the Gamma observations   13.175     15.142   13.14 
+#> Precision for distSea                          8135.913  32467.634 5357.16 
+#> Theta1 for field                                 -1.001      0.052   -1.08
+#> Theta2 for field                                  1.060      1.708    1.11
+#> Theta3 for field                                 -0.968     -0.333   -0.97
 #> 
 #> Deviance Information Criterion (DIC) ...............: 2503.45
 #> Deviance Information Criterion (DIC, saturated) ....: 4750.55
