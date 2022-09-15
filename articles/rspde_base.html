@@ -192,7 +192,7 @@ u_h(s) = \sum_{i=1}^n u_i \varphi_i(s).
 <span>  <span class="va">c.app</span> <span class="op">&lt;-</span> <span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">op</span><span class="op">$</span><span class="va">Pr</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/solve-methods.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">op</span><span class="op">$</span><span class="va">Q</span>, <span class="va">op</span><span class="op">$</span><span class="va">Pr</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">v</span><span class="op">)</span></span>
 <span>  <span class="va">errors</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/norm.html" class="external-link">norm</a></span><span class="op">(</span><span class="va">c.true</span> <span class="op">-</span> <span class="va">c.app</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">errors</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/spam/man/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">errors</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1]  1.0120165  0.1100542 52.4841240 54.6499071</span></span></code></pre></div>
 <p>We see that the error decreases when increasing <span class="math inline">\(m\)</span> from <span class="math inline">\(1\)</span> to <span class="math inline">\(2\)</span>, but is very large for <span class="math inline">\(m=3\)</span> and <span class="math inline">\(m=4\)</span>. The reason for this is not that the approximation is bad, but that the numerical accuracy of the product <span class="math inline">\(\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv\)</span> is low due to the large condition numbers of the matrices.</p>
 <p>It is important to note that the alternative covariance-based rational approximation is more numerically stable. The main reason for this is that it relies on a decomposition of the field <span class="math inline">\(u\)</span> into a sum of random fields, which removes the need of computing higher order finite element matrices for large values of <span class="math inline">\(m\)</span>. See the <a href="rspde_cov.html">Rational approximation with the rSPDE package</a> vignette for further details.</p>
@@ -208,7 +208,7 @@ u_h(s) = \sum_{i=1}^n u_i \varphi_i(s).
 <span>  <span class="va">c.app</span> <span class="op">&lt;-</span> <span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="../reference/operator.operations.html">Sigma.mult</a></span><span class="op">(</span><span class="va">op</span>, <span class="va">v</span><span class="op">)</span></span>
 <span>  <span class="va">errors2</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/norm.html" class="external-link">norm</a></span><span class="op">(</span><span class="va">c.true</span> <span class="op">-</span> <span class="va">c.app</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">errors2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/spam/man/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">errors2</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1.01201540 0.10479953 0.02474815 0.01788324</span></span></code></pre></div>
 </div>
 </div>
@@ -339,14 +339,14 @@ u_h(s) = \sum_{i=1}^n u_i \varphi_i(s).
 <span>  sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/spam/man/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             sigma    kappa       nu    sigma.e</span></span>
 <span><span class="co">#&gt; True     1.000000 20.00000 0.500000 0.10000000</span></span>
 <span><span class="co">#&gt; Estimate 5.662538 27.34414 1.029998 0.08323404</span></span>
 <span></span>
 <span><span class="co"># Total time</span></span>
-<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 27.67703 secs</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/spam/man/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Time difference of 31.72229 secs</span></span></code></pre></div>
 <p>Finally, we observe that we can use the <code><a href="../reference/rational.order.html">rational.order()</a></code> function, to check the order of the rational approximation of the <code>rSPDE</code> object, as well as to use the <code>rational.order&lt;-()</code> function to assign new orders:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.order.html">rational.order</a></span><span class="op">(</span><span class="va">op_obj</span><span class="op">)</span></span>
@@ -367,14 +367,14 @@ u_h(s) = \sum_{i=1}^n u_i \varphi_i(s).
 <span>  sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">pars</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/spam/man/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             sigma    kappa       nu    sigma.e</span></span>
 <span><span class="co">#&gt; True     1.000000 20.00000 0.500000 0.10000000</span></span>
 <span><span class="co">#&gt; Estimate 5.675028 27.14913 1.012389 0.08333184</span></span>
 <span></span>
 <span><span class="co"># Total time</span></span>
-<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 34.98776 secs</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/spam/man/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Time difference of 41.0701 secs</span></span></code></pre></div>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
