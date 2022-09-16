@@ -1,3 +1,5 @@
+# rSPDE (development version)
+
 # rSPDE 1.2.0
 * Added an inlabru interface
 * Added "rational.order" and "rational.type" functions
