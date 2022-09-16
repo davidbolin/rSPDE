@@ -57,8 +57,7 @@ for rSPDE models based on \code{inla.mesh} or
 \code{inla.mesh.1d} objects.
 }
 \examples{
-\donttest{
-# devel version
+\donttest{ #devel version
 if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
 
@@ -71,6 +70,6 @@ mesh <- inla.mesh.2d(
 )
 A <- rspde.make.A(mesh, loc = loc, rspde_order = 3)
 }
-# devel.tag
+#devel.tag
 }
 }

@@ -451,8 +451,7 @@ utils::globalVariables(c(
 #' the prior is.
 #'
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #'
@@ -517,8 +516,7 @@ utils::globalVariables(c(
 #' # The result
 #' summary(rspde_fit)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 #'
 rspde.matern <- function(mesh,
@@ -1475,8 +1473,7 @@ sigma = NULL, dim, fem_mesh_matrices) {
 #' @return The \eqn{A} matrix for rSPDE models.
 #' @export
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #' 
@@ -1489,8 +1486,7 @@ sigma = NULL, dim, fem_mesh_matrices) {
 #' )
 #' A <- rspde.make.A(mesh, loc = loc, rspde_order = 3)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 rspde.make.A <- function(mesh = NULL,
                          loc = NULL,
@@ -1583,8 +1579,7 @@ rspde.make.A <- function(mesh = NULL,
 #' \item{name.repl}{Indices for replicates}
 #' @export
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #' 
@@ -1634,8 +1629,7 @@ rspde.make.A <- function(mesh = NULL,
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' plot(result)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
                              n.repl = 1, mesh = NULL,
@@ -1718,8 +1712,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' @return A sparse precision matrix.
 #' @export
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #' 
@@ -1736,8 +1729,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' rspde_model <- rspde.matern(mesh)
 #' prec <- rspde.precision(rspde_model, theta = log(c(1, 3, 1.2)))
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 rspde.precision <- function(rspde,
                             theta,
@@ -1802,8 +1794,7 @@ rspde.precision <- function(rspde,
 #' \item{summary.nu}{Summary statistics for nu}
 #' @export
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #' 
@@ -1854,8 +1845,7 @@ rspde.precision <- function(rspde,
 #' summary(result)
 #' plot(result)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
   check_class_inla_rspde(rspde)
@@ -2028,8 +2018,7 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #' @export
 #' @method plot rspde.result
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #' 
@@ -2079,8 +2068,7 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' plot(result)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
                               caption = list(
@@ -2163,8 +2151,7 @@ plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
 #' @export
 #' @method summary rspde.result
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #' 
@@ -2214,8 +2201,7 @@ plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 #'
 summary.rspde.result <- function(object,
