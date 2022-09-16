@@ -95,7 +95,7 @@
                         <h4 data-toc-skip class="author">David Bolin and
 Alexandre B. Simas</h4>
             
-            <h4 data-toc-skip class="date">2022-09-16</h4>
+            <h4 data-toc-skip class="date">2022-09-17</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_inlabru.Rmd" class="external-link"><code>vignettes/rspde_inlabru.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_inlabru.Rmd</code></div>
@@ -351,7 +351,7 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 1.62, Running = 9.46, Post = 0.156, Total = 11.2 </span></span>
+<span><span class="co">##     Pre = 1.73, Running = 9.6, Post = 0.157, Total = 11.5 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.945 0.053      1.842    1.945      2.048 1.945   0</span></span>
@@ -364,13 +364,13 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                                    mean       sd 0.025quant</span></span>
 <span><span class="co">## Precision parameter for the Gamma observations   13.317    0.892      11.62</span></span>
-<span><span class="co">## Precision for distSea                          8735.665 5863.517    2549.03</span></span>
+<span><span class="co">## Precision for distSea                          8735.914 5864.097    2548.97</span></span>
 <span><span class="co">## Theta1 for field                                 -1.423    0.395      -2.25</span></span>
 <span><span class="co">## Theta2 for field                                  1.209    0.143       0.92</span></span>
 <span><span class="co">## Theta3 for field                                 -0.771    0.219      -1.22</span></span>
 <span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.299     15.133   13.279</span></span>
-<span><span class="co">## Precision for distSea                          7170.291  24295.032 5074.273</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.298     15.133   13.279</span></span>
+<span><span class="co">## Precision for distSea                          7170.327  24296.884 5074.145</span></span>
 <span><span class="co">## Theta1 for field                                 -1.422     -0.616   -1.415</span></span>
 <span><span class="co">## Theta2 for field                                  1.209      1.502    1.207</span></span>
 <span><span class="co">## Theta3 for field                                 -0.772     -0.314   -0.776</span></span>
@@ -413,9 +413,9 @@ scale by using the function <code><a href="../reference/rspde.result.html">rspde
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##           mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## tau   0.260286 0.105174   0.110954 0.241576   0.518287 0.207444</span></span>
-<span><span class="co">## kappa 3.385640 0.483428   2.540850 3.349300   4.436200 3.276640</span></span>
-<span><span class="co">## nu    1.272270 0.187927   0.928205 1.263760   1.663550 1.244290</span></span></code></pre>
+<span><span class="co">## tau   0.260288 0.105175   0.110955 0.241578   0.518291 0.207446</span></span>
+<span><span class="co">## kappa 3.385610 0.483417   2.540840 3.349280   4.436140 3.276610</span></span>
+<span><span class="co">## nu    1.272270 0.187925   0.928206 1.263760   1.663550 1.244290</span></span></code></pre>
 <p>We can also plot the posterior densities:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
@@ -644,7 +644,7 @@ some meaningless model.</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 1.68, Running = 161, Post = 4.85, Total = 168 </span></span>
+<span><span class="co">##     Pre = 1.63, Running = 160, Post = 4.76, Total = 166 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field RGeneric2</span></span>
