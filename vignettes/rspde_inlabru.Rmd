@@ -81,7 +81,7 @@ inla_link <- function() {
 In this vignette we will present the [`inlabru`](http://inlabru.org/) implementation of the covariance-based
 rational SPDE approach. For further technical details on the covariance-based approach, see 
 the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette
-and [@xiong22](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537).
+and [@xiong22](https://arxiv.org/abs/2209.04670). 
 
 We begin by providing a 
 step-by-step illustration on how to use our implementation. To this end we 
@@ -322,16 +322,16 @@ where $\alpha = \nu + d/2$, we have that
 $$\tau = \exp(\theta_1),\quad \kappa = \exp(\theta_2), $$
 and by default
 $$\nu = 4\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
-The number 4 comes from the upper bound for $\nu$, which will be discussed later in this vignette. 
+The number 4 comes from the upper bound for $\nu$, which is discussed in [R-INLA implementation of the rational SPDE approach](rspde_inla.html) vignette. 
 
 In general, we have
 $$\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big),$$
 where $\nu_{UB}$ is the value of the upper bound for the smoothness parameter $\nu$.
 
 Another choice for prior for $\nu$ is a truncated lognormal distribution and
-will also be discussed later in this vignette.
+is also discussed in [R-INLA implementation of the rational SPDE approach](rspde_inla.html) vignette.
 
-### `rSPDE`-`INLA` results
+### inlabru results in the original scale
 
 We can obtain outputs with respect to parameters in the original scale by
 using the function `rspde.result()`:
@@ -347,10 +347,6 @@ We can also plot the posterior densities:
 par(mfrow = c(1, 3))
 plot(result_fit, caption = c("tau", "kappa", "nu"))
 ```
-
-This function is reminiscent to the `inla.spde.result()` function with the main
-difference that it has the `summary()` and `plot()` methods implemented.
-
 
 ### Predictions
 
@@ -548,7 +544,7 @@ par(opar)
 ```
 
 
-### Fitting the `inlabru` rSPDE model
+### Fitting the inlabru rSPDE model
 
 Let us then use the rational SPDE approach to fit the data.
 
