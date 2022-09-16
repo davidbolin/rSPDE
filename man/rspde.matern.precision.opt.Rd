@@ -2,7 +2,8 @@
 % Please edit documentation in R/inla_rspde.R
 \name{rspde.matern.precision.opt}
 \alias{rspde.matern.precision.opt}
-\title{Optimized precision matrix of the covariance-based rational approximation}
+\title{Optimized precision matrix of the covariance-based rational
+approximation}
 \usage{
 rspde.matern.precision.opt(
   kappa,
@@ -12,7 +13,8 @@ rspde.matern.precision.opt(
   dim,
   fem_matrices,
   graph = NULL,
-  sharp
+  sharp,
+  type_rational_approx
 )
 }
 \arguments{
@@ -26,13 +28,18 @@ rspde.matern.precision.opt(
 
 \item{dim}{The dimension of the domain}
 
-\item{fem_matrices}{A list containing the FEM-related matrices. The list should contain elements C, G, G_2, G_3, etc.}
+\item{fem_matrices}{A list containing the FEM-related matrices.
+The list should contain elements C, G, G_2, G_3, etc.}
 
 \item{graph}{The sparsity graph of the matrices. If NULL, only a vector
-of the elements will be returned, if non-NULL, a sparse matrix will be returned.}
+of the elements will be returned, if non-NULL, a sparse matrix will
+be returned.}
 
-\item{sharp}{The sparsity graph should have the correct sparsity (costs more to perform
-a sparsity analysis) or an upper bound for the sparsity?}
+\item{sharp}{The sparsity graph should have the correct sparsity (costs
+more to perform a sparsity analysis) or an upper bound for the sparsity?}
+
+\item{type_rational_approx}{Which type of rational approximation
+should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
 }
 \value{
 The precision matrix
@@ -42,5 +49,6 @@ The precision matrix
 optimized version of the precision matrix of the
 covariance-based rational SPDE approximation of a stationary Gaussian random
 fields on \eqn{R^d} with a Matern covariance function
-\deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu K_\nu(\kappa h).}
+\deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu
+K_\nu(\kappa h).}
 }

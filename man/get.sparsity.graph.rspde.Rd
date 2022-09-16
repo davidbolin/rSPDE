@@ -17,7 +17,8 @@ get.sparsity.graph.rspde(
 \arguments{
 \item{mesh}{An INLA mesh, optional}
 
-\item{fem_mesh_matrices}{A list containing the FEM-related matrices. The list should contain elements C, G, G_2, G_3, etc. Optional,
+\item{fem_mesh_matrices}{A list containing the FEM-related matrices.
+The list should contain elements C, G, G_2, G_3, etc. Optional,
 should be provided if mesh is not provided.}
 
 \item{nu}{The smoothness parameter}
@@ -26,10 +27,11 @@ should be provided if mesh is not provided.}
 
 \item{rspde_order}{The order of the covariance-based rational SPDE approach.}
 
-\item{sharp}{The graph should have the correct sparsity (costs more to perform
-a sparsity analysis) or an upper bound for the sparsity?}
+\item{sharp}{The graph should have the correct sparsity (costs
+more to perform a sparsity analysis) or an upper bound for the sparsity?}
 
-\item{dim}{The dimension, optional. Should be provided if mesh is not provided.}
+\item{dim}{The dimension, optional. Should be provided if mesh
+is not provided.}
 }
 \value{
 The sparsity graph for rSPDE models to be used in R-INLA interface.

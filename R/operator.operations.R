@@ -18,21 +18,27 @@
 #' Operations with the Pr and Pl operators
 #'
 #' @description
-#' Functions for multiplying and solving with the \eqn{P_r} and \eqn{P_l} operators as well as
-#' the latent precision matrix \eqn{Q = P_l C^{-1}P_l} and covariance matrix
+#' Functions for multiplying and solving with the \eqn{P_r}
+#' and \eqn{P_l} operators as well as the latent precision
+#' matrix \eqn{Q = P_l C^{-1}P_l} and covariance matrix
 #' \eqn{\Sigma = P_r Q^{-1} P_r^T}.
-#' These operations are done without first assembling \eqn{P_r}, \eqn{P_l} in order to avoid
-#' numerical problems caused by ill-conditioned matrices.
+#' These operations are done without first assembling \eqn{P_r},
+#' \eqn{P_l} in order to avoid numerical problems caused by
+#' ill-conditioned matrices.
 #'
 #' @param obj rSPDE object
 #' @param v vector to apply the operation to
-#' @param transpose set to TRUE if the operation should be performed with the transposed object
+#' @param transpose set to TRUE if the operation should be
+#' performed with the transposed object
 #'
 #' @return A vector with the values of the operation
 #'
-#' @details \code{Pl.mult}, \code{Pr.mult}, and \code{Q.mult} multiplies the vector with the respective object.
-#' Changing \code{mult} to \code{solve} in the function names multiplies the vector with the inverse of the
-#' object. \code{Qsqrt.mult} and \code{Qsqrt.solve} performs the operations with the square-root type object
+#' @details `Pl.mult`, `Pr.mult`, and `Q.mult`
+#' multiplies the vector with the respective object.
+#' Changing `mult` to `solve` in the function names
+#' multiplies the vector with the inverse of the object.
+#' `Qsqrt.mult` and `Qsqrt.solve` performs the
+#' operations with the square-root type object
 #' \eqn{Q_r = C^{-1/2}P_l} defined so that \eqn{Q = Q_r^T Q_r}.
 #'
 #' @name operator.operations
@@ -41,15 +47,14 @@ NULL
 #' @rdname operator.operations
 #' @export
 Pr.mult <- function(obj, v, transpose = FALSE) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj, "rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   if (transpose) {
     v <- obj$Pr.factors$Phi %*% v
   }
-  I <- Matrix::Diagonal(dim(obj$C)[1])
   if (!is.null(obj$Pr.factors$roots)) {
-    for (i in 1:length(obj$Pr.factors$roots)) {
+    for (i in seq_len(length(obj$Pr.factors$roots))) {
       if (transpose) {
         v <- t(t(v) %*% obj$Pr.factors$factor[[i]])
       } else {
@@ -67,15 +72,14 @@ Pr.mult <- function(obj, v, transpose = FALSE) {
 #' @rdname operator.operations
 #' @export
 Pr.solve <- function(obj, v, transpose = FALSE) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj, "rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
-  I <- Matrix::Diagonal(dim(obj$C)[1])
   if (!transpose) {
     v <- solve(obj$Pr.factors$Phi, v)
   }
   if (!is.null(obj$Pr.factors$roots)) {
-    for (i in 1:length(obj$Pr.factors$roots)) {
+    for (i in seq_len(length(obj$Pr.factors$roots))) {
       if (transpose) {
         v <- solve(t(obj$Pr.factors$factor[[i]]), v)
       } else {
@@ -92,12 +96,10 @@ Pr.solve <- function(obj, v, transpose = FALSE) {
 #' @rdname operator.operations
 #' @export
 Pl.mult <- function(obj, v, transpose = FALSE) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj, "rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
-  I <- Matrix::Diagonal(dim(obj$C)[1])
   if (transpose) {
-    M <- t(obj$CiL)
     v <- obj$C %*% v
     if (obj$Pl.factors$k > 0) {
       for (i in 1:obj$Pl.factors$k) {
@@ -106,7 +108,7 @@ Pl.mult <- function(obj, v, transpose = FALSE) {
     }
   }
   if (!is.null(obj$Pl.factors$roots)) {
-    for (i in 1:length(obj$Pl.factors$roots)) {
+    for (i in seq_len(length(obj$Pl.factors$roots))) {
       if (transpose) {
         v <- t(t(v) %*% obj$Pl.factors$factor[[i]])
       } else {
@@ -129,10 +131,9 @@ Pl.mult <- function(obj, v, transpose = FALSE) {
 #' @rdname operator.operations
 #' @export
 Pl.solve <- function(obj, v, transpose = FALSE) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj, "rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
-  I <- Matrix::Diagonal(dim(obj$C)[1])
   if (!transpose) {
     v <- obj$Ci %*% v
     if (obj$Pl.factors$k > 0) {
@@ -142,13 +143,12 @@ Pl.solve <- function(obj, v, transpose = FALSE) {
     }
   }
   if (!is.null(obj$Pl.factors$roots)) {
-    for (i in 1:length(obj$Pl.factors$roots)) {
+    for (i in seq_len(length(obj$Pl.factors$roots))) {
       if (transpose) {
         v <- solve(t(obj$Pl.factors$factor[[i]]), v)
       } else {
         v <- solve(obj$Pl.factors$factor[[i]], v)
       }
-      
     }
   }
   if (transpose) {
@@ -159,38 +159,65 @@ Pl.solve <- function(obj, v, transpose = FALSE) {
     }
     v <- obj$Ci %*% v
   }
-  v <-  v / obj$Pl.factors$scaling
+  v <- v / obj$Pl.factors$scaling
   return(v)
 }
 
 #' @rdname operator.operations
 #' @export
 Q.mult <- function(obj, v) {
-  if (class(obj) != "rSPDEobj") {
-    stop("obj is not of class rSPDE.obj")
+  if (inherits(obj, "rSPDEobj")) {
+    v <- Pl.mult(obj, v)
+    v <- obj$Ci %*% v
+    v <- Pl.mult(obj, v, transpose = TRUE)
+    return(v)
+  } else if (inherits(obj, "CBrSPDEobj")) {
+    Q.int <- obj$Q.int
+    order_Q_int <- Q.int$order
+    Q.int <- Q.int$Q.int
+    Q.frac <- obj$Q.frac
+    v <- Q.frac %*% v
+    if (order_Q_int > 0) {
+      for (i in 1:order_Q_int) {
+        v <- Q.int %*% v
+      }
+    }
+    return(v)
+  } else {
+    stop("obj is not of class rSPDEobj")
   }
-  v <- Pl.mult(obj, v)
-  v <- obj$Ci %*% v
-  v <- Pl.mult(obj, v, transpose = TRUE)
-  return(v)
 }
 
 #' @rdname operator.operations
 #' @export
 Q.solve <- function(obj, v) {
-  if (class(obj) != "rSPDEobj") {
-    stop("obj is not of class rSPDE.obj")
+  if (inherits(obj, "rSPDEobj")) {
+    v <- Pl.solve(obj, v, transpose = TRUE)
+    v <- obj$C %*% v
+    v <- Pl.solve(obj, v)
+    return(v)
+  } else if (inherits(obj, "CBrSPDEobj")) {
+    Q.int <- obj$Q.int
+    Q.frac <- obj$Q.frac
+    order_Q_int <- Q.int$order
+    Q.int <- as(Q.int$Q.int, "dgTMatrix")
+    prod_tmp <- solve(Q.int, v)
+    if (order_Q_int > 1) {
+      for (i in 2:order_Q_int) {
+        prod_tmp <- solve(Q.int, prod_tmp)
+      }
+    }
+    v <- solve(Q.frac, prod_tmp)
+    return(v)
+  } else {
+    stop("obj is not of class rSPDEobj nor CBrSPDEobj")
   }
-  v <- Pl.solve(obj, v, transpose = TRUE)
-  v <- obj$C %*% v
-  v <- Pl.solve(obj, v)
-  return(v)
 }
 
 #' @rdname operator.operations
 #' @export
 Qsqrt.mult <- function(obj, v, transpose = FALSE) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj, "rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   if (transpose) {
@@ -206,7 +233,7 @@ Qsqrt.mult <- function(obj, v, transpose = FALSE) {
 #' @rdname operator.operations
 #' @export
 Qsqrt.solve <- function(obj, v, transpose = FALSE) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj, "rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   if (transpose) {
@@ -222,7 +249,7 @@ Qsqrt.solve <- function(obj, v, transpose = FALSE) {
 #' @rdname operator.operations
 #' @export
 Sigma.mult <- function(obj, v) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj, "rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   v <- Pr.mult(obj, v, transpose = TRUE)
@@ -234,7 +261,7 @@ Sigma.mult <- function(obj, v) {
 #' @rdname operator.operations
 #' @export
 Sigma.solve <- function(obj, v) {
-  if (class(obj) != "rSPDEobj") {
+  if (!inherits(obj, "rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
   v <- Pr.solve(obj, v)
@@ -242,3 +269,7 @@ Sigma.solve <- function(obj, v) {
   v <- Pr.solve(obj, v, transpose = TRUE)
   return(v)
 }
+
+#' @rdname operator.operations
+#' @export
+#'

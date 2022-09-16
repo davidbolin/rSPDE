@@ -1,7 +1,6 @@
 url: https://davidbolin.github.io/rSPDE/
 
-development:
-  mode: auto
+destination: docs
 
 template:
   bootstrap: 5
@@ -24,6 +23,8 @@ navbar:
       menu:
       - text: R-INLA implementation of the rational SPDE approach
         href: articles/rspde_inla.html
+      - text: inlabru implementation of the rational SPDE approach
+        href: articles/rspde_inlabru.html
       - text: Rational approximation with the rSPDE package
         href: articles/rspde_cov.html
       - text: Operator-based rational approximation
@@ -55,6 +56,7 @@ reference:
     - rSPDE.loglike
     - matern.loglike
     - spde.matern.loglike
+    - rSPDE.construct.matern.loglike
   - title: Computation of precision matrices
     contents:
     - rspde.matern.precision
@@ -79,6 +81,9 @@ reference:
     - rspde.result
     - plot.rspde.result
     - summary.rspde.result
+  - title: Functions and methods for rSPDE interface for inlabru
+    contents:
+    - bru_mapper.inla_rspde
   - title: Finite element-related functions
     contents:
     - rSPDE.A1d
@@ -89,9 +94,14 @@ reference:
     - require.nowarnings
     - get.sparsity.graph.rspde
     - matern.covariance
-    - folded.matern.covariance
+    - folded.matern.covariance.1d
+    - folded.matern.covariance.2d
     - rspde.matern.precision.opt
     - rspde.matern.precision.integer.opt
+    - rational.order<-
+    - rational.type<-
+    - rational.order
+    - rational.type
   - title: Operator operations
     contents:
     - operator.operations

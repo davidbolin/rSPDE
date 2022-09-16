@@ -10,50 +10,71 @@
   user_kappa = NULL,
   user_sigma = NULL,
   user_m = NULL,
+  compute_higher_order = object$higher_order,
+  type_rational_approximation = object$type_rational_approximation,
+  return_block_list = object$return_block_list,
   ...
 )
 }
 \arguments{
-\item{object}{The covariance-based rational SPDE approximation, 
-computed using \code{\link{matern.operators}}}
+\item{object}{The covariance-based rational SPDE approximation,
+computed using \code{\link[=matern.operators]{matern.operators()}}}
 
-\item{user_nu}{If non-null, update the shape parameter of the covariance function.}
+\item{user_nu}{If non-null, update the shape parameter of the
+covariance function.}
 
-\item{user_kappa}{If non-null, update the range parameter of the covariance function.}
+\item{user_kappa}{If non-null, update the range parameter
+of the covariance function.}
 
-\item{user_sigma}{If non-null, update the standard deviation of the covariance function.}
+\item{user_sigma}{If non-null, update the standard deviation of
+the covariance function.}
 
-\item{user_m}{If non-null, update the order of the rational approximation, which needs to be a positive integer.}
+\item{user_m}{If non-null, update the order of the rational
+approximation, which needs to be a positive integer.}
+
+\item{compute_higher_order}{Logical. Should the higher order
+finite element matrices be computed?}
+
+\item{type_rational_approximation}{Which type of rational
+approximation should be used? The current types are "chebfun",
+"brasil" or "chebfunLB".}
+
+\item{return_block_list}{Logical. For \code{type = "covariance"},
+should the block parts of the precision matrix be returned
+separately as a list?}
 
 \item{...}{Currently not used.}
 }
 \value{
 It returns an object of class "CBrSPDEobj. This object contains the
-same quantities listed in the output of \code{\link{matern.operators}}.
+same quantities listed in the output of \code{\link[=matern.operators]{matern.operators()}}.
 }
 \description{
 Function to change the parameters of a CBrSPDEobj object
 }
 \examples{
-#Compute the covariance-based rational approximation of a 
-#Gaussian process with a Matern covariance function on R
+# Compute the covariance-based rational approximation of a
+# Gaussian process with a Matern covariance function on R
 kappa <- 10
 sigma <- 1
 nu <- 0.8
 
-#create mass and stiffness matrices for a FEM discretization
+# create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 
-#compute rational approximation of covariance function at 0.5
-op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
-kappa=kappa,sigma=sigma,d=1,m=2)
+# compute rational approximation of covariance function at 0.5
+op_cov <- matern.operators(
+  C = fem$C, G = fem$G, nu = nu,
+  kappa = kappa, sigma = sigma, d = 1, m = 2
+)
 op_cov
 
-#Update the range parameter of the model:
-op_cov <- update(op_cov, user_kappa=20)
+# Update the range parameter of the model:
+op_cov <- update(op_cov, user_kappa = 20)
 op_cov
+
 }
 \seealso{
-\code{\link{simulate.CBrSPDEobj}}, \code{\link{matern.operators}}
+\code{\link[=simulate.CBrSPDEobj]{simulate.CBrSPDEobj()}}, \code{\link[=matern.operators]{matern.operators()}}
 }

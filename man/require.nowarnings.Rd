@@ -18,7 +18,8 @@ Non-existent library trees are silently ignored.}
 assumed to be a character string.}
 }
 \value{
-\code{require.nowarnings} returns (invisibly) \code{TRUE} if it succeeds, otherwise \code{FALSE}
+\code{require.nowarnings} returns (invisibly)
+\code{TRUE} if it succeeds, otherwise \code{FALSE}
 }
 \description{
 Turn off all warnings for require(), to allow clean completion
@@ -36,7 +37,8 @@ which doesn't produce warnings.
 if (require.nowarnings(nonexistent)) {
   message("Package loaded successfully")
 }
+
 }
 \seealso{
-\code{\link{require}}
+\code{\link[=require]{require()}}
 }

@@ -15,17 +15,19 @@ The function returns a list with the following elements
 \item{C }{The mass matrix.}
 }
 \description{
-This function computes mass and stiffness matrices for a FEM approximation on R, assuming 
+This function computes mass and stiffness matrices
+for a FEM approximation on R, assuming
 Neumann boundary conditions.
-These matrices are needed when discretizing the operators in rational approximations.
+These matrices are needed when discretizing the
+operators in rational approximations.
 }
 \examples{
-#create mass and stiffness matrices for a FEM discretization on [0,1]
-x = seq(from = 0, to = 1, length.out = 101)
+# create mass and stiffness matrices for a FEM discretization on [0,1]
+x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 }
 \seealso{
-\code{\link{rSPDE.A1d}}
+\code{\link[=rSPDE.A1d]{rSPDE.A1d()}}
 }
 \author{
 David Bolin \email{davidbolin@gmail.com}

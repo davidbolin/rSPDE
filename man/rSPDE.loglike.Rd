@@ -2,18 +2,21 @@
 % Please edit documentation in R/fractional.computations.R
 \name{rSPDE.loglike}
 \alias{rSPDE.loglike}
-\title{Object-based log-likelihood function for latent Gaussian fractional SPDE model}
+\title{Object-based log-likelihood function for latent Gaussian
+fractional SPDE model}
 \usage{
 rSPDE.loglike(obj, Y, A, sigma.e, mu = 0)
 }
 \arguments{
-\item{obj}{The rational SPDE approximation, computed using \code{\link{fractional.operators}},
-\code{\link{matern.operators}}, or \code{\link{spde.matern.operators}}.}
+\item{obj}{The rational SPDE approximation, computed using
+\code{\link[=fractional.operators]{fractional.operators()}},
+\code{\link[=matern.operators]{matern.operators()}}, or \code{\link[=spde.matern.operators]{spde.matern.operators()}}.}
 
 \item{Y}{The observations, either a vector or a matrix where
 the columns correspond to independent replicates of observations.}
 
-\item{A}{An observation matrix that links the measurement location to the finite element basis.}
+\item{A}{An observation matrix that links the measurement location
+to the finite element basis.}
 
 \item{sigma.e}{The standard deviation of the measurement noise.}
 
@@ -23,45 +26,52 @@ the columns correspond to independent replicates of observations.}
 The log-likelihood value.
 }
 \description{
-This function evaluates the log-likelihood function for a fractional SPDE model
-\eqn{L^\beta u(s) = W}{L^\beta u(s) = W} that is observed under Gaussian measurement
-noise: \eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = x(s_i) + \epsilon_i}, where \eqn{\epsilon_i}{\epsilon_i}
-are iid mean-zero Gaussian variables and \eqn{x(s) = \mu(s) + u(s)}{x(s) = \mu(s) + u(s)}, where 
+This function evaluates the log-likelihood function for a
+fractional SPDE model
+\eqn{L^\beta u(s) = W}{L^\beta u(s) = W} that is observed under
+Gaussian measurement noise:
+\eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = x(s_i) + \epsilon_i},
+where \eqn{\epsilon_i}{\epsilon_i}
+are iid mean-zero Gaussian variables and \eqn{x(s) =
+\mu(s) + u(s)}{x(s) = \mu(s) + u(s)}, where
 \eqn{\mu(s)}{\mu(s)} is the expectation vector of the latent field.
 }
 \note{
-This example below shows how the function can be used to evaluate the likelihood of a latent
-Matern model. Se \code{\link{matern.loglike}} for an example of how this can be used for maximum
+This example below shows how the function can be used to evaluate
+the likelihood of a latent Matern model. Se \code{\link[=matern.loglike]{matern.loglike()}}
+for an example of how this can be used for maximum
 likelihood estimation.
 }
 \examples{
-#Sample a Gaussian Matern process on R using a rational approximation
-kappa = 10
-sigma = 1
-nu = 0.8
-sigma.e = 0.3
+# Sample a Gaussian Matern process on R using a rational approximation
+kappa <- 10
+sigma <- 1
+nu <- 0.8
+sigma.e <- 0.3
 
-#create mass and stiffness matrices for a FEM discretization
-x = seq(from = 0, to = 1, length.out = 101)
+# create mass and stiffness matrices for a FEM discretization
+x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 
-#compute rational approximation
-op <- matern.operators(kappa = kappa, sigma = sigma, nu = nu,
-                       G = fem$G, C = fem$C, d = 1,
-                       type = "operator")
+# compute rational approximation
+op <- matern.operators(
+  kappa = kappa, sigma = sigma, nu = nu,
+  G = fem$G, C = fem$C, d = 1,
+  type = "operator"
+)
 
-#Sample the model
+# Sample the model
 u <- simulate(op)
 
-#Create some data
+# Create some data
 obs.loc <- runif(n = 10, min = 0, max = 1)
 A <- rSPDE.A1d(x, obs.loc)
-Y = as.vector(A\%*\%u + sigma.e*rnorm(10))
+Y <- as.vector(A \%*\% u + sigma.e * rnorm(10))
 
-#compute log-likelihood of the data
+# compute log-likelihood of the data
 lik1 <- rSPDE.loglike(op, Y, A, sigma.e)
 cat(lik1)
 }
 \seealso{
-\code{\link{matern.loglike}}, \code{\link{spde.matern.loglike}}
+\code{\link[=matern.loglike]{matern.loglike()}}, \code{\link[=spde.matern.loglike]{spde.matern.loglike()}}
 }

@@ -2,100 +2,114 @@
 % Please edit documentation in R/fractional.computations.R
 \name{spde.matern.loglike}
 \alias{spde.matern.loglike}
-\title{Parameter-based log-likelihood for a latent Gaussian Matern SPDE model using a rational SPDE approximation}
+\title{Parameter-based log-likelihood for a latent Gaussian Matern SPDE model
+using a rational SPDE approximation}
 \usage{
 spde.matern.loglike(kappa, tau, nu, sigma.e, Y, G, C, A, d = 2, m = 1)
 }
 \arguments{
-\item{kappa}{Vector with the, possibly spatially varying, range parameter evaluated at the locations
-of the mesh used for the finite element discretization of the SPDE.}
+\item{kappa}{Vector with the, possibly spatially varying, range parameter
+evaluated at the locations of the mesh used for the finite element
+discretization of the SPDE.}
 
-\item{tau}{Vector with the, possibly spatially varying, precision parameter evaluated at the locations
-of the mesh used for the finite element discretization of the SPDE.}
+\item{tau}{Vector with the, possibly spatially varying, precision
+parameter evaluated at the locations of the mesh used for the
+finite element discretization of the SPDE.}
 
-\item{nu}{Shape parameter of the covariance function, related to \eqn{\beta} through the equation
-\eqn{\beta = (\nu + d/2)/2}.}
+\item{nu}{Shape parameter of the covariance function, related
+to \eqn{\beta} through the equation \eqn{\beta = (\nu + d/2)/2}.}
 
 \item{sigma.e}{The standard deviation of the measurement noise.}
 
 \item{Y}{The observations, either a vector or a matrix where
 the columns correspond to independent replicates of observations.}
 
-\item{G}{The stiffness matrix of a finite element discretization of the domain.}
+\item{G}{The stiffness matrix of a finite element discretization of
+the domain.}
 
 \item{C}{The mass matrix of a finite element discretization of the domain.}
 
-\item{A}{A matrix linking the measurement locations to the basis of the FEM approximation of the latent model.}
+\item{A}{A matrix linking the measurement locations to the basis of the
+FEM approximation of the latent model.}
 
 \item{d}{The dimension of the domain. The default value is 2.}
 
-\item{m}{The order of the rational approximation, which needs to be a positive integer.
-The default value is 1.}
+\item{m}{The order of the rational approximation, which needs to be a
+positive integer. The default value is 1.}
 }
 \value{
 The log-likelihood value.
 }
 \description{
-This function evaluates the log-likelihood function for observations of a Gaussian process defined as
-the solution to the SPDE \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.}
+This function evaluates the log-likelihood function for observations
+of a Gaussian process defined as the solution to the SPDE
+\deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.}
 }
 \details{
 The observations are assumed to be generated as
-\eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = u(s_i) + \epsilon_i}, where \eqn{\epsilon_i}{\epsilon_i} are
-iid mean-zero Gaussian variables. The latent model is approximated using a rational approximation
-of the fractional SPDE model.
+\eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = u(s_i) + \epsilon_i}, where
+\eqn{\epsilon_i}{\epsilon_i} are
+iid mean-zero Gaussian variables. The latent model is approximated using a
+rational approximation of the fractional SPDE model.
 }
 \examples{
-#this example illustrates how the function can be used for maximum likelihood estimation
+# this example illustrates how the function can be used for maximum
+# likelihood estimation
 set.seed(123)
-#Sample a Gaussian Matern process on R using a rational approximation
-sigma.e = 0.1
-n.rep = 10
-n.obs = 100
-n.x = 51
+# Sample a Gaussian Matern process on R using a rational approximation
+sigma.e <- 0.1
+n.rep <- 10
+n.obs <- 100
+n.x <- 51
 
-#create mass and stiffness matrices for a FEM discretization
-x = seq(from = 0, to = 1, length.out = n.x)
+# create mass and stiffness matrices for a FEM discretization
+x <- seq(from = 0, to = 1, length.out = n.x)
 fem <- rSPDE.fem1d(x)
 
-tau = rep(0.5,n.x)
-nu = 0.8
-kappa = rep(1,n.x)
+tau <- rep(0.5, n.x)
+nu <- 0.8
+kappa <- rep(1, n.x)
 
-#compute rational approximation
-op <- spde.matern.operators(kappa = kappa, tau = tau, nu = nu,
-                            G = fem$G, C = fem$C, d = 1)
+# compute rational approximation
+op <- spde.matern.operators(
+  kappa = kappa, tau = tau, nu = nu,
+  G = fem$G, C = fem$C, d = 1
+)
 
-#Sample the model
+# Sample the model
 u <- simulate(op, n.rep)
 
-#Create some data
+# Create some data
 obs.loc <- runif(n = n.obs, min = 0, max = 1)
 A <- rSPDE.A1d(x, obs.loc)
-noise <- rnorm(n.obs*n.rep)
+noise <- rnorm(n.obs * n.rep)
 dim(noise) <- c(n.obs, n.rep)
-Y = as.matrix(A\%*\%u + sigma.e*noise)
+Y <- as.matrix(A \%*\% u + sigma.e * noise)
 
-#define negative likelihood function for optimization using matern.loglike
-mlik <- function(theta, Y, G, C, A){
-return(-spde.matern.loglike(rep(exp(theta[1]),n.x), rep(exp(theta[2]),n.x),
-                            exp(theta[3]), exp(theta[4]),
-                            Y = Y, G = G, C = C, A = A, d = 1))
+# define negative likelihood function for optimization using matern.loglike
+mlik <- function(theta, Y, G, C, A) {
+  return(-spde.matern.loglike(rep(exp(theta[1]), n.x),
+    rep(exp(theta[2]), n.x),
+    exp(theta[3]), exp(theta[4]),
+    Y = Y, G = G, C = C, A = A, d = 1
+  ))
 }
 
 #' #The parameters can now be estimated by minimizing mlik with optim
 \donttest{
-#Choose some reasonable starting values depending on the size of the domain
-theta0 = log(c(sqrt(8), 1/sqrt(var(c(Y))), 0.9, 0.01))
+# Choose some reasonable starting values depending on the size of the domain
+theta0 <- log(c(sqrt(8), 1 / sqrt(var(c(Y))), 0.9, 0.01))
 
-#run estimation and display the results
+# run estimation and display the results
 theta <- optim(theta0, mlik, Y = Y, G = fem$G, C = fem$C, A = A)
 
-print(data.frame(kappa = c(kappa[1],exp(theta$par[1])), tau = c(tau[1],exp(theta$par[2])),
-                 nu = c(nu,exp(theta$par[3])), sigma.e = c(sigma.e,exp(theta$par[4])),
-                 row.names = c("Truth","Estimates")))
+print(data.frame(
+  kappa = c(kappa[1], exp(theta$par[1])), tau = c(tau[1], exp(theta$par[2])),
+  nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
+  row.names = c("Truth", "Estimates")
+))
 }
 }
 \seealso{
-\code{\link{matern.loglike}}, \code{\link{rSPDE.loglike}}.
+\code{\link[=matern.loglike]{matern.loglike()}}, \code{\link[=rSPDE.loglike]{rSPDE.loglike()}}.
 }

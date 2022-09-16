@@ -39,21 +39,27 @@ Sigma.solve(obj, v)
 
 \item{v}{vector to apply the operation to}
 
-\item{transpose}{set to TRUE if the operation should be performed with the transposed object}
+\item{transpose}{set to TRUE if the operation should be
+performed with the transposed object}
 }
 \value{
 A vector with the values of the operation
 }
 \description{
-Functions for multiplying and solving with the \eqn{P_r} and \eqn{P_l} operators as well as
-the latent precision matrix \eqn{Q = P_l C^{-1}P_l} and covariance matrix
+Functions for multiplying and solving with the \eqn{P_r}
+and \eqn{P_l} operators as well as the latent precision
+matrix \eqn{Q = P_l C^{-1}P_l} and covariance matrix
 \eqn{\Sigma = P_r Q^{-1} P_r^T}.
-These operations are done without first assembling \eqn{P_r}, \eqn{P_l} in order to avoid
-numerical problems caused by ill-conditioned matrices.
+These operations are done without first assembling \eqn{P_r},
+\eqn{P_l} in order to avoid numerical problems caused by
+ill-conditioned matrices.
 }
 \details{
-\code{Pl.mult}, \code{Pr.mult}, and \code{Q.mult} multiplies the vector with the respective object.
-Changing \code{mult} to \code{solve} in the function names multiplies the vector with the inverse of the
-object. \code{Qsqrt.mult} and \code{Qsqrt.solve} performs the operations with the square-root type object
+\code{Pl.mult}, \code{Pr.mult}, and \code{Q.mult}
+multiplies the vector with the respective object.
+Changing \code{mult} to \code{solve} in the function names
+multiplies the vector with the inverse of the object.
+\code{Qsqrt.mult} and \code{Qsqrt.solve} performs the
+operations with the square-root type object
 \eqn{Q_r = C^{-1/2}P_l} defined so that \eqn{Q = Q_r^T Q_r}.
 }

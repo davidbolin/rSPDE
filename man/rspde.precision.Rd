@@ -2,46 +2,48 @@
 % Please edit documentation in R/inla_rspde.R
 \name{rspde.precision}
 \alias{rspde.precision}
-\title{Precision matrices for \code{inla.rspde} objects}
+\title{Precision matrices for \code{inla_rspde} objects}
 \usage{
 rspde.precision(rspde, theta, optimized = FALSE)
 }
 \arguments{
-\item{rspde}{An \code{inla.rspde} object.}
+\item{rspde}{An \code{inla_rspde} object.}
 
-\item{theta}{The parameter vector. See the details in \code{\link{rspde.matern}} to
-see the parameterizations.}
+\item{theta}{The parameter vector. See the details in
+\code{\link[=rspde.matern]{rspde.matern()}} to see the parameterizations.}
 
-\item{optimized}{Logical indicating if only the elements (the \code{x} slot) of the precision
+\item{optimized}{Logical indicating if only the elements
+(the \code{x} slot) of the precision
 matrix should be returned.}
 }
 \value{
 A sparse precision matrix.
 }
 \description{
-Precision matrices for rSPDE models 
+Precision matrices for rSPDE models
 
-Calculates the precision matrix 
-for given parameter values based on an \code{inla.rspde} model object.
+Calculates the precision matrix
+for given parameter values based on an \code{inla_rspde} model object.
 }
 \examples{
-\donttest{ #tryCatch version
-tryCatch({
+\donttest{
+# devel version
+if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
 
 set.seed(1)
 n <- 10
 
-coords <- cbind(long=sample(1:n), lat=sample(1:n))
+coords <- cbind(long = sample(1:n), lat = sample(1:n))
 
 mesh <- inla.mesh.2d(coords, max.edge = c(20, 40))
 rspde_model_int <- rspde.matern(mesh = mesh, nu = 1)
 
-prec_int <- rspde.precision(rspde_model_int, theta=log(c(1,3)))
+prec_int <- rspde.precision(rspde_model_int, theta = log(c(1, 3)))
 
 rspde_model <- rspde.matern(mesh)
-prec <- rspde.precision(rspde_model, theta=log(c(1,3,1.2)))
-#stable.tryCatch
-}, error = function(e){print("Could not run the example")})
+prec <- rspde.precision(rspde_model, theta = log(c(1, 3, 1.2)))
+}
+# devel.tag
 }
 }

@@ -14,31 +14,34 @@
 }
 \arguments{
 \item{object}{an object of class "CBrSPDEobj", usually, a result of a call
-to \code{\link{matern.operators}}.}
+to \code{\link[=matern.operators]{matern.operators()}}.}
 
 \item{...}{further arguments passed to or from other methods.}
 
 \item{x}{an object of class "summary.CBrSPDEobj", usually, a result of a call
-to \code{\link{summary.CBrSPDEobj}}.}
+to \code{\link[=summary.CBrSPDEobj]{summary.CBrSPDEobj()}}.}
 }
 \description{
 Summary method for class "CBrSPDEobj"
 }
 \examples{
-#Compute the covariance-based rational approximation of a 
-#Gaussian process with a Matern covariance function on R
+# Compute the covariance-based rational approximation of a
+# Gaussian process with a Matern covariance function on R
 kappa <- 10
 sigma <- 1
 nu <- 0.8
 
-#create mass and stiffness matrices for a FEM discretization
+# create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 
-#compute rational approximation of covariance function at 0.5
-tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2*nu) * (4*pi)^(1/2) * gamma(nu+1/2)))
-op_cov <- matern.operators(C=fem$C, G=fem$G,nu=nu,
-kappa=kappa,sigma=sigma,d=1,m=2)
+# compute rational approximation of covariance function at 0.5
+tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+(4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
+op_cov <- matern.operators(
+  C = fem$C, G = fem$G, nu = nu,
+  kappa = kappa, sigma = sigma, d = 1, m = 2
+)
 
 op_cov
 }

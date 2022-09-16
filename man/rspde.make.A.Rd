@@ -25,19 +25,22 @@ an \code{inla.mesh.1d} object.}
 \item{loc}{Locations, needed if an INLA mesh is provided}
 
 \item{A}{The A matrix from the standard SPDE approach, such as the matrix
-returned by \code{inla.spde.make.A}. Should only be provided if \code{mesh} is not provided.}
+returned by \code{inla.spde.make.A}. Should only be provided if
+\code{mesh} is not provided.}
 
 \item{dim}{the dimension. Should only be provided if an
 \code{mesh} is not provided.}
 
 \item{rspde_order}{The order of the covariance-based rational SPDE approach.}
 
-\item{nu}{If \code{NULL}, then the model will assume that nu will be estimated. If
-nu is fixed, you should provide the value of nu.}
+\item{nu}{If \code{NULL}, then the model will assume that nu will
+be estimated. If nu is fixed, you should provide the value of nu.}
 
-\item{index}{For each observation/prediction value, an index into loc. Default is \code{seq_len(nrow(A.loc))}.}
+\item{index}{For each observation/prediction value, an index into loc.
+Default is \code{seq_len(nrow(A.loc))}.}
 
-\item{group}{For each observation/prediction value, an index into the group model.}
+\item{group}{For each observation/prediction value, an index into
+the group model.}
 
 \item{repl}{For each observation/prediction value, the replicate index.}
 
@@ -49,23 +52,25 @@ nu is fixed, you should provide the value of nu.}
 The \eqn{A} matrix for rSPDE models.
 }
 \description{
-Constructs observation/prediction weight matrices for rSPDE models based on 
-\code{inla.mesh} or \code{inla.mesh.1d} objects.
+Constructs observation/prediction weight matrices
+for rSPDE models based on \code{inla.mesh} or
+\code{inla.mesh.1d} objects.
 }
 \examples{
-\donttest{ #tryCatch version
-tryCatch({
+\donttest{
+# devel version
+if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
 
 set.seed(123)
 loc <- matrix(runif(100 * 2) * 100, 100, 2)
 mesh <- inla.mesh.2d(
-loc = loc,
-cutoff = 50,
-max.edge = c(50, 500)
+  loc = loc,
+  cutoff = 50,
+  max.edge = c(50, 500)
 )
-A <- rspde.make.A(mesh, loc = loc, rspde_order=3)
-#stable.tryCatch
-}, error = function(e){print("Could not run the example")})
+A <- rspde.make.A(mesh, loc = loc, rspde_order = 3)
+}
+# devel.tag
 }
 }

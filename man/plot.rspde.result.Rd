@@ -2,7 +2,8 @@
 % Please edit documentation in R/inla_rspde.R
 \name{plot.rspde.result}
 \alias{plot.rspde.result}
-\title{Posterior plots for field parameters for an \code{inla.rspde} model from a \code{rspde.result} object}
+\title{Posterior plots for field parameters for an \code{inla_rspde} model
+from a \code{rspde.result} object}
 \usage{
 \method{plot}{rspde.result}(
   x,
@@ -25,7 +26,9 @@
 
 \item{which}{For which parameters the posterior should be plotted?}
 
-\item{caption}{captions to appear above the plots; character vector or list of valid graphics annotations. Can be set to "" or NA to suppress all captions.}
+\item{caption}{captions to appear above the plots; character
+vector or list of
+valid graphics annotations. Can be set to "" or NA to suppress all captions.}
 
 \item{sub.caption}{common title-above the figures if there are more than one.}
 
@@ -33,9 +36,11 @@
 
 \item{ask}{logical; if \code{TRUE}, the user is asked before each plot.}
 
-\item{main}{character; title to be placed at each plot additionally (and above) all captions.}
+\item{main}{character; title to be placed at each plot additionally
+(and above) all captions.}
 
-\item{cex.oma.main}{controls the size of the sub.caption only if that is above the figures when there is more than one.}
+\item{cex.oma.main}{controls the size of the sub.caption only if
+that is above the figures when there is more than one.}
 
 \item{cex.caption}{controls the size of caption.}
 
@@ -49,47 +54,61 @@
 Called for its side effects.
 }
 \description{
-Posterior plots for rSPDE field parameters in their original scales.
+Posterior plots for rSPDE field parameters in their
+original scales.
 }
 \examples{
-\donttest{ #tryCatch version
-tryCatch({
+\donttest{
+# devel version
+if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
+
 set.seed(123)
 
-m = 100
-loc_2d_mesh = matrix(runif(m*2),m,2)
-mesh_2d = inla.mesh.2d(loc=loc_2d_mesh,
-                       cutoff=0.05,
-                       max.edge=c(0.1,0.5) )
+m <- 100
+loc_2d_mesh <- matrix(runif(m * 2), m, 2)
+mesh_2d <- inla.mesh.2d(
+  loc = loc_2d_mesh,
+  cutoff = 0.05,
+  max.edge = c(0.1, 0.5)
+)
 sigma <- 0.01
 range <- 0.2
 nu <- 0.8
-kappa <- sqrt(8*nu)/range
-op <- matern.operators(mesh=mesh_2d,nu=nu,
-                       kappa=kappa,sigma=sigma,m=2)
+kappa <- sqrt(8 * nu) / range
+op <- matern.operators(
+  mesh = mesh_2d, nu = nu,
+  kappa = kappa, sigma = sigma, m = 2
+)
 u <- simulate(op)
-A <- inla.spde.make.A(mesh=mesh_2d,
-                      loc=loc_2d_mesh)
+A <- inla.spde.make.A(
+  mesh = mesh_2d,
+  loc = loc_2d_mesh
+)
 sigma.e <- 0.1
-y = A \%*\% u + rnorm(m) * sigma.e
+y <- A \%*\% u + rnorm(m) * sigma.e
 Abar <- rspde.make.A(mesh = mesh_2d, loc = loc_2d_mesh)
 mesh.index <- rspde.make.index(name = "field", mesh = mesh_2d)
-st.dat=inla.stack(data=list(y=as.vector(y)),
-                  A=Abar,
-                  effects=mesh.index)
-rspde_model <- rspde.matern(mesh = mesh_2d,
-                            nu_upper_bound = 1)
-f = y ~ -1 + f(field, model=rspde_model)
-rspde_fit = inla(f,
-      data=inla.stack.data(st.dat),
-      family="gaussian",
-      control.predictor=
-        list(A=inla.stack.A(st.dat)),
-      inla.mode = "experimental")
+st.dat <- inla.stack(
+  data = list(y = as.vector(y)),
+  A = Abar,
+  effects = mesh.index
+)
+rspde_model <- rspde.matern(
+  mesh = mesh_2d,
+  nu_upper_bound = 2
+)
+f <- y ~ -1 + f(field, model = rspde_model)
+rspde_fit <- inla(f,
+  data = inla.stack.data(st.dat),
+  family = "gaussian",
+  control.predictor =
+    list(A = inla.stack.A(st.dat)),
+           inla.mode = "experimental"
+)
 result <- rspde.result(rspde_fit, "field", rspde_model)
 plot(result)
-#stable.tryCatch
-}, error = function(e){print("Could not run the example")})
+}
+# devel.tag
 }
 }
