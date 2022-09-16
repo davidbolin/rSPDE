@@ -203,7 +203,7 @@ div.csl-indent {
 <div id="constructing-the-approximation" class="section level2">
 <h2>Constructing the approximation</h2>
 <p>In this section, we explain how to to use the function <code>matern.operators()</code> with the default argument <code>type</code>, that is, <code>type=&quot;covariance&quot;</code>, which is constructs the covariance-based rational approximation. We will also illustrate the usage of several methods and functions related to the covariance-based rational approximation. We will use functions to sample from Gaussian fields with stationary Matérn covariance function, compute the log-likelihood function, and do spatial prediction.</p>
-<p>The first step for performing the covariance-based rational SPDE approximation is to define the FEM mesh. For illustration purposes, the <code>rSPDE</code> package contains a simple FEM implementation for models on <span class="math inline">\(\mathbb{R}\)</span> which we will use first. We will also illustrate how spatial models can be constructed if the FEM implementation of the <a href="https://www.r-inla.org"><code>R-INLA</code></a> package is used instead. When using the <a href="https://www.r-inla.org"><code>R-INLA</code></a> package, we also recommend the usage of our <a href="https://www.r-inla.org"><code>R-INLA</code></a> implementation of the rational SPDE approach. For more details, see the <a href="inla.html">R-INLA implementation of the rational SPDE approach</a> vignette.</p>
+<p>The first step for performing the covariance-based rational SPDE approximation is to define the FEM mesh. For illustration purposes, the <code>rSPDE</code> package contains a simple FEM implementation for models on <span class="math inline">\(\mathbb{R}\)</span> which we will use first. We will also illustrate how spatial models can be constructed if the FEM implementation of the <a href="https://www.r-inla.org"><code>R-INLA</code></a> package is used instead. When using the <a href="https://www.r-inla.org"><code>R-INLA</code></a> package, we also recommend the usage of our <a href="https://www.r-inla.org"><code>R-INLA</code></a> implementation of the rational SPDE approach. For more details, see the <a href="rspde_inla.html">R-INLA implementation of the rational SPDE approach</a> vignette.</p>
 <p>We begin by loading the <code>rSPDE</code> package:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rSPDE)</span></code></pre></div>
 <p>Assume that we want to define a model on the interval <span class="math inline">\([0,1]\)</span>. We then start by defining a vector with mesh nodes <span class="math inline">\(s_i\)</span> where the basis functions <span class="math inline">\(\varphi_i\)</span> are centered.</p>
@@ -374,7 +374,7 @@ div.csl-indent {
 ## Estimates 2.476834 19.09341 0.8468107 0.3323609</code></pre>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Total time</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(time_optim)</span></code></pre></div>
-<pre><code>## Time difference of 8.78384 secs</code></pre>
+<pre><code>## Time difference of 9.398759 secs</code></pre>
 <p>We can also speed up the optimization by using the <code>optimParallel()</code> function from the <code>optimParallel</code> package. To such an end, we simply replace the <code>optim()</code> function by <code>optimParallel()</code> and set the number of cores we want to use:</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(optimParallel)</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Preparing the parallel</span></span>
@@ -414,7 +414,7 @@ div.csl-indent {
 ## Estimates 2.476834 19.09341 0.8468107 0.3323609</code></pre>
 <div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Total time</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(time_optim)</span></code></pre></div>
-<pre><code>## Time difference of 7.607902 secs</code></pre>
+<pre><code>## Time difference of 6.858209 secs</code></pre>
 </div>
 <div id="kringing" class="section level3">
 <h3>Kringing</h3>
@@ -487,7 +487,7 @@ div.csl-indent {
 ## Estimates 2.379152 18.40182 0.810289 0.2931603</code></pre>
 <div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Total time</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(time_optim)</span></code></pre></div>
-<pre><code>## Time difference of 3.630025 secs</code></pre>
+<pre><code>## Time difference of 7.013588 secs</code></pre>
 </div>
 <div id="spatial-data-and-parameter-estimation" class="section level2">
 <h2>Spatial data and parameter estimation</h2>
@@ -581,7 +581,7 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 ## Estimate 1.032911 19.18672 0.4259368 0.1004302</code></pre>
 <div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Total time</span></span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(total_time)</span></code></pre></div>
-<pre><code>## Time difference of 15.35485 secs</code></pre>
+<pre><code>## Time difference of 18.36629 secs</code></pre>
 </div>
 <div id="changing-the-type-and-the-order-of-the-rational-approximation" class="section level2">
 <h2>Changing the type and the order of the rational approximation</h2>
@@ -624,7 +624,7 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 ## Estimate 1.050229 18.76927 0.3978261 0.1004293</code></pre>
 <div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Total time</span></span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(total_time)</span></code></pre></div>
-<pre><code>## Time difference of 14.25504 secs</code></pre>
+<pre><code>## Time difference of 16.67766 secs</code></pre>
 <p>Finally, we can check the type of rational approximation with the <code>rational.type()</code> function and assign a new type by using the <code>rational.type&lt;-()</code> function:</p>
 <div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rational.type</span>(op_cov_2d_type)</span></code></pre></div>
 <pre><code>## [1] &quot;chebfunLB&quot;</code></pre>
@@ -653,7 +653,7 @@ y_{i+29m} &amp;= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 ## Estimate 1.042359 19.04997 0.4124101 0.1004302</code></pre>
 <div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Total time</span></span>
 <span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(total_time)</span></code></pre></div>
-<pre><code>## Time difference of 24.3811 secs</code></pre>
+<pre><code>## Time difference of 24.95302 secs</code></pre>
 </div>
 <div id="references" class="section level2 unnumbered">
 <h2 class="unnumbered">References</h2>
