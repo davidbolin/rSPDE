@@ -63,6 +63,7 @@
 #'              mapper = bru_mapper(rspde_model))
 #' 
 #' rspde_fit <- bru(cmp, data = data_df)
+#' summary(rspde_fit)
 #' }
 #' #devel.tag
 #' }
