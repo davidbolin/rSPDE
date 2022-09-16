@@ -50,8 +50,8 @@ Extract field and parameter values and distributions
 for an rspde effect from an inla result object.
 }
 \examples{
-\donttest{
-# devel version
+\donttest{ #tryCatch version
+tryCatch({
 if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
 
@@ -102,6 +102,7 @@ result <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result)
 plot(result)
 }
-# devel.tag
+#stable.tryCatch
+}, error = function(e){print("Could not run the example")})
 }
 }

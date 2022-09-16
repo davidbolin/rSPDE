@@ -143,8 +143,8 @@ Hence, the higher the value of \code{nu.prec.inc} the more informative
 the prior is.
 }
 \examples{
-\donttest{
-# devel version
+\donttest{ #tryCatch version
+tryCatch({
 if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
 
@@ -209,7 +209,8 @@ rspde_fit <- inla(f.s,
 # The result
 summary(rspde_fit)
 }
-# devel.tag
+#stable.tryCatch
+}, error = function(e){print("Could not run the example")})
 }
 
 }
