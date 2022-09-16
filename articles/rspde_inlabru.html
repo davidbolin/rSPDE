@@ -265,10 +265,10 @@
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 3.48, Running = 20.3, Post = 0.154, Total = 24 </span></span>
+<span><span class="co">##     Pre = 3.55, Running = 28, Post = 0.162, Total = 31.7 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
-<span><span class="co">##            mean   sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.939 0.06      1.821    1.939      2.058 1.939   0</span></span>
+<span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
+<span><span class="co">## Intercept 1.943 0.052       1.84    1.943      2.045 1.943   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -277,26 +277,26 @@
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                                     mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.145 9.02e-01     11.460</span></span>
-<span><span class="co">## Precision for distSea                          16018.563 1.52e+04   3085.091</span></span>
-<span><span class="co">## Theta1 for field                                  -1.079 5.06e-01     -2.052</span></span>
-<span><span class="co">## Theta2 for field                                   1.005 3.29e-01      0.333</span></span>
-<span><span class="co">## Theta3 for field                                  -0.925 3.23e-01     -1.579</span></span>
-<span><span class="co">##                                                 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.114     15.012   13.050</span></span>
-<span><span class="co">## Precision for distSea                          11558.208  56412.165 6769.889</span></span>
-<span><span class="co">## Theta1 for field                                  -1.089     -0.047   -1.132</span></span>
-<span><span class="co">## Theta2 for field                                   1.014      1.631    1.047</span></span>
-<span><span class="co">## Theta3 for field                                  -0.919     -0.302   -0.895</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.353    0.713      11.97</span></span>
+<span><span class="co">## Precision for distSea                          10004.425 7432.011    2454.62</span></span>
+<span><span class="co">## Theta1 for field                                  -1.475    0.353      -2.29</span></span>
+<span><span class="co">## Theta2 for field                                   1.230    0.103       1.00</span></span>
+<span><span class="co">## Theta3 for field                                  -0.763    0.188      -1.20</span></span>
+<span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.345     14.787   13.348</span></span>
+<span><span class="co">## Precision for distSea                          7973.179  29723.698 5317.120</span></span>
+<span><span class="co">## Theta1 for field                                 -1.478     -0.656   -1.472</span></span>
+<span><span class="co">## Theta2 for field                                  1.231      1.456    1.229</span></span>
+<span><span class="co">## Theta3 for field                                 -0.761     -0.329   -0.764</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2502.62</span></span>
-<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 4749.73</span></span>
-<span><span class="co">## Effective number of parameters .....................: 79.99</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2501.35</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 4748.45</span></span>
+<span><span class="co">## Effective number of parameters .....................: 83.23</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2504.70</span></span>
-<span><span class="co">## Effective number of parameters .................: 72.74</span></span>
+<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2504.72</span></span>
+<span><span class="co">## Effective number of parameters .................: 76.52</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1263.00 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1262.37 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -312,10 +312,10 @@
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##           mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## tau   0.386801 0.212237   0.130534  0.33565   0.942375 0.256254</span></span>
-<span><span class="co">## kappa 2.881730 0.944005   1.406160  2.76074   5.076690 2.523730</span></span>
-<span><span class="co">## nu    1.153780 0.257575   0.688653  1.14189   1.691470 1.121870</span></span></code></pre>
+<pre><code><span><span class="co">##           mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## tau   0.243423 0.0876212   0.114635 0.229079   0.454876 0.202532</span></span>
+<span><span class="co">## kappa 3.440380 0.3543620   2.799350 3.421400   4.189610 3.384220</span></span>
+<span><span class="co">## nu    1.277620 0.1615830   0.977874 1.271870   1.610770 1.259830</span></span></code></pre>
 <p>We can also plot the posterior densities:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
@@ -506,7 +506,7 @@ y_{i+29m} &amp;= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 3.72, Running = 290, Post = 9.26, Total = 303 </span></span>
+<span><span class="co">##     Pre = 3.35, Running = 300, Post = 9.22, Total = 312 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field RGeneric2</span></span>
