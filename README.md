@@ -94,6 +94,9 @@ git flow release start major.(minor+1).0
 usethis::use_version("minor") 
 ## At this point, see the CRAN submission section below.
 git flow release finish 'VERSION'
+# In the stable merge, accept all incoming changes.
+# Push the changes and do adjustments if needed.
+# After handling the stable branch, merge back with devel.
 # In R, the following updates the dev version number in DESCRIPTION and NEWS:
 usethis::use_dev_version() 
 ```
