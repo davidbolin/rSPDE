@@ -95,7 +95,7 @@
                         <h4 data-toc-skip class="author">David Bolin,
 Alexandre B. Simas, Zhen Xiong</h4>
             
-            <h4 data-toc-skip class="date">2022-09-17</h4>
+            <h4 data-toc-skip class="date">2022-09-19</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_cov.Rmd" class="external-link"><code>vignettes/rspde_cov.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_cov.Rmd</code></div>
@@ -510,13 +510,13 @@ for <code>sigma.e</code>.</p>
 <span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##              sigma   kappa        nu   sigma.e</span></span>
-<span><span class="co">## Truth     2.000000 20.0000 0.8000000 0.3000000</span></span>
-<span><span class="co">## Estimates 2.476834 19.0934 0.8468106 0.3323608</span></span></code></pre>
+<pre><code><span><span class="co">##              sigma    kappa        nu   sigma.e</span></span>
+<span><span class="co">## Truth     2.000000 20.00000 0.8000000 0.3000000</span></span>
+<span><span class="co">## Estimates 2.476834 19.09341 0.8468107 0.3323609</span></span></code></pre>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 2.759918 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 3.08842 secs</span></span></code></pre>
 <p>We can also speed up the optimization by using the
 <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> function from the
 <code>optimParallel</code> package. To such an end, we simply replace
@@ -556,13 +556,13 @@ set the number of cores we want to use:</p>
 <span>  sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta_parallel</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##              sigma   kappa        nu   sigma.e</span></span>
-<span><span class="co">## Truth     2.000000 20.0000 0.8000000 0.3000000</span></span>
-<span><span class="co">## Estimates 2.476834 19.0934 0.8468106 0.3323608</span></span></code></pre>
+<pre><code><span><span class="co">##              sigma    kappa        nu   sigma.e</span></span>
+<span><span class="co">## Truth     2.000000 20.00000 0.8000000 0.3000000</span></span>
+<span><span class="co">## Estimates 2.476834 19.09341 0.8468107 0.3323609</span></span></code></pre>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 1.303713 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 1.777403 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kringing">Kringing<a class="anchor" aria-label="anchor" href="#kringing"></a>
@@ -659,11 +659,11 @@ is a matrix with more than one column.</p>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##              sigma    kappa        nu   sigma.e</span></span>
 <span><span class="co">## Truth     2.000000 20.00000 0.8000000 0.3000000</span></span>
-<span><span class="co">## Estimates 2.379152 18.40181 0.8102888 0.2931603</span></span></code></pre>
+<span><span class="co">## Estimates 2.379152 18.40182 0.8102889 0.2931603</span></span></code></pre>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 0.4664209 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 0.588295 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -790,13 +790,13 @@ logarithm of each parameter to avoid constrained optimization.</p>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##              sigma    kappa        nu  sigma.e</span></span>
-<span><span class="co">## True     1.0000000 20.00000 0.5000000 0.100000</span></span>
-<span><span class="co">## Estimate 0.9811762 22.25725 0.5800728 0.100003</span></span></code></pre>
+<pre><code><span><span class="co">##             sigma    kappa        nu   sigma.e</span></span>
+<span><span class="co">## True     1.000000 20.00000 0.5000000 0.1000000</span></span>
+<span><span class="co">## Estimate 1.027364 19.11794 0.4301133 0.1004323</span></span></code></pre>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 1.499964 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 1.671276 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="changing-the-type-and-the-order-of-the-rational-approximation">Changing the type and the order of the rational approximation<a class="anchor" aria-label="anchor" href="#changing-the-type-and-the-order-of-the-rational-approximation"></a>
@@ -853,13 +853,13 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##              sigma    kappa        nu   sigma.e</span></span>
-<span><span class="co">## True     1.0000000 20.00000 0.5000000 0.1000000</span></span>
-<span><span class="co">## Estimate 0.9868245 22.04142 0.5639813 0.1000068</span></span></code></pre>
+<pre><code><span><span class="co">##            sigma    kappa        nu   sigma.e</span></span>
+<span><span class="co">## True     1.00000 20.00000 0.5000000 0.1000000</span></span>
+<span><span class="co">## Estimate 1.03853 18.87065 0.4118725 0.1004326</span></span></code></pre>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 2.54288 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 2.865664 secs</span></span></code></pre>
 <p>Finally, we can check the type of rational approximation with the
 <code><a href="../reference/rational.type.html">rational.type()</a></code> function and assign a new type by using the
 <code>rational.type&lt;-()</code> function:</p>
@@ -891,13 +891,13 @@ with <code>brasil</code> rational approximation:</p>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##              sigma    kappa        nu   sigma.e</span></span>
-<span><span class="co">## True     1.0000000 20.00000 0.5000000 0.1000000</span></span>
-<span><span class="co">## Estimate 0.9849686 22.16558 0.5708167 0.1000031</span></span></code></pre>
+<pre><code><span><span class="co">##             sigma    kappa        nu   sigma.e</span></span>
+<span><span class="co">## True     1.000000 20.00000 0.5000000 0.1000000</span></span>
+<span><span class="co">## Estimate 1.037034 18.96489 0.4157827 0.1004329</span></span></code></pre>
 <div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 3.253182 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 2.470597 secs</span></span></code></pre>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
