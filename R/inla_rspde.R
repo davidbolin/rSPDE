@@ -597,6 +597,7 @@ rspde.matern <- function(mesh,
         fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
       }
     }
+    n_rgeneric <- ncol(fem_mesh[["c0"]])
   } else {
     fem_mesh <- NULL
     beta <- nu_order / 2 + d / 4
@@ -617,6 +618,7 @@ rspde.matern <- function(mesh,
         fem_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
       }
     }
+    n_rgeneric <- ncol(fem_matrices[["c0"]])
   }
 
   if (optimize) {
@@ -692,7 +694,10 @@ rspde.matern <- function(mesh,
     if (!integer_alpha) {
       if (m_alpha == 0) {
         fem_matrices[["G"]] <- fem_mesh$g1@x
-        fem_matrices[["C"]] <- fem_mesh$c0@x
+        fem_matrices[["C"]] <-
+        rep(0, length(fem_matrices[["G"]]))
+        fem_matrices[["C"]][positions_matrices[[1]]] <-
+        fem_mesh$c0@x[idx_matrices[[1]]]
       } else if (m_alpha > 0) {
         fem_matrices[[paste0("G_", m_alpha + 1)]] <-
         fem_mesh[[paste0("g", m_alpha + 1)]]@x[idx_matrices[[m_alpha + 2]]]
@@ -828,7 +833,7 @@ rspde.matern <- function(mesh,
       type.rational.approx = type.rational.approx,
       d = d, rspde_order = rspde_order,
       prior.nu.dist = prior.nu.dist,
-      n = ncol(C) * (rspde_order + 1),
+      n = n_rgeneric * (rspde_order + 1),
       debug = debug,
       do_optimize = optimize, optimize = optimize
     )
@@ -863,7 +868,7 @@ rspde.matern <- function(mesh,
       start.ltau = start.ltau,
       type.rational.approx = type.rational.approx,
       d = d, rspde_order = rspde_order,
-      n = ncol(C) * (rspde_order + 1),
+      n = n_rgeneric * (rspde_order + 1),
       debug = debug,
       do_optimize = optimize, optimize = optimize
     )
@@ -896,7 +901,7 @@ rspde.matern <- function(mesh,
       start.lkappa = start.lkappa,
       start.ltau = start.ltau,
       d = d,
-      n = ncol(C),
+      n = n_rgeneric,
       debug = debug,
       do_optimize = optimize, optimize = optimize
     )
