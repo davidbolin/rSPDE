@@ -9,15 +9,14 @@ rspde.matern(
   nu_upper_bound = 4,
   rspde_order = 2,
   nu = NULL,
-  sharp = TRUE,
   debug = FALSE,
-  optimize = TRUE,
   prior.kappa = NULL,
   prior.nu = NULL,
   prior.tau = NULL,
   start.lkappa = NULL,
   start.nu = NULL,
   start.ltau = NULL,
+  parameterization = c("matern", "spde"),
   prior.nu.dist = c("beta", "lognormal"),
   nu.prec.inc = 1,
   type.rational.approx = c("chebfun", "brasil", "chebfunLB")
@@ -34,14 +33,7 @@ an \code{inla.mesh.1d} object.}
 \item{nu}{If nu is set to a parameter, nu will be kept fixed and will not
 be estimated. If nu is \code{NULL}, it will be estimated.}
 
-\item{sharp}{The sparsity graph should have the correct sparsity (costs
-more to perform a sparsity analysis) or an upper bound for the sparsity? If
-\code{TRUE}, the graph will have the correct sparsity.}
-
-\item{debug}{INLA debug argument.}
-
-\item{optimize}{Should the model be optimized? In this case the sparsities of
-the matrices will be analyzed.}
+\item{debug}{INLA debug argument}
 
 \item{prior.kappa}{a \code{list} containing the elements \code{meanlog} and
 \code{sdlog}, that is, the mean and standard deviation on the log scale.}
@@ -62,6 +54,8 @@ distribution on the log scale. Check details below.}
 \item{start.nu}{Starting value for nu.}
 
 \item{start.ltau}{Starting value for log of tau.}
+
+\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). The default is \code{matern}.}
 
 \item{prior.nu.dist}{The distribution of the smoothness parameter.
 The current options are "beta" or "lognormal". The default is "beta".}
