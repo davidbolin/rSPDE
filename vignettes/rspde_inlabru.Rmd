@@ -276,19 +276,11 @@ $$y_i\mid \eta(s_i),\theta \sim \Gamma(\exp(\eta (s_i)), c\phi).$$
 We will build a model using the distance to the sea $x_i$ 
 as a covariate through an improper CAR(1) model with 
 $\beta_{ij}=1(i\sim j)$, which `r inla_link()` calls a random walk of order 1.
-We will fit it in `inlabru`'s  style. For `inlabru` version `2.5.3.9002` or higher
-we can use the following compact synthax:
+We will fit it in `inlabru`'s  style:
 
 ```{r create_formula, message=FALSE}
 cmp <- y ~ Intercept(1) + distSea(seaDist, model="rw1") +
 field(coordinates, model = rspde_model)
-```
-
-For the current CRAN version of `inlabru` (version 2.5.3), one should use:
-
-```{r create_formula2, message=FALSE}
-cmp <- y ~ Intercept(1) + distSea(seaDist, model="rw1") +
-field(coordinates, model = rspde_model, mapper = bru_mapper(rspde_model))
 ```
 
 To fit the model we simply use the `bru()` function:
@@ -569,19 +561,10 @@ the `bru()` function. It will not produce warning and might fit some
 meaningless model.
 
 ```{r, message=FALSE, warning=FALSE}
-# For inlabru 2.5.3.9002 or above:
 cmp.rep <-
   y ~ -1 + field(coordinates,
     model = rspde_model.rep,
     replicate = repl
-  )
-
-# For inlabru 2.5.3
-cmp.rep <-
-  y ~ -1 + field(coordinates,
-    model = rspde_model.rep,
-    replicate = repl,
-    mapper = bru_mapper(rspde_model.rep)
   )
 
 

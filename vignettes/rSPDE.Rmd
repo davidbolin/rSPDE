@@ -454,13 +454,9 @@ coordinates(toy_df) <- c("coord1", "coord2")
 Finally, we create the component and fit:
 
 ```{r message=FALSE, warning=FALSE}
-# For inlabru 2.5.3.9002 or above:
 cmp <-
   y ~ -1 + field(coordinates, model = rspde_model)
-# For inlabru 2.5.3:
-cmp <-
-  y ~ -1 + field(coordinates, model = rspde_model,
-            mapper = bru_mapper(rspde_model))
+
 rspde_bru_fit <-
   bru(cmp,
       data=toy_df,
@@ -470,7 +466,7 @@ rspde_bru_fit <-
   )
 ```
 
-Note here that the creation of the model component needs to include the `mapper` argument if a version of `inlabru` up to version 2.5.3 is used, whereas this mapper argument is not required for later versions of `inlabru`. At this stage, we can get a summary of the fit just as in the `R-INLA` case:
+At this stage, we can get a summary of the fit just as in the `R-INLA` case:
 ```{r}
 summary(rspde_bru_fit)
 ```

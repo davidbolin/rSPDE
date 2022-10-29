@@ -4,7 +4,7 @@
 \alias{bru_mapper.inla_rspde}
 \alias{ibm_n.bru_mapper_inla_rspde}
 \alias{ibm_values.bru_mapper_inla_rspde}
-\alias{ibm_amatrix.bru_mapper_inla_rspde}
+\alias{ibm_jacobian.bru_mapper_inla_rspde}
 \alias{bru_get_mapper.inla_rspde}
 \title{rSPDE inlabru mapper}
 \usage{
@@ -14,7 +14,7 @@ ibm_n.bru_mapper_inla_rspde(mapper, ...)
 
 ibm_values.bru_mapper_inla_rspde(mapper, ...)
 
-ibm_amatrix.bru_mapper_inla_rspde(mapper, input, ...)
+ibm_jacobian.bru_mapper_inla_rspde(mapper, input, ...)
 
 bru_get_mapper.inla_rspde(model, ...)
 }

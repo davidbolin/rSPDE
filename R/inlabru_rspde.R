@@ -10,7 +10,7 @@
 #'   # S3method(inlabru::bru_get_mapper, inla_rspde)
 #'   S3method(inlabru::ibm_n, bru_mapper_inla_rspde)
 #'   S3method(inlabru::ibm_values, bru_mapper_inla_rspde)
-#'   S3method(inlabru::ibm_amatrix, bru_mapper_inla_rspde)
+#'   S3method(inlabru::ibm_jacobian, bru_mapper_inla_rspde)
 #' }
 #' 
 #' @examples
@@ -94,7 +94,7 @@ ibm_values.bru_mapper_inla_rspde <- function(mapper, ...) {
 }
 #' @param input The values for which to produce a mapping matrix
 #' @rdname bru_mapper.inla_rspde
-ibm_amatrix.bru_mapper_inla_rspde <- function(mapper, input, ...) {
+ibm_jacobian.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   if (is.null(input)) {
     return(Matrix::Matrix(0, 0, inlabru::ibm_n(mapper)))
   }
