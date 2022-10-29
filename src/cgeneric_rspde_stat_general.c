@@ -28,16 +28,16 @@ double logdbeta(double x, double s_1, double s_2){
 double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data) {
 
   double *ret = NULL;
-  double ltau, lkappa, tau, kappa, prior_kappa_meanlog, lnu, nu;
+  double ltau, lkappa, tau, kappa, prior_theta1_meanlog, lnu, nu;
   double alpha, nu_upper_bound;
   int m_alpha;
-  double prior_kappa_sdlog, prior_tau_meanlog, prior_tau_sdlog;
+  double prior_theta1_sdlog, prior_theta2_meanlog, prior_theta2_sdlog;
   double prior_nu_mean, prior_nu_loglocation, prior_nu_prec;
   double prior_nu_logscale;
-  double start_ltau, start_lkappa, start_nu;
+  double start_theta1, start_theta2, start_nu;
   int N, M, i, k, j, rspde_order;
   double d;
-  char *prior_nu_dist;
+  char *prior_nu_dist, *parameterization;
   int full_size, less_size;
   int one = 1;
 
@@ -48,7 +48,7 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
   assert(data->n_doubles == 15);
 
   // the number of strings
-  assert(data->n_chars == 3);
+  assert(data->n_chars == 4);
 
   assert(!strcasecmp(data->ints[0]->name, "n"));       // this will always be the case
   N = data->ints[0]->ints[0];			       // this will always be the case
@@ -75,6 +75,9 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
   assert(!strcasecmp(data->chars[2]->name, "prior.nu.dist"));
   prior_nu_dist = &data->chars[2]->chars[0];
 
+  assert(!strcasecmp(data->chars[3]->name, "parameterization"));
+  parameterization = &data->chars[3]->chars[0];
+
   assert(!strcasecmp(data->doubles[0]->name, "d"));
   d = data->doubles[0]->doubles[0];
 
@@ -99,17 +102,17 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
   assert(rational_table->nrow == 999);  
 
   // prior parameters
-  assert(!strcasecmp(data->doubles[4]->name, "prior.kappa.meanlog"));
-  prior_kappa_meanlog = data->doubles[4]->doubles[0];
+  assert(!strcasecmp(data->doubles[4]->name, "prior.theta1.meanlog"));
+  prior_theta1_meanlog = data->doubles[4]->doubles[0];
 
-  assert(!strcasecmp(data->doubles[5]->name, "prior.kappa.sdlog"));
-  prior_kappa_sdlog = data->doubles[5]->doubles[0];
+  assert(!strcasecmp(data->doubles[5]->name, "prior.theta1.sdlog"));
+  prior_theta1_sdlog = data->doubles[5]->doubles[0];
 
-  assert(!strcasecmp(data->doubles[6]->name, "prior.tau.meanlog"));
-  prior_tau_meanlog = data->doubles[6]->doubles[0];
+  assert(!strcasecmp(data->doubles[6]->name, "prior.theta2.meanlog"));
+  prior_theta2_meanlog = data->doubles[6]->doubles[0];
 
-  assert(!strcasecmp(data->doubles[7]->name, "prior.tau.sdlog"));
-  prior_tau_sdlog = data->doubles[7]->doubles[0];
+  assert(!strcasecmp(data->doubles[7]->name, "prior.theta2.sdlog"));
+  prior_theta2_sdlog = data->doubles[7]->doubles[0];
 
   assert(!strcasecmp(data->doubles[8]->name, "prior.nu.loglocation"));
   prior_nu_loglocation = data->doubles[8]->doubles[0];
@@ -123,23 +126,28 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
   assert(!strcasecmp(data->doubles[11]->name, "prior.nu.logscale"));
   prior_nu_logscale = data->doubles[11]->doubles[0];
 
-  assert(!strcasecmp(data->doubles[12]->name, "start.lkappa"));
-  start_lkappa = data->doubles[12]->doubles[0];
+  assert(!strcasecmp(data->doubles[12]->name, "start.theta1"));
+  start_theta1 = data->doubles[12]->doubles[0];
 
-  assert(!strcasecmp(data->doubles[13]->name, "start.ltau"));
-  start_ltau = data->doubles[13]->doubles[0];
+  assert(!strcasecmp(data->doubles[13]->name, "start.theta2"));
+  start_theta2 = data->doubles[13]->doubles[0];
 
   assert(!strcasecmp(data->doubles[14]->name, "start.nu"));
   start_nu = data->doubles[14]->doubles[0];
 
   if (theta) {
     // interpretable parameters 
-    ltau = theta[0];
-    lkappa = theta[1];
     lnu = theta[2];
+    nu = (exp(lnu)/(1 + exp(lnu))) * nu_upper_bound;
+    if(!strcasecmp(parameterization, "matern")){
+      ltau = -2 * theta[0];
+      lkappa = 0.5 * log(8 * nu) - theta[1];
+    } else {
+      ltau = theta[0];
+      lkappa = theta[1];
+    }
     tau = exp(ltau);
     kappa = exp(lkappa);
-    nu = (exp(lnu)/(1 + exp(lnu))) * nu_upper_bound;
   }
   else {   
     ltau = lkappa = lnu = tau = kappa = nu = NAN;
@@ -494,8 +502,8 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
       // where P is the number of hyperparameters      
       ret = Calloc(4, double);
       ret[0] = 3;
-      ret[1] = start_ltau;
-      ret[2] = start_lkappa;
+      ret[1] = start_theta1;
+      ret[2] = start_theta2;
       ret[3] = log(start_nu/(nu_upper_bound - start_nu));
       break;
     }
@@ -511,11 +519,11 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
 
       ret[0] = 0.0;
 
-      ret[0] += -0.5 * SQR(lkappa - prior_kappa_meanlog)/(SQR(prior_kappa_sdlog)) - 
-      log(prior_kappa_sdlog) - 0.5 * log(2 * M_PI);
+      ret[0] += -0.5 * SQR(theta[0] - prior_theta1_meanlog)/(SQR(prior_theta1_sdlog)) - 
+      log(prior_theta1_sdlog) - 0.5 * log(2 * M_PI);
 
-      ret[0] += -0.5 * SQR(ltau - prior_tau_meanlog)/(SQR(prior_tau_sdlog)) - 
-      log(prior_tau_sdlog) - 0.5 * log(2 * M_PI);
+      ret[0] += -0.5 * SQR(theta[1] - prior_theta2_meanlog)/(SQR(prior_theta2_sdlog)) - 
+      log(prior_theta2_sdlog) - 0.5 * log(2 * M_PI);
 
       if(!strcasecmp(prior_nu_dist, "lognormal")){
         ret[0] += -log(nu) -0.5 * SQR(lnu - prior_nu_loglocation)/(SQR(prior_nu_logscale));

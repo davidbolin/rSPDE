@@ -21,9 +21,15 @@
 #' distribution on the log scale. Check details below.
 #' @param prior.tau a list containing the elements `meanlog` and
 #' `sdlog`, that is, the mean and standard deviation on the log scale.
+#' @param prior.range a `list` containing the elements `meanlog` and
+#' `sdlog`, that is, the mean and standard deviation on the log scale. Will not be used if prior.kappa is non-null.
+#' @param prior.std.dev a `list` containing the elements `meanlog` and
+#' `sdlog`, that is, the mean and standard deviation on the log scale. Will not be used if prior.tau is non-null.
 #' @param start.lkappa Starting value for log of kappa.
 #' @param start.nu Starting value for nu.
 #' @param start.ltau Starting value for log of tau.
+#' @param start.lrange Starting value for log of range. Will not be used if start.lkappa is non-null.
+#' @param start.lstd.dev Starting value for log of std. deviation. Will not be used if start.ltau is non-null.
 #' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
 #' @param prior.nu.dist The distribution of the smoothness parameter.
 #' The current options are "beta" or "lognormal". The default is "beta".
@@ -42,9 +48,13 @@ rspde.matern <- function(mesh,
                          prior.kappa = NULL,
                          prior.nu = NULL,
                          prior.tau = NULL,
+                         prior.range = NULL,
+                         prior.std.dev = NULL,
                          start.lkappa = NULL,
                          start.nu = NULL,
                          start.ltau = NULL,
+                         start.lrange = NULL,
+                         start.lstd.dev = NULL,
                          parameterization = c("matern", "spde"),
                          prior.nu.dist = c("beta", "lognormal"),
                          nu.prec.inc = 1,
@@ -52,9 +62,19 @@ rspde.matern <- function(mesh,
                          "brasil", "chebfunLB")) {
   type.rational.approx <- type.rational.approx[[1]]
 
+  parameterization <- parameterization[[1]]
+
   prior.nu.dist <- prior.nu.dist[[1]]
   if (!prior.nu.dist %in% c("beta", "lognormal")) {
     stop("prior.nu.dist should be either beta or lognormal!")
+  }
+
+  if (!parameterization %in% c("matern", "spde")) {
+    stop("parameterization should be either matern or spde!")
+  }
+
+  if (!type.rational.approx %in% c("chebfun", "brasil", "chebfunLB")) {
+    stop("type.rational.approx should be either chebfun, brasil or chebfunLB!")
   }
 
   integer.nu <- FALSE
@@ -246,7 +266,7 @@ rspde.matern <- function(mesh,
     prior.nu[["mean"]] <- min(1, nu_upper_bound / 2)
   }
 
-  if (is.null(prior.kappa$meanlog)) {
+  if (is.null(prior.kappa$meanlog) && is.null(prior.range$meanlog)) {
     mesh.range <- ifelse(d == 2, (max(c(diff(range(mesh$loc[
       ,
       1
@@ -255,6 +275,9 @@ rspde.matern <- function(mesh,
       3
     ]))))), diff(mesh$interval))
     prior.range.nominal <- mesh.range * 0.2
+
+    prior.range$meanlog <- log(prior.range.nominal)
+
     if (prior.nu.dist == "lognormal") {
       prior.kappa$meanlog <- log(sqrt(8 *
       exp(prior.nu[["loglocation"]])) / prior.range.nominal)
@@ -264,7 +287,7 @@ rspde.matern <- function(mesh,
     }
   }
 
-  if (is.null(prior.tau$meanlog)) {
+  if (is.null(prior.tau$meanlog) && is.null(prior.std.dev$meanlog)) {
     if (prior.nu.dist == "lognormal") {
       prior.tau$meanlog <- log(sqrt(gamma(exp(prior.nu[["loglocation"]])) /
       gamma(exp(prior.nu[["loglocation"]]) + d / 2) / (4 *
@@ -274,6 +297,8 @@ rspde.matern <- function(mesh,
       gamma(prior.nu[["mean"]] + d / 2) / (4 *
         pi * exp(prior.kappa$meanlog)^(2 * prior.nu[["mean"]]))))
     }
+
+    prior.std.dev$meanlog <- -0.5 * prior.tau$meanlog
   }
   if (is.null(prior.kappa$sdlog)) {
     prior.kappa$sdlog <- sqrt(10)
@@ -291,12 +316,28 @@ rspde.matern <- function(mesh,
     prior.tau$sdlog <- sqrt(10)
   }
 
+  if(is.null(prior.range$sdlog)){
+    prior.range$sdlog <- sqrt(10)
+  }
+
+  if(is.null(prior.std.dev$sdlog)){
+    prior.std.dev$sdlog <- sqrt(10)
+  }
+
   if (is.null(start.lkappa)) {
     start.lkappa <- prior.kappa$meanlog
   }
   if (is.null(start.ltau)) {
     start.ltau <- prior.tau$meanlog
   }
+
+  if(is.null(start.lrange)){
+    start.lrange <- prior.range$meanlog
+  }
+  if(is.null(start.lstd.dev)){
+    start.lstd.dev <- prior.std.dev$meanlog
+  }
+
   if (is.null(start.nu)) {
     if (prior.nu.dist == "beta") {
       start.nu <- prior.nu[["mean"]]
@@ -307,6 +348,18 @@ rspde.matern <- function(mesh,
     }
   } else if (start.nu > nu_upper_bound || start.nu < 0) {
     stop("start.nu should be a number between 0 and nu_upper_bound!")
+  }
+
+  if(parameterization == "spde"){
+    prior.theta1 <- prior.tau
+    prior.theta2 <- prior.kappa
+    start.theta1 <- start.ltau
+    start.theta2 <- start.lkappa
+  } else{
+    prior.theta1 <- prior.std.dev
+    prior.theta2 <- prior.range
+    start.theta1 <- start.lstd.dev
+    start.theta2 <- start.lrange
   }
 
   if (!fixed_nu) {
@@ -338,19 +391,20 @@ rspde.matern <- function(mesh,
             rational_table = as.matrix(rational_table),
             graph_opt_i = graph_opt@i,
             graph_opt_j = graph_opt@j,
-            prior.kappa.meanlog = prior.kappa$meanlog,
-            prior.kappa.sdlog = prior.kappa$sdlog,
-            prior.tau.meanlog = prior.tau$meanlog,
-            prior.tau.sdlog = prior.tau$sdlog,
+            prior.theta1.meanlog = prior.theta1$meanlog,
+            prior.theta1.sdlog = prior.theta1$sdlog,
+            prior.theta2.meanlog = prior.theta2$meanlog,
+            prior.theta2.sdlog = prior.theta2$sdlog,
             prior.nu.loglocation = prior.nu$loglocation,
             prior.nu.mean = prior.nu$mean,
             prior.nu.prec = prior.nu$prec,
             prior.nu.logscale = prior.nu$logscale,
-            start.lkappa = start.lkappa,
-            start.ltau = start.ltau,
+            start.theta1 = start.theta1,
+            start.theta2 = start.theta2,
             start.nu = start.nu,
             rspde_order = as.integer(rspde_order),
-            prior.nu.dist = prior.nu.dist))
+            prior.nu.dist = prior.nu.dist,
+            parameterization = parameterization))
     
     model$cgeneric_type <- "general"
   } else if (!integer_alpha) {
@@ -383,13 +437,14 @@ rspde.matern <- function(mesh,
             k_ratapprox = k,
             graph_opt_i = graph_opt@i,
             graph_opt_j = graph_opt@j,
-            prior.kappa.meanlog = prior.kappa$meanlog,
-            prior.kappa.sdlog = prior.kappa$sdlog,
-            prior.tau.meanlog = prior.tau$meanlog,
-            prior.tau.sdlog = prior.tau$sdlog,
-            start.lkappa = start.lkappa,
-            start.ltau = start.ltau,
+            prior.theta1.meanlog = prior.theta1$meanlog,
+            prior.theta1.sdlog = prior.theta1$sdlog,
+            prior.theta2.meanlog = prior.theta2$meanlog,
+            prior.theta2.sdlog = prior.theta2$sdlog,
+            start.theta1 = start.theta1,
+            start.theta2 = start.theta2,
             rspde_order = as.integer(rspde_order),
+            parameterization = parameterization,
             d = as.integer(d)))
     
     model$cgeneric_type <- "frac_alpha"
@@ -417,12 +472,13 @@ rspde.matern <- function(mesh,
             m_alpha = as.integer(m_alpha),
             graph_opt_i = graph_opt@i,
             graph_opt_j = graph_opt@j,
-            prior.kappa.meanlog = prior.kappa$meanlog,
-            prior.kappa.sdlog = prior.kappa$sdlog,
-            prior.tau.meanlog = prior.tau$meanlog,
-            prior.tau.sdlog = prior.tau$sdlog,
-            start.lkappa = start.lkappa,
-            start.ltau = start.ltau #,
+            prior.theta1.meanlog = prior.theta1$meanlog,
+            prior.theta1.sdlog = prior.theta1$sdlog,
+            prior.theta2.meanlog = prior.theta2$meanlog,
+            prior.theta2.sdlog = prior.theta2$sdlog,
+            start.theta1 = start.theta1,
+            start.theta2 = start.theta2,
+            nu = nu #,
             # positions_C = positions_matrices_less[[1]],
             # positions_G = positions_matrices_less[[2]]
             ))
@@ -451,6 +507,7 @@ rspde.matern <- function(mesh,
   model$type.rational.approx <- type.rational.approx
   model$mesh <- mesh
   model$fem_mesh <- fem_mesh
+  model$parameterization <- parameterization
   return(model)
 }
 
@@ -745,7 +802,19 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' @param rspde The `inla_rspde` object used for the effect in
 #' the inla formula.
 #' @param compute.summary Should the summary be computed?
-#' @return Returns a list containing:
+#' @return If the model was fitted with `matern` parameterization (the default), it returns a list containing:
+#' \item{marginals.range}{Marginal densities for the range parameter}
+#' \item{marginals.log.range}{Marginal densities for log(range)}
+#' \item{marginals.std.dev}{Marginal densities for std. deviation}
+#' \item{marginals.log.std.dev}{Marginal densities for log(std. deviation)}
+#' \item{marginals.values}{Marginal densities for the field values}
+#' \item{summary.log.range}{Summary statistics for log(range)}
+#' \item{summary.log.std.dev}{Summary statistics for log(std. deviation)}
+#' \item{summary.values}{Summary statistics for the field values}
+#' If `compute.summary` is `TRUE`, then the list will also contain
+#' \item{summary.kappa}{Summary statistics for kappa}
+#' \item{summary.tau}{Summary statistics for tau}
+#' If the model was fitted with the `spde` parameterization, it returns a list containing:
 #' \item{marginals.kappa}{Marginal densities for kappa}
 #' \item{marginals.log.kappa}{Marginal densities for log(kappa)}
 #' \item{marginals.log.tau}{Marginal densities for log(tau)}
@@ -754,7 +823,11 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' \item{summary.log.kappa}{Summary statistics for log(kappa)}
 #' \item{summary.log.tau}{Summary statistics for log(tau)}
 #' \item{summary.values}{Summary statistics for the field values}
-#' If nu was estimated, then the list will also contain
+#' If `compute.summary` is `TRUE`, then the list will also contain
+#' \item{summary.kappa}{Summary statistics for kappa}
+#' \item{summary.tau}{Summary statistics for tau}
+#' 
+#' For both cases, if nu was estimated, then the list will also contain
 #' \item{marginals.nu}{Marginal densities for nu}
 #' If nu was estimated and a beta prior was used, then the list will
 #' also contain
@@ -764,9 +837,6 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' then the list will also contain
 #' \item{marginals.log.nu}{Marginal densities for log(nu)}
 #' \item{summary.log.nu}{Marginal densities for log(nu)}
-#' If `compute.summary` is `TRUE`, then the list will also contain
-#' \item{summary.kappa}{Summary statistics for kappa}
-#' \item{summary.tau}{Summary statistics for tau}
 #' If nu was estimated and `compute.summary` is `TRUE`,
 #' then the list will also contain
 #' \item{summary.nu}{Summary statistics for nu}
@@ -831,10 +901,20 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
   nu_upper_bound <- rspde$nu_upper_bound
   result <- list()
 
+  parameterization <- rspde$parameterization
+
   if (!rspde$est_nu) {
-    row_names <- c("tau", "kappa")
+    if(parameterization == "spde"){
+      row_names <- c("tau", "kappa")
+    } else{
+      row_names <- c("std.dev", "range")
+    }
   } else {
-    row_names <- c("tau", "kappa", "nu")
+    if(parameterization == "spde"){
+      row_names <- c("tau", "kappa", "nu")
+    } else{
+      row_names <- c("std.dev", "range", "nu")
+    }
   }
 
 
@@ -844,17 +924,26 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
     result$marginals.values <- inla$marginals.random[[name]]
   }
 
+  if(parameterization == "spde"){
+    name_theta1 <- "tau"
+    name_theta2 <- "kappa"
+  } else{
+    name_theta1 <- "std.dev"
+    name_theta2 <- "range"
+  }
 
-  result$summary.log.tau <- INLA::inla.extract.el(
+
+  result[[paste0("summary.log.",name_theta1)]] <- INLA::inla.extract.el(
     inla$summary.hyperpar,
     paste("Theta1 for ", name, "$", sep = "")
   )
-  rownames(result$summary.log.tau) <- "log(tau)"
-  result$summary.log.kappa <- INLA::inla.extract.el(
+  rownames(  result[[paste0("summary.log.",name_theta1)]]) <- paste0("log(",name_theta1,")")
+  
+  result[[paste0("summary.log.",name_theta2)]] <- INLA::inla.extract.el(
     inla$summary.hyperpar,
     paste("Theta2 for ", name, "$", sep = "")
   )
-  rownames(result$summary.log.kappa) <- "log(kappa)"
+  rownames(result[[paste0("summary.log.",name_theta2)]]) <- paste0("log(", name_theta2,")")
   if (rspde$est_nu) {
     result$summary.logit.nu <- INLA::inla.extract.el(
       inla$summary.hyperpar,
@@ -864,16 +953,16 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
   }
 
   if (!is.null(inla$marginals.hyperpar[[paste0("Theta1 for ", name)]])) {
-    result$marginals.log.tau <- INLA::inla.extract.el(
+    result[[paste0("marginals.log.",name_theta1)]] <- INLA::inla.extract.el(
       inla$marginals.hyperpar,
       paste("Theta1 for ", name, "$", sep = "")
     )
-    names(result$marginals.log.tau) <- "tau"
-    result$marginals.log.kappa <- INLA::inla.extract.el(
+    names(result[[paste0("marginals.log.",name_theta1)]]) <- name_theta1
+    result[[paste0("marginals.log.",name_theta2)]] <- INLA::inla.extract.el(
       inla$marginals.hyperpar,
       paste("Theta2 for ", name, "$", sep = "")
     )
-    names(result$marginals.log.kappa) <- "kappa"
+    names(result[[paste0("marginals.log.",name_theta2)]]) <- name_theta2
 
     if (rspde$est_nu) {
       result$marginals.logit.nu <- INLA::inla.extract.el(
@@ -883,8 +972,8 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
       names(result$marginals.logit.nu) <- "nu"
     }
 
-    result$marginals.tau <- lapply(
-      result$marginals.log.tau,
+    result[[paste0("marginals.",name_theta1)]] <- lapply(
+      result[[paste0("marginals.log.",name_theta1)]],
       function(x) {
         INLA::inla.tmarginal(
           function(y) exp(y),
@@ -892,8 +981,8 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
         )
       }
     )
-    result$marginals.kappa <- lapply(
-      result$marginals.log.kappa,
+    result[[paste0("marginals.",name_theta2)]] <- lapply(
+      result[[paste0("marginals.log.",name_theta2)]],
       function(x) {
         INLA::inla.tmarginal(
           function(y) exp(y),
@@ -942,21 +1031,21 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
       return(norm_const)
     }
 
-    norm_const_tau <- norm_const(result$marginals.tau$tau)
-    result$marginals.tau$tau[, "y"] <-
-    result$marginals.tau$tau[, "y"] / norm_const_tau
+    norm_const_theta1 <- norm_const(result[[paste0("marginals.",name_theta1)]][[name_theta1]])
+    result[[paste0("marginals.",name_theta1)]][[name_theta1]][, "y"] <-
+    result[[paste0("marginals.",name_theta1)]][[name_theta1]][, "y"] / norm_const_theta1
 
-    norm_const_kappa <- norm_const(result$marginals.kappa$kappa)
-    result$marginals.kappa$kappa[, "y"] <-
-    result$marginals.kappa$kappa[, "y"] / norm_const_kappa
-
-
+    norm_const_theta2 <- norm_const(result[[paste0("marginals.",name_theta2)]][[name_theta2]])
+    result[[paste0("marginals.",name_theta2)]][[name_theta2]][, "y"] <-
+    result[[paste0("marginals.",name_theta2)]][[name_theta2]][, "y"] / norm_const_theta2
 
 
-    result$summary.tau <- create_summary_from_density(result$marginals.tau$tau,
-    name = "tau")
-    result$summary.kappa <-
-    create_summary_from_density(result$marginals.kappa$kappa, name = "kappa")
+
+
+    result[[paste0("summary.",name_theta1)]] <- create_summary_from_density(result[[paste0("marginals.",name_theta1)]][[name_theta1]],
+    name = name_theta1)
+    result[[paste0("summary.",name_theta2)]] <-
+    create_summary_from_density(result[[paste0("marginals.",name_theta2)]][[name_theta2]], name = name_theta2)
     if (rspde$est_nu) {
       norm_const_nu <- norm_const(result$marginals.nu$nu)
       result$marginals.nu$nu[, "y"] <-
@@ -968,6 +1057,10 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
   }
 
   class(result) <- "rspde.result"
+  result$params <- c(name_theta1,name_theta2)
+  if(rspde$est_nu){
+    result$params <- c(result$params, "nu")
+  }
   return(result)
 }
 
@@ -1048,10 +1141,11 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #' }
 #' #devel.tag
 #' }
-plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
-                              caption = list(
-                                "Posterior density for tau",
-                                "Posterior density for kappa",
+plot.rspde.result <- function(x, which = x$params,
+                              caption = list(paste(
+                                "Posterior density for", x$params[1]),
+                                paste(
+                                "Posterior density for", x$params[2]),
                                 "Posterior density for nu"
                               ),
                               sub.caption = NULL,
@@ -1065,7 +1159,7 @@ plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
                               xlab = "x",
                               ...) {
   result <- x
-  which <- which[which %in% c("tau", "kappa", "nu")]
+  which <- which[which %in% c("tau", "kappa", "nu", "range", "std.dev")]
   stopifnot(!is.null(which))
 
   one.fig <- prod(graphics::par("mfcol")) == 1
@@ -1089,7 +1183,7 @@ plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
     }
   }
 
-  param <- c("tau", "kappa", "nu")
+  param <- result$params
   for (i in 1:3) {
     if (param[i] %in% which) {
       graph_temp <- result[[paste0("marginals.", param[i])]][[param[i]]]
@@ -1116,27 +1210,33 @@ plot.rspde.result <- function(x, which = c("tau", "kappa", "nu"),
 }
 
 
-#' Create a posterior data frame for rspde.result objects
+#' Data frame for rspde.result objects to be used in ggplot2
 #'
-#' FUNCTION_DESCRIPTION
+#' Returns a ggplot-friendly data-frame with the marginal posterior densities.
 #'
 #' @param rspde_result An rspde.result object.
-#' @param parameter Vector. Which parameters to get the posterior density in the data.frame? The options are `tau`, `kappa` and `nu`.
+#' @param parameter Vector. Which parameters to get the posterior density in the data.frame? The options are `std.dev`, `range`, `tau`, `kappa` and `nu`.
 #' @param transform Should the posterior density be given in the original scale?
 #'
 #' @return A data frame containing the posterior densities.
 #' @examples
 #' # ADD_EXAMPLES_HERE
 #' @export
-posterior_df <- function(rspde_result, 
-                          parameter = c("tau", "kappa", "nu"),
-                          transform = TRUE) {
+gg_df <- function(rspde_result, 
+                          parameter = rspde_result$params,
+                          transform = TRUE,
+                          restrict_x_axis = parameter,
+                          restrict_quantiles = list(std.dev = c(0,1),
+                          range = c(0,1),
+                          nu = c(0,1),
+                          kappa = c(0,1),
+                          tau = c(0,1))) {
       if(!inherits(rspde_result, "rspde.result")){
         stop("The argument rspde_result should be of class rspde.result!")
       }
-      parameter <- intersect(parameter, c("tau", "kappa", "nu"))
+      parameter <- intersect(parameter, c("tau", "kappa", "nu", "range", "std.dev"))
       if(length(parameter) == 0){
-        stop("You should choose at least one of the parameters 'tau', 'kappa' or 'nu'!")
+        stop("You should choose at least one of the parameters 'tau', 'kappa', 'nu', 'range' or 'std.dev'!")
       }
     if ("nu" %in% parameter) {
     if (is.null(rspde_result$marginals.nu)) {
@@ -1158,6 +1258,20 @@ posterior_df <- function(rspde_result,
   y = rspde_result[[param]][[parameter[1]]][,2], 
   parameter = parameter[[1]])
 
+  if(parameter[[1]] %in% restrict_x_axis){
+    if(is.null( restrict_quantiles[[parameter[[1]]]])){
+      warning("If you want to restrict x axis you should provide a quantile for the parameter!")
+       restrict_quanties[[parameter[[1]]]] <- c(0,1)
+    }
+    d_t <- c(0,diff(ret_df$x))
+    emp_cdf <- cumsum(d_t*ret_df$y)
+    lower_quant <- restrict_quantiles[[parameter[[1]]]][1]
+    upper_quant <- restrict_quantiles[[parameter[[1]]]][2]
+    filter_coord <- (emp_cdf >= lower_quant) * (emp_cdf <= upper_quant)
+    filter_coord <- as.logical(filter_coord)
+    ret_df <- ret_df[filter_coord, ]
+  }
+
   if(length(parameter) > 1){
   for(i in 2:length(parameter)){
   param <- parameter[[i]]
@@ -1173,6 +1287,22 @@ posterior_df <- function(rspde_result,
     tmp <- data.frame(x = rspde_result[[param]][[parameter[i]]][,1], 
       y = rspde_result[[param]][[parameter[i]]][,2], 
       parameter = parameter[[i]])
+
+    if(parameter[[i]] %in% restrict_x_axis){
+    if(is.null( restrict_quantiles[[parameter[[i]]]])){
+      warning(paste("No quantile for", parameter[[i]]))
+      warning("If you want to restrict x axis you should provide a quantile for the parameter!")
+       restrict_quanties[[parameter[[i]]]] <- c(0,1)
+    }
+    d_t <- c(0,diff(tmp$x))
+    emp_cdf <- cumsum(d_t*tmp$y)
+    lower_quant <- restrict_quantiles[[parameter[[i]]]][1]
+    upper_quant <- restrict_quantiles[[parameter[[i]]]][2]
+    filter_coord <- (emp_cdf >= lower_quant) * (emp_cdf <= upper_quant)
+    filter_coord <- as.logical(filter_coord)
+    tmp <- tmp[filter_coord, ]
+  }
+    
     ret_df <- rbind(ret_df, tmp)
   }
   }
@@ -1249,12 +1379,13 @@ posterior_df <- function(rspde_result,
 summary.rspde.result <- function(object,
                                  digits = 6,
                                  ...) {
-  if (is.null(object$summary.tau)) {
+
+  if (is.null(object[[paste0("summary.",object$params[1])]])) {
     warning("The summary was not computed, rerun rspde.result with
     compute.summary set to TRUE.")
   } else {
-    out <- object$summary.tau
-    out <- rbind(out, object$summary.kappa)
+    out <- object[[paste0("summary.",object$params[1])]]
+    out <- rbind(out, object[[paste0("summary.",object$params[2])]])
     if (!is.null(object$summary.nu)) {
       out <- rbind(out, object$summary.nu)
     }
@@ -2040,3 +2171,5 @@ rspde.precision <- function(rspde,
   }
   
 }
+
+

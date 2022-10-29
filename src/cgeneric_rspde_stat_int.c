@@ -19,9 +19,11 @@ unsigned nChoosek( int n, int k ){
 double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data) {
 
   double *ret = NULL;
-  double ltau, lkappa, tau, kappa, prior_kappa_meanlog;
-  double prior_kappa_sdlog, prior_tau_meanlog, prior_tau_sdlog;
-  double start_ltau, start_lkappa;
+  double ltau, lkappa, tau, kappa, prior_theta1_meanlog;
+  double prior_theta1_sdlog, prior_theta2_meanlog, prior_theta2_sdlog;
+  double start_theta1, start_theta2;
+  double nu;
+  char *parameterization;
 
   int N, M, i, k, j;
   
@@ -29,7 +31,7 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
   assert(data->n_ints == 5);
 
   // the number of doubles
-  assert(data->n_doubles == 7);
+  assert(data->n_doubles == 8);
 
   assert(!strcasecmp(data->ints[0]->name, "n"));       // this will always be the case
   N = data->ints[0]->ints[0];			       // this will always be the case
@@ -53,6 +55,9 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
   inla_cgeneric_vec_tp *graph_j = data->ints[4];
   assert(M == graph_j->len);
 
+  assert(!strcasecmp(data->chars[2]->name, "parameterization"));
+  parameterization = &data->chars[2]->chars[0];
+
   // assert(!strcasecmp(data->ints[5]->name, "positions_C"));
   // inla_cgeneric_vec_tp *positions_C = data->ints[5];
 
@@ -64,28 +69,36 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
   assert(M*(m_alpha+1) == fem->len);
 
   // prior parameters
-  assert(!strcasecmp(data->doubles[1]->name, "prior.kappa.meanlog"));
-  prior_kappa_meanlog = data->doubles[1]->doubles[0];
+  assert(!strcasecmp(data->doubles[1]->name, "prior.theta1.meanlog"));
+  prior_theta1_meanlog = data->doubles[1]->doubles[0];
 
-  assert(!strcasecmp(data->doubles[2]->name, "prior.kappa.sdlog"));
-  prior_kappa_sdlog = data->doubles[2]->doubles[0];
+  assert(!strcasecmp(data->doubles[2]->name, "prior.theta1.sdlog"));
+  prior_theta1_sdlog = data->doubles[2]->doubles[0];
 
-  assert(!strcasecmp(data->doubles[3]->name, "prior.tau.meanlog"));
-  prior_tau_meanlog = data->doubles[3]->doubles[0];
+  assert(!strcasecmp(data->doubles[3]->name, "prior.theta2.meanlog"));
+  prior_theta2_meanlog = data->doubles[3]->doubles[0];
 
-  assert(!strcasecmp(data->doubles[4]->name, "prior.tau.sdlog"));
-  prior_tau_sdlog = data->doubles[4]->doubles[0];
+  assert(!strcasecmp(data->doubles[4]->name, "prior.theta2.sdlog"));
+  prior_theta2_sdlog = data->doubles[4]->doubles[0];
 
-  assert(!strcasecmp(data->doubles[5]->name, "start.lkappa"));
-  start_lkappa = data->doubles[5]->doubles[0];
+  assert(!strcasecmp(data->doubles[5]->name, "start.theta1"));
+  start_theta1 = data->doubles[5]->doubles[0];
 
-  assert(!strcasecmp(data->doubles[6]->name, "start.ltau"));
-  start_ltau = data->doubles[6]->doubles[0];
+  assert(!strcasecmp(data->doubles[6]->name, "start.theta2"));
+  start_theta2 = data->doubles[6]->doubles[0];
+
+  assert(!strcasecmp(data->doubles[7]->name, "nu"));
+  nu = data->doubles[7]->doubles[0];
 
   if (theta) {
     // interpretable parameters 
-    ltau = theta[0];
-    lkappa = theta[1];
+    if(!strcasecmp(parameterization, "matern")){
+      ltau = -2 * theta[0];
+      lkappa = 0.5 * log(8 * nu) - theta[1];
+    } else {
+      ltau = theta[0];
+      lkappa = theta[1];
+    }
     tau = exp(ltau);
     kappa = exp(lkappa);
   }
@@ -366,7 +379,7 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
   //     }
 
 
-      // Fortran implementation
+      // // Fortran implementation
       double sqtau, sqtaukappa, sqtaukappatmp, sqkappatau1, sqkappatau2;
       int one=1;
            sqtau = SQR(tau);
@@ -401,7 +414,7 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
           for(j = 2; j<= m_alpha; j++){
             sqkappatau1 = SQR(tau) * pow(kappa, 2 * m_alpha);
             sqkappatau2 = SQR(tau) * m_alpha * pow(kappa, 2 * (m_alpha - 1));
-            sqtaukappatmp = SQR(tau) * pow(kappa, 2*(m_alpha-j-2)) * nChoosek(m_alpha, j+2);
+            sqtaukappatmp = SQR(tau) * pow(kappa, 2*(m_alpha-j)) * nChoosek(m_alpha, j);
             daxpy_(&M, &sqtaukappatmp, &fem->doubles[j*M], &one, &ret[k], &one);
           }
         }
@@ -436,12 +449,15 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
 
     
       // switch(m_alpha){
-      //   // double sqtau = SQR(tau);
-      //   // double sqtaukappa = SQR(tau) * SQR(kappa);
-      //   // int one=1;
-      //   // dcopy_(&M, &fem->doubles[M], &one, &ret[k], &one);
-      //   // dscal_(&M, &sqtau, &ret[k], &one); 
-      //   // daxpy_(&M, &sqtaukappa, &fem->doubles[0], &one, &ret[k], &one);
+      //   double sqtau = SQR(tau);
+      //   double sqtaukappa = SQR(tau) * SQR(kappa);
+      //   double sqkappatau1 = SQR(tau) * SQR(kappa*kappa);
+      //   double sqkappatau2 = SQR(tau) * 2 * SQR(kappa);
+      //   double sqtaukappatmp;
+      //   int one=1;
+      //   dcopy_(&M, &fem->doubles[M], &one, &ret[k], &one);
+      //   dscal_(&M, &sqtau, &ret[k], &one); 
+      //   daxpy_(&M, &sqtaukappa, &fem->doubles[0], &one, &ret[k], &one);
 
       //   case 1:
       //   {
@@ -463,7 +479,7 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
       //     for(j = 2; j<= m_alpha; j++){
       //       sqkappatau1 = SQR(tau) * pow(kappa, 2 * m_alpha);
       //       sqkappatau2 = SQR(tau) * m_alpha * pow(kappa, 2 * (m_alpha - 1));
-      //       sqtaukappatmp = SQR(tau) * pow(kappa, 2*(m_alpha-j-2)) * nChoosek(m_alpha, j+2);
+      //       sqtaukappatmp = SQR(tau) * pow(kappa, 2*(m_alpha-j)) * nChoosek(m_alpha, j);
       //       daxpy_(&M, &sqtaukappatmp, &fem->doubles[j*M], &one, &ret[k], &one);
       //     }
       //   }
@@ -506,8 +522,8 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
       // where P is the number of hyperparameters      
       ret = Calloc(3, double);
       ret[0] = 2;
-      ret[1] = start_ltau;
-      ret[2] = start_lkappa;
+      ret[1] = start_theta1;
+      ret[2] = start_theta2;
       break;
     }
     
@@ -522,11 +538,11 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
 
       ret[0] = 0.0;
 
-      ret[0] += -0.5 * SQR(lkappa - prior_kappa_meanlog)/(SQR(prior_kappa_sdlog)) - 
-      log(prior_kappa_sdlog) - 0.5 * log(2 * M_PI);
+      ret[0] += -0.5 * SQR(theta[0] - prior_theta1_meanlog)/(SQR(prior_theta1_sdlog)) - 
+      log(prior_theta1_sdlog) - 0.5 * log(2 * M_PI);
 
-      ret[0] += -0.5 * SQR(ltau - prior_tau_meanlog)/(SQR(prior_tau_sdlog)) - 
-      log(prior_tau_sdlog) - 0.5 * log(2 * M_PI);
+      ret[0] += -0.5 * SQR(theta[1] - prior_theta2_meanlog)/(SQR(prior_theta2_sdlog)) - 
+      log(prior_theta2_sdlog) - 0.5 * log(2 * M_PI);
 
 	    break;
     }

@@ -16,13 +16,13 @@ seaDist <- apply(spDists(coords, PRborder[1034:1078, ],
 
 
 prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
-prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 0.25), cutoff = 0.2)
+prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
 
-Abar <- rspde.make.A(mesh = prmesh, loc = coords, nu =1.27)
+Abar <- rspde.make.A(mesh = prmesh, loc = coords)
 
-mesh.index <- rspde.make.index(name = "field", mesh = prmesh, nu=1.27)
+mesh.index <- rspde.make.index(name = "field", mesh = prmesh,)
 
-rspde_model <- rspde.matern(mesh = prmesh, nu = 1.27)
+rspde_model <- rspde.matern(mesh = prmesh)
 
 stk.dat <- inla.stack(
   data = list(y = Y), A = list(Abar, 1), tag = "est",
