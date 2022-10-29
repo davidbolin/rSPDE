@@ -367,7 +367,6 @@ rspde.matern <- function(mesh,
         fem_mesh_matrices = fem_mesh_orig, dim = d,
         nu = nu_upper_bound,
         rspde_order = rspde_order,
-        sharp = TRUE,
         force_non_integer = TRUE
       )
 
@@ -412,7 +411,6 @@ rspde.matern <- function(mesh,
         fem_mesh_matrices = fem_mesh_orig, dim = d,
         nu = nu,
         rspde_order = rspde_order,
-        sharp = TRUE,
         force_non_integer = TRUE
       )
 
@@ -452,14 +450,11 @@ rspde.matern <- function(mesh,
       graph_opt <- get.sparsity.graph.rspde(
         fem_mesh_matrices = fem_mesh_orig, dim = d,
         nu = nu,
-        rspde_order = rspde_order,
-        sharp = TRUE
+        rspde_order = rspde_order
       )
       graph_opt <- transpose_cgeneric(graph_opt) 
 
     rspde_lib <- system.file('libs', package='rSPDE')
-
-    old_matrices_less <- matrices_less
 
     # matrices_less <- restructure_matrices_less(matrices_less, m_alpha)
 
@@ -486,11 +481,11 @@ rspde.matern <- function(mesh,
   }
 
   model$nu <- nu
-  model$prior.kappa <- prior.kappa
+  model$prior.theta1 <- prior.theta1
   model$prior.nu <- prior.nu
-  model$prior.tau <- prior.tau
-  model$start.lkappa <- start.lkappa
-  model$start.ltau <- start.ltau
+  model$prior.theta2 <- prior.theta2
+  model$start.theta1 <- start.theta1
+  model$start.theta2 <- start.theta2
   model$start.nu <- start.nu
   model$integer.nu <- integer.nu
   if (integer.nu) {
@@ -1217,6 +1212,8 @@ plot.rspde.result <- function(x, which = x$params,
 #' @param rspde_result An rspde.result object.
 #' @param parameter Vector. Which parameters to get the posterior density in the data.frame? The options are `std.dev`, `range`, `tau`, `kappa` and `nu`.
 #' @param transform Should the posterior density be given in the original scale?
+#' @param restrict_x_axis Variables to restrict the range of x axis based on quantiles.
+#' @param restrict_quantiles List of quantiles to restrict x axis.
 #'
 #' @return A data frame containing the posterior densities.
 #' @examples
@@ -1261,7 +1258,7 @@ gg_df <- function(rspde_result,
   if(parameter[[1]] %in% restrict_x_axis){
     if(is.null( restrict_quantiles[[parameter[[1]]]])){
       warning("If you want to restrict x axis you should provide a quantile for the parameter!")
-       restrict_quanties[[parameter[[1]]]] <- c(0,1)
+       restrict_quantiles[[parameter[[1]]]] <- c(0,1)
     }
     d_t <- c(0,diff(ret_df$x))
     emp_cdf <- cumsum(d_t*ret_df$y)
@@ -1292,7 +1289,7 @@ gg_df <- function(rspde_result,
     if(is.null( restrict_quantiles[[parameter[[i]]]])){
       warning(paste("No quantile for", parameter[[i]]))
       warning("If you want to restrict x axis you should provide a quantile for the parameter!")
-       restrict_quanties[[parameter[[i]]]] <- c(0,1)
+       restrict_quantiles[[parameter[[i]]]] <- c(0,1)
     }
     d_t <- c(0,diff(tmp$x))
     emp_cdf <- cumsum(d_t*tmp$y)
@@ -2114,9 +2111,6 @@ sigma = NULL, dim, fem_mesh_matrices) {
 #' @param rspde An `inla_rspde` object.
 #' @param theta The parameter vector. See the details in
 #' [rspde.matern()] to see the parameterizations.
-#' @param optimized Logical indicating if only the elements
-#' (the `x` slot) of the precision
-#' matrix should be returned.
 #' @return A sparse precision matrix.
 #' @export
 #' @examples
@@ -2154,17 +2148,17 @@ rspde.precision <- function(rspde,
     tau = exp(theta[1])
     nu <- (exp(theta[3]) / (1 + exp(theta[3]))) * nu_upper_bound
   return(rspde.matern.precision(kappa = kappa, nu = nu, tau=tau, rspde_order = rspde$rspde_order, fem_mesh_matrices = rspde$fem_mesh,
-  dim = rspde_model$dim, type_rational_approx = rspde$type.rational.approx))
+  dim = rspde$dim, type_rational_approx = rspde$type.rational.approx))
   } else{
     if(length(theta)!= 2){
       stop("The vector theta should have length 2!")
     }
-    nu <- rspde_model$nu
+    nu <- rspde$nu
     kappa = exp(theta[2])
     tau = exp(theta[1])
-    if(model$cgeneric_type == "frac_alpha"){
+    if(rspde$cgeneric_type == "frac_alpha"){
     return(rspde.matern.precision(kappa = kappa, nu = nu, tau=tau, rspde_order = rspde$rspde_order, fem_mesh_matrices = rspde$fem_mesh,
-  dim = rspde_model$dim, type_rational_approx = rspde$type.rational.approx))
+  dim = rspde$dim, type_rational_approx = rspde$type.rational.approx))
     } else{
       return(rspde.matern.precision.integer(kappa = kappa, nu = nu, tau = tau, dim = rspde$dim, fem_mesh_matrices = rspde$fem_mesh))
     }

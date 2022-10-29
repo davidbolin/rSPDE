@@ -13,9 +13,13 @@ rspde.matern(
   prior.kappa = NULL,
   prior.nu = NULL,
   prior.tau = NULL,
+  prior.range = NULL,
+  prior.std.dev = NULL,
   start.lkappa = NULL,
   start.nu = NULL,
   start.ltau = NULL,
+  start.lrange = NULL,
+  start.lstd.dev = NULL,
   parameterization = c("matern", "spde"),
   prior.nu.dist = c("beta", "lognormal"),
   nu.prec.inc = 1,
@@ -49,11 +53,21 @@ distribution on the log scale. Check details below.}
 \item{prior.tau}{a list containing the elements \code{meanlog} and
 \code{sdlog}, that is, the mean and standard deviation on the log scale.}
 
+\item{prior.range}{a \code{list} containing the elements \code{meanlog} and
+\code{sdlog}, that is, the mean and standard deviation on the log scale. Will not be used if prior.kappa is non-null.}
+
+\item{prior.std.dev}{a \code{list} containing the elements \code{meanlog} and
+\code{sdlog}, that is, the mean and standard deviation on the log scale. Will not be used if prior.tau is non-null.}
+
 \item{start.lkappa}{Starting value for log of kappa.}
 
 \item{start.nu}{Starting value for nu.}
 
 \item{start.ltau}{Starting value for log of tau.}
+
+\item{start.lrange}{Starting value for log of range. Will not be used if start.lkappa is non-null.}
+
+\item{start.lstd.dev}{Starting value for log of std. deviation. Will not be used if start.ltau is non-null.}
 
 \item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). The default is \code{matern}.}
 

@@ -1665,8 +1665,8 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
         fem_mesh_matrices = fem_mesh_matrices
       )
     } else {
-      Abar <- kronecker(matrix(1, 1, rspde_order + 1), A)
-      Aprd_bar <- kronecker(matrix(1, 1, rspde_order + 1), Aprd)
+      Abar <- kronecker(matrix(1, 1, m + 1), A)
+      Aprd_bar <- kronecker(matrix(1, 1, m + 1), Aprd)
       Q <- object$Q
     }
 

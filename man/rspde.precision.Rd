@@ -11,10 +11,6 @@ rspde.precision(rspde, theta)
 
 \item{theta}{The parameter vector. See the details in
 \code{\link[=rspde.matern]{rspde.matern()}} to see the parameterizations.}
-
-\item{optimized}{Logical indicating if only the elements
-(the \code{x} slot) of the precision
-matrix should be returned.}
 }
 \value{
 A sparse precision matrix.
