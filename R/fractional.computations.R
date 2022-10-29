@@ -1,5 +1,3 @@
-#' @importFrom stats simulate
-
 ###########################################
 ## fractional.computations.R
 ##

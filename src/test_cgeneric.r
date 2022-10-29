@@ -1,11 +1,13 @@
 library(INLA)
 library(rSPDE)
 
+inla.setOption(pardiso.license = "/home/debusta/pardiso.lic")
+
 
 data(PRprec)
 data(PRborder)
 
-Y <- rowMeans(PRprec[, 3 + 1:31])
+Y <- rowMeans(PRprec[, 6 + 1:31])
 ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
@@ -16,7 +18,10 @@ seaDist <- apply(spDists(coords, PRborder[1034:1078, ],
 
 
 prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
-prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 0.1), cutoff = 0.01)
+prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 0.25), cutoff = 0.2)
+
+# prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
+# prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.35, 0.1), cutoff = 0.01)
 
 Abar.int <- rspde.make.A(
   mesh = prmesh, loc = coords,
@@ -53,7 +58,7 @@ stk.dat.int <- inla.stack(
 f.s.fix.int.1 <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model_fix_int1)
 
-total_time = 0
+total_time = c()
 for(i in 1:5){
 rspde_fix_int_1 <- inla(f.s.fix.int.1,
       family = "Gamma",
@@ -65,12 +70,17 @@ rspde_fix_int_1 <- inla(f.s.fix.int.1,
       ),
                 inla.mode = "experimental"
     )
-total_time = total_time + rspde_fix_int_1$cpu.used[4][[1]]
+total_time = c(total_time, rspde_fix_int_1$cpu.used[4][[1]])
 }
 
-cat("Total time cgeneric:\n")
-cat(total_time)
+cat("Mean Total time cgeneric:\n")
+cat(mean(total_time))
 cat("\n")
+
+cat("Std Dev Total time cgeneric:\n")
+cat(sd(total_time))
+cat("\n")
+
 
 # result <- inla.cgeneric.q(rspde_model_fix_int1)
 # head(result$Q)
@@ -105,7 +115,7 @@ f.spde.s.fix.int.1 <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = spde_model_int)
 
 
-total_time = 0
+total_time = c()
 for(i in 1:5){
 spde_fix_int <- inla(f.spde.s.fix.int.1,
       family = "Gamma",
@@ -117,17 +127,21 @@ spde_fix_int <- inla(f.spde.s.fix.int.1,
       ),
                 inla.mode = "experimental"
     )
-total_time = total_time + spde_fix_int$cpu.used[4][[1]]
+total_time = c(total_time, spde_fix_int$cpu.used[4][[1]])
 }
 
-cat("Total time INLA:\n")
-cat(total_time)
+cat("Mean Total time INLA:\n")
+cat(mean(total_time))
+cat("\n")
+
+cat("Std Dev Total time INLA:\n")
+cat(sd(total_time))
 cat("\n")
 
 # Rerun cgeneric: 
 
 
-total_time = 0
+total_time = c()
 for(i in 1:5){
 rspde_fix_int_1 <- inla(f.s.fix.int.1,
       family = "Gamma",
@@ -139,9 +153,15 @@ rspde_fix_int_1 <- inla(f.s.fix.int.1,
       ),
                 inla.mode = "experimental"
     )
-total_time = total_time + rspde_fix_int_1$cpu.used[4][[1]]
+total_time = c(total_time, rspde_fix_int_1$cpu.used[4][[1]])
 }
 
-cat("Total time cgeneric:\n")
-cat(total_time)
+cat("Mean Total time cgeneric:\n")
+cat(mean(total_time))
 cat("\n")
+
+cat("Std Dev Total time cgeneric:\n")
+cat(sd(total_time))
+cat("\n")
+
+# df_results <- data.frame(Processor = c("M1 Pro", "M1 Pro", "Intel i9-12900K", "Intel i9-12900K"), Precision = c("1874x1874(18602)", "1874x1874(18602)"), Model = c("INLA", "rSPDE-cgeneric"), `Mean time` = c(4.399, 3.948), `Std Dev` = c(0.188, 0.188))

@@ -736,7 +736,7 @@ fem_mesh_order_1d <- function(inla_mesh, m_order) {
 #' @param sharp The graph should have the correct sparsity (costs
 #' more to perform a sparsity analysis) or an upper bound for the sparsity?
 #' @return The sparsity graph for rSPDE models to be used in R-INLA interface.
-#' @export
+#' @noRd
 
 get.sparsity.graph.rspde <- function(mesh = NULL,
                                      fem_mesh_matrices = NULL,

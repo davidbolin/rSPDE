@@ -36,4 +36,8 @@
 #' @name rSPDE
 #' @import Matrix
 #' @importFrom stats rnorm approx
+#' @importFrom stats dnorm pnorm dbeta
+#' @importFrom methods as
+#' @importFrom stats simulate
+#' 
 NULL
