@@ -7,9 +7,9 @@ from a \code{rspde.result} object}
 \usage{
 \method{plot}{rspde.result}(
   x,
-  which = c("tau", "kappa", "nu"),
-  caption = list("Posterior density for tau", "Posterior density for kappa",
-    "Posterior density for nu"),
+  which = x$params,
+  caption = list(paste("Posterior density for", x$params[1]),
+    paste("Posterior density for", x$params[2]), "Posterior density for nu"),
   sub.caption = NULL,
   type_plot = "l",
   ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive(),
