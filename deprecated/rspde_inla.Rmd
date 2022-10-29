@@ -928,6 +928,75 @@ The following figure shows the posterior marginal densities of the three paramet
 par(mfrow = c(1, 3))
 plot(result_fit_order_3, caption = c("tau", "kappa", "nu"))
 ```
+<!-- 
+One can check the order of the rational approximation by using the `rational.order()` function. It also allows another way to change the order of the rational order, 
+by using the corresponding `rational.order<-()` function. 
+
+The `rational.order()` and `rational.order<-()` functions can be applied to the `inla.rspde` object, to the `A` matrix and to the `index` objects.
+
+Here to check the models:
+```{r}
+rational.order(rspde_model)
+rational.order(rspde_model_order_3)
+```
+
+Here to check the `A` matrices:
+```{r}
+rational.order(Abar)
+rational.order(Abar_3)
+```
+
+Here to check the indexes:
+```{r}
+rational.order(mesh.index)
+rational.order(mesh.index.3)
+```
+
+Let us now change the order of the `rspde_model` object to be 1:
+
+```{r}
+rational.order(rspde_model) <- 1
+rational.order(Abar) <- 1
+rational.order(mesh.index) <- 1
+```
+
+Let us fit this new model:
+
+```{r fit_model_order_1, message=FALSE, warning=FALSE}
+ f.s.1 <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
+  f(field, model = rspde_model)
+
+stk.dat.1 <- inla.stack(
+  data = list(y = Y), A = list(Abar, 1), tag = "est",
+  effects = list(
+    c(
+      mesh.index,
+      list(Intercept = 1)
+    ),
+    list(
+      long = inla.group(coords[, 1]),
+      lat = inla.group(coords[, 2]),
+      seaDist = inla.group(seaDist)
+    )
+  )
+)
+
+rspde_fit_order_1 <- inla(f.s.1,
+  family = "Gamma", data = inla.stack.data(stk.dat.1),
+  verbose = FALSE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(A = inla.stack.A(stk.dat.1), compute = TRUE),
+            inla.mode = "experimental"
+)
+```
+
+Here is the summary:
+
+```{r}
+summary(rspde_fit_order_1)
+``` 
+
+-->
 
 ### Estimating models with fixed smoothness
 
@@ -1320,17 +1389,17 @@ Let us fit a model assigning a `brasil` rational approximation. We will
 consider a model with the order of the rational approximation being 1:
 
 ```{r}
-rspde_model_brasil <- rspde.matern(prmesh, 
+rspde_model_brasil <- rspde.matern(prmesh, rspde_order = 1,
               type.rational.approx = "brasil")
 
-f.s.brasil <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
+f.s.1.brasil <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model_brasil)
 
-rspde_fit_order_1_brasil <- inla(f.s.brasil,
-  family = "Gamma", data = inla.stack.data(stk.dat),
+rspde_fit_order_1_brasil <- inla(f.s.1.brasil,
+  family = "Gamma", data = inla.stack.data(stk.dat.1),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
+  control.predictor = list(A = inla.stack.A(stk.dat.1), compute = TRUE),
             inla.mode = "experimental"
 )
 ```
@@ -1341,5 +1410,41 @@ Let us get the summary:
 summary(rspde_fit_order_1_brasil)
 ```
 
+<!-- 
+
+Finally, similarly to the order of the rational approximation, one can check
+the order with the `rational.type()` function, and assign a new type
+with the `rational.type<-()` function.
+
+```{r}
+rational.type(rspde_model)
+rational.type(rspde_model_brasil)
+```
+
+Let us change the type of the rational approximation on the model with rational
+approximation of order 3:
+
+```{r}
+rational.type(rspde_model_order_3) <- "brasil"
+
+f.s.3 <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
+  f(field, model = rspde_model_order_3)
+
+rspde_fit_order_3_brasil <- inla(f.s.3,
+  family = "Gamma", data = inla.stack.data(stk.dat.3),
+  verbose = FALSE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE),
+            inla.mode = "experimental"
+)
+```
+
+Let us get the summary:
+
+```{r}
+summary(rspde_fit_order_3_brasil)
+```
+
+-->
 
 ## References 

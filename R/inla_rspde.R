@@ -9,12 +9,7 @@
 #' @param rspde_order The order of the covariance-based rational SPDE approach.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
 #' be estimated. If nu is `NULL`, it will be estimated.
-#' @param sharp The sparsity graph should have the correct sparsity (costs
-#' more to perform a sparsity analysis) or an upper bound for the sparsity? If
-#' `TRUE`, the graph will have the correct sparsity.
-#' @param debug INLA debug argument.
-#' @param optimize Should the model be optimized? In this case the sparsities of
-#' the matrices will be analyzed.
+#' @param debug INLA debug argument
 #' @param prior.kappa a `list` containing the elements `meanlog` and
 #' `sdlog`, that is, the mean and standard deviation on the log scale.
 #' @param prior.nu a list containing the elements `mean` and `prec`
@@ -29,6 +24,7 @@
 #' @param start.lkappa Starting value for log of kappa.
 #' @param start.nu Starting value for nu.
 #' @param start.ltau Starting value for log of tau.
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
 #' @param prior.nu.dist The distribution of the smoothness parameter.
 #' The current options are "beta" or "lognormal". The default is "beta".
 #' @param nu.prec.inc Amount to increase the precision in the beta prior
@@ -41,15 +37,15 @@
 
 rspde.matern <- function(mesh,
                          nu_upper_bound = 4, rspde_order = 2,
-                         nu = NULL, sharp = TRUE,
+                         nu = NULL, 
                          debug = FALSE,
-                         optimize = TRUE,
                          prior.kappa = NULL,
                          prior.nu = NULL,
                          prior.tau = NULL,
                          start.lkappa = NULL,
                          start.nu = NULL,
                          start.ltau = NULL,
+                         parameterization = c("matern", "spde"),
                          prior.nu.dist = c("beta", "lognormal"),
                          nu.prec.inc = 1,
                          type.rational.approx = c("chebfun",
@@ -318,7 +314,7 @@ rspde.matern <- function(mesh,
         fem_mesh_matrices = fem_mesh_orig, dim = d,
         nu = nu_upper_bound,
         rspde_order = rspde_order,
-        sharp = sharp,
+        sharp = TRUE,
         force_non_integer = TRUE
       )
 
@@ -362,7 +358,7 @@ rspde.matern <- function(mesh,
         fem_mesh_matrices = fem_mesh_orig, dim = d,
         nu = nu,
         rspde_order = rspde_order,
-        sharp = sharp,
+        sharp = TRUE,
         force_non_integer = TRUE
       )
 
@@ -402,7 +398,7 @@ rspde.matern <- function(mesh,
         fem_mesh_matrices = fem_mesh_orig, dim = d,
         nu = nu,
         rspde_order = rspde_order,
-        sharp = sharp
+        sharp = TRUE
       )
       graph_opt <- transpose_cgeneric(graph_opt) 
 
@@ -451,7 +447,6 @@ rspde.matern <- function(mesh,
   model$n.spde <- mesh$n
   model$nu_upper_bound <- nu_upper_bound
   model$prior.nu.dist <- prior.nu.dist
-  model$sharp <- sharp
   model$debug <- debug
   model$type.rational.approx <- type.rational.approx
   model$mesh <- mesh
@@ -1462,3 +1457,586 @@ rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
 
 
 
+#' @name rspde.matern.precision.opt
+#' @title Optimized precision matrix of the covariance-based rational
+#' approximation
+#' @description `rspde.matern.precision` is used for computing the
+#' optimized version of the precision matrix of the
+#' covariance-based rational SPDE approximation of a stationary Gaussian random
+#' fields on \eqn{R^d} with a Matern covariance function
+#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu
+#' K_\nu(\kappa h).}
+#' @param kappa Range parameter of the covariance function.
+#' @param tau Scale parameter of the covariance function.
+#' @param nu Shape parameter of the covariance function.
+#' @param rspde_order The order of the rational approximation
+#' @param dim The dimension of the domain
+#' @param fem_matrices A list containing the FEM-related matrices.
+#' The list should contain elements C, G, G_2, G_3, etc.
+#' @param graph The sparsity graph of the matrices. If NULL, only a vector
+#' of the elements will be returned, if non-NULL, a sparse matrix will
+#' be returned.
+#' @param sharp The sparsity graph should have the correct sparsity (costs
+#' more to perform a sparsity analysis) or an upper bound for the sparsity?
+#' @param type_rational_approx Which type of rational approximation
+#' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#' @return The precision matrix
+#' @export
+
+rspde.matern.precision.opt <- function(kappa, nu, tau, rspde_order,
+dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
+  n_m <- rspde_order
+
+  mt <- get_rational_coefficients(n_m, type_rational_approx)
+
+  beta <- nu / 2 + dim / 4
+
+  m_alpha <- floor(2 * beta)
+
+  # r <- sapply(1:(n_m), function(i) {
+  #   approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2 * beta))$y
+  # })
+
+  # p <- sapply(1:(n_m), function(i) {
+  #   approx(mt$alpha, mt[[paste0("p", i)]], cut_decimals(2 * beta))$y
+  # })
+
+  # k <- approx(mt$alpha, mt$k, cut_decimals(2 * beta))$y
+
+  row_nu <- round(1000*cut_decimals(2*beta))
+  r <- unlist(mt[row_nu, 2:(1+rspde_order)])
+  p <- unlist(mt[row_nu, (2+rspde_order):(1+2*rspde_order)])
+  k <- unlist(mt[row_nu, 2+2*rspde_order])
+
+
+  if (m_alpha == 0) {
+    L <- (fem_matrices[["C"]] + fem_matrices[["G"]] / (kappa^2))
+    Q <- (L - p[1] * fem_matrices[["C"]]) / r[1]
+    if (length(r) > 1) {
+      for (i in 2:length(r)) {
+        Q <- c(Q, (L - p[i] * fem_matrices[["C"]]) / r[i])
+      }
+    }
+  } else {
+    if (m_alpha == 1) {
+      Malpha <- (fem_matrices[["C"]] + fem_matrices[["G"]] / (kappa^2))
+    } else if (m_alpha > 1) {
+      Malpha <- fem_matrices[["C"]] + m_alpha * fem_matrices[["G"]] / (kappa^2)
+      for (j in 2:m_alpha) {
+        Malpha <- Malpha + choose(m_alpha, j) *
+        fem_matrices[[paste0("G_", j)]] / (kappa^(2 * j))
+      }
+    } else {
+      stop("Something is wrong with the value of nu!")
+    }
+
+
+    if (m_alpha == 1) {
+      Malpha2 <- (fem_matrices[["G"]] + fem_matrices[["G_2"]] / (kappa^2))
+    } else if (m_alpha > 1) {
+      Malpha2 <- fem_matrices[["G"]] + m_alpha *
+      fem_matrices[["G_2"]] / (kappa^2)
+      for (j in 2:m_alpha) {
+        Malpha2 <- Malpha2 + choose(m_alpha, j) *
+        fem_matrices[[paste0("G_", j + 1)]] / (kappa^(2 * j))
+      }
+    } else {
+      stop("Something is wrong with the value of nu!")
+    }
+
+    Q <- 1 / r[1] * (Malpha + Malpha2 / kappa^2 - p[1] * Malpha)
+
+    if (length(r) > 1) {
+      for (i in 2:length(r)) {
+        Q <- c(Q, 1 / r[i] * (Malpha + Malpha2 / kappa^2 - p[i] * Malpha))
+      }
+    }
+  }
+
+  # add k_part into Q
+
+  if (sharp) {
+    if (m_alpha == 0) {
+      Kpart <- fem_matrices[["C_less"]]
+      Kpart <- Kpart / k
+    } else {
+      if (m_alpha == 1) {
+        Kpart <- 1 / k * (fem_matrices[["C_less"]] +
+        fem_matrices[["G_less"]] / (kappa^2))
+      } else if (m_alpha > 1) {
+        Kpart <- 1 / k * fem_matrices[["C_less"]] +
+        1 / k * m_alpha * fem_matrices[["G_less"]] / (kappa^2)
+        for (j in 2:m_alpha) {
+          Kpart <- Kpart + 1 / k * choose(m_alpha, j) *
+          fem_matrices[[paste0("G_", j, "_less")]] / (kappa^(2 * j))
+        }
+      } else {
+        stop("Something is wrong with the value of nu!")
+      }
+    }
+  } else {
+    if (m_alpha == 0) {
+      Kpart <- fem_matrices[["C"]]
+      Kpart <- Kpart / k
+    } else {
+      if (m_alpha == 1) {
+        Kpart <- 1 / k * (fem_matrices[["C"]] + fem_matrices[["G"]] / (kappa^2))
+      } else if (m_alpha > 1) {
+        Kpart <- 1 / k * fem_matrices[["C"]] +
+        1 / k * m_alpha * fem_matrices[["G"]] / (kappa^2)
+        for (j in 2:m_alpha) {
+          Kpart <- Kpart + 1 / k * choose(m_alpha, j) *
+          fem_matrices[[paste0("G_", j)]] / (kappa^(2 * j))
+        }
+      } else {
+        stop("Something is wrong with the value of nu!")
+      }
+    }
+  }
+
+
+
+
+  Q <- c(Q, Kpart)
+
+  Q <- Q * kappa^(4 * beta)
+
+  Q <- tau^2 * Q
+
+  if (!is.null(graph)) {
+    graph <- as(graph, "dgTMatrix")
+    idx <- which(graph@i <= graph@j)
+    Q <- Matrix::sparseMatrix(
+      i = graph@i[idx], j = graph@j[idx], x = Q,
+      symmetric = TRUE, index1 = FALSE
+    )
+  }
+
+  return(Q)
+}
+
+#' @name rspde.matern.precision
+#' @title Precision matrix of the covariance-based rational approximation of
+#' stationary Gaussian Matern random fields
+#' @description `rspde.matern.precision` is used for computing the
+#' precision matrix of the
+#' covariance-based rational SPDE approximation of a stationary Gaussian random
+#' fields on \eqn{R^d} with a Matern covariance function
+#' \deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}(\kappa h)^\nu
+#' K_\nu(\kappa h)}{C(h) = (\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu
+#' K_\nu(\kappa h)}
+#' @param kappa Range parameter of the covariance function.
+#' @param tau Scale parameter of the covariance function. If sigma is
+#' not provided, tau should be provided.
+#' @param sigma Standard deviation of the covariance function. If tau is
+#' not provided, sigma should be provided.
+#' @param nu Shape parameter of the covariance function.
+#' @param rspde_order The order of the rational approximation
+#' @param dim The dimension of the domain
+#' @param fem_mesh_matrices A list containing the FEM-related matrices. The
+#' list should contain elements c0, g1, g2, g3, etc.
+#' @param only_fractional Logical. Should only the fractional-order part of
+#' the precision matrix be returned?
+#' @param return_block_list Logical. For `type = "covariance"`, should the
+#' block parts of the precision matrix be returned separately as a list?
+#' @param type_rational_approx Which type of rational approximation should be
+#' used? The current types are "chebfun", "brasil" or "chebfunLB".
+#'
+#' @return The precision matrix
+#' @export
+#' @examples
+#' set.seed(123)
+#' nobs <- 101
+#' x <- seq(from = 0, to = 1, length.out = nobs)
+#' fem <- rSPDE.fem1d(x)
+#' kappa <- 40
+#' sigma <- 1
+#' d <- 1
+#' nu <- 2.6
+#' tau <- sqrt(gamma(nu) / (kappa^(2 * nu) * (4 * pi)^(d / 2) *
+#' gamma(nu + d / 2)))
+#' op_cov <- matern.operators(
+#'   C = fem$C, G = fem$G, nu = nu, kappa = kappa, sigma = sigma,
+#'   d = 1, m = 2, compute_higher_order = TRUE
+#' )
+#' v <- t(rSPDE.A1d(x, 0.5))
+#' c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
+#' Q <- rspde.matern.precision(
+#'   kappa = kappa, nu = nu, tau = tau, rspde_order = 2, d = 1,
+#'   fem_mesh_matrices = op_cov$fem_mesh_matrices
+#' )
+#' A <- Diagonal(nobs)
+#' Abar <- cbind(A, A, A)
+#' w <- rbind(v, v, v)
+#' c.approx_cov <- (Abar) %*% solve(Q, w)
+#'
+#' # plot the result and compare with the true Matern covariance
+#' plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma),
+#'   type = "l", ylab = "C(h)",
+#'   xlab = "h", main = "Matern covariance and rational approximations"
+#' )
+#' lines(x, c.approx_cov, col = 2)
+rspde.matern.precision <- function(kappa, nu, tau = NULL, sigma = NULL,
+rspde_order, dim, fem_mesh_matrices,
+only_fractional = FALSE, return_block_list = FALSE,
+type_rational_approx = "chebfun") {
+  if (is.null(tau) && is.null(sigma)) {
+    stop("You should provide either tau or sigma!")
+  }
+
+  if (is.null(tau)) {
+    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+    (4 * pi)^(dim / 2) * gamma(nu + dim / 2)))
+  }
+
+  n_m <- rspde_order
+
+  mt <- get_rational_coefficients(n_m, type_rational_approx)
+
+  beta <- nu / 2 + dim / 4
+
+  m_alpha <- floor(2 * beta)
+
+  r <- sapply(1:(n_m), function(i) {
+    approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2 * beta))$y
+  })
+
+  p <- sapply(1:(n_m), function(i) {
+    approx(mt$alpha, mt[[paste0("p", i)]], cut_decimals(2 * beta))$y
+  })
+
+  k <- approx(mt$alpha, mt$k, cut_decimals(2 * beta))$y
+
+  if (!only_fractional) {
+    if (m_alpha == 0) {
+      L <- ((kappa^2) * fem_mesh_matrices[["c0"]] +
+      fem_mesh_matrices[["g1"]]) / kappa^2
+      Q <- (L - p[1] * fem_mesh_matrices[["c0"]]) / r[1]
+      if (length(r) > 1) {
+        for (i in 2:length(r)) {
+          Q <- bdiag(Q, (L - p[i] * fem_mesh_matrices[["c0"]]) / r[i])
+        }
+      }
+    } else {
+      if (m_alpha == 1) {
+        Malpha <- (fem_mesh_matrices[["c0"]] +
+        fem_mesh_matrices[["g1"]] / (kappa^2))
+      } else if (m_alpha > 1) {
+        Malpha <- fem_mesh_matrices[["c0"]] + m_alpha *
+        fem_mesh_matrices[["g1"]] / (kappa^2)
+        for (j in 2:m_alpha) {
+          Malpha <- Malpha + choose(m_alpha, j) *
+          fem_mesh_matrices[[paste0("g", j)]] / (kappa^(2 * j))
+        }
+      } else {
+        stop("Something is wrong with the value of nu!")
+      }
+
+
+      if (m_alpha == 1) {
+        Malpha2 <- (fem_mesh_matrices[["g1"]] +
+        fem_mesh_matrices[["g2"]] / (kappa^2))
+      } else if (m_alpha > 1) {
+        Malpha2 <- fem_mesh_matrices[["g1"]] + m_alpha *
+        fem_mesh_matrices[["g2"]] / (kappa^2)
+        for (j in 2:m_alpha) {
+          Malpha2 <- Malpha2 + choose(m_alpha, j) *
+          fem_mesh_matrices[[paste0("g", j + 1)]] / (kappa^(2 * j))
+        }
+      } else {
+        stop("Something is wrong with the value of nu!")
+      }
+
+      Q <- 1 / r[1] * (Malpha + Malpha2 / kappa^2 - p[1] * Malpha)
+
+      if (length(r) > 1) {
+        for (i in 2:length(r)) {
+          Q <- bdiag(Q, 1 / r[i] * (Malpha + Malpha2 / kappa^2 - p[i] * Malpha))
+        }
+      }
+    }
+
+
+    # add k_part into Q
+
+    if (m_alpha == 0) {
+      Kpart <- fem_mesh_matrices[["c0"]]
+      Kpart <- Kpart / k
+    } else {
+      if (m_alpha == 1) {
+        Kpart <- 1 / k * (fem_mesh_matrices[["c0"]] +
+        fem_mesh_matrices[["g1"]] / (kappa^2))
+      } else if (m_alpha > 1) {
+        Kpart <- 1 / k * fem_mesh_matrices[["c0"]] +
+        1 / k * m_alpha * fem_mesh_matrices[["g1"]] / (kappa^2)
+        for (j in 2:m_alpha) {
+          Kpart <- Kpart + 1 / k * choose(m_alpha, j) *
+          fem_mesh_matrices[[paste0("g", j)]] / (kappa^(2 * j))
+        }
+      } else {
+        stop("Something is wrong with the value of nu!")
+      }
+    }
+
+    Q <- bdiag(Q, Kpart)
+
+    Q <- Q * kappa^(4 * beta)
+
+    Q <- tau^2 * Q
+
+
+
+    return(Q)
+  } else {
+    L <- ((kappa^2) * fem_mesh_matrices[["c0"]] +
+    fem_mesh_matrices[["g1"]]) / kappa^2
+
+    if (return_block_list) {
+      Q <- list()
+
+      Q[[length(Q) + 1]] <- kappa^(4 * beta) * tau^2 *
+      (L - p[1] * fem_mesh_matrices[["c0"]]) / r[1]
+
+
+      if (n_m > 1) {
+        for (i in 2:(n_m)) {
+          Q[[length(Q) + 1]] <- kappa^(4 * beta) * tau^2 *
+          (L - p[i] * fem_mesh_matrices[["c0"]]) / r[i]
+        }
+      }
+
+      Q[[length(Q) + 1]] <- kappa^(4 * beta) * tau^2 *
+      fem_mesh_matrices[["c0"]] / k
+
+      return(Q)
+    } else {
+      Q <- (L - p[1] * fem_mesh_matrices[["c0"]]) / r[1]
+
+      if (n_m > 1) {
+        for (i in 2:(n_m)) {
+          temp <- (L - p[i] * fem_mesh_matrices[["c0"]]) / r[i]
+          Q <- bdiag(Q, temp)
+        }
+      }
+
+      Q <- bdiag(Q, fem_mesh_matrices[["c0"]] / k)
+
+
+      Q <- Q * kappa^(4 * beta)
+
+      Q <- tau^2 * Q
+      return(Q)
+    }
+  }
+}
+
+
+#' @name rspde.matern.precision.integer.opt
+#' @title Optimized precision matrix of stationary Gaussian Matern
+#' random fields with integer covariance exponent
+#' @description `rspde.matern.precision.integer.opt` is used
+#' for computing the optimized version of the precision matrix of
+#' stationary Gaussian random fields on \eqn{R^d} with a Matern
+#' covariance function
+#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu
+#' K_\nu(\kappa h),}
+#' where \eqn{\alpha = \nu + d/2} is a natural number.
+#' @param kappa Range parameter of the covariance function.
+#' @param tau Scale parameter of the covariance function.
+#' @param nu Shape parameter of the covariance function.
+#' @param d The dimension of the domain
+#' @param fem_matrices A list containing the FEM-related matrices.
+#' The list should contain elements C, G, G_2, G_3, etc.
+#' @param graph The sparsity graph of the matrices. If NULL, only a vector
+#' of the elements will be returned, if non-NULL, a sparse matrix will
+#' be returned.
+#' @return The precision matrix
+#' @export
+
+rspde.matern.precision.integer.opt <- function(kappa,
+                                               nu,
+                                               tau,
+                                               d,
+                                               fem_matrices,
+                                               graph = NULL) {
+  beta <- nu / 2 + d / 4
+
+  n_beta <- floor(2 * beta)
+
+  if (n_beta == 1) {
+    Q <- (kappa^2 * fem_matrices[["C_less"]] + fem_matrices[["G_less"]])
+  } else if (n_beta > 1) {
+    Q <- kappa^(2 * n_beta) * fem_matrices[["C_less"]] + n_beta *
+    kappa^(2 * (n_beta - 1)) * fem_matrices[["G_less"]]
+    for (j in 2:n_beta) {
+      Q <- Q + kappa^(2 * (n_beta - j)) * choose(n_beta, j) *
+      fem_matrices[[paste0("G_", j, "_less")]]
+    }
+  } else {
+    stop("Something is wrong with the value of nu!")
+  }
+
+  Q <- tau^2 * Q
+
+  if (!is.null(graph)) {
+    graph <- as(graph, "dgTMatrix")
+    idx <- which(graph@i <= graph@j)
+    Q <- Matrix::sparseMatrix(
+      i = graph@i[idx], j = graph@j[idx], x = Q,
+      symmetric = TRUE, index1 = FALSE
+    )
+  }
+
+  return(Q)
+}
+
+#' @name rspde.matern.precision.integer
+#' @title Precision matrix of stationary Gaussian Matern
+#' random fields with integer covariance exponent
+#' @description `rspde.matern.precision.integer.opt` is
+#' used for computing the precision matrix of stationary
+#' Gaussian random fields on \eqn{R^d} with a Matern
+#' covariance function
+#' \deqn{C(h) = \frac{\sigma^2}{2^(\nu-1)\Gamma(\nu)}
+#' (\kappa h)^\nu K_\nu(\kappa h)}{C(h) =
+#' (\sigma^2/(2^(\nu-1)\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)},
+#' where \eqn{\alpha = \nu + d/2} is a natural number.
+#' @param kappa Range parameter of the covariance function.
+#' @param tau Scale parameter of the covariance function.
+#' @param sigma Standard deviation of the covariance function.
+#' If tau is not provided, sigma should be provided.
+#' @param nu Shape parameter of the covariance function.
+#' @param dim The dimension of the domain
+#' @param fem_mesh_matrices A list containing the FEM-related
+#' matrices. The list should contain elements c0, g1, g2, g3, etc.
+#' @return The precision matrix
+#' @export
+#' @examples
+#' set.seed(123)
+#' nobs <- 101
+#' x <- seq(from = 0, to = 1, length.out = nobs)
+#' fem <- rSPDE.fem1d(x)
+#' kappa <- 40
+#' sigma <- 1
+#' d <- 1
+#' nu <- 0.5
+#' tau <- sqrt(gamma(nu) / (kappa^(2 * nu) *
+#' (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+#' op_cov <- matern.operators(
+#'   C = fem$C, G = fem$G, nu = nu, kappa = kappa, sigma = sigma,
+#'   d = 1, m = 2
+#' )
+#' v <- t(rSPDE.A1d(x, 0.5))
+#' c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
+#' Q <- rspde.matern.precision.integer(
+#'   kappa = kappa, nu = nu, tau = tau, d = 1,
+#'   fem_mesh_matrices = op_cov$fem_mesh_matrices
+#' )
+#' A <- Diagonal(nobs)
+#' c.approx_cov <- A %*% solve(Q, v)
+#'
+#' # plot the result and compare with the true Matern covariance
+#' plot(x, matern.covariance(abs(x - 0.5), kappa, nu, sigma),
+#'   type = "l", ylab = "C(h)",
+#'   xlab = "h", main = "Matern covariance and rational approximations"
+#' )
+#' lines(x, c.approx_cov, col = 2)
+rspde.matern.precision.integer <- function(kappa, nu, tau = NULL,
+sigma = NULL, dim, fem_mesh_matrices) {
+  if (is.null(tau) && is.null(sigma)) {
+    stop("You should provide either tau or sigma!")
+  }
+
+  if (is.null(tau)) {
+    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+    (4 * pi)^(dim / 2) * gamma(nu + dim / 2)))
+  }
+
+  beta <- nu / 2 + dim / 4
+
+  n_beta <- floor(2 * beta)
+
+  if (n_beta == 1) {
+    Q <- (kappa^2 * fem_mesh_matrices[["c0"]] + fem_mesh_matrices[["g1"]])
+  } else if (n_beta > 1) {
+    Q <- kappa^(2 * n_beta) * fem_mesh_matrices[["c0"]] + n_beta *
+    kappa^(2 * (n_beta - 1)) * fem_mesh_matrices[["g1"]]
+    for (j in 2:n_beta) {
+      Q <- Q + kappa^(2 * (n_beta - j)) * choose(n_beta, j) *
+      fem_mesh_matrices[[paste0("g", j)]]
+    }
+  } else {
+    stop("Something is wrong with the value of nu!")
+  }
+
+  Q <- tau^2 * Q
+
+  return(Q)
+}
+
+#' @name rspde.precision
+#' @title Precision matrices for `inla_rspde` objects
+#' @description Precision matrices for rSPDE models
+#'
+#' Calculates the precision matrix
+#' for given parameter values based on an `inla_rspde` model object.
+#' @param rspde An `inla_rspde` object.
+#' @param theta The parameter vector. See the details in
+#' [rspde.matern()] to see the parameterizations.
+#' @param optimized Logical indicating if only the elements
+#' (the `x` slot) of the precision
+#' matrix should be returned.
+#' @return A sparse precision matrix.
+#' @export
+#' @examples
+#' \donttest{ #devel version
+#' if (requireNamespace("INLA", quietly = TRUE)){
+#' library(INLA)
+#' 
+#' set.seed(1)
+#' n <- 10
+#'
+#' coords <- cbind(long = sample(1:n), lat = sample(1:n))
+#'
+#' mesh <- inla.mesh.2d(coords, max.edge = c(20, 40))
+#' rspde_model_int <- rspde.matern(mesh = mesh, nu = 1)
+#'
+#' prec_int <- rspde.precision(rspde_model_int, theta = log(c(1, 3)))
+#'
+#' rspde_model <- rspde.matern(mesh)
+#' prec <- rspde.precision(rspde_model, theta = log(c(1, 3, 1.2)))
+#' }
+#' #devel.tag
+#' }
+rspde.precision <- function(rspde,
+                            theta) {
+  check_class_inla_rspde(rspde)
+  if(!is.vector(theta)){
+    stop("theta should be a vector!")
+  }
+  if(rspde$cgeneric_type == "general")  {
+    if(length(theta)!=3){
+      stop("The vector theta should have length 3!")
+    }
+    nu_upper_bound <- rspde$nu_upper_bound
+    kappa = exp(theta[2])
+    tau = exp(theta[1])
+    nu <- (exp(theta[3]) / (1 + exp(theta[3]))) * nu_upper_bound
+  return(rspde.matern.precision(kappa = kappa, nu = nu, tau=tau, rspde_order = rspde$rspde_order, fem_mesh_matrices = rspde$fem_mesh,
+  dim = rspde_model$dim, type_rational_approx = rspde$type.rational.approx))
+  } else{
+    if(length(theta)!= 2){
+      stop("The vector theta should have length 2!")
+    }
+    nu <- rspde_model$nu
+    kappa = exp(theta[2])
+    tau = exp(theta[1])
+    if(model$cgeneric_type == "frac_alpha"){
+    return(rspde.matern.precision(kappa = kappa, nu = nu, tau=tau, rspde_order = rspde$rspde_order, fem_mesh_matrices = rspde$fem_mesh,
+  dim = rspde_model$dim, type_rational_approx = rspde$type.rational.approx))
+    } else{
+      return(rspde.matern.precision.integer(kappa = kappa, nu = nu, tau = tau, dim = rspde$dim, fem_mesh_matrices = rspde$fem_mesh))
+    }
+  }
+  
+}
