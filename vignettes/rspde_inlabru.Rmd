@@ -543,7 +543,8 @@ Let us then use the rational SPDE approach to fit the data.
 We begin by creating the model object. 
 
 ```{r}
-rspde_model.rep <- rspde.matern(mesh = mesh_2d) 
+rspde_model.rep <- rspde.matern(mesh = mesh_2d,
+          parameterization = "spde") 
 ```
 
 Let us now create the `data.frame()` and the vector with the replicates indexes:

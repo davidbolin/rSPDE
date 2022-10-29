@@ -693,7 +693,8 @@ st.dat.rep <- inla.stack(
 We now create the model object. 
 
 ```{r}
-rspde_model.rep <- rspde.matern(mesh = mesh_2d) 
+rspde_model.rep <- rspde.matern(mesh = mesh_2d,
+      parameterization = "spde") 
 ```
 
 Finally, we create the formula and fit. It is extremely important
