@@ -473,9 +473,8 @@ rspde.matern <- function(mesh,
             prior.theta2.sdlog = prior.theta2$sdlog,
             start.theta1 = start.theta1,
             start.theta2 = start.theta2,
-            nu = nu #,
-            # positions_C = positions_matrices_less[[1]],
-            # positions_G = positions_matrices_less[[2]]
+            nu = nu,
+            parameterization = parameterization
             ))
     model$cgeneric_type <- "int_alpha"
   }
