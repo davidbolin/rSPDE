@@ -14,8 +14,8 @@
 <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.1.0/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.1.0/bootstrap.bundle.min.js"></script><link href="../deps/_Roboto%20Slab-0.4.1/font.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.1.3/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.2/font.css" rel="stylesheet">
 <!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="inlabru implementation of the rational SPDE approach">
@@ -95,7 +95,7 @@
                         <h4 data-toc-skip class="author">David Bolin and
 Alexandre B. Simas</h4>
             
-            <h4 data-toc-skip class="date">2022-09-19</h4>
+            <h4 data-toc-skip class="date">2022-10-29</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_inlabru.Rmd" class="external-link"><code>vignettes/rspde_inlabru.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_inlabru.Rmd</code></div>
@@ -310,19 +310,12 @@ observation-likelihood, <span class="math display">\[y_i\mid
 <p>We will build a model using the distance to the sea <span class="math inline">\(x_i\)</span> as a covariate through an improper
 CAR(1) model with <span class="math inline">\(\beta_{ij}=1(i\sim
 j)\)</span>, which <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a> calls a random
-walk of order 1. We will fit it in <code>inlabru</code>’s style. For
-<code>inlabru</code> version <code>2.5.3.9002</code> or higher we can
-use the following compact synthax:</p>
+walk of order 1. We will fit it in <code>inlabru</code>’s style:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="fu">Intercept</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span> <span class="fu">distSea</span><span class="op">(</span><span class="va">seaDist</span>, model<span class="op">=</span><span class="st">"rw1"</span><span class="op">)</span> <span class="op">+</span></span>
 <span><span class="fu">field</span><span class="op">(</span><span class="va">coordinates</span>, model <span class="op">=</span> <span class="va">rspde_model</span><span class="op">)</span></span></code></pre></div>
-<p>For the current CRAN version of <code>inlabru</code> (version 2.5.3),
-one should use:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="fu">Intercept</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span> <span class="fu">distSea</span><span class="op">(</span><span class="va">seaDist</span>, model<span class="op">=</span><span class="st">"rw1"</span><span class="op">)</span> <span class="op">+</span></span>
-<span><span class="fu">field</span><span class="op">(</span><span class="va">coordinates</span>, model <span class="op">=</span> <span class="va">rspde_model</span>, mapper <span class="op">=</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru_mapper.html" class="external-link">bru_mapper</a></span><span class="op">(</span><span class="va">rspde_model</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>To fit the model we simply use the <code><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru()</a></code> function:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rspde_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru</a></span><span class="op">(</span><span class="va">cmp</span>, data <span class="op">=</span> <span class="va">prdata</span>,</span>
 <span>  family <span class="op">=</span> <span class="st">"Gamma"</span>,</span>
 <span>  options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -338,51 +331,51 @@ one should use:</p>
 parameters, for example the fixed effects (i.e. the intercept) and the
 hyper-parameters (i.e. dispersion in the gamma likelihood, the precision
 of the RW1, and the parameters of the spatial field):</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## inlabru version: 2.5.3</span></span>
-<span><span class="co">## INLA version: 22.09.15</span></span>
+<pre><code><span><span class="co">## inlabru version: 2.6.0</span></span>
+<span><span class="co">## INLA version: 22.10.23</span></span>
 <span><span class="co">## Components:</span></span>
 <span><span class="co">##   Intercept: Model types main='linear', group='exchangeable', replicate='iid'</span></span>
 <span><span class="co">##   distSea: Model types main='rw1', group='exchangeable', replicate='iid'</span></span>
-<span><span class="co">##   field: Model types main='rgeneric', group='exchangeable', replicate='iid'</span></span>
+<span><span class="co">##   field: Model types main='cgeneric', group='exchangeable', replicate='iid'</span></span>
 <span><span class="co">## Likelihoods:</span></span>
 <span><span class="co">##   Family: 'Gamma'</span></span>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.36, Running = 9.14, Post = 0.0358, Total = 9.54 </span></span>
+<span><span class="co">##     Pre = 3.99, Running = 48, Post = 0.344, Total = 52.4 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.944 0.055      1.836    1.944      2.053 1.944   0</span></span>
+<span><span class="co">## Intercept 1.919 0.644      0.657    1.919      3.181 1.919   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     distSea RW1 model</span></span>
-<span><span class="co">##    field RGeneric2</span></span>
+<span><span class="co">##    field CGeneric</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
-<span><span class="co">##                                                    mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.178    0.557     12.088</span></span>
-<span><span class="co">## Precision for distSea                          6425.684 1240.370   4224.524</span></span>
-<span><span class="co">## Theta1 for field                                 -1.147    0.565     -2.587</span></span>
-<span><span class="co">## Theta2 for field                                  1.129    0.185      0.669</span></span>
-<span><span class="co">## Theta3 for field                                 -0.929    0.323     -1.740</span></span>
-<span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.172     14.304   13.170</span></span>
-<span><span class="co">## Precision for distSea                          6312.113   9259.256 6122.759</span></span>
-<span><span class="co">## Theta1 for field                                 -1.218      0.276   -1.125</span></span>
-<span><span class="co">## Theta2 for field                                  1.151      1.595    1.122</span></span>
-<span><span class="co">## Theta3 for field                                 -0.888     -0.108   -0.941</span></span>
+<span><span class="co">##                                                     mean       sd 0.025quant</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.511 9.13e-01     11.794</span></span>
+<span><span class="co">## Precision for distSea                          25694.848 2.19e+04   4340.399</span></span>
+<span><span class="co">## Theta1 for field                                  -0.444 8.70e-02     -0.619</span></span>
+<span><span class="co">## Theta2 for field                                   2.147 1.07e+00      0.058</span></span>
+<span><span class="co">## Theta3 for field                                  -3.466 7.09e-01     -4.898</span></span>
+<span><span class="co">##                                                 0.5quant 0.975quant      mode</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.484     15.389    13.434</span></span>
+<span><span class="co">## Precision for distSea                          19581.551  84073.684 11101.416</span></span>
+<span><span class="co">## Theta1 for field                                  -0.443     -0.274    -0.439</span></span>
+<span><span class="co">## Theta2 for field                                   2.137      4.291     2.098</span></span>
+<span><span class="co">## Theta3 for field                                  -3.451     -2.106    -3.398</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2502.81</span></span>
-<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 4749.91</span></span>
-<span><span class="co">## Effective number of parameters .....................: 82.93</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2496.60</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 4743.70</span></span>
+<span><span class="co">## Effective number of parameters .....................: 90.50</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2505.11</span></span>
-<span><span class="co">## Effective number of parameters .................: 75.33</span></span>
+<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2498.45</span></span>
+<span><span class="co">## Effective number of parameters .................: 81.06</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1261.60 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1258.94 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -409,15 +402,15 @@ approach</a> vignette.</p>
 </h3>
 <p>We can obtain outputs with respect to parameters in the original
 scale by using the function <code><a href="../reference/rspde.result.html">rspde.result()</a></code>:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##           mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## tau   0.371355 0.219600   0.103429 0.319924   0.940397 0.234339</span></span>
-<span><span class="co">## kappa 3.146630 0.586307   2.169980 3.086860   4.465930 2.965690</span></span>
-<span><span class="co">## nu    1.150030 0.259804   0.701338 1.129470   1.714020 1.082510</span></span></code></pre>
+<pre><code><span><span class="co">##              mean         sd 0.025quant 0.5quant 0.975quant      mode</span></span>
+<span><span class="co">## std.dev  0.643757  0.0558954  0.5393440 0.642068   0.758644 0.6393640</span></span>
+<span><span class="co">## range   15.214500 21.3076000  1.0785500 8.464680  71.716700 2.7165100</span></span>
+<span><span class="co">## nu       0.150098  0.1053520  0.0300533 0.123157   0.429020 0.0766468</span></span></code></pre>
 <p>We can also plot the posterior densities:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result_fit</span>, caption <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span>, <span class="st">"nu"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="rspde_inlabru_files/figure-html/plot_post-1.png" width="700" style="display: block; margin: auto;"></p>
@@ -430,7 +423,7 @@ precipitation on a dense grid in the region.</p>
 <p>We begin by creating the grid in which we want to do the predictions.
 To this end, we can use the <code><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.project.html" class="external-link">inla.mesh.projector()</a></code>
 function:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nxy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">projgrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.project.html" class="external-link">inla.mesh.projector</a></span><span class="op">(</span><span class="va">prmesh</span>,</span>
 <span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">PRborder</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
@@ -440,17 +433,17 @@ function:</p>
 resolution of the kriging prediction by changing <code>nxy</code>. Let
 us find the cells that are outside the region of interest so that we do
 not plot the estimates there.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xy.in</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/splancs/man/inout.html" class="external-link">inout</a></span><span class="op">(</span><span class="va">projgrid</span><span class="op">$</span><span class="va">lattice</span><span class="op">$</span><span class="va">loc</span>, <span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">PRborder</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">PRborder</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Let us plot the locations that we will do prediction:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">coord.prd</span> <span class="op">&lt;-</span> <span class="va">projgrid</span><span class="op">$</span><span class="va">lattice</span><span class="op">$</span><span class="va">loc</span><span class="op">[</span><span class="va">xy.in</span>, <span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">coord.prd</span>, type <span class="op">=</span> <span class="st">"p"</span>, cex <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">PRborder</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">coords</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">coords</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, pch <span class="op">=</span> <span class="fl">19</span>, cex <span class="op">=</span> <span class="fl">0.5</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="rspde_inlabru_files/figure-html/plot_prd-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Let us now create a <code><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame()</a></code> of the coordinates:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">coord.prd.df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="va">coord.prd</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>,</span>
 <span>                            x2 <span class="op">=</span> <span class="va">coord.prd</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/sp/man/coordinates.html" class="external-link">coordinates</a></span><span class="op">(</span><span class="va">coord.prd.df</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span></span></code></pre></div>
@@ -458,28 +451,28 @@ not plot the estimates there.</p>
 to calculate this covariate for the prediction locations. Finally, we
 add the prediction location to our prediction <code><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame()</a></code>,
 namely, <code>coord.prd.df</code>:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">seaDist.prd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/sp/man/spDistsN1.html" class="external-link">spDists</a></span><span class="op">(</span><span class="va">coord.prd</span>,</span>
 <span>  <span class="va">PRborder</span><span class="op">[</span><span class="fl">1034</span><span class="op">:</span><span class="fl">1078</span>, <span class="op">]</span>,</span>
 <span>  longlat <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span>, <span class="fl">1</span>, <span class="va">min</span><span class="op">)</span></span>
 <span><span class="va">coord.prd.df</span><span class="op">$</span><span class="va">seaDist</span> <span class="op">&lt;-</span> <span class="va">seaDist.prd</span></span></code></pre></div>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred_obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="va">coord.prd.df</span>, </span>
 <span>        <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">Intercept</span> <span class="op">+</span> <span class="va">field</span> <span class="op">+</span> <span class="va">distSea</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Let us now build the data frame with the results:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred_df</span> <span class="op">&lt;-</span> <span class="va">pred_obs</span><span class="op">@</span><span class="va">data</span></span>
 <span><span class="va">pred_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">pred_df</span>, <span class="va">pred_obs</span><span class="op">@</span><span class="va">coords</span><span class="op">)</span></span></code></pre></div>
 <p>Finally, we plot the results. First the predicted mean:</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pred_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x1</span>, y <span class="op">=</span> <span class="va">x2</span>, fill <span class="op">=</span> <span class="va">mean</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_raster</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_fill_gradient</a></span><span class="op">(</span>low <span class="op">=</span> <span class="st">"yellow"</span>, high <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span>
 <span><span class="va">p</span></span></code></pre></div>
 <p><img src="rspde_inlabru_files/figure-html/unnamed-chunk-5-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Then, the std. deviations:</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pred_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x1</span>, y <span class="op">=</span> <span class="va">x2</span>, fill <span class="op">=</span> <span class="va">sd</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_raster</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">p</span></span></code></pre></div>
@@ -519,7 +512,7 @@ sampling <span class="math inline">\(x(\cdot)\)</span> directly and not
 the latent vector described in the introduction of the <a href="rspde_cov.html">Rational approximation with the <code>rSPDE</code>
 package</a> vignette.</p>
 <p>We begin by creating the mesh:</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fl">200</span></span>
 <span><span class="va">loc_2d_mesh</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">m</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span>, <span class="va">m</span>, <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">mesh_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.2d.html" class="external-link">inla.mesh.2d</a></span><span class="op">(</span></span>
@@ -534,7 +527,7 @@ package</a> vignette.</p>
 <p>We then compute the <span class="math inline">\(A\)</span> matrix,
 which is needed for simulation, and connects the observation locations
 to the mesh:</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n.rep</span> <span class="op">&lt;-</span> <span class="fl">30</span></span>
 <span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.spde.make.A.html" class="external-link">inla.spde.make.A</a></span><span class="op">(</span></span>
 <span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
@@ -547,7 +540,7 @@ to the mesh:</p>
 <p>We will now simulate a latent process with standard deviation <span class="math inline">\(\sigma=1\)</span> and range <span class="math inline">\(0.1\)</span>. We will use <span class="math inline">\(\nu=0.5\)</span> so that the model has an
 exponential covariance function. To this end we create a model object
 with the <code><a href="../reference/matern.operators.html">matern.operators()</a></code> function:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.5</span></span>
 <span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
 <span><span class="va">range</span> <span class="op">&lt;-</span> <span class="fl">0.1</span></span>
@@ -567,14 +560,14 @@ vignette.</p>
 <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> method on the <code>operator_information</code>
 object. We then obtain the simulated data <span class="math inline">\(y\)</span> by connecting with the <span class="math inline">\(A\)</span> matrix and adding the gaussian
 noise.</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">operator_information</span>, nsim <span class="op">=</span> <span class="va">n.rep</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">u</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">m</span> <span class="op">*</span> <span class="va">n.rep</span><span class="op">)</span> <span class="op">*</span> <span class="fl">0.1</span></span></code></pre></div>
 <p>The first replicate of the simulated random field as well as the
 observation locations are shown in the following figure.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">opar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, mgp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.2</span>, <span class="fl">0.5</span>, <span class="fl">0</span><span class="op">)</span>,</span>
 <span>   mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span> <span class="fl">0.1</span><span class="op">)</span></span>
 <span><span class="va">proj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.project.html" class="external-link">inla.mesh.projector</a></span><span class="op">(</span><span class="va">mesh_2d</span>, dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">100</span><span class="op">)</span><span class="op">)</span></span>
@@ -594,11 +587,12 @@ observation locations are shown in the following figure.</p>
 </h3>
 <p>Let us then use the rational SPDE approach to fit the data.</p>
 <p>We begin by creating the model object.</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rspde_model.rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.matern.html">rspde.matern</a></span><span class="op">(</span>mesh <span class="op">=</span> <span class="va">mesh_2d</span><span class="op">)</span> </span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rspde_model.rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.matern.html">rspde.matern</a></span><span class="op">(</span>mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
+<span>          parameterization <span class="op">=</span> <span class="st">"spde"</span><span class="op">)</span> </span></code></pre></div>
 <p>Let us now create the <code><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame()</a></code> and the vector with
 the replicates indexes:</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rep.df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y</span>, x1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">loc_2d_mesh</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, <span class="fl">30</span><span class="op">)</span>,</span>
 <span>                      x2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">loc_2d_mesh</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/sp/man/coordinates.html" class="external-link">coordinates</a></span><span class="op">(</span><span class="va">rep.df</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span></span>
@@ -607,20 +601,11 @@ the replicates indexes:</p>
 forget the <code>replicate</code> when fitting model with the
 <code><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru()</a></code> function. It will not produce warning and might fit
 some meaningless model.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># For inlabru 2.5.3.9002 or above:</span></span>
-<span><span class="va">cmp.rep</span> <span class="op">&lt;-</span></span>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cmp.rep</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fu">field</span><span class="op">(</span><span class="va">coordinates</span>,</span>
 <span>    model <span class="op">=</span> <span class="va">rspde_model.rep</span>,</span>
 <span>    replicate <span class="op">=</span> <span class="va">repl</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="co"># For inlabru 2.5.3</span></span>
-<span><span class="va">cmp.rep</span> <span class="op">&lt;-</span></span>
-<span>  <span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fu">field</span><span class="op">(</span><span class="va">coordinates</span>,</span>
-<span>    model <span class="op">=</span> <span class="va">rspde_model.rep</span>,</span>
-<span>    replicate <span class="op">=</span> <span class="va">repl</span>,</span>
-<span>    mapper <span class="op">=</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru_mapper.html" class="external-link">bru_mapper</a></span><span class="op">(</span><span class="va">rspde_model.rep</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span></span>
@@ -633,54 +618,54 @@ some meaningless model.</p>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>We can get the summary:</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## inlabru version: 2.5.3</span></span>
-<span><span class="co">## INLA version: 22.09.15</span></span>
+<pre><code><span><span class="co">## inlabru version: 2.6.0</span></span>
+<span><span class="co">## INLA version: 22.10.23</span></span>
 <span><span class="co">## Components:</span></span>
-<span><span class="co">##   field: Model types main='rgeneric', group='exchangeable', replicate='iid'</span></span>
+<span><span class="co">##   field: Model types main='cgeneric', group='exchangeable', replicate='iid'</span></span>
 <span><span class="co">## Likelihoods:</span></span>
 <span><span class="co">##   Family: 'gaussian'</span></span>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.285, Running = 262, Post = 4.43, Total = 267 </span></span>
+<span><span class="co">##     Pre = 3.81, Running = 413, Post = 9.04, Total = 426 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
-<span><span class="co">##     field RGeneric2</span></span>
+<span><span class="co">##     field CGeneric</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                          mean    sd 0.025quant 0.5quant</span></span>
-<span><span class="co">## Precision for the Gaussian observations 98.17 6.684      88.41    97.08</span></span>
-<span><span class="co">## Theta1 for field                        -2.78 0.134      -2.98    -2.81</span></span>
-<span><span class="co">## Theta2 for field                         3.09 0.036       3.01     3.09</span></span>
-<span><span class="co">## Theta3 for field                        -1.71 0.034      -1.78    -1.70</span></span>
+<span><span class="co">## Precision for the Gaussian observations 96.47 4.318      88.84    96.17</span></span>
+<span><span class="co">## Theta1 for field                        -2.87 0.075      -2.98    -2.87</span></span>
+<span><span class="co">## Theta2 for field                         3.13 0.051       3.01     3.13</span></span>
+<span><span class="co">## Theta3 for field                        -1.72 0.027      -1.76    -1.72</span></span>
 <span><span class="co">##                                         0.975quant  mode</span></span>
-<span><span class="co">## Precision for the Gaussian observations     113.96 93.23</span></span>
-<span><span class="co">## Theta1 for field                             -2.48 -2.90</span></span>
-<span><span class="co">## Theta2 for field                              3.16  3.09</span></span>
-<span><span class="co">## Theta3 for field                             -1.65 -1.69</span></span>
+<span><span class="co">## Precision for the Gaussian observations     105.79 95.17</span></span>
+<span><span class="co">## Theta1 for field                             -2.69 -2.91</span></span>
+<span><span class="co">## Theta2 for field                              3.21  3.16</span></span>
+<span><span class="co">## Theta3 for field                             -1.66 -1.72</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Deviance Information Criterion (DIC) ...............: -5791.40</span></span>
-<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: -5763.68</span></span>
-<span><span class="co">## Effective number of parameters .....................: 4551.86</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC) ...............: -5645.76</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: -5671.45</span></span>
+<span><span class="co">## Effective number of parameters .....................: 4674.59</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: -6720.17</span></span>
-<span><span class="co">## Effective number of parameters .................: 2665.11</span></span>
+<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: -6684.01</span></span>
+<span><span class="co">## Effective number of parameters .................: 2673.75</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -4356.28 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -4403.84 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
 <p>and the summary in the user’s scale:</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit_rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span>, <span class="st">"field"</span>, <span class="va">rspde_model.rep</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_rep</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##             mean         sd 0.025quant  0.5quant 0.975quant       mode</span></span>
-<span><span class="co">## tau    0.0622717 0.00877709  0.0509007  0.060334  0.0840938  0.0545198</span></span>
-<span><span class="co">## kappa 21.9131000 0.78352900 20.3863000 21.914500 23.4620000 21.9297000</span></span>
-<span><span class="co">## nu     0.6154340 0.01748260  0.5787450  0.616564  0.6468910  0.6208540</span></span></code></pre>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<pre><code><span><span class="co">##            mean        sd 0.025quant   0.5quant 0.975quant       mode</span></span>
+<span><span class="co">## tau    0.057150 0.0043920  0.0506322  0.0564503  0.0674467  0.0540898</span></span>
+<span><span class="co">## kappa 22.853900 1.1448500 20.3339000 22.9902000 24.6948000 23.6081000</span></span>
+<span><span class="co">## nu     0.610172 0.0137474  0.5853980  0.6092920  0.6392100  0.6065040</span></span></code></pre>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
 <span>  true <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tau</span>, <span class="va">kappa</span>, <span class="va">nu</span><span class="op">)</span>,</span>
@@ -697,9 +682,9 @@ some meaningless model.</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   parameter        true        mean        mode</span></span>
-<span><span class="co">## 1       tau  0.08920621  0.06227165  0.05451984</span></span>
-<span><span class="co">## 2     kappa 20.00000000 21.91309960 21.92973601</span></span>
-<span><span class="co">## 3        nu  0.50000000  0.61543360  0.62085376</span></span></code></pre>
+<span><span class="co">## 1       tau  0.08920621  0.05715002  0.05408982</span></span>
+<span><span class="co">## 2     kappa 20.00000000 22.85394569 23.60805484</span></span>
+<span><span class="co">## 3        nu  0.50000000  0.61017223  0.60650356</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
