@@ -19,10 +19,13 @@ gg_df(
 \item{parameter}{Vector. Which parameters to get the posterior density in the data.frame? The options are \code{std.dev}, \code{range}, \code{tau}, \code{kappa} and \code{nu}.}
 
 \item{transform}{Should the posterior density be given in the original scale?}
+<<<<<<< HEAD
 
 \item{restrict_x_axis}{Variables to restrict the range of x axis based on quantiles.}
 
 \item{restrict_quantiles}{List of quantiles to restrict x axis.}
+=======
+>>>>>>> 3df757e7767cd6e85be3a9b38f2335b3985c1f9e
 }
 \value{
 A data frame containing the posterior densities.
