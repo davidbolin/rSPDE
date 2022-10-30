@@ -156,36 +156,52 @@ rspde_fit <- inla(f.s, family = "Gamma", data = inla.stack.data(stk.dat),
 summary(rspde_fit)
 #>
 #> 
+#> 
 #> Call:
-#>    c("inla(formula = f.s, family = \"Gamma\", data = inla.stack.data(stk.dat), ",
-#>" verbose = FALSE, control.predictor = list(A = inla.stack.A(stk.dat), ", " 
-#>compute = TRUE), control.inla = list(int.strategy = \"eb\"))" ) 
+#>    c("inla.core(formula = formula, family = family, contrasts = contrasts, 
+#>    ", " data = data, quantiles = quantiles, E = E, offset = offset, ", " 
+#>    scale = scale, weights = weights, Ntrials = Ntrials, strata = strata, 
+#>    ", " lp.scale = lp.scale, link.covariates = link.covariates, verbose = 
+#>    verbose, ", " lincomb = lincomb, selection = selection, control.compute 
+#>    = control.compute, ", " control.predictor = control.predictor, 
+#>    control.family = control.family, ", " control.inla = control.inla, 
+#>    control.fixed = control.fixed, ", " control.mode = control.mode, 
+#>    control.expert = control.expert, ", " control.hazard = control.hazard, 
+#>    control.lincomb = control.lincomb, ", " control.update = 
+#>    control.update, control.lp.scale = control.lp.scale, ", " 
+#>    control.pardiso = control.pardiso, only.hyperparam = only.hyperparam, 
+#>    ", " inla.call = inla.call, inla.arg = inla.arg, num.threads = 
+#>    num.threads, ", " blas.num.threads = blas.num.threads, keep = keep, 
+#>    working.directory = working.directory, ", " silent = silent, inla.mode 
+#>    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = 
+#>    .parent.frame)") 
 #> Time used:
-#>     Pre = 4.4, Running = 28.1, Post = 0.106, Total = 32.7 
+#>     Pre = 3.99, Running = 33.5, Post = 0.134, Total = 37.6 
 #> Fixed effects:
 #>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-#> Intercept 0.648 0.019      0.611    0.648      0.686 0.648   0
+#> Intercept 0.642 0.036      0.571    0.642      0.712 0.642   0
 #> 
 #> Random effects:
-#>   Name	  Model
+#>   Name     Model
 #>     seaDist RW1 model
-#>    field RGeneric2
+#>    field CGeneric
 #> 
 #> Model hyperparameters:
-#>                                                    mean       sd 0.025quant 
-#> Precision parameter for the Gamma observations   13.200    0.876     11.548 
-#> Precision for seaDist                          9378.627 6990.227   2651.630 
-#> Theta1 for field                                 -1.147    0.311     -1.788 
-#> Theta2 for field                                  1.089    0.116      0.846 
-#> Theta3 for field                                 -0.899    0.179     -1.293 
-#>                                                0.5quant 0.975quant     mode
-#> Precision parameter for the Gamma observations   13.177     14.990   13.139
-#> Precision for seaDist                          7372.387  27837.501 5025.442
-#> Theta1 for field                                 -1.157     -0.521   -1.174
-#> Theta2 for field                                  1.090      1.315    1.099
-#> Theta3 for field                                 -0.898     -0.531   -0.884
-#>   
-#> Marginal log-Likelihood:  -1261.74 
+#>                                                     mean       sd 0.025quant
+#> Precision parameter for the Gamma observations    13.386    0.899     11.717
+#> Precision for seaDist                          20934.746 6782.979   8078.653
+#> Theta1 for field                                  -0.247    0.037     -0.337
+#> Theta2 for field                                   0.581    0.177      0.094
+#> Theta3 for field                                  -2.299    0.129     -2.609
+#>                                                 0.5quant 0.975quant      mode
+#> Precision parameter for the Gamma observations    13.350     15.257    13.269
+#> Precision for seaDist                          17336.147  47243.069 18259.956
+#> Theta1 for field                                  -0.240     -0.155    -0.249
+#> Theta2 for field                                   0.515      1.050     0.591
+#> Theta3 for field                                  -2.280     -1.985    -2.307
+#> 
+#> Marginal log-Likelihood:  -1261.82 
+#>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
 
@@ -193,14 +209,16 @@ summary(rspde_fit)
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
 #>
-#>          mean       sd 0.025quant 0.5quant 0.975quant     mode
-#>tau   0.332668 0.106630   0.176185 0.315581   0.595938 0.282519
-#>kappa 2.988480 0.344316   2.355250 2.979790   3.711410 2.962190
-#>nu    1.161300 0.145758   0.884741 1.160160   1.457410 1.159710
+#>             mean        sd 0.025quant 0.5quant 0.975quant     mode
+#> std.dev 0.781908 0.0288775   0.728352 0.780797   0.841701 0.778383
+#> range   1.815890 0.3195230   1.252690 1.793990   2.504550 1.748340
+#> nu      0.367063 0.0429435   0.291565 0.363951   0.460036 0.357430
 
 #Plot the posterior densities
-par(mfrow=c(1,3))
-plot(result_fit)
+posterior_df_fit <- gg_df(result_fit)
+
+ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
 
 <img src="articles/rspde_inla_files/figure-html/plot_post-1.png">
@@ -343,49 +361,49 @@ rspde_fit <- bru(cmp, family = "Gamma",
 summary(rspde_fit)
 #>
 #> 
-#> inlabru version: 2.5.3
-#> INLA version: 22.09.15
+#> inlabru version: 2.6.0
+#> INLA version: 22.10.23
 #> Components:
 #>   Intercept: Model types main='linear', group='exchangeable', replicate='iid'
 #>   distSea: Model types main='rw1', group='exchangeable', replicate='iid'
-#>   field: Model types main='rgeneric', group='exchangeable', replicate='iid'
+#>   field: Model types main='cgeneric', group='exchangeable', replicate='iid'
 #> Likelihoods:
 #>   Family: 'Gamma'
 #>     Data class: 'SpatialPointsDataFrame'
 #>     Predictor: y ~ .
 #> Time used:
-#>     Pre = 0.385, Running = 17.8, Post = 0.0281, Total = 18.2 
+#>     Pre = 3.99, Running = 48, Post = 0.344, Total = 52.4 
 #> Fixed effects:
-#>            mean    sd 0.025quant 0.5quant 0.975quant mode   kld
-#> Intercept 1.944 0.055      1.836    1.943      2.051   NA 0.006
+#>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
+#> Intercept 1.919 0.644      0.657    1.919      3.181 1.919   0
 #> 
 #> Random effects:
-#>   Name    Model
+#>   Name     Model
 #>     distSea RW1 model
-#>    field RGeneric2
+#>    field CGeneric
 #> 
 #> Model hyperparameters:
-#>                                                     mean       sd 0.025quant 
-#> Precision parameter for the Gamma observations    13.201    0.946     11.415 
-#> Precision for distSea                          10491.542 8262.891   2687.725 
-#> Theta1 for field                                  -0.982    0.499     -1.912 
-#> Theta2 for field                                   1.047    0.354      0.316 
-#> Theta3 for field                                  -0.968    0.322     -1.601
-#>                                                  0.5quant 0.975quant    mode
-#> Precision parameter for the Gamma observations     13.175     15.142   13.14 
-#> Precision for distSea                            8135.913  32467.634 5357.16 
-#> Theta1 for field                                   -1.001      0.052   -1.08
-#> Theta2 for field                                    1.060      1.708    1.11
-#> Theta3 for field                                   -0.968     -0.333   -0.97
+#>                                                     mean       sd 0.025quant
+#> Precision parameter for the Gamma observations    13.511 9.13e-01     11.794
+#> Precision for distSea                          25694.848 2.19e+04   4340.399
+#> Theta1 for field                                  -0.444 8.70e-02     -0.619
+#> Theta2 for field                                   2.147 1.07e+00      0.058
+#> Theta3 for field                                  -3.466 7.09e-01     -4.898
+#>                                                 0.5quant 0.975quant      mode
+#> Precision parameter for the Gamma observations    13.484     15.389    13.434
+#> Precision for distSea                          19581.551  84073.684 11101.416
+#> Theta1 for field                                  -0.443     -0.274    -0.439
+#> Theta2 for field                                   2.137      4.291     2.098
+#> Theta3 for field                                  -3.451     -2.106    -3.398
 #> 
-#> Deviance Information Criterion (DIC) ...............: 2503.45
-#> Deviance Information Criterion (DIC, saturated) ....: 4750.55
-#> Effective number of parameters .....................: 83.48
+#> Deviance Information Criterion (DIC) ...............: 2496.60
+#> Deviance Information Criterion (DIC, saturated) ....: 4743.70
+#> Effective number of parameters .....................: 90.50
 #> 
-#> Watanabe-Akaike information criterion (WAIC) ...: 2504.40
-#> Effective number of parameters .................: 74.86
+#> Watanabe-Akaike information criterion (WAIC) ...: 2498.45
+#> Effective number of parameters .................: 81.06
 #> 
-#> Marginal log-Likelihood:  -1263.54 
+#> Marginal log-Likelihood:  -1258.94 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -395,14 +413,16 @@ summary(rspde_fit)
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
 #>     
-#>           mean       sd 0.025quant 0.5quant 0.975quant     mode
-#> tau   0.425204 0.234382   0.149134  0.36643    1.04198 0.279711
-#> kappa 3.026290 1.057290   1.381990  2.89078    5.48392 2.612380
-#> nu    1.118830 0.254024   0.674592  1.10071    1.66459 1.061370
+#>              mean         sd 0.025quant 0.5quant 0.975quant      mode
+#> std.dev  0.643757  0.0558954  0.5393440 0.642068   0.758644 0.6393640
+#> range   15.214500 21.3076000  1.0785500 8.464680  71.716700 2.7165100
+#> nu       0.150098  0.1053520  0.0300533 0.123157   0.429020 0.0766468
 
 #Plot the posterior densities
-par(mfrow=c(1,3))
-plot(result_fit)
+posterior_df_fit <- gg_df(result_fit)
+
+ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
 <img src="articles/rspde_inlabru_files/figure-html/plot_post-1.png">
 

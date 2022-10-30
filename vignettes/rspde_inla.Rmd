@@ -406,11 +406,14 @@ result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
 ```
 
-We can also plot the posterior densities:
+To create plots of the posterior marginal densities, we can use the `gg_df()` function, which creates `ggplot2`-friendly data frames.
+The following figure shows the posterior marginal densities of the three parameters using the `gg_df()` function.
 
 ```{r plot_post, fig.align='center'}
-par(mfrow = c(1, 3))
-plot(result_fit, caption = c("std.dev", "range", "nu"))
+posterior_df_fit <- gg_df(result_fit)
+
+ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
 
 This function is reminiscent to the `inla.spde.result()` function with the main
@@ -923,11 +926,13 @@ result_fit_order_3 <- rspde.result(rspde_fit_order_3,
 summary(result_fit_order_3)
 ```
 
-The following figure shows the posterior marginal densities of the three parameters:
+We can also plot the posterior densities:
 
 ```{r plot_post_order_3, fig.align='center'}
-par(mfrow = c(1, 3))
-plot(result_fit_order_3, caption = c("tau", "kappa", "nu"))
+post_df_fit_order_3 <- gg_df(result_fit_order_3)
+
+ggplot(post_df_fit_order_3) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
 
 One can check the order of the rational approximation by using the `rational.order()` function. It also allows another way to change the order of the rational order, 
@@ -1316,8 +1321,10 @@ summary(result_fit_ln)
 ```
 and the plot of the posterior marginal densities
 ```{r fig.align = "center"}
-par(mfrow = c(1, 3))
-plot(result_fit_ln, caption = c("tau", "kappa", "nu"))
+posterior_df_fit_ln <- gg_df(result_fit_ln)
+
+ggplot(posterior_df_fit_ln) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
 
 ### Changing the starting values

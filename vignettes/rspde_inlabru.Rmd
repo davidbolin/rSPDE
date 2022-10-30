@@ -333,11 +333,13 @@ result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
 ```
 
-We can also plot the posterior densities:
+We can also plot the posterior densities. To this end we will use the `gg_df()` function, which creates `ggplot2` user-friendly data frames:
 
 ```{r plot_post, fig.align='center'}
-par(mfrow = c(1, 3))
-plot(result_fit, caption = c("tau", "kappa", "nu"))
+posterior_df_fit <- gg_df(result_fit)
+
+ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
 
 ### Predictions

@@ -1197,7 +1197,7 @@ get_rational_coefficients <- function(order, type_rational_approx) {
     parameterization <- object$parameterization
     n_object <- object$f$cgeneric$n
 
-    rspde_lib <- system.file('libs', package='rSPDE')
+    rspde_lib <- system.file('shared', package='rSPDE')
 
     if (cgeneric_type == "general") {
     model <- do.call(

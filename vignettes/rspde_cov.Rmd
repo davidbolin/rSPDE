@@ -524,7 +524,7 @@ print(data.frame(
 print(time_optim)
 ```
 
-### Kringing
+### Kriging
 
 Finally, we compute the kriging prediction of the process $u$ at the locations in `s` based on these observations. To specify which locations that should be predicted, the argument `Aprd` is used. This argument should be an observation matrix that links the mesh locations to the prediction locations.  
 ```{r, fig.show='hold', fig.align = "center"}
@@ -546,7 +546,7 @@ op_cov <- update(op_cov,
 )
 ```
 
-We can now perform kringing with the `predict()` method:
+We can now perform kriging with the `predict()` method:
 
 ```{r}
 u.krig <- predict(op_cov, A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e)
