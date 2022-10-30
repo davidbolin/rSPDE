@@ -95,7 +95,7 @@
                         <h4 data-toc-skip class="author">David Bolin,
 Alexandre B. Simas, Zhen Xiong</h4>
             
-            <h4 data-toc-skip class="date">2022-10-29</h4>
+            <h4 data-toc-skip class="date">2022-10-30</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_cov.Rmd" class="external-link"><code>vignettes/rspde_cov.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_cov.Rmd</code></div>
@@ -516,7 +516,7 @@ for <code>sigma.e</code>.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 6.740589 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 6.128201 secs</span></span></code></pre>
 <p>We can also speed up the optimization by using the
 <code><a href="https://rdrr.io/pkg/optimParallel/man/optimParallel.html" class="external-link">optimParallel()</a></code> function from the
 <code>optimParallel</code> package. To such an end, we simply replace
@@ -562,10 +562,10 @@ set the number of cores we want to use:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 6.942332 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 4.976037 secs</span></span></code></pre>
 </div>
 <div class="section level3">
-<h3 id="kringing">Kringing<a class="anchor" aria-label="anchor" href="#kringing"></a>
+<h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
 </h3>
 <p>Finally, we compute the kriging prediction of the process <span class="math inline">\(u\)</span> at the locations in <code>s</code>
 based on these observations. To specify which locations that should be
@@ -587,7 +587,7 @@ parameters:</p>
 <span>  user_sigma <span class="op">=</span> <span class="va">sigma_est</span>,</span>
 <span>  user_nu <span class="op">=</span> <span class="va">nu_est</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>We can now perform kringing with the <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>
+<p>We can now perform kriging with the <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>
 method:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">u.krig</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">op_cov</span>, A <span class="op">=</span> <span class="va">A</span>, Aprd <span class="op">=</span> <span class="va">A.krig</span>, Y <span class="op">=</span> <span class="va">Y</span>, sigma.e <span class="op">=</span> <span class="va">sigma.e</span><span class="op">)</span></span></code></pre></div>
@@ -663,7 +663,7 @@ is a matrix with more than one column.</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">time_optim</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 3.572223 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 3.183695 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -796,7 +796,7 @@ logarithm of each parameter to avoid constrained optimization.</p>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 14.12373 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 11.69614 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="changing-the-type-and-the-order-of-the-rational-approximation">Changing the type and the order of the rational approximation<a class="anchor" aria-label="anchor" href="#changing-the-type-and-the-order-of-the-rational-approximation"></a>
@@ -859,7 +859,7 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 13.08974 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 10.62237 secs</span></span></code></pre>
 <p>Finally, we can check the type of rational approximation with the
 <code><a href="../reference/rational.type.html">rational.type()</a></code> function and assign a new type by using the
 <code>rational.type&lt;-()</code> function:</p>
@@ -897,7 +897,7 @@ with <code>brasil</code> rational approximation:</p>
 <div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 22.54474 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 17.2962 secs</span></span></code></pre>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
