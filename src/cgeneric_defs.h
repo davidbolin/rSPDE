@@ -26,7 +26,7 @@ typedef int fortran_charlen_t;
 
 // https://stackoverflow.com/questions/9330915/number-of-combinations-n-choose-r-in-c
 
-unsigned nChoosek( int n, int k );
+double nChoosek( int n, int k );
 double cut_decimals(double nu);
 
 void daxpy_(int* N, double* DA, double* DX, int* INCX, double* DY, int* INCY);
@@ -36,6 +36,9 @@ void dscal_(int* N, double* DA, double* DX,int* INCX);
 void dcopy_(int* N, double* DX, int* INCX, double* DY,int* INCY);
 
 void daxpby_(int* N, double* DA, double* DX, int* INCX, double* DB, double* DY, int* INCY, double* DZ);
+
+void dgesv_(int *n, int *nrhs,  double *a,  int  *lda,  
+           int *ipivot, double *b, int *ldb, int *info) ;
 
 inla_cgeneric_func_tp inla_cgeneric_rspde_stat_int_model;
 

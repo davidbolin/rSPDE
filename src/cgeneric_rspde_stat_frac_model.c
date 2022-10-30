@@ -56,7 +56,7 @@ double *inla_cgeneric_rspde_stat_frac_model(inla_cgeneric_cmd_tp cmd, double *th
   assert(!strcasecmp(data->doubles[0]->name, "nu"));
   nu = data->doubles[0]->doubles[0];
 
-  alpha = nu + d / 2;
+  alpha = nu + d / 2.0;
   m_alpha = floor(alpha);
 
   assert(!strcasecmp(data->doubles[1]->name, "matrices_less"));
@@ -100,8 +100,8 @@ double *inla_cgeneric_rspde_stat_frac_model(inla_cgeneric_cmd_tp cmd, double *th
   if (theta) {
     // interpretable parameters 
     if(!strcasecmp(parameterization, "matern")){
-      ltau = -2 * theta[0];
-      lkappa = 0.5 * log(8 * nu) - theta[1];
+      ltau = -2.0 * theta[0];
+      lkappa = 0.5 * log(8.0 * nu) - theta[1];
     } else {
       ltau = theta[0];
       lkappa = theta[1];
@@ -457,10 +457,10 @@ double *inla_cgeneric_rspde_stat_frac_model(inla_cgeneric_cmd_tp cmd, double *th
       ret[0] = 0.0;
 
       ret[0] += -0.5 * SQR(theta[0] - prior_theta1_meanlog)/(SQR(prior_theta1_sdlog)) - 
-      log(prior_theta1_sdlog) - 0.5 * log(2 * M_PI);
+      log(prior_theta1_sdlog) - 0.5 * log(2.0 * M_PI);
 
       ret[0] += -0.5 * SQR(theta[1] - prior_theta2_meanlog)/(SQR(prior_theta2_sdlog)) - 
-      log(prior_theta2_sdlog) - 0.5 * log(2 * M_PI);
+      log(prior_theta2_sdlog) - 0.5 * log(2.0 * M_PI);
 	  break;
     }
     

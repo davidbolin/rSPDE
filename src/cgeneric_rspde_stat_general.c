@@ -15,7 +15,7 @@ double cut_decimals(double nu){
 
 double pnorm(double x, double mu, double sd) 
 {
-    return (1 + erf((x-mu) / (sd * sqrt(2))))/(2.0);
+    return (1 + erf((x-mu) / (sd * sqrt(2.0))))/(2.0);
 }
 
 double logdbeta(double x, double s_1, double s_2){
@@ -84,7 +84,7 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
   assert(!strcasecmp(data->doubles[1]->name, "nu_upper_bound"));
   nu_upper_bound = data->doubles[1]->doubles[0];
 
-  alpha = nu_upper_bound + d / 2;
+  alpha = nu_upper_bound + d / 2.0;
   m_alpha = floor(alpha);
 
   assert(!strcasecmp(data->doubles[2]->name, "matrices_less"));
@@ -138,10 +138,10 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
   if (theta) {
     // interpretable parameters 
     lnu = theta[2];
-    nu = (exp(lnu)/(1 + exp(lnu))) * nu_upper_bound;
+    nu = (exp(lnu)/(1.0 + exp(lnu))) * nu_upper_bound;
     if(!strcasecmp(parameterization, "matern")){
-      ltau = -2 * theta[0];
-      lkappa = 0.5 * log(8 * nu) - theta[1];
+      ltau = -2.0 * theta[0];
+      lkappa = 0.5 * log(8.0 * nu) - theta[1];
     } else {
       ltau = theta[0];
       lkappa = theta[1];
@@ -184,7 +184,7 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
 
       int n_terms = 2*rspde_order + 2;
 
-      double new_alpha = nu + d / 2;
+      double new_alpha = nu + d / 2.0;
 
       int new_m_alpha = (int) floor(new_alpha);
 
@@ -520,14 +520,14 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
       ret[0] = 0.0;
 
       ret[0] += -0.5 * SQR(theta[0] - prior_theta1_meanlog)/(SQR(prior_theta1_sdlog)) - 
-      log(prior_theta1_sdlog) - 0.5 * log(2 * M_PI);
+      log(prior_theta1_sdlog) - 0.5 * log(2.0 * M_PI);
 
       ret[0] += -0.5 * SQR(theta[1] - prior_theta2_meanlog)/(SQR(prior_theta2_sdlog)) - 
-      log(prior_theta2_sdlog) - 0.5 * log(2 * M_PI);
+      log(prior_theta2_sdlog) - 0.5 * log(2.0 * M_PI);
 
       if(!strcasecmp(prior_nu_dist, "lognormal")){
         ret[0] += -log(nu) -0.5 * SQR(lnu - prior_nu_loglocation)/(SQR(prior_nu_logscale));
-        ret[0] += -log(prior_nu_logscale) - 0.5 * log(2*M_PI);
+        ret[0] += -log(prior_nu_logscale) - 0.5 * log(2.0*M_PI);
         ret[0] -= log(pnorm(log(nu_upper_bound), prior_nu_loglocation, prior_nu_logscale));
       }
       else { // if(!strcasecmp(prior_nu_dist, "beta")){

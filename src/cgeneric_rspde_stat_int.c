@@ -2,7 +2,7 @@
 // #include "stdio.h"
 // #include "gsl/gsl_vector_double.h"
 
-unsigned nChoosek( int n, int k ){
+double nChoosek( int n, int k ){
     if (k > n) return 0;
     if (k * 2 > n) k = n-k;
     if (k == 0) return 1;
@@ -12,7 +12,7 @@ unsigned nChoosek( int n, int k ){
         result *= (n-i+1);
         result /= i;
     }
-    return result;
+    return (double) result;
 }
 
 // This version uses 'padded' matrices with zeroes
@@ -93,8 +93,8 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
   if (theta) {
     // interpretable parameters 
     if(!strcasecmp(parameterization, "matern")){
-      ltau = -2 * theta[0];
-      lkappa = 0.5 * log(8 * nu) - theta[1];
+      ltau = -2.0 * theta[0];
+      lkappa = 0.5 * log(8.0 * nu) - theta[1];
     } else {
       ltau = theta[0];
       lkappa = theta[1];
@@ -385,7 +385,7 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
            sqtau = SQR(tau);
       sqtaukappa = SQR(tau) * SQR(kappa);
       sqkappatau1 = SQR(tau) * SQR(kappa*kappa);
-      sqkappatau2 = SQR(tau) * 2 * SQR(kappa);
+      sqkappatau2 = SQR(tau) * 2.0 * SQR(kappa);
       dcopy_(&M, &fem->doubles[0], &one, &ret[k], &one);
       if(m_alpha == 1){
         // double sqtau = SQR(tau);
@@ -412,9 +412,9 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
         daxpy_(&M, &sqkappatau2, &fem->doubles[M], &one, &ret[k], &one);
         if(m_alpha>=2){
           for(j = 2; j<= m_alpha; j++){
-            sqkappatau1 = SQR(tau) * pow(kappa, 2 * m_alpha);
-            sqkappatau2 = SQR(tau) * m_alpha * pow(kappa, 2 * (m_alpha - 1));
-            sqtaukappatmp = SQR(tau) * pow(kappa, 2*(m_alpha-j)) * nChoosek(m_alpha, j);
+            sqkappatau1 = SQR(tau) * pow(kappa, 2.0 * m_alpha);
+            sqkappatau2 = SQR(tau) * m_alpha * pow(kappa, 2.0 * (m_alpha - 1.0));
+            sqtaukappatmp = SQR(tau) * pow(kappa, 2.0*(m_alpha-j)) * nChoosek(m_alpha, j);
             daxpy_(&M, &sqtaukappatmp, &fem->doubles[j*M], &one, &ret[k], &one);
           }
         }
@@ -539,10 +539,10 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
       ret[0] = 0.0;
 
       ret[0] += -0.5 * SQR(theta[0] - prior_theta1_meanlog)/(SQR(prior_theta1_sdlog)) - 
-      log(prior_theta1_sdlog) - 0.5 * log(2 * M_PI);
+      log(prior_theta1_sdlog) - 0.5 * log(2.0 * M_PI);
 
       ret[0] += -0.5 * SQR(theta[1] - prior_theta2_meanlog)/(SQR(prior_theta2_sdlog)) - 
-      log(prior_theta2_sdlog) - 0.5 * log(2 * M_PI);
+      log(prior_theta2_sdlog) - 0.5 * log(2.0 * M_PI);
 
 	    break;
     }

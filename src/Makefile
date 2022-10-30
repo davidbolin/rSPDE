@@ -10,7 +10,7 @@ all : $(sources:.c=.o) so
 
 so : $(sources:.c=.o)
 	@echo generate .so
-	gcc -shared -lblas *.o -o ../inst/shared/rspde_cgeneric_models.so
+	gcc -shared -lblas -llapack *.o -o ../inst/shared/rspde_cgeneric_models.so
 
 
 clean :
