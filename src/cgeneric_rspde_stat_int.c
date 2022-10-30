@@ -1,5 +1,5 @@
 #include "cgeneric_defs.h"
-#include "stdio.h"
+// #include "stdio.h"
 // #include "gsl/gsl_vector_double.h"
 
 unsigned nChoosek( int n, int k ){

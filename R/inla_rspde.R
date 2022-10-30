@@ -349,6 +349,8 @@ rspde.matern <- function(mesh,
   } else if (start.nu > nu_upper_bound || start.nu < 0) {
     stop("start.nu should be a number between 0 and nu_upper_bound!")
   }
+  
+  rspde_lib <- system.file('shared', package='rSPDE')
 
   if(parameterization == "spde"){
     prior.theta1 <- prior.tau
@@ -373,7 +375,6 @@ rspde.matern <- function(mesh,
 
     graph_opt <- transpose_cgeneric(graph_opt) 
 
-    rspde_lib <- system.file('libs', package='rSPDE')
 
     # matrices_less <- restructure_matrices_less(matrices_less, m_alpha)
     # matrices_full <- restructure_matrices_full(matrices_full, m_alpha)
@@ -417,8 +418,6 @@ rspde.matern <- function(mesh,
 
     graph_opt <- transpose_cgeneric(graph_opt) 
 
-    rspde_lib <- system.file('libs', package='rSPDE')
-
     # matrices_less <- restructure_matrices_less(matrices_less, m_alpha)
     # matrices_full <- restructure_matrices_full(matrices_full, m_alpha)
 
@@ -453,8 +452,6 @@ rspde.matern <- function(mesh,
         rspde_order = rspde_order
       )
       graph_opt <- transpose_cgeneric(graph_opt) 
-
-    rspde_lib <- system.file('libs', package='rSPDE')
 
     # matrices_less <- restructure_matrices_less(matrices_less, m_alpha)
 

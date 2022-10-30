@@ -1195,7 +1195,7 @@ get_rational_coefficients <- function(order, type_rational_approx) {
     graph_opt_i <- object$f$cgeneric$data$ints$graph_opt_i
     graph_opt_j <- object$f$cgeneric$data$ints$graph_opt_j
     parameterization <- object$parameterization
-    n_cgeneric <- object$f$cgeneric$n
+    n_object <- object$f$cgeneric$n
 
     rspde_lib <- system.file('libs', package='rSPDE')
 
@@ -1204,7 +1204,7 @@ get_rational_coefficients <- function(order, type_rational_approx) {
         'inla.cgeneric.define',
         list(model="inla_cgeneric_rspde_stat_general_model",
             shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
-            n=as.integer(n_cgeneric)*(rspde_order+1), debug=debug,
+            n=as.integer(n_object), debug=debug,
             d = as.double(d),
             nu_upper_bound = nu_upper_bound,
             matrices_less = as.double(matrices_less),
@@ -1256,13 +1256,14 @@ get_rational_coefficients <- function(order, type_rational_approx) {
     r_ratapprox <- object$f$cgeneric$data$doubles$r_ratapprox
     p_ratapprox <- object$f$cgeneric$data$doubles$p_ratapprox
     k_ratapprox <- object$f$cgeneric$data$doubles$k_ratapprox
+    n_object <- object$f$cgeneric$n
      rspde_lib <- system.file('libs', package='rSPDE')
 
     model <- do.call(
         'inla.cgeneric.define',
         list(model="inla_cgeneric_rspde_stat_frac_model",
             shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
-            n=as.integer(n_cgeneric)*(rspde_order+1), debug=debug,
+            n=as.integer(n_object), debug=debug,
             nu = nu,
             matrices_less = as.double(matrices_less),
             matrices_full = as.double(matrices_full),
@@ -1307,12 +1308,13 @@ get_rational_coefficients <- function(order, type_rational_approx) {
     graph_opt_j <- object$f$cgeneric$data$ints$graph_opt_j
     parameterization <- object$parameterization
     rspde_lib <- system.file('libs', package='rSPDE')
+    n_object <- object$f$cgeneric$n
 
     model <- do.call(
         'inla.cgeneric.define',
         list(model="inla_cgeneric_rspde_stat_int_model",
             shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
-            n=as.integer(n_cgeneric), debug=debug,
+            n=as.integer(n_object), debug=debug,
             matrices_less = as.double(matrices_less),
             m_alpha = as.integer(m_alpha),
             graph_opt_i = graph_opt_i,
@@ -1425,6 +1427,8 @@ rational.type <- function(object) {
       prior.tau <- NULL
       start.lrange <- object$start.theta2 
       start.lstd.dev <- object$start.theta1 
+      start.lkappa <- NULL
+      start.ltau <- NULL
     }
     prior.nu <- object$prior.nu
     start.nu <- object$start.nu
