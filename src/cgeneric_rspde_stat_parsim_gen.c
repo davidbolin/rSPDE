@@ -79,10 +79,10 @@ double * markov_approx_coeff(double beta, double kappa, int d){
   int info;
   info = CrazySolve(Bmat, c_vec, p+1);
   assert(info == 0);
-  double fact = exp(lgamma(nu))/(signgam*exp(lgamma(alpha))*pow((4.0*M_PI),d/2.0)*pow(kappa,(2*nu)));
-    for(i = 0; i <= p; i++){
-        c_vec[i] *= fact;
-    }
+  // double fact = exp(lgamma(nu))/(signgam*exp(lgamma(alpha))*pow((4.0*M_PI),d/2.0)*pow(kappa,(2*nu)));
+  //   for(i = 0; i <= p; i++){
+  //       c_vec[i] *= fact;
+  //   }
     return(c_vec);
 }
 
