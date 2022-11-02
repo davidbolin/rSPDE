@@ -34,8 +34,8 @@ mesh.index.int <- rspde.make.index(
 
 
 start <- Sys.time()
-rspde_model_fix_int1 <- rspde.matern_cgeneric(mesh = prmesh,
-      nu = 1
+rspde_model_fix_int1 <- rspde.matern(mesh = prmesh,
+      nu = 1, parameterization = "spde"
     )
 end <- Sys.time()
 print('Execution Time')
@@ -62,7 +62,7 @@ total_time = c()
 for(i in 1:5){
 rspde_fix_int_1 <- inla(f.s.fix.int.1,
       family = "Gamma",
-      data = inla.stack.data(stk.dat.int), verbose = FALSE, debug=FALSE,
+      data = inla.stack.data(stk.dat.int), verbose = TRUE, debug=FALSE,
       control.inla = list(int.strategy = "eb"),
       control.predictor = list(
         A = inla.stack.A(stk.dat.int),
@@ -119,7 +119,7 @@ total_time = c()
 for(i in 1:5){
 spde_fix_int <- inla(f.spde.s.fix.int.1,
       family = "Gamma",
-      data = inla.stack.data(stk.dat.int), verbose = FALSE, debug=FALSE,
+      data = inla.stack.data(stk.dat.int), verbose = TRUE, debug=FALSE,
       control.inla = list(int.strategy = "eb"),
       control.predictor = list(
         A = inla.stack.A(stk.dat.int),

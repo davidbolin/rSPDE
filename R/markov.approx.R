@@ -44,7 +44,7 @@ markov.Q <- function(beta,kappa,d,fem){
 }
 
 # kappa <- 10
-# sigma <- 1
+# sigma <- 1/sqrt(2)
 # nu <- 0.8
 # beta <- (nu + 1/2)/2
 
@@ -52,7 +52,7 @@ markov.Q <- function(beta,kappa,d,fem){
 # x <- seq(from = 0, to = 1, length.out = 101)
 # fem <- rSPDE.fem1d(x)
 
-# Q <- markov.Q(beta,kappa,d=1,fem)
+# Q <- 2*markov.Q(beta,kappa,d=1,fem)
 # v <- t(rSPDE.A1d(x, 0.5))
 # A <- Diagonal(nobs)
 # c_cov.approx <- A %*% solve(Q, v)

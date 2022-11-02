@@ -93,7 +93,7 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
   if (theta) {
     // interpretable parameters 
     if(!strcasecmp(parameterization, "matern")){
-      ltau = -2.0 * theta[0];
+      ltau = - theta[0];
       lkappa = 0.5 * log(8.0 * nu) - theta[1];
     } else {
       ltau = theta[0];
@@ -380,45 +380,119 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
 
 
       // // Fortran implementation
-      double sqtau, sqtaukappa, sqtaukappatmp, sqkappatau1, sqkappatau2;
-      int one=1;
-           sqtau = SQR(tau);
-      sqtaukappa = SQR(tau) * SQR(kappa);
-      sqkappatau1 = SQR(tau) * SQR(kappa*kappa);
-      sqkappatau2 = SQR(tau) * 2.0 * SQR(kappa);
-      dcopy_(&M, &fem->doubles[0], &one, &ret[k], &one);
-      if(m_alpha == 1){
-        // double sqtau = SQR(tau);
-        // double sqtaukappa = SQR(tau) * SQR(kappa);
-        // int one=1;
-        // dcopy_(&M, &fem->doubles[M], &one, &ret[k], &one);
-        // dscal_(&M, &sqtau, &ret[k], &one); 
-        // daxpy_(&M, &sqtaukappa, &fem->doubles[0], &one, &ret[k], &one);
+      // double sqtau, sqtaukappa, sqtaukappatmp, sqkappatau1, sqkappatau2;
+      // int one=1;
+      //      sqtau = SQR(tau);
+      // sqtaukappa = SQR(tau) * SQR(kappa);
+      // sqkappatau1 = SQR(tau) * SQR(kappa*kappa);
+      // sqkappatau2 = SQR(tau) * 2 * SQR(kappa);
+      // if(m_alpha == 1){
+      //   dcopy_(&M, &fem->doubles[0], &one, &ret[k], &one);
+      //   dscal_(&M, &sqtaukappa, &ret[k], &one); 
+      //   daxpy_(&M, &sqtau, &fem->doubles[M], &one, &ret[k], &one);
+      // } else if (m_alpha == 2){
+      //   dcopy_(&M, &fem->doubles[0], &one, &ret[k], &one);
+      //   dscal_(&M, &sqkappatau1, &ret[k], &one);
+      //   daxpy_(&M, &sqkappatau2, &fem->doubles[M], &one, &ret[k], &one);
+      //   daxpy_(&M, &sqtau, &fem->doubles[2*M], &one, &ret[k], &one);
+      // } else{
+      //   sqkappatau1 = SQR(tau) * pow(kappa, 2 * m_alpha);
+      //   sqkappatau2 = SQR(tau) * m_alpha * pow(kappa, 2 * (m_alpha - 1));
+      //   dcopy_(&M, &fem->doubles[0], &one, &ret[k], &one);
+      //   dscal_(&M, &sqkappatau1, &ret[k], &one);
+      //   daxpy_(&M, &sqkappatau2, &fem->doubles[M], &one, &ret[k], &one);
+      //   if(m_alpha>=2){
+      //     for(j = 2; j<= m_alpha; j++){
+      //       sqtaukappatmp = SQR(tau) * pow(kappa, 2*(m_alpha-j)) * nChoosek(m_alpha, j);
+      //       daxpy_(&M, &sqtaukappatmp, &fem->doubles[j*M], &one, &ret[k], &one);
+      //     }
+      //   }
+      // }
 
-        // int one=1;
-        dcopy_(&M, &fem->doubles[0], &one, &ret[k], &one);
-        dscal_(&M, &sqtaukappa, &ret[k], &one); 
-        daxpy_(&M, &sqtau, &fem->doubles[M], &one, &ret[k], &one);
-      } else if (m_alpha == 2){
-        // int one=1;
-        dcopy_(&M, &fem->doubles[0], &one, &ret[k], &one);
-        dscal_(&M, &sqkappatau1, &ret[k], &one);
-        daxpy_(&M, &sqkappatau2, &fem->doubles[M], &one, &ret[k], &one);
-        daxpy_(&M, &sqtau, &fem->doubles[2*M], &one, &ret[k], &one);
-      } else{
-        // int one=1;
-        dcopy_(&M, &fem->doubles[0], &one, &ret[k], &one);
+      // More compact
+      int one = 1;
+      double sqkappatau1 = SQR(tau) * pow(kappa, 2 * m_alpha);
+      double sqkappatau2 = SQR(tau) * m_alpha * pow(kappa, 2 * (m_alpha - 1));
+      double sqtaukappatmp;
+      dcopy_(&M, &fem->doubles[0], &one, &ret[k], &one);
         dscal_(&M, &sqkappatau1, &ret[k], &one);
         daxpy_(&M, &sqkappatau2, &fem->doubles[M], &one, &ret[k], &one);
         if(m_alpha>=2){
           for(j = 2; j<= m_alpha; j++){
-            sqkappatau1 = SQR(tau) * pow(kappa, 2.0 * m_alpha);
-            sqkappatau2 = SQR(tau) * m_alpha * pow(kappa, 2.0 * (m_alpha - 1.0));
-            sqtaukappatmp = SQR(tau) * pow(kappa, 2.0*(m_alpha-j)) * nChoosek(m_alpha, j);
+            sqtaukappatmp = SQR(tau) * pow(kappa, 2*(m_alpha-j)) * nChoosek(m_alpha, j);
             daxpy_(&M, &sqtaukappatmp, &fem->doubles[j*M], &one, &ret[k], &one);
           }
         }
-      }
+
+      // Fortran matrix product version
+
+      // double sqtau, sqtaukappa, sqtaukappatmp, sqkappatau1, sqkappatau2;
+      // int one=1;
+
+      // dcopy_(&M, &fem->doubles[0], &one, &ret[k], &one);
+      // if(m_alpha == 1){
+        
+      //   sqtau = SQR(tau);
+      //   sqtaukappa = SQR(tau) * SQR(kappa);
+      //   double *coeff_vec;
+      //   coeff_vec = Calloc(2, double);
+      //   coeff_vec[0] = sqtaukappa;
+      //   coeff_vec[1] = sqtau;
+
+      //   int two = 2;
+      //   double d_one = 1.0, d_zero = 0.0;
+
+      //   char char_tmp;
+      //   char_tmp = 'T';
+
+      //   dgemv_(&char_tmp, &two, &M, &d_one, &fem->doubles[0], &two, coeff_vec, &one, &d_zero, &ret[k], &one);
+
+
+
+      // } else if (m_alpha == 2){
+
+      //   sqtau = SQR(tau);
+      //   sqkappatau1 = SQR(tau) * SQR(kappa*kappa);
+      //   sqkappatau2 = SQR(tau) * 2.0 * SQR(kappa);
+      //   double *coeff_vec;
+      //   coeff_vec = Calloc(3, double);
+      //   coeff_vec[0] = sqkappatau1;
+      //   coeff_vec[1] = sqkappatau2;
+      //   coeff_vec[2] = sqtau;
+
+      //   int three = 3;
+      //   double d_one = 1.0, d_zero = 0.0;
+
+      //   char char_tmp;
+      //   char_tmp = 'T';
+
+      //   dgemv_(&char_tmp, &three, &M, &d_one, &fem->doubles[0], &three, coeff_vec, &one, &d_zero, &ret[k], &one);
+
+      // } else{
+       
+      //   double sqkappatau1 = SQR(tau) * pow(kappa, 2 * m_alpha);
+      //   double sqkappatau2 = SQR(tau) * m_alpha * pow(kappa, 2 * (m_alpha - 1));
+      //   double *coeff_vec;
+      //   coeff_vec = Calloc(m_alpha+1, double);
+      //   coeff_vec[0] = sqkappatau1;
+      //   coeff_vec[1] = sqkappatau2;
+        
+      //   if(m_alpha>=2){
+      //     for(j = 2; j<= m_alpha; j++){
+      //       sqtaukappatmp = SQR(tau) * pow(kappa, 2.0*(m_alpha-j)) * nChoosek(m_alpha, j);
+      //       coeff_vec[j] = sqtaukappatmp;
+      //     }
+      //   }
+
+      //   int m_alpha_plus_one = m_alpha+1;
+      //   double d_one = 1.0, d_zero = 0.0;
+
+      //   char char_tmp;
+      //   char_tmp = 'T';
+
+      //   dgemv_(&char_tmp, &m_alpha_plus_one, &M, &d_one, &fem->doubles[0], &m_alpha_plus_one, coeff_vec, &one, &d_zero, &ret[k], &one);
+
+      // }
 
       // Version using sparsity
 

@@ -140,7 +140,7 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
     lnu = theta[2];
     nu = (exp(lnu)/(1.0 + exp(lnu))) * nu_upper_bound;
     if(!strcasecmp(parameterization, "matern")){
-      ltau = -2.0 * theta[0];
+      ltau = - theta[0];
       lkappa = 0.5 * log(8.0 * nu) - theta[1];
     } else {
       ltau = theta[0];

@@ -115,6 +115,7 @@ rspde.matern <- function(mesh,
     alpha <- nu + d / 2
     integer_alpha <- (alpha %% 1 == 0)
     if(!integer_alpha){
+      if(rspde_order > 0){
       n_m <- rspde_order
             mt <- get_rational_coefficients(rspde_order, type.rational.approx)
             r <- sapply(1:(n_m), function(i) {
@@ -124,11 +125,13 @@ rspde.matern <- function(mesh,
             approx(mt$alpha, mt[[paste0("p", i)]], cut_decimals(2 * beta))$y
             })
             k <- approx(mt$alpha, mt$k, cut_decimals(2 * beta))$y
+      }
     }
   } else {
     integer_alpha <- FALSE
-
-    rational_table <- get_rational_coefficients(rspde_order, type.rational.approx)
+    if(rspde_order > 0){
+      rational_table <- get_rational_coefficients(rspde_order, type.rational.approx)
+    }
   }
 
 
@@ -163,19 +166,31 @@ rspde.matern <- function(mesh,
         fem_mesh_matrices = fem_mesh,
         include_higher_order = FALSE
       )
-    } else {
+    } else if(rspde_order > 0) {
         result_sparsity <- analyze_sparsity_rspde(
           nu_upper_bound = nu_order, dim = d,
           rspde_order = rspde_order,
           fem_mesh_matrices = fem_mesh
         )
       positions_matrices <- result_sparsity$positions_matrices
+    } else{
+            result_sparsity <- analyze_sparsity_rspde(
+          nu_upper_bound = nu_order, dim = d,
+          rspde_order = rspde_order,
+          fem_mesh_matrices = fem_mesh, 
+          include_lower_order = FALSE
+        )
+      positions_matrices <- result_sparsity$positions_matrices
     }
 
     idx_matrices <- result_sparsity$idx_matrices
-    positions_matrices_less <- result_sparsity$positions_matrices_less
+
+    if(rspde_order > 0 || integer_alpha){
+      positions_matrices_less <- result_sparsity$positions_matrices_less
+    }
 
     # if (integer_alpha) {
+    if(rspde_order > 0 || integer_alpha){  
     n_tmp <- length(
         fem_mesh[[paste0("g", m_alpha)]]@x[idx_matrices[[m_alpha + 1]]]
         )
@@ -209,6 +224,7 @@ rspde.matern <- function(mesh,
     tmp <- fem_mesh[[paste0("g", m_alpha)]]@x[idx_matrices[[m_alpha + 1]]]
 
     matrices_less <- c(matrices_less, tmp)
+    }
     # }
 
 
@@ -365,7 +381,39 @@ rspde.matern <- function(mesh,
   }
 
   if (!fixed_nu) {
-      graph_opt <- get.sparsity.graph.rspde(
+
+    if(rspde_order == 0){
+
+      # fem_mesh has already been transposed
+        graph_opt <-  fem_mesh[[paste0("g", m_alpha + 1)]]
+
+  model <- do.call(
+        'inla.cgeneric.define',
+        list(model="inla_cgeneric_rspde_stat_parsim_gen_model",
+            shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
+            n=as.integer(n_cgeneric), debug=debug,
+            d = as.double(d),
+            nu_upper_bound = nu_upper_bound,
+            matrices_full = as.double(matrices_full),
+            graph_opt_i = graph_opt@i,
+            graph_opt_j = graph_opt@j,
+            prior.theta1.meanlog = prior.theta1$meanlog,
+            prior.theta1.sdlog = prior.theta1$sdlog,
+            prior.theta2.meanlog = prior.theta2$meanlog,
+            prior.theta2.sdlog = prior.theta2$sdlog,
+            prior.nu.loglocation = prior.nu$loglocation,
+            prior.nu.mean = prior.nu$mean,
+            prior.nu.prec = prior.nu$prec,
+            prior.nu.logscale = prior.nu$logscale,
+            start.theta1 = start.theta1,
+            start.theta2 = start.theta2,
+            start.nu = start.nu,
+            prior.nu.dist = prior.nu.dist,
+            parameterization = parameterization))
+
+
+    } else{
+          graph_opt <- get.sparsity.graph.rspde(
         fem_mesh_matrices = fem_mesh_orig, dim = d,
         nu = nu_upper_bound,
         rspde_order = rspde_order,
@@ -405,9 +453,34 @@ rspde.matern <- function(mesh,
             rspde_order = as.integer(rspde_order),
             prior.nu.dist = prior.nu.dist,
             parameterization = parameterization))
+    }
     
     model$cgeneric_type <- "general"
   } else if (!integer_alpha) {
+
+      if(rspde_order == 0){
+        graph_opt <- fem_mesh[[paste0("g", m_alpha + 1)]]
+
+        model <- do.call(
+        'inla.cgeneric.define',
+        list(model="inla_cgeneric_rspde_stat_parsim_fixed_model",
+            shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
+            n=as.integer(n_cgeneric), debug=debug,
+            d = as.double(d),
+            nu = nu,
+            matrices_full = as.double(matrices_full),
+            graph_opt_i = graph_opt@i,
+            graph_opt_j = graph_opt@j,
+            prior.theta1.meanlog = prior.theta1$meanlog,
+            prior.theta1.sdlog = prior.theta1$sdlog,
+            prior.theta2.meanlog = prior.theta2$meanlog,
+            prior.theta2.sdlog = prior.theta2$sdlog,
+            start.theta1 = start.theta1,
+            start.theta2 = start.theta2,
+            parameterization = parameterization))
+
+      } else{
+
       graph_opt <- get.sparsity.graph.rspde(
         fem_mesh_matrices = fem_mesh_orig, dim = d,
         nu = nu,
@@ -443,6 +516,7 @@ rspde.matern <- function(mesh,
             rspde_order = as.integer(rspde_order),
             parameterization = parameterization,
             d = as.integer(d)))
+      }
     
     model$cgeneric_type <- "frac_alpha"
   } else {
@@ -623,11 +697,19 @@ rspde.make.A <- function(mesh = NULL,
       Abar <- A
       integer_nu <- TRUE
     } else {
+    if(rspde_order > 0){
       Abar <- kronecker(matrix(1, 1, rspde_order + 1), A)
+    } else{
+      Abar <- A
+    }
       integer_nu <- FALSE
     }
   } else {
-    Abar <- kronecker(matrix(1, 1, rspde_order + 1), A)
+    if(rspde_order > 0){
+      Abar <- kronecker(matrix(1, 1, rspde_order + 1), A)
+    } else{
+      Abar <- A
+    }
     integer_nu <- FALSE
   }
 
@@ -751,11 +833,19 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
       factor_rspde <- 1
       integer_nu <- TRUE
     } else {
-      factor_rspde <- rspde_order + 1
+      if(rspde_order > 0){
+        factor_rspde <- rspde_order + 1
+      } else{
+        factor_rspde <- 1
+      }
       integer_nu <- FALSE
     }
   } else {
-    factor_rspde <- rspde_order + 1
+      if(rspde_order > 0){
+        factor_rspde <- rspde_order + 1
+      } else{
+        factor_rspde <- 1
+      }
     integer_nu <- FALSE
   }
 

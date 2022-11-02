@@ -100,7 +100,7 @@ double *inla_cgeneric_rspde_stat_frac_model(inla_cgeneric_cmd_tp cmd, double *th
   if (theta) {
     // interpretable parameters 
     if(!strcasecmp(parameterization, "matern")){
-      ltau = -2.0 * theta[0];
+      ltau = - theta[0];
       lkappa = 0.5 * log(8.0 * nu) - theta[1];
     } else {
       ltau = theta[0];

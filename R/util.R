@@ -895,6 +895,7 @@ analyze_sparsity_rspde <- function(nu_upper_bound, dim, rspde_order,
       assign(paste0("G_", j, "_list"),
       symmetric_part_matrix(fem_mesh_matrices[[paste0("g", j)]]))
     }
+  }
 
     if (include_higher_order) {
       assign(paste0("G_", m_alpha + 1, "_list"),
@@ -904,7 +905,6 @@ analyze_sparsity_rspde <- function(nu_upper_bound, dim, rspde_order,
       positions_matrices[[1]] <- match(C_list$M,
       get(paste0("G_", m_alpha + 1, "_list"))[["M"]])
     }
-  }
 
   idx_matrices <- list()
 

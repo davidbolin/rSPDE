@@ -18,11 +18,12 @@ seaDist <- apply(spDists(coords, PRborder[1034:1078, ],
 prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
 prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
 
-Abar <- rspde.make.A(mesh = prmesh, loc = coords)
+Abar <- rspde.make.A(mesh = prmesh, loc = coords, nu=1)
 
-mesh.index <- rspde.make.index(name = "field", mesh = prmesh,)
+mesh.index <- rspde.make.index(name = "field", mesh = prmesh, nu=1)
 
-rspde_model <- rspde.matern(mesh = prmesh)
+rspde_model <- rspde.matern(mesh = prmesh, rspde_order = 0, nu = 0.091,
+parameterization = "spde")
 
 stk.dat <- inla.stack(
   data = list(y = Y), A = list(Abar, 1), tag = "est",
@@ -48,3 +49,16 @@ rspde_fit <- inla(f.s,
             inla.mode = "experimental"
 )
 
+
+spde_model <- inla.spde2.matern(mesh = prmesh, rspde_order = 0, alpha = 1.091)
+
+f.s <- y ~ -1 + Intercept + f(seaDist, model="rw1")+
+  f(field, model = spde_model)
+
+spde_fit <- inla(f.s,
+  family = "Gamma", data = inla.stack.data(stk.dat),
+  verbose = TRUE,
+  control.inla = list(int.strategy = "eb"),
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
+            inla.mode = "experimental"
+)
