@@ -95,7 +95,7 @@
                         <h4 data-toc-skip class="author">David Bolin and
 Alexandre B. Simas</h4>
             
-            <h4 data-toc-skip class="date">2022-11-02</h4>
+            <h4 data-toc-skip class="date">2022-11-13</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_base.Rmd" class="external-link"><code>vignettes/rspde_base.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_base.Rmd</code></div>
@@ -349,7 +349,7 @@ compute the norm of the approximation error for different <span class="math inli
 <span>  <span class="va">errors</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/norm.html" class="external-link">norm</a></span><span class="op">(</span><span class="va">c.true</span> <span class="op">-</span> <span class="va">c.app</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">errors</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]  1.0120165  0.1100542 52.4841240 54.6499071</span></span></code></pre></div>
+<span><span class="co">#&gt; [1]  1.012017  0.114015 51.947037 54.648301</span></span></code></pre></div>
 <p>We see that the error decreases when increasing <span class="math inline">\(m\)</span> from <span class="math inline">\(1\)</span> to <span class="math inline">\(2\)</span>, but is very large for <span class="math inline">\(m=3\)</span> and <span class="math inline">\(m=4\)</span>. The reason for this is not that the
 approximation is bad, but that the numerical accuracy of the product
 <span class="math inline">\(\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv\)</span>
@@ -619,7 +619,7 @@ parameter to avoid constrained optimization, using the
 <span></span>
 <span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 33.46279 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 30.95422 secs</span></span></code></pre></div>
 <p>Finally, we observe that we can use the <code><a href="../reference/rational.order.html">rational.order()</a></code>
 function, to check the order of the rational approximation of the
 <code>rSPDE</code> object, as well as to use the
@@ -650,7 +650,7 @@ function, to check the order of the rational approximation of the
 <span></span>
 <span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 43.53539 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 39.22526 secs</span></span></code></pre></div>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
