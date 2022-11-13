@@ -504,7 +504,7 @@ rSPDE.fem1d <- function(x) {
   )
   C <- bandSparse(
     n = n, m = n, k = c(-1, 0, 1),
-    diagonals = cbind(dm1 / 6, (dm1 + d) / 3, d / 6)
+    diagonals = cbind(dm1 / 6, (dm1 + d) / 3, c(d[2:n],Inf) / 6)
   )
   C[1, 1:2] <- c(d[2], d[2] / 2) / 3
   C[n, (n - 1):n] <- c(d[n] / 2, d[n]) / 3
