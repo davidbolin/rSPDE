@@ -721,6 +721,44 @@ fem_mesh_order_1d <- function(inla_mesh, m_order) {
   return(fem_mesh_matrices)
 }
 
+#' @name generic_fem_mesh_order
+#' @title Get fem_mesh_matrices from C and G matrices
+#' @description Get fem_mesh_matrices from C and G matrices
+#' @param fem_matrices A list with objects C and G
+#' @param m_order the order of the FEM matrices
+#' @return A list with fem_mesh_matrices
+#' @noRd
+
+
+generic_fem_mesh_order <- function(fem_matrices, m_order) {
+  C <- fem_matrices$C
+  C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
+  C <- INLA::inla.as.sparse(C)
+  G <- fem_matrices$G
+  Gk <- list()
+  Ci <- C
+  Ci@x <- 1 / (C@x)
+
+  GCi <- G %*% Ci
+  Gk[[1]] <- G
+  # determine how many G_k matrices we want to create
+  if (m_order > 1) {
+    for (i in 2:m_order) {
+      Gk[[i]] <- GCi %*% Gk[[i - 1]]
+    }
+  }
+
+  # create a list contains all the finite element related matrices
+  fem_mesh_matrices <- list()
+  fem_mesh_matrices[["c0"]] <- C
+
+  for (i in 1:m_order) {
+    fem_mesh_matrices[[paste0("g", i)]] <- Gk[[i]]
+  }
+  return(fem_mesh_matrices)
+}
+
+
 #' @name get.sparsity.graph.rspde
 #' @title Sparsity graph for rSPDE models
 #' @description Creates the sparsity graph for rSPDE models

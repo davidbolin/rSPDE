@@ -918,23 +918,6 @@ rspde_fit$cpu.used
 rspde_fit_order_3$cpu.used
 ```
 
-Let us now see the summary of the fit in the original scale:
-
-```{r summary_results_order_3}
-result_fit_order_3 <- rspde.result(rspde_fit_order_3,
-"field", rspde_model_order_3)
-summary(result_fit_order_3)
-```
-
-We can also plot the posterior densities:
-
-```{r plot_post_order_3, fig.align='center'}
-post_df_fit_order_3 <- gg_df(result_fit_order_3)
-
-ggplot(post_df_fit_order_3) + geom_line(aes(x = x, y = y)) + 
-facet_wrap(~parameter, scales = "free") + labs(y = "Density")
-```
-
 One can check the order of the rational approximation by using the `rational.order()` function. It also allows another way to change the order of the rational order, 
 by using the corresponding `rational.order<-()` function. 
 

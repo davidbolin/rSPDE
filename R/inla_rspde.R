@@ -3,8 +3,9 @@
 #' @title Matern rSPDE model object for INLA
 #' @description Creates an INLA object for a stationary Matern model with
 #' general smoothness parameter.
-#' @param mesh The mesh to build the model. Should be an `inla.mesh` or
-#' an `inla.mesh.1d` object.
+#' @param mesh The mesh to build the model. It can be an `inla.mesh` or
+#' an `inla.mesh.1d` object. Otherwise, should be a list containing elements C, the mass matrix,
+#' and G, the stiffness matrix.
 #' @param nu_upper_bound Upper bound for the smoothness parameter.
 #' @param rspde_order The order of the covariance-based rational SPDE approach.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
@@ -135,21 +136,28 @@ rspde.matern <- function(mesh,
   }
 
 
-
-    if (integer_alpha) {
-      integer.nu <- TRUE
-      if (d == 1) {
-        fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 1)
+    if(inherits(mesh, c("inla.mesh", "inla.mesh.1d"))){
+      if (integer_alpha) {
+        integer.nu <- TRUE
+        if (d == 1) {
+          fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 1)
+        } else {
+          fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+        }
       } else {
-        fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+        if (d == 1) {
+          fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 2)
+        } else {
+          fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+        }
       }
-    } else {
-      if (d == 1) {
-        fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 2)
-      } else {
-        fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+    } else{
+      if(is.null(mesh$C) || is.null(mesh$G)){
+        stop("If mesh is not an inla.mesh object, you should manually supply a list with elements c0, g1, g2...")
       }
+      fem_mesh <- generic_fem_mesh_order(mesh, m_order = m_alpha + 2)
     }
+
 
     n_cgeneric <- ncol(fem_mesh[["c0"]])
 

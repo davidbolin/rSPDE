@@ -27,8 +27,9 @@ rspde.matern(
 )
 }
 \arguments{
-\item{mesh}{The mesh to build the model. Should be an \code{inla.mesh} or
-an \code{inla.mesh.1d} object.}
+\item{mesh}{The mesh to build the model. It can be an \code{inla.mesh} or
+an \code{inla.mesh.1d} object. Otherwise, should be a list containing elements C, the mass matrix,
+and G, the stiffness matrix.}
 
 \item{nu_upper_bound}{Upper bound for the smoothness parameter.}
 
