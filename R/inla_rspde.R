@@ -273,6 +273,7 @@ rspde.matern <- function(mesh,
       }
     }
 
+  # Prior nu
 
   if (is.null(prior.nu$loglocation)) {
     prior.nu$loglocation <- log(min(1, nu_upper_bound / 2))
@@ -281,6 +282,17 @@ rspde.matern <- function(mesh,
   if (is.null(prior.nu[["mean"]])) {
     prior.nu[["mean"]] <- min(1, nu_upper_bound / 2)
   }
+
+  if (is.null(prior.nu$prec)) {
+    mu_temp <- prior.nu[["mean"]] / nu_upper_bound
+    prior.nu$prec <- max(1 / mu_temp, 1 / (1 - mu_temp)) + nu.prec.inc
+  }
+
+  if (is.null(prior.nu[["logscale"]])) {
+    prior.nu[["logscale"]] <- 1
+  }
+
+  # Prior kappa and prior range
 
   if (is.null(prior.kappa$meanlog) && is.null(prior.range$meanlog)) {
     mesh.range <- ifelse(d == 2, (max(c(diff(range(mesh$loc[
@@ -301,7 +313,34 @@ rspde.matern <- function(mesh,
       prior.kappa$meanlog <- log(sqrt(8 *
       prior.nu[["mean"]]) / prior.range.nominal)
     }
+  } else if(is.null(prior.kappa$meanlog)){
+    prior.range.nominal <- exp(prior.range$meanlog)
+    if (prior.nu.dist == "lognormal") {
+      prior.kappa$meanlog <- log(sqrt(8 *
+      exp(prior.nu[["loglocation"]])) / prior.range.nominal)
+    } else if (prior.nu.dist == "beta") {
+      prior.kappa$meanlog <- log(sqrt(8 *
+      prior.nu[["mean"]]) / prior.range.nominal)
+    }
+  } else{
+      if (prior.nu.dist == "lognormal") {
+      prior.range$meanlog <- log(sqrt(8 *
+      exp(prior.nu[["loglocation"]]))) - prior.kappa$meanlog 
+    } else if (prior.nu.dist == "beta") {
+      prior.range$meanlog <- log(sqrt(8 *
+      prior.nu[["mean"]])) - prior.kappa$meanlog
+    }
   }
+
+  if(is.null(prior.range$sdlog)){
+    prior.range$sdlog <- sqrt(10)
+  }
+
+  if (is.null(prior.kappa$sdlog)) {
+    prior.kappa$sdlog <- sqrt(10)
+  }
+
+  # Prior tau and prior std. dev
 
   if (is.null(prior.tau$meanlog) && is.null(prior.std.dev$meanlog)) {
     if (prior.nu.dist == "lognormal") {
@@ -314,31 +353,23 @@ rspde.matern <- function(mesh,
         pi * exp(prior.kappa$meanlog)^(2 * prior.nu[["mean"]]))))
     }
 
-    prior.std.dev$meanlog <- -0.5 * prior.tau$meanlog
-  }
-  if (is.null(prior.kappa$sdlog)) {
-    prior.kappa$sdlog <- sqrt(10)
-  }
-  if (is.null(prior.nu$prec)) {
-    mu_temp <- prior.nu[["mean"]] / nu_upper_bound
-    prior.nu$prec <- max(1 / mu_temp, 1 / (1 - mu_temp)) + nu.prec.inc
-  }
-
-  if (is.null(prior.nu[["logscale"]])) {
-    prior.nu[["logscale"]] <- 1
+    prior.std.dev$meanlog <- - prior.tau$meanlog
+  } else if (is.null(prior.tau$meanlog)){
+        prior.tau$meanlog <- - prior.std.dev$meanlog
+  } else{
+        prior.std.dev$meanlog <- - prior.tau$meanlog
   }
 
   if (is.null(prior.tau$sdlog)) {
     prior.tau$sdlog <- sqrt(10)
   }
 
-  if(is.null(prior.range$sdlog)){
-    prior.range$sdlog <- sqrt(10)
-  }
 
   if(is.null(prior.std.dev$sdlog)){
     prior.std.dev$sdlog <- sqrt(10)
   }
+
+  # Starting values
 
   if (is.null(start.lkappa)) {
     start.lkappa <- prior.kappa$meanlog
