@@ -664,8 +664,8 @@ restructure_matrices_less <- function(matrices_less, m_alpha){
 #' @description Constructs observation/prediction weight matrices
 #' for rSPDE models based on `inla.mesh` or
 #' `inla.mesh.1d` objects.
-#' @param mesh An `inla.mesh` or
-#' an `inla.mesh.1d` object.
+#' @param mesh An `inla.mesh`,
+#' an `inla.mesh.1d` object or a `GPGraph::graph` object.
 #' @param loc Locations, needed if an INLA mesh is provided
 #' @param A The A matrix from the standard SPDE approach, such as the matrix
 #' returned by `inla.spde.make.A`. Should only be provided if
@@ -713,8 +713,13 @@ rspde.make.A <- function(mesh = NULL,
   if (!is.null(mesh)) {
     cond1 <- inherits(mesh, "inla.mesh.1d")
     cond2 <- inherits(mesh, "inla.mesh")
-    stopifnot(cond1 || cond2)
-    dim <- get_inla_mesh_dimension(mesh)  
+    cond3 <- inherits(mesh, "GPGraph::graph")
+    stopifnot(cond1 || cond2 || cond3)
+    if(cond1 || cond2){
+      dim <- get_inla_mesh_dimension(mesh)  
+    } else if(cond3){
+      dim <- 1
+    }
   } else if (is.null(dim)) {
     stop("If mesh is not provided, then you should provide the dimension d!")
   }
@@ -725,12 +730,60 @@ rspde.make.A <- function(mesh = NULL,
   }
 
   if (!is.null(mesh)) {
-    A <- INLA::inla.spde.make.A(
-      mesh = mesh, loc = loc,
-      index = index, group = group,
-      repl = repl, n.group = n.group,
-      n.repl = n.repl
-    )
+    if(cond1 || cond2){
+      A <- INLA::inla.spde.make.A(
+        mesh = mesh, loc = loc,
+        index = index, group = group,
+        repl = repl, n.group = n.group,
+        n.repl = n.repl
+      )
+    } else if(cond3){
+      if(is.null(mesh$mesh)){
+        stop("The graph object should contain a mesh!")
+      }
+      if(!is.null(n.repl)){
+        A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(loc))
+      } else if(!is.null(index)){
+
+          if(min(repl)!= 1){
+            stop("The indexes of the replicates should begin at 1!")
+          }
+          if(any(!is.integer(repl))){
+            stop("The indexes of the replicates should be integers!")
+          }
+
+        if(max(repl) == 1){
+          A <- mesh$mesh_A(loc[index,])
+        } else{
+          stopifnot(length(index) == length(repl))
+
+          if(max(abs(diff(repl)))>1){
+            stop("The indexes of the replicates should increase by steps of size 1!")
+          }
+
+          total_repl <- max(repl)
+          index_tmp <- index[repl==1]
+          A <- mesh$mesh_A(loc[index_tmp,])
+          for(i in 2:total_repl){
+            index_tmp <- index[repl==i]
+            A_tmp <- mesh$mesh_A(loc[index_tmp,])
+            A <- bdiag(A, A_tmp)
+          }
+          if(any(diff(repl)) < 0){
+            col_indexes <- 1:ncol(A)
+            new_col_indexes <- col_indexes[repl==1]
+            for(i in 2:total_repl){
+              new_col_indexes <- c(new_col_indexes, col_indexes[repl==i])
+            }
+            A <- A[,new_col_indexes]
+          }
+        }
+      } else if(length(repl)>1){
+        stop("When using replicates, you should provide index!")
+      } else{
+        A <- mesh$mesh_A(loc)
+      }
+    }
   } else if (is.null(A)) {
     stop("If mesh is not provided, then you should provide the A matrix from
          the standard SPDE approach!")
