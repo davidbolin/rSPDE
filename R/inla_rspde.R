@@ -2481,7 +2481,8 @@ rspde.metric_graph <- function(graph_obj,
                                 type.rational.approx = type.rational.approx
                                 )
         
-        rspde_model$graph_obj <- graph_obj
+        rspde_model$mesh <- graph_obj
+        rspde_model$n.spde <- nrow(graph$mesh$E)
 
   class(rspde_model) <- c("rspde_metric_graph", class(rspde_model))
   return(rspde_model)
