@@ -741,6 +741,9 @@ rspde.make.A <- function(mesh = NULL,
       if(is.null(mesh$mesh)){
         stop("The graph object should contain a mesh!")
       }
+      if(!is.null(group) || !is.null(n.group)){
+        stop("Groups are still not implemented for metric graphs.")
+      }
       if(!is.null(n.repl)){
         A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(loc))
       } else if(!is.null(index)){
@@ -836,8 +839,8 @@ rspde.make.A <- function(mesh = NULL,
 #' @title rSPDE model index vector generation
 #' @description Generates a list of named index vectors for an rSPDE model.
 #' @param name A character string with the base name of the effect.
-#' @param mesh An `inla.mesh` or
-#' an `inla.mesh.1d` object.
+#' @param mesh An `inla.mesh`,
+#' an `inla.mesh.1d` object or a `GPGraph::graph` object.
 #' @param rspde_order The order of the rational approximation
 #' @param nu If `NULL`, then the model will assume that nu will
 #' be estimated. If nu is fixed, you should provide the value of nu.
@@ -912,8 +915,17 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
   }
 
   if (!is.null(mesh)) {
-    n_mesh <- mesh$n
-    dim <- get_inla_mesh_dimension(mesh)
+    cond1 <- inherits(mesh, "inla.mesh.1d")
+    cond2 <- inherits(mesh, "inla.mesh")
+    cond3 <- inherits(mesh, "GPGraph::graph")
+    stopifnot(cond1 || cond2 || cond3)
+    if(cond1 || cond2){
+      n_mesh <- mesh$n
+      dim <- get_inla_mesh_dimension(mesh)
+    } else if(cond3){
+      dim <- 1
+      n_mesh <- nrow(mesh$mesh$E)
+    }
   } else {
     n_mesh <- n.spde
     if (is.null(dim)) {
@@ -2447,7 +2459,7 @@ rspde.metric_graph <- function(graph_obj,
       prior.range$meanlog <- log(prior.range.nominal)
     }
 
-    return(rspde.matern(mesh = list(d = 1, C = graph_obj$mesh$C, 
+    rspde_model <- rspde.matern(mesh = list(d = 1, C = graph_obj$mesh$C, 
                                 G = graph_obj$mesh$G),
                                 nu_upper_bound = nu_upper_bound,
                                 rspde_order = rspde_order,
@@ -2467,6 +2479,10 @@ rspde.metric_graph <- function(graph_obj,
                                 prior.nu.dist = prior.nu.dist,
                                 nu.prec.inc = nu.prec.inc,
                                 type.rational.approx = type.rational.approx
-                                ))
+                                )
+        
+        rspde_model$graph_obj <- graph_obj
 
+  class(rspde_model) <- c("rspde_metric_graph", class(rspde_model))
+  return(rspde_model)
                          }
