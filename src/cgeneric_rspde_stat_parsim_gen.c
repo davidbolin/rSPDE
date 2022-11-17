@@ -192,8 +192,10 @@ double *inla_cgeneric_rspde_stat_parsim_gen_model(inla_cgeneric_cmd_tp cmd, doub
     lnu = theta[2];
     nu = (exp(lnu)/(1.0 + exp(lnu))) * nu_upper_bound;
     if(!strcasecmp(parameterization, "matern")){
-      ltau = - theta[0];
       lkappa = 0.5 * log(8.0 * nu) - theta[1];
+      ltau = - theta[0] + 0.5 *(
+        lgamma(nu) - 2.0 * nu * lkappa - (d/2.0) * log(4 * M_PI) - lgamma(nu + d/2.0)
+      );
     } else {
       ltau = theta[0];
       lkappa = theta[1];
@@ -314,7 +316,7 @@ double *inla_cgeneric_rspde_stat_parsim_gen_model(inla_cgeneric_cmd_tp cmd, doub
       log(prior_theta2_sdlog) - 0.5 * log(2.0 * M_PI);
 
       if(!strcasecmp(prior_nu_dist, "lognormal")){
-        ret[0] += -log(nu) -0.5 * SQR(lnu - prior_nu_loglocation)/(SQR(prior_nu_logscale));
+        ret[0] += -0.5 * SQR(lnu - prior_nu_loglocation)/(SQR(prior_nu_logscale));
         ret[0] += -log(prior_nu_logscale) - 0.5 * log(2.0*M_PI);
         ret[0] -= log(pnorm(log(nu_upper_bound), prior_nu_loglocation, prior_nu_logscale));
       }

@@ -85,8 +85,10 @@ double *inla_cgeneric_rspde_stat_parsim_fixed_model(inla_cgeneric_cmd_tp cmd, do
   if (theta) {
     // interpretable parameters 
     if(!strcasecmp(parameterization, "matern")){
-      ltau = - theta[0];
       lkappa = 0.5 * log(8.0 * nu) - theta[1];
+      ltau = - theta[0] + 0.5 *(
+        lgamma(nu) - 2.0 * nu * lkappa - (d/2.0) * log(4 * M_PI) - lgamma(nu + d/2.0)
+      );
     } else {
       ltau = theta[0];
       lkappa = theta[1];

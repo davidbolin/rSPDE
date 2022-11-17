@@ -4,7 +4,7 @@
 #' @description Creates an INLA object for a stationary Matern model with
 #' general smoothness parameter.
 #' @param mesh The mesh to build the model. It can be an `inla.mesh` or
-#' an `inla.mesh.1d` object. Otherwise, should be a list containing elements C, the mass matrix,
+#' an `inla.mesh.1d` object. Otherwise, should be a list containing elements d, the dimension, C, the mass matrix,
 #' and G, the stiffness matrix.
 #' @param nu_upper_bound Upper bound for the smoothness parameter.
 #' @param rspde_order The order of the covariance-based rational SPDE approach.
@@ -57,7 +57,7 @@ rspde.matern <- function(mesh,
                          start.lrange = NULL,
                          start.lstd.dev = NULL,
                          parameterization = c("matern", "spde"),
-                         prior.nu.dist = c("beta", "lognormal"),
+                         prior.nu.dist = c("lognormal", "beta"),
                          nu.prec.inc = 1,
                          type.rational.approx = c("chebfun",
                          "brasil", "chebfunLB")) {
@@ -80,7 +80,14 @@ rspde.matern <- function(mesh,
 
   integer.nu <- FALSE
 
-  d <- get_inla_mesh_dimension(mesh)
+  if(inherits(mesh, c("inla.mesh", "inla.mesh.1d"))){
+    d <- get_inla_mesh_dimension(mesh)
+  } else if (!is.null(mesh$d)){
+    d <- mesh$d
+  } else{
+    stop("The mesh object should either be an INLA mesh object or contain d, the dimension!")
+  }
+
 
 
   if (nu_upper_bound - floor(nu_upper_bound) == 0) {
@@ -361,11 +368,19 @@ rspde.matern <- function(mesh,
         pi * exp(prior.kappa$meanlog)^(2 * prior.nu[["mean"]]))))
     }
 
-    prior.std.dev$meanlog <- - prior.tau$meanlog
+    prior.std.dev$meanlog <- 0
   } else if (is.null(prior.tau$meanlog)){
-        prior.tau$meanlog <- - prior.std.dev$meanlog
+        if (prior.nu.dist == "lognormal") {
+      prior.tau$meanlog <-  - prior.std.dev$meanlog + log(sqrt(gamma(exp(prior.nu[["loglocation"]])) /
+      gamma(exp(prior.nu[["loglocation"]]) + d / 2) / (4 *
+        pi * exp(prior.kappa$meanlog)^(2 * exp(prior.nu[["loglocation"]])))))
+    } else if (prior.nu.dist == "beta") {
+      prior.tau$meanlog <-  - prior.std.dev$meanlog + log(sqrt(gamma(prior.nu[["mean"]]) /
+      gamma(prior.nu[["mean"]] + d / 2) / (4 *
+        pi * exp(prior.kappa$meanlog)^(2 * prior.nu[["mean"]]))))
+    }
   } else{
-        prior.std.dev$meanlog <- - prior.tau$meanlog
+        prior.std.dev$meanlog <- 0
   }
 
   if (is.null(prior.tau$sdlog)) {
@@ -2292,3 +2307,113 @@ rspde.precision <- function(rspde,
 }
 
 
+
+#' @name rspde.metric_graph
+#' @title Matern rSPDE model object for metric graphs in INLA
+#' @description Creates an INLA object for a stationary Matern model on a metric graph with
+#' general smoothness parameter.
+#' @param graph_obj The graph object to build the model. Needs to be of class `GPGraph::graph`. It should have a built mesh.
+#' If the mesh is not built, one will be built using h=0.01 as default.
+#' @param h The width of the mesh in case the mesh was not built.
+#' @param nu_upper_bound Upper bound for the smoothness parameter.
+#' @param rspde_order The order of the covariance-based rational SPDE approach.
+#' @param nu If nu is set to a parameter, nu will be kept fixed and will not
+#' be estimated. If nu is `NULL`, it will be estimated.
+#' @param debug INLA debug argument
+#' @param prior.kappa a `list` containing the elements `meanlog` and
+#' `sdlog`, that is, the mean and standard deviation on the log scale.
+#' @param prior.nu a list containing the elements `mean` and `prec`
+#' for beta distribution, or `loglocation` and `logscale` for a
+#' truncated lognormal distribution. `loglocation` stands for
+#' the location parameter of the truncated lognormal distribution in the log
+#' scale. `prec` stands for the precision of a beta distribution.
+#' `logscale` stands for the scale of the truncated lognormal
+#' distribution on the log scale. Check details below.
+#' @param prior.tau a list containing the elements `meanlog` and
+#' `sdlog`, that is, the mean and standard deviation on the log scale.
+#' @param prior.range a `list` containing the elements `meanlog` and
+#' `sdlog`, that is, the mean and standard deviation on the log scale. Will not be used if prior.kappa is non-null.
+#' @param prior.std.dev a `list` containing the elements `meanlog` and
+#' `sdlog`, that is, the mean and standard deviation on the log scale. Will not be used if prior.tau is non-null.
+#' @param start.lkappa Starting value for log of kappa.
+#' @param start.nu Starting value for nu.
+#' @param start.ltau Starting value for log of tau.
+#' @param start.lrange Starting value for log of range. Will not be used if start.lkappa is non-null.
+#' @param start.lstd.dev Starting value for log of std. deviation. Will not be used if start.ltau is non-null.
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
+#' @param prior.nu.dist The distribution of the smoothness parameter.
+#' The current options are "beta" or "lognormal". The default is "beta".
+#' @param nu.prec.inc Amount to increase the precision in the beta prior
+#' distribution. Check details below.
+#' @param type.rational.approx Which type of rational approximation
+#' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#'
+#' @return An INLA model.
+#' @export
+
+rspde.metric_graph <- function(graph_obj,
+                         h = NULL,
+                         nu_upper_bound = 2, rspde_order = 2,
+                         nu = NULL, 
+                         debug = FALSE,
+                         prior.kappa = NULL,
+                         prior.nu = NULL,
+                         prior.tau = NULL,
+                         prior.range = NULL,
+                         prior.std.dev = NULL,
+                         start.lkappa = NULL,
+                         start.nu = NULL,
+                         start.ltau = NULL,
+                         start.lrange = NULL,
+                         start.lstd.dev = NULL,
+                         parameterization = c("matern", "spde"),
+                         prior.nu.dist = c("lognormal", "beta"),
+                         nu.prec.inc = 1,
+                         type.rational.approx = c("chebfun",
+                         "brasil", "chebfunLB")) {
+    if(!inherits(graph_obj, "GPGraph::graph")){
+      stop("The graph object should be of class GPGraph::graph!")
+    }
+    if(is.null(graph_obj$mesh)){
+      if(is.null(h)){
+        graph_obj$build_mesh(h = 0.01)
+      } else{
+        graph_obj$build_mesh(h = h)
+      }
+    }
+    
+    if(is.null(graph_obj$mesh$C)){
+      graph_obj$compute_fem()
+    }
+
+    if(is.null(prior.range$meanlog)){
+      if(is.null(graph_obj$geo.dist)){
+        graph_obj$compute_geodist()
+      }
+      prior.range.nominal <- max(graph_obj$geo.dist) * 0.2
+      prior.range$meanlog <- log(prior.range.nominal)
+    }
+
+    return(rspde.matern(mesh = list(d = 1, C = graph_obj$mesh$C, 
+                                G = graph_obj$mesh$G),
+                                nu_upper_bound = nu_upper_bound,
+                                rspde_order = rspde_order,
+                                nu = nu,
+                                debug = debug,
+                                prior.kappa = prior.kappa,
+                                prior.nu = prior.nu,
+                                prior.tau = prior.tau,
+                                prior.range = prior.range,
+                                prior.std.dev =  prior.std.dev,
+                                start.lkappa = start.lkappa,
+                                start.nu = start.nu,
+                                start.ltau = start.ltau,
+                                start.lrange = start.lrange,
+                                start.lstd.dev = start.lstd.dev,
+                                parameterization = parameterization,
+                                prior.nu.dist = prior.nu.dist,
+                                nu.prec.inc = nu.prec.inc,
+                                type.rational.approx = type.rational.approx
+                                ))
+
+                         }
