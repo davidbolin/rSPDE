@@ -19,8 +19,8 @@ rspde.make.A(
 )
 }
 \arguments{
-\item{mesh}{An \code{inla.mesh} or
-an \code{inla.mesh.1d} object.}
+\item{mesh}{An \code{inla.mesh},
+an \code{inla.mesh.1d} object or a \code{GPGraph::graph} object.}
 
 \item{loc}{Locations, needed if an INLA mesh is provided}
 
