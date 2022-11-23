@@ -399,10 +399,10 @@ will also be discussed later in this vignette.
 ### `rSPDE`-`INLA` results
 
 We can obtain outputs with respect to parameters in the original scale by
-using the function `rspde_result()`:
+using the function `rspde.result()`:
 
 ```{r get_result}
-result_fit <- rspde_result(rspde_fit, "field", rspde_model)
+result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
 ```
 
@@ -728,7 +728,7 @@ summary(rspde_fit.rep)
 
 and the summary in the user's scale:
 ```{r}
-result_fit_rep <- rspde_result(rspde_fit.rep, "field", rspde_model.rep)
+result_fit_rep <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 summary(result_fit_rep)
 result_df <- data.frame(
   parameter = c("tau", "kappa", "nu"),
@@ -828,7 +828,7 @@ We can see that the fit for `nu_upper_bound` equal to 2 was considerably faster.
 Finally, let us get the result results for the field and see the estimate of $\nu$:
 
 ```{r get_summary_results_ub}
-result_fit_2 <- rspde_result(rspde_fit_2, "field", rspde_model_2)
+result_fit_2 <- rspde.result(rspde_fit_2, "field", rspde_model_2)
 summary(result_fit_2)
 ```
 
@@ -1063,7 +1063,7 @@ summary(rspde_fix)
 Now, the summary in the original scale:
 
 ```{r}
-result_fix <- rspde_result(rspde_fix, "field", rspde_model_fix)
+result_fix <- rspde.result(rspde_fix, "field", rspde_model_fix)
 summary(result_fix)
 ```
 
@@ -1142,7 +1142,7 @@ summary(rspde_fix_int_1)
 and check the summary in the user's scale:
 
 ```{r}
-rspde_result_int <- rspde_result(rspde_fix_int_1, "field", rspde_model_fix_int1)
+rspde_result_int <- rspde.result(rspde_fix_int_1, "field", rspde_model_fix_int1)
 summary(rspde_result_int)
 ```
 
@@ -1299,7 +1299,7 @@ summary(rspde_fit_beta)
 Also, we can have the summary in the user's scale:
 
 ```{r}
-result_fit_beta <- rspde_result(rspde_fit_beta, "field", rspde_model_beta)
+result_fit_beta <- rspde.result(rspde_fit_beta, "field", rspde_model_beta)
 summary(result_fit_beta)
 ```
 and the plot of the posterior marginal densities

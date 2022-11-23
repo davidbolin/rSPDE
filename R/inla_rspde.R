@@ -902,7 +902,7 @@ rspde.make.A <- function(mesh = NULL,
 #'     list(A = inla.stack.A(st.dat)),
 #'            inla.mode = "experimental"
 #' )
-#' result <- rspde_result(rspde_fit, "field", rspde_model)
+#' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' plot(result)
 #' }
 #' #devel.tag
@@ -991,7 +991,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 }
 
 
-#' @name rspde_result
+#' @name rspde.result
 #' @title rSPDE result extraction from INLA estimation results
 #' @description Extract field and parameter values and distributions
 #' for an rspde effect from an inla result object.
@@ -1089,13 +1089,13 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #'     list(A = inla.stack.A(st.dat)),
 #'            inla.mode = "experimental"
 #' )
-#' result <- rspde_result(rspde_fit, "field", rspde_model)
+#' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
 #' plot(result)
 #' }
 #' #devel.tag
 #' }
-rspde_result <- function(inla, name, rspde, compute.summary = TRUE) {
+rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
   check_class_inla_rspde(rspde)
 
   nu_upper_bound <- rspde$nu_upper_bound
@@ -1336,7 +1336,7 @@ rspde_result <- function(inla, name, rspde, compute.summary = TRUE) {
 #'     list(A = inla.stack.A(st.dat)),
 #'            inla.mode = "experimental"
 #' )
-#' result <- rspde_result(rspde_fit, "field", rspde_model)
+#' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' plot(result)
 #' }
 #' #devel.tag
@@ -1418,8 +1418,6 @@ plot.rspde_result <- function(x, which = x$params,
 #' @param ... further arguments passed to or from other methods.
 #' @return A data frame containing the posterior densities.
 #'
-#' @details
-#'
 #' @rdname gg_df
 #' @export
 gg_df <- function(result, ...){
@@ -1432,6 +1430,7 @@ UseMethod("gg_df", result)
 #' Data frame for rspde_result objects to be used in ggplot2
 #'
 #' Returns a ggplot-friendly data-frame with the marginal posterior densities.
+#' 
 #' @name gg_df.rspde_result
 #' @param result An rspde_result object.
 #' @param parameter Vector. Which parameters to get the posterior density in the data.frame? The options are `std.dev`, `range`, `tau`, `kappa` and `nu`.
@@ -1589,7 +1588,7 @@ gg_df.rspde_result <- function(result,
 #'     list(A = inla.stack.A(st.dat)),
 #'            inla.mode = "experimental"
 #' )
-#' result <- rspde_result(rspde_fit, "field", rspde_model)
+#' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
 #' }
 #' #devel.tag

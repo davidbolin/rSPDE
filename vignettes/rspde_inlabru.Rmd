@@ -326,10 +326,10 @@ is also discussed in [R-INLA implementation of the rational SPDE approach](rspde
 ### inlabru results in the original scale
 
 We can obtain outputs with respect to parameters in the original scale by
-using the function `rspde_result()`:
+using the function `rspde.result()`:
 
 ```{r get_result}
-result_fit <- rspde_result(rspde_fit, "field", rspde_model)
+result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
 ```
 
@@ -588,7 +588,7 @@ summary(rspde_fit.rep)
 
 and the summary in the user's scale:
 ```{r}
-result_fit_rep <- rspde_result(rspde_fit.rep, "field", rspde_model.rep)
+result_fit_rep <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 summary(result_fit_rep)
 result_df <- data.frame(
   parameter = c("tau", "kappa", "nu"),
