@@ -152,13 +152,20 @@ their original scales.</p>
 <span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>A <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.A</a></span><span class="op">(</span><span class="va">st.dat</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>           inla.mode <span class="op">=</span> <span class="st">"experimental"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde_result.html">rspde_result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                mean          sd  0.025quant    0.5quant  0.975quant        mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> std.dev 6.47808e-05 2.06508e-06 5.65394e-05 6.92094e-05 6.92094e-05 6.63342e-05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> range   7.05798e+01 1.47719e+00 6.82017e+01 7.03920e+01 7.38988e+01 6.97581e+01</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> nu      1.69952e+00 9.90598e-03 1.68136e+00 1.69898e+00 1.72007e+00 1.69694e+00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Error in inla.inlaprogram.has.crashed() : </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   The inla-program exited with an error. Unless you interupted it yourself, please rerun with verbose=TRUE and check the output carefully.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   If this does not help, please contact the developers at &lt;help@r-inla.org&gt;.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  *** inla.core.safe:  inla.program has crashed: rerun to get better initial values. try=1/2 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  *** inla.core.safe:  rerun with improved initial values </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              mean        sd 0.025quant  0.5quant 0.975quant      mode</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> std.dev 0.0515676 0.0244587  0.0173788 0.0472543   0.111481 0.0384385</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> range   0.1529620 0.1580740  0.0219042 0.1040930   0.583859 0.0527395</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nu      0.9686140 0.4023910  0.2427950 0.9677150   1.706540 0.9798980</span>
 <span class="r-in"><span><span class="co">#devel.tag</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
