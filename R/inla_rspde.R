@@ -902,7 +902,7 @@ rspde.make.A <- function(mesh = NULL,
 #'     list(A = inla.stack.A(st.dat)),
 #'            inla.mode = "experimental"
 #' )
-#' result <- rspde.result(rspde_fit, "field", rspde_model)
+#' result <- rspde_result(rspde_fit, "field", rspde_model)
 #' plot(result)
 #' }
 #' #devel.tag
@@ -991,7 +991,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 }
 
 
-#' @name rspde.result
+#' @name rspde_result
 #' @title rSPDE result extraction from INLA estimation results
 #' @description Extract field and parameter values and distributions
 #' for an rspde effect from an inla result object.
@@ -1089,13 +1089,13 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #'     list(A = inla.stack.A(st.dat)),
 #'            inla.mode = "experimental"
 #' )
-#' result <- rspde.result(rspde_fit, "field", rspde_model)
+#' result <- rspde_result(rspde_fit, "field", rspde_model)
 #' summary(result)
 #' plot(result)
 #' }
 #' #devel.tag
 #' }
-rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
+rspde_result <- function(inla, name, rspde, compute.summary = TRUE) {
   check_class_inla_rspde(rspde)
 
   nu_upper_bound <- rspde$nu_upper_bound
@@ -1256,7 +1256,7 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
     }
   }
 
-  class(result) <- "rspde.result"
+  class(result) <- "rspde_result"
   result$params <- c(name_theta1,name_theta2)
   if(rspde$est_nu){
     result$params <- c(result$params, "nu")
@@ -1264,12 +1264,12 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
   return(result)
 }
 
-#' @name plot.rspde.result
+#' @name plot.rspde_result
 #' @title Posterior plots for field parameters for an `inla_rspde` model
-#' from a `rspde.result` object
+#' from a `rspde_result` object
 #' @description Posterior plots for rSPDE field parameters in their
 #' original scales.
-#' @param x A `rspde.result` object.
+#' @param x A `rspde_result` object.
 #' @param which For which parameters the posterior should be plotted?
 #' @param caption captions to appear above the plots; character
 #' vector or list of
@@ -1287,7 +1287,7 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #' @param ... Additional arguments.
 #' @return Called for its side effects.
 #' @export
-#' @method plot rspde.result
+#' @method plot rspde_result
 #' @examples
 #' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
@@ -1336,12 +1336,12 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #'     list(A = inla.stack.A(st.dat)),
 #'            inla.mode = "experimental"
 #' )
-#' result <- rspde.result(rspde_fit, "field", rspde_model)
+#' result <- rspde_result(rspde_fit, "field", rspde_model)
 #' plot(result)
 #' }
 #' #devel.tag
 #' }
-plot.rspde.result <- function(x, which = x$params,
+plot.rspde_result <- function(x, which = x$params,
                               caption = list(paste(
                                 "Posterior density for", x$params[1]),
                                 paste(
@@ -1410,21 +1410,39 @@ plot.rspde.result <- function(x, which = x$params,
 }
 
 
-#' Data frame for rspde.result objects to be used in ggplot2
+
+
+#' @name gg_df
+#' @title Data frame for result objects from R-INLA fitted models to be used in ggplot2
+#' @param result a result object for which the data frame is desired
+#' @param ... further arguments passed to or from other methods.
+#' @return A data frame containing the posterior densities.
+#'
+#' @details
+#'
+#' @rdname gg_df
+#' @export
+gg_df <- function(result, ...){
+UseMethod("gg_df", result)
+}
+
+
+
+
+#' Data frame for rspde_result objects to be used in ggplot2
 #'
 #' Returns a ggplot-friendly data-frame with the marginal posterior densities.
-#'
-#' @param rspde_result An rspde.result object.
+#' @name gg_df.rspde_result
+#' @param result An rspde_result object.
 #' @param parameter Vector. Which parameters to get the posterior density in the data.frame? The options are `std.dev`, `range`, `tau`, `kappa` and `nu`.
 #' @param transform Should the posterior density be given in the original scale?
 #' @param restrict_x_axis Variables to restrict the range of x axis based on quantiles.
 #' @param restrict_quantiles List of quantiles to restrict x axis.
+#' @param ... currently not used.
 #'
 #' @return A data frame containing the posterior densities.
-#' @examples
-#' # ADD_EXAMPLES_HERE
 #' @export
-gg_df <- function(rspde_result, 
+gg_df.rspde_result <- function(result, 
                           parameter = rspde_result$params,
                           transform = TRUE,
                           restrict_x_axis = parameter,
@@ -1432,10 +1450,9 @@ gg_df <- function(rspde_result,
                           range = c(0,1),
                           nu = c(0,1),
                           kappa = c(0,1),
-                          tau = c(0,1))) {
-      if(!inherits(rspde_result, "rspde.result")){
-        stop("The argument rspde_result should be of class rspde.result!")
-      }
+                          tau = c(0,1)),
+                          ...) {
+      rspde_result <- result
       parameter <- intersect(parameter, c("tau", "kappa", "nu", "range", "std.dev"))
       if(length(parameter) == 0){
         stop("You should choose at least one of the parameters 'tau', 'kappa', 'nu', 'range' or 'std.dev'!")
@@ -1512,18 +1529,18 @@ gg_df <- function(rspde_result,
 }
 
 
-#' @name summary.rspde.result
+#' @name summary.rspde_result
 #' @title Summary for posteriors of field parameters for an `inla_rspde`
-#' model from a `rspde.result` object
+#' model from a `rspde_result` object
 #' @description Summary for posteriors of rSPDE field parameters in
 #' their original scales.
-#' @param object A `rspde.result` object.
+#' @param object A `rspde_result` object.
 #' @param digits integer, used for number formatting with signif()
 #' @param ... Currently not used.
 #' @return Returns a `data.frame`
 #' containing the summary.
 #' @export
-#' @method summary rspde.result
+#' @method summary rspde_result
 #' @examples
 #' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
@@ -1572,18 +1589,18 @@ gg_df <- function(rspde_result,
 #'     list(A = inla.stack.A(st.dat)),
 #'            inla.mode = "experimental"
 #' )
-#' result <- rspde.result(rspde_fit, "field", rspde_model)
+#' result <- rspde_result(rspde_fit, "field", rspde_model)
 #' summary(result)
 #' }
 #' #devel.tag
 #' }
 #'
-summary.rspde.result <- function(object,
+summary.rspde_result <- function(object,
                                  digits = 6,
                                  ...) {
 
   if (is.null(object[[paste0("summary.",object$params[1])]])) {
-    warning("The summary was not computed, rerun rspde.result with
+    warning("The summary was not computed, rerun rspde_result with
     compute.summary set to TRUE.")
   } else {
     out <- object[[paste0("summary.",object$params[1])]]
@@ -2482,7 +2499,7 @@ rspde.metric_graph <- function(graph_obj,
                                 )
         
         rspde_model$mesh <- graph_obj
-        rspde_model$n.spde <- nrow(graph$mesh$E)
+        rspde_model$n.spde <- nrow(graph_obj$mesh$E)
 
   class(rspde_model) <- c("rspde_metric_graph", class(rspde_model))
   return(rspde_model)

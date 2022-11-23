@@ -2,34 +2,18 @@
 % Please edit documentation in R/inla_rspde.R
 \name{gg_df}
 \alias{gg_df}
-\title{Data frame for rspde.result objects to be used in ggplot2}
+\title{Data frame for result objects from R-INLA fitted models to be used in ggplot2}
 \usage{
-gg_df(
-  rspde_result,
-  parameter = rspde_result$params,
-  transform = TRUE,
-  restrict_x_axis = parameter,
-  restrict_quantiles = list(std.dev = c(0, 1), range = c(0, 1), nu = c(0, 1), kappa =
-    c(0, 1), tau = c(0, 1))
-)
+gg_df(result, ...)
 }
 \arguments{
-\item{rspde_result}{An rspde.result object.}
+\item{result}{a result object for which the data frame is desired}
 
-\item{parameter}{Vector. Which parameters to get the posterior density in the data.frame? The options are \code{std.dev}, \code{range}, \code{tau}, \code{kappa} and \code{nu}.}
-
-\item{transform}{Should the posterior density be given in the original scale?}
-
-\item{restrict_x_axis}{Variables to restrict the range of x axis based on quantiles.}
-
-\item{restrict_quantiles}{List of quantiles to restrict x axis.}
+\item{...}{further arguments passed to or from other methods.}
 }
 \value{
 A data frame containing the posterior densities.
 }
 \description{
-Returns a ggplot-friendly data-frame with the marginal posterior densities.
-}
-\examples{
-# ADD_EXAMPLES_HERE
+Data frame for result objects from R-INLA fitted models to be used in ggplot2
 }

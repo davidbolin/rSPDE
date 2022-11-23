@@ -1,7 +1,9 @@
 # rSPDE (development version)
-* Added cgeneric versions of the stationary models.
+* Added support for metric graphs (depends on GPGraph package)
+* Added cgeneric versions of the stationary models
+* Replaced rgeneric models by their cgeneric counterparts
 * Added a new parameterization (range and std. dev)
-* Created the function gg_df to help posterior plotting in ggplot2
+* Created a new method gg_df to help posterior plotting in ggplot2
 
 # rSPDE 1.2.0
 * Added an inlabru interface
@@ -27,7 +29,7 @@
 * The previous vignette was updated an became an operator-based rational approximation vignette
 * Added a vignette for the R-INLA implementation of the SPDE approach
 * Added a vignette to present the rational approximation using the rSPDE package
-* Backward compatibility was maintained.
+* Backward compatibility was maintained
 
 # rSPDE 0.6.3
 * Change to inline citations in the Vignette to avoid problems on CRAN
