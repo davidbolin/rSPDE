@@ -1442,7 +1442,7 @@ UseMethod("gg_df", result)
 #' @return A data frame containing the posterior densities.
 #' @export
 gg_df.rspde_result <- function(result, 
-                          parameter = rspde_result$params,
+                          parameter = result$params,
                           transform = TRUE,
                           restrict_x_axis = parameter,
                           restrict_quantiles = list(std.dev = c(0,1),

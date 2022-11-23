@@ -6,7 +6,7 @@
 \usage{
 \method{gg_df}{rspde_result}(
   result,
-  parameter = rspde_result$params,
+  parameter = result$params,
   transform = TRUE,
   restrict_x_axis = parameter,
   restrict_quantiles = list(std.dev = c(0, 1), range = c(0, 1), nu = c(0, 1), kappa =

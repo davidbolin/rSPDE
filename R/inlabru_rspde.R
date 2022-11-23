@@ -7,7 +7,7 @@
 #' @rdname bru_mapper.inla_rspde
 #' @rawNamespace if (getRversion() >= "3.6.0") {
 #'   S3method(inlabru::bru_mapper, inla_rspde)
-#'   # S3method(inlabru::bru_get_mapper, inla_rspde)
+#'   S3method(inlabru::bru_get_mapper, inla_rspde)
 #'   S3method(inlabru::ibm_n, bru_mapper_inla_rspde)
 #'   S3method(inlabru::ibm_values, bru_mapper_inla_rspde)
 #'   S3method(inlabru::ibm_jacobian, bru_mapper_inla_rspde)
