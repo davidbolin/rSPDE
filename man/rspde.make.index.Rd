@@ -25,7 +25,7 @@ rspde.make.index(
 \item{n.repl}{The total number of replicates.}
 
 \item{mesh}{An \code{inla.mesh},
-an \code{inla.mesh.1d} object or a \code{GPGraph::graph} object.}
+an \code{inla.mesh.1d} object or a \code{metric_graph} object.}
 
 \item{rspde_order}{The order of the rational approximation}
 

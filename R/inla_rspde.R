@@ -665,7 +665,7 @@ restructure_matrices_less <- function(matrices_less, m_alpha){
 #' for rSPDE models based on `inla.mesh` or
 #' `inla.mesh.1d` objects.
 #' @param mesh An `inla.mesh`,
-#' an `inla.mesh.1d` object or a `GPGraph::graph` object.
+#' an `inla.mesh.1d` object or a `metric_graph` object.
 #' @param loc Locations, needed if an INLA mesh is provided
 #' @param A The A matrix from the standard SPDE approach, such as the matrix
 #' returned by `inla.spde.make.A`. Should only be provided if
@@ -713,7 +713,7 @@ rspde.make.A <- function(mesh = NULL,
   if (!is.null(mesh)) {
     cond1 <- inherits(mesh, "inla.mesh.1d")
     cond2 <- inherits(mesh, "inla.mesh")
-    cond3 <- inherits(mesh, "GPGraph::graph")
+    cond3 <- inherits(mesh, "metric_graph")
     stopifnot(cond1 || cond2 || cond3)
     if(cond1 || cond2){
       dim <- get_inla_mesh_dimension(mesh)  
@@ -840,7 +840,7 @@ rspde.make.A <- function(mesh = NULL,
 #' @description Generates a list of named index vectors for an rSPDE model.
 #' @param name A character string with the base name of the effect.
 #' @param mesh An `inla.mesh`,
-#' an `inla.mesh.1d` object or a `GPGraph::graph` object.
+#' an `inla.mesh.1d` object or a `metric_graph` object.
 #' @param rspde_order The order of the rational approximation
 #' @param nu If `NULL`, then the model will assume that nu will
 #' be estimated. If nu is fixed, you should provide the value of nu.
@@ -917,7 +917,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
   if (!is.null(mesh)) {
     cond1 <- inherits(mesh, "inla.mesh.1d")
     cond2 <- inherits(mesh, "inla.mesh")
-    cond3 <- inherits(mesh, "GPGraph::graph")
+    cond3 <- inherits(mesh, "metric_graph")
     stopifnot(cond1 || cond2 || cond3)
     if(cond1 || cond2){
       n_mesh <- mesh$n
@@ -2393,7 +2393,7 @@ rspde.precision <- function(rspde,
 #' @title Matern rSPDE model object for metric graphs in INLA
 #' @description Creates an INLA object for a stationary Matern model on a metric graph with
 #' general smoothness parameter.
-#' @param graph_obj The graph object to build the model. Needs to be of class `GPGraph::graph`. It should have a built mesh.
+#' @param graph_obj The graph object to build the model. Needs to be of class `metric_graph`. It should have a built mesh.
 #' If the mesh is not built, one will be built using h=0.01 as default.
 #' @param h The width of the mesh in case the mesh was not built.
 #' @param nu_upper_bound Upper bound for the smoothness parameter.
@@ -2452,8 +2452,8 @@ rspde.metric_graph <- function(graph_obj,
                          nu.prec.inc = 1,
                          type.rational.approx = c("chebfun",
                          "brasil", "chebfunLB")) {
-    if(!inherits(graph_obj, "GPGraph::graph")){
-      stop("The graph object should be of class GPGraph::graph!")
+    if(!inherits(graph_obj, "metric_graph")){
+      stop("The graph object should be of class metric_graph!")
     }
     if(is.null(graph_obj$mesh)){
       if(is.null(h)){
