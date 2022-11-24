@@ -2471,7 +2471,9 @@ rspde.metric_graph <- function(graph_obj,
       if(is.null(graph_obj$geo_dist)){
         graph_obj$compute_geodist()
       }
-      prior.range.nominal <- max(graph_obj$geo_dist) * 0.2
+      finite_geodist <- is.finite(graph_obj$geo_dist)
+      finite_geodist <- graph_obj$geo_dist[finite_geodist]
+      prior.range.nominal <- max(finite_geodist) * 0.2
       prior.range$meanlog <- log(prior.range.nominal)
     }
 
