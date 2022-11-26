@@ -924,7 +924,8 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
       dim <- get_inla_mesh_dimension(mesh)
     } else if(cond3){
       dim <- 1
-      n_mesh <- nrow(mesh$mesh$E)
+      # n_mesh <- nrow(mesh$mesh$VtE)
+      n_mesh <- nrow(mesh$mesh$VtE)
     }
   } else {
     n_mesh <- n.spde
@@ -2500,7 +2501,8 @@ rspde.metric_graph <- function(graph_obj,
                                 )
         
         rspde_model$mesh <- graph_obj
-        rspde_model$n.spde <- nrow(graph_obj$mesh$E)
+        # rspde_model$n.spde <- nrow(graph_obj$mesh$E)
+        rspde_model$n.spde <- nrow(graph_obj$mesh$VtE)
 
   class(rspde_model) <- c("rspde_metric_graph", class(rspde_model))
   return(rspde_model)
