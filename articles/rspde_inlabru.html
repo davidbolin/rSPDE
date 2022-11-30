@@ -15,7 +15,7 @@
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.1.3/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.3/font.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.4/font.css" rel="stylesheet">
 <!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="inlabru implementation of the rational SPDE approach">
@@ -95,7 +95,7 @@
                         <h4 data-toc-skip class="author">David Bolin and
 Alexandre B. Simas</h4>
             
-            <h4 data-toc-skip class="date">2022-11-26</h4>
+            <h4 data-toc-skip class="date">2022-11-30</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_inlabru.Rmd" class="external-link"><code>vignettes/rspde_inlabru.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_inlabru.Rmd</code></div>
@@ -334,7 +334,7 @@ of the RW1, and the parameters of the spatial field):</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## inlabru version: 2.6.0</span></span>
-<span><span class="co">## INLA version: 22.11.22</span></span>
+<span><span class="co">## INLA version: 22.11.28-1</span></span>
 <span><span class="co">## Components:</span></span>
 <span><span class="co">##   Intercept: Model types main='linear', group='exchangeable', replicate='iid'</span></span>
 <span><span class="co">##   distSea: Model types main='rw1', group='exchangeable', replicate='iid'</span></span>
@@ -344,10 +344,10 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 3.3, Running = 16.2, Post = 0.316, Total = 19.8 </span></span>
+<span><span class="co">##     Pre = 3.67, Running = 13.6, Post = 0.344, Total = 17.7 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.944 0.055      1.837    1.944      2.051 1.944   0</span></span>
+<span><span class="co">## Intercept 1.942 0.059      1.826    1.942      2.057 1.942   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -356,26 +356,26 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                                    mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.102    0.888     11.436</span></span>
-<span><span class="co">## Precision for distSea                          9450.611 6951.552   2402.121</span></span>
-<span><span class="co">## Theta1 for field                                 -1.488    0.147     -1.787</span></span>
-<span><span class="co">## Theta2 for field                                 -0.037    0.287     -0.612</span></span>
-<span><span class="co">## Theta3 for field                                 -0.526    0.870     -2.178</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.13    0.895     11.451</span></span>
+<span><span class="co">## Precision for distSea                          12231.47 9525.114   2934.568</span></span>
+<span><span class="co">## Theta1 for field                                  -1.41    0.178     -1.749</span></span>
+<span><span class="co">## Theta2 for field                                   0.14    0.404     -0.614</span></span>
+<span><span class="co">## Theta3 for field                                  -1.33    0.776     -2.927</span></span>
 <span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.073     14.936   13.017</span></span>
-<span><span class="co">## Precision for distSea                          7550.689  27941.497 5085.443</span></span>
-<span><span class="co">## Theta1 for field                                 -1.485     -1.205   -1.474</span></span>
-<span><span class="co">## Theta2 for field                                 -0.035      0.523   -0.024</span></span>
-<span><span class="co">## Theta3 for field                                 -0.549      1.274   -0.650</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.105     14.976   13.055</span></span>
+<span><span class="co">## Precision for distSea                          9575.508  37619.435 6262.461</span></span>
+<span><span class="co">## Theta1 for field                                 -1.417     -1.048   -1.437</span></span>
+<span><span class="co">## Theta2 for field                                  0.125      0.980    0.064</span></span>
+<span><span class="co">## Theta3 for field                                 -1.303      0.142   -1.207</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2503.68</span></span>
-<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 691.61</span></span>
-<span><span class="co">## Effective number of parameters .....................: 80.46</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2502.74</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 692.55</span></span>
+<span><span class="co">## Effective number of parameters .....................: 80.78</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2505.66</span></span>
-<span><span class="co">## Effective number of parameters .................: 73.05</span></span>
+<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2504.70</span></span>
+<span><span class="co">## Effective number of parameters .................: 73.30</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1262.37 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1262.81 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -406,9 +406,9 @@ scale by using the function <code><a href="../reference/rspde.result.html">rspde
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##             mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## std.dev 0.228251 0.0332945   0.168175 0.226568   0.298607 0.223966</span></span>
-<span><span class="co">## range   1.003230 0.2890960   0.546331 0.966597   1.673790 0.897817</span></span>
-<span><span class="co">## nu      1.549350 0.7246830   0.416506 1.456650   3.102260 1.120690</span></span></code></pre>
+<span><span class="co">## std.dev 0.247412 0.0446033   0.174645 0.242107   0.349144 0.230884</span></span>
+<span><span class="co">## range   1.249440 0.5421520   0.546385 1.129670   2.635210 0.930433</span></span>
+<span><span class="co">## nu      0.940135 0.5060920   0.207683 0.858521   2.120460 0.613053</span></span></code></pre>
 <p>We can also plot the posterior densities. To this end we will use the
 <code><a href="../reference/gg_df.html">gg_df()</a></code> function, which creates <code>ggplot2</code>
 user-friendly data frames:</p>
@@ -625,7 +625,7 @@ some meaningless model.</p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## inlabru version: 2.6.0</span></span>
-<span><span class="co">## INLA version: 22.11.22</span></span>
+<span><span class="co">## INLA version: 22.11.28-1</span></span>
 <span><span class="co">## Components:</span></span>
 <span><span class="co">##   field: Model types main='cgeneric', group='exchangeable', replicate='iid'</span></span>
 <span><span class="co">## Likelihoods:</span></span>
@@ -633,14 +633,14 @@ some meaningless model.</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 3.49, Running = 135, Post = 11.3, Total = 150 </span></span>
+<span><span class="co">##     Pre = 3.71, Running = 150, Post = 11.7, Total = 165 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                          mean    sd 0.025quant 0.5quant</span></span>
-<span><span class="co">## Precision for the Gaussian observations 89.58 0.635      87.62    89.45</span></span>
+<span><span class="co">## Precision for the Gaussian observations 89.58 0.635      87.63    89.45</span></span>
 <span><span class="co">## Theta1 for field                        -2.99 0.048      -3.18    -2.96</span></span>
 <span><span class="co">## Theta2 for field                         3.14 0.008       3.11     3.14</span></span>
 <span><span class="co">## Theta3 for field                        -1.67 0.022      -1.75    -1.69</span></span>
@@ -652,9 +652,9 @@ some meaningless model.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Deviance Information Criterion (DIC) ...............: -5791.83</span></span>
 <span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 10434.13</span></span>
-<span><span class="co">## Effective number of parameters .....................: 4453.81</span></span>
+<span><span class="co">## Effective number of parameters .....................: 4453.80</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: -6621.17</span></span>
+<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: -6621.16</span></span>
 <span><span class="co">## Effective number of parameters .................: 2664.93</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Marginal log-Likelihood:  -4403.36 </span></span>
@@ -665,10 +665,10 @@ some meaningless model.</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit_rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span>, <span class="st">"field"</span>, <span class="va">rspde_model.rep</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_rep</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##             mean         sd 0.025quant   0.5quant 0.975quant       mode</span></span>
-<span><span class="co">## tau    0.0501984 0.00240682  0.0456517  0.0501304  0.0551138  0.0499995</span></span>
-<span><span class="co">## kappa 23.1548000 0.19225700 22.7779000 23.1547000 23.5328000 23.1584000</span></span>
-<span><span class="co">## nu     0.6340680 0.01171300  0.6112200  0.6340160  0.6572170  0.6340970</span></span></code></pre>
+<pre><code><span><span class="co">##             mean         sd 0.025quant   0.5quant 0.975quant      mode</span></span>
+<span><span class="co">## tau    0.0501977 0.00240612  0.0456523  0.0501298  0.0551116  0.049999</span></span>
+<span><span class="co">## kappa 23.1550000 0.19219300 22.7781000 23.1548000 23.5328000 23.158500</span></span>
+<span><span class="co">## nu     0.6340700 0.01170990  0.6112290  0.6340180  0.6572140  0.634098</span></span></code></pre>
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
@@ -686,9 +686,9 @@ some meaningless model.</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   parameter        true        mean        mode</span></span>
-<span><span class="co">## 1       tau  0.08920621  0.05019843  0.04999952</span></span>
-<span><span class="co">## 2     kappa 20.00000000 23.15482628 23.15836977</span></span>
-<span><span class="co">## 3        nu  0.50000000  0.63406849  0.63409661</span></span></code></pre>
+<span><span class="co">## 1       tau  0.08920621  0.05019773  0.04999898</span></span>
+<span><span class="co">## 2     kappa 20.00000000 23.15496714 23.15850655</span></span>
+<span><span class="co">## 3        nu  0.50000000  0.63407044  0.63409843</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
