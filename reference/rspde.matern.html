@@ -91,7 +91,8 @@ general smoothness parameter.</p>
 <span>  parameterization <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"matern"</span>, <span class="st">"spde"</span><span class="op">)</span>,</span>
 <span>  prior.nu.dist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lognormal"</span>, <span class="st">"beta"</span><span class="op">)</span>,</span>
 <span>  nu.prec.inc <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  type.rational.approx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chebfun"</span>, <span class="st">"brasil"</span>, <span class="st">"chebfunLB"</span><span class="op">)</span></span>
+<span>  type.rational.approx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chebfun"</span>, <span class="st">"brasil"</span>, <span class="st">"chebfunLB"</span><span class="op">)</span>,</span>
+<span>  shared_lib <span class="op">=</span> <span class="st">"INLA"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -187,6 +188,13 @@ distribution. Check details below.</p></dd>
 <dt>type.rational.approx</dt>
 <dd><p>Which type of rational approximation
 should be used? The current types are "chebfun", "brasil" or "chebfunLB".</p></dd>
+
+
+<dt>shared_lib</dt>
+<dd><p>Which shared lib to use for the cgeneric implementation?
+If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
+it will use the local installation (does not work if your installation is from CRAN).
+Otherwise, you can directly supply the path of the .so file.</p></dd>
 
 </dl></div>
     <div class="section level2">
