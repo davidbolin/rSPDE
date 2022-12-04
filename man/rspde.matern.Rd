@@ -85,7 +85,7 @@ should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
 \item{shared_lib}{Which shared lib to use for the cgeneric implementation?
 If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
 it will use the local installation (does not work if your installation is from CRAN).
-Otherwise, you can directly supply the path of the .so file.}
+Otherwise, you can directly supply the path of the .so (or .dll) file.}
 }
 \value{
 An INLA model.
