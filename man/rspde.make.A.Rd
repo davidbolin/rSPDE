@@ -20,7 +20,7 @@ rspde.make.A(
 }
 \arguments{
 \item{mesh}{An \code{inla.mesh},
-an \code{inla.mesh.1d} object or a \code{GPGraph::graph} object.}
+an \code{inla.mesh.1d} object or a \code{metric_graph} object.}
 
 \item{loc}{Locations, needed if an INLA mesh is provided}
 

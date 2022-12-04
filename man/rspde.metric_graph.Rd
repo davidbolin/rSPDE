@@ -28,7 +28,7 @@ rspde.metric_graph(
 )
 }
 \arguments{
-\item{graph_obj}{The graph object to build the model. Needs to be of class \code{GPGraph::graph}. It should have a built mesh.
+\item{graph_obj}{The graph object to build the model. Needs to be of class \code{metric_graph}. It should have a built mesh.
 If the mesh is not built, one will be built using h=0.01 as default.}
 
 \item{h}{The width of the mesh in case the mesh was not built.}
