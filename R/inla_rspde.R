@@ -38,7 +38,11 @@
 #' distribution. Check details below.
 #' @param type.rational.approx Which type of rational approximation
 #' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
-#'
+#' @param shared_lib Which shared lib to use for the cgeneric implementation? 
+#' If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
+#' it will use the local installation (does not work if your installation is from CRAN).
+#' Otherwise, you can directly supply the path of the .so (or .dll) file.
+#' 
 #' @return An INLA model.
 #' @export
 
@@ -60,7 +64,8 @@ rspde.matern <- function(mesh,
                          prior.nu.dist = c("lognormal", "beta"),
                          nu.prec.inc = 1,
                          type.rational.approx = c("chebfun",
-                         "brasil", "chebfunLB")) {
+                         "brasil", "chebfunLB"),
+                         shared_lib = "INLA") {
   type.rational.approx <- type.rational.approx[[1]]
 
   parameterization <- parameterization[[1]]
@@ -420,7 +425,23 @@ rspde.matern <- function(mesh,
     stop("start.nu should be a number between 0 and nu_upper_bound!")
   }
   
-  rspde_lib <- system.file('shared', package='rSPDE')
+  if(shared_lib == "INLA"){
+    rspde_lib <- dirname(INLA:::inla.call.builtin())
+    if(Sys.info()['sysname']=='Windows') {
+		rspde_lib <- paste0(rspde_lib, "/external/rSPDE/librSPDE.dll")
+            } else {
+		rspde_lib <- paste0(rspde_lib, "/external/rSPDE/librSPDE.so")
+            }
+
+  } else if(shared_lib == "rSPDE"){
+    rspde_lib <- system.file('shared', package='rSPDE')
+    if(Sys.info()['sysname']=='Windows') {
+		rspde_lib <- paste0(rspde_lib, "/rspde_cgeneric_models.dll")
+            } else {
+		rspde_lib <- paste0(rspde_lib, "/rspde_cgeneric_models.so")
+            }
+  }
+
 
   if(parameterization == "spde"){
     prior.theta1 <- prior.tau
@@ -444,7 +465,7 @@ rspde.matern <- function(mesh,
   model <- do.call(
         'inla.cgeneric.define',
         list(model="inla_cgeneric_rspde_stat_parsim_gen_model",
-            shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
+            shlib=rspde_lib,
             n=as.integer(n_cgeneric), debug=debug,
             d = as.double(d),
             nu_upper_bound = nu_upper_bound,
@@ -484,7 +505,7 @@ rspde.matern <- function(mesh,
     model <- do.call(
         'inla.cgeneric.define',
         list(model="inla_cgeneric_rspde_stat_general_model",
-            shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
+            shlib=rspde_lib,
             n=as.integer(n_cgeneric)*(rspde_order+1), debug=debug,
             d = as.double(d),
             nu_upper_bound = nu_upper_bound,
@@ -518,7 +539,7 @@ rspde.matern <- function(mesh,
         model <- do.call(
         'inla.cgeneric.define',
         list(model="inla_cgeneric_rspde_stat_parsim_fixed_model",
-            shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
+            shlib=rspde_lib,
             n=as.integer(n_cgeneric), debug=debug,
             d = as.double(d),
             nu = nu,
@@ -551,7 +572,7 @@ rspde.matern <- function(mesh,
     model <- do.call(
         'inla.cgeneric.define',
         list(model="inla_cgeneric_rspde_stat_frac_model",
-            shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
+            shlib=rspde_lib,
             n=as.integer(n_cgeneric)*(rspde_order+1), debug=debug,
             nu = nu,
             matrices_less = as.double(matrices_less),
@@ -586,7 +607,7 @@ rspde.matern <- function(mesh,
     model <- do.call(
         'inla.cgeneric.define',
         list(model="inla_cgeneric_rspde_stat_int_model",
-            shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
+            shlib=rspde_lib,
             n=as.integer(n_cgeneric), debug=debug,
             matrices_less = as.double(matrices_less),
             m_alpha = as.integer(m_alpha),

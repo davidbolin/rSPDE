@@ -23,7 +23,8 @@ rspde.matern(
   parameterization = c("matern", "spde"),
   prior.nu.dist = c("lognormal", "beta"),
   nu.prec.inc = 1,
-  type.rational.approx = c("chebfun", "brasil", "chebfunLB")
+  type.rational.approx = c("chebfun", "brasil", "chebfunLB"),
+  shared_lib = "INLA"
 )
 }
 \arguments{
@@ -80,6 +81,11 @@ distribution. Check details below.}
 
 \item{type.rational.approx}{Which type of rational approximation
 should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
+
+\item{shared_lib}{Which shared lib to use for the cgeneric implementation?
+If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
+it will use the local installation (does not work if your installation is from CRAN).
+Otherwise, you can directly supply the path of the .so file.}
 }
 \value{
 An INLA model.
