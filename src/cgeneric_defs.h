@@ -34,3 +34,14 @@ double * markov_approx_coeff(double beta, double kappa, int d);
 double pnorm(double x, double mu, double sd);
 
 double logdbeta(double x, double s_1, double s_2);
+
+void compute_Q(int size, double *entries_C, int *i_C, int *j_C, 
+                        double *entries_G, int *i_G, int *j_G,
+                        double *entries_B_kappa, double *entries_B_tau,
+                        int ncol_B, int rspde_order, 
+                        double *theta_entries, double *rat_p, double *rat_r, 
+                        double rat_k, int m_alpha,
+                        double *Q_out, int *i_Q, int *j_Q,
+                        int *graph_i, int *graph_j,int M);
+
+// clang++ -I/opt/homebrew/opt/eigen/include/eigen3 -stdlib=libc++ -O -c cgeneric_aux_nonstat.cpp -o cgeneric_aux_nonstat.o

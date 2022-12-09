@@ -1,6 +1,6 @@
 toInclude = ${R_LIBRARY_DIR}/INLA/include/ 
 
-sources = cgeneric_rspde_stat_frac_model.c cgeneric_rspde_stat_general.c cgeneric_rspde_stat_parsim_gen.c cgeneric_rspde_stat_parsim_fixed.c cgeneric_rspde_stat_int.c
+sources = cgeneric_rspde_stat_frac_model.c cgeneric_rspde_nonstat_general.c cgeneric_rspde_stat_general.c cgeneric_rspde_stat_parsim_gen.c cgeneric_rspde_stat_parsim_fixed.c cgeneric_rspde_stat_int.c
 
 all : $(sources:.c=.o) so
 
@@ -10,10 +10,7 @@ all : $(sources:.c=.o) so
 
 so : $(sources:.c=.o)
 	@echo generate .so
-	gcc -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
+	gcc -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack -lstdc++
 
-
-clean :
-	rm -f *.o
 
 .PHONY: all clean
