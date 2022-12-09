@@ -1,6 +1,6 @@
-devtools::install_github("davidbolin/rSPDE", ref = "devel")
+#devtools::install_github("davidbolin/rSPDE", ref = "devel")
 library(INLA)
-
+library(rSPDE)
 data(PRprec)
 data(PRborder)
 
@@ -10,7 +10,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
 prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
