@@ -457,8 +457,7 @@ rspde.matern <- function(mesh,
       # fem_mesh has already been transposed
         graph_opt <-  fem_mesh[[paste0("g", m_alpha + 1)]]
 
-  model <- do.call(
-        'inla.cgeneric.define',
+  model <- do.call(eval(parse(text='INLA::inla.cgeneric.define')),
         list(model="inla_cgeneric_rspde_stat_parsim_gen_model",
             shlib=rspde_lib,
             n=as.integer(n_cgeneric), debug=debug,
@@ -497,8 +496,7 @@ rspde.matern <- function(mesh,
     # matrices_less <- restructure_matrices_less(matrices_less, m_alpha)
     # matrices_full <- restructure_matrices_full(matrices_full, m_alpha)
 
-    model <- do.call(
-        'inla.cgeneric.define',
+    model <- do.call(eval(parse(text='INLA::inla.cgeneric.define')),
         list(model="inla_cgeneric_rspde_stat_general_model",
             shlib=rspde_lib,
             n=as.integer(n_cgeneric)*(rspde_order+1), debug=debug,
@@ -531,8 +529,7 @@ rspde.matern <- function(mesh,
       if(rspde_order == 0){
         graph_opt <- fem_mesh[[paste0("g", m_alpha + 1)]]
 
-        model <- do.call(
-        'inla.cgeneric.define',
+        model <- do.call(eval(parse(text='INLA::inla.cgeneric.define')),
         list(model="inla_cgeneric_rspde_stat_parsim_fixed_model",
             shlib=rspde_lib,
             n=as.integer(n_cgeneric), debug=debug,
@@ -564,8 +561,7 @@ rspde.matern <- function(mesh,
     # matrices_less <- restructure_matrices_less(matrices_less, m_alpha)
     # matrices_full <- restructure_matrices_full(matrices_full, m_alpha)
 
-    model <- do.call(
-        'inla.cgeneric.define',
+    model <- do.call(eval(parse(text='INLA::inla.cgeneric.define')),
         list(model="inla_cgeneric_rspde_stat_frac_model",
             shlib=rspde_lib,
             n=as.integer(n_cgeneric)*(rspde_order+1), debug=debug,
@@ -599,8 +595,7 @@ rspde.matern <- function(mesh,
 
     # matrices_less <- restructure_matrices_less(matrices_less, m_alpha)
 
-    model <- do.call(
-        'inla.cgeneric.define',
+    model <- do.call(eval(parse(text='INLA::inla.cgeneric.define')),
         list(model="inla_cgeneric_rspde_stat_int_model",
             shlib=rspde_lib,
             n=as.integer(n_cgeneric), debug=debug,

@@ -18,11 +18,11 @@ nu = 1)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
-inla_model <- inla.spde2.matern(
+inla_model <- INLA::inla.spde2.matern(
     mesh = prmesh, alpha = 2
 )
 
-Q_1 <- inla.spde.precision(
+Q_1 <- INLA::inla.spde.precision(
     inla_model, theta = Q_tmp$theta
 )
 
@@ -50,11 +50,11 @@ rspde_order = 0)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
-inla_model <- inla.spde2.matern(
+inla_model <- INLA::inla.spde2.matern(
     mesh = prmesh, alpha = 1.4
 )
 
-Q_1 <- inla.spde.precision(
+Q_1 <- INLA::inla.spde.precision(
     inla_model, theta = Q_tmp$theta
 )
 
@@ -81,11 +81,11 @@ rspde_order = 0)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
-inla_model <- inla.spde2.matern(
+inla_model <- INLA::inla.spde2.matern(
     mesh = prmesh, alpha = 1.4
 )
 
-Q_1 <- inla.spde.precision(
+Q_1 <- INLA::inla.spde.precision(
     inla_model, theta = Q_tmp$theta[1:2]
 )
 
