@@ -158,45 +158,49 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> This is INLA_22.12.03 built 2022-12-03 09:18:24 UTC.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - See www.r-inla.org/contact-us for how to get help.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - To enable PARDISO sparse library; see inla.pardiso()</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`bru_mapper.default()` was deprecated in inlabru 2.7.0.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Please use `bru_mapper_define()` instead.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">rSPDE</span> package.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span>   Please report the issue at <span style="color: #0000BB; font-style: italic;">&lt;https://github.com/davidbolin/rSPDE/issues&gt;</span>.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Model 'cgeneric' in section 'latent' is marked as 'experimental'; changes may appear at any time.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>   Use this model with extra care!!! Further warnings are disabled.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> inlabru version: 2.6.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> inlabru version: 2.7.0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> INLA version: 22.12.03</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Components:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Intercept: Model types main='linear', group='exchangeable', replicate='iid'</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   field: Model types main='cgeneric', group='exchangeable', replicate='iid'</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept: main = linear(1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> field: main = cgeneric(coordinates)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Likelihoods:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Family: 'gaussian'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Data class: 'SpatialPointsDataFrame'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Predictor: y ~ .</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Time used:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 4.21, Running = 11.5, Post = 0.909, Total = 16.6 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 4.79, Running = 16.8, Post = 0.429, Total = 22 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           mean    sd 0.025quant 0.5quant 0.975quant mode   kld</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept    0 3.435     -8.268        0      8.268    0 0.052</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           mean    sd 0.025quant 0.5quant 0.975quant mode    kld</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept    0 0.171      -0.21        0      0.211    0 18.051</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name	  Model</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     field CGeneric</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Model hyperparameters:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                            mean     sd 0.025quant 0.5quant</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 111.984 15.812      83.62  111.061</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                         -4.362  1.516      -7.78   -4.302</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                          0.443  1.869      -3.77    0.515</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                         -0.190  0.848      -1.97   -0.152</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                            mean    sd 0.025quant 0.5quant</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 111.838 15.88      83.29  110.934</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                         -2.317  2.81      -7.18   -2.529</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                          3.036  3.51      -3.01    2.763</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                          0.105  1.03      -1.89    0.091</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                         0.975quant    mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations     145.80 109.478</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                             -1.79  -3.747</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                              3.61   1.197</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                              1.37   0.007</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations     145.75 109.425</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                              3.81  -3.447</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                             10.71   1.574</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                              2.17   0.039</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC) ...............: -182.78</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC, saturated) ....: 105.54</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .....................: 3.76</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC) ...............: -182.32</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC, saturated) ....: 104.97</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .....................: 3.01</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Watanabe-Akaike information criterion (WAIC) ...: -182.44</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .................: 4.36</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Watanabe-Akaike information criterion (WAIC) ...: -182.19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .................: 3.13</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Marginal log-Likelihood:  77.41 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  is computed </span>
