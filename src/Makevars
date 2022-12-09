@@ -1,6 +1,7 @@
 toInclude = ${R_LIBRARY_DIR}/INLA/include/ 
 
-PKG_CPPFLAGS = -O3 -Wall -Wextra -fpic -I$(toInclude) -Iinclude -I"/usr/local/include/eigen3/"
+PKG_CPPFLAGS = -O3 -Wall -Wextra -fpic -I$(toInclude) -Iinclude -I"/opt/homebrew/opt/eigen/include/eigen3"
+PKG_LIBS = -lstdc++
 
 all : $(SHLIB)
 

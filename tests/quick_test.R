@@ -1,6 +1,6 @@
 #devtools::install_github("davidbolin/rSPDE", ref = "devel")
 library(INLA)
-library(rSPDE)
+devtools::load_all()
 data(PRprec)
 data(PRborder)
 

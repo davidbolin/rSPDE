@@ -182,7 +182,7 @@ rspde.matern2 <- function(mesh,
     rspde_lib <- dirname(INLA:::inla.call.builtin())
 		rspde_lib <- paste0(rspde_lib, "/external/rSPDE/librSPDE.so")
   } else if(shared_lib == "rSPDE"){
-    rspde_lib <- system.file('libs', package='rSPDE')
+    rspde_lib <- system.file('src', package='rSPDE')
     if(Sys.info()['sysname']=='Windows') {
 		rspde_lib <- paste0(rspde_lib, "/rspde_cgeneric_models.dll")
             } else {
