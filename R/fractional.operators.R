@@ -206,6 +206,7 @@ fractional.operators <- function(L,
 #'
 #' @param kappa Range parameter of the covariance function.
 #' @param sigma Standard deviation of the covariance function.
+#' @param tau The variance in the SPDE model. 
 #' @param nu Shape parameter of the covariance function.
 #' @param G The stiffness matrix of a finite element discretization of the
 #' domain of interest. Does not need to be given if `mesh` is used.
@@ -363,7 +364,8 @@ fractional.operators <- function(L,
 #' )
 #' lines(x, c.approx, col = 2)
 matern.operators <- function(kappa,
-                             sigma,
+                             sigma = NULL,
+                             tau = NULL,
                              nu,
                              G = NULL,
                              C = NULL,
@@ -387,15 +389,29 @@ matern.operators <- function(kappa,
     stop("You should either provide mesh, or provide C *and* G!")
   }
 
-  if (type == "operator") {
+  if(is.null(sigma)&&is.null(tau)){
+    stop("You must either provide sigma or tau.")
+  }
+
     if (!is.null(mesh)) {
       d <- get_inla_mesh_dimension(inla_mesh = mesh)
       fem <- INLA::inla.mesh.fem(mesh)
       C <- fem$c0
       G <- fem$g1
     }
-    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+    if(is.null(tau)){
+      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+    }
+
+    if(is.null(sigma)){
+    sigma <- sqrt(gamma(nu) / (tau^2 * kappa^(2 * nu) *
+    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+    }
+
+
+  if (type == "operator") {
+  
     beta <- (nu + d / 2) / 2
     operators <- fractional.operators(
       L = G + C * kappa^2,
@@ -548,6 +564,8 @@ CBrSPDE.matern.operators <- function(C,
       m_order <- m_alpha + 1
       tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
       (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+      
+
 
 
       if (d > 1) {

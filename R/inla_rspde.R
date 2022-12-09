@@ -641,7 +641,7 @@ rspde.matern <- function(mesh,
   model$debug <- debug
   model$type.rational.approx <- type.rational.approx
   model$mesh <- mesh
-  model$fem_mesh <- fem_mesh
+  model$fem_mesh <- fem_mesh_orig
   model$parameterization <- parameterization
   return(model)
 }
@@ -2063,15 +2063,10 @@ type_rational_approx = "chebfun") {
 
   m_alpha <- floor(2 * beta)
 
-  r <- sapply(1:(n_m), function(i) {
-    approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2 * beta))$y
-  })
-
-  p <- sapply(1:(n_m), function(i) {
-    approx(mt$alpha, mt[[paste0("p", i)]], cut_decimals(2 * beta))$y
-  })
-
-  k <- approx(mt$alpha, mt$k, cut_decimals(2 * beta))$y
+  row_nu <- round(1000*cut_decimals(2*beta))
+  r <- unlist(mt[row_nu, 2:(1+rspde_order)])
+  p <- unlist(mt[row_nu, (2+rspde_order):(1+2*rspde_order)])
+  k <- unlist(mt[row_nu, 2+2*rspde_order])
 
   if (!only_fractional) {
     if (m_alpha == 0) {
@@ -2386,7 +2381,8 @@ rspde.precision <- function(rspde,
     tau = exp(theta[1])
     nu <- (exp(theta[3]) / (1 + exp(theta[3]))) * nu_upper_bound
   return(rspde.matern.precision(kappa = kappa, nu = nu, tau=tau, rspde_order = rspde$rspde_order, fem_mesh_matrices = rspde$fem_mesh,
-  dim = rspde$dim, type_rational_approx = rspde$type.rational.approx))
+  dim = rspde$dim, type_rational_approx = rspde$type.rational.approx, only_fractional = FALSE,
+    return_block_list = FALSE))
   } else{
     if(length(theta)!= 2){
       stop("The vector theta should have length 2!")
