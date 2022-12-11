@@ -115,8 +115,7 @@ double *inla_cgeneric_rspde_nonstat_fixed_model(inla_cgeneric_cmd_tp cmd, double
                         B_kappa->ncol, rspde_order,
                         theta, p, r, k_rat,
                         m_alpha, &ret[k],
-                        graph_i->ints, graph_j->ints,
-                        M, alpha);
+                        alpha);
 
       break;
     }
@@ -132,8 +131,8 @@ double *inla_cgeneric_rspde_nonstat_fixed_model(inla_cgeneric_cmd_tp cmd, double
     {
       // return c(P, initials)
       // where P is the number of hyperparameters      
-      ret = Calloc(n_par+1, double);
-      ret[0] = n_par;
+      ret = Calloc(n_par, double);
+      ret[0] = n_par-1;
       for(i=1; i<n_par; i++){
         ret[i] = start_theta->doubles[i-1];
       }
