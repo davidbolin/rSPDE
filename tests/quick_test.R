@@ -18,11 +18,14 @@ Abar <- rspde.make.A(mesh = prmesh, loc = coords)
 
 mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
 
-rspde_model <- rspde.matern2(mesh = prmesh)
+rspde_model <- rspde.matern2(mesh = prmesh,
+                            start.theta = c(0,0))
 
 rspde_stat <- rspde.matern(mesh = prmesh,
                                 parameterization = "spde",
-                                prior.nu.dist = "beta")
+                                prior.nu.dist = "beta",
+                                start.lkappa = 0,
+                                start.ltau = 0)
 
 
 

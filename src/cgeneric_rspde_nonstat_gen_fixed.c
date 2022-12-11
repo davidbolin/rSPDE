@@ -4,11 +4,9 @@
 
 
 // This version uses 'padded' matrices with zeroes
-double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data) {
+double *inla_cgeneric_rspde_nonstat_fixed_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data) {
 
   double *ret = NULL;
-
-  char *prior_nu_dist;
 
   int k, i;
 
@@ -38,12 +36,20 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
   assert(!strcasecmp(data->doubles[0]->name, "d"));
   double d = data->doubles[0]->doubles[0];
 
-  assert(!strcasecmp(data->doubles[1]->name, "nu_upper_bound"));
-  double nu_upper_bound = data->doubles[1]->doubles[0];
+  assert(!strcasecmp(data->doubles[1]->name, "r_ratapprox"));
+  double *r = data->doubles[1]->doubles;
 
-  assert(!strcasecmp(data->mats[0]->name, "rational_table"));
-  inla_cgeneric_mat_tp *rational_table = data->mats[0];
-  assert(rational_table->nrow == 999);  
+  assert(!strcasecmp(data->doubles[2]->name, "p_ratapprox"));
+  double *p = data->doubles[2]->doubles;
+  
+  assert(!strcasecmp(data->doubles[3]->name, "k_ratapprox"));
+  double k_rat = data->doubles[3]->doubles[0];
+
+  assert(!strcasecmp(data->doubles[4]->name, "nu"));
+  double nu = data->doubles[4]->doubles[0];
+
+  double alpha = nu + d / 2.0;
+  int m_alpha = floor(alpha);
 
   assert(!strcasecmp(data->smats[0]->name, "C"));
   inla_cgeneric_smat_tp *C = data->smats[0];
@@ -53,53 +59,18 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
 
   int n_mesh = C->ncol;
 
-  assert(!strcasecmp(data->mats[1]->name, "B_tau"));
-  inla_cgeneric_mat_tp *B_tau = data->mats[1];
+  assert(!strcasecmp(data->mats[0]->name, "B_tau"));
+  inla_cgeneric_mat_tp *B_tau = data->mats[0];
 
-  assert(!strcasecmp(data->mats[2]->name, "B_kappa"));
-  inla_cgeneric_mat_tp *B_kappa = data->mats[2];
+  assert(!strcasecmp(data->mats[1]->name, "B_kappa"));
+  inla_cgeneric_mat_tp *B_kappa = data->mats[1];
 
   int n_par = B_tau->ncol;
 
-  // Prior param
-
-  assert(!strcasecmp(data->doubles[2]->name, "prior.nu.loglocation"));
-  double prior_nu_loglocation = data->doubles[2]->doubles[0];
-
-  assert(!strcasecmp(data->doubles[3]->name, "prior.nu.logscale"));
-  double prior_nu_logscale = data->doubles[3]->doubles[0];
-
-  assert(!strcasecmp(data->doubles[4]->name, "prior.nu.mean"));
-  double prior_nu_mean = data->doubles[4]->doubles[0];
-
-  assert(!strcasecmp(data->doubles[5]->name, "prior.nu.prec"));
-  double prior_nu_prec = data->doubles[5]->doubles[0];
-
-  // Nu prior
-
-  assert(!strcasecmp(data->chars[2]->name, "prior.nu.dist"));
-  prior_nu_dist = &data->chars[2]->chars[0];
-
   // Starting values
 
-  assert(!strcasecmp(data->doubles[6]->name, "start.nu"));
-  double start_nu = data->doubles[6]->doubles[0];
-
-  assert(!strcasecmp(data->doubles[7]->name, "start.theta"));
-  inla_cgeneric_vec_tp *start_theta = data->doubles[7];
-  
-  double lnu, nu;
-
-   if (theta) {
-    // interpretable parameters 
-    lnu = theta[n_par-1];
-    nu = (exp(lnu)/(1.0 + exp(lnu))) * nu_upper_bound;
-  }
-  else {   
-    lnu = nu = NAN;
-  }
-
-
+  assert(!strcasecmp(data->doubles[5]->name, "start.theta"));
+  inla_cgeneric_vec_tp *start_theta = data->doubles[5];
  
   switch (cmd) {
   case INLA_CGENERIC_VOID:
@@ -130,37 +101,16 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
       ret[0] = -1;		/* REQUIRED */
       ret[1] = M;		/* REQUIRED */
 
-      int n_terms = 2*rspde_order + 2;
-
-      double new_alpha = nu + d / 2.0;
-
-      int new_m_alpha = (int) floor(new_alpha);
-
-      int row_nu = (int)round(1000*cut_decimals(new_alpha))-1;
-
-      double *rat_coef = Calloc(n_terms-1, double);
-      
-      rat_coef = &rational_table->x[row_nu*n_terms+1];
-
-      double *r, *p, k_rat;
-
-      r = Calloc(rspde_order, double);
-      p = Calloc(rspde_order, double);
-      
-      r = &rat_coef[0];
-      p = &rat_coef[rspde_order];
-      k_rat = rat_coef[2*rspde_order];
-
-      compute_Q(n_mesh, C->x, C->i, C->j,
+      compute_Q_fixednu(n_mesh, C->x, C->i, C->j,
                         C->n,
                         G->x, G->i, G->j,
                         G->n,
                         B_kappa->x, B_tau->x,
                         B_kappa->ncol, rspde_order,
                         theta, p, r, k_rat,
-                        new_m_alpha, &ret[k],
+                        m_alpha, &ret[k],
                         graph_i->ints, graph_j->ints,
-                        M, new_alpha);
+                        M, alpha);
 
       break;
     }
@@ -181,7 +131,6 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
       for(i=1; i<n_par; i++){
         ret[i] = start_theta->doubles[i-1];
       }
-      ret[n_par] = log(start_nu/(nu_upper_bound - start_nu));
       break;
     }
     
@@ -196,17 +145,6 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
 
       ret[0] = 0.0;
 
-      if(!strcasecmp(prior_nu_dist, "lognormal")){
-        ret[0] += -0.5 * SQR(lnu - prior_nu_loglocation)/(SQR(prior_nu_logscale));
-        ret[0] += -log(prior_nu_logscale) - 0.5 * log(2.0*M_PI);
-        ret[0] -= log(pnorm(log(nu_upper_bound), prior_nu_loglocation, prior_nu_logscale));
-          
-      }
-      else { // if(!strcasecmp(prior_nu_dist, "beta")){
-        double s_1 = (prior_nu_mean / nu_upper_bound) * prior_nu_prec;
-        double s_2 = (1 - prior_nu_mean / nu_upper_bound) * prior_nu_prec;
-        ret[0] += logdbeta(nu / nu_upper_bound, s_1, s_2) - log(nu_upper_bound);
-      }
       for(i = 0; i < n_par-1; i++){
             ret[0] += -0.5 * SQR(theta[i])/1 - 0.5 * log(2.0 * M_PI);
       }

@@ -3,29 +3,27 @@
 #include <Eigen/Dense>
 #include <Eigen/SparseCore>
 
-extern "C" void compute_Q(int size, double *entries_C, int *i_C, int *j_C,
+extern "C" void compute_Q_fixednu(int size, double *entries_C, int *i_C, int *j_C,
                         int n_nonzero_C,
                         double *entries_G, int *i_G, int *j_G,
                         int n_nonzero_G,
                     double *entries_B_kappa, double *entries_B_tau,
                     int ncol_B, int rspde_order, double *theta_entries,
                     double *rat_p, double *rat_r, double rat_k,
-                    int m_alpha, double *Q_out,
-                    int *graph_i, int *graph_j, int M, double alpha);
+                    int m_alpha, double *Q_out, int M, double alpha);
 
-void compute_Q(int size, double *entries_C, int *i_C, int *j_C,
+void compute_Q_fixednu(int size, double *entries_C, int *i_C, int *j_C,
                     int n_nonzero_C,
                     double *entries_G, int *i_G, int *j_G,
                     int n_nonzero_G,
                     double *entries_B_kappa, double *entries_B_tau,
                     int ncol_B, int rspde_order, double *theta_entries,
                     double *rat_p, double *rat_r, double rat_k,
-                    int m_alpha, double *Q_out,
-                    int *graph_i, int *graph_j, int M, double alpha) {
+                    int m_alpha, double *Q_out, int M, double alpha) {
                         
                         
                         typedef Eigen::Triplet<double> Trip;
-                        std::vector<Trip> trp_C, trp_G, trp_Q;
+                        std::vector<Trip> trp_C, trp_G;
                         int k, i, j;
 
                         
@@ -42,14 +40,6 @@ void compute_Q(int size, double *entries_C, int *i_C, int *j_C,
 
                         C.setFromTriplets(trp_C.begin(), trp_C.end());
                         G.setFromTriplets(trp_G.begin(), trp_G.end());                      
-
-                        for(k = 0; k < M; k++){
-                                trp_Q.push_back(Trip(graph_i[k],graph_j[k],1));
-                        }
-
-                        Q_graph.setFromTriplets(trp_Q.begin(), trp_Q.end());
-
-                        Q_graph = Q_graph + Eigen::SparseMatrix<double>(Q_graph.transpose());
 
                         // Assemble B_kappa and B_tau
 
@@ -145,8 +135,6 @@ void compute_Q(int size, double *entries_C, int *i_C, int *j_C,
                                     }
                                 }
 
-                       
-                        Q = Q + 0 * Q_graph;
 
                         Q = pow(factor, alpha) * Q;
 
