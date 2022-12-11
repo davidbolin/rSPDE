@@ -72,6 +72,12 @@ double *inla_cgeneric_rspde_nonstat_fixed_model(inla_cgeneric_cmd_tp cmd, double
   assert(!strcasecmp(data->doubles[5]->name, "start.theta"));
   inla_cgeneric_vec_tp *start_theta = data->doubles[5];
  
+  assert(!strcasecmp(data->doubles[6]->name, "theta.prior.mean"));
+  inla_cgeneric_vec_tp *theta_prior_mean = data->doubles[6];
+
+  assert(!strcasecmp(data->mats[2]->name, "theta.prior.prec"));
+  inla_cgeneric_mat_tp *theta_prior_prec = data->mats[2];
+
   switch (cmd) {
   case INLA_CGENERIC_VOID:
     {
@@ -145,10 +151,8 @@ double *inla_cgeneric_rspde_nonstat_fixed_model(inla_cgeneric_cmd_tp cmd, double
 
       ret[0] = 0.0;
 
-      for(i = 0; i < n_par-1; i++){
-            ret[0] += -0.5 * SQR(theta[i])/1 - 0.5 * log(2.0 * M_PI);
-      }
-
+      ret[0] += logmultnormvdens(n_par-1, theta_prior_mean->doubles,
+                                  theta_prior_prec->x, theta);
 
 	  break;
     }

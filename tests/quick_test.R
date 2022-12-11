@@ -28,8 +28,6 @@ rspde_stat <- rspde.matern(mesh = prmesh,
                                 prior.kappa = list(meanlog = rspde_model$param$theta.prior.mean[2]),
                                 prior.tau = list(meanlog = rspde_model$param$theta.prior.mean[1]))
 
-
-
 Q_nonstat <- inla.cgeneric.q(rspde_model)
 # Q_nonstat <- Q_nonstat$Q
 Q_stat <- inla.cgeneric.q(rspde_stat)
@@ -52,7 +50,7 @@ rspde_nonstat <- inla(f.ns,
   family = "Gamma", 
   data = inla.stack.data(stk.dat),
   control.inla = list(int.strategy = "eb"),
-  verbose = TRUE,
+  verbose = FALSE,
   control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
   num.threads = "1:1"
 )
