@@ -52,8 +52,9 @@ rspde.matern2 <- function(mesh,
                          debug = FALSE,
                          prior.nu = NULL,
                          start.nu = NULL,
-                         B_tau = c(1,1,0),
-                         B_kappa = c(1,0,1),
+                         start.theta = NULL,
+                         B_tau = c(0,1,0),
+                         B_kappa = c(0,0,1),
                          prior.variance.nominal = 1,
                          prior.range.nominal = NULL,
                          prior.tau = NULL,
@@ -118,9 +119,6 @@ rspde.matern2 <- function(mesh,
 
     m_alpha <- floor(2 * beta)
 
-    param <- INLA::param2.matern.orig(mesh, 2*beta, B.tau, B.kappa, 
-            prior.variance.nominal, prior.range.nominal, prior.tau, 
-            prior.kappa, theta.prior.mean, theta.prior.prec)
 
 
   if (!is.null(nu)) {
@@ -168,11 +166,25 @@ rspde.matern2 <- function(mesh,
     C <- fem_mesh[["c0"]]
     G <- fem_mesh[["g1"]]
 
-
     n_cgeneric <- ncol(fem_mesh[["c0"]])
+
 
     B_tau <- cbind(0,rep(1,n_cgeneric),0)
     B_kappa <- cbind(0, 0, rep(1,n_cgeneric))
+
+    if(!is.null(start.theta)){
+      if(length(start.theta) != ncol(B_kappa) - 1){
+        stop("The length of starting values for theta is incorrect!")
+      }
+    }
+
+    param <- INLA::param2.matern.orig(mesh, 2*beta, B_tau, B_kappa, 
+            prior.variance.nominal, prior.range.nominal, prior.tau, 
+            prior.kappa, theta.prior.mean, theta.prior.prec)
+
+    if(is.null(start.theta)){
+      start.theta <- param$theta.prior.mean
+    }
 
   # Prior nu
 
@@ -249,7 +261,7 @@ rspde.matern2 <- function(mesh,
             start.nu = start.nu,
             rspde_order = as.integer(rspde_order),
             prior.nu.dist = "beta",
-            parameterization = "spde"
+            start.theta = start.theta
             ))
     
     model$cgeneric_type <- "general"

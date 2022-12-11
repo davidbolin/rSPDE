@@ -20,12 +20,7 @@ mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
 
 rspde_model <- rspde.matern2(mesh = prmesh)
 
-rspde_stat <- rspde.matern(mesh = prmesh, start.lkappa = 0,
-                                start.ltau = 0, 
-                                prior.kappa = list(meanlog = 0, 
-                                                  sdlog = 1),
-                                prior.tau = list(meanlog=0,
-                                              sdlog = 1),
+rspde_stat <- rspde.matern(mesh = prmesh,
                                 parameterization = "spde",
                                 prior.nu.dist = "beta")
 

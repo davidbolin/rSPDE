@@ -84,6 +84,9 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
 
   assert(!strcasecmp(data->doubles[6]->name, "start.nu"));
   double start_nu = data->doubles[6]->doubles[0];
+
+  assert(!strcasecmp(data->doubles[7]->name, "start.theta"));
+  inla_cgeneric_vec_tp *start_theta = data->doubles[7];
   
   double lnu, nu;
 
@@ -183,8 +186,9 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
       // where P is the number of hyperparameters      
       ret = Calloc(n_par+1, double);
       ret[0] = n_par;
-      // ret[1] = 0.33;
-      // ret[2] = 0.44;
+      for(i=1; i<n_par; i++){
+        ret[i+1] = start_theta->doubles[i-1];
+      }
       ret[n_par] = log(start_nu/(nu_upper_bound - start_nu));
       break;
     }
