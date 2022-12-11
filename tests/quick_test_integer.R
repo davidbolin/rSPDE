@@ -14,13 +14,13 @@ prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
 prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
-Abar <- rspde.make.A(mesh = prmesh, loc = coords)
+Abar <- rspde.make.A(mesh = prmesh, loc = coords, nu = 1)
 
-mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
+mesh.index <- rspde.make.index(name = "field", mesh = prmesh, nu = 1)
 
-rspde_model <- rspde.matern2(mesh = prmesh)
+rspde_model <- rspde.matern4(mesh = prmesh, nu = 1)
 
-rspde_stat <- rspde.matern(mesh = prmesh,
+rspde_stat <- rspde.matern(mesh = prmesh, nu = 1,
                                 parameterization = "spde",
                                 prior.nu.dist = "beta",
                                 start.lkappa = rspde_model$param$theta.prior.mean[2],
@@ -28,10 +28,10 @@ rspde_stat <- rspde.matern(mesh = prmesh,
                                 prior.kappa = list(meanlog = rspde_model$param$theta.prior.mean[2]),
                                 prior.tau = list(meanlog = rspde_model$param$theta.prior.mean[1]))
 
-# Q_nonstat <- inla.cgeneric.q(rspde_model)
-# # Q_nonstat <- Q_nonstat$Q
-# Q_stat <- inla.cgeneric.q(rspde_stat)
-# # Q_stat <- Q_stat$Q
+Q_nonstat <- inla.cgeneric.q(rspde_model)
+# Q_nonstat <- Q_nonstat$Q
+Q_stat <- inla.cgeneric.q(rspde_stat)
+# # # Q_stat <- Q_stat$Q
 
 
 
@@ -50,7 +50,7 @@ rspde_nonstat <- inla(f.ns,
   family = "Gamma", 
   data = inla.stack.data(stk.dat),
   control.inla = list(int.strategy = "eb"),
-  verbose = FALSE,
+  verbose = TRUE,
   control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
   num.threads = "1:1"
 )
