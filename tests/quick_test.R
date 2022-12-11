@@ -20,6 +20,25 @@ mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
 
 rspde_model <- rspde.matern2(mesh = prmesh)
 
+rspde_stat <- rspde.matern(mesh = prmesh, start.lkappa = 0,
+                                start.ltau = 0, 
+                                prior.kappa = list(meanlog = 0, 
+                                                  sdlog = 1),
+                                prior.tau = list(meanlog=0,
+                                              sdlog = 1),
+                                parameterization = "spde",
+                                prior.nu.dist = "beta")
+
+
+
+Q_nonstat <- inla.cgeneric.q(rspde_model)
+# Q_nonstat <- Q_nonstat$Q
+Q_stat <- inla.cgeneric.q(rspde_stat)
+# Q_stat <- Q_stat$Q
+
+
+
+
 stk.dat <- inla.stack(
   data = list(y = Y), A = Abar,
   effects = c(
@@ -28,13 +47,25 @@ stk.dat <- inla.stack(
     )
 )
 
-f.s <- y ~ -1 + Intercept +  f(field, model = rspde_model)
+f.ns <- y ~ -1 + Intercept +  f(field, model = rspde_model)
 
-rspde_fit <- inla(f.s,
+rspde_nonstat <- inla(f.ns,
   family = "Gamma", 
   data = inla.stack.data(stk.dat),
   control.inla = list(int.strategy = "eb"),
-  verbose = TRUE,
+  verbose = FALSE,
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
+  num.threads = "1:1"
+)
+
+
+f.stat <- y ~ -1 + Intercept +  f(field, model = rspde_stat)
+
+rspde_stat <- inla(f.stat,
+  family = "Gamma", 
+  data = inla.stack.data(stk.dat),
+  control.inla = list(int.strategy = "eb"),
+  verbose = FALSE,
   control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
   num.threads = "1:1"
 )

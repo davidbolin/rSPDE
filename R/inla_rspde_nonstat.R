@@ -54,6 +54,12 @@ rspde.matern2 <- function(mesh,
                          start.nu = NULL,
                          B_tau = c(1,1,0),
                          B_kappa = c(1,0,1),
+                         prior.variance.nominal = 1,
+                         prior.range.nominal = NULL,
+                         prior.tau = NULL,
+                         prior.kappa = NULL,
+                         theta.prior.mean = NULL,
+                         theta.prior.prec = 0.1, 
                          parameterization = c("matern", "spde"),
                          prior.nu.dist = c("lognormal", "beta"),
                          nu.prec.inc = 1,
@@ -63,6 +69,17 @@ rspde.matern2 <- function(mesh,
   type.rational.approx <- type.rational.approx[[1]]
 
   parameterization <- parameterization[[1]]
+
+  ### Handle parameterization = "matern" in R
+  # Create a new B.tau and B.kappa
+
+        #   nu = alpha - d/2
+        # kappa0 = log(8 * nu)/2
+        # tau0 = 0.5 * (lgamma(nu) - lgamma(nu + d/2) - d/2 * log(4 * 
+        #     pi)) - nu * kappa0
+        #  B.tau = cbind(tau0, 
+        #     nu, -1)
+        #     B.kappa = cbind(kappa0, -1, 0)
 
   prior.nu.dist <- prior.nu.dist[[1]]
   if (!prior.nu.dist %in% c("beta", "lognormal")) {
@@ -100,6 +117,11 @@ rspde.matern2 <- function(mesh,
     beta <- nu_order / 2 + d / 4
 
     m_alpha <- floor(2 * beta)
+
+    param <- INLA::param2.matern.orig(mesh, 2*beta, B.tau, B.kappa, 
+            prior.variance.nominal, prior.range.nominal, prior.tau, 
+            prior.kappa, theta.prior.mean, theta.prior.prec)
+
 
   if (!is.null(nu)) {
     if (!is.numeric(nu)) {
@@ -149,8 +171,8 @@ rspde.matern2 <- function(mesh,
 
     n_cgeneric <- ncol(fem_mesh[["c0"]])
 
-    B_tau <- cbind(1,rep(1,n_cgeneric),0)
-    B_kappa <- cbind(1, 0, rep(1,n_cgeneric))
+    B_tau <- cbind(0,rep(1,n_cgeneric),0)
+    B_kappa <- cbind(0, 0, rep(1,n_cgeneric))
 
   # Prior nu
 
@@ -158,8 +180,14 @@ rspde.matern2 <- function(mesh,
     prior.nu$loglocation <- log(min(1, nu_upper_bound / 2))
   }
 
+
   if (is.null(prior.nu[["mean"]])) {
     prior.nu[["mean"]] <- min(1, nu_upper_bound / 2)
+  }
+
+  if (is.null(prior.nu$prec)) {
+    mu_temp <- prior.nu[["mean"]] / nu_upper_bound
+    prior.nu$prec <- max(1 / mu_temp, 1 / (1 - mu_temp)) + nu.prec.inc
   }
 
     if (is.null(prior.nu[["logscale"]])) {
@@ -216,8 +244,12 @@ rspde.matern2 <- function(mesh,
             B_kappa = B_kappa,
             prior.nu.loglocation = prior.nu$loglocation,
             prior.nu.logscale = prior.nu$logscale,
+            prior.nu.mean = prior.nu$mean,
+            prior.nu.prec = prior.nu$prec,
             start.nu = start.nu,
-            rspde_order = as.integer(rspde_order)
+            rspde_order = as.integer(rspde_order),
+            prior.nu.dist = "beta",
+            parameterization = "spde"
             ))
     
     model$cgeneric_type <- "general"
@@ -234,5 +266,6 @@ rspde.matern2 <- function(mesh,
   model$type.rational.approx <- type.rational.approx
   model$mesh <- mesh
   model$fem_mesh <- fem_mesh
+  model$param <- param
   return(model)
 }

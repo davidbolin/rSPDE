@@ -8,6 +8,8 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
 
   double *ret = NULL;
 
+  char *prior_nu_dist;
+
   int k, i;
 
   assert(!strcasecmp(data->ints[0]->name, "n"));       // this will always be the case
@@ -44,10 +46,10 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
   assert(rational_table->nrow == 999);  
 
   assert(!strcasecmp(data->smats[0]->name, "C"));
-  inla_cgeneric_smat_tp *C = data->smats[1];
+  inla_cgeneric_smat_tp *C = data->smats[0];
   
   assert(!strcasecmp(data->smats[1]->name, "G"));
-  inla_cgeneric_smat_tp *G = data->smats[2];
+  inla_cgeneric_smat_tp *G = data->smats[1];
 
   int n_mesh = C->ncol;
 
@@ -67,16 +69,27 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
   assert(!strcasecmp(data->doubles[3]->name, "prior.nu.logscale"));
   double prior_nu_logscale = data->doubles[3]->doubles[0];
 
+  assert(!strcasecmp(data->doubles[4]->name, "prior.nu.mean"));
+  double prior_nu_mean = data->doubles[4]->doubles[0];
+
+  assert(!strcasecmp(data->doubles[5]->name, "prior.nu.prec"));
+  double prior_nu_prec = data->doubles[5]->doubles[0];
+
+  // Nu prior
+
+  assert(!strcasecmp(data->chars[2]->name, "prior.nu.dist"));
+  prior_nu_dist = &data->chars[2]->chars[0];
+
   // Starting values
 
-  assert(!strcasecmp(data->doubles[4]->name, "start.nu"));
-  double start_nu = data->doubles[4]->doubles[0];
+  assert(!strcasecmp(data->doubles[6]->name, "start.nu"));
+  double start_nu = data->doubles[6]->doubles[0];
   
   double lnu, nu;
 
    if (theta) {
     // interpretable parameters 
-    lnu = theta[0];
+    lnu = theta[n_par-1];
     nu = (exp(lnu)/(1.0 + exp(lnu))) * nu_upper_bound;
   }
   else {   
@@ -136,29 +149,23 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
       k_rat = rat_coef[2*rspde_order];
 
       double *Q_out;
-      int *i_Q, *j_Q;
 
-      Q_out = Calloc(2*M, double);
-      i_Q = Calloc(2*M, int);
-      j_Q = Calloc(2*M, int);
+      Q_out = Calloc(M, double);
 
-
-      compute_Q(n_mesh, C->x, C->i, C->j, 
+      compute_Q(n_mesh, C->x, C->i, C->j,
+                        C->n,
                         G->x, G->i, G->j,
+                        G->n,
                         B_kappa->x, B_tau->x,
                         B_kappa->ncol, rspde_order,
-                        theta, p, r, 
-                        k_rat, new_m_alpha,
-                        Q_out, i_Q, j_Q,
+                        theta, p, r, k_rat,
+                        new_m_alpha, Q_out,
                         graph_i->ints, graph_j->ints,
-                        M);
+                        M, new_alpha);
 
-                        
-      // printf("%f\n", Q_out[0]);
-
-      // for(i = 0; i < M; i++){
-      //   ret[k + i] = Q_out[i];
-      // }
+      for(i = 0; i < M; i++){
+        ret[k + i] = Q_out[i];
+      }
 
       break;
     }
@@ -176,7 +183,9 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
       // where P is the number of hyperparameters      
       ret = Calloc(n_par+1, double);
       ret[0] = n_par;
-      ret[1] = log(start_nu/(nu_upper_bound - start_nu));
+      // ret[1] = 0.33;
+      // ret[2] = 0.44;
+      ret[n_par] = log(start_nu/(nu_upper_bound - start_nu));
       break;
     }
     
@@ -191,18 +200,18 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
 
       ret[0] = 0.0;
 
-      // if(!strcasecmp(prior_nu_dist, "lognormal")){
+      if(!strcasecmp(prior_nu_dist, "lognormal")){
         ret[0] += -0.5 * SQR(lnu - prior_nu_loglocation)/(SQR(prior_nu_logscale));
         ret[0] += -log(prior_nu_logscale) - 0.5 * log(2.0*M_PI);
         ret[0] -= log(pnorm(log(nu_upper_bound), prior_nu_loglocation, prior_nu_logscale));
           
-      // }
-      // else { // if(!strcasecmp(prior_nu_dist, "beta")){
-      //   double s_1 = (prior_nu_mean / nu_upper_bound) * prior_nu_prec;
-      //   double s_2 = (1 - prior_nu_mean / nu_upper_bound) * prior_nu_prec;
-      //   ret[0] += logdbeta(nu / nu_upper_bound, s_1, s_2) - log(nu_upper_bound);
-      // }
-      for(i = 1; i < n_par; i++){
+      }
+      else { // if(!strcasecmp(prior_nu_dist, "beta")){
+        double s_1 = (prior_nu_mean / nu_upper_bound) * prior_nu_prec;
+        double s_2 = (1 - prior_nu_mean / nu_upper_bound) * prior_nu_prec;
+        ret[0] += logdbeta(nu / nu_upper_bound, s_1, s_2) - log(nu_upper_bound);
+      }
+      for(i = 0; i < n_par-1; i++){
             ret[0] += -0.5 * SQR(theta[i])/1 - 0.5 * log(2.0 * M_PI);
       }
 
