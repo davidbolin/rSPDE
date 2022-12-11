@@ -168,7 +168,6 @@ rspde.matern2 <- function(mesh,
 
     n_cgeneric <- ncol(fem_mesh[["c0"]])
 
-
     B_tau <- cbind(0,rep(1,n_cgeneric),0)
     B_kappa <- cbind(0, 0, rep(1,n_cgeneric))
 

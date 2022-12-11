@@ -187,7 +187,7 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
       ret = Calloc(n_par+1, double);
       ret[0] = n_par;
       for(i=1; i<n_par; i++){
-        ret[i+1] = start_theta->doubles[i-1];
+        ret[i] = start_theta->doubles[i-1];
       }
       ret[n_par] = log(start_nu/(nu_upper_bound - start_nu));
       break;
