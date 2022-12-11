@@ -10,7 +10,7 @@ extern "C" void compute_Q_fixednu(int size, double *entries_C, int *i_C, int *j_
                     double *entries_B_kappa, double *entries_B_tau,
                     int ncol_B, int rspde_order, double *theta_entries,
                     double *rat_p, double *rat_r, double rat_k,
-                    int m_alpha, double *Q_out, int M, double alpha);
+                    int m_alpha, double *Q_out, double alpha);
 
 void compute_Q_fixednu(int size, double *entries_C, int *i_C, int *j_C,
                     int n_nonzero_C,
@@ -19,7 +19,7 @@ void compute_Q_fixednu(int size, double *entries_C, int *i_C, int *j_C,
                     double *entries_B_kappa, double *entries_B_tau,
                     int ncol_B, int rspde_order, double *theta_entries,
                     double *rat_p, double *rat_r, double rat_k,
-                    int m_alpha, double *Q_out, int M, double alpha) {
+                    int m_alpha, double *Q_out, double alpha) {
                         
                         
                         typedef Eigen::Triplet<double> Trip;
