@@ -35,6 +35,10 @@ double pnorm(double x, double mu, double sd);
 
 double logdbeta(double x, double s_1, double s_2);
 
+double logmultnormvdens(int npar, double *entries_mean, 
+                        double *entries_prec,
+                        double *entries_val);
+
 void compute_Q(int size, double *entries_C, int *i_C, int *j_C,
                     int n_nonzero_C,
                     double *entries_G, int *i_G, int *j_G,

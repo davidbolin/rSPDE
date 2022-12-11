@@ -260,7 +260,9 @@ rspde.matern2 <- function(mesh,
             start.nu = start.nu,
             rspde_order = as.integer(rspde_order),
             prior.nu.dist = "beta",
-            start.theta = start.theta
+            start.theta = start.theta,
+            theta.prior.mean = param$theta.prior.mean,
+            theta.prior.prec = param$theta.prior.prec
             ))
     
     model$cgeneric_type <- "general"

@@ -18,14 +18,15 @@ Abar <- rspde.make.A(mesh = prmesh, loc = coords)
 
 mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
 
-rspde_model <- rspde.matern2(mesh = prmesh,
-                            start.theta = c(0,0))
+rspde_model <- rspde.matern2(mesh = prmesh)
 
 rspde_stat <- rspde.matern(mesh = prmesh,
                                 parameterization = "spde",
                                 prior.nu.dist = "beta",
-                                start.lkappa = 0,
-                                start.ltau = 0)
+                                start.lkappa = rspde_model$param$theta.prior.mean[2],
+                                start.ltau = rspde_model$param$theta.prior.mean[1],
+                                prior.kappa = list(meanlog = rspde_model$param$theta.prior.mean[2]),
+                                prior.tau = list(meanlog = rspde_model$param$theta.prior.mean[1]))
 
 
 
@@ -51,7 +52,7 @@ rspde_nonstat <- inla(f.ns,
   family = "Gamma", 
   data = inla.stack.data(stk.dat),
   control.inla = list(int.strategy = "eb"),
-  verbose = FALSE,
+  verbose = TRUE,
   control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
   num.threads = "1:1"
 )
