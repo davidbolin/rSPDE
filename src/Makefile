@@ -7,13 +7,13 @@ all : rSPDE.so
 flags = -O2 -Wall -Wextra -fpic
 
 %.o: %.c
-	gcc $(flags) -lstdc++ -Iinclude -I$(toInclude)  -c $^ -o $@
+	clang $(flags) -lstdc++ -Iinclude -I$(toInclude)  -c $^ -o $@
 
 %.o: %.cpp
-	g++ $(flags)  -I$(toInclude) -I"/usr/include/eigen3/" -I"/usr/local/include/eigen3/" -c $^ -o $@
+	clang++ $(flags)  -I$(toInclude) -I"/usr/include/eigen3/" -I"/usr/local/include/eigen3/" -c $^ -o $@
 
 rSPDE.so: $(obj)
-	g++ -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
+	clang++ -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
 
 clean :
 	rm -f *.o
