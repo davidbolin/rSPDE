@@ -6,8 +6,8 @@
 #' @param mesh The mesh to build the model. It can be an `inla.mesh` or
 #' an `inla.mesh.1d` object. Otherwise, should be a list containing elements d, the dimension, C, the mass matrix,
 #' and G, the stiffness matrix.
-#' @param nu_upper_bound Upper bound for the smoothness parameter.
-#' @param rspde_order The order of the covariance-based rational SPDE approach.
+#' @param nu.upper.bound Upper bound for the smoothness parameter.
+#' @param rspde.order The order of the covariance-based rational SPDE approach.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
 #' be estimated. If nu is `NULL`, it will be estimated.
 #' @param debug INLA debug argument
@@ -47,7 +47,7 @@
 #' @export
 
 rspde.matern3 <- function(mesh,
-                         nu_upper_bound = 4, rspde_order = 2,
+                         nu.upper.bound = 4, rspde.order = 2,
                          nu = NULL, 
                          debug = FALSE,
                          prior.nu = NULL,
@@ -105,14 +105,14 @@ rspde.matern3 <- function(mesh,
     stop("The mesh object should either be an INLA mesh object or contain d, the dimension!")
   }
 
-  if (nu_upper_bound - floor(nu_upper_bound) == 0) {
-    nu_upper_bound <- nu_upper_bound - 1e-5
+  if (nu.upper.bound - floor(nu.upper.bound) == 0) {
+    nu.upper.bound <- nu.upper.bound - 1e-5
   }
   fixed_nu <- !is.null(nu)
     if (fixed_nu) {
     nu_order <- nu
   } else {
-    nu_order <- nu_upper_bound
+    nu_order <- nu.upper.bound
   }
 
     beta <- nu_order / 2 + d / 4
@@ -126,10 +126,10 @@ rspde.matern3 <- function(mesh,
   }
 
   if (d == 1) {
-    if (nu_upper_bound > 2) {
+    if (nu.upper.bound > 2) {
       warning("In dimension 1 you can have unstable results
-      for nu_upper_bound > 2. Consider changing
-      nu_upper_bound to 2 or 1.")
+      for nu.upper.bound > 2. Consider changing
+      nu.upper.bound to 2 or 1.")
     }
   }
 
@@ -137,9 +137,9 @@ rspde.matern3 <- function(mesh,
     alpha <- nu + d / 2
     integer_alpha <- (alpha %% 1 == 0)
     if(!integer_alpha){
-      if(rspde_order > 0){
-      n_m <- rspde_order
-            mt <- get_rational_coefficients(rspde_order, type.rational.approx)
+      if(rspde.order > 0){
+      n_m <- rspde.order
+            mt <- get_rational_coefficients(rspde.order, type.rational.approx)
             r <- sapply(1:(n_m), function(i) {
             approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2 * beta))$y
             })
@@ -151,8 +151,8 @@ rspde.matern3 <- function(mesh,
     }
   } else {
     integer_alpha <- FALSE
-    if(rspde_order > 0){
-      rational_table <- get_rational_coefficients(rspde_order, type.rational.approx)
+    if(rspde.order > 0){
+      rational_table <- get_rational_coefficients(rspde.order, type.rational.approx)
     }
   }
 
@@ -217,7 +217,7 @@ rspde.matern3 <- function(mesh,
       graph_opt <- get.sparsity.graph.rspde(
         fem_mesh_matrices = fem_mesh, dim = d,
         nu = nu,
-        rspde_order = rspde_order,
+        rspde.order = rspde.order,
         force_non_integer = TRUE
       )
 
@@ -227,7 +227,7 @@ rspde.matern3 <- function(mesh,
     model <- do.call(eval(parse(text='INLA::inla.cgeneric.define')),
         list(model="inla_cgeneric_rspde_nonstat_fixed_model",
             shlib=rspde_lib,
-            n=as.integer(n_cgeneric)*(rspde_order+1), debug=debug,
+            n=as.integer(n_cgeneric)*(rspde.order+1), debug=debug,
             d = as.double(d),
             r_ratapprox = as.vector(r),
             p_ratapprox = as.vector(p),
@@ -239,7 +239,7 @@ rspde.matern3 <- function(mesh,
             G = G,
             B_tau = B_tau,
             B_kappa = B_kappa,
-            rspde_order = as.integer(rspde_order),
+            rspde.order = as.integer(rspde.order),
             start.theta = start.theta,
             theta.prior.mean = param$theta.prior.mean,
             theta.prior.prec = param$theta.prior.prec
@@ -250,11 +250,11 @@ rspde.matern3 <- function(mesh,
   model$nu <- nu
   model$prior.nu <- prior.nu
   model$start.nu <- start.nu
-  model$rspde_order <- rspde_order
+  model$rspde.order <- rspde.order
   class(model) <- c("inla_rspde", class(model))
   model$dim <- d
   model$n.spde <- mesh$n
-  model$nu_upper_bound <- nu_upper_bound
+  model$nu.upper.bound <- nu.upper.bound
   model$debug <- debug
   model$type.rational.approx <- type.rational.approx
   model$mesh <- mesh

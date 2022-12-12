@@ -12,7 +12,7 @@ get.inital.values.rSPDE(
   include.nu = TRUE,
   log.scale = TRUE,
   include.tau = FALSE,
-  nu_upper_bound = NULL
+  nu.upper.bound = NULL
 )
 }
 \arguments{
@@ -28,7 +28,7 @@ get.inital.values.rSPDE(
 
 \item{include.tau}{Should tau be returned instead of sigma?}
 
-\item{nu_upper_bound}{Should an upper bound for nu be considered?}
+\item{nu.upper.bound}{Should an upper bound for nu be considered?}
 }
 \value{
 A vector of the form (theta_1,theta_2,theta_3) or where

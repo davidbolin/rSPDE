@@ -10,7 +10,7 @@ rspde.make.index(
   n.group = 1,
   n.repl = 1,
   mesh = NULL,
-  rspde_order = 2,
+  rspde.order = 2,
   nu = NULL,
   dim = NULL
 )
@@ -27,7 +27,7 @@ rspde.make.index(
 \item{mesh}{An \code{inla.mesh},
 an \code{inla.mesh.1d} object or a \code{metric_graph} object.}
 
-\item{rspde_order}{The order of the rational approximation}
+\item{rspde.order}{The order of the rational approximation}
 
 \item{nu}{If \code{NULL}, then the model will assume that nu will
 be estimated. If nu is fixed, you should provide the value of nu.}
@@ -82,7 +82,7 @@ st.dat <- inla.stack(
 )
 rspde_model <- rspde.matern(
   mesh = mesh_2d,
-  nu_upper_bound = 2
+  nu.upper.bound = 2
 )
 f <- y ~ -1 + f(field, model = rspde_model)
 rspde_fit <- inla(f,

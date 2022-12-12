@@ -7,8 +7,8 @@
 rspde.metric_graph(
   graph_obj,
   h = NULL,
-  nu_upper_bound = 2,
-  rspde_order = 2,
+  nu.upper.bound = 2,
+  rspde.order = 2,
   nu = NULL,
   debug = FALSE,
   prior.kappa = NULL,
@@ -33,9 +33,9 @@ If the mesh is not built, one will be built using h=0.01 as default.}
 
 \item{h}{The width of the mesh in case the mesh was not built.}
 
-\item{nu_upper_bound}{Upper bound for the smoothness parameter.}
+\item{nu.upper.bound}{Upper bound for the smoothness parameter.}
 
-\item{rspde_order}{The order of the covariance-based rational SPDE approach.}
+\item{rspde.order}{The order of the covariance-based rational SPDE approach.}
 
 \item{nu}{If nu is set to a parameter, nu will be kept fixed and will not
 be estimated. If nu is \code{NULL}, it will be estimated.}

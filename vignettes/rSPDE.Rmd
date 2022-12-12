@@ -270,14 +270,14 @@ We now create the model object. We need to set
 an upper bound for the smoothness parameter $\nu$. The default value for this is $4$. If 
 we increase the upper bound for $\nu$
 we also increase the computational cost, and if we decrease the upper bound we also decrease the computatoinal cost. 
-For this example we set `nu_upper_bound=2`.
+For this example we set `nu.upper.bound=2`.
 See the  [R-INLA implementation of the rational SPDE approach](rspde_inla.html)
 for further details.
 
 ```{r}
 rspde_model <- rspde.matern(
   mesh = mesh_2d,
-  nu_upper_bound = 2,
+  nu.upper.bound = 2,
   parameterization = "spde"
 )
 ```
@@ -332,7 +332,7 @@ a dense grid in the region.
 We begin by creating the grid of locations where we want to compute the predictions. To this end,
 we can use the `rspde.mesh.projector()` function. This function has the same arguments
 as the function `inla.mesh.projector()` the only difference being that the rSPDE
-version also has an argument `nu` and an argument `rspde_order`. Thus, we
+version also has an argument `nu` and an argument `rspde.order`. Thus, we
 proceed in the same fashion as we would in `r inla_link()`'s standard SPDE implementation:
 
 
@@ -438,7 +438,7 @@ The creation of the model object is the same as in `R-INLA`'s case:
 ```{r}
 rspde_model <- rspde.matern(
   mesh = mesh_2d,
-  nu_upper_bound = 2,
+  nu.upper.bound = 2,
   parameterization = "spde"
 )
 ```

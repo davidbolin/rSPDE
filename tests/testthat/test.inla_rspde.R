@@ -46,7 +46,7 @@ prmesh <- INLA::inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff 
 
 rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", 
 nu = 0.4,
-rspde_order = 0)
+rspde.order = 0)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
@@ -77,7 +77,7 @@ prmesh <- INLA::inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff 
 
 rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", 
 start.nu = 0.4,
-rspde_order = 0)
+rspde.order = 0)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
@@ -108,13 +108,13 @@ prmesh <- INLA::inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff 
 
 rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", 
 start.nu = 0.4,
-rspde_order = 2)
+rspde.order = 2)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
 rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", 
 nu = 0.4,
-rspde_order = 2)
+rspde.order = 2)
 
 Q_tmp2 <- INLA::inla.cgeneric.q(rspde_model)
 
@@ -136,7 +136,7 @@ prmesh <- INLA::inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff 
 
 rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", 
 start.nu = 0.4,
-rspde_order = 2)
+rspde.order = 2)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 

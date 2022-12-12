@@ -7,7 +7,7 @@
 extern "C" void compute_Q(int size, double *entries_C, int *i_C, int *j_C, 
                         double *entries_G, int *i_G, int *j_G,
                         double *entries_B_kappa, double *entries_B_tau,
-                        int ncol_B, int rspde_order, 
+                        int ncol_B, int rspde.order, 
                         double *theta_entries, double *rat_p, double *rat_r, 
                         double rat_k, int m_alpha,
                         double *Q_out, int *i_Q, int *j_Q,

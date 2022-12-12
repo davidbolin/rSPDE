@@ -10,7 +10,7 @@ rspde.matern.precision(
   nu,
   tau = NULL,
   sigma = NULL,
-  rspde_order,
+  rspde.order,
   dim,
   fem_mesh_matrices,
   only_fractional = FALSE,
@@ -29,7 +29,7 @@ not provided, tau should be provided.}
 \item{sigma}{Standard deviation of the covariance function. If tau is
 not provided, sigma should be provided.}
 
-\item{rspde_order}{The order of the rational approximation}
+\item{rspde.order}{The order of the rational approximation}
 
 \item{dim}{The dimension of the domain}
 
@@ -75,7 +75,7 @@ op_cov <- matern.operators(
 v <- t(rSPDE.A1d(x, 0.5))
 c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
 Q <- rspde.matern.precision(
-  kappa = kappa, nu = nu, tau = tau, rspde_order = 2, d = 1,
+  kappa = kappa, nu = nu, tau = tau, rspde.order = 2, d = 1,
   fem_mesh_matrices = op_cov$fem_mesh_matrices
 )
 A <- Diagonal(nobs)

@@ -18,15 +18,15 @@ Abar <- rspde.make.A(mesh = prmesh, loc = coords)
 
 mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
 
-rspde_model <- rspde.matern2(mesh = prmesh)
+rspde_model <- rspde.matern(mesh = prmesh)
 
-rspde_stat <- rspde.matern(mesh = prmesh,
-                                parameterization = "spde",
-                                prior.nu.dist = "beta",
-                                start.lkappa = rspde_model$param$theta.prior.mean[2],
-                                start.ltau = rspde_model$param$theta.prior.mean[1],
-                                prior.kappa = list(meanlog = rspde_model$param$theta.prior.mean[2]),
-                                prior.tau = list(meanlog = rspde_model$param$theta.prior.mean[1]))
+# rspde_stat <- rspde.matern(mesh = prmesh,
+#                                 parameterization = "spde",
+#                                 prior.nu.dist = "beta",
+#                                 start.lkappa = rspde_model$param$theta.prior.mean[2],
+#                                 start.ltau = rspde_model$param$theta.prior.mean[1],
+#                                 prior.kappa = list(meanlog = rspde_model$param$theta.prior.mean[2]),
+#                                 prior.tau = list(meanlog = rspde_model$param$theta.prior.mean[1]))
 
 # Q_nonstat <- inla.cgeneric.q(rspde_model)
 # # Q_nonstat <- Q_nonstat$Q

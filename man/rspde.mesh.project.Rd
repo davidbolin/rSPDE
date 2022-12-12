@@ -14,7 +14,7 @@ rspde.mesh.project(...)
 rspde.mesh.projector(
   mesh,
   nu = NULL,
-  rspde_order = 2,
+  rspde.order = 2,
   loc = NULL,
   lattice = NULL,
   xlim = NULL,
@@ -28,14 +28,14 @@ rspde.mesh.projector(
   mesh,
   loc = NULL,
   field = NULL,
-  rspde_order = 2,
+  rspde.order = 2,
   nu = NULL,
   ...
 )
 
 \method{rspde.mesh.project}{rspde.mesh.projector}(projector, field, ...)
 
-\method{rspde.mesh.project}{inla.mesh.1d}(mesh, loc, field = NULL, rspde_order = 2, nu = NULL, ...)
+\method{rspde.mesh.project}{inla.mesh.1d}(mesh, loc, field = NULL, rspde.order = 2, nu = NULL, ...)
 }
 \arguments{
 \item{...}{Additional parameters.}
@@ -45,7 +45,7 @@ rspde.mesh.projector(
 \item{nu}{The smoothness parameter. If \code{NULL}, it will be assumed that
 nu was estimated.}
 
-\item{rspde_order}{The order of the rational approximation.}
+\item{rspde.order}{The order of the rational approximation.}
 
 \item{loc}{Projection locations. Can be a matrix or a SpatialPoints or a
 SpatialPointsDataFrame object.}
