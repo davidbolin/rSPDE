@@ -71,7 +71,7 @@ mesh_2d <- inla.mesh.2d(
   cutoff = 0.05,
   max.edge = c(0.1, 0.5)
 )
-sigma <- 0.01
+sigma <- 1
 range <- 0.2
 nu <- 0.8
 kappa <- sqrt(8 * nu) / range

@@ -1007,7 +1007,7 @@ rspde.make.A <- function(mesh = NULL,
 #'   cutoff = 0.05,
 #'   max.edge = c(0.1, 0.5)
 #' )
-#' sigma <- 0.01
+#' sigma <- 1
 #' range <- 0.2
 #' nu <- 0.8
 #' kappa <- sqrt(8 * nu) / range
@@ -1195,7 +1195,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #'   cutoff = 0.05,
 #'   max.edge = c(0.1, 0.5)
 #' )
-#' sigma <- 0.01
+#' sigma <- 1
 #' range <- 0.2
 #' nu <- 0.8
 #' kappa <- sqrt(8 * nu) / range
@@ -1442,7 +1442,7 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #'   cutoff = 0.05,
 #'   max.edge = c(0.1, 0.5)
 #' )
-#' sigma <- 0.01
+#' sigma <- 1
 #' range <- 0.2
 #' nu <- 0.8
 #' kappa <- sqrt(8 * nu) / range
@@ -1694,7 +1694,7 @@ gg_df.rspde_result <- function(result,
 #'   cutoff = 0.05,
 #'   max.edge = c(0.1, 0.5)
 #' )
-#' sigma <- 0.01
+#' sigma <- 1
 #' range <- 0.2
 #' nu <- 0.8
 #' kappa <- sqrt(8 * nu) / range
