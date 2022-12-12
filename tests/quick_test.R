@@ -19,8 +19,9 @@ Abar <- rspde.make.A(mesh = prmesh, loc = coords)
 mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
 
 rspde_model <- rspde.matern(mesh = prmesh,
-                            nu = 0.6,
-                            shared_lib = "rSPDE")
+                            shared_lib = "rSPDE",
+                            parameterization = "matern",
+                            B.sigma = cbind(0,1,rep(0,rspde_model$n.spde)))
 
 # rspde_stat <- rspde.matern(mesh = prmesh,
 #                                 parameterization = "spde",
@@ -52,13 +53,16 @@ rspde_nonstat <- inla(f.ns,
   family = "Gamma", 
   data = inla.stack.data(stk.dat),
   control.inla = list(int.strategy = "eb"),
-  verbose = TRUE,
+  verbose = FALSE,
   control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
   num.threads = "1:1"
 )
 
+inla_model <- rspde.matern(mesh = prmesh,
+                            shared_lib = "rSPDE",
+                            parameterization = "matern")
 
-f.stat <- y ~ -1 + Intercept +  f(field, model = rspde_stat)
+f.stat <- y ~ -1 + Intercept +  f(field, model = inla_model)
 
 rspde_stat <- inla(f.stat,
   family = "Gamma", 
@@ -68,3 +72,9 @@ rspde_stat <- inla(f.stat,
   control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
   num.threads = "1:1"
 )
+
+Q_nonstat <- inla.cgeneric.q(rspde_model)
+# Q_nonstat <- Q_nonstat$Q
+Q_stat <- inla.cgeneric.q(inla_model)
+# Q_stat <- Q_stat$Q
+sum((Q_nonstat$Q-Q_stat$Q)^2)

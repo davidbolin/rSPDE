@@ -1669,6 +1669,8 @@ get_parameters_rSPDE <- function (mesh, alpha,
     B.kappa, 
     B.sigma,
     B.range, 
+    nu.nominal,
+    alpha.nominal,
     parameterization,
     prior.std.dev.nominal, 
     prior.range.nominal, 
@@ -1686,9 +1688,6 @@ get_parameters_rSPDE <- function (mesh, alpha,
         stop("One of B.kappa or B.range must not be NULL.")
 
     d <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
-    nu <- alpha - d/2
-    nu.nominal <- max(0.5, nu)
-    alpha.nominal <- max(nu.nominal + d/2, alpha)
     n.spde <- ifelse(d == 2, mesh$n, mesh$m)
     n.theta <- ncol(B.kappa) - 1L
 

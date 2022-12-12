@@ -227,6 +227,8 @@ rspde.matern <- function(mesh,
     B.kappa, 
     B.sigma,
     B.range, 
+    start.nu,
+    start.nu + d/2,
     parameterization,
     prior.std.dev.nominal, 
     prior.range.nominal, 
@@ -241,6 +243,9 @@ rspde.matern <- function(mesh,
 
     theta.prior.mean <- param$theta.prior.mean
     theta.prior.prec <- param$theta.prior.prec
+
+    B.tau <- param$B.tau
+    B.kappa <- param$B.kappa
 
   # Starting values
   if(stationary){
@@ -588,6 +593,8 @@ rspde.matern <- function(mesh,
       fem_mesh <- generic_fem_mesh_order(mesh, m_order = m_alpha + 2)
     }
 
+    fem_mesh_orig <- fem_mesh
+
     C <- fem_mesh[["c0"]]
     G <- fem_mesh[["g1"]]
 
@@ -615,20 +622,20 @@ rspde.matern <- function(mesh,
             shlib=rspde_lib,
             n=as.integer(n_cgeneric)*(rspde.order+1), debug=debug,
             d = as.double(d),
-            nu.upper.bound = nu.upper.bound,
+            nu_upper_bound = nu.upper.bound,
             rational_table = as.matrix(rational_table),
             graph_opt_i = graph_opt@i,
             graph_opt_j = graph_opt@j,
             C = C,
             G = G,
-            B_tau = B_tau,
-            B_kappa = B_kappa,
+            B_tau = B.tau,
+            B_kappa = B.kappa,
             prior.nu.loglocation = prior.nu$loglocation,
             prior.nu.logscale = prior.nu$logscale,
             prior.nu.mean = prior.nu$mean,
             prior.nu.prec = prior.nu$prec,
             start.nu = start.nu,
-            rspde.order = as.integer(rspde.order),
+            rspde_order = as.integer(rspde.order),
             prior.nu.dist = "beta",
             start.theta = start.theta,
             theta.prior.mean = param$theta.prior.mean,
@@ -666,9 +673,9 @@ rspde.matern <- function(mesh,
             graph_opt_j = graph_opt@j,
             C = C,
             G = G,
-            B_tau = B_tau,
-            B_kappa = B_kappa,
-            rspde.order = as.integer(rspde.order),
+            B_tau = B.tau,
+            B_kappa = B.kappa,
+            rspde_order = as.integer(rspde.order),
             start.theta = start.theta,
             theta.prior.mean = param$theta.prior.mean,
             theta.prior.prec = param$theta.prior.prec
@@ -694,8 +701,8 @@ rspde.matern <- function(mesh,
             alpha = as.integer(alpha),
             C = C,
             G = G,
-            B_tau = B_tau,
-            B_kappa = B_kappa,
+            B_tau = B.tau,
+            B_kappa = B.kappa,
             start.theta = start.theta,
             theta.prior.mean = param$theta.prior.mean,
             theta.prior.prec = param$theta.prior.prec
