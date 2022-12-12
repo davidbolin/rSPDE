@@ -10,7 +10,11 @@
 #' @param rspde.order The order of the covariance-based rational SPDE approach.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
 #' be estimated. If nu is `NULL`, it will be estimated.
-#' @param debug INLA debug argument
+#' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if `parameterization = 'matern'`.
+#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'`.
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
+#' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
+#' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
 #' @param prior.kappa a `list` containing the elements `meanlog` and
 #' `sdlog`, that is, the mean and standard deviation on the log scale.
 #' @param prior.nu a list containing the elements `mean` and `prec`
@@ -28,16 +32,25 @@
 #' `sdlog`, that is, the mean and standard deviation on the log scale. Will not be used if prior.tau is non-null.
 #' @param start.lkappa Starting value for log of kappa.
 #' @param start.nu Starting value for nu.
-#' @param start.ltau Starting value for log of tau.
-#' @param start.lrange Starting value for log of range. Will not be used if start.lkappa is non-null.
-#' @param start.lstd.dev Starting value for log of std. deviation. Will not be used if start.ltau is non-null.
-#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
+#' @param start.theta Starting values for the model parameters. In the stationary case, if `parameterization='matern'`, then `theta[1]` is the std.dev and `theta[2]` is the range parameter.
+#' If `parameterization = 'spde'`, then `theta[1]` is `tau` and `theta[2]` is `kappa`.
+#' @param theta.prior.mean A vector for the mean priors of `theta`.
+#' @param theta.prior.prec A precision matrix for the prior of `theta`.
+#' @param prior.std.dev.nominal Prior std. deviation to be used for the priors and for the starting values.
+#' @param prior.range.nominal Prior range to be used for the priors and for the starting values.
+#' @param prior.kappa.mean Prior kappa to be used for the priors and for the starting values.
+#' @param prior.tau.mean Prior tau to be used for the priors and for the starting values.
+#' @param start.lstd.dev Starting value for log of std. deviation. Will not be used if start.ltau is non-null. Will be only used in the stationary case and if `parameterization = 'matern'`.
+#' @param start.lrange Starting value for log of range. Will not be used if start.lkappa is non-null. Will be only used in the stationary case and if `parameterization = 'matern'`.
+#' @param start.ltau Starting value for log of tau. Will be only used in the stationary case and if `parameterization = 'spde'`.
+#' @param start.lkappa Starting value for log of kappa. Will be only used in the stationary case and if `parameterization = 'spde'`.
 #' @param prior.nu.dist The distribution of the smoothness parameter.
-#' The current options are "beta" or "lognormal". The default is "beta".
+#' The current options are "beta" or "lognormal". The default is "lognormal".
 #' @param nu.prec.inc Amount to increase the precision in the beta prior
 #' distribution. Check details below.
 #' @param type.rational.approx Which type of rational approximation
 #' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#' @param debug INLA debug argument
 #' @param shared_lib Which shared lib to use for the cgeneric implementation? 
 #' If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
 #' it will use the local installation (does not work if your installation is from CRAN).
@@ -49,7 +62,6 @@
 rspde.matern <- function(mesh,
                          nu.upper.bound = 4, rspde.order = 2,
                          nu = NULL, 
-                         debug = FALSE,
                          B.sigma = matrix(c(0, 1, 0), 1, 3), 
                          B.range = matrix(c(0, 0, 1), 1, 3), 
                          parameterization = c("matern", "spde"),
@@ -72,7 +84,8 @@ rspde.matern <- function(mesh,
                          nu.prec.inc = 1,
                          type.rational.approx = c("chebfun",
                          "brasil", "chebfunLB"),
-                         shared_lib = "INLA") {
+                         debug = FALSE,
+                         shared_lib = "rSPDE") {
   type.rational.approx <- type.rational.approx[[1]]
 
   parameterization <- parameterization[[1]]
@@ -124,6 +137,7 @@ rspde.matern <- function(mesh,
   fixed_nu <- !is.null(nu)
     if (fixed_nu) {
     nu_order <- nu
+    start.nu <- nu
   } else {
     nu_order <- nu.upper.bound
   }
@@ -2511,7 +2525,11 @@ rspde.precision <- function(rspde,
 #' @param rspde.order The order of the covariance-based rational SPDE approach.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
 #' be estimated. If nu is `NULL`, it will be estimated.
-#' @param debug INLA debug argument
+#' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if `parameterization = 'matern'`.
+#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'`.
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
+#' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
+#' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
 #' @param prior.kappa a `list` containing the elements `meanlog` and
 #' `sdlog`, that is, the mean and standard deviation on the log scale.
 #' @param prior.nu a list containing the elements `mean` and `prec`
@@ -2529,40 +2547,61 @@ rspde.precision <- function(rspde,
 #' `sdlog`, that is, the mean and standard deviation on the log scale. Will not be used if prior.tau is non-null.
 #' @param start.lkappa Starting value for log of kappa.
 #' @param start.nu Starting value for nu.
-#' @param start.ltau Starting value for log of tau.
-#' @param start.lrange Starting value for log of range. Will not be used if start.lkappa is non-null.
-#' @param start.lstd.dev Starting value for log of std. deviation. Will not be used if start.ltau is non-null.
-#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
+#' @param start.theta Starting values for the model parameters. In the stationary case, if `parameterization='matern'`, then `theta[1]` is the std.dev and `theta[2]` is the range parameter.
+#' If `parameterization = 'spde'`, then `theta[1]` is `tau` and `theta[2]` is `kappa`.
+#' @param theta.prior.mean A vector for the mean priors of `theta`.
+#' @param theta.prior.prec A precision matrix for the prior of `theta`.
+#' @param prior.std.dev.nominal Prior std. deviation to be used for the priors and for the starting values.
+#' @param prior.range.nominal Prior range to be used for the priors and for the starting values.
+#' @param prior.kappa.mean Prior kappa to be used for the priors and for the starting values.
+#' @param prior.tau.mean Prior tau to be used for the priors and for the starting values.
+#' @param start.lstd.dev Starting value for log of std. deviation. Will not be used if start.ltau is non-null. Will be only used in the stationary case and if `parameterization = 'matern'`.
+#' @param start.lrange Starting value for log of range. Will not be used if start.lkappa is non-null. Will be only used in the stationary case and if `parameterization = 'matern'`.
+#' @param start.ltau Starting value for log of tau. Will be only used in the stationary case and if `parameterization = 'spde'`.
+#' @param start.lkappa Starting value for log of kappa. Will be only used in the stationary case and if `parameterization = 'spde'`.
 #' @param prior.nu.dist The distribution of the smoothness parameter.
-#' The current options are "beta" or "lognormal". The default is "beta".
+#' The current options are "beta" or "lognormal". The default is "lognormal".
 #' @param nu.prec.inc Amount to increase the precision in the beta prior
 #' distribution. Check details below.
 #' @param type.rational.approx Which type of rational approximation
 #' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#' @param debug INLA debug argument
+#' @param shared_lib Which shared lib to use for the cgeneric implementation? 
+#' If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
+#' it will use the local installation (does not work if your installation is from CRAN).
+#' Otherwise, you can directly supply the path of the .so (or .dll) file.
 #'
 #' @return An INLA model.
 #' @export
 
 rspde.metric_graph <- function(graph_obj,
                          h = NULL,
-                         nu.upper.bound = 2, rspde.order = 2,
+                         nu.upper.bound = 4, rspde.order = 2,
                          nu = NULL, 
                          debug = FALSE,
-                         prior.kappa = NULL,
-                         prior.nu = NULL,
-                         prior.tau = NULL,
-                         prior.range = NULL,
-                         prior.std.dev = NULL,
-                         start.lkappa = NULL,
-                         start.nu = NULL,
-                         start.ltau = NULL,
-                         start.lrange = NULL,
-                         start.lstd.dev = NULL,
+                         B.sigma = matrix(c(0, 1, 0), 1, 3), 
+                         B.range = matrix(c(0, 0, 1), 1, 3), 
                          parameterization = c("matern", "spde"),
+                         B.tau = matrix(c(0, 1, 0), 1, 3), 
+                         B.kappa = matrix(c(0, 0, 1), 1, 3), 
+                         start.nu = NULL,
+                         start.theta = NULL,
+                         prior.nu = NULL,
+                         theta.prior.mean = NULL,
+                         theta.prior.prec = 0.1,
+                         prior.std.dev.nominal = 1, 
+                         prior.range.nominal = NULL, 
+                         prior.kappa.mean = NULL,
+                         prior.tau.mean = NULL,
+                         start.lstd.dev = NULL,
+                         start.lrange = NULL,
+                         start.ltau = NULL,
+                         start.lkappa = NULL,
                          prior.nu.dist = c("lognormal", "beta"),
                          nu.prec.inc = 1,
                          type.rational.approx = c("chebfun",
-                         "brasil", "chebfunLB")) {
+                         "brasil", "chebfunLB"),
+                         shared_lib = "INLA") {
     if(!inherits(graph_obj, "metric_graph")){
       stop("The graph object should be of class metric_graph!")
     }
@@ -2578,15 +2617,27 @@ rspde.metric_graph <- function(graph_obj,
       graph_obj$compute_fem()
     }
 
-    if(is.null(prior.range$meanlog)){
-      if(is.null(graph_obj$geo_dist)){
-        graph_obj$compute_geodist(obs=FALSE)
-      }
-      finite_geodist <- is.finite(graph_obj$geo_dist[["__vertices"]])
-      finite_geodist <- graph_obj$geo_dist[["__vertices"]][finite_geodist]
-      prior.range.nominal <- max(finite_geodist) * 0.2
-      prior.range$meanlog <- log(prior.range.nominal)
+    param <- get_parameters_rSPDE_graph(graph_obj, 2 * beta, 
+            B.tau, 
+            B.kappa, 
+            B.sigma,
+            B.range, 
+            start.nu,
+            start.nu + 1/2,
+            parameterization,
+            prior.std.dev.nominal, 
+            prior.range.nominal, 
+            prior.tau.mean, 
+            prior.kappa.mean, 
+            theta.prior.mean, 
+            theta.prior.prec) 
+
+    if(is.null(start.theta)){
+      start.theta <- param$theta.prior.mean
     }
+
+    theta.prior.mean <- param$theta.prior.mean
+    theta.prior.prec <- param$theta.prior.prec
 
     rspde_model <- rspde.matern(mesh = list(d = 1, C = graph_obj$mesh$C, 
                                 G = graph_obj$mesh$G),
@@ -2594,16 +2645,11 @@ rspde.metric_graph <- function(graph_obj,
                                 rspde.order = rspde.order,
                                 nu = nu,
                                 debug = debug,
-                                prior.kappa = prior.kappa,
-                                prior.nu = prior.nu,
-                                prior.tau = prior.tau,
-                                prior.range = prior.range,
-                                prior.std.dev =  prior.std.dev,
-                                start.lkappa = start.lkappa,
-                                start.nu = start.nu,
-                                start.ltau = start.ltau,
-                                start.lrange = start.lrange,
-                                start.lstd.dev = start.lstd.dev,
+                                B.tau = B.tau,
+                                B.kappa = B.kappa,
+                                start.theta = start.theta,
+                                theta.prior.mean = theta.prior.mean,
+                                theta.prior.prec = theta.prior.prec,
                                 parameterization = parameterization,
                                 prior.nu.dist = prior.nu.dist,
                                 nu.prec.inc = nu.prec.inc,

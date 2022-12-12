@@ -112,11 +112,11 @@ rspde.order = 2)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
-rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", 
+rspde_model_fixed <- rspde.matern(mesh = prmesh, parameterization = "spde", 
 nu = 0.4,
 rspde.order = 2)
 
-Q_tmp2 <- INLA::inla.cgeneric.q(rspde_model)
+Q_tmp2 <- INLA::inla.cgeneric.q(rspde_model_fixed)
 
 testthat::expect_equal(sum( (Q_tmp2$Q - Q_tmp$Q)^2), 0)
 })

@@ -1449,25 +1449,9 @@ rational.type <- function(object) {
     mesh <- object$mesh
     nu <- object[["nu"]]
     parameterization <- object$parameterization
-    if(parameterization == "spde"){
-    prior.kappa <- object$prior.theta2
-    prior.tau <- object$prior.theta1
-    prior.range <- NULL
-    prior.std.dev <- NULL
-    start.lkappa <- object$start.theta2
-    start.ltau <- object$start.theta1 
-    start.lrange <- NULL
-    start.lstd.dev <- NULL
-    } else{
-      prior.range <- object$prior.theta2
-      prior.std.dev <- object$prior.theta1
-      prior.kappa <- NULL
-      prior.tau <- NULL
-      start.lrange <- object$start.theta2 
-      start.lstd.dev <- object$start.theta1 
-      start.lkappa <- NULL
-      start.ltau <- NULL
-    }
+    theta.prior.prec <- object$theta.prior.prec
+    theta.prior.mean <- object$theta.prior.mean
+    start.theta <- object$start.theta
     prior.nu <- object$prior.nu
     start.nu <- object$start.nu
     type_rational_approximation <- object$type.rational.approx
@@ -1479,16 +1463,12 @@ rational.type <- function(object) {
       rspde.order = rspde.order,
       nu = nu,
       debug = debug,
-      prior.kappa = prior.kappa,
+      parameterization = parameterization,
+      theta.prior.mean = theta.prior.mean,
+      theta.prior.prec = theta.prior.prec,
+      start.theta = start.theta,
       prior.nu = prior.nu,
-      prior.tau = prior.tau,
-      prior.range = prior.range,
-      prior.std.dev = prior.std.dev,
-      start.lrange = start.lrange,
-      start.lstd.dev = start.lstd.dev,
-      start.lkappa = start.lkappa,
       start.nu = start.nu,
-      start.ltau = start.ltau,
       prior.nu.dist = prior.nu.dist,
       type.rational.approx = type_rational_approximation
     )
@@ -1808,4 +1788,113 @@ prepare_B_matrices <- function (B, n.spde, n.theta)
         }
     }
     stop("Unrecognised structure for B matrix")
+}
+
+
+
+#' @noRd 
+# Get priors and starting values
+# Based on INLA::param2.matern.orig()
+
+get_parameters_rSPDE_graph <- function (graph_obj, alpha, 
+    B.tau, 
+    B.kappa, 
+    B.sigma,
+    B.range, 
+    nu.nominal,
+    alpha.nominal,
+    parameterization,
+    prior.std.dev.nominal, 
+    prior.range.nominal, 
+    prior.tau, 
+    prior.kappa, 
+    theta.prior.mean, 
+    theta.prior.prec) 
+{
+    if(!inherits(graph_obj, "metric_graph")){
+      stop("The graph object should be of class metric_graph!")
+    }
+    if (is.null(B.tau) && is.null(B.sigma)) 
+        stop("One of B.tau or B.sigma must not be NULL.")
+    if (is.null(B.kappa) && is.null(B.range)) 
+        stop("One of B.kappa or B.range must not be NULL.")
+
+    d <- 1
+    n.spde <- nrow(graph_obj$mesh$C)
+    n.theta <- ncol(B.kappa) - 1L
+
+    if(parameterization == "spde"){
+      B.kappa <- prepare_B_matrices(B.kappa, n.spde, 
+          n.theta)
+      B.tau <- prepare_B_matrices(B.tau, n.spde, n.theta)
+    } else if(parameterization == "matern"){
+      B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
+          n.theta)
+      B.range <- prepare_B_matrices(B.range, n.spde, 
+          n.theta)
+
+      B.kappa <- cbind(0.5 * log(8 * nu.nominal) - B.range[, 1], 
+        -B.range[, -1, drop = FALSE])
+
+      B.tau <- cbind(0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) - 
+                d/2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] - 
+                B.sigma[,1], - nu.nominal * B.kappa[, -1, drop = FALSE] -
+                B.sigma[, -1, drop = FALSE])
+    }
+
+
+    if (is.null(theta.prior.prec)) {
+        theta.prior.prec = diag(0.1, n.theta, n.theta)
+    }
+    else {
+        theta.prior.prec = as.matrix(theta.prior.prec)
+        if (ncol(theta.prior.prec) == 1) {
+            theta.prior.prec = diag(as.vector(theta.prior.prec), 
+                n.theta, n.theta)
+        }
+        if ((nrow(theta.prior.prec) != n.theta) || (ncol(theta.prior.prec) != 
+            n.theta)) {
+            stop(paste("Size of theta.prior.prec is (", paste(dim(theta.prior.prec), 
+                collapse = ",", sep = ""), ") but should be (", 
+                paste(c(n.theta, n.theta), collapse = ",", sep = ""), 
+                ")."))
+        }
+    }
+
+    
+    if (is.null(theta.prior.mean)) {
+        if (is.null(prior.range.nominal)) {
+            if(is.null(graph_obj$geo_dist)){
+              graph_obj$compute_geodist(obs=FALSE)
+            }
+            finite_geodist <- is.finite(graph_obj$geo_dist[["__vertices"]])
+            finite_geodist <- graph_obj$geo_dist[["__vertices"]][finite_geodist]
+            prior.range.nominal <- max(finite_geodist) * 0.2
+        }
+        if (is.null(prior.kappa)) {
+            prior.kappa = sqrt(8 * nu.nominal)/prior.range.nominal
+        }
+        if (is.null(prior.tau)) {
+            prior.tau = sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/(4 * 
+                pi * prior.kappa^(2 * nu.nominal) * prior.std.dev.nominal^2))
+        }
+        if (n.theta > 0) {
+          if(parameterization == "spde"){
+              theta.prior.mean = qr.solve(rbind(B.tau[, -1, drop = FALSE], 
+                  B.kappa[, -1, drop = FALSE]), c(log(prior.tau) - 
+                  B.tau[, 1], log(prior.kappa) - B.kappa[, 1]))
+          } else if(parameterization == "matern"){
+              theta.prior.mean = qr.solve(rbind(B.sigma[, -1, drop = FALSE], 
+                  B.range[, -1, drop = FALSE]), c(log(prior.std.dev.nominal) - 
+                  B.sigma[, 1], log(prior.range.nominal) - B.range[, 1]))
+          }
+        }
+        else {
+            theta.prior.mean = rep(0, n.theta)
+        }
+    }
+    param = list(B.tau = B.tau, 
+        B.kappa = B.kappa, theta.prior.mean = theta.prior.mean, 
+        theta.prior.prec = theta.prior.prec)
+    return(param)
 }
