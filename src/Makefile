@@ -1,4 +1,11 @@
-toInclude = "/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/INLA/include/"
+toInclude = ${R_LIBRARY_DIR}/INLA/include/
+
+OS := $(shell uname)
+ifeq ($(OS),Darwin)
+  EIGENPATH=/usr/local/include/eigen3/
+else
+  EIGENPATH=/usr/include/eigen3/
+endif
 
 obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o cgeneric_rspde_stat_frac_model.o cgeneric_rspde_nonstat_general.o cgeneric_rspde_stat_general.o cgeneric_rspde_stat_parsim_gen.o cgeneric_rspde_stat_parsim_fixed.o cgeneric_rspde_stat_int.o cgeneric_rspde_nonstat_gen_fixed.o cgeneric_rspde_nonstat_int.o cgeneric_aux_nonstat_int.o
 
@@ -10,7 +17,7 @@ flags = -O2 -Wall -Wextra -fpic
 	clang $(flags) -lstdc++ -Iinclude -I$(toInclude)  -c $^ -o $@
 
 %.o: %.cpp
-	clang++ $(flags)  -I$(toInclude) -I"/opt/homebrew/opt/eigen/include/eigen3" -c $^ -o $@
+	clang++ $(flags)  -I$(toInclude) -I$(EIGENPATH) -c $^ -o $@
 
 rSPDE.so: $(obj)
 	clang++ -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack

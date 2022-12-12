@@ -55,6 +55,7 @@
 #' If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
 #' it will use the local installation (does not work if your installation is from CRAN).
 #' Otherwise, you can directly supply the path of the .so (or .dll) file.
+#' @param ... Only being used internally.
 #' 
 #' @return An INLA model.
 #' @export
@@ -85,7 +86,8 @@ rspde.matern <- function(mesh,
                          type.rational.approx = c("chebfun",
                          "brasil", "chebfunLB"),
                          debug = FALSE,
-                         shared_lib = "rSPDE") {
+                         shared_lib = "rSPDE",
+                         ...) {                      
   type.rational.approx <- type.rational.approx[[1]]
 
   parameterization <- parameterization[[1]]
@@ -236,7 +238,8 @@ rspde.matern <- function(mesh,
 
   # Prior kappa and prior range
 
-   param <- get_parameters_rSPDE(mesh, 2 * beta, 
+  if(!inherits(mesh, "metric_graph")){
+    param <- get_parameters_rSPDE(mesh, 2 * beta, 
     B.tau, 
     B.kappa, 
     B.sigma,
@@ -250,6 +253,14 @@ rspde.matern <- function(mesh,
     prior.kappa.mean, 
     theta.prior.mean, 
     theta.prior.prec) 
+  } else{
+    tmp_function <- function(vec_param){
+      vec_param
+    }
+    param <- tmp_function(...)
+  }
+
+
 
     if(is.null(start.theta)){
       start.theta <- param$theta.prior.mean
@@ -2576,7 +2587,7 @@ rspde.precision <- function(rspde,
 
 rspde.metric_graph <- function(graph_obj,
                          h = NULL,
-                         nu.upper.bound = 4, rspde.order = 2,
+                         nu.upper.bound = 2, rspde.order = 2,
                          nu = NULL, 
                          debug = FALSE,
                          B.sigma = matrix(c(0, 1, 0), 1, 3), 
@@ -2605,6 +2616,23 @@ rspde.metric_graph <- function(graph_obj,
     if(!inherits(graph_obj, "metric_graph")){
       stop("The graph object should be of class metric_graph!")
     }
+
+  type.rational.approx <- type.rational.approx[[1]]
+
+  parameterization <- parameterization[[1]]
+
+  prior.nu.dist <- prior.nu.dist[[1]]
+  if (!prior.nu.dist %in% c("beta", "lognormal")) {
+    stop("prior.nu.dist should be either beta or lognormal!")
+  }
+
+  if (!parameterization %in% c("matern", "spde")) {
+    stop("parameterization should be either matern or spde!")
+  }
+
+  if (!type.rational.approx %in% c("chebfun", "brasil", "chebfunLB")) {
+    stop("type.rational.approx should be either chebfun, brasil or chebfunLB!")
+  }
     if(is.null(graph_obj$mesh)){
       if(is.null(h)){
         graph_obj$build_mesh(h = 0.01)
@@ -2616,6 +2644,47 @@ rspde.metric_graph <- function(graph_obj,
     if(is.null(graph_obj$mesh$C)){
       graph_obj$compute_fem()
     }
+
+  fixed_nu <- !is.null(nu)
+    if (fixed_nu) {
+    nu_order <- nu
+    start.nu <- nu
+  } else {
+    nu_order <- nu.upper.bound
+  }
+
+  
+
+  if (is.null(prior.nu$loglocation)) {
+    prior.nu$loglocation <- log(min(1, nu.upper.bound / 2))
+  }
+
+  if (is.null(prior.nu[["mean"]])) {
+    prior.nu[["mean"]] <- min(1, nu.upper.bound / 2)
+  }
+
+  if (is.null(prior.nu$prec)) {
+    mu_temp <- prior.nu[["mean"]] / nu.upper.bound
+    prior.nu$prec <- max(1 / mu_temp, 1 / (1 - mu_temp)) + nu.prec.inc
+  }
+
+  if (is.null(prior.nu[["logscale"]])) {
+    prior.nu[["logscale"]] <- 1
+  }
+
+  # Start nu
+
+  if (is.null(start.nu)) {
+    if (prior.nu.dist == "beta") {
+      start.nu <- prior.nu[["mean"]]
+    } else if (prior.nu.dist == "lognormal") {
+      start.nu <- exp(prior.nu[["loglocation"]])
+    } else {
+      stop("prior.nu.dist should be either beta or lognormal!")
+    }
+  } else if (start.nu > nu.upper.bound || start.nu < 0) {
+    stop("start.nu should be a number between 0 and nu.upper.bound!")
+  }
 
     param <- get_parameters_rSPDE_graph(graph_obj, 2 * beta, 
             B.tau, 
@@ -2638,9 +2707,12 @@ rspde.metric_graph <- function(graph_obj,
 
     theta.prior.mean <- param$theta.prior.mean
     theta.prior.prec <- param$theta.prior.prec
+    
+    mesh <- list(d = 1, C = graph_obj$mesh$C, 
+                                G = graph_obj$mesh$G)
+    class(mesh) <- "metric_graph"
 
-    rspde_model <- rspde.matern(mesh = list(d = 1, C = graph_obj$mesh$C, 
-                                G = graph_obj$mesh$G),
+    rspde_model <- rspde.matern(mesh = mesh,
                                 nu.upper.bound = nu.upper.bound,
                                 rspde.order = rspde.order,
                                 nu = nu,
@@ -2653,7 +2725,8 @@ rspde.metric_graph <- function(graph_obj,
                                 parameterization = parameterization,
                                 prior.nu.dist = prior.nu.dist,
                                 nu.prec.inc = nu.prec.inc,
-                                type.rational.approx = type.rational.approx
+                                type.rational.approx = type.rational.approx,
+                                vec_param = param
                                 )
         
         rspde_model$mesh <- graph_obj
