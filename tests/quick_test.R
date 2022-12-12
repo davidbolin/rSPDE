@@ -14,13 +14,12 @@ prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
 prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
-Abar <- rspde.make.A(mesh = prmesh, loc = coords, rspde.order = 0)
+Abar <- rspde.make.A(mesh = prmesh, loc = coords)
 
-mesh.index <- rspde.make.index(name = "field", mesh = prmesh, rspde.order = 0)
+mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
 
 rspde_model <- rspde.matern(mesh = prmesh,
                             nu = 0.6,
-                            rspde.order = 0,
                             shared_lib = "rSPDE")
 
 # rspde_stat <- rspde.matern(mesh = prmesh,
