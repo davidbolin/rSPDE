@@ -14,10 +14,10 @@ all : rSPDE.so
 flags = -O2 -Wall -Wextra -fpic
 
 %.o: %.c
-	clang $(flags) -lstdc++ -Iinclude -I$(toInclude)  -c $^ -o $@
+	gcc $(flags) -lstdc++ -Iinclude -I$(toInclude)  -c $^ -o $@
 
 %.o: %.cpp
-	clang++ $(flags)  -I$(toInclude) -I$(EIGENPATH) -c $^ -o $@
+	g++ $(flags)  -I$(toInclude) -I$(EIGENPATH) -c $^ -o $@
 
 rSPDE.so: $(obj)
-	clang++ -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
+	g++ -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
