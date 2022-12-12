@@ -31,7 +31,8 @@ rspde.matern(
   nu.prec.inc = 1,
   type.rational.approx = c("chebfun", "brasil", "chebfunLB"),
   debug = FALSE,
-  shared_lib = "rSPDE"
+  shared_lib = "rSPDE",
+  ...
 )
 }
 \arguments{
@@ -104,6 +105,8 @@ should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
 If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
 it will use the local installation (does not work if your installation is from CRAN).
 Otherwise, you can directly supply the path of the .so (or .dll) file.}
+
+\item{...}{Only being used internally.}
 
 \item{prior.kappa}{a \code{list} containing the elements \code{meanlog} and
 \code{sdlog}, that is, the mean and standard deviation on the log scale.}

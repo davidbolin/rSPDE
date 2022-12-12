@@ -7,7 +7,7 @@
 rspde.metric_graph(
   graph_obj,
   h = NULL,
-  nu.upper.bound = 4,
+  nu.upper.bound = 2,
   rspde.order = 2,
   nu = NULL,
   debug = FALSE,
