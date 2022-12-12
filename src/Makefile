@@ -13,4 +13,4 @@ flags = -O2 -Wall -Wextra -fpic
 	clang++ $(flags)  -I$(toInclude) -I"/opt/homebrew/opt/eigen/include/eigen3" -c $^ -o $@
 
 rSPDE.so: $(obj)
-	clang++ -shared *.o -o rSPDE.so -lblas -llapack
+	clang++ -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
