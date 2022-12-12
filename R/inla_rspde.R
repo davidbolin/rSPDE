@@ -636,7 +636,7 @@ rspde.matern <- function(mesh,
             prior.nu.prec = prior.nu$prec,
             start.nu = start.nu,
             rspde_order = as.integer(rspde.order),
-            prior.nu.dist = "beta",
+            prior.nu.dist = prior.nu.dist,
             start.theta = start.theta,
             theta.prior.mean = param$theta.prior.mean,
             theta.prior.prec = param$theta.prior.prec

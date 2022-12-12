@@ -20,8 +20,9 @@ mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
 
 rspde_model <- rspde.matern(mesh = prmesh,
                             shared_lib = "rSPDE",
-                            parameterization = "matern",
-                            B.sigma = cbind(0,1,rep(0,rspde_model$n.spde)))
+                            nu = 0.7,
+                            parameterization = "spde",
+                            B.tau = cbind(0,1,rep(0,rspde_model$n.spde)))
 
 # rspde_stat <- rspde.matern(mesh = prmesh,
 #                                 parameterization = "spde",
@@ -60,7 +61,8 @@ rspde_nonstat <- inla(f.ns,
 
 inla_model <- rspde.matern(mesh = prmesh,
                             shared_lib = "rSPDE",
-                            parameterization = "matern")
+                            nu = 0.7,
+                            parameterization = "spde")
 
 f.stat <- y ~ -1 + Intercept +  f(field, model = inla_model)
 
@@ -78,3 +80,6 @@ Q_nonstat <- inla.cgeneric.q(rspde_model)
 Q_stat <- inla.cgeneric.q(inla_model)
 # Q_stat <- Q_stat$Q
 sum((Q_nonstat$Q-Q_stat$Q)^2)
+
+Q_stat$log.prior
+Q_nonstat$log.prior
