@@ -6,25 +6,14 @@
 // This version uses 'padded' matrices with zeroes
 double *inla_cgeneric_rspde_stat_parsim_fixed_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data) {
   double *ret = NULL;
-  double ltau, lkappa, tau, kappa, prior_theta1_meanlog, nu;
+  double ltau, lkappa, tau, kappa, nu;
   double alpha;
   int m_alpha;
-  double prior_theta1_sdlog, prior_theta2_meanlog, prior_theta2_sdlog;
-  double start_theta1, start_theta2;
   int N, M, i, k;
   double d;
   char *parameterization;
   int fem_size;
   int one = 1;
-
-   // the size of the model
-  assert(data->n_ints == 4);
-
-  // the number of doubles
-  assert(data->n_doubles == 9);
-
-  // the number of strings
-  assert(data->n_chars == 3);
 
   assert(!strcasecmp(data->ints[0]->name, "n"));       // this will always be the case
   N = data->ints[0]->ints[0];			       // this will always be the case
@@ -64,23 +53,14 @@ double *inla_cgeneric_rspde_stat_parsim_fixed_model(inla_cgeneric_cmd_tp cmd, do
   assert(M == fem_size);
 
   // prior parameters
-  assert(!strcasecmp(data->doubles[3]->name, "prior.theta1.meanlog"));
-  prior_theta1_meanlog = data->doubles[3]->doubles[0];
+  assert(!strcasecmp(data->doubles[3]->name, "theta.prior.mean"));
+  inla_cgeneric_vec_tp *theta_prior_mean = data->doubles[3];
 
-  assert(!strcasecmp(data->doubles[4]->name, "prior.theta1.sdlog"));
-  prior_theta1_sdlog = data->doubles[4]->doubles[0];
+  assert(!strcasecmp(data->mats[0]->name, "theta.prior.prec"));
+  inla_cgeneric_mat_tp *theta_prior_prec = data->mats[0];
 
-  assert(!strcasecmp(data->doubles[5]->name, "prior.theta2.meanlog"));
-  prior_theta2_meanlog = data->doubles[5]->doubles[0];
-
-  assert(!strcasecmp(data->doubles[6]->name, "prior.theta2.sdlog"));
-  prior_theta2_sdlog = data->doubles[6]->doubles[0];
-
-  assert(!strcasecmp(data->doubles[7]->name, "start.theta1"));
-  start_theta1 = data->doubles[7]->doubles[0];
-
-  assert(!strcasecmp(data->doubles[8]->name, "start.theta2"));
-  start_theta2 = data->doubles[8]->doubles[0];
+  assert(!strcasecmp(data->doubles[4]->name, "start.theta"));
+  inla_cgeneric_vec_tp *start_theta = data->doubles[4];
 
   if (theta) {
     // interpretable parameters 
@@ -163,8 +143,8 @@ double *inla_cgeneric_rspde_stat_parsim_fixed_model(inla_cgeneric_cmd_tp cmd, do
       // where P is the number of hyperparameters      
       ret = Calloc(3, double);
       ret[0] = 2;
-      ret[1] = start_theta1;
-      ret[2] = start_theta2;
+      ret[1] = start_theta->doubles[0];
+      ret[2] = start_theta->doubles[1];
       break;
     }
     
@@ -179,11 +159,8 @@ double *inla_cgeneric_rspde_stat_parsim_fixed_model(inla_cgeneric_cmd_tp cmd, do
 
       ret[0] = 0.0;
 
-      ret[0] += -0.5 * SQR(theta[0] - prior_theta1_meanlog)/(SQR(prior_theta1_sdlog)) - 
-      log(prior_theta1_sdlog) - 0.5 * log(2.0 * M_PI);
-
-      ret[0] += -0.5 * SQR(theta[1] - prior_theta2_meanlog)/(SQR(prior_theta2_sdlog)) - 
-      log(prior_theta2_sdlog) - 0.5 * log(2.0 * M_PI);
+      ret[0] += logmultnormvdens(2, theta_prior_mean->doubles,
+                                  theta_prior_prec->x, theta);
 	  break;
     }
     

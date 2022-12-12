@@ -19,6 +19,7 @@ Abar <- rspde.make.A(mesh = prmesh, loc = coords, rspde.order = 0)
 mesh.index <- rspde.make.index(name = "field", mesh = prmesh, rspde.order = 0)
 
 rspde_model <- rspde.matern(mesh = prmesh,
+                            nu = 0.6,
                             rspde.order = 0,
                             shared_lib = "rSPDE")
 
