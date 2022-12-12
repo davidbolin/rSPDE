@@ -685,7 +685,7 @@ CBrSPDE.matern.operators <- function(C,
 
     Q.frac <- rspde.matern.precision(
       kappa = kappa, nu = nu, tau = tau,
-      rspde_order = m, dim = d,
+      rspde.order = m, dim = d,
       fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
       return_block_list = TRUE,
       type_rational_approx = type_rational_approximation
@@ -707,7 +707,7 @@ CBrSPDE.matern.operators <- function(C,
 
     Q.frac <- rspde.matern.precision(
       kappa = kappa, nu = nu, tau = tau,
-      rspde_order = m, dim = d,
+      rspde.order = m, dim = d,
       fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
       type_rational_approx = type_rational_approximation
     )

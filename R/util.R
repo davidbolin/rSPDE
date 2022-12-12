@@ -566,7 +566,7 @@ character.only = FALSE) {
 #' @param dim The dimension of the domain.
 #' @param include.nu Should we also provide an initial guess for nu?
 #' @param log.scale Should the results be provided in log scale?
-#' @param nu_upper_bound Should an upper bound for nu be considered?
+#' @param nu.upper.bound Should an upper bound for nu be considered?
 #' @param include.tau Should tau be returned instead of sigma?
 #' @return A vector of the form (theta_1,theta_2,theta_3) or where
 #' theta_1 is the initial guess for tau, theta_2 is the initial guess for kappa
@@ -578,7 +578,7 @@ get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
                                     dim = NULL,
                                     include.nu = TRUE, log.scale = TRUE,
                                     include.tau = FALSE,
-                                    nu_upper_bound = NULL) {
+                                    nu.upper.bound = NULL) {
   if (is.null(mesh) && is.null(mesh.range)) {
     stop("You should either provide mesh or mesh.range!")
   }
@@ -587,8 +587,8 @@ get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
     stop("If you don't provide mesh, you have to provide dim!")
   }
   if (include.nu) {
-    if (!is.null(nu_upper_bound)) {
-      nu <- min(1, nu_upper_bound / 2)
+    if (!is.null(nu.upper.bound)) {
+      nu <- min(1, nu.upper.bound / 2)
     } else {
       nu <- 1
     }
@@ -770,7 +770,7 @@ generic_fem_mesh_order <- function(fem_matrices, m_order) {
 #' is not provided.
 #' @param nu The smoothness parameter
 #' @param force_non_integer Should nu be treated as non_integer?
-#' @param rspde_order The order of the covariance-based rational SPDE approach.
+#' @param rspde.order The order of the covariance-based rational SPDE approach.
 #' @return The sparsity graph for rSPDE models to be used in R-INLA interface.
 #' @noRd
 
@@ -778,7 +778,7 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
                                      fem_mesh_matrices = NULL,
                                      nu,
                                      force_non_integer = FALSE,
-                                     rspde_order = 2,
+                                     rspde.order = 2,
                                      dim = NULL) {
   if (!is.null(mesh)) {
     stopifnot(inherits(mesh, "inla.mesh"))
@@ -811,7 +811,7 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
         if (m_alpha > 0) {
           return(bdiag(
             kronecker(
-              diag(rep(1, rspde_order)),
+              diag(rep(1, rspde.order)),
               fem_mesh_matrices[[paste0("g", m_alpha + 1)]]
             ),
             fem_mesh_matrices[[paste0("g", m_alpha)]]
@@ -819,7 +819,7 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
         } else {
           return(bdiag(
             kronecker(
-              diag(rep(1, rspde_order)),
+              diag(rep(1, rspde.order)),
               fem_mesh_matrices[["g1"]]
             ),
             fem_mesh_matrices[["c0"]]
@@ -827,7 +827,7 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
         }
       } else {
         return(kronecker(
-          diag(rep(1, rspde_order + 1)),
+          diag(rep(1, rspde.order + 1)),
           fem_mesh_matrices[[paste0("g", m_alpha + 1)]]
         ))
       }
@@ -848,7 +848,7 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
         if (m_alpha > 0) {
           return(bdiag(
             kronecker(
-              diag(rep(1, rspde_order)),
+              diag(rep(1, rspde.order)),
               fem_mesh_matrices[[paste0("g", m_alpha + 1)]]
             ),
             fem_mesh_matrices[[paste0("g", m_alpha)]]
@@ -856,7 +856,7 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
         } else {
           return(bdiag(
             kronecker(
-              diag(rep(1, rspde_order)),
+              diag(rep(1, rspde.order)),
               fem_mesh_matrices[["g1"]]
             ),
             fem_mesh_matrices[["c0"]]
@@ -864,7 +864,7 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
         }
       } else {
         return(kronecker(
-          diag(rep(1, rspde_order + 1)),
+          diag(rep(1, rspde.order + 1)),
           fem_mesh_matrices[[paste0("g", m_alpha + 1)]]
         ))
       }
@@ -900,9 +900,9 @@ build_sparse_matrix_rspde <- function(entries, graph) {
 #' @title Analyze sparsity of matrices in the rSPDE approach
 #' @description Auxiliar function to analyze sparsity of matrices
 #' in the rSPDE approach
-#' @param nu_upper_bound Upper bound for the smoothness parameter
+#' @param nu.upper.bound Upper bound for the smoothness parameter
 #' @param dim The dimension of the domain
-#' @param rspde_order The order of the rational approximation
+#' @param rspde.order The order of the rational approximation
 #' @param fem_mesh_matrices A list containing FEM-related matrices.
 #' The list should contain elements c0, g1, g2, g3, etc.
 #' @param include_lower_order Logical. Should the lower-order terms
@@ -913,11 +913,11 @@ build_sparse_matrix_rspde <- function(entries, graph) {
 #' @return A list containing informations on sparsity of the precision matrices
 #' @noRd
 
-analyze_sparsity_rspde <- function(nu_upper_bound, dim, rspde_order,
+analyze_sparsity_rspde <- function(nu.upper.bound, dim, rspde.order,
                                    fem_mesh_matrices,
                                    include_lower_order = TRUE,
                                    include_higher_order = TRUE) {
-  beta <- nu_upper_bound / 2 + dim / 4
+  beta <- nu.upper.bound / 2 + dim / 4
 
   m_alpha <- floor(2 * beta)
 
@@ -1209,189 +1209,35 @@ get_rational_coefficients <- function(order, type_rational_approx) {
   if (inherits(object, "CBrSPDEobj")) {
     model <- update(x, type_rational_approximation = value)
   } else if (inherits(object, "inla_rspde")) {
-    fem_mesh <- object$fem_mesh
+    nu.upper.bound <- object$nu.upper.bound
+    prior.nu.dist <- object$prior.nu.dist
     mesh <- object$mesh
-    cgeneric_type <- object$cgeneric_type
-    d <- object$dim
-    est_nu <- object$est_nu
-    n.spde <- object$n.spde
-    nu_upper_bound <- object$nu_upper_bound
-    prior.nu.dist <- object$prior.nu.dist
-    integer.nu <- object$integer.nu
     nu <- object[["nu"]]
-    prior.theta1 <- object$prior.theta1
-    prior.nu <- object$prior.nu
-    prior.theta2 <- object$prior.theta2
-    start.theta1 <- object$start.theta1
-    start.theta2 <- object$start.theta2
-    start.nu <- object$start.nu
-    rspde_order <- object$rspde_order
-    debug <- object$debug
-    matrices_less <- object$f$cgeneric$data$doubles$matrices_less
-    matrices_full <- object$f$cgeneric$data$doubles$matrices_full
-    rational_table <- matrix(object$f$cgeneric$data$matrices$rational_table[-c(1,2)], nrow=999, byrow = TRUE)
-    graph_opt_i <- object$f$cgeneric$data$ints$graph_opt_i
-    graph_opt_j <- object$f$cgeneric$data$ints$graph_opt_j
+    rspde.order <- object$rspde.order
     parameterization <- object$parameterization
-    n_object <- object$f$cgeneric$n
+    theta.prior.prec <- object$theta.prior.prec
+    theta.prior.mean <- object$theta.prior.mean
+    start.theta <- object$start.theta
+    prior.nu <- object$prior.nu
+    start.nu <- object$start.nu
+    debug <- object$debug
 
-    rspde_lib <- system.file('shared', package='rSPDE')
 
-    if (cgeneric_type == "general") {
-    model <- do.call(
-        'inla.cgeneric.define',
-        list(model="inla_cgeneric_rspde_stat_general_model",
-            shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
-            n=as.integer(n_object), debug=debug,
-            d = as.double(d),
-            nu_upper_bound = nu_upper_bound,
-            matrices_less = as.double(matrices_less),
-            matrices_full = as.double(matrices_full),
-            rational_table = as.matrix(rational_table),
-            graph_opt_i = graph_opt_i,
-            graph_opt_j = graph_opt_j,
-            prior.theta1.meanlog = prior.theta1$meanlog,
-            prior.theta1.sdlog = prior.theta1$sdlog,
-            prior.theta2.meanlog = prior.theta2$meanlog,
-            prior.theta2.sdlog = prior.theta2$sdlog,
-            prior.nu.loglocation = prior.nu$loglocation,
-            prior.nu.mean = prior.nu$mean,
-            prior.nu.prec = prior.nu$prec,
-            prior.nu.logscale = prior.nu$logscale,
-            start.theta1 = start.theta1,
-            start.theta2 = start.theta2,
-            start.nu = start.nu,
-            rspde_order = as.integer(rspde_order),
-            prior.nu.dist = prior.nu.dist,
-            parameterization = parameterization))
+    model <- rspde.matern(mesh,
+      nu.upper.bound = nu.upper.bound,
+      rspde.order = rspde.order,
+      nu = nu,
+      debug = debug,
+      parameterization = parameterization,
+      theta.prior.mean = theta.prior.mean,
+      theta.prior.prec = theta.prior.prec,
+      start.theta = start.theta,
+      prior.nu = prior.nu,
+      start.nu = start.nu,
+      prior.nu.dist = prior.nu.dist,
+      type.rational.approx = type_rational_approximation
+    )
     
-    model$cgeneric_type <- "general"
-    } else if (cgeneric_type == "frac_alpha") {
-
-    fem_mesh <- object$fem_mesh
-    n_cgeneric <- object$f$cgeneric$n
-    cgeneric_type <- object$cgeneric_type
-    d <- object$dim
-    est_nu <- object$est_nu
-    n.spde <- object$n.spde
-    prior.nu <- object$prior.nu
-    integer.nu <- object$integer.nu
-    nu_upper_bound <- object$nu_upper_bound
-    prior.nu.dist <- object$prior.nu.dist
-    nu <- object[["nu"]]
-    prior.theta1 <- object$prior.theta1
-    prior.theta2 <- object$prior.theta2
-    start.theta1 <- object$start.theta1
-    start.theta2 <- object$start.theta2
-    rspde_order <- object$rspde_order
-    start.nu <- object$start.nu
-    debug <- object$debug
-    matrices_less <- object$f$cgeneric$data$doubles$matrices_less
-    matrices_full <- object$f$cgeneric$data$doubles$matrices_full
-    graph_opt_i <- object$f$cgeneric$data$ints$graph_opt_i
-    graph_opt_j <- object$f$cgeneric$data$ints$graph_opt_j
-    parameterization <- object$parameterization
-    r_ratapprox <- object$f$cgeneric$data$doubles$r_ratapprox
-    p_ratapprox <- object$f$cgeneric$data$doubles$p_ratapprox
-    k_ratapprox <- object$f$cgeneric$data$doubles$k_ratapprox
-    n_object <- object$f$cgeneric$n
-     rspde_lib <- system.file('libs', package='rSPDE')
-
-    model <- do.call(
-        'inla.cgeneric.define',
-        list(model="inla_cgeneric_rspde_stat_frac_model",
-            shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
-            n=as.integer(n_object), debug=debug,
-            nu = nu,
-            matrices_less = as.double(matrices_less),
-            matrices_full = as.double(matrices_full),
-            r_ratapprox = r_ratapprox,
-            p_ratapprox = p_ratapprox,
-            k_ratapprox = k_ratapprox,
-            graph_opt_i = graph_opt_i,
-            graph_opt_j = graph_opt_j,
-            prior.theta1.meanlog = prior.theta1$meanlog,
-            prior.theta1.sdlog = prior.theta1$sdlog,
-            prior.theta2.meanlog = prior.theta2$meanlog,
-            prior.theta2.sdlog = prior.theta2$sdlog,
-            start.theta1 = start.theta1,
-            start.theta2 = start.theta2,
-            rspde_order = as.integer(rspde_order),
-            parameterization = parameterization,
-            d = as.integer(d)))
-            model$cgeneric_type <- "frac_alpha"
-    } else if (cgeneric_type == "int_alpha") {
-
-    fem_mesh <- object$fem_mesh
-    n_cgeneric <- object$f$cgeneric$n
-    m_alpha <- object$f$cgeneric$data$ints$m_alpha
-    cgeneric_type <- object$cgeneric_type
-    d <- object$dim
-    est_nu <- object$est_nu
-    n.spde <- object$n.spde
-    nu_upper_bound <- object$nu_upper_bound
-    prior.nu.dist <- object$prior.nu.dist
-    integer.nu <- object$integer.nu
-    nu <- object[["nu"]]
-    prior.theta1 <- object$prior.theta1
-    prior.nu <- object$prior.nu
-    prior.theta2 <- object$prior.theta2
-    start.theta1 <- object$start.theta1
-    start.theta2 <- object$start.theta2
-    start.nu <- object$start.nu
-    debug <- object$debug
-    matrices_less <- object$f$cgeneric$data$doubles$matrices_less
-    matrices_full <- object$f$cgeneric$data$doubles$matrices_full
-    graph_opt_i <- object$f$cgeneric$data$ints$graph_opt_i
-    graph_opt_j <- object$f$cgeneric$data$ints$graph_opt_j
-    parameterization <- object$parameterization
-    rspde_lib <- system.file('libs', package='rSPDE')
-    n_object <- object$f$cgeneric$n
-
-    model <- do.call(
-        'inla.cgeneric.define',
-        list(model="inla_cgeneric_rspde_stat_int_model",
-            shlib=paste0(rspde_lib, '/rspde_cgeneric_models.so'),
-            n=as.integer(n_object), debug=debug,
-            matrices_less = as.double(matrices_less),
-            m_alpha = as.integer(m_alpha),
-            graph_opt_i = graph_opt_i,
-            graph_opt_j = graph_opt_j,
-            prior.theta1.meanlog = prior.theta1$meanlog,
-            prior.theta1.sdlog = prior.theta1$sdlog,
-            prior.theta2.meanlog = prior.theta2$meanlog,
-            prior.theta2.sdlog = prior.theta2$sdlog,
-            start.theta1 = start.theta1,
-            start.theta2 = start.theta2,
-            nu = nu 
-            ))
-    model$cgeneric_type <- "int_alpha"
-    } else {
-      stop("Something is wrong with the rspde model!")
-    }
-  model$nu <- nu
-  model$prior.theta1 <- prior.theta1
-  model$prior.nu <- prior.nu
-  model$prior.theta2 <- prior.theta2
-  model$start.theta1 <- start.theta1
-  model$start.theta2 <- start.theta2
-  model$start.nu <- start.nu
-  model$integer.nu <- integer.nu
-  if (integer.nu) {
-    rspde_order <- 0
-  }
-  model$rspde_order <- rspde_order
-  class(model) <- c("inla_rspde", class(model))
-  model$dim <- d
-  model$est_nu <- est_nu
-  model$n.spde <- mesh$n
-  model$nu_upper_bound <- nu_upper_bound
-  model$prior.nu.dist <- prior.nu.dist
-  model$debug <- debug
-  model$type.rational.approx <- type_rational_approximation
-  model$mesh <- mesh
-  model$fem_mesh <- fem_mesh
-  model$parameterization <- parameterization
   } else {
     stop("The object must be of class 'CBrSPDE' or 'inla_rspde'!")
   }
@@ -1432,42 +1278,26 @@ rational.type <- function(object) {
 `rational.order<-` <- function(x, value) {
   object <- x
 
-  rspde_order <- value
-  rspde_order <- rspde_order[[1]]
+  rspde.order <- value
+  rspde.order <- rspde.order[[1]]
 
   if (inherits(object, "CBrSPDEobj") || inherits(object, "rSPDEobj")) {
-    model <- update(object, user_m = rspde_order)
+    model <- update(object, user_m = rspde.order)
   } else if (inherits(object, "inla_rspde")) {
-    if (rspde_order > 0 && object$integer.nu) {
+    if (rspde.order > 0 && object$integer.nu) {
       warning("The order was not changed since there is no
       rational approximation (an integer model was
       considered).")
       return(object)
     }
-    nu_upper_bound <- object$nu_upper_bound
+    nu.upper.bound <- object$nu.upper.bound
     prior.nu.dist <- object$prior.nu.dist
     mesh <- object$mesh
     nu <- object[["nu"]]
     parameterization <- object$parameterization
-    if(parameterization == "spde"){
-    prior.kappa <- object$prior.theta2
-    prior.tau <- object$prior.theta1
-    prior.range <- NULL
-    prior.std.dev <- NULL
-    start.lkappa <- object$start.theta2
-    start.ltau <- object$start.theta1 
-    start.lrange <- NULL
-    start.lstd.dev <- NULL
-    } else{
-      prior.range <- object$prior.theta2
-      prior.std.dev <- object$prior.theta1
-      prior.kappa <- NULL
-      prior.tau <- NULL
-      start.lrange <- object$start.theta2 
-      start.lstd.dev <- object$start.theta1 
-      start.lkappa <- NULL
-      start.ltau <- NULL
-    }
+    theta.prior.prec <- object$theta.prior.prec
+    theta.prior.mean <- object$theta.prior.mean
+    start.theta <- object$start.theta
     prior.nu <- object$prior.nu
     start.nu <- object$start.nu
     type_rational_approximation <- object$type.rational.approx
@@ -1475,33 +1305,29 @@ rational.type <- function(object) {
 
 
     model <- rspde.matern(mesh,
-      nu_upper_bound = nu_upper_bound,
-      rspde_order = rspde_order,
+      nu.upper.bound = nu.upper.bound,
+      rspde.order = rspde.order,
       nu = nu,
       debug = debug,
-      prior.kappa = prior.kappa,
+      parameterization = parameterization,
+      theta.prior.mean = theta.prior.mean,
+      theta.prior.prec = theta.prior.prec,
+      start.theta = start.theta,
       prior.nu = prior.nu,
-      prior.tau = prior.tau,
-      prior.range = prior.range,
-      prior.std.dev = prior.std.dev,
-      start.lrange = start.lrange,
-      start.lstd.dev = start.lstd.dev,
-      start.lkappa = start.lkappa,
       start.nu = start.nu,
-      start.ltau = start.ltau,
       prior.nu.dist = prior.nu.dist,
       type.rational.approx = type_rational_approximation
     )
   } else if (!is.null(attr(object, "inla_rspde_Amatrix"))) {
     n_temp <- ncol(object)
-    old_rspde_order <- attr(object, "rspde_order")
-    orig_dim <- n_temp / (old_rspde_order + 1)
+    old_rspde.order <- attr(object, "rspde.order")
+    orig_dim <- n_temp / (old_rspde.order + 1)
     A <- object[, 1:orig_dim]
-    Abar <- kronecker(matrix(1, 1, rspde_order + 1), A)
+    Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
     attr(Abar, "inla_rspde_Amatrix") <- TRUE
-    attr(Abar, "rspde_order") <- rspde_order
+    attr(Abar, "rspde.order") <- rspde.order
     integer_nu <- attr(object, "integer_nu")
-    if (integer_nu && rspde_order > 0) {
+    if (integer_nu && rspde.order > 0) {
       warning("The order was not changed since there is
       no rational approximation (an integer model was
       considered).")
@@ -1512,7 +1338,7 @@ rational.type <- function(object) {
   } else if (inherits(object, "inla_rspde_index")) {
     integer_nu <- attr(object, "integer_nu")
 
-    if (integer_nu && rspde_order > 0) {
+    if (integer_nu && rspde.order > 0) {
       warning("The order was not changed since there is
       no rational approximation (an integer model was
       considered).")
@@ -1524,7 +1350,7 @@ rational.type <- function(object) {
     n.group <- attr(object, "n.group")
     n.repl <- attr(object, "n.repl")
 
-    factor_rspde <- rspde_order + 1
+    factor_rspde <- rspde.order + 1
 
     name.group <- paste(name, ".group", sep = "")
     name.repl <- paste(name, ".repl", sep = "")
@@ -1539,7 +1365,7 @@ rational.type <- function(object) {
     out[[name.repl]] <- rep(rep(1:n.repl, each = n_mesh * n.group),
     times = factor_rspde)
     class(out) <- c("inla_rspde_index", class(out))
-    attr(out, "rspde_order") <- rspde_order
+    attr(out, "rspde.order") <- rspde.order
     attr(out, "integer_nu") <- integer_nu
     attr(out, "n.mesh") <- n_mesh
     attr(out, "name") <- name
@@ -1564,11 +1390,11 @@ rational.order <- function(object) {
   if (inherits(object, "CBrSPDEobj") || inherits(object, "rSPDEobj")) {
     return(object$m)
   } else if (inherits(object, "inla_rspde")) {
-    return(object$rspde_order)
+    return(object$rspde.order)
   } else if (!is.null(attr(object, "inla_rspde_Amatrix"))) {
-    return(attr(object, "rspde_order"))
+    return(attr(object, "rspde.order"))
   } else if (inherits(object, "inla_rspde_index")) {
-    return(attr(object, "rspde_order"))
+    return(attr(object, "rspde.order"))
   } else {
     stop("Not a valid rSPDE object!")
   }
@@ -1657,4 +1483,264 @@ likelihood_process_parameters <- function(theta, param_vector, which_par, logsca
     param_value <- theta[[coord_par]]
   }
   return(param_value)
+}
+
+
+#' @noRd 
+# Get priors and starting values
+# Based on INLA::param2.matern.orig()
+
+get_parameters_rSPDE <- function (mesh, alpha, 
+    B.tau, 
+    B.kappa, 
+    B.sigma,
+    B.range, 
+    nu.nominal,
+    alpha.nominal,
+    parameterization,
+    prior.std.dev.nominal, 
+    prior.range.nominal, 
+    prior.tau, 
+    prior.kappa, 
+    theta.prior.mean, 
+    theta.prior.prec) 
+{
+    if(!inherits(mesh, c("inla.mesh", "inla.mesh.1d"))){
+      stop("The mesh should be created using INLA!")
+    }
+    if (is.null(B.tau) && is.null(B.sigma)) 
+        stop("One of B.tau or B.sigma must not be NULL.")
+    if (is.null(B.kappa) && is.null(B.range)) 
+        stop("One of B.kappa or B.range must not be NULL.")
+
+    d <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+    n.spde <- ifelse(d == 2, mesh$n, mesh$m)
+    n.theta <- ncol(B.kappa) - 1L
+
+    if(parameterization == "spde"){
+      B.kappa <- prepare_B_matrices(B.kappa, n.spde, 
+          n.theta)
+      B.tau <- prepare_B_matrices(B.tau, n.spde, n.theta)
+    } else if(parameterization == "matern"){
+      B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
+          n.theta)
+      B.range <- prepare_B_matrices(B.range, n.spde, 
+          n.theta)
+
+      B.kappa <- cbind(0.5 * log(8 * nu.nominal) - B.range[, 1], 
+        -B.range[, -1, drop = FALSE])
+
+      B.tau <- cbind(0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) - 
+                d/2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] - 
+                B.sigma[,1], - nu.nominal * B.kappa[, -1, drop = FALSE] -
+                B.sigma[, -1, drop = FALSE])
+    }
+
+
+    if (is.null(theta.prior.prec)) {
+        theta.prior.prec = diag(0.1, n.theta, n.theta)
+    }
+    else {
+        theta.prior.prec = as.matrix(theta.prior.prec)
+        if (ncol(theta.prior.prec) == 1) {
+            theta.prior.prec = diag(as.vector(theta.prior.prec), 
+                n.theta, n.theta)
+        }
+        if ((nrow(theta.prior.prec) != n.theta) || (ncol(theta.prior.prec) != 
+            n.theta)) {
+            stop(paste("Size of theta.prior.prec is (", paste(dim(theta.prior.prec), 
+                collapse = ",", sep = ""), ") but should be (", 
+                paste(c(n.theta, n.theta), collapse = ",", sep = ""), 
+                ")."))
+        }
+    }
+
+    
+    if (is.null(theta.prior.mean)) {
+        if (is.null(prior.range.nominal)) {
+            mesh.range = ifelse(d == 2, (max(c(diff(range(mesh$loc[, 
+                1])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[, 
+                3]))))), diff(mesh$interval))
+            prior.range.nominal = mesh.range * 0.2
+        }
+        if (is.null(prior.kappa)) {
+            prior.kappa = sqrt(8 * nu.nominal)/prior.range.nominal
+        }
+        if (is.null(prior.tau)) {
+            prior.tau = sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/(4 * 
+                pi * prior.kappa^(2 * nu.nominal) * prior.std.dev.nominal^2))
+        }
+        if (n.theta > 0) {
+          if(parameterization == "spde"){
+              theta.prior.mean = qr.solve(rbind(B.tau[, -1, drop = FALSE], 
+                  B.kappa[, -1, drop = FALSE]), c(log(prior.tau) - 
+                  B.tau[, 1], log(prior.kappa) - B.kappa[, 1]))
+          } else if(parameterization == "matern"){
+              theta.prior.mean = qr.solve(rbind(B.sigma[, -1, drop = FALSE], 
+                  B.range[, -1, drop = FALSE]), c(log(prior.std.dev.nominal) - 
+                  B.sigma[, 1], log(prior.range.nominal) - B.range[, 1]))
+          }
+        }
+        else {
+            theta.prior.mean = rep(0, n.theta)
+        }
+    }
+    param = list(B.tau = B.tau, 
+        B.kappa = B.kappa, theta.prior.mean = theta.prior.mean, 
+        theta.prior.prec = theta.prior.prec)
+    return(param)
+}
+
+#' @noRd 
+# Check B matrices and adjust the number of lines
+# Based on INLA:::inla.spde.homogenise_B_matrix()
+
+prepare_B_matrices <- function (B, n.spde, n.theta) 
+{
+    if (!is.numeric(B)) {
+        stop("B matrix must be numeric.")
+    }
+    if (is.matrix(B)) {
+        if ((nrow(B) != 1) && (nrow(B) != n.spde)) {
+            stop(paste("B matrix must have either 1 or", as.character(n.spde),"rows."))
+        }
+        if ((ncol(B) != 1) && (ncol(B) != 1 + n.theta)) {
+            stop(paste("B matrix must have 1 or", as.character(1 + 
+                  n.theta),"columns."))
+        }
+        if (ncol(B) == 1) {
+            return(cbind(as.vector(B), matrix(0, n.spde, n.theta)))
+        }
+        else if (ncol(B) == 1 + n.theta) {
+            if (nrow(B) == 1) {
+                return(matrix(as.vector(B), n.spde, 1 + n.theta, 
+                  byrow = TRUE))
+            }
+            else if (nrow(B) == n.spde) {
+                return(B)
+            }
+        }
+    }
+    else {
+        if ((length(B) == 1) || (length(B) == n.spde)) {
+            return(cbind(B, matrix(0, n.spde, n.theta)))
+        }
+        else if (length(B) == 1 + n.theta) {
+            return(matrix(B, n.spde, 1 + n.theta, byrow = TRUE))
+        }
+        else {
+            stop(paste("Length of B must be 1,", as.character(1 + n.theta), 
+                "or", as.character(n.spde)))
+        }
+    }
+    stop("Unrecognised structure for B matrix")
+}
+
+
+
+#' @noRd 
+# Get priors and starting values
+# Based on INLA::param2.matern.orig()
+
+get_parameters_rSPDE_graph <- function (graph_obj, alpha, 
+    B.tau, 
+    B.kappa, 
+    B.sigma,
+    B.range, 
+    nu.nominal,
+    alpha.nominal,
+    parameterization,
+    prior.std.dev.nominal, 
+    prior.range.nominal, 
+    prior.tau, 
+    prior.kappa, 
+    theta.prior.mean, 
+    theta.prior.prec) 
+{
+    if(!inherits(graph_obj, "metric_graph")){
+      stop("The graph object should be of class metric_graph!")
+    }
+    if (is.null(B.tau) && is.null(B.sigma)) 
+        stop("One of B.tau or B.sigma must not be NULL.")
+    if (is.null(B.kappa) && is.null(B.range)) 
+        stop("One of B.kappa or B.range must not be NULL.")
+
+    d <- 1
+    n.spde <- nrow(graph_obj$mesh$C)
+    n.theta <- ncol(B.kappa) - 1L
+
+    if(parameterization == "spde"){
+      B.kappa <- prepare_B_matrices(B.kappa, n.spde, 
+          n.theta)
+      B.tau <- prepare_B_matrices(B.tau, n.spde, n.theta)
+    } else if(parameterization == "matern"){
+      B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
+          n.theta)
+      B.range <- prepare_B_matrices(B.range, n.spde, 
+          n.theta)
+
+      B.kappa <- cbind(0.5 * log(8 * nu.nominal) - B.range[, 1], 
+        -B.range[, -1, drop = FALSE])
+
+      B.tau <- cbind(0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) - 
+                d/2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] - 
+                B.sigma[,1], - nu.nominal * B.kappa[, -1, drop = FALSE] -
+                B.sigma[, -1, drop = FALSE])
+    }
+
+
+    if (is.null(theta.prior.prec)) {
+        theta.prior.prec = diag(0.1, n.theta, n.theta)
+    }
+    else {
+        theta.prior.prec = as.matrix(theta.prior.prec)
+        if (ncol(theta.prior.prec) == 1) {
+            theta.prior.prec = diag(as.vector(theta.prior.prec), 
+                n.theta, n.theta)
+        }
+        if ((nrow(theta.prior.prec) != n.theta) || (ncol(theta.prior.prec) != 
+            n.theta)) {
+            stop(paste("Size of theta.prior.prec is (", paste(dim(theta.prior.prec), 
+                collapse = ",", sep = ""), ") but should be (", 
+                paste(c(n.theta, n.theta), collapse = ",", sep = ""), 
+                ")."))
+        }
+    }
+
+    
+    if (is.null(theta.prior.mean)) {
+        if (is.null(prior.range.nominal)) {
+            if(is.null(graph_obj$geo_dist)){
+              graph_obj$compute_geodist(obs=FALSE)
+            }
+            finite_geodist <- is.finite(graph_obj$geo_dist[["__vertices"]])
+            finite_geodist <- graph_obj$geo_dist[["__vertices"]][finite_geodist]
+            prior.range.nominal <- max(finite_geodist) * 0.2
+        }
+        if (is.null(prior.kappa)) {
+            prior.kappa = sqrt(8 * nu.nominal)/prior.range.nominal
+        }
+        if (is.null(prior.tau)) {
+            prior.tau = sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/(4 * 
+                pi * prior.kappa^(2 * nu.nominal) * prior.std.dev.nominal^2))
+        }
+        if (n.theta > 0) {
+          if(parameterization == "spde"){
+              theta.prior.mean = qr.solve(rbind(B.tau[, -1, drop = FALSE], 
+                  B.kappa[, -1, drop = FALSE]), c(log(prior.tau) - 
+                  B.tau[, 1], log(prior.kappa) - B.kappa[, 1]))
+          } else if(parameterization == "matern"){
+              theta.prior.mean = qr.solve(rbind(B.sigma[, -1, drop = FALSE], 
+                  B.range[, -1, drop = FALSE]), c(log(prior.std.dev.nominal) - 
+                  B.sigma[, 1], log(prior.range.nominal) - B.range[, 1]))
+          }
+        }
+        else {
+            theta.prior.mean = rep(0, n.theta)
+        }
+    }
+    param = list(B.tau = B.tau, 
+        B.kappa = B.kappa, theta.prior.mean = theta.prior.mean, 
+        theta.prior.prec = theta.prior.prec)
+    return(param)
 }

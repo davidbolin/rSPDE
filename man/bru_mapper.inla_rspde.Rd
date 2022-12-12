@@ -67,7 +67,7 @@ data_df <- data.frame(y=y, x1 = loc_2d_mesh[,1],
 coordinates(data_df) <- c("x1", "x2")
 rspde_model <- rspde.matern(
   mesh = mesh_2d,
-  nu_upper_bound = 2
+  nu.upper.bound = 2
 )
 
 # For inlabru version 2.5.3.9002 or above:

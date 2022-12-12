@@ -1,0 +1,1 @@
+void test_function(double *entries, int *i, int *j, int size);

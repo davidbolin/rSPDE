@@ -1,7 +1,7 @@
 utils::globalVariables(c(
   "C", "C_inv", "C_inv_G", "G", "d", "loc", "n",
-  "n_m", "nu", "nu_upper_bound",
-  "do_optimize", "idx_symmetric", "n_Q", "rspde_order",
+  "n_m", "nu", "nu.upper.bound",
+  "do_optimize", "idx_symmetric", "n_Q", "rspde.order",
   "graph_opt", "fem_matrices", "sharp",
   "prior.kappa", "prior.nu", "prior.tau",
   "start.lkappa", "start.ltau", "start.nu",
@@ -32,7 +32,7 @@ utils::globalVariables(c(
                                               ...) {
   initial <- function(n, theta) {
     return(c(start.ltau, start.lkappa, log(start.nu /
-    (nu_upper_bound - start.nu))))
+    (nu.upper.bound - start.nu))))
   }
 
   ######## parameter
@@ -48,14 +48,14 @@ utils::globalVariables(c(
   Q <- function(n, theta) {
     param <- interpret.theta(n, theta)
 
-    nu <- (exp(param$lnu) / (1 + exp(param$lnu))) * nu_upper_bound
+    nu <- (exp(param$lnu) / (1 + exp(param$lnu))) * nu.upper.bound
     tau <- exp(param$ltau)
     kappa <- exp(param$lkappa)
 
     if (do_optimize) {
       return(rSPDE::rspde.matern.precision.opt(
         kappa = kappa, nu = nu, tau = tau,
-        rspde_order = rspde_order,
+        rspde.order = rspde.order,
         d = d, fem_matrices = fem_matrices,
         sharp = sharp, graph = NULL,
         type_rational_approx = type.rational.approx
@@ -63,7 +63,7 @@ utils::globalVariables(c(
     } else {
       return(rSPDE::rspde.matern.precision(
         kappa = kappa, nu = nu, tau = tau,
-        rspde_order = rspde_order,
+        rspde.order = rspde.order,
         d = d, fem_mesh_matrices = fem_matrices,
         type_rational_approx = type.rational.approx
       ))
@@ -92,10 +92,10 @@ utils::globalVariables(c(
     param <- interpret.theta(n, theta)
 
     if (prior.nu.dist == "lognormal") {
-      nu <- (exp(param$lnu) / (1 + exp(param$lnu))) * nu_upper_bound
+      nu <- (exp(param$lnu) / (1 + exp(param$lnu))) * nu.upper.bound
 
       tdnorm_nu <- dnorm(log(nu), 0, 1, log = TRUE) - log(nu) -
-        pnorm(log(nu_upper_bound), prior.nu$loglocation,
+        pnorm(log(nu.upper.bound), prior.nu$loglocation,
           prior.nu$logscale,
           log.p = TRUE
         )
@@ -107,13 +107,13 @@ utils::globalVariables(c(
         dnorm(param$ltau, prior.tau$meanlog, prior.tau$sdlog, log = TRUE) -
         param$ltau - param$lkappa
     } else if (prior.nu.dist == "beta") {
-      s_1 <- (prior.nu[["mean"]] / nu_upper_bound) * prior.nu$prec
-      s_2 <- (1 - prior.nu[["mean"]] / nu_upper_bound) * prior.nu$prec
+      s_1 <- (prior.nu[["mean"]] / nu.upper.bound) * prior.nu$prec
+      s_2 <- (1 - prior.nu[["mean"]] / nu.upper.bound) * prior.nu$prec
 
-      nu <- (exp(param$lnu) / (1 + exp(param$lnu))) * nu_upper_bound
+      nu <- (exp(param$lnu) / (1 + exp(param$lnu))) * nu.upper.bound
 
-      res <- dbeta(nu / nu_upper_bound, shape1 = s_1, shape2 = s_2,
-      log = TRUE) - log(nu_upper_bound) +
+      res <- dbeta(nu / nu.upper.bound, shape1 = s_1, shape2 = s_2,
+      log = TRUE) - log(nu.upper.bound) +
         dnorm(param$lkappa, prior.kappa$meanlog, prior.kappa$sdlog,
         log = TRUE) +
         dnorm(param$ltau, prior.tau$meanlog, prior.tau$sdlog,
@@ -182,7 +182,7 @@ utils::globalVariables(c(
     if (do_optimize) {
       return(rSPDE::rspde.matern.precision.opt(
         kappa = kappa, nu = nu, tau = tau,
-        rspde_order = rspde_order,
+        rspde.order = rspde.order,
         d = d, fem_matrices = fem_matrices,
         sharp = sharp, graph = NULL,
         type_rational_approx = type.rational.approx
@@ -190,7 +190,7 @@ utils::globalVariables(c(
     } else {
       return(rSPDE::rspde.matern.precision(
         kappa = kappa, nu = nu, tau = tau,
-        rspde_order = rspde_order,
+        rspde.order = rspde.order,
         d = d, fem_mesh_matrices = fem_matrices,
         type_rational_approx = type.rational.approx
       ))
@@ -352,8 +352,8 @@ utils::globalVariables(c(
 #' general smoothness parameter.
 #' @param mesh The mesh to build the model. Should be an `inla.mesh` or
 #' an `inla.mesh.1d` object.
-#' @param nu_upper_bound Upper bound for the smoothness parameter.
-#' @param rspde_order The order of the covariance-based rational SPDE approach.
+#' @param nu.upper.bound Upper bound for the smoothness parameter.
+#' @param rspde.order The order of the covariance-based rational SPDE approach.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
 #' be estimated. If nu is `NULL`, it will be estimated.
 #' @param sharp The sparsity graph should have the correct sparsity (costs
@@ -392,15 +392,15 @@ utils::globalVariables(c(
 #'
 #' For this model, an upper bound for the smoothness parameter
 #' \eqn{\nu} should be given. It is given by the
-#' `nu_upper_bound` argument.
+#' `nu.upper.bound` argument.
 #'
 #' It is very important to notice that the larger the value
-#' of `nu_upper_bound` the higher the computational cost
+#' of `nu.upper.bound` the higher the computational cost
 #' to fit the model. So, it is generally best to initially fit
-#' a model with a small value of `nu_upper_bound` and
+#' a model with a small value of `nu.upper.bound` and
 #' increase it only if it is really needed (for instance, if
 #' the estimated smoothness parameter was very close to
-#' `nu_upper_bound`).
+#' `nu.upper.bound`).
 #'
 #' The following parameterization is used:
 #' \deqn{\log(\tau) = \theta_1,}
@@ -409,7 +409,7 @@ utils::globalVariables(c(
 #' or a truncated lognormal prior distribution. In each case,
 #' the prior distribution has support on the interval
 #' \eqn{(0,\nu_{UB})}, where \eqn{\nu_{UB}} is
-#' `nu_upper_bound`. Then, the following parameterization
+#' `nu.upper.bound`. Then, the following parameterization
 #' is considered:
 #' \deqn{\log\Big(\frac{\nu}{\nu_{UB}-\nu}\Big) = \theta_3.}
 #'
@@ -517,7 +517,7 @@ utils::globalVariables(c(
 #' }
 #'
 rspde.matern <- function(mesh,
-                         nu_upper_bound = 4, rspde_order = 2,
+                         nu.upper.bound = 4, rspde.order = 2,
                          nu = NULL, sharp = TRUE,
                          debug = FALSE,
                          optimize = TRUE,
@@ -542,8 +542,8 @@ rspde.matern <- function(mesh,
 
   d <- get_inla_mesh_dimension(mesh)
 
-  if (nu_upper_bound - floor(nu_upper_bound) == 0) {
-    nu_upper_bound <- nu_upper_bound - 1e-5
+  if (nu.upper.bound - floor(nu.upper.bound) == 0) {
+    nu.upper.bound <- nu.upper.bound - 1e-5
   }
 
   if (!is.null(nu)) {
@@ -553,10 +553,10 @@ rspde.matern <- function(mesh,
   }
 
   if (d == 1) {
-    if (nu_upper_bound > 2) {
+    if (nu.upper.bound > 2) {
       warning("In dimension 1 you can have unstable results
-      for nu_upper_bound > 2. Consider changing
-      nu_upper_bound to 2 or 1.")
+      for nu.upper.bound > 2. Consider changing
+      nu.upper.bound to 2 or 1.")
     }
   }
 
@@ -572,7 +572,7 @@ rspde.matern <- function(mesh,
   if (fixed_nu) {
     nu_order <- nu
   } else {
-    nu_order <- nu_upper_bound
+    nu_order <- nu.upper.bound
   }
 
   if (optimize) {
@@ -621,22 +621,22 @@ rspde.matern <- function(mesh,
   if (optimize) {
     if (integer_alpha) {
       result_sparsity <- analyze_sparsity_rspde(
-        nu_upper_bound = nu_order, dim = d,
-        rspde_order = rspde_order,
+        nu.upper.bound = nu_order, dim = d,
+        rspde.order = rspde.order,
         fem_mesh_matrices = fem_mesh,
         include_higher_order = FALSE
       )
     } else {
       if (sharp) {
         result_sparsity <- analyze_sparsity_rspde(
-          nu_upper_bound = nu_order, dim = d,
-          rspde_order = rspde_order,
+          nu.upper.bound = nu_order, dim = d,
+          rspde.order = rspde.order,
           fem_mesh_matrices = fem_mesh
         )
       } else {
         result_sparsity <- analyze_sparsity_rspde(
-          nu_upper_bound = nu_order, dim = d,
-          rspde_order = rspde_order,
+          nu.upper.bound = nu_order, dim = d,
+          rspde.order = rspde.order,
           fem_mesh_matrices = fem_mesh,
           include_lower_order = FALSE
         )
@@ -727,11 +727,11 @@ rspde.matern <- function(mesh,
 
 
   if (is.null(prior.nu$loglocation)) {
-    prior.nu$loglocation <- log(min(1, nu_upper_bound / 2))
+    prior.nu$loglocation <- log(min(1, nu.upper.bound / 2))
   }
 
   if (is.null(prior.nu[["mean"]])) {
-    prior.nu[["mean"]] <- min(1, nu_upper_bound / 2)
+    prior.nu[["mean"]] <- min(1, nu.upper.bound / 2)
   }
 
   if (is.null(prior.kappa$meanlog)) {
@@ -767,7 +767,7 @@ rspde.matern <- function(mesh,
     prior.kappa$sdlog <- sqrt(10)
   }
   if (is.null(prior.nu$prec)) {
-    mu_temp <- prior.nu[["mean"]] / nu_upper_bound
+    mu_temp <- prior.nu[["mean"]] / nu.upper.bound
     prior.nu$prec <- max(1 / mu_temp, 1 / (1 - mu_temp)) + nu.prec.inc
   }
 
@@ -793,8 +793,8 @@ rspde.matern <- function(mesh,
     } else {
       stop("prior.nu.dist should be either beta or lognormal!")
     }
-  } else if (start.nu > nu_upper_bound || start.nu < 0) {
-    stop("start.nu should be a number between 0 and nu_upper_bound!")
+  } else if (start.nu > nu.upper.bound || start.nu < 0) {
+    stop("start.nu should be a number between 0 and nu.upper.bound!")
   }
 
 
@@ -802,22 +802,22 @@ rspde.matern <- function(mesh,
     if (optimize) {
       graph_opt <- rSPDE::get.sparsity.graph.rspde(
         fem_mesh_matrices = fem_mesh, dim = d,
-        nu = nu_upper_bound,
-        rspde_order = rspde_order,
+        nu = nu.upper.bound,
+        rspde.order = rspde.order,
         sharp = sharp,
         force_non_integer = TRUE
       )
     } else {
       graph_opt <- rSPDE::get.sparsity.graph.rspde(
         fem_mesh_matrices = fem_matrices, dim = d,
-        nu = nu_upper_bound,
-        rspde_order = rspde_order,
+        nu = nu.upper.bound,
+        rspde.order = rspde.order,
         sharp = TRUE,
         force_non_integer = TRUE
       )
     }
     model <- INLA::inla.rgeneric.define(inla.rgeneric.cov_rspde_general,
-      nu_upper_bound = nu_upper_bound,
+      nu.upper.bound = nu.upper.bound,
       fem_matrices = fem_matrices,
       graph_opt = graph_opt,
       sharp = sharp,
@@ -828,9 +828,9 @@ rspde.matern <- function(mesh,
       start.nu = start.nu,
       start.ltau = start.ltau,
       type.rational.approx = type.rational.approx,
-      d = d, rspde_order = rspde_order,
+      d = d, rspde.order = rspde.order,
       prior.nu.dist = prior.nu.dist,
-      n = n_rgeneric * (rspde_order + 1),
+      n = n_rgeneric * (rspde.order + 1),
       debug = debug,
       do_optimize = optimize, optimize = optimize
     )
@@ -841,14 +841,14 @@ rspde.matern <- function(mesh,
       graph_opt <- rSPDE::get.sparsity.graph.rspde(
         fem_mesh_matrices = fem_mesh, dim = d,
         nu = nu,
-        rspde_order = rspde_order,
+        rspde.order = rspde.order,
         sharp = sharp
       )
     } else {
       graph_opt <- rSPDE::get.sparsity.graph.rspde(
         fem_mesh_matrices = fem_matrices, dim = d,
         nu = nu,
-        rspde_order = rspde_order,
+        rspde.order = rspde.order,
         sharp = TRUE, force_non_integer = TRUE
       )
     }
@@ -864,8 +864,8 @@ rspde.matern <- function(mesh,
       start.lkappa = start.lkappa,
       start.ltau = start.ltau,
       type.rational.approx = type.rational.approx,
-      d = d, rspde_order = rspde_order,
-      n = n_rgeneric * (rspde_order + 1),
+      d = d, rspde.order = rspde.order,
+      n = n_rgeneric * (rspde.order + 1),
       debug = debug,
       do_optimize = optimize, optimize = optimize
     )
@@ -876,14 +876,14 @@ rspde.matern <- function(mesh,
       graph_opt <- rSPDE::get.sparsity.graph.rspde(
         fem_mesh_matrices = fem_mesh, dim = d,
         nu = nu,
-        rspde_order = rspde_order,
+        rspde.order = rspde.order,
         sharp = sharp
       )
     } else {
       graph_opt <- rSPDE::get.sparsity.graph.rspde(
         fem_mesh_matrices = fem_matrices, dim = d,
         nu = nu,
-        rspde_order = rspde_order,
+        rspde.order = rspde.order,
         force_non_integer = FALSE
       )
     }
@@ -915,14 +915,14 @@ rspde.matern <- function(mesh,
   model$start.nu <- start.nu
   model$integer.nu <- integer.nu
   if (integer.nu) {
-    rspde_order <- 0
+    rspde.order <- 0
   }
-  model$rspde_order <- rspde_order
+  model$rspde.order <- rspde.order
   class(model) <- c("inla_rspde", class(model))
   model$dim <- d
   model$est_nu <- !fixed_nu
   model$n.spde <- mesh$n
-  model$nu_upper_bound <- nu_upper_bound
+  model$nu.upper.bound <- nu.upper.bound
   model$prior.nu.dist <- prior.nu.dist
   model$sharp <- sharp
   model$debug <- debug
@@ -949,7 +949,7 @@ rspde.matern <- function(mesh,
 #' @param kappa Range parameter of the covariance function.
 #' @param tau Scale parameter of the covariance function.
 #' @param nu Shape parameter of the covariance function.
-#' @param rspde_order The order of the rational approximation
+#' @param rspde.order The order of the rational approximation
 #' @param dim The dimension of the domain
 #' @param fem_matrices A list containing the FEM-related matrices.
 #' The list should contain elements C, G, G_2, G_3, etc.
@@ -963,9 +963,9 @@ rspde.matern <- function(mesh,
 #' @return The precision matrix
 #' @export
 
-rspde.matern.precision.opt <- function(kappa, nu, tau, rspde_order,
+rspde.matern.precision.opt <- function(kappa, nu, tau, rspde.order,
 dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
-  n_m <- rspde_order
+  n_m <- rspde.order
 
   mt <- get_rational_coefficients(n_m, type_rational_approx)
 
@@ -984,9 +984,9 @@ dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
   # k <- approx(mt$alpha, mt$k, cut_decimals(2 * beta))$y
 
   row_nu <- round(1000*cut_decimals(2*beta))
-  r <- unlist(mt[row_nu, 2:(1+rspde_order)])
-  p <- unlist(mt[row_nu, (2+rspde_order):(1+2*rspde_order)])
-  k <- unlist(mt[row_nu, 2+2*rspde_order])
+  r <- unlist(mt[row_nu, 2:(1+rspde.order)])
+  p <- unlist(mt[row_nu, (2+rspde.order):(1+2*rspde.order)])
+  k <- unlist(mt[row_nu, 2+2*rspde.order])
 
 
   if (m_alpha == 0) {
@@ -1111,7 +1111,7 @@ dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
 #' @param sigma Standard deviation of the covariance function. If tau is
 #' not provided, sigma should be provided.
 #' @param nu Shape parameter of the covariance function.
-#' @param rspde_order The order of the rational approximation
+#' @param rspde.order The order of the rational approximation
 #' @param dim The dimension of the domain
 #' @param fem_mesh_matrices A list containing the FEM-related matrices. The
 #' list should contain elements c0, g1, g2, g3, etc.
@@ -1142,7 +1142,7 @@ dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
 #' v <- t(rSPDE.A1d(x, 0.5))
 #' c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
 #' Q <- rspde.matern.precision(
-#'   kappa = kappa, nu = nu, tau = tau, rspde_order = 2, d = 1,
+#'   kappa = kappa, nu = nu, tau = tau, rspde.order = 2, d = 1,
 #'   fem_mesh_matrices = op_cov$fem_mesh_matrices
 #' )
 #' A <- Diagonal(nobs)
@@ -1157,7 +1157,7 @@ dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
 #' )
 #' lines(x, c.approx_cov, col = 2)
 rspde.matern.precision <- function(kappa, nu, tau = NULL, sigma = NULL,
-rspde_order, dim, fem_mesh_matrices,
+rspde.order, dim, fem_mesh_matrices,
 only_fractional = FALSE, return_block_list = FALSE,
 type_rational_approx = "chebfun") {
   if (is.null(tau) && is.null(sigma)) {
@@ -1169,7 +1169,7 @@ type_rational_approx = "chebfun") {
     (4 * pi)^(dim / 2) * gamma(nu + dim / 2)))
   }
 
-  n_m <- rspde_order
+  n_m <- rspde.order
 
   mt <- get_rational_coefficients(n_m, type_rational_approx)
 
@@ -1467,7 +1467,7 @@ sigma = NULL, dim, fem_mesh_matrices) {
 #' `mesh` is not provided.
 #' @param dim the dimension. Should only be provided if an
 #' `mesh` is not provided.
-#' @param rspde_order The order of the covariance-based rational SPDE approach.
+#' @param rspde.order The order of the covariance-based rational SPDE approach.
 #' @param nu If `NULL`, then the model will assume that nu will
 #' be estimated. If nu is fixed, you should provide the value of nu.
 #' @param index For each observation/prediction value, an index into loc.
@@ -1491,7 +1491,7 @@ sigma = NULL, dim, fem_mesh_matrices) {
 #'   cutoff = 50,
 #'   max.edge = c(50, 500)
 #' )
-#' A <- rspde.make.A(mesh, loc = loc, rspde_order = 3)
+#' A <- rspde.make.A(mesh, loc = loc, rspde.order = 3)
 #' }
 #' #devel.tag
 #' }
@@ -1499,7 +1499,7 @@ rspde.make.A <- function(mesh = NULL,
                          loc = NULL,
                          A = NULL,
                          dim = NULL,
-                         rspde_order = 2, nu = NULL,
+                         rspde.order = 2, nu = NULL,
                          index = NULL,
                          group = NULL,
                          repl = 1L,
@@ -1546,21 +1546,21 @@ rspde.make.A <- function(mesh = NULL,
       Abar <- A
       integer_nu <- TRUE
     } else {
-      Abar <- kronecker(matrix(1, 1, rspde_order + 1), A)
+      Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
       integer_nu <- FALSE
     }
   } else {
-    Abar <- kronecker(matrix(1, 1, rspde_order + 1), A)
+    Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
     integer_nu <- FALSE
   }
 
   if (integer_nu) {
-    rspde_order <- 0
+    rspde.order <- 0
   }
 
 
   attr(Abar, "inla_rspde_Amatrix") <- TRUE
-  attr(Abar, "rspde_order") <- rspde_order
+  attr(Abar, "rspde.order") <- rspde.order
   attr(Abar, "integer_nu") <- integer_nu
   return(Abar)
 }
@@ -1572,7 +1572,7 @@ rspde.make.A <- function(mesh = NULL,
 #' @param name A character string with the base name of the effect.
 #' @param mesh An `inla.mesh` or
 #' an `inla.mesh.1d` object.
-#' @param rspde_order The order of the rational approximation
+#' @param rspde.order The order of the rational approximation
 #' @param nu If `NULL`, then the model will assume that nu will
 #' be estimated. If nu is fixed, you should provide the value of nu.
 #' @param n.spde The number of basis functions in the mesh model.
@@ -1623,7 +1623,7 @@ rspde.make.A <- function(mesh = NULL,
 #' )
 #' rspde_model <- rspde.matern(
 #'   mesh = mesh_2d,
-#'   nu_upper_bound = 2
+#'   nu.upper.bound = 2
 #' )
 #' f <- y ~ -1 + f(field, model = rspde_model)
 #' rspde_fit <- inla(f,
@@ -1640,7 +1640,7 @@ rspde.make.A <- function(mesh = NULL,
 #' }
 rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
                              n.repl = 1, mesh = NULL,
-                             rspde_order = 2, nu = NULL, dim = NULL) {
+                             rspde.order = 2, nu = NULL, dim = NULL) {
   if (is.null(n.spde) && is.null(mesh)) {
     stop("You should provide either n.spde or mesh!")
   }
@@ -1674,11 +1674,11 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
       factor_rspde <- 1
       integer_nu <- TRUE
     } else {
-      factor_rspde <- rspde_order + 1
+      factor_rspde <- rspde.order + 1
       integer_nu <- FALSE
     }
   } else {
-    factor_rspde <- rspde_order + 1
+    factor_rspde <- rspde.order + 1
     integer_nu <- FALSE
   }
 
@@ -1693,9 +1693,9 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
   times = factor_rspde)
   class(out) <- c("inla_rspde_index", class(out))
   if (integer_nu) {
-    rspde_order <- 0
+    rspde.order <- 0
   }
-  attr(out, "rspde_order") <- rspde_order
+  attr(out, "rspde.order") <- rspde.order
   attr(out, "integer_nu") <- integer_nu
   attr(out, "n.mesh") <- n_mesh
   attr(out, "name") <- name
@@ -1838,7 +1838,7 @@ rspde.precision <- function(rspde,
 #' )
 #' rspde_model <- rspde.matern(
 #'   mesh = mesh_2d,
-#'   nu_upper_bound = 2
+#'   nu.upper.bound = 2
 #' )
 #' f <- y ~ -1 + f(field, model = rspde_model)
 #' rspde_fit <- inla(f,
@@ -1857,7 +1857,7 @@ rspde.precision <- function(rspde,
 rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
   check_class_inla_rspde(rspde)
 
-  nu_upper_bound <- rspde$nu_upper_bound
+  nu.upper.bound <- rspde$nu.upper.bound
   result <- list()
 
   if (!rspde$est_nu) {
@@ -1936,7 +1936,7 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
         function(x) {
           INLA::inla.tmarginal(
             function(y) {
-              nu_upper_bound * exp(y) / (1 + exp(y))
+              nu.upper.bound * exp(y) / (1 + exp(y))
             },
             x
           )
@@ -2062,7 +2062,7 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #' )
 #' rspde_model <- rspde.matern(
 #'   mesh = mesh_2d,
-#'   nu_upper_bound = 2
+#'   nu.upper.bound = 2
 #' )
 #' f <- y ~ -1 + f(field, model = rspde_model)
 #' rspde_fit <- inla(f,
@@ -2259,7 +2259,7 @@ posterior_df <- function(rspde_result,
 #' )
 #' rspde_model <- rspde.matern(
 #'   mesh = mesh_2d,
-#'   nu_upper_bound = 2
+#'   nu.upper.bound = 2
 #' )
 #' f <- y ~ -1 + f(field, model = rspde_model)
 #' rspde_fit <- inla(f,
@@ -2304,7 +2304,7 @@ summary.rspde.result <- function(object,
 #' @param mesh An `inla.mesh` or `inla.mesh.1d` object.
 #' @param nu The smoothness parameter. If `NULL`, it will be assumed that
 #' nu was estimated.
-#' @param rspde_order The order of the rational approximation.
+#' @param rspde.order The order of the rational approximation.
 #' @param loc	Projection locations. Can be a matrix or a SpatialPoints or a
 #' SpatialPointsDataFrame object.
 #' @param field Basis function weights, one per mesh basis function, describing
@@ -2337,7 +2337,7 @@ rspde.mesh.project <- function(...) {
 
 rspde.mesh.projector <- function(mesh,
                                  nu = NULL,
-                                 rspde_order = 2,
+                                 rspde.order = 2,
                                  loc = NULL,
                                  lattice = NULL,
                                  xlim = NULL,
@@ -2367,7 +2367,7 @@ rspde.mesh.projector <- function(mesh,
   dim <- get_inla_mesh_dimension(mesh)
 
   out$proj$A <- rspde.make.A(
-    A = out$proj$A, rspde_order = rspde_order, dim = dim,
+    A = out$proj$A, rspde.order = rspde.order, dim = dim,
     nu = nu
   )
 
@@ -2381,7 +2381,7 @@ rspde.mesh.projector <- function(mesh,
 #' @export
 
 rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
-                                         field = NULL, rspde_order = 2,
+                                         field = NULL, rspde.order = 2,
                                          nu = NULL, ...) {
   cond1 <- inherits(mesh, "inla.mesh.1d")
   cond2 <- inherits(mesh, "inla.mesh")
@@ -2389,7 +2389,7 @@ rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
 
   if (!missing(field) && !is.null(field)) {
     proj <- rspde.mesh.projector(mesh,
-      loc = loc, rspde_order = rspde_order, nu = nu,
+      loc = loc, rspde.order = rspde.order, nu = nu,
       ...
     )
     return(INLA::inla.mesh.project(proj, field = field))
@@ -2427,10 +2427,10 @@ rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
     if (integer_alpha) {
       Abar <- A
     } else {
-      Abar <- kronecker(matrix(1, 1, rspde_order + 1), A)
+      Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
     }
   } else {
-    Abar <- kronecker(matrix(1, 1, rspde_order + 1), A)
+    Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
   }
 
   list(t = ti, bary = b, A = Abar, ok = ok)
@@ -2454,11 +2454,11 @@ rspde.mesh.project.rspde.mesh.projector <- function(projector, field, ...) {
 #'
 
 rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
-                                            rspde_order = 2, nu = NULL, ...) {
+                                            rspde.order = 2, nu = NULL, ...) {
   stopifnot(inherits(mesh, "inla.mesh.1d"))
   if (!missing(field) && !is.null(field)) {
     proj <- rspde.mesh.projector(mesh, loc,
-    rspde_order = rspde_order, nu = nu, ...)
+    rspde.order = rspde.order, nu = nu, ...)
     return(INLA::inla.mesh.project(proj, field))
   }
   A <- INLA::inla.mesh.1d.A(mesh, loc = loc)
@@ -2475,10 +2475,10 @@ rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
     if (integer_alpha) {
       Abar <- A
     } else {
-      Abar <- kronecker(matrix(1, 1, rspde_order + 1), A)
+      Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
     }
   } else {
-    Abar <- kronecker(matrix(1, 1, rspde_order + 1), A)
+    Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
   }
   return(list(A = Abar, ok = (loc >= mesh$interval[1]) & (loc <=
     mesh$interval[2])))

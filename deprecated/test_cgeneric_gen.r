@@ -22,7 +22,7 @@ Abar <- rspde.make.A(mesh = prmesh, loc = coords, nu=1)
 
 mesh.index <- rspde.make.index(name = "field", mesh = prmesh, nu=1)
 
-rspde_model <- rspde.matern(mesh = prmesh, rspde_order = 0, nu = 0.51,
+rspde_model <- rspde.matern(mesh = prmesh, rspde.order = 0, nu = 0.51,
 parameterization = "spde")
 
 stk.dat <- inla.stack(
@@ -50,7 +50,7 @@ rspde_fit <- inla(f.s,
 )
 
 
-spde_model <- inla.spde2.matern(mesh = prmesh, rspde_order = 0, alpha = 1.51)
+spde_model <- inla.spde2.matern(mesh = prmesh, rspde.order = 0, alpha = 1.51)
 
 f.s.inla <- y ~ -1 + Intercept + f(seaDist, model="rw1")+
   f(field, model = spde_model)

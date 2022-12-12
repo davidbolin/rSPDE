@@ -60,7 +60,7 @@ st.dat <- inla.stack(
 )
 rspde_model <- rspde.matern(
   mesh = mesh_2d,
-  nu_upper_bound = 2
+  nu.upper.bound = 2
 )
 f <- y ~ -1 + f(field, model = rspde_model)
 rspde_fit <- inla(f,

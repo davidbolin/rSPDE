@@ -9,7 +9,7 @@ rspde.make.A(
   loc = NULL,
   A = NULL,
   dim = NULL,
-  rspde_order = 2,
+  rspde.order = 2,
   nu = NULL,
   index = NULL,
   group = NULL,
@@ -31,7 +31,7 @@ returned by \code{inla.spde.make.A}. Should only be provided if
 \item{dim}{the dimension. Should only be provided if an
 \code{mesh} is not provided.}
 
-\item{rspde_order}{The order of the covariance-based rational SPDE approach.}
+\item{rspde.order}{The order of the covariance-based rational SPDE approach.}
 
 \item{nu}{If \code{NULL}, then the model will assume that nu will
 be estimated. If nu is fixed, you should provide the value of nu.}
@@ -68,7 +68,7 @@ mesh <- inla.mesh.2d(
   cutoff = 50,
   max.edge = c(50, 500)
 )
-A <- rspde.make.A(mesh, loc = loc, rspde_order = 3)
+A <- rspde.make.A(mesh, loc = loc, rspde.order = 3)
 }
 #devel.tag
 }

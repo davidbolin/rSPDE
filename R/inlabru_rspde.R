@@ -50,7 +50,7 @@
 #' coordinates(data_df) <- c("x1", "x2")
 #' rspde_model <- rspde.matern(
 #'   mesh = mesh_2d,
-#'   nu_upper_bound = 2
+#'   nu.upper.bound = 2
 #' )
 #' 
 #' # For inlabru version 2.5.3.9002 or above:
@@ -80,11 +80,11 @@ bru_mapper.inla_rspde <- function(model,...) {
 ibm_n.bru_mapper_inla_rspde <- function(mapper, ...) {
   model <- mapper[["model"]]
   integer_nu <- model$integer.nu
-  rspde_order <- model$rspde_order
+  rspde.order <- model$rspde.order
   if(integer_nu){
             factor_rspde <- 1
   } else{
-            factor_rspde <- rspde_order + 1
+            factor_rspde <- rspde.order + 1
   }
   factor_rspde*model$n.spde
 }
@@ -107,9 +107,9 @@ ibm_jacobian.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   } else{
    nu <- model$nu
   }
-  rspde_order <- model$rspde_order
+  rspde.order <- model$rspde.order
   rSPDE::rspde.make.A(mesh = model$mesh, loc=input,
-                                rspde_order = rspde_order,
+                                rspde.order = rspde.order,
                                 nu=nu)
 }
 

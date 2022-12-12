@@ -9,7 +9,7 @@ rspde.matern.precision.opt(
   kappa,
   nu,
   tau,
-  rspde_order,
+  rspde.order,
   dim,
   fem_matrices,
   graph = NULL,
@@ -24,7 +24,7 @@ rspde.matern.precision.opt(
 
 \item{tau}{Scale parameter of the covariance function.}
 
-\item{rspde_order}{The order of the rational approximation}
+\item{rspde.order}{The order of the rational approximation}
 
 \item{dim}{The dimension of the domain}
 

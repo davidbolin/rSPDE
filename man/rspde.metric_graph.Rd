@@ -7,24 +7,32 @@
 rspde.metric_graph(
   graph_obj,
   h = NULL,
-  nu_upper_bound = 2,
-  rspde_order = 2,
+  nu.upper.bound = 2,
+  rspde.order = 2,
   nu = NULL,
   debug = FALSE,
-  prior.kappa = NULL,
-  prior.nu = NULL,
-  prior.tau = NULL,
-  prior.range = NULL,
-  prior.std.dev = NULL,
-  start.lkappa = NULL,
-  start.nu = NULL,
-  start.ltau = NULL,
-  start.lrange = NULL,
-  start.lstd.dev = NULL,
+  B.sigma = matrix(c(0, 1, 0), 1, 3),
+  B.range = matrix(c(0, 0, 1), 1, 3),
   parameterization = c("matern", "spde"),
+  B.tau = matrix(c(0, 1, 0), 1, 3),
+  B.kappa = matrix(c(0, 0, 1), 1, 3),
+  start.nu = NULL,
+  start.theta = NULL,
+  prior.nu = NULL,
+  theta.prior.mean = NULL,
+  theta.prior.prec = 0.1,
+  prior.std.dev.nominal = 1,
+  prior.range.nominal = NULL,
+  prior.kappa.mean = NULL,
+  prior.tau.mean = NULL,
+  start.lstd.dev = NULL,
+  start.lrange = NULL,
+  start.ltau = NULL,
+  start.lkappa = NULL,
   prior.nu.dist = c("lognormal", "beta"),
   nu.prec.inc = 1,
-  type.rational.approx = c("chebfun", "brasil", "chebfunLB")
+  type.rational.approx = c("chebfun", "brasil", "chebfunLB"),
+  shared_lib = "INLA"
 )
 }
 \arguments{
@@ -33,17 +41,29 @@ If the mesh is not built, one will be built using h=0.01 as default.}
 
 \item{h}{The width of the mesh in case the mesh was not built.}
 
-\item{nu_upper_bound}{Upper bound for the smoothness parameter.}
+\item{nu.upper.bound}{Upper bound for the smoothness parameter.}
 
-\item{rspde_order}{The order of the covariance-based rational SPDE approach.}
+\item{rspde.order}{The order of the covariance-based rational SPDE approach.}
 
 \item{nu}{If nu is set to a parameter, nu will be kept fixed and will not
 be estimated. If nu is \code{NULL}, it will be estimated.}
 
 \item{debug}{INLA debug argument}
 
-\item{prior.kappa}{a \code{list} containing the elements \code{meanlog} and
-\code{sdlog}, that is, the mean and standard deviation on the log scale.}
+\item{B.sigma}{Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if \code{parameterization = 'matern'}.}
+
+\item{B.range}{Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if \code{parameterization = 'matern'}.}
+
+\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). The default is \code{matern}.}
+
+\item{B.tau}{Matrix with specification of log-linear model for \eqn{\tau}. Will be used if \code{parameterization = 'spde'}.}
+
+\item{B.kappa}{Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if \code{parameterization = 'spde'}.}
+
+\item{start.nu}{Starting value for nu.}
+
+\item{start.theta}{Starting values for the model parameters. In the stationary case, if \code{parameterization='matern'}, then \code{theta[1]} is the std.dev and \code{theta[2]} is the range parameter.
+If \code{parameterization = 'spde'}, then \code{theta[1]} is \code{tau} and \code{theta[2]} is \code{kappa}.}
 
 \item{prior.nu}{a list containing the elements \code{mean} and \code{prec}
 for beta distribution, or \code{loglocation} and \code{logscale} for a
@@ -53,6 +73,43 @@ scale. \code{prec} stands for the precision of a beta distribution.
 \code{logscale} stands for the scale of the truncated lognormal
 distribution on the log scale. Check details below.}
 
+\item{theta.prior.mean}{A vector for the mean priors of \code{theta}.}
+
+\item{theta.prior.prec}{A precision matrix for the prior of \code{theta}.}
+
+\item{prior.std.dev.nominal}{Prior std. deviation to be used for the priors and for the starting values.}
+
+\item{prior.range.nominal}{Prior range to be used for the priors and for the starting values.}
+
+\item{prior.kappa.mean}{Prior kappa to be used for the priors and for the starting values.}
+
+\item{prior.tau.mean}{Prior tau to be used for the priors and for the starting values.}
+
+\item{start.lstd.dev}{Starting value for log of std. deviation. Will not be used if start.ltau is non-null. Will be only used in the stationary case and if \code{parameterization = 'matern'}.}
+
+\item{start.lrange}{Starting value for log of range. Will not be used if start.lkappa is non-null. Will be only used in the stationary case and if \code{parameterization = 'matern'}.}
+
+\item{start.ltau}{Starting value for log of tau. Will be only used in the stationary case and if \code{parameterization = 'spde'}.}
+
+\item{start.lkappa}{Starting value for log of kappa. Will be only used in the stationary case and if \code{parameterization = 'spde'}.}
+
+\item{prior.nu.dist}{The distribution of the smoothness parameter.
+The current options are "beta" or "lognormal". The default is "lognormal".}
+
+\item{nu.prec.inc}{Amount to increase the precision in the beta prior
+distribution. Check details below.}
+
+\item{type.rational.approx}{Which type of rational approximation
+should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
+
+\item{shared_lib}{Which shared lib to use for the cgeneric implementation?
+If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
+it will use the local installation (does not work if your installation is from CRAN).
+Otherwise, you can directly supply the path of the .so (or .dll) file.}
+
+\item{prior.kappa}{a \code{list} containing the elements \code{meanlog} and
+\code{sdlog}, that is, the mean and standard deviation on the log scale.}
+
 \item{prior.tau}{a list containing the elements \code{meanlog} and
 \code{sdlog}, that is, the mean and standard deviation on the log scale.}
 
@@ -61,27 +118,6 @@ distribution on the log scale. Check details below.}
 
 \item{prior.std.dev}{a \code{list} containing the elements \code{meanlog} and
 \code{sdlog}, that is, the mean and standard deviation on the log scale. Will not be used if prior.tau is non-null.}
-
-\item{start.lkappa}{Starting value for log of kappa.}
-
-\item{start.nu}{Starting value for nu.}
-
-\item{start.ltau}{Starting value for log of tau.}
-
-\item{start.lrange}{Starting value for log of range. Will not be used if start.lkappa is non-null.}
-
-\item{start.lstd.dev}{Starting value for log of std. deviation. Will not be used if start.ltau is non-null.}
-
-\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). The default is \code{matern}.}
-
-\item{prior.nu.dist}{The distribution of the smoothness parameter.
-The current options are "beta" or "lognormal". The default is "beta".}
-
-\item{nu.prec.inc}{Amount to increase the precision in the beta prior
-distribution. Check details below.}
-
-\item{type.rational.approx}{Which type of rational approximation
-should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
 }
 \value{
 An INLA model.

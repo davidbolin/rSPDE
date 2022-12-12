@@ -1,6 +1,17 @@
 context("inla_rspde")
 
 test_that("testing cgeneric_integer", {
+
+  testthat::skip_on_cran()
+  inla_installed <- "INLA" %in% rownames(installed.packages())
+  if(!inla_installed){
+    testthat::skip("INLA not installed")
+  }
+  
+  old_threads <- INLA::inla.getOption("num.threads")
+  INLA::inla.setOption(num.threads = "1:1")
+
+
 data(PRprec, package = "INLA")
 
 Y <- rowMeans(PRprec[, 3 + 1:31])
@@ -28,10 +39,23 @@ Q_1 <- INLA::inla.spde.precision(
 
 testthat::expect_equal(sum( (Q_1 - Q_tmp$Q)^2), 0)
 
+  INLA::inla.setOption(num.threads = old_threads)
 })
 
 
 test_that("testing cgeneric_parsimonious_fixed", {
+
+  testthat::skip_on_cran()
+  inla_installed <- "INLA" %in% rownames(installed.packages())
+  if(!inla_installed){
+    testthat::skip("INLA not installed")
+  }
+  
+  old_threads <- INLA::inla.getOption("num.threads")
+  INLA::inla.setOption(num.threads = "1:1")
+
+
+
 data(PRprec, package = "INLA")
 
 Y <- rowMeans(PRprec[, 3 + 1:31])
@@ -46,7 +70,7 @@ prmesh <- INLA::inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff 
 
 rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", 
 nu = 0.4,
-rspde_order = 0)
+rspde.order = 0)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
@@ -59,10 +83,23 @@ Q_1 <- INLA::inla.spde.precision(
 )
 
 testthat::expect_equal(sum( (Q_1 - Q_tmp$Q)^2), 0)
+
+  INLA::inla.setOption(num.threads = old_threads)
 })
 
 
 test_that("testing cgeneric_parsimonious_gen", {
+
+  testthat::skip_on_cran()
+  inla_installed <- "INLA" %in% rownames(installed.packages())
+  if(!inla_installed){
+    testthat::skip("INLA not installed")
+  }
+  
+  old_threads <- INLA::inla.getOption("num.threads")
+  INLA::inla.setOption(num.threads = "1:1")
+
+
 data(PRprec, package = "INLA")
 
 Y <- rowMeans(PRprec[, 3 + 1:31])
@@ -77,7 +114,7 @@ prmesh <- INLA::inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff 
 
 rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", 
 start.nu = 0.4,
-rspde_order = 0)
+rspde.order = 0)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
@@ -90,10 +127,23 @@ Q_1 <- INLA::inla.spde.precision(
 )
 
 testthat::expect_equal(sum( (Q_1 - Q_tmp$Q)^2), 0)
+
+  INLA::inla.setOption(num.threads = old_threads)
 })
 
 
 test_that("testing cgeneric_rspde_fixed_gen", {
+
+  testthat::skip_on_cran()
+  inla_installed <- "INLA" %in% rownames(installed.packages())
+  if(!inla_installed){
+    testthat::skip("INLA not installed")
+  }
+  
+  old_threads <- INLA::inla.getOption("num.threads")
+  INLA::inla.setOption(num.threads = "1:1")
+
+
 data(PRprec, package = "INLA")
 
 Y <- rowMeans(PRprec[, 3 + 1:31])
@@ -108,20 +158,33 @@ prmesh <- INLA::inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff 
 
 rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", 
 start.nu = 0.4,
-rspde_order = 2)
+rspde.order = 2)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
-rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", 
+rspde_model_fixed <- rspde.matern(mesh = prmesh, parameterization = "spde", 
 nu = 0.4,
-rspde_order = 2)
+rspde.order = 2)
 
-Q_tmp2 <- INLA::inla.cgeneric.q(rspde_model)
+Q_tmp2 <- INLA::inla.cgeneric.q(rspde_model_fixed)
 
 testthat::expect_equal(sum( (Q_tmp2$Q - Q_tmp$Q)^2), 0)
+
+  INLA::inla.setOption(num.threads = old_threads)
 })
 
 test_that("testing cgeneric_rspde_gen", {
+
+  testthat::skip_on_cran()
+  inla_installed <- "INLA" %in% rownames(installed.packages())
+  if(!inla_installed){
+    testthat::skip("INLA not installed")
+  }
+  
+  old_threads <- INLA::inla.getOption("num.threads")
+  INLA::inla.setOption(num.threads = "1:1")
+
+
 data(PRprec, package = "INLA")
 
 Y <- rowMeans(PRprec[, 3 + 1:31])
@@ -136,7 +199,7 @@ prmesh <- INLA::inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff 
 
 rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", 
 start.nu = 0.4,
-rspde_order = 2)
+rspde.order = 2)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
@@ -151,4 +214,133 @@ op <- matern.operators(kappa = exp(Q_tmp$theta[2]),
 Q_1 <- precision(op)
 
 testthat::expect_equal(sum( (Q_1 - Q_tmp$Q)^2), 0)
+
+  INLA::inla.setOption(num.threads = old_threads)
+})
+
+
+test_that("testing cgeneric_nonstat_gen", {
+
+  testthat::skip_on_cran()
+  inla_installed <- "INLA" %in% rownames(installed.packages())
+  if(!inla_installed){
+    testthat::skip("INLA not installed")
+  }
+  
+  old_threads <- INLA::inla.getOption("num.threads")
+  INLA::inla.setOption(num.threads = "1:1")
+
+data(PRprec, package = "INLA")
+
+Y <- rowMeans(PRprec[, 3 + 1:31])
+
+ind <- !is.na(Y)
+Y <- Y[ind]
+coords <- as.matrix(PRprec[ind, 1:2])
+
+prdomain <- INLA::inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(50, 50))
+prmesh <- INLA::inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
+
+
+rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde",
+                       B.tau = cbind(0,1,rep(0,prmesh$n)))
+
+stopifnot(!rspde_model$stationary)
+
+Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
+
+rspde_stat_model <- rspde.matern(mesh = prmesh,
+                            parameterization = "spde")
+
+stopifnot(rspde_stat_model$stationary)
+
+Q_1 <- INLA::inla.cgeneric.q(rspde_stat_model)
+
+testthat::expect_equal(sum( (Q_1$Q - Q_tmp$Q)^2), 0)
+
+  INLA::inla.setOption(num.threads = old_threads)
+})
+
+test_that("testing cgeneric_nonstat_fixed", {
+
+  testthat::skip_on_cran()
+  inla_installed <- "INLA" %in% rownames(installed.packages())
+  if(!inla_installed){
+    testthat::skip("INLA not installed")
+  }
+  
+  old_threads <- INLA::inla.getOption("num.threads")
+  INLA::inla.setOption(num.threads = "1:1")
+
+data(PRprec, package = "INLA")
+
+Y <- rowMeans(PRprec[, 3 + 1:31])
+
+ind <- !is.na(Y)
+Y <- Y[ind]
+coords <- as.matrix(PRprec[ind, 1:2])
+
+prdomain <- INLA::inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(50, 50))
+prmesh <- INLA::inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
+
+
+rspde_model <- rspde.matern(mesh = prmesh, nu = 0.7, parameterization = "spde",
+                       B.tau = cbind(0,1,rep(0,prmesh$n)))
+
+stopifnot(!rspde_model$stationary)
+
+Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
+
+rspde_stat_model <- rspde.matern(mesh = prmesh, nu = 0.7,
+                            parameterization = "spde")
+
+stopifnot(rspde_stat_model$stationary)
+
+Q_1 <- INLA::inla.cgeneric.q(rspde_stat_model)
+
+testthat::expect_equal(sum( (Q_1$Q - Q_tmp$Q)^2), 0)
+
+  INLA::inla.setOption(num.threads = old_threads)
+})
+
+test_that("testing cgeneric_nonstat_integer", {
+
+  testthat::skip_on_cran()
+  inla_installed <- "INLA" %in% rownames(installed.packages())
+  if(!inla_installed){
+    testthat::skip("INLA not installed")
+  }
+  
+  old_threads <- INLA::inla.getOption("num.threads")
+  INLA::inla.setOption(num.threads = "1:1")
+
+data(PRprec, package = "INLA")
+
+Y <- rowMeans(PRprec[, 3 + 1:31])
+
+ind <- !is.na(Y)
+Y <- Y[ind]
+coords <- as.matrix(PRprec[ind, 1:2])
+
+prdomain <- INLA::inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(50, 50))
+prmesh <- INLA::inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
+
+
+rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", nu = 1,
+                       B.tau = cbind(0,1,rep(0,prmesh$n)))
+
+stopifnot(!rspde_model$stationary)
+
+Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
+
+rspde_stat_model <- rspde.matern(mesh = prmesh, nu = 1,
+                            parameterization = "spde")
+
+stopifnot(rspde_stat_model$stationary)
+
+Q_1 <- INLA::inla.cgeneric.q(rspde_stat_model)
+
+testthat::expect_equal(sum( (Q_1$Q - Q_tmp$Q)^2), 0)
+
+  INLA::inla.setOption(num.threads = old_threads)
 })

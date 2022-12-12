@@ -1,5 +1,6 @@
 # rSPDE (development version)
-* Added support for metric graphs (depends on GPGraph package)
+* Added cgeneric versions of the nonstationary models
+* Added support for metric graphs (depends on the MetricGraph package)
 * Added cgeneric versions of the stationary models
 * Replaced rgeneric models by their cgeneric counterparts
 * Added a new parameterization (range and std. dev)

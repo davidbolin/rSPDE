@@ -214,7 +214,7 @@ straightforward for `r inla_link()` users. For instance, to create a `rSPDE` mod
 should use `rspde.make.A()` in place of `inla.spde.make.A()`, and so on.
 
 The main differences when comparing the arguments between the `rSPDE`-`INLA` implementation
-and the standard SPDE implementation in `r inla_link()`, are the `nu` and `rspde_order` arguments,
+and the standard SPDE implementation in `r inla_link()`, are the `nu` and `rspde.order` arguments,
 which are present in `rSPDE`-`INLA` implementation. We will see below how use these
 arguments.
 
@@ -425,7 +425,7 @@ a dense grid in the region.
 We begin by creating the grid in which we want to do the predictions. To this end,
 we can use the `rspde.mesh.projector()` function. This function has the same arguments
 as the function `inla.mesh.projector()`, with the only difference being that the `rSPDE`
-version also has an argument `nu` and an argument `rspde_order`. Thus, we
+version also has an argument `nu` and an argument `rspde.order`. Thus, we
 proceed in the same fashion as we would in `r inla_link()`'s standard SPDE implementation:
 
 
@@ -764,29 +764,29 @@ to fit the model. Therefore, ideally, want to choose an upper bound for $\nu$
 as small as possible. 
 
 To change the value of the upper bound for the smoothness parameter, we must
-change the argument `nu_upper_bound`. The default value for `nu_upper_bound` is
-4. Other common choices for `nu_upper_bound` are 2 and 1.
+change the argument `nu.upper.bound`. The default value for `nu.upper.bound` is
+4. Other common choices for `nu.upper.bound` are 2 and 1.
 
-It is clear from the discussion above that the smaller the value of `nu_upper_bound`
+It is clear from the discussion above that the smaller the value of `nu.upper.bound`
 the faster the estimation procedure will be. 
 
-However, if we choose a value of `nu_upper_bound` which is too low, the "correct"
+However, if we choose a value of `nu.upper.bound` which is too low, the "correct"
 value of $\nu$ might not belong to the interval $(0,\nu_{UB})$, where $\nu_{UB}$ is
-the value of `nu_upper_bound`. Hence, one might be forced to increase `nu_upper_bound`
+the value of `nu.upper.bound`. Hence, one might be forced to increase `nu.upper.bound`
 and estimate again, which, obviously will increase the computational cost as we will need
 to do more than one estimation.
 
 Let us illustrate by considering the same model we considered above for the precipitation
-in Paraná region in Brazil and consider `nu_upper_bound` equal to 2, which is generally
-a good choice for `nu_upper_bound`.
+in Paraná region in Brazil and consider `nu.upper.bound` equal to 2, which is generally
+a good choice for `nu.upper.bound`.
 
-We simply use the function `rspde.matern()` with the argument `nu_upper_bound` set to 2:
+We simply use the function `rspde.matern()` with the argument `nu.upper.bound` set to 2:
 
 ```{r create_model_ub}
-rspde_model_2 <- rspde.matern(mesh = prmesh, nu_upper_bound = 2)
+rspde_model_2 <- rspde.matern(mesh = prmesh, nu.upper.bound = 2)
 ```
 
-Since we are considering the default `rspde_order`, the $A$ matrix and the
+Since we are considering the default `rspde.order`, the $A$ matrix and the
 mesh index objects are the same as the previous ones. Let us then
 update the formula and fit the model:
 
@@ -810,16 +810,16 @@ summary(rspde_fit_2)
 ```
 
 Let us compare with the cost from the previous fit, with the default value
-of `nu_upper_bound` of 4:
+of `nu.upper.bound` of 4:
 
 ```{r}
-# nu_upper_bound = 4
+# nu.upper.bound = 4
 rspde_fit$cpu.used
-# nu_upper_bound = 2
+# nu.upper.bound = 2
 rspde_fit_2$cpu.used
 ```
 
-We can see that the fit for `nu_upper_bound` equal to 2 was considerably faster.
+We can see that the fit for `nu.upper.bound` equal to 2 was considerably faster.
 
 Finally, let us get the result results for the field and see the estimate of $\nu$:
 
@@ -831,40 +831,40 @@ summary(result_fit_2)
 ### Changing the order of the rational approximation
 
 To change the order of the rational approximation all we have to do
-is set the argument `rspde_order` to the desired value. The current available
+is set the argument `rspde.order` to the desired value. The current available
 possibilities are `1,2,3`,..., up to `8`. 
 
 The higher the order of the rational approximation, the more accurate the results
 will be, however, the higher the computational cost will be.
 
-The default `rspde_order` of 2 is generally a good choice and reasonably
+The default `rspde.order` of 2 is generally a good choice and reasonably
 accurate. See the vignette [Rational approximation with the rSPDE package](rspde_cov.html)
 for further details on the order of the rational approximation and some comparison
 with the Matérn covariance.
 
 Let us fit the above model with the covariance-based rational approximation
 of order `3`. Since we are changing the order of the rational approximation,
-that is, we are changing the `rspde_order` argument, we need to recompute the $A$
+that is, we are changing the `rspde.order` argument, we need to recompute the $A$
 matrix and the mesh index. Therefore, we proceed as follows:
 
 * We build a new model:
 ```{r model_order_3, message=FALSE}
 rspde_model_order_3 <- rspde.matern(mesh = prmesh, 
-  rspde_order = 3,
-  nu_upper_bound = 2
+  rspde.order = 3,
+  nu.upper.bound = 2
 )
 ```
 
 * We create a new $A$ matrix:
 ```{r A_order_3, message=FALSE}
-Abar_3 <- rspde.make.A(mesh = prmesh, loc = coords, rspde_order = 3)
+Abar_3 <- rspde.make.A(mesh = prmesh, loc = coords, rspde.order = 3)
 ```
 
 * We create a new index:
 ```{r mesh_order_3, message=FALSE}
 mesh.index.3 <- rspde.make.index(
   name = "field", mesh = prmesh,
-  rspde_order = 3
+  rspde.order = 3
 )
 ```
 
@@ -904,13 +904,13 @@ summary(rspde_fit_order_3)
 ```
 
 We can see in the above summary that the computational cost significantly increased.
-Let us compare the cost of having `rspde_order=3` and 
-`nu_upper_bound=2` with the cost of having `rspde_order=2` and `nu_upper_bound=4`:
+Let us compare the cost of having `rspde.order=3` and 
+`nu.upper.bound=2` with the cost of having `rspde.order=2` and `nu.upper.bound=4`:
 
 ```{r}
-# nu_upper_bound = 4
+# nu.upper.bound = 4
 rspde_fit$cpu.used
-# nu_upper_bound = 2
+# nu.upper.bound = 2
 rspde_fit_order_3$cpu.used
 ```
 
@@ -1019,15 +1019,15 @@ holds for the `index` obtained from the `rspde.make.index()` function.
 
 In the second case the $A$ matrix only depends on the order of the rational
 approximation and not on $\nu$. Therefore, if the matrix $A$ has already been
-computed for some `rspde_order`, then the $A$ matrix will be same for all the values
-of $\nu$ such that $\alpha$ is non-integer for that `rspde_order`. The same holds for the
+computed for some `rspde.order`, then the $A$ matrix will be same for all the values
+of $\nu$ such that $\alpha$ is non-integer for that `rspde.order`. The same holds for the
 `index` obtained from the `rspde.make.index()` function.
 
 If $\nu$ is fixed, we have that the parameters returned by `r inla_link()` are
 $$\kappa = \exp(\theta_1)\quad\hbox{and}\quad\tau = \exp(\theta_2).$$
 We will now provide illustrations for both scenarios. 
 It is also noteworthy that just as for the case in which we estimate $\nu$, we can also change
-the order of the rational approximation by changing the value of `rspde_order`. 
+the order of the rational approximation by changing the value of `rspde.order`. 
 For both illustrations with fixed $\nu$ below, we will only consider the order of the rational approximation
 of 2, that is, the default order.
 
@@ -1047,7 +1047,7 @@ Therefore, all we have to do is build a new model in which we set
  `nu` to `1.21`:
 
 ```{r message=FALSE}
-rspde_model_fix <- rspde.matern(mesh = prmesh, rspde_order = 2,
+rspde_model_fix <- rspde.matern(mesh = prmesh, rspde.order = 2,
   nu = 1.21
 )
 ```
@@ -1277,15 +1277,15 @@ will be $\min\{1,\nu_{UB}/2\}$.
 
 Let us consider an example with the same dataset used in the first model of this vignette
 where we change the prior distribution of $\nu$ from beta to lognormal. Let us
-also set `nu_upper_bound` to 2.
+also set `nu.upper.bound` to 2.
 
 ```{r}
 rspde_model_ln <- rspde.matern(mesh = prmesh, prior.nu.dist = "lognormal",
-  nu_upper_bound = 2
+  nu.upper.bound = 2
 )
 ```
 
-Since we did not change `rspde_order` and are not fixing $\nu$, we can
+Since we did not change `rspde.order` and are not fixing $\nu$, we can
 use the same $A$ matrix and same index from the first example.
 
 Therefore, all we have to do is update the formula and fit the model:
@@ -1334,20 +1334,20 @@ setting the arguments `start.ltau`, `start.lkappa` and `start.nu`.
 
 One can change the initial value of one or more parameters.
 
-For instance, let us consider the example with precipitation data, `rspde_order=3`, but
+For instance, let us consider the example with precipitation data, `rspde.order=3`, but
 change the initial values to the ones close to the fitted value when considering the
-default `rspde_order` (which is 2):
+default `rspde.order` (which is 2):
 
 ```{r}
-rspde_model_order_3_start <- rspde.matern(mesh = prmesh, rspde_order = 3,
-  nu_upper_bound = 2,
+rspde_model_order_3_start <- rspde.matern(mesh = prmesh, rspde.order = 3,
+  nu.upper.bound = 2,
   start.lkappa = result_fit$summary.log.kappa$mean,
   start.ltau = result_fit$summary.log.tau$mean,
   start.nu = result_fit$summary.nu$mean
 )
 ```
 
-Since we already computed the $A$ matrix and the index for `rspde_order=3`,
+Since we already computed the $A$ matrix and the index for `rspde.order=3`,
 all we have to do is to update the formula and fit:
 
 ```{r fit_order_3_start, message=FALSE, warning=FALSE}
@@ -1389,7 +1389,7 @@ Let us fit a model assigning a `brasil` rational approximation. We will
 consider a model with the order of the rational approximation being 1:
 
 ```{r}
-rspde_model_brasil <- rspde.matern(prmesh, rspde_order = 1,
+rspde_model_brasil <- rspde.matern(prmesh, rspde.order = 1,
               type.rational.approx = "brasil")
 
 f.s.1.brasil <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
