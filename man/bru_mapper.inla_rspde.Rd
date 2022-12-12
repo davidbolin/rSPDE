@@ -2,21 +2,19 @@
 % Please edit documentation in R/inlabru_rspde.R
 \name{bru_mapper.inla_rspde}
 \alias{bru_mapper.inla_rspde}
+\alias{bru_get_mapper.inla_rspde}
 \alias{ibm_n.bru_mapper_inla_rspde}
 \alias{ibm_values.bru_mapper_inla_rspde}
 \alias{ibm_jacobian.bru_mapper_inla_rspde}
-\alias{bru_get_mapper.inla_rspde}
 \title{rSPDE inlabru mapper}
 \usage{
-bru_mapper.inla_rspde(model, ...)
+\method{bru_get_mapper}{inla_rspde}(model, ...)
 
-ibm_n.bru_mapper_inla_rspde(mapper, ...)
+\method{ibm_n}{bru_mapper_inla_rspde}(mapper, ...)
 
-ibm_values.bru_mapper_inla_rspde(mapper, ...)
+\method{ibm_values}{bru_mapper_inla_rspde}(mapper, ...)
 
-ibm_jacobian.bru_mapper_inla_rspde(mapper, input, ...)
-
-bru_get_mapper.inla_rspde(model, ...)
+\method{ibm_jacobian}{bru_mapper_inla_rspde}(mapper, input, ...)
 }
 \arguments{
 \item{model}{An \code{inla_rspde} for which to construct or extract a mapper}
@@ -67,7 +65,7 @@ data_df <- data.frame(y=y, x1 = loc_2d_mesh[,1],
 coordinates(data_df) <- c("x1", "x2")
 rspde_model <- rspde.matern(
   mesh = mesh_2d,
-  nu.upper.bound = 2
+  nu_upper_bound = 2
 )
 
 # For inlabru version 2.5.3.9002 or above:

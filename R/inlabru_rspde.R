@@ -6,7 +6,6 @@
 #' @param \dots Arguments passed on to other methods
 #' @rdname bru_mapper.inla_rspde
 #' @rawNamespace if (getRversion() >= "3.6.0") {
-#'   S3method(inlabru::bru_mapper, inla_rspde)
 #'   S3method(inlabru::bru_get_mapper, inla_rspde)
 #'   S3method(inlabru::ibm_n, bru_mapper_inla_rspde)
 #'   S3method(inlabru::ibm_values, bru_mapper_inla_rspde)
@@ -50,7 +49,7 @@
 #' coordinates(data_df) <- c("x1", "x2")
 #' rspde_model <- rspde.matern(
 #'   mesh = mesh_2d,
-#'   nu.upper.bound = 2
+#'   nu_upper_bound = 2
 #' )
 #' 
 #' # For inlabru version 2.5.3.9002 or above:
@@ -67,12 +66,9 @@
 #' }
 #' #devel.tag
 #' }
-bru_mapper.inla_rspde <- function(model,...) {
+bru_get_mapper.inla_rspde <- function(model,...) {
   mapper <- list(model = model)
-  # Note 1: From inlabru > 2.5.3, use bru_mapper_define instead.
-  # Note 2: bru_mapper.default is not exported from inlabru, so
-  # must call the generic bru_mapper()
-  inlabru::bru_mapper(mapper, new_class = "bru_mapper_inla_rspde")
+  inlabru::bru_mapper_define(mapper, new_class = "bru_mapper_inla_rspde")
 }
 
 #' @param mapper A `bru_mapper.inla_rspde` object
@@ -80,11 +76,11 @@ bru_mapper.inla_rspde <- function(model,...) {
 ibm_n.bru_mapper_inla_rspde <- function(mapper, ...) {
   model <- mapper[["model"]]
   integer_nu <- model$integer.nu
-  rspde.order <- model$rspde.order
+  rspde_order <- model$rspde.order
   if(integer_nu){
             factor_rspde <- 1
   } else{
-            factor_rspde <- rspde.order + 1
+            factor_rspde <- rspde_order + 1
   }
   factor_rspde*model$n.spde
 }
@@ -107,13 +103,8 @@ ibm_jacobian.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   } else{
    nu <- model$nu
   }
-  rspde.order <- model$rspde.order
+  rspde_order <- model$rspde.order
   rSPDE::rspde.make.A(mesh = model$mesh, loc=input,
-                                rspde.order = rspde.order,
+                                rspde.order = rspde_order,
                                 nu=nu)
-}
-
-#' @rdname bru_mapper.inla_rspde
-bru_get_mapper.inla_rspde <- function(model, ...){
- inlabru::bru_mapper(model)
 }
