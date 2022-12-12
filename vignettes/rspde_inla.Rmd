@@ -1332,7 +1332,7 @@ rspde_model_order_3_start <- rspde.matern(mesh = prmesh, rspde.order = 3,
   nu.upper.bound = 2,
   start.lkappa = result_fit$summary.log.kappa$mean,
   start.ltau = result_fit$summary.log.tau$mean,
-  start.nu = result_fit$summary.nu$mean
+  start.nu = min(result_fit$summary.nu$mean, 2 - 1e-5)
 )
 ```
 
