@@ -50,17 +50,23 @@ rspde.matern <- function(mesh,
                          nu_upper_bound = 4, rspde_order = 2,
                          nu = NULL, 
                          debug = FALSE,
-                         prior.kappa = NULL,
-                         prior.nu = NULL,
-                         prior.tau = NULL,
-                         prior.range = NULL,
-                         prior.std.dev = NULL,
-                         start.lkappa = NULL,
-                         start.nu = NULL,
-                         start.ltau = NULL,
-                         start.lrange = NULL,
-                         start.lstd.dev = NULL,
+                         B.sigma = matrix(c(0, 1, 0), 1, 3), 
+                         B.range = matrix(c(0, 0, 1), 1, 3), 
                          parameterization = c("matern", "spde"),
+                         B.tau = matrix(c(0, 1, 0), 1, 3), 
+                         B.kappa = matrix(c(0, 0, 1), 1, 3), 
+                         start.nu = NULL,
+                         start.theta = NULL,
+                         prior.nu = NULL,
+                         prior.theta = NULL,
+                         prior.std.dev.nominal = 1, 
+                         prior.range.nominal = NULL, 
+                         prior.kappa.mean = NULL,
+                         prior.tau.mean = NULL,
+                         start.lstd.dev = NULL,
+                         start.lrange = NULL,
+                         start.ltau = NULL,
+                         start.lkappa = NULL,
                          prior.nu.dist = c("lognormal", "beta"),
                          nu.prec.inc = 1,
                          type.rational.approx = c("chebfun",
@@ -92,8 +98,6 @@ rspde.matern <- function(mesh,
   } else{
     stop("The mesh object should either be an INLA mesh object or contain d, the dimension!")
   }
-
-
 
   if (nu_upper_bound - floor(nu_upper_bound) == 0) {
     nu_upper_bound <- nu_upper_bound - 1e-5
@@ -146,6 +150,175 @@ rspde.matern <- function(mesh,
       rational_table <- get_rational_coefficients(rspde_order, type.rational.approx)
     }
   }
+
+  ### Location of object files
+
+  if(shared_lib == "INLA"){
+    rspde_lib <- dirname(INLA:::inla.call.builtin())
+		rspde_lib <- paste0(rspde_lib, "/external/rSPDE/librSPDE.so")
+  } else if(shared_lib == "rSPDE"){
+    rspde_lib <- system.file('shared', package='rSPDE')
+    if(Sys.info()['sysname']=='Windows') {
+		rspde_lib <- paste0(rspde_lib, "/rspde_cgeneric_models.dll")
+            } else {
+		rspde_lib <- paste0(rspde_lib, "/rspde_cgeneric_models.so")
+            }
+  }
+
+  ### PRIORS AND STARTING VALUES
+
+# Prior nu
+
+  if (is.null(prior.nu$loglocation)) {
+    prior.nu$loglocation <- log(min(1, nu_upper_bound / 2))
+  }
+
+  if (is.null(prior.nu[["mean"]])) {
+    prior.nu[["mean"]] <- min(1, nu_upper_bound / 2)
+  }
+
+  if (is.null(prior.nu$prec)) {
+    mu_temp <- prior.nu[["mean"]] / nu_upper_bound
+    prior.nu$prec <- max(1 / mu_temp, 1 / (1 - mu_temp)) + nu.prec.inc
+  }
+
+  if (is.null(prior.nu[["logscale"]])) {
+    prior.nu[["logscale"]] <- 1
+  }
+
+  # Start nu
+
+  if (is.null(start.nu)) {
+    if (prior.nu.dist == "beta") {
+      start.nu <- prior.nu[["mean"]]
+    } else if (prior.nu.dist == "lognormal") {
+      start.nu <- exp(prior.nu[["loglocation"]])
+    } else {
+      stop("prior.nu.dist should be either beta or lognormal!")
+    }
+  } else if (start.nu > nu_upper_bound || start.nu < 0) {
+    stop("start.nu should be a number between 0 and nu_upper_bound!")
+  }
+  
+
+  # Prior kappa and prior range
+
+  if (is.null(prior.kappa$meanlog) && is.null(prior.range$meanlog)) {
+    mesh.range <- ifelse(d == 2, (max(c(diff(range(mesh$loc[
+      ,
+      1
+    ])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[
+      ,
+      3
+    ]))))), diff(mesh$interval))
+    prior.range.nominal <- mesh.range * 0.2
+
+    prior.range$meanlog <- log(prior.range.nominal)
+
+    if (prior.nu.dist == "lognormal") {
+      prior.kappa$meanlog <- log(sqrt(8 *
+      exp(prior.nu[["loglocation"]])) / prior.range.nominal)
+    } else if (prior.nu.dist == "beta") {
+      prior.kappa$meanlog <- log(sqrt(8 *
+      prior.nu[["mean"]]) / prior.range.nominal)
+    }
+  } else if(is.null(prior.kappa$meanlog)){
+    prior.range.nominal <- exp(prior.range$meanlog)
+    if (prior.nu.dist == "lognormal") {
+      prior.kappa$meanlog <- log(sqrt(8 *
+      exp(prior.nu[["loglocation"]])) / prior.range.nominal)
+    } else if (prior.nu.dist == "beta") {
+      prior.kappa$meanlog <- log(sqrt(8 *
+      prior.nu[["mean"]]) / prior.range.nominal)
+    }
+  } else{
+      if (prior.nu.dist == "lognormal") {
+      prior.range$meanlog <- log(sqrt(8 *
+      exp(prior.nu[["loglocation"]]))) - prior.kappa$meanlog 
+    } else if (prior.nu.dist == "beta") {
+      prior.range$meanlog <- log(sqrt(8 *
+      prior.nu[["mean"]])) - prior.kappa$meanlog
+    }
+  }
+
+  if(is.null(prior.range$sdlog)){
+    prior.range$sdlog <- sqrt(10)
+  }
+
+  if (is.null(prior.kappa$sdlog)) {
+    prior.kappa$sdlog <- sqrt(10)
+  }
+
+  # Prior tau and prior std. dev
+
+  if (is.null(prior.tau$meanlog) && is.null(prior.std.dev$meanlog)) {
+    if (prior.nu.dist == "lognormal") {
+      prior.tau$meanlog <- log(sqrt(gamma(exp(prior.nu[["loglocation"]])) /
+      gamma(exp(prior.nu[["loglocation"]]) + d / 2) / (4 *
+        pi * exp(prior.kappa$meanlog)^(2 * exp(prior.nu[["loglocation"]])))))
+    } else if (prior.nu.dist == "beta") {
+      prior.tau$meanlog <- log(sqrt(gamma(prior.nu[["mean"]]) /
+      gamma(prior.nu[["mean"]] + d / 2) / (4 *
+        pi * exp(prior.kappa$meanlog)^(2 * prior.nu[["mean"]]))))
+    }
+
+    prior.std.dev$meanlog <- 0
+  } else if (is.null(prior.tau$meanlog)){
+        if (prior.nu.dist == "lognormal") {
+      prior.tau$meanlog <-  - prior.std.dev$meanlog + log(sqrt(gamma(exp(prior.nu[["loglocation"]])) /
+      gamma(exp(prior.nu[["loglocation"]]) + d / 2) / (4 *
+        pi * exp(prior.kappa$meanlog)^(2 * exp(prior.nu[["loglocation"]])))))
+    } else if (prior.nu.dist == "beta") {
+      prior.tau$meanlog <-  - prior.std.dev$meanlog + log(sqrt(gamma(prior.nu[["mean"]]) /
+      gamma(prior.nu[["mean"]] + d / 2) / (4 *
+        pi * exp(prior.kappa$meanlog)^(2 * prior.nu[["mean"]]))))
+    }
+  } else{
+        prior.std.dev$meanlog <- 0
+  }
+
+  if (is.null(prior.tau$sdlog)) {
+    prior.tau$sdlog <- sqrt(10)
+  }
+
+
+  if(is.null(prior.std.dev$sdlog)){
+    prior.std.dev$sdlog <- sqrt(10)
+  }
+
+  # Starting values
+
+  if (is.null(start.lkappa)) {
+    start.lkappa <- prior.kappa$meanlog
+  }
+  if (is.null(start.ltau)) {
+    start.ltau <- prior.tau$meanlog
+  }
+
+  if(is.null(start.lrange)){
+    start.lrange <- prior.range$meanlog
+  }
+  if(is.null(start.lstd.dev)){
+    start.lstd.dev <- prior.std.dev$meanlog
+  }
+
+
+
+
+
+  if(parameterization == "spde"){
+    prior.theta1 <- prior.tau
+    prior.theta2 <- prior.kappa
+    start.theta1 <- start.ltau
+    start.theta2 <- start.lkappa
+  } else{
+    prior.theta1 <- prior.std.dev
+    prior.theta2 <- prior.range
+    start.theta1 <- start.lstd.dev
+    start.theta2 <- start.lrange
+  }
+
+  ### STATIONARY PART
 
 
     if(inherits(mesh, c("inla.mesh", "inla.mesh.1d"))){
@@ -293,162 +466,6 @@ rspde.matern <- function(mesh,
       }
     }
 
-  # Prior nu
-
-  if (is.null(prior.nu$loglocation)) {
-    prior.nu$loglocation <- log(min(1, nu_upper_bound / 2))
-  }
-
-  if (is.null(prior.nu[["mean"]])) {
-    prior.nu[["mean"]] <- min(1, nu_upper_bound / 2)
-  }
-
-  if (is.null(prior.nu$prec)) {
-    mu_temp <- prior.nu[["mean"]] / nu_upper_bound
-    prior.nu$prec <- max(1 / mu_temp, 1 / (1 - mu_temp)) + nu.prec.inc
-  }
-
-  if (is.null(prior.nu[["logscale"]])) {
-    prior.nu[["logscale"]] <- 1
-  }
-
-  # Prior kappa and prior range
-
-  if (is.null(prior.kappa$meanlog) && is.null(prior.range$meanlog)) {
-    mesh.range <- ifelse(d == 2, (max(c(diff(range(mesh$loc[
-      ,
-      1
-    ])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[
-      ,
-      3
-    ]))))), diff(mesh$interval))
-    prior.range.nominal <- mesh.range * 0.2
-
-    prior.range$meanlog <- log(prior.range.nominal)
-
-    if (prior.nu.dist == "lognormal") {
-      prior.kappa$meanlog <- log(sqrt(8 *
-      exp(prior.nu[["loglocation"]])) / prior.range.nominal)
-    } else if (prior.nu.dist == "beta") {
-      prior.kappa$meanlog <- log(sqrt(8 *
-      prior.nu[["mean"]]) / prior.range.nominal)
-    }
-  } else if(is.null(prior.kappa$meanlog)){
-    prior.range.nominal <- exp(prior.range$meanlog)
-    if (prior.nu.dist == "lognormal") {
-      prior.kappa$meanlog <- log(sqrt(8 *
-      exp(prior.nu[["loglocation"]])) / prior.range.nominal)
-    } else if (prior.nu.dist == "beta") {
-      prior.kappa$meanlog <- log(sqrt(8 *
-      prior.nu[["mean"]]) / prior.range.nominal)
-    }
-  } else{
-      if (prior.nu.dist == "lognormal") {
-      prior.range$meanlog <- log(sqrt(8 *
-      exp(prior.nu[["loglocation"]]))) - prior.kappa$meanlog 
-    } else if (prior.nu.dist == "beta") {
-      prior.range$meanlog <- log(sqrt(8 *
-      prior.nu[["mean"]])) - prior.kappa$meanlog
-    }
-  }
-
-  if(is.null(prior.range$sdlog)){
-    prior.range$sdlog <- sqrt(10)
-  }
-
-  if (is.null(prior.kappa$sdlog)) {
-    prior.kappa$sdlog <- sqrt(10)
-  }
-
-  # Prior tau and prior std. dev
-
-  if (is.null(prior.tau$meanlog) && is.null(prior.std.dev$meanlog)) {
-    if (prior.nu.dist == "lognormal") {
-      prior.tau$meanlog <- log(sqrt(gamma(exp(prior.nu[["loglocation"]])) /
-      gamma(exp(prior.nu[["loglocation"]]) + d / 2) / (4 *
-        pi * exp(prior.kappa$meanlog)^(2 * exp(prior.nu[["loglocation"]])))))
-    } else if (prior.nu.dist == "beta") {
-      prior.tau$meanlog <- log(sqrt(gamma(prior.nu[["mean"]]) /
-      gamma(prior.nu[["mean"]] + d / 2) / (4 *
-        pi * exp(prior.kappa$meanlog)^(2 * prior.nu[["mean"]]))))
-    }
-
-    prior.std.dev$meanlog <- 0
-  } else if (is.null(prior.tau$meanlog)){
-        if (prior.nu.dist == "lognormal") {
-      prior.tau$meanlog <-  - prior.std.dev$meanlog + log(sqrt(gamma(exp(prior.nu[["loglocation"]])) /
-      gamma(exp(prior.nu[["loglocation"]]) + d / 2) / (4 *
-        pi * exp(prior.kappa$meanlog)^(2 * exp(prior.nu[["loglocation"]])))))
-    } else if (prior.nu.dist == "beta") {
-      prior.tau$meanlog <-  - prior.std.dev$meanlog + log(sqrt(gamma(prior.nu[["mean"]]) /
-      gamma(prior.nu[["mean"]] + d / 2) / (4 *
-        pi * exp(prior.kappa$meanlog)^(2 * prior.nu[["mean"]]))))
-    }
-  } else{
-        prior.std.dev$meanlog <- 0
-  }
-
-  if (is.null(prior.tau$sdlog)) {
-    prior.tau$sdlog <- sqrt(10)
-  }
-
-
-  if(is.null(prior.std.dev$sdlog)){
-    prior.std.dev$sdlog <- sqrt(10)
-  }
-
-  # Starting values
-
-  if (is.null(start.lkappa)) {
-    start.lkappa <- prior.kappa$meanlog
-  }
-  if (is.null(start.ltau)) {
-    start.ltau <- prior.tau$meanlog
-  }
-
-  if(is.null(start.lrange)){
-    start.lrange <- prior.range$meanlog
-  }
-  if(is.null(start.lstd.dev)){
-    start.lstd.dev <- prior.std.dev$meanlog
-  }
-
-  if (is.null(start.nu)) {
-    if (prior.nu.dist == "beta") {
-      start.nu <- prior.nu[["mean"]]
-    } else if (prior.nu.dist == "lognormal") {
-      start.nu <- exp(prior.nu[["loglocation"]])
-    } else {
-      stop("prior.nu.dist should be either beta or lognormal!")
-    }
-  } else if (start.nu > nu_upper_bound || start.nu < 0) {
-    stop("start.nu should be a number between 0 and nu_upper_bound!")
-  }
-  
-  if(shared_lib == "INLA"){
-    rspde_lib <- dirname(INLA:::inla.call.builtin())
-		rspde_lib <- paste0(rspde_lib, "/external/rSPDE/librSPDE.so")
-  } else if(shared_lib == "rSPDE"){
-    rspde_lib <- system.file('shared', package='rSPDE')
-    if(Sys.info()['sysname']=='Windows') {
-		rspde_lib <- paste0(rspde_lib, "/rspde_cgeneric_models.dll")
-            } else {
-		rspde_lib <- paste0(rspde_lib, "/rspde_cgeneric_models.so")
-            }
-  }
-
-
-  if(parameterization == "spde"){
-    prior.theta1 <- prior.tau
-    prior.theta2 <- prior.kappa
-    start.theta1 <- start.ltau
-    start.theta2 <- start.lkappa
-  } else{
-    prior.theta1 <- prior.std.dev
-    prior.theta2 <- prior.range
-    start.theta1 <- start.lstd.dev
-    start.theta2 <- start.lrange
-  }
 
   if (!fixed_nu) {
 
@@ -614,6 +631,25 @@ rspde.matern <- function(mesh,
             ))
     model$cgeneric_type <- "int_alpha"
   }
+
+### END OF STATIONARY PART
+
+### NONSTATIONARY PART
+
+
+### END OF NONSTATIONARY PART
+
+
+
+
+
+
+
+
+
+
+
+
 
   model$nu <- nu
   model$prior.theta1 <- prior.theta1

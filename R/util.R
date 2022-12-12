@@ -1658,3 +1658,159 @@ likelihood_process_parameters <- function(theta, param_vector, which_par, logsca
   }
   return(param_value)
 }
+
+
+#' @noRd 
+# Get priors and starting values
+# Based on INLA::param2.matern.orig()
+
+get_parameters_rSPDE <- function (mesh, alpha = 2, 
+    B_tau = matrix(c(0, 1, 0), 1, 3), 
+    B_kappa = matrix(c(0, 0, 1), 1, 3), 
+    B_sigma = matrix(c(0, 1, 0), 1, 3), 
+    B_range = matrix(c(0, 0, 1), 1, 3), 
+    parameterization = "matern",
+    prior.std.dev.nominal = 1, 
+    prior.range.nominal = NULL, 
+    prior.tau = NULL, 
+    prior.kappa = NULL, 
+    theta.prior.mean = NULL, 
+    theta.prior.prec = NULL) 
+{
+    inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), 
+        "'mesh'")
+    if (is.null(B.tau)) 
+        stop("B.tau must not be NULL.")
+    if (is.null(B.kappa)) 
+        stop("B.kappa must not be NULL.")
+    is.stationary = (nrow(B.kappa) == 1) && (nrow(B.tau) == 1)
+    d = inla.ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+    nu = alpha - d/2
+    nu.nominal = max(0.5, nu)
+    alpha.nominal = max(nu.nominal + d/2, alpha)
+    n.spde = inla.ifelse(d == 2, mesh$n, mesh$m)
+    n.theta = ncol(B.kappa) - 1L
+    B.kappa = inla.spde.homogenise_B_matrix(B.kappa, n.spde, 
+        n.theta)
+    B.tau = inla.spde.homogenise_B_matrix(B.tau, n.spde, n.theta)
+    B.prec = cbind(+lgamma(alpha.nominal) - lgamma(nu.nominal) + 
+        (d/2) * log(4 * pi) + 2 * nu.nominal * B.kappa[, 1] + 
+        2 * B.tau[, 1], 2 * nu.nominal * B.kappa[, -1, drop = FALSE] + 
+        2 * B.tau[, -1, drop = FALSE])
+    if (is.stationary) {
+        B.tau = B.tau[1, , drop = FALSE]
+        B.kappa = B.kappa[1, , drop = FALSE]
+        B.prec = B.prec[1, , drop = FALSE]
+    }
+    B.variance = -B.prec
+    B.range = cbind(0.5 * log(8 * nu.nominal) - B.kappa[, 1], 
+        -B.kappa[, -1, drop = FALSE])
+    if (n.theta > 0) {
+        B.theta = cbind(0, diag(1, n.theta))
+        rownames(B.theta) <- rownames(B.theta, do.NULL = FALSE, 
+            prefix = "theta.")
+    }
+    else {
+        B.theta = NULL
+    }
+    rownames(B.tau) <- rownames(B.tau, do.NULL = FALSE, prefix = "tau.")
+    rownames(B.kappa) <- rownames(B.kappa, do.NULL = FALSE, prefix = "kappa.")
+    rownames(B.variance) <- rownames(B.variance, do.NULL = FALSE, 
+        prefix = "variance.nominal.")
+    rownames(B.range) <- rownames(B.range, do.NULL = FALSE, prefix = "range.nominal.")
+    BLC = rbind(B.theta, B.tau, B.kappa, B.variance, B.range)
+    if (is.null(theta.prior.prec)) {
+        theta.prior.prec = diag(0.1, n.theta, n.theta)
+    }
+    else {
+        theta.prior.prec = as.matrix(theta.prior.prec)
+        if (ncol(theta.prior.prec) == 1) {
+            theta.prior.prec = diag(as.vector(theta.prior.prec), 
+                n.theta, n.theta)
+        }
+        if ((nrow(theta.prior.prec) != n.theta) || (ncol(theta.prior.prec) != 
+            n.theta)) {
+            stop(paste("Size of theta.prior.prec is (", paste(dim(theta.prior.prec), 
+                collapse = ",", sep = ""), ") but should be (", 
+                paste(c(n.theta, n.theta), collapse = ",", sep = ""), 
+                ")."))
+        }
+    }
+    if (is.null(theta.prior.mean)) {
+        if (is.null(prior.range.nominal)) {
+            mesh.range = inla.ifelse(d == 2, (max(c(diff(range(mesh$loc[, 
+                1])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[, 
+                3]))))), diff(mesh$interval))
+            prior.range.nominal = mesh.range * 0.2
+        }
+        if (is.null(prior.kappa)) {
+            prior.kappa = sqrt(8 * nu.nominal)/prior.range.nominal
+        }
+        if (is.null(prior.tau)) {
+            prior.tau = sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/(4 * 
+                pi * prior.kappa^(2 * nu.nominal) * prior.std.dev.nominal^2))
+        }
+        if (n.theta > 0) {
+            theta.prior.mean = qr.solve(rbind(B.tau[, -1, drop = FALSE], 
+                B.kappa[, -1, drop = FALSE]), c(log(prior.tau) - 
+                B.tau[, 1], log(prior.kappa) - B.kappa[, 1]))
+        }
+        else {
+            theta.prior.mean = rep(0, n.theta)
+        }
+    }
+    param = list(is.stationary = is.stationary, B.tau = B.tau, 
+        B.kappa = B.kappa, BLC = BLC, theta.prior.mean = theta.prior.mean, 
+        theta.prior.prec = theta.prior.prec)
+    return(param)
+}
+
+#' @noRd 
+# Check B matrices and adjust the number of lines
+# Based on INLA:::inla.spde.homogenise_B_matrix()
+
+prepare_B_matrices <- function (B, n.spde, n.theta) 
+{
+    if (!is.numeric(B)) {
+        stop("B matrix must be numeric.")
+    }
+    if (is.matrix(B)) {
+        if ((nrow(B) != 1) && (nrow(B) != n.spde)) {
+            stop(inla.paste(list("B matrix has", as.character(nrow(B)), 
+                "rows but should have 1 or", as.character(n.spde), 
+                sep = " ")))
+        }
+        if ((ncol(B) != 1) && (ncol(B) != 1 + n.theta)) {
+            stop(inla.paste(list("B matrix has", as.character(ncol(B)), 
+                "columns but should have 1 or", as.character(1 + 
+                  n.theta), sep = " ")))
+        }
+        if (ncol(B) == 1) {
+            return(cbind(as.vector(B), matrix(0, n.spde, n.theta)))
+        }
+        else if (ncol(B) == 1 + n.theta) {
+            if (nrow(B) == 1) {
+                return(matrix(as.vector(B), n.spde, 1 + n.theta, 
+                  byrow = TRUE))
+            }
+            else if (nrow(B) == n.spde) {
+                return(B)
+            }
+        }
+    }
+    else {
+        if ((length(B) == 1) || (length(B) == n.spde)) {
+            return(cbind(B, matrix(0, n.spde, n.theta)))
+        }
+        else if (length(B) == 1 + n.theta) {
+            return(matrix(B, n.spde, 1 + n.theta, byrow = TRUE))
+        }
+        else {
+            stop(inla.paste(list("Length of B vector is", as.character(length(B)), 
+                "but should be 1,", as.character(1 + n.theta), 
+                "or", as.character(n.spde)), sep = " "))
+        }
+    }
+    stop(inla.paste(list("Unrecognised structure for B matrix"), 
+        sep = " "))
+}

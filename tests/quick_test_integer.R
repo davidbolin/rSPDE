@@ -28,10 +28,10 @@ rspde_stat <- rspde.matern(mesh = prmesh, nu = 1,
                                 prior.kappa = list(meanlog = rspde_model$param$theta.prior.mean[2]),
                                 prior.tau = list(meanlog = rspde_model$param$theta.prior.mean[1]))
 
-Q_nonstat <- inla.cgeneric.q(rspde_model)
-# Q_nonstat <- Q_nonstat$Q
-Q_stat <- inla.cgeneric.q(rspde_stat)
-# # # Q_stat <- Q_stat$Q
+# Q_nonstat <- inla.cgeneric.q(rspde_model)
+# # Q_nonstat <- Q_nonstat$Q
+# Q_stat <- inla.cgeneric.q(rspde_stat)
+# # # # Q_stat <- Q_stat$Q
 
 
 

@@ -19,6 +19,9 @@ double *inla_cgeneric_cppmodel(inla_cgeneric_cmd_tp cmd, double *theta, inla_cge
 	int N = data->ints[0]->ints[0];			       // this will always be the case
 	assert(N > 0);
 
+	assert(!strcasecmp(data->smats[0]->name, "sp_mat"));
+  	inla_cgeneric_smat_tp *sp_mat = data->smats[0];
+
 	switch (cmd) {
 	case INLA_CGENERIC_VOID:
 	{
@@ -46,7 +49,6 @@ double *inla_cgeneric_cppmodel(inla_cgeneric_cmd_tp cmd, double *theta, inla_cge
 			ret[2 + i] = i;			       /* i */
 			ret[2 + N + i] = i;		       /* j */
 		}
-		compute_Q(N, ret);
 	}
 		break;
 
@@ -58,6 +60,9 @@ double *inla_cgeneric_cppmodel(inla_cgeneric_cmd_tp cmd, double *theta, inla_cge
 		assert(ret);
 		ret[0] = -1;				       /* REQUIRED! */
 		ret[1] = M;				       /* number of (i <= j) */
+
+		compute_Q(N, ret, sp_mat->x, sp_mat->i, sp_mat->j, sp_mat->n);
+
 		for (int i = 0; i < M; i++) {
 			ret[2 + i] = prec;
 		}

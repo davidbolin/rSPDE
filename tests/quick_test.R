@@ -50,7 +50,7 @@ rspde_nonstat <- inla(f.ns,
   family = "Gamma", 
   data = inla.stack.data(stk.dat),
   control.inla = list(int.strategy = "eb"),
-  verbose = FALSE,
+  verbose = TRUE,
   control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
   num.threads = "1:1"
 )

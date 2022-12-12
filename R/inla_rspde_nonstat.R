@@ -66,7 +66,7 @@ rspde.matern2 <- function(mesh,
                          nu.prec.inc = 1,
                          type.rational.approx = c("chebfun",
                          "brasil", "chebfunLB"),
-                         shared_lib = "rSPDE") {
+                         shared_lib = "INLA") {
   type.rational.approx <- type.rational.approx[[1]]
 
   parameterization <- parameterization[[1]]
