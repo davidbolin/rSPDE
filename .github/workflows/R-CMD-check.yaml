@@ -49,10 +49,11 @@ jobs:
           brew install pkg-config
           brew install proj@9
           brew install gdal
+          brew install eigen
       - name: Install system dependencies on Linux (GL)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update -y && sudo apt-get install -y libglu1-mesa-dev
+          sudo apt-get update -y && sudo apt-get install -y libglu1-mesa-dev libeigen3-dev
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           dependencies: '"all"'
