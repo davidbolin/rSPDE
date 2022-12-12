@@ -1599,7 +1599,7 @@ rspde.make.A <- function(mesh = NULL,
 #'   cutoff = 0.05,
 #'   max.edge = c(0.1, 0.5)
 #' )
-#' sigma <- 0.01
+#' sigma <- 1
 #' range <- 0.2
 #' nu <- 0.8
 #' kappa <- sqrt(8 * nu) / range
@@ -1814,7 +1814,7 @@ rspde.precision <- function(rspde,
 #'   cutoff = 0.05,
 #'   max.edge = c(0.1, 0.5)
 #' )
-#' sigma <- 0.01
+#' sigma <- 1
 #' range <- 0.2
 #' nu <- 0.8
 #' kappa <- sqrt(8 * nu) / range
@@ -2038,7 +2038,7 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
 #'   cutoff = 0.05,
 #'   max.edge = c(0.1, 0.5)
 #' )
-#' sigma <- 0.01
+#' sigma <- 1
 #' range <- 0.2
 #' nu <- 0.8
 #' kappa <- sqrt(8 * nu) / range
@@ -2235,7 +2235,7 @@ posterior_df <- function(rspde_result,
 #'   cutoff = 0.05,
 #'   max.edge = c(0.1, 0.5)
 #' )
-#' sigma <- 0.01
+#' sigma <- 1
 #' range <- 0.2
 #' nu <- 0.8
 #' kappa <- sqrt(8 * nu) / range
