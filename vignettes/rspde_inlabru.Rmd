@@ -760,6 +760,19 @@ result_fit_nonstat <- rspde.result(rspde_fit_nonstat, "field", rspde_model_nonst
 summary(result_fit_nonstat)
 ```
 
+Let us compare the mean to the true values of the parameters:
+
+```{r}
+summ_res_nonstat <- summary(result_fit_nonstat)
+result_df <- data.frame(
+  parameter = result_fit_nonstat$params,
+  true = c(true_theta, nu),
+  mean = summ_res_nonstat[,1],
+  mode = summ_res_nonstat[,6]
+)
+print(result_df)
+```
+
 We can also plot the posterior densities. To this end we will use the `gg_df()` function, which creates `ggplot2` user-friendly data frames:
 
 ```{r plot_post_nonstat, fig.align='center'}
