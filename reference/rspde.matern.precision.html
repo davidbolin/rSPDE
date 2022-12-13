@@ -92,7 +92,7 @@ K_\nu(\kappa h)$$</p>
 <span>  <span class="va">nu</span>,</span>
 <span>  tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sigma <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">rspde_order</span>,</span>
+<span>  <span class="va">rspde.order</span>,</span>
 <span>  <span class="va">dim</span>,</span>
 <span>  <span class="va">fem_mesh_matrices</span>,</span>
 <span>  only_fractional <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -121,7 +121,7 @@ not provided, tau should be provided.</p></dd>
 not provided, sigma should be provided.</p></dd>
 
 
-<dt>rspde_order</dt>
+<dt>rspde.order</dt>
 <dd><p>The order of the rational approximation</p></dd>
 
 
@@ -175,7 +175,7 @@ used? The current types are "chebfun", "brasil" or "chebfunLB".</p></dd>
 <span class="r-in"><span><span class="va">v</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="rSPDE.A1d.html">rSPDE.A1d</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">c.true</span> <span class="op">&lt;-</span> <span class="fu"><a href="matern.covariance.html">matern.covariance</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">x</span> <span class="op">-</span> <span class="fl">0.5</span><span class="op">)</span>, <span class="va">kappa</span>, <span class="va">nu</span>, <span class="va">sigma</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">Q</span> <span class="op">&lt;-</span> <span class="fu">rspde.matern.precision</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  kappa <span class="op">=</span> <span class="va">kappa</span>, nu <span class="op">=</span> <span class="va">nu</span>, tau <span class="op">=</span> <span class="va">tau</span>, rspde_order <span class="op">=</span> <span class="fl">2</span>, d <span class="op">=</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>  kappa <span class="op">=</span> <span class="va">kappa</span>, nu <span class="op">=</span> <span class="va">nu</span>, tau <span class="op">=</span> <span class="va">tau</span>, rspde.order <span class="op">=</span> <span class="fl">2</span>, d <span class="op">=</span> <span class="fl">1</span>,</span></span>
 <span class="r-in"><span>  fem_mesh_matrices <span class="op">=</span> <span class="va">op_cov</span><span class="op">$</span><span class="va">fem_mesh_matrices</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/Diagonal.html" class="external-link">Diagonal</a></span><span class="op">(</span><span class="va">nobs</span><span class="op">)</span></span></span>

@@ -118,7 +118,7 @@ their original scales.</p>
 <span class="r-in"><span>  cutoff <span class="op">=</span> <span class="fl">0.05</span>,</span></span>
 <span class="r-in"><span>  max.edge <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">0.01</span></span></span>
+<span class="r-in"><span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span><span class="va">range</span> <span class="op">&lt;-</span> <span class="fl">0.2</span></span></span>
 <span class="r-in"><span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span></span>
 <span class="r-in"><span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">8</span> <span class="op">*</span> <span class="va">nu</span><span class="op">)</span> <span class="op">/</span> <span class="va">range</span></span></span>
@@ -142,7 +142,7 @@ their original scales.</p>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">rspde_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde.matern.html">rspde.matern</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span></span>
-<span class="r-in"><span>  nu_upper_bound <span class="op">=</span> <span class="fl">2</span></span></span>
+<span class="r-in"><span>  nu.upper.bound <span class="op">=</span> <span class="fl">2</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">f</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/f.html" class="external-link">f</a></span><span class="op">(</span><span class="va">field</span>, model <span class="op">=</span> <span class="va">rspde_model</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">rspde_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.html" class="external-link">inla</a></span><span class="op">(</span><span class="va">f</span>,</span></span>
@@ -155,17 +155,10 @@ their original scales.</p>
 <span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Error in inla.inlaprogram.has.crashed() : </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   The inla-program exited with an error. Unless you interupted it yourself, please rerun with verbose=TRUE and check the output carefully.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   If this does not help, please contact the developers at &lt;help@r-inla.org&gt;.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  *** inla.core.safe:  inla.program has crashed: rerun to get better initial values. try=1/2 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  *** inla.core.safe:  rerun with improved initial values </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             mean        sd 0.025quant  0.5quant 0.975quant      mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> std.dev 0.051993 0.0252365  0.0172816 0.0473148   0.114334 0.0380562</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> range   0.147329 0.1538880  0.0198478 0.0997673   0.566123 0.0488462</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> nu      0.989136 0.4007320  0.2570120 0.9917850   1.716190 1.0225200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             mean        sd 0.025quant 0.5quant 0.975quant     mode</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> std.dev 0.983759 0.0923215   0.813722 0.979979   1.176010 0.973070</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> range   0.200270 0.0414271   0.132105 0.195695   0.294271 0.186623</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nu      0.986913 0.3372890   0.407925 0.961667   1.661700 0.832441</span>
 <span class="r-in"><span><span class="co">#devel.tag</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>

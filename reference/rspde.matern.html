@@ -74,25 +74,33 @@ general smoothness parameter.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">rspde.matern</span><span class="op">(</span></span>
 <span>  <span class="va">mesh</span>,</span>
-<span>  nu_upper_bound <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  rspde_order <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  nu.upper.bound <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  rspde.order <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  debug <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  prior.kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  prior.nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  prior.tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  prior.range <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  prior.std.dev <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  start.lkappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  start.nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  start.ltau <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  start.lrange <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  start.lstd.dev <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  B.sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  B.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
 <span>  parameterization <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"matern"</span>, <span class="st">"spde"</span><span class="op">)</span>,</span>
+<span>  B.tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  B.kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  start.nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  start.theta <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  prior.nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  theta.prior.mean <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  theta.prior.prec <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  prior.std.dev.nominal <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  prior.range.nominal <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  prior.kappa.mean <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  prior.tau.mean <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  start.lstd.dev <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  start.lrange <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  start.ltau <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  start.lkappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  prior.nu.dist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lognormal"</span>, <span class="st">"beta"</span><span class="op">)</span>,</span>
 <span>  nu.prec.inc <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  type.rational.approx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chebfun"</span>, <span class="st">"brasil"</span>, <span class="st">"chebfunLB"</span><span class="op">)</span>,</span>
-<span>  shared_lib <span class="op">=</span> <span class="st">"INLA"</span></span>
+<span>  debug <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  shared_lib <span class="op">=</span> <span class="st">"rSPDE"</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -104,11 +112,11 @@ an <code>inla.mesh.1d</code> object. Otherwise, should be a list containing elem
 and G, the stiffness matrix.</p></dd>
 
 
-<dt>nu_upper_bound</dt>
+<dt>nu.upper.bound</dt>
 <dd><p>Upper bound for the smoothness parameter.</p></dd>
 
 
-<dt>rspde_order</dt>
+<dt>rspde.order</dt>
 <dd><p>The order of the covariance-based rational SPDE approach.</p></dd>
 
 
@@ -117,13 +125,33 @@ and G, the stiffness matrix.</p></dd>
 be estimated. If nu is <code>NULL</code>, it will be estimated.</p></dd>
 
 
-<dt>debug</dt>
-<dd><p>INLA debug argument</p></dd>
+<dt>B.sigma</dt>
+<dd><p>Matrix with specification of log-linear model for \(\sigma\). Will be used if <code>parameterization = 'matern'</code>.</p></dd>
 
 
-<dt>prior.kappa</dt>
-<dd><p>a <code>list</code> containing the elements <code>meanlog</code> and
-<code>sdlog</code>, that is, the mean and standard deviation on the log scale.</p></dd>
+<dt>B.range</dt>
+<dd><p>Matrix with specification of log-linear model for \(\rho\), which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if <code>parameterization = 'matern'</code>.</p></dd>
+
+
+<dt>parameterization</dt>
+<dd><p>Which parameterization to use? <code>matern</code> uses range, std. deviation and nu (smoothness). <code>spde</code> uses kappa, tau and nu (smoothness). The default is <code>matern</code>.</p></dd>
+
+
+<dt>B.tau</dt>
+<dd><p>Matrix with specification of log-linear model for \(\tau\). Will be used if <code>parameterization = 'spde'</code>.</p></dd>
+
+
+<dt>B.kappa</dt>
+<dd><p>Matrix with specification of log-linear model for \(\kappa\). Will be used if <code>parameterization = 'spde'</code>.</p></dd>
+
+
+<dt>start.nu</dt>
+<dd><p>Starting value for nu.</p></dd>
+
+
+<dt>start.theta</dt>
+<dd><p>Starting values for the model parameters. In the stationary case, if <code>parameterization='matern'</code>, then <code>theta[1]</code> is the std.dev and <code>theta[2]</code> is the range parameter.
+If <code>parameterization = 'spde'</code>, then <code>theta[1]</code> is <code>tau</code> and <code>theta[2]</code> is <code>kappa</code>.</p></dd>
 
 
 <dt>prior.nu</dt>
@@ -134,6 +162,81 @@ the location parameter of the truncated lognormal distribution in the log
 scale. <code>prec</code> stands for the precision of a beta distribution.
 <code>logscale</code> stands for the scale of the truncated lognormal
 distribution on the log scale. Check details below.</p></dd>
+
+
+<dt>theta.prior.mean</dt>
+<dd><p>A vector for the mean priors of <code>theta</code>.</p></dd>
+
+
+<dt>theta.prior.prec</dt>
+<dd><p>A precision matrix for the prior of <code>theta</code>.</p></dd>
+
+
+<dt>prior.std.dev.nominal</dt>
+<dd><p>Prior std. deviation to be used for the priors and for the starting values.</p></dd>
+
+
+<dt>prior.range.nominal</dt>
+<dd><p>Prior range to be used for the priors and for the starting values.</p></dd>
+
+
+<dt>prior.kappa.mean</dt>
+<dd><p>Prior kappa to be used for the priors and for the starting values.</p></dd>
+
+
+<dt>prior.tau.mean</dt>
+<dd><p>Prior tau to be used for the priors and for the starting values.</p></dd>
+
+
+<dt>start.lstd.dev</dt>
+<dd><p>Starting value for log of std. deviation. Will not be used if start.ltau is non-null. Will be only used in the stationary case and if <code>parameterization = 'matern'</code>.</p></dd>
+
+
+<dt>start.lrange</dt>
+<dd><p>Starting value for log of range. Will not be used if start.lkappa is non-null. Will be only used in the stationary case and if <code>parameterization = 'matern'</code>.</p></dd>
+
+
+<dt>start.ltau</dt>
+<dd><p>Starting value for log of tau. Will be only used in the stationary case and if <code>parameterization = 'spde'</code>.</p></dd>
+
+
+<dt>start.lkappa</dt>
+<dd><p>Starting value for log of kappa. Will be only used in the stationary case and if <code>parameterization = 'spde'</code>.</p></dd>
+
+
+<dt>prior.nu.dist</dt>
+<dd><p>The distribution of the smoothness parameter.
+The current options are "beta" or "lognormal". The default is "lognormal".</p></dd>
+
+
+<dt>nu.prec.inc</dt>
+<dd><p>Amount to increase the precision in the beta prior
+distribution. Check details below.</p></dd>
+
+
+<dt>type.rational.approx</dt>
+<dd><p>Which type of rational approximation
+should be used? The current types are "chebfun", "brasil" or "chebfunLB".</p></dd>
+
+
+<dt>debug</dt>
+<dd><p>INLA debug argument</p></dd>
+
+
+<dt>shared_lib</dt>
+<dd><p>Which shared lib to use for the cgeneric implementation?
+If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
+it will use the local installation (does not work if your installation is from CRAN).
+Otherwise, you can directly supply the path of the .so (or .dll) file.</p></dd>
+
+
+<dt>...</dt>
+<dd><p>Only being used internally.</p></dd>
+
+
+<dt>prior.kappa</dt>
+<dd><p>a <code>list</code> containing the elements <code>meanlog</code> and
+<code>sdlog</code>, that is, the mean and standard deviation on the log scale.</p></dd>
 
 
 <dt>prior.tau</dt>
@@ -149,52 +252,6 @@ distribution on the log scale. Check details below.</p></dd>
 <dt>prior.std.dev</dt>
 <dd><p>a <code>list</code> containing the elements <code>meanlog</code> and
 <code>sdlog</code>, that is, the mean and standard deviation on the log scale. Will not be used if prior.tau is non-null.</p></dd>
-
-
-<dt>start.lkappa</dt>
-<dd><p>Starting value for log of kappa.</p></dd>
-
-
-<dt>start.nu</dt>
-<dd><p>Starting value for nu.</p></dd>
-
-
-<dt>start.ltau</dt>
-<dd><p>Starting value for log of tau.</p></dd>
-
-
-<dt>start.lrange</dt>
-<dd><p>Starting value for log of range. Will not be used if start.lkappa is non-null.</p></dd>
-
-
-<dt>start.lstd.dev</dt>
-<dd><p>Starting value for log of std. deviation. Will not be used if start.ltau is non-null.</p></dd>
-
-
-<dt>parameterization</dt>
-<dd><p>Which parameterization to use? <code>matern</code> uses range, std. deviation and nu (smoothness). <code>spde</code> uses kappa, tau and nu (smoothness). The default is <code>matern</code>.</p></dd>
-
-
-<dt>prior.nu.dist</dt>
-<dd><p>The distribution of the smoothness parameter.
-The current options are "beta" or "lognormal". The default is "beta".</p></dd>
-
-
-<dt>nu.prec.inc</dt>
-<dd><p>Amount to increase the precision in the beta prior
-distribution. Check details below.</p></dd>
-
-
-<dt>type.rational.approx</dt>
-<dd><p>Which type of rational approximation
-should be used? The current types are "chebfun", "brasil" or "chebfunLB".</p></dd>
-
-
-<dt>shared_lib</dt>
-<dd><p>Which shared lib to use for the cgeneric implementation?
-If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
-it will use the local installation (does not work if your installation is from CRAN).
-Otherwise, you can directly supply the path of the .so (or .dll) file.</p></dd>
 
 </dl></div>
     <div class="section level2">

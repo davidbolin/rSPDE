@@ -69,15 +69,13 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">bru_mapper.inla_rspde</span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">bru_get_mapper.inla_rspde</span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">ibm_n.bru_mapper_inla_rspde</span><span class="op">(</span><span class="va">mapper</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">ibm_values.bru_mapper_inla_rspde</span><span class="op">(</span><span class="va">mapper</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ibm_jacobian.bru_mapper_inla_rspde</span><span class="op">(</span><span class="va">mapper</span>, <span class="va">input</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">bru_get_mapper.inla_rspde</span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">ibm_jacobian.bru_mapper_inla_rspde</span><span class="op">(</span><span class="va">mapper</span>, <span class="va">input</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -115,7 +113,7 @@
 <span class="r-in"><span>  cutoff <span class="op">=</span> <span class="fl">0.05</span>,</span></span>
 <span class="r-in"><span>  max.edge <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">0.01</span></span></span>
+<span class="r-in"><span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span><span class="va">range</span> <span class="op">&lt;-</span> <span class="fl">0.2</span></span></span>
 <span class="r-in"><span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span></span>
 <span class="r-in"><span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">8</span> <span class="op">*</span> <span class="va">nu</span><span class="op">)</span> <span class="op">/</span> <span class="va">range</span></span></span>
@@ -155,58 +153,13 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: foreach</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: parallel</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: sp</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> This is INLA_22.12.03 built 2022-12-03 09:18:24 UTC.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> This is INLA_22.12.12-2 built 2022-12-12 08:30:48 UTC.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - See www.r-inla.org/contact-us for how to get help.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - To enable PARDISO sparse library; see inla.pardiso()</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`bru_mapper.default()` was deprecated in inlabru 2.7.0.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Please use `bru_mapper_define()` instead.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">rSPDE</span> package.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span>   Please report the issue at <span style="color: #0000BB; font-style: italic;">&lt;https://github.com/davidbolin/rSPDE/issues&gt;</span>.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Model 'cgeneric' in section 'latent' is marked as 'experimental'; changes may appear at any time.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span>   Use this model with extra care!!! Further warnings are disabled.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> inlabru version: 2.7.0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> INLA version: 22.12.03</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Components:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept: main = linear(1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> field: main = cgeneric(coordinates)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihoods:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Family: 'gaussian'</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Data class: 'SpatialPointsDataFrame'</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Predictor: y ~ .</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Time used:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 5.04, Running = 17.1, Post = 0.305, Total = 22.4 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.001 0.012     -0.022    0.001      0.025 0.001   0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Name	  Model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     field CGeneric</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Model hyperparameters:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                            mean     sd 0.025quant 0.5quant</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 149.755 23.662     109.04  147.685</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                         -2.677  0.608      -3.77   -2.684</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                         -3.136  1.260      -5.98   -3.125</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                         -0.226  0.589      -1.49   -0.202</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                         0.975quant    mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations    203.111 143.122</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                            -1.306  -2.842</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                            -0.877  -2.792</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                             0.857  -0.073</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC) ...............: -185.92</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC, saturated) ....: 122.71</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .....................: 18.39</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Watanabe-Akaike information criterion (WAIC) ...: -185.22</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .................: 17.27</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Marginal log-Likelihood:  77.89 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  is computed </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Posterior summaries for the linear predictor and the fitted values are computed</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in ibm_n.default(subcomp[["mapper"]], inla_f = TRUE):</span> Default 'ibm_n()' method called but mapper doesn't have an 'n' element;</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> Class: bru_mapper, inla_rspde, inla.cgeneric</span>
 <span class="r-in"><span><span class="co">#devel.tag</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

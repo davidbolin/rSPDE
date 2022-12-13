@@ -95,7 +95,7 @@
                         <h4 data-toc-skip class="author">David Bolin and
 Alexandre B. Simas</h4>
             
-            <h4 data-toc-skip class="date">2022-12-09</h4>
+            <h4 data-toc-skip class="date">2022-12-13</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rSPDE.Rmd" class="external-link"><code>vignettes/rSPDE.Rmd</code></a></small>
       <div class="d-none name"><code>rSPDE.Rmd</code></div>
@@ -255,13 +255,13 @@ default value for this is <span class="math inline">\(4\)</span>. If we
 increase the upper bound for <span class="math inline">\(\nu\)</span> we
 also increase the computational cost, and if we decrease the upper bound
 we also decrease the computatoinal cost. For this example we set
-<code>nu_upper_bound=2</code>. See the <a href="rspde_inla.html">R-INLA
+<code>nu.upper.bound=2</code>. See the <a href="rspde_inla.html">R-INLA
 implementation of the rational SPDE approach</a> for further
 details.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rspde_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.matern.html">rspde.matern</a></span><span class="op">(</span></span>
 <span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
-<span>  nu_upper_bound <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  nu.upper.bound <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  parameterization <span class="op">=</span> <span class="st">"spde"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Finally, we create the formula and fit the model to the data:</p>
@@ -299,24 +299,24 @@ details.</p>
 <span><span class="co">#&gt;    = inla.mode, safe = FALSE, debug = debug, ", " .parent.frame = </span></span>
 <span><span class="co">#&gt;    .parent.frame)") </span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 4.55, Running = 7.21, Post = 0.0863, Total = 11.9 </span></span>
+<span><span class="co">#&gt;     Pre = 3.53, Running = 4.36, Post = 0.121, Total = 8.01 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model hyperparameters:</span></span>
-<span><span class="co">#&gt;                                            mean   sd 0.025quant 0.5quant</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations  99.994 1.50      96.24   99.860</span></span>
-<span><span class="co">#&gt; Theta1 for field                         -5.208 0.00      -8.76   -5.208</span></span>
-<span><span class="co">#&gt; Theta2 for field                          2.991 0.00       2.10    2.991</span></span>
-<span><span class="co">#&gt; Theta3 for field                          0.693 0.00      -1.53    0.693</span></span>
-<span><span class="co">#&gt;                                         0.975quant    mode</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations     102.00 101.308</span></span>
-<span><span class="co">#&gt; Theta1 for field                             -2.69  -5.208</span></span>
-<span><span class="co">#&gt; Theta2 for field                              3.35   2.991</span></span>
-<span><span class="co">#&gt; Theta3 for field                              1.59   0.693</span></span>
+<span><span class="co">#&gt;                                           mean   sd 0.025quant 0.5quant</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations 100.03 1.47      96.34    99.88</span></span>
+<span><span class="co">#&gt; Theta1 for field                         -5.24 0.00      -8.86    -5.24</span></span>
+<span><span class="co">#&gt; Theta2 for field                          3.00 0.00       2.09     3.00</span></span>
+<span><span class="co">#&gt; Theta3 for field                          0.71 0.00      -1.56     0.71</span></span>
+<span><span class="co">#&gt;                                         0.975quant   mode</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations     101.95 101.31</span></span>
+<span><span class="co">#&gt; Theta1 for field                             -2.67  -5.24</span></span>
+<span><span class="co">#&gt; Theta2 for field                              3.36   3.00</span></span>
+<span><span class="co">#&gt; Theta3 for field                              1.62   0.71</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Marginal log-Likelihood:  1032.06 </span></span>
+<span><span class="co">#&gt; Marginal log-Likelihood:  1032.07 </span></span>
 <span><span class="co">#&gt;  is computed </span></span>
 <span><span class="co">#&gt; Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">#&gt; (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre></div>
@@ -326,9 +326,9 @@ following:</p>
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             mean         sd 0.025quant   0.5quant 0.975quant       mode</span></span>
-<span><span class="co">#&gt; tau    0.0173236 0.00106386  0.0152875  0.0173112   0.019429  0.0172873</span></span>
-<span><span class="co">#&gt; kappa 15.7240000 0.22296900 15.2813000 15.7257000  16.156700 15.7292000</span></span>
-<span><span class="co">#&gt; nu     1.0506700 0.01767260  1.0151800  1.0509400   1.084570  1.0515000</span></span>
+<span><span class="co">#&gt; tau    0.0171499 0.00107023  0.0151053  0.0171369  0.0192713  0.0171115</span></span>
+<span><span class="co">#&gt; kappa 15.7573000 0.22710800 15.3065000 15.7590000 16.1981000 15.7625000</span></span>
+<span><span class="co">#&gt; nu     1.0535800 0.01798200  1.0174600  1.0538600  1.0880800  1.0544300</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
@@ -345,9 +345,9 @@ following:</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter       true        mean        mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.1261566  0.01732358  0.01728725</span></span>
-<span><span class="co">#&gt; 2     kappa 10.0000000 15.72397642 15.72917388</span></span>
-<span><span class="co">#&gt; 3        nu  0.5000000  1.05066553  1.05149965</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       tau  0.1261566  0.01714986  0.01711148</span></span>
+<span><span class="co">#&gt; 2     kappa 10.0000000 15.75725252 15.76251726</span></span>
+<span><span class="co">#&gt; 3        nu  0.5000000  1.05357698  1.05442672</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kriging-with-r-inla-implementation-of-the-rational-spde-approach">Kriging with <code>R-INLA</code> implementation of the rational SPDE
@@ -360,7 +360,7 @@ the predictions. To this end, we can use the
 <code><a href="../reference/rspde.mesh.project.html">rspde.mesh.projector()</a></code> function. This function has the same
 arguments as the function <code><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.project.html" class="external-link">inla.mesh.projector()</a></code> the only
 difference being that the rSPDE version also has an argument
-<code>nu</code> and an argument <code>rspde_order</code>. Thus, we
+<code>nu</code> and an argument <code>rspde.order</code>. Thus, we
 proceed in the same fashion as we would in <a href="https://www.r-inla.org" class="external-link"><code>R-INLA</code></a>’s standard SPDE
 implementation:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -450,7 +450,7 @@ implementation of the rational SPDE approach</a>.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rspde_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.matern.html">rspde.matern</a></span><span class="op">(</span></span>
 <span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
-<span>  nu_upper_bound <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  nu.upper.bound <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  parameterization <span class="op">=</span> <span class="st">"spde"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>The advantage with <code>inlabru</code> is that we do not need to
@@ -478,7 +478,7 @@ form the stack manually, but can simply collect the required data in a
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_bru_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; inlabru version: 2.7.0</span></span>
-<span><span class="co">#&gt; INLA version: 22.12.03</span></span>
+<span><span class="co">#&gt; INLA version: 22.12.12-2</span></span>
 <span><span class="co">#&gt; Components:</span></span>
 <span><span class="co">#&gt; field: main = cgeneric(coordinates)</span></span>
 <span><span class="co">#&gt; Likelihoods:</span></span>
@@ -486,31 +486,31 @@ form the stack manually, but can simply collect the required data in a
 <span><span class="co">#&gt;     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">#&gt;     Predictor: y ~ .</span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 3.95, Running = 9.1, Post = 0.327, Total = 13.4 </span></span>
+<span><span class="co">#&gt;     Pre = 3.25, Running = 4.37, Post = 0.278, Total = 7.9 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model hyperparameters:</span></span>
-<span><span class="co">#&gt;                                           mean   sd 0.025quant 0.5quant</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations 99.887 1.60      95.92   99.798</span></span>
-<span><span class="co">#&gt; Theta1 for field                        -5.075 0.00      -8.36   -5.075</span></span>
-<span><span class="co">#&gt; Theta2 for field                         2.963 0.00       2.14    2.963</span></span>
-<span><span class="co">#&gt; Theta3 for field                         0.622 0.00      -1.44    0.622</span></span>
+<span><span class="co">#&gt;                                            mean   sd 0.025quant 0.5quant</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations 100.089 1.41      96.53   99.918</span></span>
+<span><span class="co">#&gt; Theta1 for field                         -5.316 0.00      -9.09   -5.316</span></span>
+<span><span class="co">#&gt; Theta2 for field                          3.014 0.00       2.07    3.014</span></span>
+<span><span class="co">#&gt; Theta3 for field                          0.751 0.00      -1.61    0.751</span></span>
 <span><span class="co">#&gt;                                         0.975quant    mode</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations     102.15 101.309</span></span>
-<span><span class="co">#&gt; Theta1 for field                             -2.74  -5.075</span></span>
-<span><span class="co">#&gt; Theta2 for field                              3.29   2.963</span></span>
-<span><span class="co">#&gt; Theta3 for field                              1.45   0.622</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations     101.86 101.308</span></span>
+<span><span class="co">#&gt; Theta1 for field                             -2.64  -5.316</span></span>
+<span><span class="co">#&gt; Theta2 for field                              3.39   3.014</span></span>
+<span><span class="co">#&gt; Theta3 for field                              1.70   0.751</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Deviance Information Criterion (DIC) ...............: -3277.51</span></span>
-<span><span class="co">#&gt; Deviance Information Criterion (DIC, saturated) ....: 2291.48</span></span>
-<span><span class="co">#&gt; Effective number of parameters .....................: 290.86</span></span>
+<span><span class="co">#&gt; Deviance Information Criterion (DIC) ...............: -3277.52</span></span>
+<span><span class="co">#&gt; Deviance Information Criterion (DIC, saturated) ....: 2291.52</span></span>
+<span><span class="co">#&gt; Effective number of parameters .....................: 290.85</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Watanabe-Akaike information criterion (WAIC) ...: -3268.43</span></span>
-<span><span class="co">#&gt; Effective number of parameters .................: 260.73</span></span>
+<span><span class="co">#&gt; Watanabe-Akaike information criterion (WAIC) ...: -3268.42</span></span>
+<span><span class="co">#&gt; Effective number of parameters .................: 260.74</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Marginal log-Likelihood:  1031.98 </span></span>
+<span><span class="co">#&gt; Marginal log-Likelihood:  1032.12 </span></span>
 <span><span class="co">#&gt;  is computed </span></span>
 <span><span class="co">#&gt; Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">#&gt; (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre></div>
@@ -518,10 +518,10 @@ form the stack manually, but can simply collect the required data in a
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_bru_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             mean         sd 0.025quant   0.5quant 0.975quant       mode</span></span>
-<span><span class="co">#&gt; tau    0.0180948 0.00103337  0.0161027  0.0180856  0.0201269  0.0180674</span></span>
-<span><span class="co">#&gt; kappa 15.5694000 0.20439700 15.1633000 15.5712000 15.9658000 15.5746000</span></span>
-<span><span class="co">#&gt; nu     1.0383400 0.01636950  1.0054800  1.0385900  1.0697600  1.0391100</span></span>
+<span><span class="co">#&gt;             mean        sd 0.025quant   0.5quant 0.975quant       mode</span></span>
+<span><span class="co">#&gt; tau    0.0167213 0.0010854  0.0146567  0.0167063  0.0188801  0.0166766</span></span>
+<span><span class="co">#&gt; kappa 15.8487000 0.2383010 15.3760000 15.8505000 16.3115000 15.8542000</span></span>
+<span><span class="co">#&gt; nu     1.0606900 0.0187402  1.0230500  1.0609900  1.0966400  1.0616100</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
@@ -538,9 +538,9 @@ form the stack manually, but can simply collect the required data in a
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter       true        mean        mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.1261566  0.01809482  0.01806735</span></span>
-<span><span class="co">#&gt; 2     kappa 10.0000000 15.56944858 15.57458252</span></span>
-<span><span class="co">#&gt; 3        nu  0.5000000  1.03834201  1.03911098</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       tau  0.1261566  0.01672134  0.01667662</span></span>
+<span><span class="co">#&gt; 2     kappa 10.0000000 15.84873554 15.85417924</span></span>
+<span><span class="co">#&gt; 3        nu  0.5000000  1.06069421  1.06160562</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kriging-with-inlabru-implementation-of-the-rational-spde-approach">Kriging with <code>inlabru</code> implementation of the rational
@@ -658,7 +658,7 @@ logarithm of each parameter to avoid constrained optimization:</p>
 <span><span class="co">#&gt; Estimate 1.012854  9.463699 0.5529452 0.09912518</span></span>
 <span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 44.32436 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 24.18008 secs</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kriging-with-rspde">Kriging with <code>rSPDE</code><a class="anchor" aria-label="anchor" href="#kriging-with-rspde"></a>
