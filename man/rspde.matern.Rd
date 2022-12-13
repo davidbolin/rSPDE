@@ -31,7 +31,7 @@ rspde.matern(
   nu.prec.inc = 1,
   type.rational.approx = c("chebfun", "brasil", "chebfunLB"),
   debug = FALSE,
-  shared_lib = "rSPDE",
+  shared_lib = "detect",
   ...
 )
 }
@@ -102,6 +102,8 @@ should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
 \item{debug}{INLA debug argument}
 
 \item{shared_lib}{Which shared lib to use for the cgeneric implementation?
+If "detect", it will check if the shared lib exists locally, in which case it will
+use it. Otherwise it will use INLA's shared library.
 If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
 it will use the local installation (does not work if your installation is from CRAN).
 Otherwise, you can directly supply the path of the .so (or .dll) file.}

@@ -634,9 +634,6 @@ $$y_i = x_1(\mathbf{s}_i)+\varepsilon_i,$$
 where $\varepsilon_1,\ldots,\varepsilon_{m}$ are iid normally distributed
 with mean 0 and standard deviation 0.1.
 
-We use the basis function representation of $x(\cdot)$ to define the $A$ matrix
-linking the point locations to the mesh.
-
 We begin by defining the domain and creating the mesh:
 
 ```{r fig.align = "center"}
@@ -668,15 +665,15 @@ prec_mat <- inla.cgeneric.q(rspde_nonstat_sample)$Q
 
 Let us now sample the data with `inla.qsample()` function:
 
-```{r}
-u <- as.vector(inla.qsample(1, prec_mat))
+```{r, warning=FALSE}
+u <- as.vector(inla.qsample(1, prec_mat, seed = 1))
 ```
 
-Let us now obtain 200 random locations on the rectangle and 
+Let us now obtain 400 random locations on the rectangle and 
 compute the $A$ matrix:
 
 ```{r}
-m <- 200
+m <- 400
 loc_mesh <- cbind(runif(m) * 10, runif(m) * 5)
 
 Abar <- rspde.make.A(

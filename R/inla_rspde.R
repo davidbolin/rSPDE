@@ -52,6 +52,8 @@
 #' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
 #' @param debug INLA debug argument
 #' @param shared_lib Which shared lib to use for the cgeneric implementation? 
+#' If "detect", it will check if the shared lib exists locally, in which case it will 
+#' use it. Otherwise it will use INLA's shared library.
 #' If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
 #' it will use the local installation (does not work if your installation is from CRAN).
 #' Otherwise, you can directly supply the path of the .so (or .dll) file.
@@ -86,7 +88,7 @@ rspde.matern <- function(mesh,
                          type.rational.approx = c("chebfun",
                          "brasil", "chebfunLB"),
                          debug = FALSE,
-                         shared_lib = "rSPDE",
+                         shared_lib = "detect",
                          ...) {                      
   type.rational.approx <- type.rational.approx[[1]]
 
@@ -198,6 +200,19 @@ rspde.matern <- function(mesh,
             } else {
 		rspde_lib <- paste0(rspde_lib, "/rspde_cgeneric_models.so")
             }
+  } else if(shared_lib == "detect"){
+    rspde_lib_local <- system.file('shared', package='rSPDE')
+    if(Sys.info()['sysname']=='Windows') {
+		rspde_lib_local <- paste0(rspde_lib_local, "/rspde_cgeneric_models.dll")
+            } else {
+		rspde_lib_local <- paste0(rspde_lib_local, "/rspde_cgeneric_models.so")
+            }
+    if(file.exists(rspde_lib_local)){
+      rspde_lib <- rspde_lib_local
+    } else{
+      rspde_lib <- dirname(INLA:::inla.call.builtin())
+		  rspde_lib <- paste0(rspde_lib, "/external/rSPDE/librSPDE.so")
+    }
   }
 
   ### PRIORS AND STARTING VALUES
