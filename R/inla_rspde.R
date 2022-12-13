@@ -1056,7 +1056,7 @@ rspde.make.A <- function(mesh = NULL,
 #'            inla.mode = "experimental"
 #' )
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
-#' plot(result)
+#' summary(result)
 #' }
 #' #devel.tag
 #' }
@@ -1245,7 +1245,6 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' )
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
-#' plot(result)
 #' }
 #' #devel.tag
 #' }
