@@ -59,6 +59,12 @@ jobs:
           Rscript -e "rmarkdown::render('vignettes/rspde_inla.Rmd')"
           Rscript -e "rmarkdown::render('vignettes/rspde_base.Rmd')"
           Rscript -e "rmarkdown::render('vignettes/rspde_inlabru.Rmd')"
+          git add vignettes
+          git add vignettes/rSPDE.html
+          git add vignettes/rspde_base.html
+          git add vignettes/rspde_cov.html
+          git add vignettes/rspde_inla.html
+          git add vignettes/rspde_inlabru.html
       
       - name: Finish the setup
         run: |
@@ -116,6 +122,7 @@ jobs:
           git add DESCRIPTION
           git add R/inla_rspde.R
           git add R/inlabru_rspde.R
+          git rm vignettes/*.Rmd
           git commit -m "Doing the setup"
           git push
         shell: bash
