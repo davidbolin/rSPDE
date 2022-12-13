@@ -1042,8 +1042,7 @@ create_summary_from_density <- function(density_df, name) {
         return(1)
       } else {
         stats::integrate(
-          f = denstemp, lower = min_x, upper = v,
-          subdivisions = min(nrow(density_df), 500)
+          f = denstemp, lower = min_x, upper = v
         )$value
       }
     })
@@ -1060,8 +1059,7 @@ create_summary_from_density <- function(density_df, name) {
   sd_temp <- sqrt(stats::integrate(
     f = function(z) {
       denstemp(z) * (z - mean_temp)^2
-    }, lower = min_x, upper = max_x,
-    subdivisions = nrow(density_df)
+    }, lower = min_x, upper = max_x
   )$value)
 
   mode_temp <- density_df[which.max(density_df[, "y"]), "x"]

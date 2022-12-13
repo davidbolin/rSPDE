@@ -9,8 +9,7 @@
   parameter = result$params,
   transform = TRUE,
   restrict_x_axis = parameter,
-  restrict_quantiles = list(std.dev = c(0, 1), range = c(0, 1), nu = c(0, 1), kappa =
-    c(0, 1), tau = c(0, 1)),
+  restrict_quantiles = NULL,
   ...
 )
 }
@@ -23,7 +22,10 @@
 
 \item{restrict_x_axis}{Variables to restrict the range of x axis based on quantiles.}
 
-\item{restrict_quantiles}{List of quantiles to restrict x axis.}
+\item{restrict_quantiles}{Named list of quantiles to restrict x axis. It should contain the name of the parameter
+along with a vector with two elements specifying the lower and upper quantiles. The names should be
+match the ones in result$params. For example, if we want to restrict nu to the 0.05 and 0.95 quantiles
+we do \code{restrict_quantiles = c(0.05, 0.95)}.}
 
 \item{...}{currently not used.}
 }

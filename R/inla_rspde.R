@@ -1253,318 +1253,287 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
   check_class_inla_rspde(rspde)
 
+  stationary <- rspde$stationary
+
   nu.upper.bound <- rspde$nu.upper.bound
   result <- list()
 
   parameterization <- rspde$parameterization
 
-  if (!rspde$est_nu) {
-    if(parameterization == "spde"){
-      row_names <- c("tau", "kappa")
+  if(stationary){
+          if (!rspde$est_nu) {
+              if(parameterization == "spde"){
+                row_names <- c("tau", "kappa")
+              } else{
+                row_names <- c("std.dev", "range")
+              }
+            } else {
+              if(parameterization == "spde"){
+                row_names <- c("tau", "kappa", "nu")
+              } else{
+                row_names <- c("std.dev", "range", "nu")
+              }
+            }
+
+
+            result$summary.values <- inla$summary.random[[name]]
+
+            if (!is.null(inla$marginals.random[[name]])) {
+              result$marginals.values <- inla$marginals.random[[name]]
+            }
+
+            if(parameterization == "spde"){
+              name_theta1 <- "tau"
+              name_theta2 <- "kappa"
+            } else{
+              name_theta1 <- "std.dev"
+              name_theta2 <- "range"
+            }
+
+
+            result[[paste0("summary.log.",name_theta1)]] <- INLA::inla.extract.el(
+              inla$summary.hyperpar,
+              paste("Theta1 for ", name, "$", sep = "")
+            )
+            rownames(  result[[paste0("summary.log.",name_theta1)]]) <- paste0("log(",name_theta1,")")
+
+            result[[paste0("summary.log.",name_theta2)]] <- INLA::inla.extract.el(
+              inla$summary.hyperpar,
+              paste("Theta2 for ", name, "$", sep = "")
+            )
+            rownames(result[[paste0("summary.log.",name_theta2)]]) <- paste0("log(", name_theta2,")")
+            if (rspde$est_nu) {
+              result$summary.logit.nu <- INLA::inla.extract.el(
+                inla$summary.hyperpar,
+                paste("Theta3 for ", name, "$", sep = "")
+              )
+              rownames(result$summary.logit.nu) <- "logit(nu)"
+            }
+
+            if (!is.null(inla$marginals.hyperpar[[paste0("Theta1 for ", name)]])) {
+              result[[paste0("marginals.log.",name_theta1)]] <- INLA::inla.extract.el(
+                inla$marginals.hyperpar,
+                paste("Theta1 for ", name, "$", sep = "")
+              )
+              names(result[[paste0("marginals.log.",name_theta1)]]) <- name_theta1
+              result[[paste0("marginals.log.",name_theta2)]] <- INLA::inla.extract.el(
+                inla$marginals.hyperpar,
+                paste("Theta2 for ", name, "$", sep = "")
+              )
+              names(result[[paste0("marginals.log.",name_theta2)]]) <- name_theta2
+
+              if (rspde$est_nu) {
+                result$marginals.logit.nu <- INLA::inla.extract.el(
+                  inla$marginals.hyperpar,
+                  paste("Theta3 for ", name, "$", sep = "")
+                )
+                names(result$marginals.logit.nu) <- "nu"
+              }
+
+              result[[paste0("marginals.",name_theta1)]] <- lapply(
+                result[[paste0("marginals.log.",name_theta1)]],
+                function(x) {
+                  INLA::inla.tmarginal(
+                    function(y) exp(y),
+                    x
+                  )
+                }
+              )
+              result[[paste0("marginals.",name_theta2)]] <- lapply(
+                result[[paste0("marginals.log.",name_theta2)]],
+                function(x) {
+                  INLA::inla.tmarginal(
+                    function(y) exp(y),
+                    x
+                  )
+                }
+              )
+              if (rspde$est_nu) {
+                result$marginals.nu <- lapply(
+                  result$marginals.logit.nu,
+                  function(x) {
+                    INLA::inla.tmarginal(
+                      function(y) {
+                        nu.upper.bound * exp(y) / (1 + exp(y))
+                      },
+                      x
+                    )
+                  }
+                )
+              }
+            }
+
+            if (compute.summary) {
+              norm_const <- function(density_df) {
+                min_x <- min(density_df[, "x"])
+                max_x <- max(density_df[, "x"])
+                denstemp <- function(x) {
+                  dens <- sapply(x, function(z) {
+                    if (z < min_x) {
+                      return(0)
+                    } else if (z > max_x) {
+                      return(0)
+                    } else {
+                      return(approx(x = density_df[, "x"],
+                      y = density_df[, "y"], xout = z)$y)
+                    }
+                  })
+                  return(dens)
+                }
+                norm_const <- stats::integrate(
+                  f = function(z) {
+                    denstemp(z)
+                  }, lower = min_x, upper = max_x,
+                  subdivisions = nrow(density_df)
+                )$value
+                return(norm_const)
+              }
+
+              norm_const_theta1 <- norm_const(result[[paste0("marginals.",name_theta1)]][[name_theta1]])
+              result[[paste0("marginals.",name_theta1)]][[name_theta1]][, "y"] <-
+              result[[paste0("marginals.",name_theta1)]][[name_theta1]][, "y"] / norm_const_theta1
+
+              norm_const_theta2 <- norm_const(result[[paste0("marginals.",name_theta2)]][[name_theta2]])
+              result[[paste0("marginals.",name_theta2)]][[name_theta2]][, "y"] <-
+              result[[paste0("marginals.",name_theta2)]][[name_theta2]][, "y"] / norm_const_theta2
+
+
+
+
+              result[[paste0("summary.",name_theta1)]] <- create_summary_from_density(result[[paste0("marginals.",name_theta1)]][[name_theta1]],
+              name = name_theta1)
+              result[[paste0("summary.",name_theta2)]] <-
+              create_summary_from_density(result[[paste0("marginals.",name_theta2)]][[name_theta2]], name = name_theta2)
+              if (rspde$est_nu) {
+                norm_const_nu <- norm_const(result$marginals.nu$nu)
+                result$marginals.nu$nu[, "y"] <-
+                result$marginals.nu$nu[, "y"] / norm_const_nu
+
+                result$summary.nu <- create_summary_from_density(result$marginals.nu$nu,
+                name = "nu")
+              }
+            }
     } else{
-      row_names <- c("std.dev", "range")
-    }
-  } else {
-    if(parameterization == "spde"){
-      row_names <- c("tau", "kappa", "nu")
-    } else{
-      row_names <- c("std.dev", "range", "nu")
-    }
-  }
+      n_par <- length(rspde$start.theta)
+
+      if (!rspde$est_nu) {
+        if(parameterization == "spde"){
+                row_names <- sapply(1:n_par, function(i){paste0("Theta",i,".spde")})
+         } else{
+                row_names <- sapply(1:n_par, function(i){paste0("Theta",i,".matern")})
+         }
+      } else {
+       if(parameterization == "spde"){
+              row_names <- sapply(1:n_par, function(i){paste0("Theta",i,".spde")})
+              row_names <- c(row_names, "nu")
+        } else{
+               row_names <- sapply(1:n_par, function(i){paste0("Theta",i,".matern")})
+               row_names <- c(row_names, "nu")
+         }
+       }
+
+       for(i in 1:n_par){
+          result[[paste0("summary.",row_names[i])]] <- INLA::inla.extract.el(
+              inla$summary.hyperpar,
+              paste0("Theta",i," for ", name, "$", sep = "")
+            )
+            rownames(  result[[paste0("summary.",row_names[i])]]) <- row_names[i]
+       }
+
+            if (rspde$est_nu) {
+              result$summary.logit.nu <- INLA::inla.extract.el(
+                inla$summary.hyperpar,
+                paste0("Theta",n_par+1," for ", name, "$", sep = "")
+              )
+              rownames(result$summary.logit.nu) <- "logit(nu)"
+            }
 
 
-  result$summary.values <- inla$summary.random[[name]]
-
-  if (!is.null(inla$marginals.random[[name]])) {
-    result$marginals.values <- inla$marginals.random[[name]]
-  }
-
-  if(parameterization == "spde"){
-    name_theta1 <- "tau"
-    name_theta2 <- "kappa"
-  } else{
-    name_theta1 <- "std.dev"
-    name_theta2 <- "range"
-  }
+       for(i in 1:n_par){
+            if (!is.null(inla$marginals.hyperpar[[paste0("Theta",i," for ", name)]])) {
+              result[[paste0("marginals.",row_names[i])]] <- INLA::inla.extract.el(
+                inla$marginals.hyperpar,
+                paste0("Theta",i," for ", name, "$", sep = "")
+              )
+              names(result[[paste0("marginals.",row_names[i])]]) <- row_names[i]
+            }
+       }
 
 
-  result[[paste0("summary.log.",name_theta1)]] <- INLA::inla.extract.el(
-    inla$summary.hyperpar,
-    paste("Theta1 for ", name, "$", sep = "")
-  )
-  rownames(  result[[paste0("summary.log.",name_theta1)]]) <- paste0("log(",name_theta1,")")
-  
-  result[[paste0("summary.log.",name_theta2)]] <- INLA::inla.extract.el(
-    inla$summary.hyperpar,
-    paste("Theta2 for ", name, "$", sep = "")
-  )
-  rownames(result[[paste0("summary.log.",name_theta2)]]) <- paste0("log(", name_theta2,")")
-  if (rspde$est_nu) {
-    result$summary.logit.nu <- INLA::inla.extract.el(
-      inla$summary.hyperpar,
-      paste("Theta3 for ", name, "$", sep = "")
-    )
-    rownames(result$summary.logit.nu) <- "logit(nu)"
-  }
+              if (rspde$est_nu) {
+                result$marginals.logit.nu <- INLA::inla.extract.el(
+                  inla$marginals.hyperpar,
+                  paste0("Theta",n_par+1," for ", name, "$", sep = "")
+                )
+                names(result$marginals.logit.nu) <- "nu"
 
-  if (!is.null(inla$marginals.hyperpar[[paste0("Theta1 for ", name)]])) {
-    result[[paste0("marginals.log.",name_theta1)]] <- INLA::inla.extract.el(
-      inla$marginals.hyperpar,
-      paste("Theta1 for ", name, "$", sep = "")
-    )
-    names(result[[paste0("marginals.log.",name_theta1)]]) <- name_theta1
-    result[[paste0("marginals.log.",name_theta2)]] <- INLA::inla.extract.el(
-      inla$marginals.hyperpar,
-      paste("Theta2 for ", name, "$", sep = "")
-    )
-    names(result[[paste0("marginals.log.",name_theta2)]]) <- name_theta2
+                result$marginals.nu <- lapply(
+                  result$marginals.logit.nu,
+                  function(x) {
+                    INLA::inla.tmarginal(
+                      function(y) {
+                        nu.upper.bound * exp(y) / (1 + exp(y))
+                      },
+                      x
+                    )
+                  }
+                )
+              }
 
-    if (rspde$est_nu) {
-      result$marginals.logit.nu <- INLA::inla.extract.el(
-        inla$marginals.hyperpar,
-        paste("Theta3 for ", name, "$", sep = "")
-      )
-      names(result$marginals.logit.nu) <- "nu"
-    }
+            if (compute.summary) {
+              norm_const <- function(density_df) {
+                min_x <- min(density_df[, "x"])
+                max_x <- max(density_df[, "x"])
+                denstemp <- function(x) {
+                  dens <- sapply(x, function(z) {
+                    if (z < min_x) {
+                      return(0)
+                    } else if (z > max_x) {
+                      return(0)
+                    } else {
+                      return(approx(x = density_df[, "x"],
+                      y = density_df[, "y"], xout = z)$y)
+                    }
+                  })
+                  return(dens)
+                }
+                norm_const <- stats::integrate(
+                  f = function(z) {
+                    denstemp(z)
+                  }, lower = min_x, upper = max_x
+                )$value
+                return(norm_const)
+              }
 
-    result[[paste0("marginals.",name_theta1)]] <- lapply(
-      result[[paste0("marginals.log.",name_theta1)]],
-      function(x) {
-        INLA::inla.tmarginal(
-          function(y) exp(y),
-          x
-        )
-      }
-    )
-    result[[paste0("marginals.",name_theta2)]] <- lapply(
-      result[[paste0("marginals.log.",name_theta2)]],
-      function(x) {
-        INLA::inla.tmarginal(
-          function(y) exp(y),
-          x
-        )
-      }
-    )
-    if (rspde$est_nu) {
-      result$marginals.nu <- lapply(
-        result$marginals.logit.nu,
-        function(x) {
-          INLA::inla.tmarginal(
-            function(y) {
-              nu.upper.bound * exp(y) / (1 + exp(y))
-            },
-            x
-          )
-        }
-      )
-    }
-  }
+              if (rspde$est_nu) {
+                norm_const_nu <- norm_const(result$marginals.nu$nu)
+                result$marginals.nu$nu[, "y"] <-
+                result$marginals.nu$nu[, "y"] / norm_const_nu
 
-  if (compute.summary) {
-    norm_const <- function(density_df) {
-      min_x <- min(density_df[, "x"])
-      max_x <- max(density_df[, "x"])
-      denstemp <- function(x) {
-        dens <- sapply(x, function(z) {
-          if (z < min_x) {
-            return(0)
-          } else if (z > max_x) {
-            return(0)
-          } else {
-            return(approx(x = density_df[, "x"],
-            y = density_df[, "y"], xout = z)$y)
-          }
-        })
-        return(dens)
-      }
-      norm_const <- stats::integrate(
-        f = function(z) {
-          denstemp(z)
-        }, lower = min_x, upper = max_x,
-        subdivisions = nrow(density_df)
-      )$value
-      return(norm_const)
+                result$summary.nu <- create_summary_from_density(result$marginals.nu$nu,
+                name = "nu")
+              }
+            }
+
+
     }
 
-    norm_const_theta1 <- norm_const(result[[paste0("marginals.",name_theta1)]][[name_theta1]])
-    result[[paste0("marginals.",name_theta1)]][[name_theta1]][, "y"] <-
-    result[[paste0("marginals.",name_theta1)]][[name_theta1]][, "y"] / norm_const_theta1
-
-    norm_const_theta2 <- norm_const(result[[paste0("marginals.",name_theta2)]][[name_theta2]])
-    result[[paste0("marginals.",name_theta2)]][[name_theta2]][, "y"] <-
-    result[[paste0("marginals.",name_theta2)]][[name_theta2]][, "y"] / norm_const_theta2
-
-
-
-
-    result[[paste0("summary.",name_theta1)]] <- create_summary_from_density(result[[paste0("marginals.",name_theta1)]][[name_theta1]],
-    name = name_theta1)
-    result[[paste0("summary.",name_theta2)]] <-
-    create_summary_from_density(result[[paste0("marginals.",name_theta2)]][[name_theta2]], name = name_theta2)
-    if (rspde$est_nu) {
-      norm_const_nu <- norm_const(result$marginals.nu$nu)
-      result$marginals.nu$nu[, "y"] <-
-      result$marginals.nu$nu[, "y"] / norm_const_nu
-
-      result$summary.nu <- create_summary_from_density(result$marginals.nu$nu,
-      name = "nu")
-    }
-  }
+  result$n_par <- length(rspde$start.theta)
 
   class(result) <- "rspde_result"
-  result$params <- c(name_theta1,name_theta2)
-  if(rspde$est_nu){
+  result$stationary <- stationary
+  result$parameterization <- parameterization
+  if(stationary){
+    result$params <- c(name_theta1,name_theta2)
+   if(rspde$est_nu){
     result$params <- c(result$params, "nu")
   }
+  } else {
+    result$params <- row_names
+  }
+
   return(result)
 }
-
-#' @name plot.rspde_result
-#' @title Posterior plots for field parameters for an `inla_rspde` model
-#' from a `rspde_result` object
-#' @description Posterior plots for rSPDE field parameters in their
-#' original scales.
-#' @param x A `rspde_result` object.
-#' @param which For which parameters the posterior should be plotted?
-#' @param caption captions to appear above the plots; character
-#' vector or list of
-#' valid graphics annotations. Can be set to "" or NA to suppress all captions.
-#' @param sub.caption	common title-above the figures if there are more than one.
-#' @param type_plot what type of plot should be drawn. The default is 'l'.
-#' @param ask logical; if `TRUE`, the user is asked before each plot.
-#' @param main character; title to be placed at each plot additionally
-#' (and above) all captions.
-#' @param cex.caption	controls the size of caption.
-#' @param cex.oma.main controls the size of the sub.caption only if
-#' that is above the figures when there is more than one.
-#' @param ylab Label for y axis.
-#' @param xlab Label for x axis.
-#' @param ... Additional arguments.
-#' @return Called for its side effects.
-#' @export
-#' @method plot rspde_result
-#' @examples
-#' \donttest{ #devel version
-#' if (requireNamespace("INLA", quietly = TRUE)){
-#' library(INLA)
-#' 
-#' set.seed(123)
-#'
-#' m <- 100
-#' loc_2d_mesh <- matrix(runif(m * 2), m, 2)
-#' mesh_2d <- inla.mesh.2d(
-#'   loc = loc_2d_mesh,
-#'   cutoff = 0.05,
-#'   max.edge = c(0.1, 0.5)
-#' )
-#' sigma <- 1
-#' range <- 0.2
-#' nu <- 0.8
-#' kappa <- sqrt(8 * nu) / range
-#' op <- matern.operators(
-#'   mesh = mesh_2d, nu = nu,
-#'   kappa = kappa, sigma = sigma, m = 2
-#' )
-#' u <- simulate(op)
-#' A <- inla.spde.make.A(
-#'   mesh = mesh_2d,
-#'   loc = loc_2d_mesh
-#' )
-#' sigma.e <- 0.1
-#' y <- A %*% u + rnorm(m) * sigma.e
-#' Abar <- rspde.make.A(mesh = mesh_2d, loc = loc_2d_mesh)
-#' mesh.index <- rspde.make.index(name = "field", mesh = mesh_2d)
-#' st.dat <- inla.stack(
-#'   data = list(y = as.vector(y)),
-#'   A = Abar,
-#'   effects = mesh.index
-#' )
-#' rspde_model <- rspde.matern(
-#'   mesh = mesh_2d,
-#'   nu.upper.bound = 2
-#' )
-#' f <- y ~ -1 + f(field, model = rspde_model)
-#' rspde_fit <- inla(f,
-#'   data = inla.stack.data(st.dat),
-#'   family = "gaussian",
-#'   control.predictor =
-#'     list(A = inla.stack.A(st.dat)),
-#'            inla.mode = "experimental"
-#' )
-#' result <- rspde.result(rspde_fit, "field", rspde_model)
-#' plot(result)
-#' }
-#' #devel.tag
-#' }
-plot.rspde_result <- function(x, which = x$params,
-                              caption = list(paste(
-                                "Posterior density for", x$params[1]),
-                                paste(
-                                "Posterior density for", x$params[2]),
-                                "Posterior density for nu"
-                              ),
-                              sub.caption = NULL,
-                              type_plot = "l",
-                              ask = prod(graphics::par("mfcol")) <
-                                length(which) && grDevices::dev.interactive(),
-                              main = "",
-                              cex.oma.main = 1.25,
-                              cex.caption = 1,
-                              ylab = "Density",
-                              xlab = "x",
-                              ...) {
-  result <- x
-  which <- which[which %in% c("tau", "kappa", "nu", "range", "std.dev")]
-  stopifnot(!is.null(which))
-
-  one.fig <- prod(graphics::par("mfcol")) == 1
-
-  if (ask) {
-    oask <- grDevices::devAskNewPage(TRUE)
-    on.exit(grDevices::devAskNewPage(oask))
-  }
-
-  getCaption <- function(k) {
-    if (length(caption) < k) {
-      NA_character_
-    } else {
-      grDevices::as.graphicsAnnot(caption[[k]])
-    }
-  }
-
-  if ("nu" %in% which) {
-    if (is.null(result$marginals.nu)) {
-      which <- which[which != "nu"]
-    }
-  }
-
-  param <- result$params
-  for (i in 1:3) {
-    if (param[i] %in% which) {
-      graph_temp <- result[[paste0("marginals.", param[i])]][[param[i]]]
-      graphics::plot(graph_temp,
-        type = type_plot, main = main, ylab = ylab, xlab = xlab,
-        ...
-      )
-      graphics::mtext(getCaption(i), side = 3, cex = cex.caption)
-    }
-
-
-    if (one.fig) {
-      graphics::title(sub = sub.caption, ...)
-    }
-  }
-
-  if (!one.fig && graphics::par("oma")[3L] >= 1) {
-    graphics::mtext(sub.caption, outer = TRUE, cex = 1.25)
-  }
-
-  grDevices::dev.flush()
-
-  invisible()
-}
-
-
 
 
 #' @name gg_df
@@ -1591,7 +1560,10 @@ UseMethod("gg_df", result)
 #' @param parameter Vector. Which parameters to get the posterior density in the data.frame? The options are `std.dev`, `range`, `tau`, `kappa` and `nu`.
 #' @param transform Should the posterior density be given in the original scale?
 #' @param restrict_x_axis Variables to restrict the range of x axis based on quantiles.
-#' @param restrict_quantiles List of quantiles to restrict x axis.
+#' @param restrict_quantiles Named list of quantiles to restrict x axis. It should contain the name of the parameter
+#' along with a vector with two elements specifying the lower and upper quantiles. The names should be
+#' match the ones in result$params. For example, if we want to restrict nu to the 0.05 and 0.95 quantiles
+#' we do `restrict_quantiles = c(0.05, 0.95)`.
 #' @param ... currently not used.
 #'
 #' @return A data frame containing the posterior densities.
@@ -1600,85 +1572,141 @@ gg_df.rspde_result <- function(result,
                           parameter = result$params,
                           transform = TRUE,
                           restrict_x_axis = parameter,
-                          restrict_quantiles = list(std.dev = c(0,1),
-                          range = c(0,1),
-                          nu = c(0,1),
-                          kappa = c(0,1),
-                          tau = c(0,1)),
+                          restrict_quantiles = NULL,
                           ...) {
       rspde_result <- result
-      parameter <- intersect(parameter, c("tau", "kappa", "nu", "range", "std.dev"))
+      parameter <- intersect(parameter, result$params)
       if(length(parameter) == 0){
-        stop("You should choose at least one of the parameters 'tau', 'kappa', 'nu', 'range' or 'std.dev'!")
+        stop("You should choose at least one of the parameters. The available parameters are given in result$params!")
       }
     if ("nu" %in% parameter) {
     if (is.null(rspde_result$marginals.nu)) {
       parameter <- parameter[parameter != "nu"]
     }
   }
-  
-  param <- parameter[[1]]
-  if(transform){
-    param <- paste0("marginals.", param)
-  } else{
-    if(param != "nu"){
-      param <- paste0("marginals.log.", param)
-    } else{
-      param <- paste0("marginals.logit.", param)
-    }
-  }
-  ret_df <- data.frame(x = rspde_result[[param]][[parameter[1]]][,1], 
-  y = rspde_result[[param]][[parameter[1]]][,2], 
-  parameter = parameter[[1]])
 
-  if(parameter[[1]] %in% restrict_x_axis){
-    if(is.null( restrict_quantiles[[parameter[[1]]]])){
-      warning("If you want to restrict x axis you should provide a quantile for the parameter!")
-       restrict_quantiles[[parameter[[1]]]] <- c(0,1)
-    }
-    d_t <- c(0,diff(ret_df$x))
-    emp_cdf <- cumsum(d_t*ret_df$y)
-    lower_quant <- restrict_quantiles[[parameter[[1]]]][1]
-    upper_quant <- restrict_quantiles[[parameter[[1]]]][2]
-    filter_coord <- (emp_cdf >= lower_quant) * (emp_cdf <= upper_quant)
-    filter_coord <- as.logical(filter_coord)
-    ret_df <- ret_df[filter_coord, ]
+  stationary <- result$stationary
+
+  if(stationary){
+        param <- parameter[[1]]
+        if(transform){
+          param <- paste0("marginals.", param)
+        } else{
+          if(param != "nu"){
+            param <- paste0("marginals.log.", param)
+          } else{
+            param <- paste0("marginals.logit.", param)
+          }
+        }
+        ret_df <- data.frame(x = rspde_result[[param]][[parameter[1]]][,1], 
+        y = rspde_result[[param]][[parameter[1]]][,2], 
+        parameter = parameter[[1]])
+
+        if(parameter[[1]] %in% restrict_x_axis){
+          if(is.null( restrict_quantiles[[parameter[[1]]]])){
+             restrict_quantiles[[parameter[[1]]]] <- c(0,1)
+          }
+          d_t <- c(0,diff(ret_df$x))
+          emp_cdf <- cumsum(d_t*ret_df$y)
+          lower_quant <- restrict_quantiles[[parameter[[1]]]][1]
+          upper_quant <- restrict_quantiles[[parameter[[1]]]][2]
+          filter_coord <- (emp_cdf >= lower_quant) * (emp_cdf <= upper_quant)
+          filter_coord <- as.logical(filter_coord)
+          ret_df <- ret_df[filter_coord, ]
+        }
+
+        if(length(parameter) > 1){
+        for(i in 2:length(parameter)){
+        param <- parameter[[i]]
+        if(transform){
+          param <- paste0("marginals.", param)
+        } else{
+          if(param != "nu"){
+            param <- paste0("marginals.log.", param)
+          } else{
+            param <- paste0("marginals.logit.", param)
+          }
+        }
+          tmp <- data.frame(x = rspde_result[[param]][[parameter[i]]][,1], 
+            y = rspde_result[[param]][[parameter[i]]][,2], 
+            parameter = parameter[[i]])
+
+          if(parameter[[i]] %in% restrict_x_axis){
+          if(is.null( restrict_quantiles[[parameter[[i]]]])){
+             restrict_quantiles[[parameter[[i]]]] <- c(0,1)
+          }
+          d_t <- c(0,diff(tmp$x))
+          emp_cdf <- cumsum(d_t*tmp$y)
+          lower_quant <- restrict_quantiles[[parameter[[i]]]][1]
+          upper_quant <- restrict_quantiles[[parameter[[i]]]][2]
+          filter_coord <- (emp_cdf >= lower_quant) * (emp_cdf <= upper_quant)
+          filter_coord <- as.logical(filter_coord)
+          tmp <- tmp[filter_coord, ]
+        }
+
+          ret_df <- rbind(ret_df, tmp)
+        }
+        }
+  }  else{
+
+        param <- parameter[[1]]
+        if(transform && param == "nu"){
+          param <- paste0("marginals.", param)
+        } else if (param == "nu"){
+            param <- paste0("marginals.logit.", param)
+        } else{
+            param <- paste0("marginals.", param)
+        }
+        ret_df <- data.frame(x = rspde_result[[param]][[parameter[1]]][,1], 
+        y = rspde_result[[param]][[parameter[1]]][,2], 
+        parameter = parameter[[1]])
+
+        if(parameter[[1]] %in% restrict_x_axis){
+          if(is.null( restrict_quantiles[[parameter[[1]]]])){
+             restrict_quantiles[[parameter[[1]]]] <- c(0,1)
+          }
+          d_t <- c(0,diff(ret_df$x))
+          emp_cdf <- cumsum(d_t*ret_df$y)
+          lower_quant <- restrict_quantiles[[parameter[[1]]]][1]
+          upper_quant <- restrict_quantiles[[parameter[[1]]]][2]
+          filter_coord <- (emp_cdf >= lower_quant) * (emp_cdf <= upper_quant)
+          filter_coord <- as.logical(filter_coord)
+          ret_df <- ret_df[filter_coord, ]
+        }
+
+        if(length(parameter) > 1){
+        for(i in 2:length(parameter)){
+        param <- parameter[[i]]
+        if(transform && param == "nu"){
+          param <- paste0("marginals.", param)
+        } else if (param == "nu"){
+            param <- paste0("marginals.logit.", param)
+        } else{
+            param <- paste0("marginals.", param)
+        }
+          tmp <- data.frame(x = rspde_result[[param]][[parameter[i]]][,1], 
+            y = rspde_result[[param]][[parameter[i]]][,2], 
+            parameter = parameter[[i]])
+
+          if(parameter[[i]] %in% restrict_x_axis){
+          if(is.null( restrict_quantiles[[parameter[[i]]]])){
+             restrict_quantiles[[parameter[[i]]]] <- c(0,1)
+          }
+          d_t <- c(0,diff(tmp$x))
+          emp_cdf <- cumsum(d_t*tmp$y)
+          lower_quant <- restrict_quantiles[[parameter[[i]]]][1]
+          upper_quant <- restrict_quantiles[[parameter[[i]]]][2]
+          filter_coord <- (emp_cdf >= lower_quant) * (emp_cdf <= upper_quant)
+          filter_coord <- as.logical(filter_coord)
+          tmp <- tmp[filter_coord, ]
+        }
+
+          ret_df <- rbind(ret_df, tmp)
+        }
+        }
+
   }
 
-  if(length(parameter) > 1){
-  for(i in 2:length(parameter)){
-  param <- parameter[[i]]
-  if(transform){
-    param <- paste0("marginals.", param)
-  } else{
-    if(param != "nu"){
-      param <- paste0("marginals.log.", param)
-    } else{
-      param <- paste0("marginals.logit.", param)
-    }
-  }
-    tmp <- data.frame(x = rspde_result[[param]][[parameter[i]]][,1], 
-      y = rspde_result[[param]][[parameter[i]]][,2], 
-      parameter = parameter[[i]])
-
-    if(parameter[[i]] %in% restrict_x_axis){
-    if(is.null( restrict_quantiles[[parameter[[i]]]])){
-      warning(paste("No quantile for", parameter[[i]]))
-      warning("If you want to restrict x axis you should provide a quantile for the parameter!")
-       restrict_quantiles[[parameter[[i]]]] <- c(0,1)
-    }
-    d_t <- c(0,diff(tmp$x))
-    emp_cdf <- cumsum(d_t*tmp$y)
-    lower_quant <- restrict_quantiles[[parameter[[i]]]][1]
-    upper_quant <- restrict_quantiles[[parameter[[i]]]][2]
-    filter_coord <- (emp_cdf >= lower_quant) * (emp_cdf <= upper_quant)
-    filter_coord <- as.logical(filter_coord)
-    tmp <- tmp[filter_coord, ]
-  }
-    
-    ret_df <- rbind(ret_df, tmp)
-  }
-  }
   return(ret_df)
 }
 
@@ -1757,8 +1785,14 @@ summary.rspde_result <- function(object,
     warning("The summary was not computed, rerun rspde_result with
     compute.summary set to TRUE.")
   } else {
+    n_par <- object$n_par
     out <- object[[paste0("summary.",object$params[1])]]
-    out <- rbind(out, object[[paste0("summary.",object$params[2])]])
+    if(n_par > 1){
+      for(i in 2:n_par){
+        out <- rbind(out, object[[paste0("summary.",object$params[i])]])
+      }
+    }
+
     if (!is.null(object$summary.nu)) {
       out <- rbind(out, object$summary.nu)
     }
