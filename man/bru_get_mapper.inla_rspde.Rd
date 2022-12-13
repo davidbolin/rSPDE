@@ -7,13 +7,13 @@
 \alias{ibm_jacobian.bru_mapper_inla_rspde}
 \title{rSPDE inlabru mapper}
 \usage{
-\method{bru_get_mapper}{inla_rspde}(model, ...)
+bru_get_mapper.inla_rspde(model, ...)
 
-\method{ibm_n}{bru_mapper_inla_rspde}(mapper, ...)
+ibm_n.bru_mapper_inla_rspde(mapper, ...)
 
-\method{ibm_values}{bru_mapper_inla_rspde}(mapper, ...)
+ibm_values.bru_mapper_inla_rspde(mapper, ...)
 
-\method{ibm_jacobian}{bru_mapper_inla_rspde}(mapper, input, ...)
+ibm_jacobian.bru_mapper_inla_rspde(mapper, input, ...)
 }
 \arguments{
 \item{model}{An \code{inla_rspde} for which to construct or extract a mapper}
@@ -28,7 +28,8 @@
 rSPDE inlabru mapper
 }
 \examples{
-\donttest{ #devel version
+\donttest{ #tryCatch version
+tryCatch({
 if (requireNamespace("INLA", quietly = TRUE) && 
      requireNamespace("inlabru", quietly = TRUE)){
 library(INLA)
@@ -74,6 +75,7 @@ cmp <- y ~ Intercept(1) +
 rspde_fit <- bru(cmp, data = data_df)
 summary(rspde_fit)
 }
-#devel.tag
+#stable.tryCatch
+}, error = function(e){print("Could not run the example")})
 }
 }

@@ -57,7 +57,8 @@ for rSPDE models based on \code{inla.mesh} or
 \code{inla.mesh.1d} objects.
 }
 \examples{
-\donttest{ #devel version
+\donttest{ #tryCatch version
+tryCatch({
 if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
 
@@ -70,6 +71,7 @@ mesh <- inla.mesh.2d(
 )
 A <- rspde.make.A(mesh, loc = loc, rspde.order = 3)
 }
-#devel.tag
+#stable.tryCatch
+}, error = function(e){print("Could not run the example")})
 }
 }
