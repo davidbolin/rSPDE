@@ -191,8 +191,7 @@ rspde.matern <- function(mesh,
   ### Location of object files
 
   if(shared_lib == "INLA"){
-    rspde_lib <- dirname(INLA:::inla.call.builtin())
-		rspde_lib <- paste0(rspde_lib, "/external/rSPDE/librSPDE.so")
+    rspde_lib <- INLA::inla.external.lib('rSPDE')
   } else if(shared_lib == "rSPDE"){
     rspde_lib <- system.file('shared', package='rSPDE')
     if(Sys.info()['sysname']=='Windows') {
@@ -210,8 +209,7 @@ rspde.matern <- function(mesh,
     if(file.exists(rspde_lib_local)){
       rspde_lib <- rspde_lib_local
     } else{
-      rspde_lib <- dirname(INLA:::inla.call.builtin())
-		  rspde_lib <- paste0(rspde_lib, "/external/rSPDE/librSPDE.so")
+      rspde_lib <- INLA::inla.external.lib('rSPDE')
     }
   }
 
