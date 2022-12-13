@@ -1,4 +1,4 @@
-# rSPDE (development version)
+# rSPDE 2.0.0
 * Added cgeneric versions of the nonstationary models
 * Added support for metric graphs (depends on the MetricGraph package)
 * Added cgeneric versions of the stationary models
