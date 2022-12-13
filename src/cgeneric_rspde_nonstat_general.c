@@ -34,6 +34,9 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
   assert(!strcasecmp(data->ints[4]->name, "rspde_order"));
   int rspde_order = data->ints[4]->ints[0];
 
+  assert(!strcasecmp(data->ints[5]->name, "matern_par"));
+  int matern_par = data->ints[5]->ints[0];
+
 
   assert(!strcasecmp(data->doubles[0]->name, "d"));
   double d = data->doubles[0]->doubles[0];
@@ -138,9 +141,7 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
 
       int n_terms = 2*rspde_order + 2;
 
-      double new_alpha = nu + d / 2.0;
-
-      int new_m_alpha = (int) floor(new_alpha);
+      double new_alpha = nu + d/2.0;
 
       int row_nu = (int)round(1000*cut_decimals(new_alpha))-1;
 
@@ -163,10 +164,10 @@ double *inla_cgeneric_rspde_nonstat_general_model(inla_cgeneric_cmd_tp cmd, doub
                         G->n,
                         B_kappa->x, B_tau->x,
                         B_kappa->ncol, rspde_order,
-                        theta, p, r, k_rat,
-                        new_m_alpha, &ret[k],
+                        theta, p, r, k_rat, &ret[k],
                         graph_i->ints, graph_j->ints,
-                        M, new_alpha);
+                        M, matern_par, start_nu, nu,
+                        d);
 
       break;
     }

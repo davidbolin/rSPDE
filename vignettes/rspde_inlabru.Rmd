@@ -643,7 +643,23 @@ mesh <- inla.mesh.2d(loc.domain = rec_domain, cutoff = 0.1,
   max.edge = c(0.5, 1.5), offset = c(0.5, 1.5))
 ```
 
+We follow the same structure as `INLA`. However, `INLA` only allows one to specify 
+`B.tau` and `B.kappa` matrices, and, in `INLA`, if one wants to parameterize in terms of range and
+standard deviation one needs to do it manually. Here we provide the option to directly provide
+the matrices `B.sigma` and `B.range`. 
+
+The usage of the matrices `B.tau` and `B.kappa` are identical to the corresponding ones in `inla.spde2.matern()` function.
+The matrices `B.sigma` and `B.range` work in the same way, but they parameterize the stardard deviation
+and range, respectively.
+
+The columns of the `B` matrices correspond to the same parameter. The first column does not
+have any parameter to be estimated, it is a constant column. 
+
+So, for instance, if one wants to share a parameter with both `sigma` and `range` (or with both `tau` and `kappa`),
+one simply let the corresponding column to be nonzero on both `B.sigma` and `B.range` (or on `B.tau` and `B.kappa`).
+
 We will assume $\nu = 0.8$, $\theta_1 = 0, \theta_2 = 1$ and $\theta_3=1$. Let us now build the model with the `rspde.matern()` function:
+
 
 ```{r}
 nu <- 0.8
@@ -724,7 +740,7 @@ rspde_fit_nonstat <-
   bru(cmp_nonstat,
     data = nonstat_df,
     family = "gaussian",
-    options = list(
+    options = list(verbose=TRUE,
       list(inla.mode = "experimental")
     )
   )
@@ -733,6 +749,24 @@ rspde_fit_nonstat <-
 We can get the summary:
 ```{r}
 summary(rspde_fit_nonstat)
+```
+
+
+We can obtain outputs with respect to parameters in the original scale by
+using the function `rspde.result()`:
+
+```{r get_result_nonstat}
+result_fit_nonstat <- rspde.result(rspde_fit_nonstat, "field", rspde_model_nonstat)
+summary(result_fit_nonstat)
+```
+
+We can also plot the posterior densities. To this end we will use the `gg_df()` function, which creates `ggplot2` user-friendly data frames:
+
+```{r plot_post_nonstat, fig.align='center'}
+posterior_df_fit <- gg_df(result_fit_nonstat)
+
+ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
 
 

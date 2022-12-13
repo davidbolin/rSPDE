@@ -1533,7 +1533,8 @@ get_parameters_rSPDE <- function (mesh, alpha,
 
       B.tau <- cbind(0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) - 
                 d/2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] - 
-                B.sigma[,1], - nu.nominal * B.kappa[, -1, drop = FALSE] -
+                B.sigma[,1], 
+                - nu.nominal * B.kappa[, -1, drop = FALSE] -
                 B.sigma[, -1, drop = FALSE])
     }
 

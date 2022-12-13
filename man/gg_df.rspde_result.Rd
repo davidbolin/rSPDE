@@ -8,7 +8,7 @@
   result,
   parameter = result$params,
   transform = TRUE,
-  restrict_x_axis = parameter,
+  restrict_x_axis = NULL,
   restrict_quantiles = NULL,
   ...
 )

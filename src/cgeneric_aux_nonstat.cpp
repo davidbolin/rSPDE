@@ -10,8 +10,9 @@ extern "C" void compute_Q(int size, double *entries_C, int *i_C, int *j_C,
                     double *entries_B_kappa, double *entries_B_tau,
                     int ncol_B, int rspde_order, double *theta_entries,
                     double *rat_p, double *rat_r, double rat_k,
-                    int m_alpha, double *Q_out,
-                    int *graph_i, int *graph_j, int M, double alpha);
+                    double *Q_out,
+                    int *graph_i, int *graph_j, int M,
+                    int matern_par, double start_nu, double nu, double d);
 
 void compute_Q(int size, double *entries_C, int *i_C, int *j_C,
                     int n_nonzero_C,
@@ -20,8 +21,12 @@ void compute_Q(int size, double *entries_C, int *i_C, int *j_C,
                     double *entries_B_kappa, double *entries_B_tau,
                     int ncol_B, int rspde_order, double *theta_entries,
                     double *rat_p, double *rat_r, double rat_k,
-                    int m_alpha, double *Q_out,
-                    int *graph_i, int *graph_j, int M, double alpha) {
+                    double *Q_out,
+                    int *graph_i, int *graph_j, int M, 
+                    int matern_par, double start_nu, double nu, double d) {
+
+                        double alpha = nu + d/2.0;
+                        int m_alpha = (int) floor(alpha);
                         
                         
                         typedef Eigen::Triplet<double> Trip;
@@ -60,7 +65,19 @@ void compute_Q(int size, double *entries_C, int *i_C, int *j_C,
                                 B_tau(i,j) = entries_B_tau[i*ncol_B + j];
                                 B_kappa(i,j) = entries_B_kappa[i*ncol_B + j];
                             }
+                        }  
+
+                        if(matern_par == 1){
+                            B_kappa.col(0) += 0.5 * log( 8 * nu) * Eigen::VectorXd::Constant(B_kappa.rows(), 1) - 
+                            0.5 * log(8 * start_nu) * Eigen::VectorXd::Constant(B_kappa.rows(), 1);
+                            B_tau.col(0) += 0.5 * (lgamma(start_nu + d/2.0) -
+                                                    lgamma(start_nu) + d/2.0 * log(4 * M_PI)) * Eigen::VectorXd::Constant(B_kappa.rows(),1) +
+                                                     start_nu * B_kappa.col(0) - nu * B_kappa.col(0);
+                            for(i = 1; i < B_tau.cols(); i++){
+                                B_tau.col(i) += start_nu * B_kappa.col(i) - nu * B_kappa.col(i);
+                            }
                         }
+
 
                         // get kappa and tau
 

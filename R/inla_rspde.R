@@ -679,7 +679,8 @@ rspde.matern <- function(mesh,
             prior.nu.dist = prior.nu.dist,
             start.theta = start.theta,
             theta.prior.mean = param$theta.prior.mean,
-            theta.prior.prec = param$theta.prior.prec
+            theta.prior.prec = param$theta.prior.prec,
+            matern_par = as.integer(!(parameterization == "spde"))
             ))
     
     model$cgeneric_type <- "general"
@@ -1571,7 +1572,7 @@ UseMethod("gg_df", result)
 gg_df.rspde_result <- function(result, 
                           parameter = result$params,
                           transform = TRUE,
-                          restrict_x_axis = parameter,
+                          restrict_x_axis = NULL,
                           restrict_quantiles = NULL,
                           ...) {
       rspde_result <- result
