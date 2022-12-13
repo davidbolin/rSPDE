@@ -93,7 +93,7 @@ rspde_fit <- inla(f,
            inla.mode = "experimental"
 )
 result <- rspde.result(rspde_fit, "field", rspde_model)
-plot(result)
+summary(result)
 }
 #devel.tag
 }
