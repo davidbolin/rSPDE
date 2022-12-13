@@ -1,9 +1,9 @@
 on:
   push:
     branches:
-      - stable
+      - cran
 
-name: stable_setup
+name: cran_setup
 
 jobs:
   stable_setup:
@@ -33,6 +33,7 @@ jobs:
           brew install pkg-config
           brew install proj@9
           brew install gdal
+          brew install eigen
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -104,6 +105,8 @@ jobs:
           ' R/inlabru_rspde.R
           sed -i .bak 's/#stable\.tag/#stable\.tryCatch/' R/inlabru_rspde.R
           Rscript -e "devtools::document()"
+          rm -rf src/
+          rm -rf inst/shared/
           git add man
           git add .Rbuildignore
           git add vignettes
