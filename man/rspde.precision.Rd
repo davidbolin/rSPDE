@@ -4,17 +4,13 @@
 \alias{rspde.precision}
 \title{Precision matrices for \code{inla_rspde} objects}
 \usage{
-rspde.precision(rspde, theta, optimized = FALSE)
+rspde.precision(rspde, theta)
 }
 \arguments{
 \item{rspde}{An \code{inla_rspde} object.}
 
 \item{theta}{The parameter vector. See the details in
 \code{\link[=rspde.matern]{rspde.matern()}} to see the parameterizations.}
-
-\item{optimized}{Logical indicating if only the elements
-(the \code{x} slot) of the precision
-matrix should be returned.}
 }
 \value{
 A sparse precision matrix.
@@ -26,8 +22,7 @@ Calculates the precision matrix
 for given parameter values based on an \code{inla_rspde} model object.
 }
 \examples{
-\donttest{ #tryCatch version
-tryCatch({
+\donttest{ #devel version
 if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
 
@@ -44,7 +39,6 @@ prec_int <- rspde.precision(rspde_model_int, theta = log(c(1, 3)))
 rspde_model <- rspde.matern(mesh)
 prec <- rspde.precision(rspde_model, theta = log(c(1, 3, 1.2)))
 }
-#stable.tryCatch
-}, error = function(e){print("Could not run the example")})
+#devel.tag
 }
 }

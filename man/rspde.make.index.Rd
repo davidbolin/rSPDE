@@ -10,7 +10,7 @@ rspde.make.index(
   n.group = 1,
   n.repl = 1,
   mesh = NULL,
-  rspde_order = 2,
+  rspde.order = 2,
   nu = NULL,
   dim = NULL
 )
@@ -24,10 +24,10 @@ rspde.make.index(
 
 \item{n.repl}{The total number of replicates.}
 
-\item{mesh}{An \code{inla.mesh} or
-an \code{inla.mesh.1d} object.}
+\item{mesh}{An \code{inla.mesh},
+an \code{inla.mesh.1d} object or a \code{metric_graph} object.}
 
-\item{rspde_order}{The order of the rational approximation}
+\item{rspde.order}{The order of the rational approximation}
 
 \item{nu}{If \code{NULL}, then the model will assume that nu will
 be estimated. If nu is fixed, you should provide the value of nu.}
@@ -45,8 +45,7 @@ A list of named index vectors.
 Generates a list of named index vectors for an rSPDE model.
 }
 \examples{
-\donttest{ #tryCatch version
-tryCatch({
+\donttest{ #devel version
 if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
 
@@ -59,7 +58,7 @@ mesh_2d <- inla.mesh.2d(
   cutoff = 0.05,
   max.edge = c(0.1, 0.5)
 )
-sigma <- 0.01
+sigma <- 1
 range <- 0.2
 nu <- 0.8
 kappa <- sqrt(8 * nu) / range
@@ -83,7 +82,7 @@ st.dat <- inla.stack(
 )
 rspde_model <- rspde.matern(
   mesh = mesh_2d,
-  nu_upper_bound = 2
+  nu.upper.bound = 2
 )
 f <- y ~ -1 + f(field, model = rspde_model)
 rspde_fit <- inla(f,
@@ -94,9 +93,8 @@ rspde_fit <- inla(f,
            inla.mode = "experimental"
 )
 result <- rspde.result(rspde_fit, "field", rspde_model)
-plot(result)
+summary(result)
 }
-#stable.tryCatch
-}, error = function(e){print("Could not run the example")})
+#devel.tag
 }
 }

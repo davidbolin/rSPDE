@@ -1,21 +1,19 @@
 
 #'
 #' @title rSPDE inlabru mapper
-#' @name bru_mapper.inla_rspde
+#' @name bru_get_mapper.inla_rspde
 #' @param model An `inla_rspde` for which to construct or extract a mapper
 #' @param \dots Arguments passed on to other methods
-#' @rdname bru_mapper.inla_rspde
+#' @rdname bru_get_mapper.inla_rspde
 #' @rawNamespace if (getRversion() >= "3.6.0") {
-#'   S3method(inlabru::bru_mapper, inla_rspde)
-#'   # S3method(inlabru::bru_get_mapper, inla_rspde)
+#'   S3method(inlabru::bru_get_mapper, inla_rspde)
 #'   S3method(inlabru::ibm_n, bru_mapper_inla_rspde)
 #'   S3method(inlabru::ibm_values, bru_mapper_inla_rspde)
-#'   S3method(inlabru::ibm_amatrix, bru_mapper_inla_rspde)
+#'   S3method(inlabru::ibm_jacobian, bru_mapper_inla_rspde)
 #' }
 #' 
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE) && 
 #'      requireNamespace("inlabru", quietly = TRUE)){
 #' library(INLA)
@@ -29,7 +27,7 @@
 #'   cutoff = 0.05,
 #'   max.edge = c(0.1, 0.5)
 #' )
-#' sigma <- 0.01
+#' sigma <- 1
 #' range <- 0.2
 #' nu <- 0.8
 #' kappa <- sqrt(8 * nu) / range
@@ -54,34 +52,26 @@
 #'   nu_upper_bound = 2
 #' )
 #' 
-#' # For inlabru version 2.5.3.9002 or above:
 #' cmp <- y ~ Intercept(1) + 
 #'            field(coordinates, model = rspde_model)
 #' 
-#' #For inlabru version 2.5.3:
-#' cmp <- y ~ Intercept(1) + 
-#'            field(coordinates, model = rspde_model,
-#'              mapper = bru_mapper(rspde_model))
 #' 
 #' rspde_fit <- bru(cmp, data = data_df)
+#' summary(rspde_fit)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
-bru_mapper.inla_rspde <- function(model,...) {
+bru_get_mapper.inla_rspde <- function(model,...) {
   mapper <- list(model = model)
-  # Note 1: From inlabru > 2.5.3, use bru_mapper_define instead.
-  # Note 2: bru_mapper.default is not exported from inlabru, so
-  # must call the generic bru_mapper()
-  inlabru::bru_mapper(mapper, new_class = "bru_mapper_inla_rspde")
+  inlabru::bru_mapper_define(mapper, new_class = "bru_mapper_inla_rspde")
 }
 
-#' @param mapper A `bru_mapper.inla_rspde` object
-#' @rdname bru_mapper.inla_rspde
+#' @param mapper A `bru_mapper_inla_rspde` object
+#' @rdname bru_get_mapper.inla_rspde
 ibm_n.bru_mapper_inla_rspde <- function(mapper, ...) {
   model <- mapper[["model"]]
   integer_nu <- model$integer.nu
-  rspde_order <- model$rspde_order
+  rspde_order <- model$rspde.order
   if(integer_nu){
             factor_rspde <- 1
   } else{
@@ -89,13 +79,13 @@ ibm_n.bru_mapper_inla_rspde <- function(mapper, ...) {
   }
   factor_rspde*model$n.spde
 }
-#' @rdname bru_mapper.inla_rspde
+#' @rdname bru_get_mapper.inla_rspde
 ibm_values.bru_mapper_inla_rspde <- function(mapper, ...) {
   seq_len(inlabru::ibm_n(mapper))
 }
 #' @param input The values for which to produce a mapping matrix
-#' @rdname bru_mapper.inla_rspde
-ibm_amatrix.bru_mapper_inla_rspde <- function(mapper, input, ...) {
+#' @rdname bru_get_mapper.inla_rspde
+ibm_jacobian.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   if (is.null(input)) {
     return(Matrix::Matrix(0, 0, inlabru::ibm_n(mapper)))
   }
@@ -108,13 +98,8 @@ ibm_amatrix.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   } else{
    nu <- model$nu
   }
-  rspde_order <- model$rspde_order
+  rspde_order <- model$rspde.order
   rSPDE::rspde.make.A(mesh = model$mesh, loc=input,
-                                rspde_order = rspde_order,
+                                rspde.order = rspde_order,
                                 nu=nu)
-}
-
-#' @rdname bru_mapper.inla_rspde
-bru_get_mapper.inla_rspde <- function(model, ...){
- inlabru::bru_mapper(model)
 }

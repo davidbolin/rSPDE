@@ -81,7 +81,7 @@ inla_link <- function() {
 In this vignette we will present the [`inlabru`](http://inlabru.org/) implementation of the covariance-based
 rational SPDE approach. For further technical details on the covariance-based approach, see 
 the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette
-and [@xiong22](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537).
+and [@xiong22](https://arxiv.org/abs/2209.04670). 
 
 We begin by providing a 
 step-by-step illustration on how to use our implementation. To this end we 
@@ -276,19 +276,11 @@ $$y_i\mid \eta(s_i),\theta \sim \Gamma(\exp(\eta (s_i)), c\phi).$$
 We will build a model using the distance to the sea $x_i$ 
 as a covariate through an improper CAR(1) model with 
 $\beta_{ij}=1(i\sim j)$, which `r inla_link()` calls a random walk of order 1.
-We will fit it in `inlabru`'s  style. For `inlabru` version `2.5.3.9002` or higher
-we can use the following compact synthax:
+We will fit it in `inlabru`'s  style:
 
 ```{r create_formula, message=FALSE}
 cmp <- y ~ Intercept(1) + distSea(seaDist, model="rw1") +
 field(coordinates, model = rspde_model)
-```
-
-For the current CRAN version of `inlabru` (version 2.5.3), one should use:
-
-```{r create_formula2, message=FALSE}
-cmp <- y ~ Intercept(1) + distSea(seaDist, model="rw1") +
-field(coordinates, model = rspde_model, mapper = bru_mapper(rspde_model))
 ```
 
 To fit the model we simply use the `bru()` function:
@@ -322,16 +314,16 @@ where $\alpha = \nu + d/2$, we have that
 $$\tau = \exp(\theta_1),\quad \kappa = \exp(\theta_2), $$
 and by default
 $$\nu = 4\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
-The number 4 comes from the upper bound for $\nu$, which will be discussed later in this vignette. 
+The number 4 comes from the upper bound for $\nu$, which is discussed in [R-INLA implementation of the rational SPDE approach](rspde_inla.html) vignette. 
 
 In general, we have
 $$\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big),$$
 where $\nu_{UB}$ is the value of the upper bound for the smoothness parameter $\nu$.
 
 Another choice for prior for $\nu$ is a truncated lognormal distribution and
-will also be discussed later in this vignette.
+is also discussed in [R-INLA implementation of the rational SPDE approach](rspde_inla.html) vignette.
 
-### `rSPDE`-`INLA` results
+### inlabru results in the original scale
 
 We can obtain outputs with respect to parameters in the original scale by
 using the function `rspde.result()`:
@@ -341,16 +333,14 @@ result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
 ```
 
-We can also plot the posterior densities:
+We can also plot the posterior densities. To this end we will use the `gg_df()` function, which creates `ggplot2` user-friendly data frames:
 
 ```{r plot_post, fig.align='center'}
-par(mfrow = c(1, 3))
-plot(result_fit, caption = c("tau", "kappa", "nu"))
+posterior_df_fit <- gg_df(result_fit)
+
+ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
-
-This function is reminiscent to the `inla.spde.result()` function with the main
-difference that it has the `summary()` and `plot()` methods implemented.
-
 
 ### Predictions
 
@@ -548,14 +538,15 @@ par(opar)
 ```
 
 
-### Fitting the `inlabru` rSPDE model
+### Fitting the inlabru rSPDE model
 
 Let us then use the rational SPDE approach to fit the data.
 
 We begin by creating the model object. 
 
 ```{r}
-rspde_model.rep <- rspde.matern(mesh = mesh_2d) 
+rspde_model.rep <- rspde.matern(mesh = mesh_2d,
+          parameterization = "spde") 
 ```
 
 Let us now create the `data.frame()` and the vector with the replicates indexes:
@@ -573,19 +564,10 @@ the `bru()` function. It will not produce warning and might fit some
 meaningless model.
 
 ```{r, message=FALSE, warning=FALSE}
-# For inlabru 2.5.3.9002 or above:
 cmp.rep <-
   y ~ -1 + field(coordinates,
     model = rspde_model.rep,
     replicate = repl
-  )
-
-# For inlabru 2.5.3
-cmp.rep <-
-  y ~ -1 + field(coordinates,
-    model = rspde_model.rep,
-    replicate = repl,
-    mapper = bru_mapper(rspde_model.rep)
   )
 
 
@@ -624,6 +606,180 @@ result_df <- data.frame(
 )
 print(result_df)
 ```
+
+## An example with a non-stationary model
+
+Our goal now is to show how one can fit model with non-stationary $\sigma$ (std. deviation) and non-stationary $\rho$ (a range parameter).
+One can also use the parameterization in terms of non-stationary SPDE parameters $\kappa$ and $\tau$. 
+
+For this example we will consider simulated data. 
+
+### Simulating the data
+
+Let us consider a simple Gaussian linear model with a latent spatial field $x(\mathbf{s})$,
+defined on the rectangle $(0,10) \times (0,5)$, 
+where the std. deviation and range parameter satisfy the following log-linear regressions:
+\begin{align}
+\log(\sigma(\mathbf{s})) &= \theta_1 + \theta_3 b(\mathbf{s}),\\
+\log(\rho(\mathbf{s})) &= \theta_2 + \theta_3 b(\mathbf{s}),
+\end{align}
+where $b(\mathbf{s}) = (s_1-5)/10$. We assume the data is observed at 
+$m$ locations, $\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}$.
+For each $i = 1,\ldots,m,$ we have
+
+$$y_i = x_1(\mathbf{s}_i)+\varepsilon_i,$$
+
+where $\varepsilon_1,\ldots,\varepsilon_{m}$ are iid normally distributed
+with mean 0 and standard deviation 0.1.
+
+We begin by defining the domain and creating the mesh:
+
+```{r fig.align = "center"}
+rec_domain <- cbind(c(0, 1, 1, 0, 0) * 10, c(0, 0, 1, 1, 0) * 5)
+
+mesh <- inla.mesh.2d(loc.domain = rec_domain, cutoff = 0.1, 
+  max.edge = c(0.5, 1.5), offset = c(0.5, 1.5))
+```
+
+We follow the same structure as `INLA`. However, `INLA` only allows one to specify 
+`B.tau` and `B.kappa` matrices, and, in `INLA`, if one wants to parameterize in terms of range and
+standard deviation one needs to do it manually. Here we provide the option to directly provide
+the matrices `B.sigma` and `B.range`. 
+
+The usage of the matrices `B.tau` and `B.kappa` are identical to the corresponding ones in `inla.spde2.matern()` function.
+The matrices `B.sigma` and `B.range` work in the same way, but they parameterize the stardard deviation
+and range, respectively.
+
+The columns of the `B` matrices correspond to the same parameter. The first column does not
+have any parameter to be estimated, it is a constant column. 
+
+So, for instance, if one wants to share a parameter with both `sigma` and `range` (or with both `tau` and `kappa`),
+one simply let the corresponding column to be nonzero on both `B.sigma` and `B.range` (or on `B.tau` and `B.kappa`).
+
+We will assume $\nu = 0.8$, $\theta_1 = 0, \theta_2 = 1$ and $\theta_3=1$. Let us now build the model with the `rspde.matern()` function:
+
+
+```{r}
+nu <- 0.8
+true_theta <- c(0,1, 1)
+
+# SPDE model
+rspde_nonstat_sample <- rspde.matern(mesh, 
+  B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10), 
+  B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10),
+  start.theta = true_theta,
+  nu = nu)
+```
+
+In order to sample the data, we will obtain the precision matrix:
+
+```{r}
+prec_mat <- inla.cgeneric.q(rspde_nonstat_sample)$Q
+```
+
+Let us now sample the data with `inla.qsample()` function:
+
+```{r, warning=FALSE}
+u <- as.vector(inla.qsample(1, prec_mat, seed = 123))
+```
+
+Let us now obtain 600 random locations on the rectangle and 
+compute the $A$ matrix:
+
+```{r}
+m <-600
+loc_mesh <- cbind(runif(m) * 10, runif(m) * 5)
+
+Abar <- rspde.make.A(
+  mesh = mesh,
+  loc = loc_mesh
+)
+```
+
+We can now generate the response vector `y`:
+```{r}
+y <- as.vector(Abar %*% as.vector(u)) + rnorm(m) * 0.1
+```
+
+### Fitting the inlabru rSPDE model
+
+Let us then use the rational SPDE approach to fit the data.
+
+We begin by creating the model object. We are creating a new one
+so that we do not start the estimation at the true values.
+
+```{r}
+rspde_model_nonstat <- rspde.matern(mesh = mesh,
+  B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10), 
+  B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10)) 
+```
+
+Let us now create the `data.frame()` and the vector with the replicates indexes:
+
+```{r}
+nonstat_df <- data.frame(y = y, x1 = loc_mesh[,1],
+                      x2 = loc_mesh[,2])
+coordinates(nonstat_df) <- c("x1", "x2")
+```
+
+Let us create the component and fit. It is extremely important
+not to forget the `replicate` when fitting model with 
+the `bru()` function. It will not produce warning and might fit some
+meaningless model.
+
+```{r, message=FALSE, warning=FALSE}
+cmp_nonstat <-
+  y ~ -1 + field(coordinates,
+    model = rspde_model_nonstat
+  )
+
+
+rspde_fit_nonstat <-
+  bru(cmp_nonstat,
+    data = nonstat_df,
+    family = "gaussian",
+    options = list(
+      list(inla.mode = "experimental")
+    )
+  )
+```
+
+We can get the summary:
+```{r}
+summary(rspde_fit_nonstat)
+```
+
+
+We can obtain outputs with respect to parameters in the original scale by
+using the function `rspde.result()`:
+
+```{r get_result_nonstat}
+result_fit_nonstat <- rspde.result(rspde_fit_nonstat, "field", rspde_model_nonstat)
+summary(result_fit_nonstat)
+```
+
+Let us compare the mean to the true values of the parameters:
+
+```{r}
+summ_res_nonstat <- summary(result_fit_nonstat)
+result_df <- data.frame(
+  parameter = result_fit_nonstat$params,
+  true = c(true_theta, nu),
+  mean = summ_res_nonstat[,1],
+  mode = summ_res_nonstat[,6]
+)
+print(result_df)
+```
+
+We can also plot the posterior densities. To this end we will use the `gg_df()` function, which creates `ggplot2` user-friendly data frames:
+
+```{r plot_post_nonstat, fig.align='center'}
+posterior_df_fit <- gg_df(result_fit_nonstat)
+
+ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
+```
+
 
 ## Further options of the `inlabru` implementation
 

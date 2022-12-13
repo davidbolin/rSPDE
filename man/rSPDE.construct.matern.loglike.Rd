@@ -71,7 +71,7 @@ of the fractional SPDE model corresponding to the Gaussian process.
 set.seed(123)
 # Sample a Gaussian Matern process on R using a rational approximation
 nu <- 0.8
-kappa <- 5
+kappa <- 15
 sigma <- 1
 sigma.e <- 0.1
 n.rep <- 10
@@ -111,7 +111,7 @@ loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A)
 # The parameters can now be estimated by minimizing mlik with optim
 \donttest{
 # Choose some reasonable starting values depending on the size of the domain
-theta0 <- log(c(sqrt(8), 1 / sqrt(var(c(Y))), 0.9, 0.01))
+theta0 <- log(c(1/sqrt(var(c(Y))), sqrt(8),  0.9, 0.01))
 
 # run estimation and display the results
 theta <- optim(theta0, loglike,
@@ -119,7 +119,7 @@ theta <- optim(theta0, loglike,
 )
 
 print(data.frame(
-  kappa = c(kappa, exp(theta$par[1])), sigma = c(sigma, exp(theta$par[2])),
+  sigma = c(sigma, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
   row.names = c("Truth", "Estimates")
 ))

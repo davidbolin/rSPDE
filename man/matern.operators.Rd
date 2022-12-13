@@ -6,7 +6,8 @@
 \usage{
 matern.operators(
   kappa,
-  sigma,
+  sigma = NULL,
+  tau = NULL,
   nu,
   G = NULL,
   C = NULL,
@@ -23,6 +24,8 @@ matern.operators(
 \item{kappa}{Range parameter of the covariance function.}
 
 \item{sigma}{Standard deviation of the covariance function.}
+
+\item{tau}{The variance in the SPDE model.}
 
 \item{nu}{Shape parameter of the covariance function.}
 

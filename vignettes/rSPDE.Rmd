@@ -270,14 +270,15 @@ We now create the model object. We need to set
 an upper bound for the smoothness parameter $\nu$. The default value for this is $4$. If 
 we increase the upper bound for $\nu$
 we also increase the computational cost, and if we decrease the upper bound we also decrease the computatoinal cost. 
-For this example we set `nu_upper_bound=2`.
+For this example we set `nu.upper.bound=2`.
 See the  [R-INLA implementation of the rational SPDE approach](rspde_inla.html)
 for further details.
 
 ```{r}
 rspde_model <- rspde.matern(
   mesh = mesh_2d,
-  nu_upper_bound = 2
+  nu.upper.bound = 2,
+  parameterization = "spde"
 )
 ```
 
@@ -323,7 +324,7 @@ print(result_df)
 ```
 
 
-## Kringing with `R-INLA` implementation of the rational SPDE approach
+## Kriging with `R-INLA` implementation of the rational SPDE approach
 
 Let us now obtain predictions (i.e., do kriging) of the latent field on 
 a dense grid in the region.
@@ -331,7 +332,7 @@ a dense grid in the region.
 We begin by creating the grid of locations where we want to compute the predictions. To this end,
 we can use the `rspde.mesh.projector()` function. This function has the same arguments
 as the function `inla.mesh.projector()` the only difference being that the rSPDE
-version also has an argument `nu` and an argument `rspde_order`. Thus, we
+version also has an argument `nu` and an argument `rspde.order`. Thus, we
 proceed in the same fashion as we would in `r inla_link()`'s standard SPDE implementation:
 
 
@@ -437,7 +438,8 @@ The creation of the model object is the same as in `R-INLA`'s case:
 ```{r}
 rspde_model <- rspde.matern(
   mesh = mesh_2d,
-  nu_upper_bound = 2
+  nu.upper.bound = 2,
+  parameterization = "spde"
 )
 ```
 
@@ -454,13 +456,9 @@ coordinates(toy_df) <- c("coord1", "coord2")
 Finally, we create the component and fit:
 
 ```{r message=FALSE, warning=FALSE}
-# For inlabru 2.5.3.9002 or above:
 cmp <-
   y ~ -1 + field(coordinates, model = rspde_model)
-# For inlabru 2.5.3:
-cmp <-
-  y ~ -1 + field(coordinates, model = rspde_model,
-            mapper = bru_mapper(rspde_model))
+
 rspde_bru_fit <-
   bru(cmp,
       data=toy_df,
@@ -470,7 +468,7 @@ rspde_bru_fit <-
   )
 ```
 
-Note here that the creation of the model component needs to include the `mapper` argument if a version of `inlabru` up to version 2.5.3 is used, whereas this mapper argument is not required for later versions of `inlabru`. At this stage, we can get a summary of the fit just as in the `R-INLA` case:
+At this stage, we can get a summary of the fit just as in the `R-INLA` case:
 ```{r}
 summary(rspde_bru_fit)
 ```
@@ -497,7 +495,7 @@ print(result_df)
 ```
 
 
-## Kringing with `inlabru` implementation of the rational SPDE approach
+## Kriging with `inlabru` implementation of the rational SPDE approach
 
 Let us now obtain predictions (i.e., do kriging) of the latent field on 
 a dense grid in the region.
@@ -536,7 +534,7 @@ p <- ggplot(field_pred_df, aes(x = x1, y = x2, fill = sd)) +
 p
 ```
 
-An alternative and very simple approach is to use the `pixel()` function:
+An alternative and very simple approach is to use the `pixels()` function:
 
 ```{r plot_pred_pxl, fig.align='center'}
 pxl <- pixels(mesh_2d)
@@ -619,9 +617,9 @@ print(total_time)
 ```
 
 
-## Kringing with `rSPDE`
+## Kriging with `rSPDE`
 
-We will now do kringing on the same dense grid
+We will now do kriging on the same dense grid
 we did for the `r inla_link()`-based rational SPDE approach,
 but now using the `rSPDE` functions. To this end we
 will use the `predict` method on the `rSPDE` model object.
