@@ -7,7 +7,7 @@ all : rSPDE.so
 flags = -O2 -Wall -Wextra -fpic
 
 %.o: %.c
-	clang $(flags) -lstdc++ -Iinclude -I$(toInclude)  -c $^ -o $@
+	clang -stdlib=libc++ $(flags) -Iinclude -I$(toInclude)  -c $^ -o $@
 
 %.o: %.cpp
 	clang++ $(flags)  -I$(toInclude) -I"/usr/include/eigen3/" -I"/usr/local/include/eigen3/" -c $^ -o $@
