@@ -1515,13 +1515,16 @@ get_parameters_rSPDE <- function (mesh, alpha,
 
     d <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
     n.spde <- ifelse(d == 2, mesh$n, mesh$m)
-    n.theta <- ncol(B.kappa) - 1L
 
     if(parameterization == "spde"){
+      n.theta <- ncol(B.kappa) - 1L
+
       B.kappa <- prepare_B_matrices(B.kappa, n.spde, 
           n.theta)
       B.tau <- prepare_B_matrices(B.tau, n.spde, n.theta)
     } else if(parameterization == "matern"){
+      n.theta <- ncol(B.sigma) - 1L
+      
       B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
           n.theta)
       B.range <- prepare_B_matrices(B.range, n.spde, 

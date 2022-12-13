@@ -607,6 +607,138 @@ result_df <- data.frame(
 print(result_df)
 ```
 
+## An example with a non-stationary model
+
+Our goal now is to show how one can fit model with non-stationary $\sigma$ (std. deviation) and non-stationary $\rho$ (range parameter).
+One can also use the parameterization in terms of non-stationary SPDE parameters $\kappa$ and $\tau$. 
+
+We would like to mention that in the non-stationary case $\rho$ is an approximation of the range parameter.
+
+For this example we will consider simulated data. 
+
+### Simulating the data
+
+Let us consider a simple Gaussian linear model with a latent spatial field $x(\mathbf{s})$,
+defined on the rectangle $(0,10) \times (0,5)$, 
+where the std. deviation and range parameter satisfy the following log-linear regressions:
+\begin{align}
+\log(\sigma(\mathbf{s})) &= \theta_1 + \theta_3 b(\mathbf{s}),\\
+\log(\rho(\mathbf{s})) &= \theta_2 + \theta_3 b(\mathbf{s}),
+\end{align}
+where $b(\mathbf{s}) = (s_1-5)/10$. We assume the data is observed at 
+$m$ locations, $\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}$.
+For each $i = 1,\ldots,m,$ we have
+
+$$y_i = x_1(\mathbf{s}_i)+\varepsilon_i,$$
+
+where $\varepsilon_1,\ldots,\varepsilon_{m}$ are iid normally distributed
+with mean 0 and standard deviation 0.1.
+
+We use the basis function representation of $x(\cdot)$ to define the $A$ matrix
+linking the point locations to the mesh.
+
+We begin by defining the domain and creating the mesh:
+
+```{r fig.align = "center"}
+rec_domain <- cbind(c(0, 1, 1, 0, 0) * 10, c(0, 0, 1, 1, 0) * 5)
+
+mesh <- inla.mesh.2d(loc.domain = rec_domain, cutoff = 0.1, 
+  max.edge = c(0.3, 1), offset = c(0.5, 1.5))
+```
+
+We will assume $\nu = 0.8$, $\theta_1 = 1, \theta_2 = -1$ and $\theta_3=0.5$. Let us now build the model with the `rspde.matern()` function:
+
+```{r}
+nu <- 0.8
+true_theta <- c(0,1, 1)
+
+# SPDE model
+rspde_nonstat_sample <- rspde.matern(mesh, 
+  B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10), 
+  B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10),
+  start.theta = true_theta,
+  nu = nu)
+```
+
+In order to sample the data, we will obtain the precision matrix:
+
+```{r}
+prec_mat <- inla.cgeneric.q(rspde_nonstat_sample)$Q
+```
+
+Let us now sample the data with `inla.qsample()` function:
+
+```{r}
+u <- as.vector(inla.qsample(1, prec_mat))
+```
+
+Let us now obtain 200 random locations on the rectangle and 
+compute the $A$ matrix:
+
+```{r}
+m <- 200
+loc_mesh <- cbind(runif(m) * 10, runif(m) * 5)
+
+Abar <- rspde.make.A(
+  mesh = mesh,
+  loc = loc_mesh
+)
+```
+
+We can now generate the response vector `y`:
+```{r}
+y <- as.vector(Abar %*% as.vector(u)) + rnorm(m) * 0.1
+```
+
+### Fitting the inlabru rSPDE model
+
+Let us then use the rational SPDE approach to fit the data.
+
+We begin by creating the model object. We are creating a new one
+so that we do not start the estimation at the true values.
+
+```{r}
+rspde_model_nonstat <- rspde.matern(mesh = mesh,
+  B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10), 
+  B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10)) 
+```
+
+Let us now create the `data.frame()` and the vector with the replicates indexes:
+
+```{r}
+nonstat_df <- data.frame(y = y, x1 = loc_mesh[,1],
+                      x2 = loc_mesh[,2])
+coordinates(nonstat_df) <- c("x1", "x2")
+```
+
+Let us create the component and fit. It is extremely important
+not to forget the `replicate` when fitting model with 
+the `bru()` function. It will not produce warning and might fit some
+meaningless model.
+
+```{r, message=FALSE, warning=FALSE}
+cmp_nonstat <-
+  y ~ -1 + field(coordinates,
+    model = rspde_model_nonstat
+  )
+
+
+rspde_fit_nonstat <-
+  bru(cmp_nonstat,
+    data = nonstat_df,
+    family = "gaussian",
+    options = list(
+      list(inla.mode = "experimental")
+    )
+  )
+```
+
+We can get the summary:
+```{r}
+summary(rspde_fit_nonstat)
+```
+
+
 ## Further options of the `inlabru` implementation
 
 There are several additional options that are available. For instance, it is possible to change the order of the rational approximation,
