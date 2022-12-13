@@ -74,9 +74,8 @@
 <span>  <span class="va">result</span>,</span>
 <span>  parameter <span class="op">=</span> <span class="va">result</span><span class="op">$</span><span class="va">params</span>,</span>
 <span>  transform <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  restrict_x_axis <span class="op">=</span> <span class="va">parameter</span>,</span>
-<span>  restrict_quantiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>std.dev <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, kappa <span class="op">=</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  restrict_x_axis <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  restrict_quantiles <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -100,7 +99,10 @@
 
 
 <dt>restrict_quantiles</dt>
-<dd><p>List of quantiles to restrict x axis.</p></dd>
+<dd><p>Named list of quantiles to restrict x axis. It should contain the name of the parameter
+along with a vector with two elements specifying the lower and upper quantiles. The names should be
+match the ones in result$params. For example, if we want to restrict nu to the 0.05 and 0.95 quantiles
+we do <code>restrict_quantiles = c(0.05, 0.95)</code>.</p></dd>
 
 
 <dt>...</dt>
