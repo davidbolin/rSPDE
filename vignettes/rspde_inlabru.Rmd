@@ -682,14 +682,14 @@ prec_mat <- inla.cgeneric.q(rspde_nonstat_sample)$Q
 Let us now sample the data with `inla.qsample()` function:
 
 ```{r, warning=FALSE}
-u <- as.vector(inla.qsample(1, prec_mat, seed = 1))
+u <- as.vector(inla.qsample(1, prec_mat, seed = 123))
 ```
 
-Let us now obtain 400 random locations on the rectangle and 
+Let us now obtain 600 random locations on the rectangle and 
 compute the $A$ matrix:
 
 ```{r}
-m <- 500
+m <-600
 loc_mesh <- cbind(runif(m) * 10, runif(m) * 5)
 
 Abar <- rspde.make.A(
