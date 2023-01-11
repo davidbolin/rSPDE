@@ -877,7 +877,7 @@ rspde.make.A <- function(mesh = NULL,
     stop("If mesh is not provided, then you should provide the dimension d!")
   }
   if (!is.null(mesh)) {
-    if (is.null(loc)) {
+    if (is.null(loc) && !inherits(mesh, "metric_graph")) {
       stop("If you provided mesh, you should also provide the locations, loc.")
     }
   }
@@ -898,7 +898,13 @@ rspde.make.A <- function(mesh = NULL,
         stop("Groups are still not implemented for metric graphs.")
       }
       if(!is.null(n.repl)){
-        A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(loc))
+         if(is.null(loc)){
+          A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(mesh$get_PtE()))
+        } else{
+          graph_tmp <- mesh$get_initial_graph()
+          graph_tmp$add_observations(data = data.frame(y = rep(NA, nrow(loc)), edge_number = loc[,1], distance_on_edge = loc[,2]), normalized = TRUE)
+          A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(graph_tmp$get_PtE()))
+        }
       } else if(!is.null(index)){
 
           if(min(repl)!= 1){
@@ -908,8 +914,17 @@ rspde.make.A <- function(mesh = NULL,
             stop("The indexes of the replicates should be integers!")
           }
 
+        if(is.null(loc)){
+          loc_PtE <- mesh$get_PtE()
+        } else{
+          graph_tmp <- mesh$get_initial_graph()
+          graph_tmp$add_observations(data = data.frame(y = rep(NA, nrow(loc)), edge_number = loc[,1], distance_on_edge = loc[,2]), normalized = TRUE)
+          loc_PtE <- graph_tmp$get_PtE()
+        }
+
+
         if(max(repl) == 1){
-          A <- mesh$mesh_A(loc[index,])
+          A <- mesh$mesh_A(loc_PtE[index,])
         } else{
           stopifnot(length(index) == length(repl))
 
@@ -919,10 +934,10 @@ rspde.make.A <- function(mesh = NULL,
 
           total_repl <- max(repl)
           index_tmp <- index[repl==1]
-          A <- mesh$mesh_A(loc[index_tmp,])
+          A <- mesh$mesh_A(loc_PtE[index_tmp,])
           for(i in 2:total_repl){
             index_tmp <- index[repl==i]
-            A_tmp <- mesh$mesh_A(loc[index_tmp,])
+            A_tmp <- mesh$mesh_A(loc_PtE[index_tmp,])
             A <- bdiag(A, A_tmp)
           }
           if(any(diff(repl)) < 0){
@@ -937,7 +952,13 @@ rspde.make.A <- function(mesh = NULL,
       } else if(length(repl)>1){
         stop("When using replicates, you should provide index!")
       } else{
-        A <- mesh$mesh_A(loc)
+        if(is.null(loc)){
+          A <- mesh$mesh_A(mesh$get_PtE())
+        } else{
+          graph_tmp <- mesh$get_initial_graph()
+          graph_tmp$add_observations(data = data.frame(y = rep(NA, nrow(loc)), edge_number = loc[,1], distance_on_edge = loc[,2]), normalized = TRUE)
+          A <- mesh$mesh_A(graph_tmp$get_PtE())
+        }
       }
     }
   } else if (is.null(A)) {
@@ -2776,7 +2797,7 @@ rspde.metric_graph <- function(graph_obj,
                                 vec_param = param
                                 )
         
-        rspde_model$mesh <- graph_obj
+        rspde_model$mesh <- rspde_model$graph_spde <- graph_obj
         # rspde_model$n.spde <- nrow(graph_obj$mesh$E)
         rspde_model$n.spde <- nrow(graph_obj$mesh$VtE)
 
