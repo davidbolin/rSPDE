@@ -901,9 +901,7 @@ rspde.make.A <- function(mesh = NULL,
          if(is.null(loc)){
           A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(mesh$get_PtE()))
         } else{
-          graph_tmp <- mesh$get_initial_graph()
-          graph_tmp$add_observations(data = data.frame(y = rep(NA, nrow(loc)), edge_number = loc[,1], distance_on_edge = loc[,2]), normalized = TRUE)
-          A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(graph_tmp$get_PtE()))
+          A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(loc))
         }
       } else if(!is.null(index)){
 
@@ -917,9 +915,7 @@ rspde.make.A <- function(mesh = NULL,
         if(is.null(loc)){
           loc_PtE <- mesh$get_PtE()
         } else{
-          graph_tmp <- mesh$get_initial_graph()
-          graph_tmp$add_observations(data = data.frame(y = rep(NA, nrow(loc)), edge_number = loc[,1], distance_on_edge = loc[,2]), normalized = TRUE)
-          loc_PtE <- graph_tmp$get_PtE()
+          loc_PtE <- loc
         }
 
 
@@ -955,9 +951,7 @@ rspde.make.A <- function(mesh = NULL,
         if(is.null(loc)){
           A <- mesh$mesh_A(mesh$get_PtE())
         } else{
-          graph_tmp <- mesh$get_initial_graph()
-          graph_tmp$add_observations(data = data.frame(y = rep(NA, nrow(loc)), edge_number = loc[,1], distance_on_edge = loc[,2]), normalized = TRUE)
-          A <- mesh$mesh_A(graph_tmp$get_PtE())
+          A <- mesh$mesh_A(loc)
         }
       }
     }
