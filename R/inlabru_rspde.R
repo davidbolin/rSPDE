@@ -87,7 +87,6 @@ ibm_values.bru_mapper_inla_rspde <- function(mapper, ...) {
 #' @rdname bru_get_mapper.inla_rspde
 ibm_jacobian.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   model <- mapper[["model"]]
-  print(input)
   if (!is.null(input) && !is.matrix(input) && !inherits(input, "Spatial")) {
     input <- as.matrix(input)
   }
