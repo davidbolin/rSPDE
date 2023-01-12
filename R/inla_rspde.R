@@ -44,6 +44,7 @@
 #' @param start.lrange Starting value for log of range. Will not be used if start.lkappa is non-null. Will be only used in the stationary case and if `parameterization = 'matern'`.
 #' @param start.ltau Starting value for log of tau. Will be only used in the stationary case and if `parameterization = 'spde'`.
 #' @param start.lkappa Starting value for log of kappa. Will be only used in the stationary case and if `parameterization = 'spde'`.
+#' @param prior.theta.param Should the lognormal prior be on `theta` or on the SPDE parameters (`tau` and `kappa` on the stationary case)?
 #' @param prior.nu.dist The distribution of the smoothness parameter.
 #' The current options are "beta" or "lognormal". The default is "lognormal".
 #' @param nu.prec.inc Amount to increase the precision in the beta prior
@@ -63,7 +64,7 @@
 #' @export
 
 rspde.matern <- function(mesh,
-                         nu.upper.bound = 4, rspde.order = 2,
+                         nu.upper.bound = 3, rspde.order = 2,
                          nu = NULL, 
                          B.sigma = matrix(c(0, 1, 0), 1, 3), 
                          B.range = matrix(c(0, 0, 1), 1, 3), 
@@ -83,6 +84,7 @@ rspde.matern <- function(mesh,
                          start.lrange = NULL,
                          start.ltau = NULL,
                          start.lkappa = NULL,
+                         prior.theta.param = c("theta", "spde"),
                          prior.nu.dist = c("lognormal", "beta"),
                          nu.prec.inc = 1,
                          type.rational.approx = c("chebfun",
@@ -92,19 +94,25 @@ rspde.matern <- function(mesh,
                          ...) {                      
   type.rational.approx <- type.rational.approx[[1]]
 
+  prior.theta.param <- prior.theta.param[[1]]
+
+  if(!(prior.theta.param %in% c("theta", "spde"))){
+    stop("theta.theta.param should be either 'theta' or 'spde'!")
+  }
+
   parameterization <- parameterization[[1]]
 
   prior.nu.dist <- prior.nu.dist[[1]]
   if (!prior.nu.dist %in% c("beta", "lognormal")) {
-    stop("prior.nu.dist should be either beta or lognormal!")
+    stop("prior.nu.dist should be either 'beta' or 'lognormal'!")
   }
 
   if (!parameterization %in% c("matern", "spde")) {
-    stop("parameterization should be either matern or spde!")
+    stop("parameterization should be either 'matern' or 'spde'!")
   }
 
   if (!type.rational.approx %in% c("chebfun", "brasil", "chebfunLB")) {
-    stop("type.rational.approx should be either chebfun, brasil or chebfunLB!")
+    stop("type.rational.approx should be either 'chebfun', 'brasil' or 'chebfunLB'!")
   }
 
   integer.nu <- FALSE
@@ -139,16 +147,16 @@ rspde.matern <- function(mesh,
     nu.upper.bound <- nu.upper.bound - 1e-5
   }
   fixed_nu <- !is.null(nu)
-    if (fixed_nu) {
+  if (fixed_nu) {
     nu_order <- nu
     start.nu <- nu
   } else {
     nu_order <- nu.upper.bound
   }
 
-    beta <- nu_order / 2 + d / 4
+  beta <- nu_order / 2 + d / 4
 
-    m_alpha <- floor(2 * beta)
+  m_alpha <- floor(2 * beta)
 
   if (!is.null(nu)) {
     if (!is.numeric(nu)) {
@@ -189,6 +197,8 @@ rspde.matern <- function(mesh,
   }
 
   ### Location of object files
+
+  rspde_lib <- shared_lib
 
   if(shared_lib == "INLA"){
     rspde_lib <- INLA::inla.external.lib('rSPDE')
@@ -253,19 +263,19 @@ rspde.matern <- function(mesh,
 
   if(!inherits(mesh, "metric_graph")){
     param <- get_parameters_rSPDE(mesh, 2 * beta, 
-    B.tau, 
-    B.kappa, 
-    B.sigma,
-    B.range, 
-    start.nu,
-    start.nu + d/2,
-    parameterization,
-    prior.std.dev.nominal, 
-    prior.range.nominal, 
-    prior.tau.mean, 
-    prior.kappa.mean, 
-    theta.prior.mean, 
-    theta.prior.prec) 
+                      B.tau, 
+                      B.kappa, 
+                      B.sigma,
+                      B.range, 
+                      start.nu,
+                      start.nu + d/2,
+                      parameterization,
+                      prior.std.dev.nominal, 
+                      prior.range.nominal, 
+                      prior.tau.mean, 
+                      prior.kappa.mean, 
+                      theta.prior.mean, 
+                      theta.prior.prec) 
   } else{
     tmp_function <- function(vec_param){
       vec_param
@@ -480,7 +490,8 @@ rspde.matern <- function(mesh,
             start.theta = start.theta,
             start.nu = start.nu,
             prior.nu.dist = prior.nu.dist,
-            parameterization = parameterization))
+            parameterization = parameterization,
+            prior.theta.param = prior.theta.param))
 
 
     } else{
@@ -519,7 +530,8 @@ rspde.matern <- function(mesh,
             start.nu = start.nu,
             rspde.order = as.integer(rspde.order),
             prior.nu.dist = prior.nu.dist,
-            parameterization = parameterization))
+            parameterization = parameterization,
+            prior.theta.param = prior.theta.param))
     }
     
     model$cgeneric_type <- "general"
@@ -540,7 +552,8 @@ rspde.matern <- function(mesh,
             theta.prior.mean = theta.prior.mean,
             theta.prior.prec = theta.prior.prec,
             start.theta = start.theta,
-            parameterization = parameterization))
+            parameterization = parameterization,
+            prior.theta.param = prior.theta.param))
 
       } else{
 
@@ -574,7 +587,8 @@ rspde.matern <- function(mesh,
             start.theta = start.theta,
             rspde.order = as.integer(rspde.order),
             parameterization = parameterization,
-            d = as.integer(d)))
+            d = as.integer(d),
+            prior.theta.param = prior.theta.param))
       }
     
     model$cgeneric_type <- "frac_alpha"
@@ -600,7 +614,8 @@ rspde.matern <- function(mesh,
             theta.prior.prec = theta.prior.prec,
             start.theta = start.theta,
             nu = nu,
-            parameterization = parameterization
+            parameterization = parameterization,
+            prior.theta.param = prior.theta.param
             ))
     model$cgeneric_type <- "int_alpha"
   }
@@ -678,7 +693,8 @@ rspde.matern <- function(mesh,
             start.theta = start.theta,
             theta.prior.mean = param$theta.prior.mean,
             theta.prior.prec = param$theta.prior.prec,
-            matern_par = as.integer(!(parameterization == "spde"))
+            matern_par = as.integer(!(parameterization == "spde"),
+            prior.theta.param = prior.theta.param)
             ))
     
     model$cgeneric_type <- "general"
@@ -717,7 +733,8 @@ rspde.matern <- function(mesh,
             rspde_order = as.integer(rspde.order),
             start.theta = start.theta,
             theta.prior.mean = param$theta.prior.mean,
-            theta.prior.prec = param$theta.prior.prec
+            theta.prior.prec = param$theta.prior.prec,
+            prior.theta.param = prior.theta.param
             ))
     
     model$cgeneric_type <- "frac_alpha"
@@ -744,7 +761,8 @@ rspde.matern <- function(mesh,
             B_kappa = B.kappa,
             start.theta = start.theta,
             theta.prior.mean = param$theta.prior.mean,
-            theta.prior.prec = param$theta.prior.prec
+            theta.prior.prec = param$theta.prior.prec,
+            prior.theta.param = prior.theta.param
             ))
     
     model$cgeneric_type <- "int_alpha"
@@ -2670,6 +2688,7 @@ rspde.metric_graph <- function(graph_obj,
                          start.lrange = NULL,
                          start.ltau = NULL,
                          start.lkappa = NULL,
+                         prior.theta.param = c("theta", "spde"),
                          prior.nu.dist = c("lognormal", "beta"),
                          nu.prec.inc = 1,
                          type.rational.approx = c("chebfun",
@@ -2678,6 +2697,12 @@ rspde.metric_graph <- function(graph_obj,
     if(!inherits(graph_obj, "metric_graph")){
       stop("The graph object should be of class metric_graph!")
     }
+
+  prior.theta.param <- prior.theta.param[[1]]
+
+  if(!(prior.theta.param %in% c("theta", "spde"))){
+    stop("theta.theta.param should be either 'theta' or 'spde'!")
+  }
 
   type.rational.approx <- type.rational.approx[[1]]
 
@@ -2788,7 +2813,8 @@ rspde.metric_graph <- function(graph_obj,
                                 prior.nu.dist = prior.nu.dist,
                                 nu.prec.inc = nu.prec.inc,
                                 type.rational.approx = type.rational.approx,
-                                vec_param = param
+                                vec_param = param,
+                                prior.theta.param = prior.theta.param
                                 )
         
         rspde_model$mesh <- rspde_model$graph_spde <- graph_obj

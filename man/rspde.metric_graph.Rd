@@ -29,6 +29,7 @@ rspde.metric_graph(
   start.lrange = NULL,
   start.ltau = NULL,
   start.lkappa = NULL,
+  prior.theta.param = c("theta", "spde"),
   prior.nu.dist = c("lognormal", "beta"),
   nu.prec.inc = 1,
   type.rational.approx = c("chebfun", "brasil", "chebfunLB"),

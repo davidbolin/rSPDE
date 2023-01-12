@@ -278,7 +278,10 @@ rational approximation.
 Therefore, to set up a model all we have to do is use the `rspde.matern()` function:
 
 ```{r create_model, message=FALSE}
-rspde_model <- rspde.matern(mesh = prmesh)
+rspde_model <- rspde.matern(mesh = prmesh, parameterization = "matern",
+                                                                    prior.theta.param = "spde",
+                                                                    prior.nu.dist = "beta",
+                                                                    nu.prec.inc = 3)
 ```
 
 Note that this function is very reminiscent of `r inla_link()`'s `inla.spde2.matern()` function.
@@ -361,7 +364,7 @@ instead of `"experimental"` whenever we are doing predictions.
 ```{r fit_model, message=FALSE, warning=FALSE}
 rspde_fit <- inla(f.s,
   family = "Gamma", data = inla.stack.data(stk.dat),
-  verbose = FALSE,
+  verbose = TRUE,
   control.inla = list(int.strategy = "eb"),
   control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
             inla.mode = "experimental"
