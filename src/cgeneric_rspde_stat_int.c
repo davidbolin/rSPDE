@@ -21,7 +21,7 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
   double *ret = NULL;
   double ltau, lkappa, tau, kappa;
   double nu;
-  char *parameterization;
+  char *parameterization, *theta_param;
 
   int N, M, i, k, j;
   
@@ -49,6 +49,9 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
 
   assert(!strcasecmp(data->chars[2]->name, "parameterization"));
   parameterization = &data->chars[2]->chars[0];
+
+  assert(!strcasecmp(data->chars[3]->name, "prior.theta.param"));
+  theta_param = &data->chars[3]->chars[0];
 
   // assert(!strcasecmp(data->ints[5]->name, "positions_C"));
   // inla_cgeneric_vec_tp *positions_C = data->ints[5];
@@ -599,8 +602,23 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
 
       ret[0] = 0.0;
 
-      ret[0] += logmultnormvdens(2, theta_prior_mean->doubles,
-                                  theta_prior_prec->x, theta);
+      if(!strcasecmp(theta_param, "theta") || !strcasecmp(parameterization, "spde")){
+          ret[0] += logmultnormvdens(2, theta_prior_mean->doubles,
+                                      theta_prior_prec->x, theta);
+      }
+      else {
+        double theta_prior_mean_spde[2], theta_spde[2];
+        theta_spde[1] = lkappa;
+        theta_spde[0] = ltau;
+        theta_prior_mean_spde[1] = 0.5 * log(8.0 * nu) - theta_prior_mean->doubles[1];
+        theta_prior_mean_spde[0] = - theta_prior_mean->doubles[0] + 0.5 *(
+          lgamma(nu) - 2.0 * nu * theta_prior_mean_spde[1] - 
+          (d/2.0) * log(4 * M_PI) - lgamma(nu + d/2.0)
+        );
+
+        ret[0] += logmultnormvdens(2, theta_prior_mean_spde,
+                                      theta_prior_prec->x, theta_spde);
+      }
 
 	    break;
     }

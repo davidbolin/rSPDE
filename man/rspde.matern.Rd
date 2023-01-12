@@ -6,7 +6,7 @@
 \usage{
 rspde.matern(
   mesh,
-  nu.upper.bound = 4,
+  nu.upper.bound = 3,
   rspde.order = 2,
   nu = NULL,
   B.sigma = matrix(c(0, 1, 0), 1, 3),

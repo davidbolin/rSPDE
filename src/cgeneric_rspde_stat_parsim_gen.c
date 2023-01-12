@@ -98,7 +98,7 @@ double *inla_cgeneric_rspde_stat_parsim_gen_model(inla_cgeneric_cmd_tp cmd, doub
   double start_nu;
   int N, M, i, k, j;
   double d;
-  char *prior_nu_dist, *parameterization;
+  char *prior_nu_dist, *parameterization, *theta_param;
   int fem_size;
   int one = 1;
 //   double *coeff;
@@ -128,6 +128,9 @@ double *inla_cgeneric_rspde_stat_parsim_gen_model(inla_cgeneric_cmd_tp cmd, doub
 
   assert(!strcasecmp(data->chars[3]->name, "parameterization"));
   parameterization = &data->chars[3]->chars[0];
+
+  assert(!strcasecmp(data->chars[4]->name, "prior.theta.param"));
+  theta_param = &data->chars[4]->chars[0];
 
   assert(!strcasecmp(data->doubles[0]->name, "d"));
   d = data->doubles[0]->doubles[0];
@@ -303,8 +306,29 @@ double *inla_cgeneric_rspde_stat_parsim_gen_model(inla_cgeneric_cmd_tp cmd, doub
         ret[0] += logdbeta(nu / nu_upper_bound, s_1, s_2) - log(nu_upper_bound);
       }
 
-      ret[0] += logmultnormvdens(2, theta_prior_mean->doubles,
-                                  theta_prior_prec->x, theta);
+      if(!strcasecmp(theta_param, "theta") || !strcasecmp(parameterization, "spde")){
+          ret[0] += logmultnormvdens(2, theta_prior_mean->doubles,
+                                      theta_prior_prec->x, theta);
+      }
+      else {
+        double theta_prior_mean_spde[2], theta_spde[2], prior_nu_tmp;
+        if(!strcasecmp(prior_nu_dist, "lognormal")){
+          prior_nu_tmp = exp(prior_nu_loglocation);
+        }
+        else{
+          prior_nu_tmp = prior_nu_mean;
+        }
+        theta_spde[1] = lkappa;
+        theta_spde[0] = ltau;
+        theta_prior_mean_spde[1] = 0.5 * log(8.0 * prior_nu_tmp) - theta_prior_mean->doubles[1];
+        theta_prior_mean_spde[0] = - theta_prior_mean->doubles[0] + 0.5 *(
+          lgamma(prior_nu_tmp) - 2.0 * prior_nu_tmp * theta_prior_mean_spde[1] - 
+          (d/2.0) * log(4 * M_PI) - lgamma(prior_nu_tmp + d/2.0)
+        );
+
+        ret[0] += logmultnormvdens(2, theta_prior_mean_spde,
+                                      theta_prior_prec->x, theta_spde);
+      }
 
 	  break;
     }
