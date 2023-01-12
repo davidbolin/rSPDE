@@ -278,9 +278,7 @@ rational approximation.
 Therefore, to set up a model all we have to do is use the `rspde.matern()` function:
 
 ```{r create_model, message=FALSE}
-rspde_model <- rspde.matern(mesh = prmesh, parameterization = "matern", nu.upper.bound = 3,
-                                                                    prior.theta.param = "theta",
-                                                                    prior.nu.dist = "lognormal")
+rspde_model <- rspde.matern(mesh = prmesh)
 ```
 
 Note that this function is very reminiscent of `r inla_link()`'s `inla.spde2.matern()` function.
@@ -698,9 +696,7 @@ st.dat.rep <- inla.stack(
 We now create the model object. 
 
 ```{r}
-rspde_model.rep <- rspde.matern(mesh = mesh_2d,
-      parameterization = "matern", prior.theta.param = "theta",
-      prior.nu.dist = "beta") 
+rspde_model.rep <- rspde.matern(mesh = mesh_2d) 
 ```
 
 Finally, we create the formula and fit. It is extremely important
@@ -993,7 +989,7 @@ Here is the summary:
 
 ```{r}
 summary(rspde_fit_order_1)
-``` 
+```
 
 
 ### Estimating models with fixed smoothness
@@ -1166,6 +1162,9 @@ the SPDE
 $$(\kappa^2 I - \Delta)^{\alpha/2}(\tau u) = \mathcal{W},$$
 where $\alpha = \nu + d/2$.
 
+We also have the range parameter $\rho = \frac{\sqrt{8\nu}}{\kappa}$ and the standard deviation
+$\sigma = \sqrt{\frac{\Gamma(\nu)}{\tau^2 \kappa^{2\nu}(4\pi)^{d/2}\Gamma(\nu + d/2)}}$.
+
 #### Changing the priors of $\tau$ and $\kappa$
 
 We begin by dealing with $\tau$ and $\kappa$. 
@@ -1199,6 +1198,35 @@ Analogously, if one sets  `prior.kappa = list(meanlog=mean_theta_2)`, the prior 
 $$\theta_2 \sim N(\text{mean_theta_2}, 1),$$
 whereas, if one sets, `prior.kappa = list(sdlog=sd_theta_2)`, the prior will be
 $$\theta_2 \sim N(\log(\kappa_0), \text{sd_theta_2}).$$
+
+#### Changing the priors of $\rho$ (range) and $\sigma$ (std. dev.)
+
+Let us now consider the priors for the range, $\rho$, and std. deviation, $\sigma$. This parameterization
+is used with the argument `parameterization = "matern"`, which is the default.
+
+In this case, we have that
+$$\sigma = \exp(\theta_1),\quad \rho = \exp(\theta_2).$$
+We have two options for prior. By default, which is the option 
+`prior.theta.param = "theta"`, the `rspde.matern()` function assumes a lognormal prior distribution 
+for $\sigma$ and $\rho$. This prior distribution is obtained by assuming
+that $\theta_1$ and $\theta_2$ follow normal distributions. 
+By default we assume $\theta_1$ and $\theta_2$ to be independent and to follow normal
+distributions $\theta_1\sim N(\log(\sigma_0), 10)$ and $\theta_2\sim N(\log(\rho_0), 10)$. 
+
+$\rho_0$ is suitably defined in terms of the mesh and $\sigma_0$ is defined in terms of $\rho_0$ and on 
+the prior of the smoothness parameter.
+
+Similarly to the priors of $\tau$ and $\kappa$, 
+if one wants to define the prior
+$$\theta_1 \sim N(\text{mean_theta_1}, \text{sd_theta_1}),$$
+one can simply set the argument `prior.tau = list(meanlog=mean_theta_1, sdlog=sd_theta_1)`. Analogously, to define the prior
+$$\theta_2 \sim N(\text{mean_theta_2}, \text{sd_theta_2}),$$
+one can set the argument `prior.kappa = list(meanlog=mean_theta_2, sdlog=sd_theta_2)`.
+
+Another option is to set `prior.theta.param = "spde"`. In this case, a change of variables is performed.
+So, we assume a lognormal prior on $\tau$ and $\kappa$. Then, by the relations $\rho = \frac{\sqrt{8\nu}}{\kappa}$ and 
+$\sigma = \sqrt{\frac{\Gamma(\nu)}{\tau^2 \kappa^{2\nu}(4\pi)^{d/2}\Gamma(\nu + d/2)}}$,
+we obtain a prior for $\rho$ and $\sigma$.
 
 #### Changing the prior of $\nu$
 
