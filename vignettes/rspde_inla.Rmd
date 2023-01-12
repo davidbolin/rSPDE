@@ -361,7 +361,7 @@ instead of `"experimental"` whenever we are doing predictions.
 ```{r fit_model, message=FALSE, warning=FALSE}
 rspde_fit <- inla(f.s,
   family = "Gamma", data = inla.stack.data(stk.dat),
-  verbose = TRUE,
+  verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
   control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
             inla.mode = "experimental"
