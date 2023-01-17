@@ -4,16 +4,22 @@ obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o 
 
 all : rSPDE.so
 
+CC = clang
+CXX = clang++
+
+EIGEN_MAC = /usr/local/include/eigen3/
+EIGEN_LINUX = /usr/include/eigen3/
+
 flags = -O2 -Wall -Wextra -fpic
 
 %.o: %.c
-	clang -stdlib=libc++ $(flags) -Iinclude -I$(toInclude)  -c $^ -o $@
+	$(CC) $(flags) -Iinclude -I$(toInclude)  -c $^ -o $@
 
 %.o: %.cpp
-	clang++ $(flags)  -I$(toInclude) -I"/usr/include/eigen3/" -I"/usr/local/include/eigen3/" -c $^ -o $@
+	$(CXX) $(flags)  -I$(toInclude) -I$(EIGEN_MAC) -I$(EIGEN_LINUX) -c $^ -o $@
 
 rSPDE.so: $(obj)
-	clang++ -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
+	$(CXX) -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
 
 clean :
 	rm -f *.o
