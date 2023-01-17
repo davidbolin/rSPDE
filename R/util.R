@@ -390,6 +390,7 @@ summary.rSPDEobj <- function(object, ...) {
     out$nu <- object$nu
   }
   out$m <- object$m
+  out$stationary <- object$stationary
   out$n <- dim(object$L)[1]
   return(out)
 }
@@ -403,12 +404,17 @@ print.summary.rSPDEobj <- function(x, ...) {
   cat("Type of approximation: ", x$type, "\n")
   if (x$type == "Matern approximation") {
     cat(
-      "Parametres of covariance function: kappa = ",
+      "Parameters of covariance function: kappa = ",
       x$kappa, ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
     )
   }
   cat("Order or rational approximation: ", x$m, "\n")
   cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
+  if(x$stationary){
+    cat("Stationary Model\n")
+  } else{
+    cat("Non-Stationary Model")
+  }
 }
 
 #' @export
@@ -1129,6 +1135,7 @@ summary.CBrSPDEobj <- function(object, ...) {
   out$sigma <- object$sigma
   out$nu <- object$nu
   out$m <- object$m
+  out$stationary <- object$stationary
   out$n <- dim(object$C)[1]
   out[["type_rational_approximation"]] <-
   object[["type_rational_approximation"]]
@@ -1150,6 +1157,11 @@ print.summary.CBrSPDEobj <- function(x, ...) {
   )
   cat("Order or rational approximation: ", x$m, "\n")
   cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
+  if(x$stationary){
+    cat("Stationary Model\n")
+  } else{
+    cat("Non-Stationary Model")
+  }
 }
 
 #' @export

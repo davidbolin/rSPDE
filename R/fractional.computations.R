@@ -83,6 +83,7 @@ simulate.rSPDEobj <- function(object,
 #' of the covariance function.
 #' @param user_sigma If non-null, update the standard deviation of
 #' the covariance function.
+#' @param user_tau If non-null, update the parameter tau.
 #' @param user_nu If non-null, update the shape parameter of the
 #' covariance function.
 #' @param user_m If non-null, update the order of the rational
@@ -125,6 +126,7 @@ simulate.rSPDEobj <- function(object,
 #'
 update.CBrSPDEobj <- function(object, user_nu = NULL,
                               user_kappa = NULL,
+                              user_tau = NULL,
                               user_sigma = NULL,
                               user_m = NULL,
                               compute_higher_order = object$higher_order,
@@ -133,61 +135,94 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
                               return_block_list = object$return_block_list,
                               ...) {
   new_object <- object
-  d <- object$d
+  
+  if(object$stationary){
+        d <- object$d
 
-  fem_mesh_matrices <- object$fem_mesh_matrices
+        fem_mesh_matrices <- object$fem_mesh_matrices
 
-  if (is.null(user_nu) && !(object$higher_order) && compute_higher_order) {
-    user_nu <- object$nu
-  }
-
-  ## get parameters
-  if (!is.null(user_nu)) {
-    new_object$nu <- rspde_check_user_input(user_nu, "nu")
-    nu <- user_nu
-    alpha <- nu + d / 2
-    m_alpha <- floor(alpha)
-    m_order <- m_alpha + 1
-
-    if (compute_higher_order) {
-      if (m_order + 1 > length(object$fem_mesh_matrices)) {
-        old_m_order <- length(object$fem_mesh_matrices) - 1
-        GCi <- object$GCi
-        for (i in (old_m_order + 1):m_order) {
-          fem_mesh_matrices[[paste0("g", i)]] <- GCi %*%
-          fem_mesh_matrices[[paste0("g", i - 1)]]
+        if (is.null(user_nu) && !(object$higher_order) && compute_higher_order) {
+          user_nu <- object$nu
         }
-      }
-    }
+
+        ## get parameters
+        if (!is.null(user_nu)) {
+          new_object$nu <- rspde_check_user_input(user_nu, "nu")
+          nu <- user_nu
+          alpha <- nu + d / 2
+          m_alpha <- floor(alpha)
+          m_order <- m_alpha + 1
+
+          if (compute_higher_order) {
+            if (m_order + 1 > length(object$fem_mesh_matrices)) {
+              old_m_order <- length(object$fem_mesh_matrices) - 1
+              GCi <- object$GCi
+              for (i in (old_m_order + 1):m_order) {
+                fem_mesh_matrices[[paste0("g", i)]] <- GCi %*%
+                fem_mesh_matrices[[paste0("g", i - 1)]]
+              }
+            }
+          }
+        }
+
+        new_object[["fem_mesh_matrices"]] <- fem_mesh_matrices
+
+        if (!is.null(user_kappa)) {
+          new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
+        }
+
+        if (!is.null(user_sigma)) {
+          new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
+        }
+
+        if (!is.null(user_m)) {
+          new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
+        }
+
+        new_object <- CBrSPDE.matern.operators(
+          kappa = new_object$kappa,
+          sigma = new_object$sigma,
+          nu = new_object$nu,
+          G = new_object$G,
+          C = new_object$C,
+          d = new_object$d,
+          m = new_object$m,
+          return_block_list = return_block_list,
+          type_rational_approximation = type_rational_approximation,
+          mesh = NULL,
+          fem_mesh_matrices = new_object$fem_mesh_matrices
+        )
+  } else{
+  ## get parameters
+          if (!is.null(user_nu)) {
+            new_object$nu <- rspde_check_user_input(user_nu, "nu")
+          }
+
+
+          if (!is.null(user_tau)) {
+            new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
+          }
+
+          if (!is.null(user_kappa)) {
+            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa" , 0)
+          }
+
+          if (!is.null(user_m)) {
+            new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
+          }
+
+          new_object <- spde.matern.operators(
+            kappa = new_object$kappa,
+            tau = new_object$tau,
+            nu = new_object$nu,
+            G = new_object$G,
+            C = new_object$C,
+            d = new_object$d,
+            m = new_object$m,
+            type = "covariance",
+            type_rational_approximation = new_object$type_rational_approximation
+          )
   }
-
-  new_object[["fem_mesh_matrices"]] <- fem_mesh_matrices
-
-  if (!is.null(user_kappa)) {
-    new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
-  }
-
-  if (!is.null(user_sigma)) {
-    new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
-  }
-
-  if (!is.null(user_m)) {
-    new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
-  }
-
-  new_object <- CBrSPDE.matern.operators(
-    kappa = new_object$kappa,
-    sigma = new_object$sigma,
-    nu = new_object$nu,
-    G = new_object$G,
-    C = new_object$C,
-    d = new_object$d,
-    m = new_object$m,
-    return_block_list = return_block_list,
-    type_rational_approximation = type_rational_approximation,
-    mesh = NULL,
-    fem_mesh_matrices = new_object$fem_mesh_matrices
-  )
 
   return(new_object)
 }
@@ -334,7 +369,7 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 
 
   ## simulation
-  if (alpha %% 1 == 0) { # simulation in integer case
+  if ((alpha %% 1 == 0) && object$stationary) { # simulation in integer case
     object <- update.CBrSPDEobj(
       object = object,
       user_nu = user_nu,
@@ -383,8 +418,7 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       user_nu = user_nu,
       user_kappa = user_kappa,
       user_sigma = user_sigma,
-      user_m = user_m,
-      compute_higher_order = FALSE
+      user_m = user_m
     )
 
     m <- object$m
@@ -404,8 +438,14 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       LQ <- chol(forceSymmetric(Q))
       X <- solve(LQ, Z)
     }
-    A <- Diagonal(dim(Q)[1] / (m + 1))
-    Abar <- kronecker(matrix(1, 1, m + 1), A)
+    if(alpha %% 1 == 0){
+      A <- Diagonal(dim(Q)[1])
+      Abar <- A
+    } else{
+      A <- Diagonal(dim(Q)[1] / (m + 1))
+      Abar <- kronecker(matrix(1, 1, m + 1), A)
+    }
+    
     X <- Abar %*% X
   }
   return(X)
@@ -1462,7 +1502,7 @@ spde.matern.loglike <- function(kappa,
                                 A,
                                 d = 2,
                                 m = 1) {
-  op <- spde.matern.operators(kappa, tau, nu, G, C, d = d, m = m)
+  op <- spde.matern.operators(kappa, tau, nu, G, C, d = d, m = m, type = "operator")
   return(rSPDE.loglike(op, Y, A, sigma.e))
 }
 

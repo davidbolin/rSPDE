@@ -331,7 +331,18 @@ rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", nu = 1,
 
 stopifnot(!rspde_model$stationary)
 
+start_theta <- rspde_model$start.theta
+
+tau <- rep(exp(start_theta[1]), prmesh$n)
+
+kappa <- rep(exp(start_theta[2]), prmesh$n)
+
+ns_op <- spde.matern.operators(kappa = kappa, tau = tau, nu = 1,
+                                mesh = prmesh, m = 2, type = "covariance")
+
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
+
+testthat::expect_equal(sum( (Q_tmp$Q - ns_op$Q)^2), 0)
 
 rspde_stat_model <- rspde.matern(mesh = prmesh, nu = 1,
                             parameterization = "spde")

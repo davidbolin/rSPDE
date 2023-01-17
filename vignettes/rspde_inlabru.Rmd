@@ -658,19 +658,33 @@ We will assume $\nu = 0.8$, $\theta_1 = 0, \theta_2 = 1$ and $\theta_3=1$. Let u
 ```{r}
 nu <- 0.8
 true_theta <- c(0,1, 1)
+B.tau = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10)
+B.kappa = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10)
 
 # SPDE model
 rspde_nonstat_sample <- rspde.matern(mesh, 
-  B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10), 
-  B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10),
-  start.theta = true_theta,
+  B.tau = B.tau, 
+  B.kappa = B.kappa,
+  start.theta = true_theta, parameterization = "spde",
   nu = nu)
 ```
 
 In order to sample the data, we will obtain the precision matrix:
 
 ```{r}
-prec_mat <- inla.cgeneric.q(rspde_nonstat_sample)$Q
+start_theta <- rspde_nonstat_sample$start.theta
+
+# Adding the first coordinate
+
+start_theta <- c(1, start_theta)
+
+tau <- exp(B.tau%*%start_theta)
+kappa <- exp(B.kappa%*%start_theta)
+
+ns_op <- spde.matern.operators(kappa = kappa, tau = tau, nu = 0.8,
+                                mesh = mesh, m = 2, type = "covariance")
+
+prec_mat <- ns_op$Q
 ```
 
 Let us now sample the data with `inla.qsample()` function:
@@ -706,8 +720,9 @@ so that we do not start the estimation at the true values.
 
 ```{r}
 rspde_model_nonstat <- rspde.matern(mesh = mesh,
-  B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10), 
-  B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10)) 
+  B.tau = B.tau,
+  B.kappa = B.kappa,
+  parameterization = "spde") 
 ```
 
 Let us now create the `data.frame()` and the vector with the replicates indexes:

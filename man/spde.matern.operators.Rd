@@ -4,7 +4,18 @@
 \alias{spde.matern.operators}
 \title{Rational approximations of non-stationary Gaussian SPDE Matern random fields}
 \usage{
-spde.matern.operators(kappa, tau, nu, G, C, d, m = 1)
+spde.matern.operators(
+  kappa,
+  tau,
+  nu,
+  G = NULL,
+  C = NULL,
+  d = NULL,
+  mesh = NULL,
+  m = 1,
+  type = c("covariance", "operator"),
+  type_rational_approximation = c("chebfun", "brasil", "chebfunLB")
+)
 }
 \arguments{
 \item{kappa}{Vector with the, possibly spatially varying, range parameter
@@ -25,11 +36,21 @@ the domain of interest.}
 \item{C}{The mass matrix of a finite element discretization of the
 domain of interest.}
 
-\item{d}{The dimension of the domain.}
+\item{d}{The dimension of the domain. Does not need to be given if
+\code{mesh} is used.}
 
-\item{m}{The order of the rational approximation, which needs to
-be a positive integer.
-The default value is 1.}
+\item{mesh}{An optional inla mesh. \code{d}, \code{C} and \code{G}
+must be given if \code{mesh} is not given.}
+
+\item{m}{The order of the rational approximation, which needs to be a
+positive integer. The default value is 1.}
+
+\item{type}{The type of the rational approximation. The options are
+"covariance" and "operator". The default is "covariance".}
+
+\item{type_rational_approximation}{Which type of rational
+approximation should be used? The current types are
+"chebfun", "brasil" or "chebfunLB".}
 }
 \value{
 \code{spde.matern.operators} returns an object of
