@@ -435,15 +435,16 @@ df_field <- data.frame(x = proj$lattice$loc[,1],
 
 df_loc <- data.frame(x = loc_2d_mesh[, 1],
                       y = loc_2d_mesh[, 2],
-                      field = 0,
+                      field = as.vector(Y[,1]),
                       type = "locations")
 df_plot <- rbind(df_field, df_loc)
 
 ggplot(df_plot) + aes(x = x, y = y, fill = field) +
         facet_wrap(~type) + xlim(0,1) + ylim(0,1) + 
         geom_raster(data = df_field) +
-        geom_point(data = df_loc) + 
-        scale_fill_viridis()
+        geom_point(data = df_loc, aes(colour = field),
+        show.legend = FALSE) + 
+        scale_fill_viridis() + scale_colour_viridis()
 ```
 
 For each type of rational approximation of degree $m$, there is a corresponding likelihood function that can be used for likelihood-based parameter estimation. 

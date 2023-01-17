@@ -83,10 +83,7 @@ to the [rSPDE-INLA Vignette][ref3].
 library(rSPDE)
 library(ggplot2)
 library(INLA)
-library(fields)
 library(splancs)
-library(gridExtra)
-library(lattice)
 
 #Load the data
 data(PRprec)
@@ -101,13 +98,17 @@ Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 alt <- PRprec$Altitude[ind]
 
-ggplot() + geom_point(aes(x = coords[, 1], y = coords[, 2], colour = Y),
-                      size = 2,
-                      alpha = 1) + 
-  scale_colour_gradientn(colours = tim.colors(100)) + 
-  geom_path(aes(x = PRborder[, 1], y = PRborder[, 2])) + 
-  geom_path(aes(x = PRborder[1034:1078, 1], 
-                y = PRborder[1034:1078, 2]), colour = "red")
+ggplot() +
+  geom_point(aes(
+    x = coords[, 1], y = coords[, 2],
+    colour = Y
+  ), size = 2, alpha = 1) +
+  geom_path(aes(x = PRborder[, 1], y = PRborder[, 2])) +
+  geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[
+    1034:1078,
+    2
+  ]), colour = "red") + 
+  scale_color_viridis()
 ```
 
 <img src="articles/rspde_inla_files/figure-html/plot_precipitations-1.png">
@@ -255,15 +256,24 @@ m.prd[xy.in] <- rspde_fitprd$summary.fitted.values$mean[id.prd]
 sd.prd[xy.in] <- rspde_fitprd$summary.fitted.values$sd[id.prd]
 
 #Plot the predictions
-grid.arrange(levelplot(m.prd, col.regions = tim.colors(99), 
-             xlab = "", ylab = "", main = "mean", 
-                       scales = list(draw = FALSE)), 
-             levelplot(sd.prd, col.regions = topo.colors(99), 
-             xlab = "", ylab = "", scales = list(draw = FALSE), 
-                       main = "standard deviation"))
+pred_df <- data.frame(x1 = coord.prd[,1],
+                      x2 = coord.prd[,2],
+                      mean = m.prd,
+                      sd = sd.prd)
+
+ggplot(pred_df, aes(x = x1, y = x2, fill = mean)) +
+  geom_raster() +
+  scale_fill_viridis()
 ```
 <img src="articles/rspde_inla_files/figure-html/plot_pred-1.png">
 
+Then, the std. deviations:
+
+```r
+ggplot(pred_df, aes(x = x1, y = x2, fill = sd)) +
+  geom_raster() + scale_fill_viridis()
+```
+<img src="articles/rspde_inla_files/figure-html/plot_pred_sd-1.png">
 
 # Example with rSPDE - inlabru
 
@@ -285,10 +295,7 @@ library(rSPDE)
 library(ggplot2)
 library(INLA)
 library(inlabru)
-library(fields)
 library(splancs)
-library(gridExtra)
-library(lattice)
 
 #Load the data
 data(PRprec)
@@ -303,13 +310,17 @@ Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 alt <- PRprec$Altitude[ind]
 
-ggplot() + geom_point(aes(x = coords[, 1], y = coords[, 2], colour = Y),
-                      size = 2,
-                      alpha = 1) + 
-  scale_colour_gradientn(colours = tim.colors(100)) + 
-  geom_path(aes(x = PRborder[, 1], y = PRborder[, 2])) + 
-  geom_path(aes(x = PRborder[1034:1078, 1], 
-                y = PRborder[1034:1078, 2]), colour = "red")
+ggplot() +
+  geom_point(aes(
+    x = coords[, 1], y = coords[, 2],
+    colour = Y
+  ), size = 2, alpha = 1) +
+  geom_path(aes(x = PRborder[, 1], y = PRborder[, 2])) +
+  geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[
+    1034:1078,
+    2
+  ]), colour = "red") + 
+  scale_color_viridis()
 ```
 
 <img src="articles/rspde_inla_files/figure-html/plot_precipitations-1.png">
@@ -456,19 +467,17 @@ pred_df <- cbind(pred_df, pred_obs@coords)
 Finally, we plot the results. First the predicted mean:
 
 ```r
-p <- ggplot(pred_df, aes(x = x1, y = x2, fill = mean)) +
+ggplot(pred_df, aes(x = x1, y = x2, fill = mean)) +
   geom_raster() +
-  scale_fill_gradient(low = "yellow", high = "red")
-p
+  scale_fill_viridis()
 ```
 <img src="articles/rspde_inlabru_files/figure-html/unnamed-chunk-5-1.png">
 
 Then, the std. deviations:
 
 ```r
-p <- ggplot(pred_df, aes(x = x1, y = x2, fill = sd)) +
-  geom_raster()
-p
+ggplot(pred_df, aes(x = x1, y = x2, fill = sd)) +
+  geom_raster() + scale_fill_viridis()
 ```
 <img src="articles/rspde_inlabru_files/figure-html/plot_pred_sd_bru-1.png">
 

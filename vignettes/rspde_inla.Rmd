@@ -546,7 +546,7 @@ ggplot(pred_df, aes(x = x1, y = x2, fill = mean)) +
 
 Then, the std. deviations:
 
-```{r plot_pred_sd_bru, fig.align='center', echo=TRUE}
+```{r plot_pred_sd, fig.align='center', echo=TRUE}
 ggplot(pred_df, aes(x = x1, y = x2, fill = sd)) +
   geom_raster() + scale_fill_viridis()
 ```
@@ -659,15 +659,16 @@ df_field <- data.frame(x = proj$lattice$loc[,1],
 
 df_loc <- data.frame(x = loc_2d_mesh[, 1],
                       y = loc_2d_mesh[, 2],
-                      field = 0,
+                      field = y[1:m],
                       type = "locations")
 df_plot <- rbind(df_field, df_loc)
 
 ggplot(df_plot) + aes(x = x, y = y, fill = field) +
         facet_wrap(~type) + xlim(0,1) + ylim(0,1) + 
         geom_raster(data = df_field) +
-        geom_point(data = df_loc) + 
-        scale_fill_viridis()
+        geom_point(data = df_loc, aes(colour = field),
+        show.legend = FALSE) + 
+        scale_fill_viridis() + scale_colour_viridis()
 ```
 
 
