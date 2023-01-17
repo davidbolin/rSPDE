@@ -703,7 +703,7 @@ CBrSPDE.matern.operators <- function(C,
     Q.int <- aux_mat
 
     if(alpha %% 1 == 0){
-      Q.frac <- list(Matrix::Diagonal(dim(L)[1]))
+      Q.frac <- Matrix::Diagonal(dim(L)[1])
       Q <- L * kappa^2
 
       if(alpha > 1){
@@ -715,8 +715,7 @@ CBrSPDE.matern.operators <- function(C,
       } 
 
       Q <- tau^2 * Q
-      Q <- list(Q)
-      Q.int <- list(Q)
+      Q.int <- Q
     } else{
       if(m == 0){
         stop("Return block list does not work with m = 0, either increase m or set return_block_list to FALSE.")
@@ -745,7 +744,7 @@ CBrSPDE.matern.operators <- function(C,
     Q.int <- list(Q.int = kronecker(Diagonal(m + 1), aux_mat), order = m_alpha)
 
     if(alpha %% 1 == 0){
-      Q.frac <- list(Matrix::Diagonal(dim(L)[1]))
+      Q.frac <- Matrix::Diagonal(dim(L)[1])
       Q <- L * kappa^2
 
       if(alpha > 1){

@@ -81,9 +81,12 @@ simulate.rSPDEobj <- function(object,
 #' computed using [matern.operators()]
 #' @param user_kappa If non-null, update the range parameter
 #' of the covariance function.
+#' @param user_tau If non-null, update the parameter tau.
 #' @param user_sigma If non-null, update the standard deviation of
 #' the covariance function.
-#' @param user_tau If non-null, update the parameter tau.
+#' @param user_range If non-null, update the range parameter
+#' of the covariance function.
+#' @param user_theta For non-stationary models. If non-null, update the vector of parameters.
 #' @param user_nu If non-null, update the shape parameter of the
 #' covariance function.
 #' @param user_m If non-null, update the order of the rational
@@ -128,6 +131,8 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
                               user_kappa = NULL,
                               user_tau = NULL,
                               user_sigma = NULL,
+                              user_range = NULL,
+                              user_theta = NULL,
                               user_m = NULL,
                               compute_higher_order = object$higher_order,
                               type_rational_approximation =
@@ -167,6 +172,10 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 
         new_object[["fem_mesh_matrices"]] <- fem_mesh_matrices
 
+        if (!is.null(user_nu)) {
+            new_object$nu <- rspde_check_user_input(user_nu, "nu")
+        }
+
         if (!is.null(user_kappa)) {
           new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
         }
@@ -176,7 +185,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
         }
 
         if (!is.null(user_m)) {
-          new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
+          new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
         }
 
         new_object <- CBrSPDE.matern.operators(
@@ -223,7 +232,6 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
             type_rational_approximation = new_object$type_rational_approximation
           )
   }
-
   return(new_object)
 }
 
@@ -370,6 +378,7 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 
   ## simulation
   if ((alpha %% 1 == 0) && object$stationary) { # simulation in integer case
+  print("AQUI")
     object <- update.CBrSPDEobj(
       object = object,
       user_nu = user_nu,
@@ -413,6 +422,7 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       X <- solve(LQ, Z)
     }
   } else {
+    print("AQUI2")
     object <- update.CBrSPDEobj(
       object = object,
       user_nu = user_nu,
@@ -420,6 +430,9 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       user_sigma = user_sigma,
       user_m = user_m
     )
+
+    print("nu")
+    print(object$nu)
 
     m <- object$m
     Q <- object$Q
@@ -999,7 +1012,11 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
   ## compute Q_x|y
   Q <- object$Q
-  Abar <- kronecker(matrix(1, 1, m + 1), A)
+  if(object$alpha %% 1 == 0){
+    Abar <- A
+  } else{
+    Abar <- kronecker(matrix(1, 1, m + 1), A)
+  }
   Q_xgiveny <- t(Abar) %*% Q.e %*% Abar + Q
   ## construct mu_x|y
 
@@ -1928,6 +1945,9 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
                   which_par = "sigma.e", 
                   logscale = log_scale)
           } 
+          if(nu %% 1 == 0){
+            nu <- nu + 1e-10
+          }
           loglike <- rSPDE.matern.loglike(object = object, Y=Y, A=A,
           sigma.e = sigma.e,
           mu = mu,
