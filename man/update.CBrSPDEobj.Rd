@@ -10,6 +10,8 @@
   user_kappa = NULL,
   user_tau = NULL,
   user_sigma = NULL,
+  user_range = NULL,
+  user_theta = NULL,
   user_m = NULL,
   compute_higher_order = object$higher_order,
   type_rational_approximation = object$type_rational_approximation,
@@ -31,6 +33,11 @@ of the covariance function.}
 
 \item{user_sigma}{If non-null, update the standard deviation of
 the covariance function.}
+
+\item{user_range}{If non-null, update the range parameter
+of the covariance function.}
+
+\item{user_theta}{For non-stationary models. If non-null, update the vector of parameters.}
 
 \item{user_m}{If non-null, update the order of the rational
 approximation, which needs to be a positive integer.}

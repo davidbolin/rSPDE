@@ -180,6 +180,14 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
         }
 
+        if (!is.null(user_kappa)) {
+          new_object$range <- rspde_check_user_input(user_range, "range")
+        }
+
+        if (!is.null(user_tau)) {
+          new_object$tau <- rspde_check_user_input(user_tau, "tau")
+        }
+
         if (!is.null(user_sigma)) {
           new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
         }
@@ -191,6 +199,8 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
         new_object <- CBrSPDE.matern.operators(
           kappa = new_object$kappa,
           sigma = new_object$sigma,
+          range = new_object$range,
+          tau = new_object$tau,
           nu = new_object$nu,
           G = new_object$G,
           C = new_object$C,
@@ -216,6 +226,10 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
             new_object$kappa <- rspde_check_user_input(user_kappa, "kappa" , 0)
           }
 
+          if (!is.null(user_theta)) {
+            new_object$theta <- rspde_check_user_input(user_theta, "theta" , 0)
+          }
+
           if (!is.null(user_m)) {
             new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
           }
@@ -223,7 +237,10 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           new_object <- spde.matern.operators(
             kappa = new_object$kappa,
             tau = new_object$tau,
+            theta = new_object$theta,
             nu = new_object$nu,
+            B.tau = new_object$B.tau,
+            B.kappa = new_object$B.kappa,
             G = new_object$G,
             C = new_object$C,
             d = new_object$d,
@@ -243,8 +260,11 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 #' computed using [matern.operators()] with `type="operator"`
 #' @param user_kappa If non-null, update the range parameter
 #' of the covariance function.
-#' @param user_sigma If non-null, update the standard
-#' deviation of the covariance function.
+#' @param user_tau If non-null, update the parameter tau.
+#' @param user_sigma If non-null, update the standard deviation of
+#' the covariance function.
+#' @param user_range If non-null, update the range parameter
+#' of the covariance function.
 #' @param user_nu If non-null, update the shape parameter
 #' of the covariance function.
 #' @param user_m If non-null, update the order of the rational
@@ -280,6 +300,8 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 update.rSPDEobj <- function(object, user_nu = NULL,
                             user_kappa = NULL,
                             user_sigma = NULL,
+                            user_range = NULL,
+                            user_tau = NULL,
                             user_m = NULL, ...) {
   new_object <- object
 
@@ -296,6 +318,14 @@ update.rSPDEobj <- function(object, user_nu = NULL,
     new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
   }
 
+  if (!is.null(user_tau)) {
+    new_object$tau <- rspde_check_user_input(user_tau, "tau")
+  }
+
+  if (!is.null(user_range)) {
+    new_object$range <- rspde_check_user_input(user_range, "range")
+  }
+
   if (!is.null(user_m)) {
     new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
   }
@@ -303,6 +333,8 @@ update.rSPDEobj <- function(object, user_nu = NULL,
   new_object <- matern.operators(
     kappa = new_object$kappa,
     sigma = new_object$sigma,
+    range = new_object$range,
+    tau = new_object$tau,
     nu = new_object$nu,
     G = new_object$G,
     C = new_object$C,
@@ -326,8 +358,12 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' @param seed An object specifying if and how the random number generator should be initialized (‘seeded’).
 #' @param user_kappa If non-null, update the range parameter
 #' of the covariance function.
-#' @param user_sigma If non-null, update the standard deviation
+#' @param user_tau If non-null, update the parameter tau.
+#' @param user_sigma If non-null, update the standard deviation of
+#' the covariance function.
+#' @param user_range If non-null, update the range parameter
 #' of the covariance function.
+#' @param user_theta For non-stationary models. If non-null, update the vector of parameters.
 #' @param user_nu If non-null, update the shape parameter of the
 #' covariance function.
 #' @param user_m If non-null, update the order of the rational
@@ -365,6 +401,9 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
                                 user_nu = NULL,
                                 user_kappa = NULL,
                                 user_sigma = NULL,
+                                user_range = NULL,
+                                user_tau = NULL,
+                                user_theta = NULL,
                                 user_m = NULL,
                                 pivot = TRUE,
                                 ...) {
@@ -378,12 +417,13 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 
   ## simulation
   if ((alpha %% 1 == 0) && object$stationary) { # simulation in integer case
-  print("AQUI")
     object <- update.CBrSPDEobj(
       object = object,
       user_nu = user_nu,
       user_kappa = user_kappa,
       user_sigma = user_sigma,
+      user_tau = user_tau,
+      user_range = user_range,
       user_m = user_m,
       compute_higher_order = TRUE
     )
@@ -422,17 +462,16 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       X <- solve(LQ, Z)
     }
   } else {
-    print("AQUI2")
     object <- update.CBrSPDEobj(
       object = object,
       user_nu = user_nu,
       user_kappa = user_kappa,
       user_sigma = user_sigma,
-      user_m = user_m
+      user_m = user_m,
+      user_range = user_range,
+      user_tau = user_tau,
+      user_theta = user_theta
     )
-
-    print("nu")
-    print(object$nu)
 
     m <- object$m
     Q <- object$Q
@@ -732,8 +771,11 @@ rSPDE.loglike <- function(obj,
 #' @param mu Expectation vector of the latent field (default = 0).
 #' @param user_kappa If non-null, update the range parameter of the covariance
 #' function.
-#' @param user_sigma If non-null, update the standard deviation of the
-#' covariance function.
+#' @param user_tau If non-null, update the parameter tau.
+#' @param user_sigma If non-null, update the standard deviation of
+#' the covariance function.
+#' @param user_range If non-null, update the range parameter
+#' of the covariance function.
 #' @param user_nu If non-null, update the shape parameter of the covariance
 #' function.
 #' @param user_m If non-null, update the order of the rational approximation,
@@ -818,6 +860,8 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                  user_nu = NULL,
                                  user_kappa = NULL,
                                  user_sigma = NULL,
+                                 user_range = NULL,
+                                 user_tau = NULL,
                                  user_m = NULL,
                                  pivot = TRUE) {
   if (inherits(object, "CBrSPDEobj")) {
@@ -829,6 +873,8 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
       user_nu = user_nu,
       user_kappa = user_kappa,
       user_sigma = user_sigma,
+      user_tau = user_tau,
+      user_range = user_range,
       user_m = user_m,
       pivot = pivot
     ))
@@ -839,6 +885,8 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
           user_nu = user_nu,
           user_kappa = user_kappa,
           user_sigma = user_sigma,
+          user_tau = user_tau,
+          user_range = user_range,
           user_m = user_m
         )
         return(rSPDE.loglike(obj = object, Y = Y, A = A,
@@ -874,8 +922,11 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' @param mu Expectation vector of the latent field (default = 0).
 #' @param user_kappa If non-null, update the range parameter of the
 #' covariance function.
-#' @param user_sigma If non-null, update the standard deviation of the
-#' covariance function.
+#' @param user_tau If non-null, update the parameter tau.
+#' @param user_sigma If non-null, update the standard deviation of
+#' the covariance function.
+#' @param user_range If non-null, update the range parameter
+#' of the covariance function.
 #' @param user_nu If non-null, update the shape parameter of the
 #' covariance function.
 #' @param user_m If non-null, update the order of the rational approximation,
@@ -957,6 +1008,8 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                    user_nu = NULL,
                                    user_kappa = NULL,
                                    user_sigma = NULL,
+                                   user_range = NULL,
+                                   user_tau = NULL,
                                    user_m = NULL,
                                    pivot = TRUE) {
   Y <- as.matrix(Y)
@@ -979,6 +1032,8 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
     user_nu = user_nu,
     user_kappa = user_kappa,
     user_sigma = user_sigma,
+    user_range = user_range,
+    user_tau = user_tau,
     user_m = user_m
   )
 
@@ -1757,8 +1812,11 @@ precision <- function(object, ...) {
 #' computed using [matern.operators()]
 #' @param user_kappa If non-null, update the range parameter of
 #' the covariance function.
+#' @param user_tau If non-null, update the parameter tau.
 #' @param user_sigma If non-null, update the standard deviation of
 #' the covariance function.
+#' @param user_range If non-null, update the range parameter
+#' of the covariance function.
 #' @param user_nu If non-null, update the shape parameter of the
 #' covariance function.
 #' @param user_m If non-null, update the order of the rational approximation,
@@ -1794,6 +1852,8 @@ precision.CBrSPDEobj <- function(object,
                                  user_nu = NULL,
                                  user_kappa = NULL,
                                  user_sigma = NULL,
+                                 user_range = NULL,
+                                 user_tau = NULL,
                                  user_m = NULL,
                                  ...) {
   object <- update.CBrSPDEobj(
@@ -1801,6 +1861,8 @@ precision.CBrSPDEobj <- function(object,
     user_nu = user_nu,
     user_kappa = user_kappa,
     user_sigma = user_sigma,
+    user_range = user_range,
+    user_tau = user_tau,
     user_m = user_m
   )
 

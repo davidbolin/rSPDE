@@ -1073,7 +1073,7 @@ spde.matern.operators <- function(kappa = NULL,
     C = C, G = G,
     alpha = alpha, nu = nu, kappa = kappa,
     B.tau = B.tau, B.kappa = B.kappa,
-    tau = tau, m = m, d = d,
+    tau = tau, theta = theta, m = m, d = d,
     Q = Q, sizeC = dim(C)[1],
     type_rational_approximation = type_rational_approximation,
     stationary = FALSE
