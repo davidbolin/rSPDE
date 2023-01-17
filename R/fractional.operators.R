@@ -455,6 +455,7 @@ matern.operators <- function(kappa = NULL,
     )
     out$range <- range
     out$tau <- tau
+    return(out)
   }
 }
 
@@ -701,41 +702,79 @@ CBrSPDE.matern.operators <- function(C,
   if (return_block_list) {
     Q.int <- aux_mat
 
-    Q.frac <- rspde.matern.precision(
-      kappa = kappa, nu = nu, tau = tau,
-      rspde.order = m, dim = d,
-      fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
-      return_block_list = TRUE,
-      type_rational_approx = type_rational_approximation
-    )
+    if(alpha %% 1 == 0){
+      Q.frac <- list(Matrix::Diagonal(dim(L)[1]))
+      Q <- L * kappa^2
 
-    Q <- Q.frac
+      if(alpha > 1){
+        CinvL <- Matrix::Diagonal(dim(C)[1], 1/diag(C)) %*% L * kappa^2
 
-    if (m_alpha > 0) {
-      for (j in seq_len(length(Q))) {
-        for (i in 1:m_alpha) {
-          Q[[j]] <- Q.int %*% Q[[j]]
+        for(k in 1:(alpha-1)){
+          Q <- Q %*% CinvL
+        }
+      } 
+
+      Q <- tau^2 * Q
+      Q <- list(Q)
+      Q.int <- list(Q)
+    } else{
+      if(m == 0){
+        stop("Return block list does not work with m = 0, either increase m or set return_block_list to FALSE.")
+      }
+      Q.frac <- rspde.matern.precision(
+        kappa = kappa, nu = nu, tau = tau,
+        rspde.order = m, dim = d,
+        fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
+        return_block_list = TRUE,
+        type_rational_approx = type_rational_approximation
+      )
+
+     Q <- Q.frac
+
+      if (m_alpha > 0) {
+        for (j in seq_len(length(Q))) {
+          for (i in 1:m_alpha) {
+            Q[[j]] <- Q.int %*% Q[[j]]
+          }
         }
       }
+      Q.int <- list(Q.int = Q.int, order = m_alpha)
     }
 
-    Q.int <- list(Q.int = Q.int, order = m_alpha)
   } else {
     Q.int <- list(Q.int = kronecker(Diagonal(m + 1), aux_mat), order = m_alpha)
 
-    Q.frac <- rspde.matern.precision(
-      kappa = kappa, nu = nu, tau = tau,
-      rspde.order = m, dim = d,
-      fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
-      type_rational_approx = type_rational_approximation
-    )
+    if(alpha %% 1 == 0){
+      Q.frac <- list(Matrix::Diagonal(dim(L)[1]))
+      Q <- L * kappa^2
 
-    Q <- Q.frac
+      if(alpha > 1){
+        CinvL <- Matrix::Diagonal(dim(C)[1], 1/diag(C)) %*% L * kappa^2
 
-    if (m_alpha > 0) {
-      for (i in 1:m_alpha) {
-        Q <- Q.int$Q.int %*% Q
-      }
+        for(k in 1:(alpha-1)){
+          Q <- Q %*% CinvL
+        }
+      } 
+
+      Q <- tau^2 * Q
+      Q.int <- list(Q.int = Q, order = m_alpha)
+    } else if (m > 0){
+        Q.frac <- rspde.matern.precision(
+          kappa = kappa, nu = nu, tau = tau,
+          rspde.order = m, dim = d,
+          fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
+          type_rational_approx = type_rational_approximation
+        )
+
+        Q <- Q.frac
+
+        if (m_alpha > 0) {
+          for (i in 1:m_alpha) {
+            Q <- Q.int$Q.int %*% Q
+          }
+        }
+    } else{
+      Q <- markov.Q(alpha/2, kappa, d, list(C=C, G=G))
     }
   }
 
@@ -887,10 +926,6 @@ spde.matern.operators <- function(kappa = NULL,
     stop("You should either provide mesh, or provide C *and* G!")
   }
 
-  if(is.null(tau)){
-    stop("You must either provide tau.")
-  }
-
   if (!is.null(mesh)) {
       d <- get_inla_mesh_dimension(inla_mesh = mesh)
       fem <- INLA::inla.mesh.fem(mesh)
@@ -909,16 +944,25 @@ spde.matern.operators <- function(kappa = NULL,
       stop("B.sigma and B.range must have the same dimensions!")
     }
 
-    if(parameterization == "spde"){
+    if(parameterization == "matern"){
       B_matrices <- convert_B_matrices(B.sigma, B.range, ncol(C), nu, d)
       B.tau <- B_matrices[["B.tau"]]
       B.kappa <- B_matrices[["B.kappa"]]
+    } else{
+      B.tau <- prepare_B_matrices(B.tau, ncol(C), 
+          ncol(B.tau)-1)
+      B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
+          ncol(B.kappa)-1)
     }
 
     new_theta <- c(1, theta)
     
     tau <- exp(B.tau %*% new_theta)
     kappa <- exp(B.kappa %*% new_theta)
+  } else if(is.null(kappa)){
+    stop("If tau is non-NULL, then kappa must not be NULL!")
+  } else if(is.null(tau)){
+    stop("If kappa is non-NULL, then tau must not be NULL!")
   }
 
   alpha <- nu + d / 2
@@ -926,6 +970,7 @@ spde.matern.operators <- function(kappa = NULL,
   if (nu < 0) {
     stop("nu must be positive")
   }
+  
   if(type == "operator"){
       beta <- (nu + d / 2) / 2
       kp <- Matrix::Diagonal(dim(C)[1], kappa^2)

@@ -1,4 +1,5 @@
 # rSPDE (development version)
+* Implementation of the precision method for inla_rspde objects.
 * Implementation of the covariance-based spde.matern.operators function and its associated functions.
 * Adjusts on the compatibility with the forthcoming MetricGraph package.
 

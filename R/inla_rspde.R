@@ -2789,6 +2789,10 @@ precision.inla_rspde <- function(object,
     theta <- theta[-n_tmp]
   }
 
+  if(!object$integer.nu){
+    nu <- nu + 1e-10
+  }
+
 
 
   if(object$stationary){
@@ -2818,7 +2822,8 @@ precision.inla_rspde <- function(object,
     dim_B_matrices <- B_tau_vec[1:2]
     B_tau <- matrix(B_tau_vec[3:n_total], dim_B_matrices[1], dim_B_matrices[2], byrow = TRUE)
     B_kappa <- matrix(B_kappa_vec[3:n_total], dim_B_matrices[1], dim_B_matrices[2], byrow = TRUE)
-    op <- spde.matern.operators(B.tau = B.tau, B.kappa = B.kappa, theta = theta, nu = nu, parameterization = "spde",
+
+    op <- spde.matern.operators(B.tau = B_tau, B.kappa = B_kappa, theta = theta, nu = nu, parameterization = "spde",
                                   mesh = mesh_model, m = rspde_order, type = "covariance",
                                    type_rational_approximation = object$type.rational.approx)
   }

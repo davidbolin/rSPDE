@@ -672,19 +672,7 @@ rspde_nonstat_sample <- rspde.matern(mesh,
 In order to sample the data, we will obtain the precision matrix:
 
 ```{r}
-start_theta <- rspde_nonstat_sample$start.theta
-
-# Adding the first coordinate
-
-start_theta <- c(1, start_theta)
-
-tau <- exp(B.tau%*%start_theta)
-kappa <- exp(B.kappa%*%start_theta)
-
-ns_op <- spde.matern.operators(kappa = kappa, tau = tau, nu = 0.8,
-                                mesh = mesh, m = 2, type = "covariance")
-
-prec_mat <- ns_op$Q
+prec_mat <- precision(rspde_nonstat_sample)
 ```
 
 Let us now sample the data with `inla.qsample()` function:

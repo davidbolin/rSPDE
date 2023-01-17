@@ -29,6 +29,10 @@ nu = 1)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
+Q_tmp2 <- precision(rspde_model)
+
+testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
+
 inla_model <- INLA::inla.spde2.matern(
     mesh = prmesh, alpha = 2
 )
@@ -74,6 +78,10 @@ rspde.order = 0)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
+Q_tmp2 <- precision(rspde_model)
+
+testthat::expect_equal(sum((Q_tmp$Q - Q_tmp2)^2), 0)
+
 inla_model <- INLA::inla.spde2.matern(
     mesh = prmesh, alpha = 1.4
 )
@@ -117,6 +125,10 @@ start.nu = 0.4,
 rspde.order = 0)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
+
+Q_tmp2 <- precision(rspde_model)
+
+testthat::expect_equal(sum((Q_tmp$Q - Q_tmp2)^2), 0)
 
 inla_model <- INLA::inla.spde2.matern(
     mesh = prmesh, alpha = 1.4
@@ -162,6 +174,10 @@ rspde.order = 2)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
+Q_tmp2 <- precision(rspde_model)
+
+testthat::expect_equal(sum((Q_tmp$Q - Q_tmp2)^2), 0)
+
 rspde_model_fixed <- rspde.matern(mesh = prmesh, parameterization = "spde", 
 nu = 0.4,
 rspde.order = 2)
@@ -203,15 +219,7 @@ rspde.order = 2)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
-C <- rspde_model$fem_mesh[["c0"]]
-G <- rspde_model$fem_mesh[["g1"]]
-
-op <- matern.operators(kappa = exp(Q_tmp$theta[2]),
-                        nu = 0.4,
-                        tau = exp(Q_tmp$theta[1]),
-                        C = C, G = G, d = 2, m = 2)
-
-Q_1 <- precision(op)
+Q_1 <- precision(rspde_model)
 
 testthat::expect_equal(sum( (Q_1 - Q_tmp$Q)^2), 0)
 
@@ -248,6 +256,11 @@ rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde",
 stopifnot(!rspde_model$stationary)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
+
+Q_tmp2 <- precision(rspde_model)
+
+testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
+
 
 rspde_stat_model <- rspde.matern(mesh = prmesh,
                             parameterization = "spde")
@@ -291,6 +304,10 @@ stopifnot(!rspde_model$stationary)
 
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
+Q_tmp2 <- precision(rspde_model)
+
+testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
+
 rspde_stat_model <- rspde.matern(mesh = prmesh, nu = 0.7,
                             parameterization = "spde")
 
@@ -331,18 +348,11 @@ rspde_model <- rspde.matern(mesh = prmesh, parameterization = "spde", nu = 1,
 
 stopifnot(!rspde_model$stationary)
 
-start_theta <- rspde_model$start.theta
-
-tau <- rep(exp(start_theta[1]), prmesh$n)
-
-kappa <- rep(exp(start_theta[2]), prmesh$n)
-
-ns_op <- spde.matern.operators(kappa = kappa, tau = tau, nu = 1,
-                                mesh = prmesh, m = 2, type = "covariance")
-
 Q_tmp <- INLA::inla.cgeneric.q(rspde_model)
 
-testthat::expect_equal(sum( (Q_tmp$Q - ns_op$Q)^2), 0)
+Q_tmp2 <- precision(rspde_model)
+
+testthat::expect_equal(sum( (Q_tmp$Q - Q_tmp2)^2), 0)
 
 rspde_stat_model <- rspde.matern(mesh = prmesh, nu = 1,
                             parameterization = "spde")
