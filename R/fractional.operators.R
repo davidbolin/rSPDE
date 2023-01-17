@@ -228,7 +228,8 @@ fractional.operators <- function(L,
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
 #' "chebfun", "brasil" or "chebfunLB".
-#'
+#' @param fem_mesh_matrices A list containing FEM-related matrices.
+#' The list should contain elements c0, g1, g2, g3, etc.
 #' @return If `type` is "covariance", then `matern.operators`
 #' returns an object of class "CBrSPDEobj".
 #' This object is a list containing the
@@ -377,7 +378,8 @@ matern.operators <- function(kappa = NULL,
                              compute_higher_order = FALSE,
                              return_block_list = FALSE,
                              type_rational_approximation = c("chebfun",
-                             "brasil", "chebfunLB")) {
+                             "brasil", "chebfunLB"),
+                             fem_mesh_matrices = NULL) {
   type <- type[[1]]
   if (!type %in% c("covariance", "operator")) {
     stop("The type should be 'covariance' or 'operator'!")

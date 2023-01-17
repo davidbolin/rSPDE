@@ -299,7 +299,8 @@ kappa <- 10 * (1 + 2 * s^2)
 tau <- 0.1 * (1 - 0.7 * s^2)
 op <- spde.matern.operators(
   kappa = kappa, tau = tau, nu = nu,
-  G = fem$G, C = fem$C, d = 1, m = 1
+  G = fem$G, C = fem$C, d = 1, m = 1,
+  type = "operator"
 )
 ```
 Let us compute the covariance function $C(s,s_i)$ of the non-stationary model for the locations $s_1=0.1, s_2 = 0.5,$ and $s_3 = 0.9$. 
@@ -457,6 +458,7 @@ op_obj <- matern.operators(
     G = G, C = C, d = 2, m = 1,
     type = "operator"
   )
+tau <- op_obj$tau
 ```
 
 We can now obtain the objective function to minimize, which is the negative log-likelihood, parametrized using the logarithm of 
@@ -467,7 +469,8 @@ mlik <- rSPDE.construct.matern.loglike(op_obj, Y=Y, A=A)
 We can now estimate the parameter using `optim()`.
 ```{r}
 theta0 <- c(
-  get.inital.values.rSPDE(mesh = mesh_2d),
+  get.inital.values.rSPDE(mesh = mesh_2d,
+  include.tau = TRUE),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
 
@@ -476,7 +479,7 @@ pars <- optim(theta0, mlik, method = "L-BFGS-B")
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  sigma = c(sigma, exp(pars$par[1])),
+  tau = c(tau, exp(pars$par[1])),
   kappa = c(kappa, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),
@@ -505,7 +508,7 @@ pars <- optim(theta0, mlik_order2, method = "L-BFGS-B")
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  sigma = c(sigma, exp(pars$par[1])),
+  tau = c(tau, exp(pars$par[1])),
   kappa = c(kappa, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),

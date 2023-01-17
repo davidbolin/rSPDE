@@ -180,7 +180,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
         }
 
-        if (!is.null(user_kappa)) {
+        if (!is.null(user_range)) {
           new_object$range <- rspde_check_user_input(user_range, "range")
         }
 
@@ -196,7 +196,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
         }
 
-        new_object <- CBrSPDE.matern.operators(
+        new_object <- matern.operators(
           kappa = new_object$kappa,
           sigma = new_object$sigma,
           range = new_object$range,
@@ -206,6 +206,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           C = new_object$C,
           d = new_object$d,
           m = new_object$m,
+          type = "covariance",
           return_block_list = return_block_list,
           type_rational_approximation = type_rational_approximation,
           mesh = NULL,
@@ -1967,63 +1968,132 @@ precision.CBrSPDEobj <- function(object,
 rSPDE.construct.matern.loglike <- function(object, Y, A, 
                                  sigma.e = NULL, mu = 0,
                                  user_nu = NULL,
+                                 user_tau = NULL,
                                  user_kappa = NULL,
                                  user_sigma = NULL,
+                                 user_range = NULL,
+                                 parameterization = c("spde", "matern"),
                                  user_m = NULL,
                                  log_scale = TRUE,
                                  return_negative_likelihood = TRUE,
                                  pivot = TRUE){
-        param_vector <- likelihood_process_inputs(user_kappa, user_sigma, user_nu, sigma.e)
         
-        loglik <- function(theta){
-          if(is.null(user_sigma)){
-          sigma <- likelihood_process_parameters(theta = theta, 
-                  param_vector = param_vector, 
-                  which_par = "sigma", 
-                  logscale = log_scale)
-          } else{
-            sigma <- user_sigma
-          }
-          if(is.null(user_kappa)){
-          kappa <- likelihood_process_parameters(theta = theta, 
-                  param_vector = param_vector, 
-                  which_par = "kappa", 
-                  logscale = log_scale)
-          } else{
-            kappa <- user_kappa
-          }
-          if(is.null(user_nu)){
-          nu <- likelihood_process_parameters(theta = theta, 
-                  param_vector = param_vector, 
-                  which_par = "nu", 
-                  logscale = log_scale)
-         
-          } else{
-            nu <- user_nu
-          }
-          if(is.null(sigma.e)){
-          sigma.e <- likelihood_process_parameters(theta = theta, 
-                  param_vector = param_vector, 
-                  which_par = "sigma.e", 
-                  logscale = log_scale)
-          } 
-          if(nu %% 1 == 0){
-            nu <- nu + 1e-10
-          }
-          loglike <- rSPDE.matern.loglike(object = object, Y=Y, A=A,
-          sigma.e = sigma.e,
-          mu = mu,
-          user_kappa = kappa,
-          user_nu = nu,
-          user_sigma=sigma,
-          user_m = user_m,
-          pivot = pivot)
-          if(return_negative_likelihood){
-            return(-loglike)
-          } else{
-            return(loglike)
-          }
+        parameterization <- parameterization[[1]]
+
+        if (!parameterization %in% c("matern", "spde")) {
+          stop("parameterization should be either 'matern' or 'spde'!")
+        } 
+        
+        if(parameterization == "spde"){
+          param_vector <- likelihood_process_inputs_spde(user_kappa, user_tau, user_nu, sigma.e)
+        } else{
+          param_vector <- likelihood_process_inputs_matern(user_range, user_sigma, user_nu, sigma.e)
         }
+
+
+        if(parameterization == "spde"){
+              loglik <- function(theta){
+                if(is.null(user_tau)){
+                tau <- likelihood_process_parameters(theta = theta, 
+                        param_vector = param_vector, 
+                        which_par = "tau", 
+                        logscale = log_scale)
+                } else{
+                  tau <- user_tau
+                }
+                if(is.null(user_kappa)){
+                kappa <- likelihood_process_parameters(theta = theta, 
+                        param_vector = param_vector, 
+                        which_par = "kappa", 
+                        logscale = log_scale)
+                } else{
+                  kappa <- user_kappa
+                }
+                if(is.null(user_nu)){
+                nu <- likelihood_process_parameters(theta = theta, 
+                        param_vector = param_vector, 
+                        which_par = "nu", 
+                        logscale = log_scale)
+
+                } else{
+                  nu <- user_nu
+                }
+                if(is.null(sigma.e)){
+                sigma.e <- likelihood_process_parameters(theta = theta, 
+                        param_vector = param_vector, 
+                        which_par = "sigma.e", 
+                        logscale = log_scale)
+                } 
+                if(nu %% 1 == 0){
+                  nu <- nu + 1e-10
+                }
+                loglike <- rSPDE.matern.loglike(object = object, Y=Y, A=A,
+                sigma.e = sigma.e,
+                mu = mu,
+                user_kappa = kappa,
+                user_nu = nu,
+                user_tau=tau,
+                user_m = user_m,
+                pivot = pivot)
+                if(return_negative_likelihood){
+                  return(-loglike)
+                } else{
+                  return(loglike)
+                }
+              }
+        } else{
+              loglik <- function(theta){
+                if(is.null(user_sigma)){
+                sigma <- likelihood_process_parameters(theta = theta, 
+                        param_vector = param_vector, 
+                        which_par = "sigma", 
+                        logscale = log_scale)
+                } else{
+                  sigma <- user_sigma
+                }
+                if(is.null(user_range)){
+                range <- likelihood_process_parameters(theta = theta, 
+                        param_vector = param_vector, 
+                        which_par = "range", 
+                        logscale = log_scale)
+                } else{
+                  range <- user_range
+                }
+                if(is.null(user_nu)){
+                nu <- likelihood_process_parameters(theta = theta, 
+                        param_vector = param_vector, 
+                        which_par = "nu", 
+                        logscale = log_scale)
+
+                } else{
+                  nu <- user_nu
+                }
+                if(is.null(sigma.e)){
+                sigma.e <- likelihood_process_parameters(theta = theta, 
+                        param_vector = param_vector, 
+                        which_par = "sigma.e", 
+                        logscale = log_scale)
+                } 
+                if(nu %% 1 == 0){
+                  nu <- nu + 1e-10
+                }
+                loglike <- rSPDE.matern.loglike(object = object, Y=Y, A=A,
+                sigma.e = sigma.e,
+                mu = mu,
+                user_range = range,
+                user_nu = nu,
+                user_sigma=sigma,
+                user_m = user_m,
+                pivot = pivot)
+                if(return_negative_likelihood){
+                  return(-loglike)
+                } else{
+                  return(loglike)
+                }
+              }          
+        }
+
+
         return(loglik)
 }
 

@@ -437,6 +437,7 @@ op_cov <- matern.operators(
   C = fem$C, G = fem$G, nu = nu,
   kappa = kappa, sigma = sigma, d = 1, m = 2
 )
+tau <- op_cov$tau
 u <- simulate(op_cov)
 
 sigma.e <- 0.3
@@ -458,7 +459,8 @@ the `get.inital.values.rSPDE()`. We then add an initial guess for `sigma.e`.
 
 ```{r, message=FALSE, warning=FALSE}
 theta0 <- c(
-  get.inital.values.rSPDE(mesh.range = 1, dim = 1),
+  get.inital.values.rSPDE(mesh.range = 1, dim = 1,
+  include.tau = TRUE),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
 
@@ -471,7 +473,7 @@ end_time <- Sys.time()
 time_optim <- end_time - start_time
 
 print(data.frame(
-  sigma = c(sigma, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
+  tau = c(tau, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
   row.names = c("Truth", "Estimates")
 ))
@@ -513,7 +515,7 @@ end_time <- Sys.time()
 time_optim <- end_time - start_time
 
 print(data.frame(
-  sigma = c(sigma, exp(theta_parallel$par[1])),
+  tau = c(tau, exp(theta_parallel$par[1])),
   kappa = c(kappa, exp(theta_parallel$par[2])),
   nu = c(nu, exp(theta_parallel$par[3])),
   sigma.e = c(sigma.e, exp(theta_parallel$par[4])),
@@ -535,13 +537,13 @@ Let us update the `CBrSPDEobj` object (returned by the `matern.operators()` func
 with the fitted parameters:
 
 ```{r}
-sigma_est <- exp(theta$par[1])
+tau_est <- exp(theta$par[1])
 kappa_est <- exp(theta$par[2])
 nu_est <- exp(theta$par[3])
 
 op_cov <- update(op_cov,
   user_kappa = kappa_est,
-  user_sigma = sigma_est,
+  user_tau = tau_est,
   user_nu = nu_est
 )
 ```
@@ -597,7 +599,8 @@ from the fact that $Y$ is a matrix with more than one column.
 
 ```{r, message=FALSE, warning=FALSE}
 theta0 <- c(
-  get.inital.values.rSPDE(mesh.range = 1, dim = 1),
+  get.inital.values.rSPDE(mesh.range = 1, dim = 1,
+  include.tau = TRUE),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
 
@@ -618,7 +621,7 @@ end_time <- Sys.time()
 time_optim <- end_time - start_time
 
 print(data.frame(
-  sigma = c(sigma, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
+  tau = c(tau, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
   row.names = c("Truth", "Estimates")
 ))
@@ -691,6 +694,7 @@ op_cov_2d <- matern.operators(
   sigma = sigma,
   m = 2
 )
+tau <- op_cov_2d$tau
 ```
 
 Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `r inla_link()` function `inla.spde.make.A()`.
@@ -754,7 +758,8 @@ We can now estimate the parameter using `optimParallel()`:
 
 ```{r}
 theta0_2d <- c(
-  get.inital.values.rSPDE(mesh = mesh_2d),
+  get.inital.values.rSPDE(mesh = mesh_2d, 
+    include.tau = TRUE),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
 
@@ -769,7 +774,7 @@ pars <- optimParallel(theta0_2d, mlik_2d)
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  sigma = c(sigma, exp(pars$par[1])),
+  tau = c(tau, exp(pars$par[1])),
   kappa = c(kappa, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),
@@ -804,6 +809,7 @@ op_cov_2d_type <- matern.operators(
   m = 2,
   type_rational_approximation = "chebfunLB"
 )
+tau <- op_cov_2d_type$tau
 ```
 
 We can check the order of the rational approximation with the `rational.order()`
@@ -833,7 +839,7 @@ pars <- optimParallel(theta0_2d, mlik_2d_type)
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  sigma = c(sigma, exp(pars$par[1])),
+  tau = c(tau, exp(pars$par[1])),
   kappa = c(kappa, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),
@@ -871,7 +877,7 @@ pars <- optimParallel(theta0_2d, mlik_2d_type)
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  sigma = c(sigma, exp(pars$par[1])),
+  tau = c(tau, exp(pars$par[1])),
   kappa = c(kappa, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),

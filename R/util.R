@@ -1448,20 +1448,50 @@ rspde_check_user_input <- function(param, label, lower_bound = NULL){
   #' Process inputs likelihood
   #'
   #' @param user_kappa kappa
-  #' @param user_sigma sigma
+  #' @param user_tau tau
   #' @param user_nu nu
   #' @param sigma.e sigma.e
   #'
   #' @return List with the positions
   #' @noRd
 
-likelihood_process_inputs <- function(user_kappa, user_sigma, user_nu, sigma.e){
-  param_vector <- c("sigma", "kappa", "nu", "sigma.e")
-  if(!is.null(user_sigma)){
-    param_vector <- setdiff(param_vector, "sigma")
+likelihood_process_inputs_spde <- function(user_kappa, user_tau, user_nu, sigma.e){
+  param_vector <- c("tau", "kappa", "nu", "sigma.e")
+  if(!is.null(user_tau)){
+    param_vector <- setdiff(param_vector, "tau")
   } 
   if(!is.null(user_kappa)){
     param_vector <- setdiff(param_vector, "kappa")
+  }
+  if(!is.null(user_nu)){
+    param_vector <- setdiff(param_vector, "nu")
+  }
+  if(!is.null(sigma.e)){
+    param_vector <- setdiff(param_vector, "sigma.e")
+  }
+  if(length(param_vector)==0){
+    stop("You should leave at least one parameter free.")
+  }
+  return(param_vector)
+}
+
+  #' Process inputs likelihood
+  #'
+  #' @param user_kappa kappa
+  #' @param user_tau tau
+  #' @param user_nu nu
+  #' @param sigma.e sigma.e
+  #'
+  #' @return List with the positions
+  #' @noRd
+
+likelihood_process_inputs_matern <- function(user_range, user_sigma, user_nu, sigma.e){
+  param_vector <- c("sigma", "range", "nu", "sigma.e")
+  if(!is.null(user_sigma)){
+    param_vector <- setdiff(param_vector, "sigma")
+  } 
+  if(!is.null(user_range)){
+    param_vector <- setdiff(param_vector, "range")
   }
   if(!is.null(user_nu)){
     param_vector <- setdiff(param_vector, "nu")
