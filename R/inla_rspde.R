@@ -91,7 +91,7 @@ rspde.matern <- function(mesh,
                          "brasil", "chebfunLB"),
                          debug = FALSE,
                          shared_lib = "detect",
-                         ...) {                      
+                         ...) {
   type.rational.approx <- type.rational.approx[[1]]
 
   prior.theta.param <- prior.theta.param[[1]]
@@ -2650,6 +2650,7 @@ rspde.precision <- function(rspde,
 #' @param start.lrange Starting value for log of range. Will not be used if start.lkappa is non-null. Will be only used in the stationary case and if `parameterization = 'matern'`.
 #' @param start.ltau Starting value for log of tau. Will be only used in the stationary case and if `parameterization = 'spde'`.
 #' @param start.lkappa Starting value for log of kappa. Will be only used in the stationary case and if `parameterization = 'spde'`.
+#' @param prior.theta.param Should the lognormal prior be on `theta` or on the SPDE parameters (`tau` and `kappa` on the stationary case)?
 #' @param prior.nu.dist The distribution of the smoothness parameter.
 #' The current options are "beta" or "lognormal". The default is "lognormal".
 #' @param nu.prec.inc Amount to increase the precision in the beta prior

@@ -1,4 +1,6 @@
 # rSPDE (development version)
+* Implementation of the covariance-based spde.matern.operators function and its associated functions.
+* Adjusts on the compatibility with the forthcoming MetricGraph package.
 
 # rSPDE 2.0.0
 * Added cgeneric versions of the nonstationary models

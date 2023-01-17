@@ -130,12 +130,10 @@ We will be using `r inla_link()`. To install `r inla_link()` go to [R-INLA Proje
 We begin by loading some libraries we need to get the data and build the plots.
 
 ```{r library_loading, message=FALSE}
-library(gridExtra)
 library(ggplot2)
-library(lattice)
 library(INLA)
 library(splancs)
-library(fields)
+library(viridis)
 ```
 
 Let us load the data and the border of the region
@@ -170,12 +168,12 @@ ggplot() +
     x = coords[, 1], y = coords[, 2],
     colour = Y
   ), size = 2, alpha = 1) +
-  scale_colour_gradientn(colours = tim.colors(100)) +
   geom_path(aes(x = PRborder[, 1], y = PRborder[, 2])) +
   geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[
     1034:1078,
     2
-  ]), colour = "red")
+  ]), colour = "red") + 
+  scale_color_viridis()
 ```
 
 The red line in the figure shows the coast line, and we expect the distance to 
@@ -528,27 +526,29 @@ We then extract the indices to the prediction nodes and then extract the mean an
 
 ```{r stk.mean.sd}
 id.prd <- inla.stack.index(stk.all, "prd")$data
-sd.prd <- m.prd <- matrix(NA, nxy[1], nxy[2])
-m.prd[xy.in] <- rspde_fitprd$summary.fitted.values$mean[id.prd]
-sd.prd[xy.in] <- rspde_fitprd$summary.fitted.values$sd[id.prd]
+m.prd <- rspde_fitprd$summary.fitted.values$mean[id.prd]
+sd.prd <- rspde_fitprd$summary.fitted.values$sd[id.prd]
 ```
 
 Finally, we plot the results:
 
-```{r plot_pred, fig.align = "center", fig.width=7, fig.height=15}
+```{r plot_pred, fig.align = "center"}
 # Plot the predictions
-grid.arrange(
-  levelplot(m.prd,
-    col.regions = tim.colors(99),
-    xlab = "", ylab = "", main = "mean",
-    scales = list(draw = FALSE)
-  ),
-  levelplot(sd.prd,
-    col.regions = topo.colors(99),
-    xlab = "", ylab = "", scales = list(draw = FALSE),
-    main = "standard deviation"
-  )
-)
+pred_df <- data.frame(x1 = coord.prd[,1],
+                      x2 = coord.prd[,2],
+                      mean = m.prd,
+                      sd = sd.prd)
+
+ggplot(pred_df, aes(x = x1, y = x2, fill = mean)) +
+  geom_raster() +
+  scale_fill_viridis()
+```
+
+Then, the std. deviations:
+
+```{r plot_pred_sd_bru, fig.align='center', echo=TRUE}
+ggplot(pred_df, aes(x = x1, y = x2, fill = sd)) +
+  geom_raster() + scale_fill_viridis()
 ```
 
 ## An example with replicates
@@ -649,18 +649,25 @@ y <- as.vector(A %*% as.vector(u)) +
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
 
 ```{r, fig.show='hold', fig.align = "center",echo=TRUE}
-opar <- par(mfrow = c(1, 2), mgp = c(1.2, 0.5, 0),
-   mar = c(2, 2, 0.5, 0.5) + 0.1)
 proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
-image(inla.mesh.project(proj, field = as.vector(u[, 1])),
-  xlab = "", ylab = "",
-  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
-)
-plot(loc_2d_mesh[, 1], loc_2d_mesh[, 2],
-  cex = 0.2, pch = 16, xlab = "", ylab = "",
-  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
-)
-par(opar)
+
+df_field <- data.frame(x = proj$lattice$loc[,1],
+                        y = proj$lattice$loc[,2],
+                        field = as.vector(inla.mesh.project(proj, 
+                        field = as.vector(u[, 1]))),
+                        type = "field")
+
+df_loc <- data.frame(x = loc_2d_mesh[, 1],
+                      y = loc_2d_mesh[, 2],
+                      field = 0,
+                      type = "locations")
+df_plot <- rbind(df_field, df_loc)
+
+ggplot(df_plot) + aes(x = x, y = y, fill = field) +
+        facet_wrap(~type) + xlim(0,1) + ylim(0,1) + 
+        geom_raster(data = df_field) +
+        geom_point(data = df_loc) + 
+        scale_fill_viridis()
 ```
 
 
@@ -1301,13 +1308,10 @@ the initial value of $\nu$
 will be $\min\{1,\nu_{UB}/2\}$.
 
 Let us consider an example with the same dataset used in the first model of this vignette
-where we change the prior distribution of $\nu$ from beta to lognormal. Let us
-also set `nu.upper.bound` to 2.
+where we change the prior distribution of $\nu$ from beta to lognormal. 
 
 ```{r}
-rspde_model_beta <- rspde.matern(mesh = prmesh, prior.nu.dist = "beta",
-  nu.upper.bound = 2
-)
+rspde_model_beta <- rspde.matern(mesh = prmesh, prior.nu.dist = "beta")
 ```
 
 Since we did not change `rspde.order` and are not fixing $\nu$, we can

@@ -225,25 +225,25 @@ The generated data can be seen in the following image.
 
 ```{r,fig.align = "center", echo=TRUE}
 library(ggplot2)
-library(gridExtra)
+library(viridis)
 df <- data.frame(x1 = as.double(loc_2d_mesh[, 1]),
-   x2 = as.double(loc_2d_mesh[, 2]), y = as.double(y))
+  x2 = as.double(loc_2d_mesh[, 2]), y = as.double(y))
 ggplot(df, aes(x = x1, y = x2, col = y)) +
   geom_point() +
-  scale_color_gradient(low = "yellow", high = "red")
+  scale_color_viridis()
 ```
 
 The simulated random field is shown in the following figure. 
 
-```{r, fig.show='hold', fig.align = "center",echo=TRUE}
+```{r, fig.show='hold', fig.align = "center",echo=TRUE, message=FALSE,warning=FALSE}
 proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
 field <- inla.mesh.project(proj, field = as.vector(u))
-grd <- expand.grid(1:100, 1:100) / 100
-field.df <- cbind(grd, as.vector(field))
-colnames(field.df) <- c("x1", "x2", "y")
+field.df <- data.frame(x1 = proj$lattice$loc[,1],
+                        x2 = proj$lattice$loc[,2], 
+                        y = as.vector(field))
 ggplot(field.df, aes(x = x1, y = x2, fill = y)) +
-  geom_raster() +
-  scale_fill_gradient(low = "yellow", high = "red")
+  geom_raster() + xlim(0,1) + ylim(0,1) + 
+  scale_fill_viridis()
 ```
 
 ## Fitting the model with `R-INLA` implementation of the rational SPDE approach
@@ -402,21 +402,24 @@ sd.prd <- matrix(rspde_fitprd$summary.fitted.values$sd[id.prd], 100, 100)
 Finally, we plot the results. First the mean:
 
 ```{r plot_pred, echo=TRUE, fig.align='center'}
-grd <- expand.grid(1:100, 1:100) / 100
-field.pred.df <- cbind(grd, as.vector(m.prd))
-colnames(field.pred.df) <- c("x1", "x2", "y")
+field.pred.df <- data.frame(x1 = projgrid$lattice$loc[,1],
+                        x2 = projgrid$lattice$loc[,2], 
+                        y = as.vector(m.prd))
 ggplot(field.pred.df, aes(x = x1, y = x2, fill = y)) +
-  geom_raster() +
-  scale_fill_gradient(low = "yellow", high = "red")
+  geom_raster() + xlim(0,1) + ylim(0,1) + 
+  scale_fill_viridis()
 ```
 
 Then, the marginal standard deviations:
 
 ```{r plot_pred_sd, fig.align='center', echo=TRUE}
-field.pred.sd.df <- cbind(grd, as.vector(sd.prd))
-colnames(field.pred.sd.df) <- c("x1", "x2", "y")
-ggplot(field.pred.sd.df, aes(x = x1, y = x2, fill = y)) +
-  geom_raster()
+field.pred.sd.df <- data.frame(x1 = proj$lattice$loc[,1],
+                        x2 = proj$lattice$loc[,2], 
+                        sd = as.vector(sd.prd))
+ggplot(field.pred.sd.df, aes(x = x1, y = x2, fill = sd)) +
+  geom_raster() + xlim(0,1) + ylim(0,1) + 
+  geom_raster() +
+  scale_fill_viridis()
 ```
 
 
@@ -503,9 +506,8 @@ a dense grid in the region.
 We begin by creating the grid of the locations where we want to evaluate the predictions. We begin
 by creating a regular grid in and then extract the coorinates:
 ```{r}
-grd <- expand.grid(1:100, 1:100) / 100
-pred_coords <- data.frame(x1 = grd[,1],
-                          x2 = grd[,2])
+pred_coords <- data.frame(x1 = projgrid$lattice$loc[,1],
+                          x2 = projgrid$lattice$loc[,2])
 coordinates(pred_coords) <- c("x1", "x2")
 ```
 
@@ -517,21 +519,20 @@ field_pred <- predict(rspde_bru_fit, pred_coords, ~field)
 
 The following figure shows the mean of these predictions:
 
-```{r, echo=TRUE, fig.align='center'}
+```{r, echo=TRUE, fig.align='center', message=FALSE, warning=FALSE}
 field_pred_df <- field_pred@data
 field_pred_df <- cbind(field_pred_df, field_pred@coords)
-p <- ggplot(field_pred_df, aes(x = x1, y = x2, fill = mean)) +
-  geom_raster() +
-  scale_fill_gradient(low = "yellow", high = "red")
-p
+ggplot(field_pred_df, aes(x = x1, y = x2, fill = mean)) +
+  geom_raster() + xlim(0,1) + ylim(0,1) + 
+  scale_fill_viridis()
 ```
 
 The following figure shows the marginal standard deviations of the predictions:
 
-```{r plot_pred_sd_bru, fig.align='center', echo=TRUE}
-p <- ggplot(field_pred_df, aes(x = x1, y = x2, fill = sd)) +
-  geom_raster()
-p
+```{r plot_pred_sd_bru, fig.align='center', echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(field_pred_df, aes(x = x1, y = x2, fill = sd)) +
+  geom_raster() + xlim(0,1) + ylim(0,1) + 
+  scale_fill_viridis()
 ```
 
 An alternative and very simple approach is to use the `pixels()` function:
@@ -542,7 +543,7 @@ pxl <- pixels(mesh_2d)
 field_pred <- predict(rspde_bru_fit, pxl, ~field)
 
 ggplot() + gg(field_pred) +
-  scale_fill_gradient(low = "yellow", high = "red")
+  scale_fill_viridis()
 ```
 
 ## Fitting the model with `rSPDE`
@@ -662,20 +663,23 @@ pred.rspde <- predict(op.prd,
 Finally, we plot the results. First the mean:
 
 ```{r plot_pred2, fig.align='center', echo=TRUE}
-field.pred2.df <- cbind(grd, as.vector(pred.rspde$mean))
-colnames(field.pred2.df) <- c("x1", "x2", "y")
+field.pred2.df <- data.frame(x1 = predgrid$lattice$loc[,1],
+                             x2 = predgrid$lattice$loc[,2],
+                             y = as.vector(pred.rspde$mean))
 ggplot(field.pred2.df, aes(x = x1, y = x2, fill = y)) +
-  geom_raster() +
-  scale_fill_gradient(low = "yellow", high = "red")
+  geom_raster() + xlim(0,1) + ylim(0,1) + 
+  scale_fill_viridis()
 ```
 
 Then, the standard deviations:
 
 ```{r plot_pred_sd2, fig.align='center', echo=TRUE}
-field.pred2.sd.df <- cbind(grd, as.vector(sqrt(pred.rspde$variance)))
-colnames(field.pred2.sd.df) <- c("x1", "x2", "y")
-ggplot(field.pred2.sd.df, aes(x = x1, y = x2, fill = y)) +
-  geom_raster()
+field.pred2.sd.df <-field.pred2.df <- data.frame(x1 = predgrid$lattice$loc[,1],
+                             x2 = predgrid$lattice$loc[,2],
+                             sd = as.vector(sqrt(pred.rspde$variance)))
+ggplot(field.pred2.sd.df, aes(x = x1, y = x2, fill = sd)) +
+  geom_raster() +
+  scale_fill_viridis()
 ```
 
 

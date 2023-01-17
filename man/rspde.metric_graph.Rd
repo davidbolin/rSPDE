@@ -94,6 +94,8 @@ distribution on the log scale. Check details below.}
 
 \item{start.lkappa}{Starting value for log of kappa. Will be only used in the stationary case and if \code{parameterization = 'spde'}.}
 
+\item{prior.theta.param}{Should the lognormal prior be on \code{theta} or on the SPDE parameters (\code{tau} and \code{kappa} on the stationary case)?}
+
 \item{prior.nu.dist}{The distribution of the smoothness parameter.
 The current options are "beta" or "lognormal". The default is "lognormal".}
 
