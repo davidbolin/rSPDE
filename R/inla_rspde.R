@@ -2759,3 +2759,70 @@ rspde.metric_graph <- function(graph_obj,
   class(rspde_model) <- c("rspde_metric_graph", class(rspde_model))
   return(rspde_model)
                          }
+
+#' @name precision.inla_rspde
+#' @title Get the precision matrix of `inla_rspde` objects
+#' @description Function to get the precision matrix of an `inla_rspde` object created with the `rspde.matern()` function.
+#' @param object The `inla_rspde` object obtained with the `rspde.matern()` function.
+#' @param theta If null, the starting values for theta will be used. Otherwise, it must be suplied as a vector. 
+#' For stationary models, we have `theta = c(log(tau), log(kappa), nu)`. For nonstationary models, we have
+#' `theta = c(theta_1, theta_2, ..., theta_n, nu)`.
+#' @param ... Currently not used.
+#' @return The precision matrix.
+#' @method precision inla_rspde
+#' @seealso [precision.CBrSPDEobj()], [matern.operators()]
+#' @export
+#'
+precision.inla_rspde <- function(object,
+                                 theta = NULL,
+                                 ...) {
+  mesh_model <- object$mesh
+
+  rspde_order <- object$rspde.order
+
+  if(is.null(theta)){
+    theta <- object$start.theta
+    nu <- object$start.nu
+  } else{
+    n_tmp <- length(theta)
+    nu <- theta[n_tmp]
+    theta <- theta[-n_tmp]
+  }
+
+
+
+  if(object$stationary){
+    if(object$parameterization == "spde"){
+      tau <- exp(theta[1])
+      kappa <- exp(theta[2])
+      op <- matern.operators(mesh = mesh_model, 
+                         nu = nu, kappa = kappa, 
+                         tau = tau, 
+                         m = rspde_order,
+                         type = "covariance",
+                         type_rational_approximation = object$type.rational.approx)
+  } else{
+      sigma <- exp(theta[1])
+      range <- exp(theta[2])
+      op <- matern.operators(mesh = mesh_model, 
+                         nu = nu, range = range, 
+                         sigma = sigma, 
+                         m = rspde_order,
+                         type = "covariance",
+                         type_rational_approximation = object$type.rational.approx)
+  }
+  } else {
+    B_tau_vec <- object$f$cgeneric$data$matrices$B_tau
+    B_kappa_vec <- object$f$cgeneric$data$matrices$B_kappa
+    n_total <- length(B_tau_vec)
+    dim_B_matrices <- B_tau_vec[1:2]
+    B_tau <- matrix(B_tau_vec[3:n_total], dim_B_matrices[1], dim_B_matrices[2], byrow = TRUE)
+    B_kappa <- matrix(B_kappa_vec[3:n_total], dim_B_matrices[1], dim_B_matrices[2], byrow = TRUE)
+    op <- spde.matern.operators(B.tau = B.tau, B.kappa = B.kappa, theta = theta, nu = nu, parameterization = "spde",
+                                  mesh = mesh_model, m = rspde_order, type = "covariance",
+                                   type_rational_approximation = object$type.rational.approx)
+  }
+
+  Q <- op$Q
+  return(Q)
+}

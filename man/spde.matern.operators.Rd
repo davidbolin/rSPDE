@@ -5,9 +5,15 @@
 \title{Rational approximations of non-stationary Gaussian SPDE Matern random fields}
 \usage{
 spde.matern.operators(
-  kappa,
-  tau,
+  kappa = NULL,
+  tau = NULL,
+  theta = NULL,
+  B.tau = matrix(c(0, 1, 0), 1, 3),
+  B.kappa = matrix(c(0, 0, 1), 1, 3),
+  B.sigma = matrix(c(0, 1, 0), 1, 3),
+  B.range = matrix(c(0, 0, 1), 1, 3),
   nu,
+  parameterization = c("matern", "spde"),
   G = NULL,
   C = NULL,
   d = NULL,
@@ -26,9 +32,19 @@ discretization of the SPDE.}
 parameter evaluated at the locations
 of the mesh used for the finite element discretization of the SPDE.}
 
+\item{B.tau}{Matrix with specification of log-linear model for \eqn{\tau}. Will be used if \code{parameterization = 'spde'}.}
+
+\item{B.kappa}{Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if \code{parameterization = 'spde'}.}
+
+\item{B.sigma}{Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if \code{parameterization = 'matern'}.}
+
+\item{B.range}{Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if \code{parameterization = 'matern'}.}
+
 \item{nu}{Shape parameter of the covariance function, related to
 \eqn{\beta} through the equation
 \eqn{\beta = (\nu + d/2)/2}.}
+
+\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). The default is \code{matern}.}
 
 \item{G}{The stiffness matrix of a finite element discretization of
 the domain of interest.}

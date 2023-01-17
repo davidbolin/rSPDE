@@ -64,10 +64,15 @@ brew install eigen
 
 The `Makefile` has the following base form:
 
-```make
+```{bash, eval=FALSE}
 toInclude = ${R_LIBRARY_DIR}/INLA/include/
 
-obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o cgeneric_rspde_stat_frac_model.o cgeneric_rspde_nonstat_general.o cgeneric_rspde_stat_general.o cgeneric_rspde_stat_parsim_gen.o cgeneric_rspde_stat_parsim_fixed.o cgeneric_rspde_stat_int.o cgeneric_rspde_nonstat_gen_fixed.o cgeneric_rspde_nonstat_int.o cgeneric_aux_nonstat_int.o
+obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o \
+      cgeneric_rspde_stat_frac_model.o cgeneric_rspde_nonstat_general.o \
+      cgeneric_rspde_stat_general.o cgeneric_rspde_stat_parsim_gen.o \
+      cgeneric_rspde_stat_parsim_fixed.o cgeneric_rspde_stat_int.o \
+      cgeneric_rspde_nonstat_gen_fixed.o cgeneric_rspde_nonstat_int.o \
+      cgeneric_aux_nonstat_int.o
 
 all : rSPDE.so
 
@@ -100,7 +105,7 @@ For linux, we recommend to use the `gcc-12` and `g++-12` compilers. To this end,
 one must install `gcc` and `g++`, then change the following lines on the 
 `Makefile`:
 
-```{make}
+```{bash, eval=FALSE}
 CC = gcc
 CXX = g++
 ```
@@ -110,7 +115,7 @@ default location is `/usr/include/eigen3/` and is already set at the Makefile.
 If you have Eigen installed in a different location, you will need to update the
 `Makefile` by changing the `EIGEN_LINUX` variable:
 
-```{make}
+```{bash, eval=FALSE}
 EIGEN_LINUX = /correct_path/
 ```
 

@@ -5,9 +5,10 @@
 \title{Rational approximations of stationary Gaussian Matern random fields}
 \usage{
 matern.operators(
-  kappa,
+  kappa = NULL,
   sigma = NULL,
   tau = NULL,
+  range = NULL,
   nu,
   G = NULL,
   C = NULL,

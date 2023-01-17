@@ -363,9 +363,10 @@ fractional.operators <- function(L,
 #'   xlab = "h", main = "Matern covariance and rational approximation"
 #' )
 #' lines(x, c.approx, col = 2)
-matern.operators <- function(kappa,
+matern.operators <- function(kappa = NULL,
                              sigma = NULL,
                              tau = NULL,
+                             range = NULL,
                              nu,
                              G = NULL,
                              C = NULL,
@@ -393,6 +394,10 @@ matern.operators <- function(kappa,
     stop("You must either provide sigma or tau.")
   }
 
+  if(is.null(range)&&is.null(kappa)){
+    stop("You must either provide range or kappa.")
+  }
+
     if (!is.null(mesh)) {
       d <- get_inla_mesh_dimension(inla_mesh = mesh)
       fem <- INLA::inla.mesh.fem(mesh)
@@ -409,6 +414,14 @@ matern.operators <- function(kappa,
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
     }
 
+    if(is.null(kappa)){
+      kappa <- sqrt(8 * nu) / range
+    }
+
+    if(is.null(range)){
+      range <- sqrt(8 * nu) / kappa
+    }
+
 
   if (type == "operator") {
   
@@ -423,6 +436,8 @@ matern.operators <- function(kappa,
     )
     output <- operators
     output$kappa <- kappa
+    output$range <- range
+    output$tau <- tau
     output$sigma <- sigma
     output$nu <- nu
     output$d <- d
@@ -432,12 +447,14 @@ matern.operators <- function(kappa,
     return(output)
   } else {
     type_rational_approximation <- type_rational_approximation[[1]]
-    return(CBrSPDE.matern.operators(
+    out <- CBrSPDE.matern.operators(
       C = C, G = G, mesh = mesh, nu = nu, kappa = kappa, sigma = sigma,
       m = m, d = d, compute_higher_order = compute_higher_order,
       return_block_list = return_block_list,
       type_rational_approximation = type_rational_approximation
-    ))
+    )
+    out$range <- range
+    out$tau <- tau
   }
 }
 
@@ -759,6 +776,11 @@ CBrSPDE.matern.operators <- function(C,
 #' @param tau Vector with the, possibly spatially varying, precision
 #' parameter evaluated at the locations
 #' of the mesh used for the finite element discretization of the SPDE.
+#' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if `parameterization = 'matern'`.
+#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'`.
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
+#' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
+#' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
 #' @param nu Shape parameter of the covariance function, related to
 #' \eqn{\beta} through the equation
 #' \eqn{\beta = (\nu + d/2)/2}.
@@ -829,9 +851,15 @@ CBrSPDE.matern.operators <- function(C,
 #' # plot the sample
 #' plot(x, u, type = "l", ylab = "u(s)", xlab = "s")
 #'
-spde.matern.operators <- function(kappa,
-                                  tau,
+spde.matern.operators <- function(kappa = NULL,
+                                  tau = NULL,
+                                  theta = NULL,
+                                  B.tau = matrix(c(0, 1, 0), 1, 3), 
+                                  B.kappa = matrix(c(0, 0, 1), 1, 3), 
+                                  B.sigma = matrix(c(0, 1, 0), 1, 3), 
+                                  B.range = matrix(c(0, 0, 1), 1, 3),
                                   nu,
+                                  parameterization = c("matern", "spde"),
                                   G = NULL,
                                   C = NULL,
                                   d = NULL,
@@ -844,6 +872,13 @@ spde.matern.operators <- function(kappa,
   if (!type %in% c("covariance", "operator")) {
     stop("The type should be 'covariance' or 'operator'!")
   }
+
+  parameterization <- parameterization[[1]]
+
+  if (!parameterization %in% c("matern", "spde")) {
+    stop("parameterization should be either 'matern' or 'spde'!")
+  }
+
   if (is.null(d) && is.null(mesh)) {
     stop("You should give either the dimension d or the mesh!")
   }
@@ -862,6 +897,31 @@ spde.matern.operators <- function(kappa,
       C <- fem$c0
       G <- fem$g1
   }
+
+  if(is.null(kappa) && is.null(tau)){
+    if(is.null(theta)){
+      stop("You should either provide kappa and tau, or you should provide theta!")
+    }
+    if(any(dim(B.tau) != dim(B.kappa))){
+      stop("B.tau and B.kappa must have the same dimensions!")
+    }
+    if(any(dim(B.sigma) != dim(B.range))){
+      stop("B.sigma and B.range must have the same dimensions!")
+    }
+
+    if(parameterization == "spde"){
+      B_matrices <- convert_B_matrices(B.sigma, B.range, ncol(C), nu, d)
+      B.tau <- B_matrices[["B.tau"]]
+      B.kappa <- B_matrices[["B.kappa"]]
+    }
+
+    new_theta <- c(1, theta)
+    
+    tau <- exp(B.tau %*% new_theta)
+    kappa <- exp(B.kappa %*% new_theta)
+  }
+
+  alpha <- nu + d / 2
   
   if (nu < 0) {
     stop("nu must be positive")
@@ -880,11 +940,11 @@ spde.matern.operators <- function(kappa,
       )
       output <- operators
       output$beta <- beta
+      output$B.tau <- B.tau
+      output$B.kappa <- B.kappa
       output$type <- "Matern SPDE approximation"
   } else{
     type_rational_approximation <- type_rational_approximation[[1]]
-  
-    alpha <- nu + d / 2
     m_alpha <- floor(alpha)
     m_order <- m_alpha + 1
 
@@ -968,6 +1028,7 @@ spde.matern.operators <- function(kappa,
   output <- list(
     C = C, G = G,
     alpha = alpha, nu = nu, kappa = kappa,
+    B.tau = B.tau, B.kappa = B.kappa,
     tau = tau, m = m, d = d,
     Q = Q, sizeC = dim(C)[1],
     type_rational_approximation = type_rational_approximation,

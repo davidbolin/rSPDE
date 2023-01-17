@@ -1758,3 +1758,31 @@ get_parameters_rSPDE_graph <- function (graph_obj, alpha,
         theta.prior.prec = theta.prior.prec)
     return(param)
 }
+
+
+
+#' @noRd 
+
+# Function to convert B.sigma and B.range to B.tau and B.kappa
+
+convert_B_matrices <- function(B.sigma, B.range, n.spde, nu.nominal, d){
+      n.theta <- ncol(B.sigma) - 1L
+
+      alpha.nominal <- nu.nominal + d / 2
+      
+      B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
+          n.theta)
+      B.range <- prepare_B_matrices(B.range, n.spde, 
+          n.theta)
+
+      B.kappa <- cbind(0.5 * log(8 * nu.nominal) - B.range[, 1], 
+        -B.range[, -1, drop = FALSE])
+
+      B.tau <- cbind(0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) - 
+                d/2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] - 
+                B.sigma[,1], 
+                - nu.nominal * B.kappa[, -1, drop = FALSE] -
+                B.sigma[, -1, drop = FALSE])
+    
+    return(list(B.tau = B.tau, B.kappa = B.kappa))
+}
