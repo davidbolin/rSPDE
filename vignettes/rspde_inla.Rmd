@@ -498,7 +498,6 @@ stk.all <- inla.stack(stk.dat, stk.prd)
 
 Doing the joint estimation takes a while, and we therefore turn off the computation of certain things that we are not interested in, such as the marginals for the random effect. 
 We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes.
-Since we are doing predictions, we should not use `r inla_link()`'s experimental mode.
 
 ```{r fit_prd, message=FALSE, warning=FALSE}
 rspde_fitprd <- inla(f.s,

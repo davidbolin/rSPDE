@@ -26,15 +26,25 @@ get.initial.values.rSPDE(
 
 \item{mesh.range}{The range of the mesh.}
 
+\item{n.spde}{The number of basis functions in the mesh model.}
+
 \item{dim}{The dimension of the domain.}
+
+\item{B.tau}{Matrix with specification of log-linear model for \eqn{\tau}. Will be used if \code{parameterization = 'spde'}.}
+
+\item{B.kappa}{Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if \code{parameterization = 'spde'}.}
+
+\item{B.sigma}{Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if \code{parameterization = 'matern'}.}
+
+\item{B.range}{Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if \code{parameterization = 'matern'}.}
+
+\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). The default is \code{matern}.}
 
 \item{include.nu}{Should we also provide an initial guess for nu?}
 
 \item{log.scale}{Should the results be provided in log scale?}
 
 \item{nu.upper.bound}{Should an upper bound for nu be considered?}
-
-\item{include.tau}{Should tau be returned instead of sigma?}
 }
 \value{
 A vector of the form (theta_1,theta_2,theta_3) or where

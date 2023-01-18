@@ -570,10 +570,15 @@ character.only = FALSE) {
 #' @param mesh An in INLA mesh
 #' @param mesh.range The range of the mesh.
 #' @param dim The dimension of the domain.
+#' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if `parameterization = 'matern'`.
+#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'`.
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
+#' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
+#' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
 #' @param include.nu Should we also provide an initial guess for nu?
+#' @param n.spde The number of basis functions in the mesh model.
 #' @param log.scale Should the results be provided in log scale?
 #' @param nu.upper.bound Should an upper bound for nu be considered?
-#' @param include.tau Should tau be returned instead of sigma?
 #' @return A vector of the form (theta_1,theta_2,theta_3) or where
 #' theta_1 is the initial guess for tau, theta_2 is the initial guess for kappa
 #' and theta_3 is the initial guess for nu.
