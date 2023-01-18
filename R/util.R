@@ -390,6 +390,7 @@ summary.rSPDEobj <- function(object, ...) {
     out$nu <- object$nu
   }
   out$m <- object$m
+  out$stationary <- object$stationary
   out$n <- dim(object$L)[1]
   return(out)
 }
@@ -403,12 +404,17 @@ print.summary.rSPDEobj <- function(x, ...) {
   cat("Type of approximation: ", x$type, "\n")
   if (x$type == "Matern approximation") {
     cat(
-      "Parametres of covariance function: kappa = ",
+      "Parameters of covariance function: kappa = ",
       x$kappa, ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
     )
   }
   cat("Order or rational approximation: ", x$m, "\n")
   cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
+  if(x$stationary){
+    cat("Stationary Model\n")
+  } else{
+    cat("Non-Stationary Model")
+  }
 }
 
 #' @export
@@ -555,7 +561,7 @@ character.only = FALSE) {
   )
 }
 
-#' @name get.inital.values.rSPDE
+#' @name get.initial.values.rSPDE
 #' @title Initial values for log-likelihood optimization in rSPDE models
 #' with a latent stationary Gaussian Matern model
 #' @description Auxiliar function to obtain domain-based initial values for
@@ -564,64 +570,128 @@ character.only = FALSE) {
 #' @param mesh An in INLA mesh
 #' @param mesh.range The range of the mesh.
 #' @param dim The dimension of the domain.
+#' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if `parameterization = 'matern'`.
+#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'`.
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
+#' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
+#' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
+#' @param nu The smoothness parameter.
 #' @param include.nu Should we also provide an initial guess for nu?
+#' @param n.spde The number of basis functions in the mesh model.
 #' @param log.scale Should the results be provided in log scale?
 #' @param nu.upper.bound Should an upper bound for nu be considered?
-#' @param include.tau Should tau be returned instead of sigma?
 #' @return A vector of the form (theta_1,theta_2,theta_3) or where
 #' theta_1 is the initial guess for tau, theta_2 is the initial guess for kappa
 #' and theta_3 is the initial guess for nu.
 #' @export
 #'
 
-get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
-                                    dim = NULL,
+get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
+                                    dim = NULL, B.tau = NULL, B.kappa = NULL,
+                                    B.sigma = NULL, B.range = NULL, nu = NULL,
+                                    parameterization = c("matern", "spde"),
                                     include.nu = TRUE, log.scale = TRUE,
-                                    include.tau = FALSE,
                                     nu.upper.bound = NULL) {
   if (is.null(mesh) && is.null(mesh.range)) {
     stop("You should either provide mesh or mesh.range!")
   }
 
+    parameterization <- parameterization[[1]]
+
+  if (!parameterization %in% c("matern", "spde")) {
+    stop("parameterization should be either 'matern' or 'spde'!")
+  }
+
   if (is.null(mesh) && is.null(dim)) {
     stop("If you don't provide mesh, you have to provide dim!")
   }
+
+  if(!is.null(mesh)){
+    if(!inherits(mesh, c("inla.mesh", "inla.mesh.1d"))){
+      stop("The mesh should be created using INLA!")
+    }
+
+    dim <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+  } 
+
   if (include.nu) {
     if (!is.null(nu.upper.bound)) {
       nu <- min(1, nu.upper.bound / 2)
     } else {
       nu <- 1
     }
+  } else{
+    if(is.null(nu)){
+      stop("If include.nu is FALSE, then nu must be provided!")
+    }
   }
 
-  if (!is.null(mesh)) {
-    dim <- get_inla_mesh_dimension(inla_mesh = mesh)
-    mesh.range <- ifelse(dim == 2, (max(c(diff(range(mesh$loc[
-      ,
-      1
-    ])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[
-      ,
-      3
-    ]))))), diff(mesh$interval))
+  if(parameterization == "matern"){
+    if(is.null(B.sigma)){
+      B.sigma = matrix(c(0, 1, 0), 1, 3)
+    }
+    if(is.null(B.range)){
+      B.range = matrix(c(0, 0, 1), 1, 3)
+    }
+
+    param <- get_parameters_rSPDE(mesh = mesh,
+                                  alpha = nu + dim/2,
+                                  B.tau = B.tau,
+                                  B.kappa = B.kappa,
+                                  B.sigma = B.sigma,
+                                  B.range = B.range,
+                                  nu.nominal = nu,
+                                  alpha.nominal = nu + dim/2,
+                                  parameterization = parameterization,
+                                  prior.std.dev.nominal = 1,
+                                  prior.range.nominal = NULL,
+                                  prior.tau = NULL,
+                                  prior.kappa = NULL,
+                                  theta.prior.mean = NULL,
+                                  theta.prior.prec = 0.1,
+                                  mesh.range = mesh.range,
+                                  d = dim,
+                                  n.spde = n.spde
+                                  )
+    initial <- param$theta.prior.mean
+  } else{
+    if(is.null(B.tau)){
+      B.tau = matrix(c(0, 1, 0), 1, 3)
+    }
+    if(is.null(B.kappa)){
+      B.kappa = matrix(c(0, 0, 1), 1, 3)
+    }
+
+    param <- get_parameters_rSPDE(mesh = mesh,
+                                  alpha = nu + dim/2,
+                                  B.tau = B.tau,
+                                  B.kappa = B.kappa,
+                                  B.sigma = B.sigma,
+                                  B.range = B.range,
+                                  nu.nominal = nu,
+                                  alpha.nominal = nu + dim/2,
+                                  parameterization = parameterization,
+                                  prior.std.dev.nominal = 1,
+                                  prior.range.nominal = NULL,
+                                  prior.tau = NULL,
+                                  prior.kappa = NULL,
+                                  theta.prior.mean = NULL,
+                                  theta.prior.prec = 0.1,
+                                  mesh.range = mesh.range,
+                                  d = dim,
+                                  n.spde = n.spde
+                                  )
+  initial <- param$theta.prior.mean
   }
 
-  range.nominal <- mesh.range * 0.2
-
-  kappa <- sqrt(8 * nu) / range.nominal
-
-  if (include.tau) {
-    tau <- sqrt(gamma(nu) / (kappa^(2 * nu) *
-    (4 * pi)^(dim / 2) * gamma(nu + dim / 2)))
-
-    initial <- c(tau, kappa, nu)
-  } else {
-    initial <- c(1, kappa, nu)
+  if(include.nu){
+    initial <- c(initial, log(nu))
   }
 
   if (log.scale) {
-    return(log(initial))
-  } else {
     return(initial)
+  } else {
+    return(exp(initial))
   }
 }
 
@@ -1127,8 +1197,10 @@ summary.CBrSPDEobj <- function(object, ...) {
   out$type <- object$type
   out$kappa <- object$kappa
   out$sigma <- object$sigma
+  out$theta <- object$theta
   out$nu <- object$nu
   out$m <- object$m
+  out$stationary <- object$stationary
   out$n <- dim(object$C)[1]
   out[["type_rational_approximation"]] <-
   object[["type_rational_approximation"]]
@@ -1144,12 +1216,25 @@ print.summary.CBrSPDEobj <- function(x, ...) {
   cat("Type of approximation: ", x$type, "\n")
   cat("Type of rational approximation: ",
   x[["type_rational_approximation"]], "\n")
-  cat(
-    "Parameters of covariance function: kappa = ",
-    x$kappa, ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
-  )
+  if(x$stationary){
+    cat(
+      "Parameters of covariance function: kappa = ",
+      x$kappa, ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
+    )
+  } else if (!is.null(x$theta)){
+        cat(
+      "Parameters of covariance function: theta = ",
+      x$theta, ", nu = ", x$nu, "\n"
+    )
+  }
+
   cat("Order or rational approximation: ", x$m, "\n")
   cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
+  if(x$stationary){
+    cat("Stationary Model\n")
+  } else{
+    cat("Non-Stationary Model")
+  }
 }
 
 #' @export
@@ -1436,20 +1521,50 @@ rspde_check_user_input <- function(param, label, lower_bound = NULL){
   #' Process inputs likelihood
   #'
   #' @param user_kappa kappa
-  #' @param user_sigma sigma
+  #' @param user_tau tau
   #' @param user_nu nu
   #' @param sigma.e sigma.e
   #'
   #' @return List with the positions
   #' @noRd
 
-likelihood_process_inputs <- function(user_kappa, user_sigma, user_nu, sigma.e){
-  param_vector <- c("sigma", "kappa", "nu", "sigma.e")
-  if(!is.null(user_sigma)){
-    param_vector <- setdiff(param_vector, "sigma")
+likelihood_process_inputs_spde <- function(user_kappa, user_tau, user_nu, sigma.e){
+  param_vector <- c("tau", "kappa", "nu", "sigma.e")
+  if(!is.null(user_tau)){
+    param_vector <- setdiff(param_vector, "tau")
   } 
   if(!is.null(user_kappa)){
     param_vector <- setdiff(param_vector, "kappa")
+  }
+  if(!is.null(user_nu)){
+    param_vector <- setdiff(param_vector, "nu")
+  }
+  if(!is.null(sigma.e)){
+    param_vector <- setdiff(param_vector, "sigma.e")
+  }
+  if(length(param_vector)==0){
+    stop("You should leave at least one parameter free.")
+  }
+  return(param_vector)
+}
+
+  #' Process inputs likelihood
+  #'
+  #' @param user_kappa kappa
+  #' @param user_tau tau
+  #' @param user_nu nu
+  #' @param sigma.e sigma.e
+  #'
+  #' @return List with the positions
+  #' @noRd
+
+likelihood_process_inputs_matern <- function(user_range, user_sigma, user_nu, sigma.e){
+  param_vector <- c("sigma", "range", "nu", "sigma.e")
+  if(!is.null(user_sigma)){
+    param_vector <- setdiff(param_vector, "sigma")
+  } 
+  if(!is.null(user_range)){
+    param_vector <- setdiff(param_vector, "range")
   }
   if(!is.null(user_nu)){
     param_vector <- setdiff(param_vector, "nu")
@@ -1501,18 +1616,33 @@ get_parameters_rSPDE <- function (mesh, alpha,
     prior.tau, 
     prior.kappa, 
     theta.prior.mean, 
-    theta.prior.prec) 
+    theta.prior.prec,
+    mesh.range = NULL,
+    d = NULL,
+    n.spde = NULL) 
 {
+  if(!is.null(mesh)){
     if(!inherits(mesh, c("inla.mesh", "inla.mesh.1d"))){
       stop("The mesh should be created using INLA!")
     }
+
+    d <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+    n.spde <- ifelse(d == 2, mesh$n, mesh$m)
+  } else{
+    if(is.null(d)){
+      stop("If you do not provide the mesh, you must provide the dimension!")
+    }
+    if(is.null(n.spde)){
+      stop("If you do not provide the mesh, you must provide n.spde!")
+    }
+  } 
+
     if (is.null(B.tau) && is.null(B.sigma)) 
         stop("One of B.tau or B.sigma must not be NULL.")
     if (is.null(B.kappa) && is.null(B.range)) 
         stop("One of B.kappa or B.range must not be NULL.")
 
-    d <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
-    n.spde <- ifelse(d == 2, mesh$n, mesh$m)
+
 
     if(parameterization == "spde"){
       n.theta <- ncol(B.kappa) - 1L
@@ -1560,9 +1690,11 @@ get_parameters_rSPDE <- function (mesh, alpha,
     
     if (is.null(theta.prior.mean)) {
         if (is.null(prior.range.nominal)) {
+          if(is.null(mesh.range)){
             mesh.range = ifelse(d == 2, (max(c(diff(range(mesh$loc[, 
                 1])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[, 
                 3]))))), diff(mesh$interval))
+          }
             prior.range.nominal = mesh.range * 0.2
         }
         if (is.null(prior.kappa)) {
@@ -1745,4 +1877,32 @@ get_parameters_rSPDE_graph <- function (graph_obj, alpha,
         B.kappa = B.kappa, theta.prior.mean = theta.prior.mean, 
         theta.prior.prec = theta.prior.prec)
     return(param)
+}
+
+
+
+#' @noRd 
+
+# Function to convert B.sigma and B.range to B.tau and B.kappa
+
+convert_B_matrices <- function(B.sigma, B.range, n.spde, nu.nominal, d){
+      n.theta <- ncol(B.sigma) - 1L
+
+      alpha.nominal <- nu.nominal + d / 2
+      
+      B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
+          n.theta)
+      B.range <- prepare_B_matrices(B.range, n.spde, 
+          n.theta)
+
+      B.kappa <- cbind(0.5 * log(8 * nu.nominal) - B.range[, 1], 
+        -B.range[, -1, drop = FALSE])
+
+      B.tau <- cbind(0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) - 
+                d/2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] - 
+                B.sigma[,1], 
+                - nu.nominal * B.kappa[, -1, drop = FALSE] -
+                B.sigma[, -1, drop = FALSE])
+    
+    return(list(B.tau = B.tau, B.kappa = B.kappa))
 }

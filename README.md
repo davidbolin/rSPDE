@@ -48,6 +48,12 @@ Sys.setenv(PATH = paste(c(gcc, rtools, Sys.getenv("PATH")), collapse = ";"))
 where the variables `rtools` and `gcc` need to be changed if `Rtools` is not installed directly on `C:`,
 and `gcc`'s version might need to be changed depending on the version of `Rtools`.
 
+Finally, if you want to build the `rSPDE` package from source on Mac or Linux, please
+click [here](https://davidbolin.github.io/rSPDE//articles/build_source.html).
+
+NOTE: Currently, to fit nonstationary models in Mac computers with intel processors, one needs to build the package
+from source using the `clang` compiler.
+
 # Repository branch workflows #
 The package version format for released versions is `major.minor.bugfix`. All regular development should be performed on the `devel` branch or in a feature branch, managed with `git flow feature`. Ideally, all the changes should be made on the `devel` branch. The `devel` version of the package should contain unit tests and examples for all important functions. Several functions may depend on `INLA`. Examples and tests for such functions might create problems when submitting to CRAN. To solve this problem, we created some Github Actions scripts that get the examples and tests depending on `INLA` on the `devel` branch and adapt to versions that will not fail on CRAN. Therefore, the best way to handle these situations is to avoid as much as possible to do any push to the `stable` branch. The idea is to update the `stable` branch by merges following the workflow that will be described below. 
 The examples that depend on `INLA` should have the following structure:

@@ -4,7 +4,24 @@
 \alias{spde.matern.operators}
 \title{Rational approximations of non-stationary Gaussian SPDE Matern random fields}
 \usage{
-spde.matern.operators(kappa, tau, nu, G, C, d, m = 1)
+spde.matern.operators(
+  kappa = NULL,
+  tau = NULL,
+  theta = NULL,
+  B.tau = matrix(c(0, 1, 0), 1, 3),
+  B.kappa = matrix(c(0, 0, 1), 1, 3),
+  B.sigma = matrix(c(0, 1, 0), 1, 3),
+  B.range = matrix(c(0, 0, 1), 1, 3),
+  nu,
+  parameterization = c("matern", "spde"),
+  G = NULL,
+  C = NULL,
+  d = NULL,
+  mesh = NULL,
+  m = 1,
+  type = c("covariance", "operator"),
+  type_rational_approximation = c("chebfun", "brasil", "chebfunLB")
+)
 }
 \arguments{
 \item{kappa}{Vector with the, possibly spatially varying, range parameter
@@ -15,9 +32,22 @@ discretization of the SPDE.}
 parameter evaluated at the locations
 of the mesh used for the finite element discretization of the SPDE.}
 
+\item{theta}{Theta parameter that connects B.tau and B.kappa to tau and kappa through a log-linear regression, in case the parameterization is \code{spde},
+and that connects B.sigma and B.range to tau and kappa in case the parameterization is \code{matern}.}
+
+\item{B.tau}{Matrix with specification of log-linear model for \eqn{\tau}. Will be used if \code{parameterization = 'spde'}.}
+
+\item{B.kappa}{Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if \code{parameterization = 'spde'}.}
+
+\item{B.sigma}{Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if \code{parameterization = 'matern'}.}
+
+\item{B.range}{Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if \code{parameterization = 'matern'}.}
+
 \item{nu}{Shape parameter of the covariance function, related to
 \eqn{\beta} through the equation
 \eqn{\beta = (\nu + d/2)/2}.}
+
+\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). The default is \code{matern}.}
 
 \item{G}{The stiffness matrix of a finite element discretization of
 the domain of interest.}
@@ -25,11 +55,21 @@ the domain of interest.}
 \item{C}{The mass matrix of a finite element discretization of the
 domain of interest.}
 
-\item{d}{The dimension of the domain.}
+\item{d}{The dimension of the domain. Does not need to be given if
+\code{mesh} is used.}
 
-\item{m}{The order of the rational approximation, which needs to
-be a positive integer.
-The default value is 1.}
+\item{mesh}{An optional inla mesh. \code{d}, \code{C} and \code{G}
+must be given if \code{mesh} is not given.}
+
+\item{m}{The order of the rational approximation, which needs to be a
+positive integer. The default value is 1.}
+
+\item{type}{The type of the rational approximation. The options are
+"covariance" and "operator". The default is "covariance".}
+
+\item{type_rational_approximation}{Which type of rational
+approximation should be used? The current types are
+"chebfun", "brasil" or "chebfunLB".}
 }
 \value{
 \code{spde.matern.operators} returns an object of

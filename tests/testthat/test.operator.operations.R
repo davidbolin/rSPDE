@@ -10,7 +10,7 @@ test_that("Operator algebra", {
 
   op <- spde.matern.operators(
     kappa = kappa, tau = tau, nu = nu,
-    G = fem$G, C = fem$C, d = 1
+    G = fem$G, C = fem$C, d = 1, type = "operator"
   )
   v <- x
 

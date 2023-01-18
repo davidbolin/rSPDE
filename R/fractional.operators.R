@@ -204,9 +204,10 @@ fractional.operators <- function(L,
 #' (\kappa h)^\nu K_\nu(\kappa h)}{C(h) = (\sigma^2/(2^{\nu-1}\Gamma(\nu))
 #' (\kappa h)^\nu K_\nu(\kappa h).}
 #'
-#' @param kappa Range parameter of the covariance function.
+#' @param kappa Parameter kappa of the covariance function.
+#' @param range Range parameter of the covariance function (will be used if kappa is not provided).
 #' @param sigma Standard deviation of the covariance function.
-#' @param tau The variance in the SPDE model. 
+#' @param tau Parameter tau of the covariance function (will be used if sigma is not provided).
 #' @param nu Shape parameter of the covariance function.
 #' @param G The stiffness matrix of a finite element discretization of the
 #' domain of interest. Does not need to be given if `mesh` is used.
@@ -228,7 +229,8 @@ fractional.operators <- function(L,
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
 #' "chebfun", "brasil" or "chebfunLB".
-#'
+#' @param fem_mesh_matrices A list containing FEM-related matrices.
+#' The list should contain elements c0, g1, g2, g3, etc.
 #' @return If `type` is "covariance", then `matern.operators`
 #' returns an object of class "CBrSPDEobj".
 #' This object is a list containing the
@@ -363,9 +365,10 @@ fractional.operators <- function(L,
 #'   xlab = "h", main = "Matern covariance and rational approximation"
 #' )
 #' lines(x, c.approx, col = 2)
-matern.operators <- function(kappa,
+matern.operators <- function(kappa = NULL,
                              sigma = NULL,
                              tau = NULL,
+                             range = NULL,
                              nu,
                              G = NULL,
                              C = NULL,
@@ -376,8 +379,10 @@ matern.operators <- function(kappa,
                              compute_higher_order = FALSE,
                              return_block_list = FALSE,
                              type_rational_approximation = c("chebfun",
-                             "brasil", "chebfunLB")) {
+                             "brasil", "chebfunLB"),
+                             fem_mesh_matrices = NULL) {
   type <- type[[1]]
+  nu <- min(nu, 10)
   if (!type %in% c("covariance", "operator")) {
     stop("The type should be 'covariance' or 'operator'!")
   }
@@ -393,21 +398,32 @@ matern.operators <- function(kappa,
     stop("You must either provide sigma or tau.")
   }
 
+  if(is.null(range)&&is.null(kappa)){
+    stop("You must either provide range or kappa.")
+  }
+
     if (!is.null(mesh)) {
       d <- get_inla_mesh_dimension(inla_mesh = mesh)
       fem <- INLA::inla.mesh.fem(mesh)
       C <- fem$c0
       G <- fem$g1
     }
+
+    if(!is.null(range)){
+      kappa <- sqrt(8 * nu) / range
+    }
+
     if(is.null(tau)){
       tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
     }
 
-    if(is.null(sigma)){
+    if(!is.null(tau)){
     sigma <- sqrt(gamma(nu) / (tau^2 * kappa^(2 * nu) *
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
     }
+
+
 
 
   if (type == "operator") {
@@ -423,20 +439,26 @@ matern.operators <- function(kappa,
     )
     output <- operators
     output$kappa <- kappa
+    output$range <- range
+    output$tau <- tau
     output$sigma <- sigma
     output$nu <- nu
     output$d <- d
     output$G <- G
     output$type <- "Matern approximation"
+    output$stationary <- TRUE
     return(output)
   } else {
     type_rational_approximation <- type_rational_approximation[[1]]
-    return(CBrSPDE.matern.operators(
+    out <- CBrSPDE.matern.operators(
       C = C, G = G, mesh = mesh, nu = nu, kappa = kappa, sigma = sigma,
       m = m, d = d, compute_higher_order = compute_higher_order,
       return_block_list = return_block_list,
       type_rational_approximation = type_rational_approximation
-    ))
+    )
+    out$range <- range
+    out$tau <- tau
+    return(out)
   }
 }
 
@@ -555,6 +577,7 @@ CBrSPDE.matern.operators <- function(C,
                                      "brasil", "chebfunLB"),
                                      fem_mesh_matrices = NULL) {
   type_rational_approximation <- type_rational_approximation[[1]]
+
   if (is.null(fem_mesh_matrices)) {
     if (!is.null(mesh)) {
       ## get alpha, m_alpha
@@ -564,9 +587,6 @@ CBrSPDE.matern.operators <- function(C,
       m_order <- m_alpha + 1
       tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
       (4 * pi)^(d / 2) * gamma(nu + d / 2)))
-      
-
-
 
       if (d > 1) {
         if (compute_higher_order) {
@@ -683,46 +703,81 @@ CBrSPDE.matern.operators <- function(C,
   if (return_block_list) {
     Q.int <- aux_mat
 
-    Q.frac <- rspde.matern.precision(
-      kappa = kappa, nu = nu, tau = tau,
-      rspde.order = m, dim = d,
-      fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
-      return_block_list = TRUE,
-      type_rational_approx = type_rational_approximation
-    )
+    if(alpha %% 1 == 0){
+      Q.frac <- Matrix::Diagonal(dim(L)[1])
+      Q <- L * kappa^2
 
-    Q <- Q.frac
+      if(alpha > 1){
+        CinvL <- Matrix::Diagonal(dim(C)[1], 1/diag(C)) %*% L * kappa^2
 
-    if (m_alpha > 0) {
-      for (j in seq_len(length(Q))) {
-        for (i in 1:m_alpha) {
-          Q[[j]] <- Q.int %*% Q[[j]]
+        for(k in 1:(alpha-1)){
+          Q <- Q %*% CinvL
+        }
+      } 
+
+      Q <- tau^2 * Q
+      Q.int <- Q
+    } else{
+      if(m == 0){
+        stop("Return block list does not work with m = 0, either increase m or set return_block_list to FALSE.")
+      }
+      Q.frac <- rspde.matern.precision(
+        kappa = kappa, nu = nu, tau = tau,
+        rspde.order = m, dim = d,
+        fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
+        return_block_list = TRUE,
+        type_rational_approx = type_rational_approximation
+      )
+
+     Q <- Q.frac
+
+      if (m_alpha > 0) {
+        for (j in seq_len(length(Q))) {
+          for (i in 1:m_alpha) {
+            Q[[j]] <- Q.int %*% Q[[j]]
+          }
         }
       }
+      Q.int <- list(Q.int = Q.int, order = m_alpha)
     }
 
-    Q.int <- list(Q.int = Q.int, order = m_alpha)
   } else {
     Q.int <- list(Q.int = kronecker(Diagonal(m + 1), aux_mat), order = m_alpha)
 
-    Q.frac <- rspde.matern.precision(
-      kappa = kappa, nu = nu, tau = tau,
-      rspde.order = m, dim = d,
-      fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
-      type_rational_approx = type_rational_approximation
-    )
+    if(alpha %% 1 == 0){
+      Q.frac <- Matrix::Diagonal(dim(L)[1])
+      Q <- L * kappa^2
 
-    Q <- Q.frac
+      if(alpha > 1){
+        CinvL <- Matrix::Diagonal(dim(C)[1], 1/diag(C)) %*% L * kappa^2
 
-    if (m_alpha > 0) {
-      for (i in 1:m_alpha) {
-        Q <- Q.int$Q.int %*% Q
-      }
+        for(k in 1:(alpha-1)){
+          Q <- Q %*% CinvL
+        }
+      } 
+
+      Q <- tau^2 * Q
+      Q.int <- list(Q.int = Q, order = m_alpha)
+    } else if (m > 0){
+        Q.frac <- rspde.matern.precision(
+          kappa = kappa, nu = nu, tau = tau,
+          rspde.order = m, dim = d,
+          fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
+          type_rational_approx = type_rational_approximation
+        )
+
+        Q <- Q.frac
+
+        if (m_alpha > 0) {
+          for (i in 1:m_alpha) {
+            Q <- Q.int$Q.int %*% Q
+          }
+        }
+    } else{
+      Q <- markov.Q(alpha/2, kappa, d, list(C=C, G=G))
+      Q.frac <- Matrix::Diagonal(dim(L)[1])
     }
   }
-
-
-
 
   ## output
   output <- list(
@@ -736,9 +791,10 @@ CBrSPDE.matern.operators <- function(C,
     Q = Q, sizeC = dim(C)[1],
     higher_order = compute_higher_order,
     type_rational_approximation = type_rational_approximation,
-    return_block_list = return_block_list
+    return_block_list = return_block_list,
+    stationary = TRUE
   )
-  output$type <- "Covariance-Based Matern SPDE approximation"
+  output$type <- "Covariance-Based Matern SPDE Approximation"
   class(output) <- "CBrSPDEobj"
   return(output)
 }
@@ -757,6 +813,13 @@ CBrSPDE.matern.operators <- function(C,
 #' @param tau Vector with the, possibly spatially varying, precision
 #' parameter evaluated at the locations
 #' of the mesh used for the finite element discretization of the SPDE.
+#' @param theta Theta parameter that connects B.tau and B.kappa to tau and kappa through a log-linear regression, in case the parameterization is `spde`,
+#' and that connects B.sigma and B.range to tau and kappa in case the parameterization is `matern`.
+#' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if `parameterization = 'matern'`.
+#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'`.
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
+#' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
+#' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
 #' @param nu Shape parameter of the covariance function, related to
 #' \eqn{\beta} through the equation
 #' \eqn{\beta = (\nu + d/2)/2}.
@@ -764,10 +827,17 @@ CBrSPDE.matern.operators <- function(C,
 #' the domain of interest.
 #' @param C The mass matrix of a finite element discretization of the
 #' domain of interest.
-#' @param d The dimension of the domain.
-#' @param m The order of the rational approximation, which needs to
-#' be a positive integer.
-#' The default value is 1.
+#' @param mesh An optional inla mesh. `d`, `C` and `G`
+#' must be given if `mesh` is not given.
+#' @param d The dimension of the domain. Does not need to be given if
+#' `mesh` is used.
+#' @param m The order of the rational approximation, which needs to be a
+#' positive integer. The default value is 1.
+#' @param type The type of the rational approximation. The options are
+#' "covariance" and "operator". The default is "covariance".
+#' @param type_rational_approximation Which type of rational
+#' approximation should be used? The current types are
+#' "chebfun", "brasil" or "chebfunLB".
 #'
 #'
 #' @details The approximation is based on a rational approximation of the
@@ -820,32 +890,199 @@ CBrSPDE.matern.operators <- function(C,
 #' # plot the sample
 #' plot(x, u, type = "l", ylab = "u(s)", xlab = "s")
 #'
-spde.matern.operators <- function(kappa,
-                                  tau,
+spde.matern.operators <- function(kappa = NULL,
+                                  tau = NULL,
+                                  theta = NULL,
+                                  B.tau = matrix(c(0, 1, 0), 1, 3), 
+                                  B.kappa = matrix(c(0, 0, 1), 1, 3), 
+                                  B.sigma = matrix(c(0, 1, 0), 1, 3), 
+                                  B.range = matrix(c(0, 0, 1), 1, 3),
                                   nu,
-                                  G,
-                                  C,
-                                  d,
-                                  m = 1) {
-  if (is.null(d)) {
-    stop("the dimension d must be supplied")
+                                  parameterization = c("matern", "spde"),
+                                  G = NULL,
+                                  C = NULL,
+                                  d = NULL,
+                                  mesh = NULL,
+                                  m = 1,
+                                  type = c("covariance", "operator"),
+                                  type_rational_approximation = c("chebfun",
+                             "brasil", "chebfunLB")) {
+  type <- type[[1]]
+  if (!type %in% c("covariance", "operator")) {
+    stop("The type should be 'covariance' or 'operator'!")
   }
+
+  parameterization <- parameterization[[1]]
+
+  if (!parameterization %in% c("matern", "spde")) {
+    stop("parameterization should be either 'matern' or 'spde'!")
+  }
+
+  if (is.null(d) && is.null(mesh)) {
+    stop("You should give either the dimension d or the mesh!")
+  }
+
+  if ((is.null(C) || is.null(G)) && is.null(mesh)) {
+    stop("You should either provide mesh, or provide C *and* G!")
+  }
+
+  if (!is.null(mesh)) {
+      d <- get_inla_mesh_dimension(inla_mesh = mesh)
+      fem <- INLA::inla.mesh.fem(mesh)
+      C <- fem$c0
+      G <- fem$g1
+  }
+
+  if(!is.null(theta)){
+
+    if(any(dim(B.tau) != dim(B.kappa))){
+      stop("B.tau and B.kappa must have the same dimensions!")
+    }
+    if(any(dim(B.sigma) != dim(B.range))){
+      stop("B.sigma and B.range must have the same dimensions!")
+    }
+
+    if(parameterization == "matern"){
+      B_matrices <- convert_B_matrices(B.sigma, B.range, ncol(C), nu, d)
+      B.tau <- B_matrices[["B.tau"]]
+      B.kappa <- B_matrices[["B.kappa"]]
+    } else{
+      B.tau <- prepare_B_matrices(B.tau, ncol(C), 
+          ncol(B.tau)-1)
+      B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
+          ncol(B.kappa)-1)
+    }
+    
+      new_theta <- c(1, theta)
+
+      tau <- exp(B.tau %*% new_theta)
+      kappa <- exp(B.kappa %*% new_theta)
+
+  } else if(is.null(kappa) || is.null(tau)){
+    stop("If theta is NULL, then kappa and tau must not be NULL!")
+  } 
+
+  alpha <- nu + d / 2
+  
   if (nu < 0) {
     stop("nu must be positive")
   }
-  beta <- (nu + d / 2) / 2
-  kp <- Matrix::Diagonal(dim(C)[1], kappa^2)
+  
+  if(type == "operator"){
+      beta <- (nu + d / 2) / 2
+      kp <- Matrix::Diagonal(dim(C)[1], kappa^2)
 
-  operators <- fractional.operators(
-    L = G + C %*% kp,
-    beta = beta,
-    C = C,
-    scale.factor = min(kappa)^2,
-    m = m,
-    tau = tau
+      operators <- fractional.operators(
+        L = G + C %*% kp,
+        beta = beta,
+        C = C,
+        scale.factor = min(kappa)^2,
+        m = m,
+        tau = tau
+      )
+      output <- operators
+      output$beta <- beta
+      output$B.tau <- B.tau
+      output$B.kappa <- B.kappa
+      output$kappa <- kappa
+      output$tau <- tau
+      output$theta <- theta
+      output$stationary <- FALSE
+      output$type <- "Matern SPDE approximation"
+  } else{
+    type_rational_approximation <- type_rational_approximation[[1]]
+    m_alpha <- floor(alpha)
+    m_order <- m_alpha + 1
+
+    L <- Matrix::Diagonal(dim(C)[1], kappa^2 * diag(C))
+    L <- L + G
+
+    tau_matrix <- Matrix::Diagonal(dim(C)[1], tau)
+    
+    if(alpha %% 1 == 0){
+      Q <- L
+
+      if(alpha > 1){
+        CinvL <- Matrix::Diagonal(dim(C)[1], 1/diag(C)) %*% L
+
+        for(k in 1:(alpha-1)){
+          Q <- Q %*% CinvL
+        }
+      } 
+
+      Q <- tau_matrix %*% Q %*% tau_matrix
+    } else{
+      factor <- min(kappa^2)
+      L <- L/factor
+
+      if(m_alpha > 0){
+        CinvL <- Matrix::Diagonal(dim(C)[1], 1/diag(C)) %*% L
+      }
+
+      mt <- get_rational_coefficients(m, type_rational_approximation)
+      rspde.order <- m
+      row_nu <- round(1000*cut_decimals(alpha))
+      r <- unlist(mt[row_nu, 2:(1+rspde.order)])
+      p <- unlist(mt[row_nu, (2+rspde.order):(1+2*rspde.order)])
+      k_rat <- unlist(mt[row_nu, 2+2*rspde.order])
+
+      Q <- (L - p[1] * C)/r[1]
+        if(m_alpha > 0){
+          for(count_m in 1:m_alpha){
+            Q <- Q %*% CinvL
+          }
+        }
+
+      Q <- tau_matrix %*% Q %*% tau_matrix
+
+      if(rspde.order > 1){
+        for(k_ind in 2:rspde.order){
+          Q_tmp <- (L - p[k_ind] * C)/r[k_ind]
+          if(m_alpha > 0){
+            for(count_m in 1:m_alpha){
+              Q_tmp <- Q_tmp %*% CinvL
+            }
+          }
+        }
+        Q_tmp <- tau_matrix %*% Q_tmp %*% tau_matrix
+        Q <- bdiag(Q, Q_tmp)
+      }
+
+      # K part
+
+      if(m_alpha == 0){
+        Q_tmp <- C
+      } else if(m_alpha == 1){
+        Q_tmp <- L
+      } else{
+        Q_tmp <- L
+        for(count_m in 1:(m_alpha-1)){
+          Q_tmp <- Q_tmp %*% CinvL
+        }
+      }
+
+      Q_tmp <- tau_matrix %*% Q_tmp %*% tau_matrix
+      Q_tmp <- Q_tmp/k_rat
+
+      Q <- bdiag(Q, Q_tmp)
+
+      Q <- factor^(alpha) * Q
+    }
+  
+
+  ## output
+  output <- list(
+    C = C, G = G,
+    alpha = alpha, nu = nu, kappa = kappa,
+    B.tau = B.tau, B.kappa = B.kappa,
+    tau = tau, theta = theta, m = m, d = d,
+    Q = Q, sizeC = dim(C)[1],
+    type_rational_approximation = type_rational_approximation,
+    stationary = FALSE
   )
-  output <- operators
-  output$beta <- beta
-  output$type <- "Matern SPDE approximation"
+  output$type <- "Covariance-Based Matern SPDE Approximation"
+  class(output) <- "CBrSPDEobj"
+  }
+
   return(output)
 }

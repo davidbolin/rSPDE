@@ -88,18 +88,17 @@ ibm_values.bru_mapper_inla_rspde <- function(mapper, ...) {
 #' @param input The values for which to produce a mapping matrix
 #' @rdname bru_get_mapper.inla_rspde
 ibm_jacobian.bru_mapper_inla_rspde <- function(mapper, input, ...) {
-  if (is.null(input)) {
-    return(Matrix::Matrix(0, 0, inlabru::ibm_n(mapper)))
-  }
-  if (!is.matrix(input) && !inherits(input, "Spatial")) {
+  model <- mapper[["model"]]
+  if (!is.null(input) && !is.matrix(input) && !inherits(input, "Spatial")) {
     input <- as.matrix(input)
   }
-  model <- mapper[["model"]]
+
   if(model$est_nu){
     nu <- NULL
   } else{
    nu <- model$nu
   }
+
   rspde_order <- model$rspde.order
   rSPDE::rspde.make.A(mesh = model$mesh, loc=input,
                                 rspde.order = rspde_order,

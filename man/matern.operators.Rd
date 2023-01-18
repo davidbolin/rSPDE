@@ -5,9 +5,10 @@
 \title{Rational approximations of stationary Gaussian Matern random fields}
 \usage{
 matern.operators(
-  kappa,
+  kappa = NULL,
   sigma = NULL,
   tau = NULL,
+  range = NULL,
   nu,
   G = NULL,
   C = NULL,
@@ -17,15 +18,18 @@ matern.operators(
   type = c("covariance", "operator"),
   compute_higher_order = FALSE,
   return_block_list = FALSE,
-  type_rational_approximation = c("chebfun", "brasil", "chebfunLB")
+  type_rational_approximation = c("chebfun", "brasil", "chebfunLB"),
+  fem_mesh_matrices = NULL
 )
 }
 \arguments{
-\item{kappa}{Range parameter of the covariance function.}
+\item{kappa}{Parameter kappa of the covariance function.}
 
 \item{sigma}{Standard deviation of the covariance function.}
 
-\item{tau}{The variance in the SPDE model.}
+\item{tau}{Parameter tau of the covariance function (will be used if sigma is not provided).}
+
+\item{range}{Range parameter of the covariance function (will be used if kappa is not provided).}
 
 \item{nu}{Shape parameter of the covariance function.}
 
@@ -57,6 +61,9 @@ separately as a list?}
 \item{type_rational_approximation}{Which type of rational
 approximation should be used? The current types are
 "chebfun", "brasil" or "chebfunLB".}
+
+\item{fem_mesh_matrices}{A list containing FEM-related matrices.
+The list should contain elements c0, g1, g2, g3, etc.}
 }
 \value{
 If \code{type} is "covariance", then \code{matern.operators}
