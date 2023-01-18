@@ -32,6 +32,9 @@ discretization of the SPDE.}
 parameter evaluated at the locations
 of the mesh used for the finite element discretization of the SPDE.}
 
+\item{theta}{Theta parameter that connects B.tau and B.kappa to tau and kappa through a log-linear regression, in case the parameterization is \code{spde},
+and that connects B.sigma and B.range to tau and kappa in case the parameterization is \code{matern}.}
+
 \item{B.tau}{Matrix with specification of log-linear model for \eqn{\tau}. Will be used if \code{parameterization = 'spde'}.}
 
 \item{B.kappa}{Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if \code{parameterization = 'spde'}.}

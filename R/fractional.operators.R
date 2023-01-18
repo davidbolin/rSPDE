@@ -204,9 +204,10 @@ fractional.operators <- function(L,
 #' (\kappa h)^\nu K_\nu(\kappa h)}{C(h) = (\sigma^2/(2^{\nu-1}\Gamma(\nu))
 #' (\kappa h)^\nu K_\nu(\kappa h).}
 #'
-#' @param kappa Range parameter of the covariance function.
+#' @param kappa Parameter kappa of the covariance function.
+#' @param range Range parameter of the covariance function (will be used if kappa is not provided).
 #' @param sigma Standard deviation of the covariance function.
-#' @param tau The variance in the SPDE model. 
+#' @param tau Parameter tau of the covariance function (will be used if sigma is not provided).
 #' @param nu Shape parameter of the covariance function.
 #' @param G The stiffness matrix of a finite element discretization of the
 #' domain of interest. Does not need to be given if `mesh` is used.
@@ -776,6 +777,7 @@ CBrSPDE.matern.operators <- function(C,
         }
     } else{
       Q <- markov.Q(alpha/2, kappa, d, list(C=C, G=G))
+      Q.frac <- Matrix::Diagonal(dim(L)[1])
     }
   }
 
@@ -816,6 +818,8 @@ CBrSPDE.matern.operators <- function(C,
 #' @param tau Vector with the, possibly spatially varying, precision
 #' parameter evaluated at the locations
 #' of the mesh used for the finite element discretization of the SPDE.
+#' @param theta Theta parameter that connects B.tau and B.kappa to tau and kappa through a log-linear regression, in case the parameterization is `spde`,
+#' and that connects B.sigma and B.range to tau and kappa in case the parameterization is `matern`.
 #' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if `parameterization = 'matern'`.
 #' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'`.
 #' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.

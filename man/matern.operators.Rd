@@ -23,11 +23,13 @@ matern.operators(
 )
 }
 \arguments{
-\item{kappa}{Range parameter of the covariance function.}
+\item{kappa}{Parameter kappa of the covariance function.}
 
 \item{sigma}{Standard deviation of the covariance function.}
 
-\item{tau}{The variance in the SPDE model.}
+\item{tau}{Parameter tau of the covariance function (will be used if sigma is not provided).}
+
+\item{range}{Range parameter of the covariance function (will be used if kappa is not provided).}
 
 \item{nu}{Shape parameter of the covariance function.}
 

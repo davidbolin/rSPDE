@@ -39,9 +39,15 @@ the returned likelihood.}
 
 \item{user_nu}{If non-null, the shape parameter will be kept fixed in the returned likelihood.}
 
+\item{user_tau}{If non-null, the tau parameter will be kept fixed in the returned likelihood. (Replaces sigma)}
+
 \item{user_kappa}{If non-null, the range parameter will be kept fixed in the returned likelihood.}
 
 \item{user_sigma}{If non-null, the standard deviation will be kept fixed in the returned likelihood.}
+
+\item{user_range}{If non-null, the range parameter will be kept fixed in the returned likelihood. (Replaces kappa)}
+
+\item{parameterization}{If \code{spde}, then one will use the parameters \code{tau} and \code{kappa}. If \code{matern}, then one will use the parameters \code{sigma} and \code{range}.}
 
 \item{user_m}{If non-null, update the order of the rational approximation,
 which needs to be a positive integer.}

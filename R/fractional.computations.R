@@ -270,6 +270,8 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 #' the covariance function.
 #' @param user_range If non-null, update the range parameter
 #' of the covariance function.
+#' @param user_theta If non-null, update the parameter theta, that connects
+#' tau and kappa to the model matrices.
 #' @param user_nu If non-null, update the shape parameter
 #' of the covariance function.
 #' @param user_m If non-null, update the order of the rational
@@ -1622,8 +1624,9 @@ CBrSPDE.matern.loglike2 <- function(kappa,
 #' @param sigma.e IF non-null, the standard deviation of the measurement noise will be kept fixed in 
 #' the returned likelihood.
 #' @param mu Expectation vector of the latent field (default = 0).
-#' @param user_kappa If non-null, the range parameter will be kept fixed in the returned likelihood. 
-#' @param user_sigma If non-null, the standard deviation will be kept fixed in the returned likelihood.
+#' @param user_kappa If non-null, updates the range parameter. 
+#' @param user_tau If non-null, updates the parameter tau.
+#' @param user_theta If non-null, updates the parameter theta (that connects tau and kappa to the model matrices in `object`).
 #' @param user_nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
 #' @param user_m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
@@ -2034,8 +2037,11 @@ precision.CBrSPDEobj <- function(object,
 #' the returned likelihood.
 #' @param mu Expectation vector of the latent field (default = 0).
 #' @param user_kappa If non-null, the range parameter will be kept fixed in the returned likelihood. 
+#' @param user_range If non-null, the range parameter will be kept fixed in the returned likelihood. (Replaces kappa)
 #' @param user_sigma If non-null, the standard deviation will be kept fixed in the returned likelihood.
+#' @param user_tau If non-null, the tau parameter will be kept fixed in the returned likelihood. (Replaces sigma)
 #' @param user_nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
+#' @param parameterization If `spde`, then one will use the parameters `tau` and `kappa`. If `matern`, then one will use the parameters `sigma` and `range`.
 #' @param user_m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
 #' @param log_scale Should the parameters be evaluated in log-scale?
