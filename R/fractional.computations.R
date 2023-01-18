@@ -2092,8 +2092,6 @@ precision.CBrSPDEobj <- function(object,
 #' # Define the negative likelihood function for optimization
 #' # using CBrSPDE.matern.loglike
 #'
-#' # Notice that we are also using sigma instead of tau, so it can be compared
-#' # to matern.loglike()
 #' loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A) 
 #' 
 #' # The parameters can now be estimated by minimizing mlik with optim
@@ -2172,6 +2170,7 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
                         which_par = "sigma.e", 
                         logscale = log_scale)
                 } 
+                nu <- min(nu, 10)
                 if(nu %% 1 == 0){
                   nu <- nu + 1e-10
                 }
@@ -2222,6 +2221,8 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
                         which_par = "sigma.e", 
                         logscale = log_scale)
                 } 
+                nu <- min(nu, 10)
+                print(nu)
                 if(nu %% 1 == 0){
                   nu <- nu + 1e-10
                 }
