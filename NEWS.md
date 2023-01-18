@@ -1,3 +1,5 @@
+# rSPDE (development version)
+
 # rSPDE 2.1.0
 * Expanded the parameterization options on matern.operators and spde.matern.operators, along with their associated functions.
 * Implementation of the precision method for inla_rspde objects.
