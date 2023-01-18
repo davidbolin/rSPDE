@@ -610,8 +610,8 @@ parameter to avoid constrained optimization, using the
 <p>We can now estimate the parameter using <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code>.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">theta0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/get.inital.values.rSPDE.html">get.inital.values.rSPDE</a></span><span class="op">(</span>mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
-<span>  include.tau <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/get.initial.values.rSPDE.html">get.initial.values.rSPDE</a></span><span class="op">(</span>mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
+<span>  parameterization <span class="op">=</span> <span class="st">"spde"</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -627,13 +627,13 @@ parameter to avoid constrained optimization, using the
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                  tau    kappa       nu    sigma.e</span></span>
-<span><span class="co">#&gt; True     0.282094792 20.00000 0.500000 0.10000000</span></span>
-<span><span class="co">#&gt; Estimate 0.008369456 21.29799 0.639384 0.09848123</span></span>
+<span><span class="co">#&gt;                  tau   kappa        nu    sigma.e</span></span>
+<span><span class="co">#&gt; True     0.282094792 20.0000 0.5000000 0.10000000</span></span>
+<span><span class="co">#&gt; Estimate 0.008337517 21.3084 0.6403783 0.09844849</span></span>
 <span></span>
 <span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 34.95972 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 45.46984 secs</span></span></code></pre></div>
 <p>Finally, we observe that we can use the <code><a href="../reference/rational.order.html">rational.order()</a></code>
 function, to check the order of the rational approximation of the
 <code>rSPDE</code> object, as well as to use the
@@ -660,11 +660,11 @@ function, to check the order of the rational approximation of the
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                 tau    kappa        nu    sigma.e</span></span>
 <span><span class="co">#&gt; True     0.28209479 20.00000 0.5000000 0.10000000</span></span>
-<span><span class="co">#&gt; Estimate 0.00877944 20.86721 0.6311753 0.09851444</span></span>
+<span><span class="co">#&gt; Estimate 0.00877596 20.86951 0.6312703 0.09845711</span></span>
 <span></span>
 <span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 1.202451 mins</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 1.37661 mins</span></span></code></pre></div>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
