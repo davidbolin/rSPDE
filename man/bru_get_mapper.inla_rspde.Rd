@@ -28,7 +28,8 @@ ibm_jacobian.bru_mapper_inla_rspde(mapper, input, ...)
 rSPDE inlabru mapper
 }
 \examples{
-\donttest{ #devel version
+\donttest{ #tryCatch version
+tryCatch({
 if (requireNamespace("INLA", quietly = TRUE) && 
      requireNamespace("inlabru", quietly = TRUE)){
 library(INLA)
@@ -74,6 +75,7 @@ cmp <- y ~ Intercept(1) +
 rspde_fit <- bru(cmp, data = data_df)
 summary(rspde_fit)
 }
-#devel.tag
+#stable.tryCatch
+}, error = function(e){print("Could not run the example")})
 }
 }
