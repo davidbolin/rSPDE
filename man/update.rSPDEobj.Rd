@@ -11,6 +11,7 @@
   user_sigma = NULL,
   user_range = NULL,
   user_tau = NULL,
+  user_theta = NULL,
   user_m = NULL,
   ...
 )

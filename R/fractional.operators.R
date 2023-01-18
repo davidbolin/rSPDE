@@ -934,10 +934,8 @@ spde.matern.operators <- function(kappa = NULL,
       G <- fem$g1
   }
 
-  if(is.null(kappa) && is.null(tau)){
-    if(is.null(theta)){
-      stop("You should either provide kappa and tau, or you should provide theta!")
-    }
+  if(!is.null(theta)){
+
     if(any(dim(B.tau) != dim(B.kappa))){
       stop("B.tau and B.kappa must have the same dimensions!")
     }
@@ -955,16 +953,15 @@ spde.matern.operators <- function(kappa = NULL,
       B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
           ncol(B.kappa)-1)
     }
-
-    new_theta <- c(1, theta)
     
-    tau <- exp(B.tau %*% new_theta)
-    kappa <- exp(B.kappa %*% new_theta)
-  } else if(is.null(kappa)){
-    stop("If tau is non-NULL, then kappa must not be NULL!")
-  } else if(is.null(tau)){
-    stop("If kappa is non-NULL, then tau must not be NULL!")
-  }
+      new_theta <- c(1, theta)
+
+      tau <- exp(B.tau %*% new_theta)
+      kappa <- exp(B.kappa %*% new_theta)
+
+  } else if(is.null(kappa) || is.null(tau)){
+    stop("If theta is NULL, then kappa and tau must not be NULL!")
+  } 
 
   alpha <- nu + d / 2
   
@@ -988,6 +985,10 @@ spde.matern.operators <- function(kappa = NULL,
       output$beta <- beta
       output$B.tau <- B.tau
       output$B.kappa <- B.kappa
+      output$kappa <- kappa
+      output$tau <- tau
+      output$theta <- theta
+      output$stationary <- FALSE
       output$type <- "Matern SPDE approximation"
   } else{
     type_rational_approximation <- type_rational_approximation[[1]]

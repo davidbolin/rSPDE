@@ -228,7 +228,10 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           }
 
           if (!is.null(user_theta)) {
-            new_object$theta <- rspde_check_user_input(user_theta, "theta" , 0)
+            if(!is.numeric(user_theta)){
+              stop("user_theta must be numeric!")
+            }
+            new_object$theta <- user_theta
           }
 
           if (!is.null(user_m)) {
@@ -246,6 +249,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
             C = new_object$C,
             d = new_object$d,
             m = new_object$m,
+            parameterization = "spde",
             type = "covariance",
             type_rational_approximation = new_object$type_rational_approximation
           )
@@ -303,6 +307,7 @@ update.rSPDEobj <- function(object, user_nu = NULL,
                             user_sigma = NULL,
                             user_range = NULL,
                             user_tau = NULL,
+                            user_theta = NULL,
                             user_m = NULL, ...) {
   new_object <- object
 
@@ -331,6 +336,11 @@ update.rSPDEobj <- function(object, user_nu = NULL,
     new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
   }
 
+  if (!is.null(user_theta)) {
+      new_object$theta <- rspde_check_user_input(user_theta, "theta")
+  }
+
+ if(new_object$stationary){
   new_object <- matern.operators(
     kappa = new_object$kappa,
     sigma = new_object$sigma,
@@ -343,6 +353,23 @@ update.rSPDEobj <- function(object, user_nu = NULL,
     m = new_object$m,
     type = "operator"
   )
+ } else{
+          new_object <- spde.matern.operators(
+            kappa = new_object$kappa,
+            tau = new_object$tau,
+            theta = new_object$theta,
+            nu = new_object$nu,
+            B.tau = new_object$B.tau,
+            B.kappa = new_object$B.kappa,
+            G = new_object$G,
+            C = new_object$C,
+            d = new_object$d,
+            m = new_object$m,
+            type = "operator"
+          )  
+ }
+
+
 
   return(new_object)
 }
@@ -1119,7 +1146,109 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
   return(as.double(log_likelihood))
 }
 
+#' @noRd 
 
+aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
+                                   user_nu = NULL,
+                                   user_kappa = NULL,
+                                   user_tau = NULL,
+                                   user_theta = NULL,
+                                   user_m = NULL,
+                                   pivot = TRUE) {
+  Y <- as.matrix(Y)
+  if (length(dim(Y)) == 2) {
+    n.rep <- dim(Y)[2]
+    n <- dim(Y)[1]
+  } else {
+    n.rep <- 1
+    if (length(dim(Y)) == 1) {
+      n <- dim(Y)[1]
+    } else {
+      n <- length(Y)
+    }
+  }
+
+  ## get relevant parameters
+
+  object <- update.CBrSPDEobj(
+    object = object,
+    user_nu = user_nu,
+    user_kappa = user_kappa,
+    user_theta = user_theta,
+    user_tau = user_tau,
+    user_m = user_m
+  )
+
+  m <- object$m
+
+  if (length(sigma.e) == 1) {
+    Q.e <- Diagonal(n) / sigma.e^2
+    nugget <- rep(sigma.e^2, n)
+  } else {
+    if (length(sigma.e) != n) {
+      stop("the length of sigma.e does not match the number of observations")
+    }
+    Q.e <- Diagonal(length(sigma.e), 1 / sigma.e^2)
+    nugget <- sigma.e^2
+  }
+
+  Q <- object$Q
+
+  Q.R <- chol(Q, pivot = pivot)
+
+  logQ <- 2 * sum(log(diag(Q.R)))
+
+  ## compute Q_x|y
+  if(object$alpha %% 1 == 0){
+    Abar <- A
+  } else{
+    Abar <- kronecker(matrix(1, 1, m + 1), A)
+  }
+  Q_xgiveny <- t(Abar) %*% Q.e %*% Abar + Q
+  ## construct mu_x|y
+
+  mu_xgiveny <- t(Abar) %*% Q.e %*% Y
+  # upper triangle with reordering
+
+
+  R <- Matrix::Cholesky(Q_xgiveny)
+
+
+
+  mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
+
+  mu_xgiveny <- mu + mu_xgiveny
+
+  ## compute log|Q_xgiveny|
+  log_Q_xgiveny <- 2 * determinant(R, logarithm = TRUE)$modulus
+  ## compute mu_x|y*Q*mu_x|y
+  if (n.rep > 1) {
+    mu_part <- sum(colSums((mu_xgiveny - mu) * (Q %*% (mu_xgiveny - mu))))
+  } else {
+    mu_part <- t(mu_xgiveny - mu) %*% Q %*% (mu_xgiveny - mu)
+  }
+  ## compute central part
+  if (n.rep > 1) {
+    central_part <- sum(colSums((Y - Abar %*% mu_xgiveny) * (Q.e %*%
+    (Y - Abar %*% mu_xgiveny))))
+  } else {
+    central_part <- t(Y - Abar %*% mu_xgiveny) %*% Q.e %*% (Y -
+    Abar %*% mu_xgiveny)
+  }
+  ## compute log|Q_epsilon|
+  log_Q_epsilon <- -sum(log(nugget))
+  ## wrap up
+  log_likelihood <- n.rep * (logQ + log_Q_epsilon - log_Q_xgiveny) -
+  mu_part - central_part
+  if (n.rep > 1) {
+    log_likelihood <- log_likelihood - dim(A)[1] * n.rep * log(2 * pi)
+  } else {
+    log_likelihood <- log_likelihood - length(Y) * log(2 * pi)
+  }
+  log_likelihood <- log_likelihood / 2
+
+  return(as.double(log_likelihood))
+}
 
 #' Parameter-based log-likelihood for a latent Gaussian Matern model
 #' using a rational SPDE approximation
@@ -1484,26 +1613,23 @@ CBrSPDE.matern.loglike2 <- function(kappa,
 #' iid mean-zero Gaussian variables. The latent model is approximated using a
 #' rational approximation of the fractional SPDE model.
 #'
-#' @param kappa Vector with the, possibly spatially varying, range parameter
-#' evaluated at the locations of the mesh used for the finite element
-#' discretization of the SPDE.
-#' @param tau Vector with the, possibly spatially varying, precision
-#' parameter evaluated at the locations of the mesh used for the
-#' finite element discretization of the SPDE.
-#' @param nu Shape parameter of the covariance function, related
-#' to \eqn{\beta} through the equation \eqn{\beta = (\nu + d/2)/2}.
-#' @param sigma.e The standard deviation of the measurement noise.
+#' @param object The rational SPDE approximation,
+#' computed using [spde.matern.operators()]
 #' @param Y The observations, either a vector or a matrix where
 #' the columns correspond to independent replicates of observations.
-#' @param G The stiffness matrix of a finite element discretization of
-#' the domain.
-#' @param C The mass matrix of a finite element discretization of the domain.
-#' @param A A matrix linking the measurement locations to the basis of the
-#' FEM approximation of the latent model.
-#' @param d The dimension of the domain. The default value is 2.
-#' @param m The order of the rational approximation, which needs to be a
-#' positive integer. The default value is 1.
-#'
+#' @param A An observation matrix that links the measurement location to the
+#' finite element basis.
+#' @param sigma.e IF non-null, the standard deviation of the measurement noise will be kept fixed in 
+#' the returned likelihood.
+#' @param mu Expectation vector of the latent field (default = 0).
+#' @param user_kappa If non-null, the range parameter will be kept fixed in the returned likelihood. 
+#' @param user_sigma If non-null, the standard deviation will be kept fixed in the returned likelihood.
+#' @param user_nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
+#' @param user_m If non-null, update the order of the rational approximation,
+#' which needs to be a positive integer.
+#' @param pivot Should pivoting be used for the Cholesky decompositions?
+#' Default is TRUE
+#' 
 #' @return The log-likelihood value.
 #' @export
 #' @seealso [matern.loglike()], [rSPDE.loglike()].
@@ -1511,72 +1637,96 @@ CBrSPDE.matern.loglike2 <- function(kappa,
 #' @examples
 #' # this example illustrates how the function can be used for maximum
 #' # likelihood estimation
-#' set.seed(123)
 #' # Sample a Gaussian Matern process on R using a rational approximation
-#' sigma.e <- 0.1
-#' n.rep <- 10
-#' n.obs <- 100
-#' n.x <- 51
-#'
-#' # create mass and stiffness matrices for a FEM discretization
-#' x <- seq(from = 0, to = 1, length.out = n.x)
-#' fem <- rSPDE.fem1d(x)
-#'
-#' tau <- rep(0.5, n.x)
-#' nu <- 0.8
-#' kappa <- rep(1, n.x)
-#'
-#' # compute rational approximation
-#' op <- spde.matern.operators(
-#'   kappa = kappa, tau = tau, nu = nu,
-#'   G = fem$G, C = fem$C, d = 1
-#' )
-#'
-#' # Sample the model
-#' u <- simulate(op, n.rep)
-#'
-#' # Create some data
-#' obs.loc <- runif(n = n.obs, min = 0, max = 1)
-#' A <- rSPDE.A1d(x, obs.loc)
-#' noise <- rnorm(n.obs * n.rep)
-#' dim(noise) <- c(n.obs, n.rep)
-#' Y <- as.matrix(A %*% u + sigma.e * noise)
-#'
-#' # define negative likelihood function for optimization using matern.loglike
-#' mlik <- function(theta, Y, G, C, A) {
-#'   return(-spde.matern.loglike(rep(exp(theta[1]), n.x),
-#'     rep(exp(theta[2]), n.x),
-#'     exp(theta[3]), exp(theta[4]),
-#'     Y = Y, G = G, C = C, A = A, d = 1
-#'   ))
-#' }
-#'
+ #' sigma.e <- 0.1
+ #' n.rep <- 10
+ #' n.obs <- 100
+ #' n.x <- 51
+ #' # create mass and stiffness matrices for a FEM discretization
+ #' x <- seq(from = 0, to = 1, length.out = n.x)
+ #' fem <- rSPDE.fem1d(x)
+ #' tau <- rep(0.5, n.x)
+ #' nu <- 0.8
+ #' kappa <- rep(1, n.x)
+ #' # compute rational approximation
+ #' op <- spde.matern.operators(
+ #'   kappa = kappa, tau = tau, nu = nu,
+ #'   G = fem$G, C = fem$C, d = 1
+ #' )
+ #' # Sample the model
+ #' u <- simulate(op, n.rep)
+ #' # Create some data
+ #' obs.loc <- runif(n = n.obs, min = 0, max = 1)
+ #' A <- rSPDE.A1d(x, obs.loc)
+ #' noise <- rnorm(n.obs * n.rep)
+ #' dim(noise) <- c(n.obs, n.rep)
+ #' Y <- as.matrix(A %*% u + sigma.e * noise)
+ #' # define negative likelihood function for optimization using matern.loglike
+ #' mlik <- function(theta) {
+ #'   return(-spde.matern.loglike(op, Y, A, sigma.e = exp(theta[4]),
+ #'                                  user_nu = exp(theta[3]),
+ #'                                  user_kappa = exp(theta[2]),
+ #'                                  user_tau = exp(theta[1]),
+ #'                                  pivot = TRUE))
+ #' }
 #' #' #The parameters can now be estimated by minimizing mlik with optim
 #' \donttest{
 #' # Choose some reasonable starting values depending on the size of the domain
-#' theta0 <- log(c(sqrt(8), 1 / sqrt(var(c(Y))), 0.9, 0.01))
-#'
+#' theta0 <- log(c(1 / sqrt(var(c(Y))), sqrt(8), 0.9, 0.01))
 #' # run estimation and display the results
-#' theta <- optim(theta0, mlik, Y = Y, G = fem$G, C = fem$C, A = A)
-#'
+#' theta <- optim(theta0, mlik)
 #' print(data.frame(
-#'   kappa = c(kappa[1], exp(theta$par[1])), tau = c(tau[1], exp(theta$par[2])),
+#'   tau = c(tau[1], exp(theta$par[1])), kappa = c(kappa[1], exp(theta$par[2])),
 #'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
 #'   row.names = c("Truth", "Estimates")
 #' ))
 #' }
-spde.matern.loglike <- function(kappa,
-                                tau,
-                                nu,
-                                sigma.e,
-                                Y,
-                                G,
-                                C,
-                                A,
-                                d = 2,
-                                m = 1) {
-  op <- spde.matern.operators(kappa, tau, nu, G, C, d = d, m = m, type = "operator")
-  return(rSPDE.loglike(op, Y, A, sigma.e))
+spde.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
+                                 user_nu = NULL,
+                                 user_kappa = NULL,
+                                 user_tau = NULL,
+                                 user_theta = NULL,
+                                 user_m = NULL,
+                                 pivot = TRUE) {
+if (inherits(object, "CBrSPDEobj")) {
+
+    object <- update.CBrSPDEobj(object,
+          user_nu = user_nu,
+          user_kappa = user_kappa,
+          user_tau = user_tau,
+          user_theta = user_theta,
+          user_m = user_m
+        )
+
+    
+    return(aux_CBrSPDE.matern.loglike(object = object, Y = Y, A = A, sigma.e = sigma.e, mu = mu,
+                                   user_nu = user_nu,
+                                   user_kappa = user_kappa,
+                                   user_tau = user_tau,
+                                   user_theta = user_theta,
+                                   user_m = user_m,
+                                   pivot = pivot))
+
+  } else {
+    if (inherits(object, "rSPDEobj")) {
+      if (object$type == "Matern approximation") {
+        object <- update.rSPDEobj(object,
+          user_nu = user_nu,
+          user_kappa = user_kappa,
+          user_tau = user_tau,
+          user_theta = user_theta,
+          user_m = user_m
+        )
+        return(rSPDE.loglike(obj = object, Y = Y, A = A,
+        sigma.e = sigma.e, mu = mu))
+      } else {
+        stop("The fractional operator should be of type
+        'Matern approximation'!")
+      }
+    } else {
+      stop("The object should be of class 'CBrSPDEobj' or 'rSPDEobj'!")
+    }
+  }
 }
 
 
@@ -1695,12 +1845,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
   if (!no_nugget) {
     if (alpha %% 1 == 0) { # loglikelihood in integer case
       ## construct Q
-      Q <- rspde.matern.precision.integer(
-        kappa = kappa, nu = nu,
-        tau = tau,
-        dim = d,
-        fem_mesh_matrices = fem_mesh_matrices
-      )
+      Q <- object$Q
 
       R <- chol(forceSymmetric(Q), pivot = pivot)
       ## compute Q_x|y
@@ -1773,10 +1918,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
     if (integer_alpha) {
       Abar <- A
       Aprd_bar <- Aprd
-      Q <- rspde.matern.precision.integer(
-        kappa = kappa, nu = nu, tau = tau, dim = d,
-        fem_mesh_matrices = fem_mesh_matrices
-      )
+      Q <- object$Q
     } else {
       Abar <- kronecker(matrix(1, 1, m + 1), A)
       Aprd_bar <- kronecker(matrix(1, 1, m + 1), Aprd)
@@ -2093,6 +2235,132 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
               }          
         }
 
+
+        return(loglik)
+}
+
+#' @name construct.spde.matern.loglike
+#' @title Constructor of Matern loglikelihood functions for non-stationary models.
+#' @description This function evaluates the log-likelihood function for observations
+#' of a non-stationary Gaussian process defined as the solution to the SPDE
+#' \deqn{(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.}
+#'
+#' The observations are assumed to be generated as
+#' \eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = u(s_i) + \epsilon_i}, where
+#' \eqn{\epsilon_i}{\epsilon_i} are
+#' iid mean-zero Gaussian variables. The latent model is approximated using a
+#' rational approximation of the fractional SPDE model.
+#' 
+#' @param object The rational SPDE approximation,
+#' computed using [matern.operators()]
+#' @param Y The observations, either a vector or a matrix where
+#' the columns correspond to independent replicates of observations.
+#' @param A An observation matrix that links the measurement location to the
+#' finite element basis.
+#' @param sigma.e IF non-null, the standard deviation of the measurement noise will be kept fixed in 
+#' the returned likelihood.
+#' @param mu Expectation vector of the latent field (default = 0).
+#' @param user_nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
+#' @param user_m If non-null, update the order of the rational approximation,
+#' which needs to be a positive integer.
+#' @param log_scale Should the parameters be evaluated in log-scale?
+#' @param return_negative_likelihood Return minus the likelihood to turn the maximization into a minimization?
+#' @param pivot Should pivoting be used for the Cholesky decompositions? Default
+#' is TRUE
+#' @return The log-likelihood function. The parameters of the returned function
+#' are given in the order theta, nu, sigma.e, whenever they are available.
+#' @export
+#' @seealso [matern.operators()], [predict.CBrSPDEobj()]
+#' @examples
+#' # this example illustrates how the function can be used for maximum
+#' # likelihood estimation
+#' # Sample a Gaussian Matern process on R using a rational approximation
+#' sigma.e <- 0.1
+#' n.rep <- 10
+#' n.obs <- 100
+#' n.x <- 51
+#' # create mass and stiffness matrices for a FEM discretization
+#' x <- seq(from = 0, to = 1, length.out = n.x)
+#' fem <- rSPDE.fem1d(x)
+#' tau <- rep(0.5, n.x)
+#' nu <- 0.8
+#' kappa <- rep(1, n.x)
+#' # compute rational approximation
+#'  op <- spde.matern.operators(
+#'    kappa = kappa, tau = tau, nu = nu,
+#'    G = fem$G, C = fem$C, d = 1
+#'  )
+#' # Sample the model
+#' u <- simulate(op, n.rep)
+#' # Create some data
+#' obs.loc <- runif(n = n.obs, min = 0, max = 1)
+#' A <- rSPDE.A1d(x, obs.loc)
+#' noise <- rnorm(n.obs * n.rep)
+#' dim(noise) <- c(n.obs, n.rep)
+#' Y <- as.matrix(A %*% u + sigma.e * noise)
+#' # define negative likelihood function for optimization using matern.loglike
+#' mlik <- construct.spde.matern.loglike(op, Y, A)
+#' #' #The parameters can now be estimated by minimizing mlik with optim
+#' \donttest{
+#' # Choose some reasonable starting values depending on the size of the domain
+#' theta0 <- log(c( 1 / sqrt(var(c(Y))),sqrt(8), 0.9, 0.01))
+#' # run estimation and display the results
+#' theta <- optim(theta0, mlik)
+#' print(data.frame(
+#'   tau = c(tau[1], exp(theta$par[1])), kappa = c(kappa[1], exp(theta$par[2])),
+#'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
+#'   row.names = c("Truth", "Estimates")
+#' ))
+#' }
+construct.spde.matern.loglike <- function(object, Y, A, 
+                                 sigma.e = NULL, mu = 0,
+                                 user_nu = NULL,
+                                 user_m = NULL,
+                                 log_scale = TRUE,
+                                 return_negative_likelihood = TRUE,
+                                 pivot = TRUE){
+        
+        loglik <- function(theta){
+
+          n_tmp <- length(theta)
+          if(is.null(user_nu)){
+            if(log_scale){
+              nu <- exp(theta[n_tmp - 1])
+            } else {
+              nu <- theta[n_tmp - 1]
+            }
+            n_tmp <- n_tmp - 1
+          } else{
+            nu <- user_nu
+          }
+
+          if(is.null(sigma.e)){
+            if(log_scale){
+              sigma.e <- exp(theta[length(theta)])
+            } else{
+              sigma.e <- theta[length(theta)]
+            }
+            n_tmp <- n_tmp - 1
+          } 
+
+          if(nu %% 1 == 0){
+            nu <- nu + 1e-10
+          }
+
+          loglike <- spde.matern.loglike(object = object, Y=Y, A=A,
+          sigma.e = sigma.e,
+          mu = mu,
+          user_theta = theta[1:n_tmp],
+          user_nu = nu,
+          user_m = user_m,
+          pivot = pivot)
+          if(return_negative_likelihood){
+            return(-loglike)
+          } else{
+            return(loglike)
+          }
+        }
+        
 
         return(loglik)
 }
