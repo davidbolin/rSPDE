@@ -1,3 +1,9 @@
+# rSPDE 2.1.0
+* Expanded the parameterization options on matern.operators and spde.matern.operators, along with their associated functions.
+* Implementation of the precision method for inla_rspde objects.
+* Implementation of the covariance-based spde.matern.operators function and its associated functions.
+* Adjusts on the compatibility with the forthcoming MetricGraph package.
+
 # rSPDE 2.0.0
 * Added cgeneric versions of the nonstationary models
 * Added support for metric graphs (depends on the MetricGraph package)

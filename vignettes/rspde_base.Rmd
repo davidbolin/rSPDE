@@ -299,7 +299,8 @@ kappa <- 10 * (1 + 2 * s^2)
 tau <- 0.1 * (1 - 0.7 * s^2)
 op <- spde.matern.operators(
   kappa = kappa, tau = tau, nu = nu,
-  G = fem$G, C = fem$C, d = 1, m = 1
+  G = fem$G, C = fem$C, d = 1, m = 1,
+  type = "operator"
 )
 ```
 Let us compute the covariance function $C(s,s_i)$ of the non-stationary model for the locations $s_1=0.1, s_2 = 0.5,$ and $s_3 = 0.9$. 
@@ -422,19 +423,29 @@ sigma.e <- 0.1
 Y <- A %*% u + matrix(rnorm(m * n.rep), ncol = n.rep) * sigma.e
 ```
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
-```{r, fig.show='hold', fig.align = "center",echo=TRUE}
-opar <- par(mfrow = c(1, 2), mgp = c(1.2, 0.5, 0),
-mar = c(2, 2, 0.5, 0.5) + 0.1)
+```{r, fig.show='hold', fig.align = "center",echo=TRUE,warning=FALSE,message=FALSE}
+library(viridis)
+library(ggplot2)
 proj <- inla.mesh.projector(mesh_2d, dims = c(70, 70))
-image(inla.mesh.project(proj, field = as.vector(u[, 1])),
-  xlab = "", ylab = "",
-  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
-)
-plot(loc_2d_mesh[, 1], loc_2d_mesh[, 2],
-  cex = 0.2, pch = 16, xlab = "", ylab = "",
-  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
-)
-par(opar)
+
+df_field <- data.frame(x = proj$lattice$loc[,1],
+                        y = proj$lattice$loc[,2],
+                        field = as.vector(inla.mesh.project(proj, 
+                        field = as.vector(u[, 1]))),
+                        type = "field")
+
+df_loc <- data.frame(x = loc_2d_mesh[, 1],
+                      y = loc_2d_mesh[, 2],
+                      field = as.vector(Y[,1]),
+                      type = "locations")
+df_plot <- rbind(df_field, df_loc)
+
+ggplot(df_plot) + aes(x = x, y = y, fill = field) +
+        facet_wrap(~type) + xlim(0,1) + ylim(0,1) + 
+        geom_raster(data = df_field) +
+        geom_point(data = df_loc, aes(colour = field),
+        show.legend = FALSE) + 
+        scale_fill_viridis() + scale_colour_viridis()
 ```
 
 For each type of rational approximation of degree $m$, there is a corresponding likelihood function that can be used for likelihood-based parameter estimation. 
@@ -447,6 +458,7 @@ op_obj <- matern.operators(
     G = G, C = C, d = 2, m = 1,
     type = "operator"
   )
+tau <- op_obj$tau
 ```
 
 We can now obtain the objective function to minimize, which is the negative log-likelihood, parametrized using the logarithm of 
@@ -457,7 +469,8 @@ mlik <- rSPDE.construct.matern.loglike(op_obj, Y=Y, A=A)
 We can now estimate the parameter using `optim()`.
 ```{r}
 theta0 <- c(
-  get.inital.values.rSPDE(mesh = mesh_2d),
+  get.initial.values.rSPDE(mesh = mesh_2d,
+  parameterization = "spde"),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
 
@@ -466,7 +479,7 @@ pars <- optim(theta0, mlik, method = "L-BFGS-B")
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  sigma = c(sigma, exp(pars$par[1])),
+  tau = c(tau, exp(pars$par[1])),
   kappa = c(kappa, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),
@@ -495,7 +508,7 @@ pars <- optim(theta0, mlik_order2, method = "L-BFGS-B")
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  sigma = c(sigma, exp(pars$par[1])),
+  tau = c(tau, exp(pars$par[1])),
   kappa = c(kappa, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),

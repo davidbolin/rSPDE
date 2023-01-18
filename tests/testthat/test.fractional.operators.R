@@ -21,7 +21,7 @@ test_that("Operator construction for fractional stationary Matern", {
 
   op2 <- spde.matern.operators(
     kappa = kappa, tau = tau, nu = nu,
-    G = fem$G, C = fem$C, d = d
+    G = fem$G, C = fem$C, d = d, type = "operator"
   )
 
   L <- fem$G + kappa^2 * fem$C
@@ -62,7 +62,7 @@ test_that("Operator construction for non-fractional stationary Matern", {
 
   op2 <- spde.matern.operators(
     kappa = kappa, tau = tau, nu = nu,
-    G = fem$G, C = fem$C, d = d
+    G = fem$G, C = fem$C, d = d, type = "operator"
   )
 
   L <- fem$G + kappa^2 * fem$C
@@ -105,7 +105,7 @@ stationary Matern with beta>1", {
 
   op2 <- spde.matern.operators(
     kappa = kappa, tau = tau, nu = nu,
-    G = fem$G, C = fem$C, d = d
+    G = fem$G, C = fem$C, d = d, type = "operator"
   )
 
   L <- fem$G + kappa^2 * fem$C
@@ -136,7 +136,7 @@ test_that("Operator construction for non-stationary Matern", {
   tau <- 0.1 * (1 - 0.7 * x^2)
   op1 <- spde.matern.operators(
     kappa = kappa, tau = tau, nu = nu,
-    G = fem$G, C = fem$C, d = d, m = 1
+    G = fem$G, C = fem$C, d = d, m = 1, type = "operator"
   )
 
   beta <- (nu + d / 2) / 2

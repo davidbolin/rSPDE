@@ -130,12 +130,10 @@ We will be using `r inla_link()`. To install `r inla_link()` go to [R-INLA Proje
 We begin by loading some libraries we need to get the data and build the plots.
 
 ```{r library_loading, message=FALSE}
-library(gridExtra)
 library(ggplot2)
-library(lattice)
 library(INLA)
 library(splancs)
-library(fields)
+library(viridis)
 ```
 
 Let us load the data and the border of the region
@@ -170,12 +168,12 @@ ggplot() +
     x = coords[, 1], y = coords[, 2],
     colour = Y
   ), size = 2, alpha = 1) +
-  scale_colour_gradientn(colours = tim.colors(100)) +
   geom_path(aes(x = PRborder[, 1], y = PRborder[, 2])) +
   geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[
     1034:1078,
     2
-  ]), colour = "red")
+  ]), colour = "red") + 
+  scale_color_viridis()
 ```
 
 The red line in the figure shows the coast line, and we expect the distance to 
@@ -351,20 +349,14 @@ Here `-1` is added to remove R's implicit intercept, which is replaced
 by the explicit `+Intercept` from when we created the stack. 
 
 To fit the model we proceed as in the standard SPDE approach and
-we simply call `inla()`. It is noteworthy that we can have
-a performance enhancement by using the argument `inla.mode = "experimental"`.
-As argued in `r inla_link()`'s man page, not all features are available in
-`inla.mode="experimental"`, and we will need to use the `"classic"` mode (the default mode)
-instead of `"experimental"` whenever we are doing predictions.
-
+we simply call `inla()`. 
 
 ```{r fit_model, message=FALSE, warning=FALSE}
 rspde_fit <- inla(f.s,
   family = "Gamma", data = inla.stack.data(stk.dat),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
-            inla.mode = "experimental"
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
 )
 ```
 
@@ -506,7 +498,6 @@ stk.all <- inla.stack(stk.dat, stk.prd)
 
 Doing the joint estimation takes a while, and we therefore turn off the computation of certain things that we are not interested in, such as the marginals for the random effect. 
 We will also use a simplified integration strategy (actually only using the posterior mode of the hyper-parameters) through the command `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes.
-Since we are doing predictions, we should not use `r inla_link()`'s experimental mode.
 
 ```{r fit_prd, message=FALSE, warning=FALSE}
 rspde_fitprd <- inla(f.s,
@@ -528,27 +519,29 @@ We then extract the indices to the prediction nodes and then extract the mean an
 
 ```{r stk.mean.sd}
 id.prd <- inla.stack.index(stk.all, "prd")$data
-sd.prd <- m.prd <- matrix(NA, nxy[1], nxy[2])
-m.prd[xy.in] <- rspde_fitprd$summary.fitted.values$mean[id.prd]
-sd.prd[xy.in] <- rspde_fitprd$summary.fitted.values$sd[id.prd]
+m.prd <- rspde_fitprd$summary.fitted.values$mean[id.prd]
+sd.prd <- rspde_fitprd$summary.fitted.values$sd[id.prd]
 ```
 
 Finally, we plot the results:
 
-```{r plot_pred, fig.align = "center", fig.width=7, fig.height=15}
+```{r plot_pred, fig.align = "center"}
 # Plot the predictions
-grid.arrange(
-  levelplot(m.prd,
-    col.regions = tim.colors(99),
-    xlab = "", ylab = "", main = "mean",
-    scales = list(draw = FALSE)
-  ),
-  levelplot(sd.prd,
-    col.regions = topo.colors(99),
-    xlab = "", ylab = "", scales = list(draw = FALSE),
-    main = "standard deviation"
-  )
-)
+pred_df <- data.frame(x1 = coord.prd[,1],
+                      x2 = coord.prd[,2],
+                      mean = m.prd,
+                      sd = sd.prd)
+
+ggplot(pred_df, aes(x = x1, y = x2, fill = mean)) +
+  geom_raster() +
+  scale_fill_viridis()
+```
+
+Then, the std. deviations:
+
+```{r plot_pred_sd, fig.align='center', echo=TRUE}
+ggplot(pred_df, aes(x = x1, y = x2, fill = sd)) +
+  geom_raster() + scale_fill_viridis()
 ```
 
 ## An example with replicates
@@ -649,18 +642,26 @@ y <- as.vector(A %*% as.vector(u)) +
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
 
 ```{r, fig.show='hold', fig.align = "center",echo=TRUE}
-opar <- par(mfrow = c(1, 2), mgp = c(1.2, 0.5, 0),
-   mar = c(2, 2, 0.5, 0.5) + 0.1)
 proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
-image(inla.mesh.project(proj, field = as.vector(u[, 1])),
-  xlab = "", ylab = "",
-  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
-)
-plot(loc_2d_mesh[, 1], loc_2d_mesh[, 2],
-  cex = 0.2, pch = 16, xlab = "", ylab = "",
-  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
-)
-par(opar)
+
+df_field <- data.frame(x = proj$lattice$loc[,1],
+                        y = proj$lattice$loc[,2],
+                        field = as.vector(inla.mesh.project(proj, 
+                        field = as.vector(u[, 1]))),
+                        type = "field")
+
+df_loc <- data.frame(x = loc_2d_mesh[, 1],
+                      y = loc_2d_mesh[, 2],
+                      field = y[1:m],
+                      type = "locations")
+df_plot <- rbind(df_field, df_loc)
+
+ggplot(df_plot) + aes(x = x, y = y, fill = field) +
+        facet_wrap(~type) + xlim(0,1) + ylim(0,1) + 
+        geom_raster(data = df_field) +
+        geom_point(data = df_loc, aes(colour = field),
+        show.legend = FALSE) + 
+        scale_fill_viridis() + scale_colour_viridis()
 ```
 
 
@@ -696,8 +697,7 @@ st.dat.rep <- inla.stack(
 We now create the model object. 
 
 ```{r}
-rspde_model.rep <- rspde.matern(mesh = mesh_2d,
-      parameterization = "spde") 
+rspde_model.rep <- rspde.matern(mesh = mesh_2d, parameterization = "spde") 
 ```
 
 Finally, we create the formula and fit. It is extremely important
@@ -716,8 +716,7 @@ rspde_fit.rep <-
     data = inla.stack.data(st.dat.rep),
     family = "gaussian",
     control.predictor =
-      list(A = inla.stack.A(st.dat.rep)),
-            inla.mode = "experimental"
+      list(A = inla.stack.A(st.dat.rep))
   )
 ```
 
@@ -809,8 +808,7 @@ rspde_fit_2 <- inla(f.s.2,
   family = "Gamma", data = inla.stack.data(stk.dat),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
-            inla.mode = "experimental"
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
 )
 ```
 
@@ -904,8 +902,7 @@ rspde_fit_order_3 <- inla(f.s.3,
   family = "Gamma", data = inla.stack.data(stk.dat.3),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE),
-            inla.mode = "experimental"
+  control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE)
 )
 ```
 
@@ -981,8 +978,7 @@ rspde_fit_order_1 <- inla(f.s.1,
   family = "Gamma", data = inla.stack.data(stk.dat.1),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat.1), compute = TRUE),
-            inla.mode = "experimental"
+  control.predictor = list(A = inla.stack.A(stk.dat.1), compute = TRUE)
 )
 ```
 
@@ -990,7 +986,7 @@ Here is the summary:
 
 ```{r}
 summary(rspde_fit_order_1)
-``` 
+```
 
 
 ### Estimating models with fixed smoothness
@@ -1057,8 +1053,7 @@ rspde_fix <- inla(f.s.fix,
   family = "Gamma", data = inla.stack.data(stk.dat),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),,
-            inla.mode = "experimental"
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
 )
 ```
 
@@ -1135,8 +1130,7 @@ rspde_fix_int_1 <- inla(f.s.fix.int.1,
   control.predictor = list(
     A = inla.stack.A(stk.dat.int),
     compute = TRUE
-  ),
-            inla.mode = "experimental"
+  )
 )
 ```
 
@@ -1162,6 +1156,9 @@ In terms of
 the SPDE
 $$(\kappa^2 I - \Delta)^{\alpha/2}(\tau u) = \mathcal{W},$$
 where $\alpha = \nu + d/2$.
+
+We also have the range parameter $\rho = \frac{\sqrt{8\nu}}{\kappa}$ and the standard deviation
+$\sigma = \sqrt{\frac{\Gamma(\nu)}{\tau^2 \kappa^{2\nu}(4\pi)^{d/2}\Gamma(\nu + d/2)}}$.
 
 #### Changing the priors of $\tau$ and $\kappa$
 
@@ -1196,6 +1193,35 @@ Analogously, if one sets  `prior.kappa = list(meanlog=mean_theta_2)`, the prior 
 $$\theta_2 \sim N(\text{mean_theta_2}, 1),$$
 whereas, if one sets, `prior.kappa = list(sdlog=sd_theta_2)`, the prior will be
 $$\theta_2 \sim N(\log(\kappa_0), \text{sd_theta_2}).$$
+
+#### Changing the priors of $\rho$ (range) and $\sigma$ (std. dev.)
+
+Let us now consider the priors for the range, $\rho$, and std. deviation, $\sigma$. This parameterization
+is used with the argument `parameterization = "matern"`, which is the default.
+
+In this case, we have that
+$$\sigma = \exp(\theta_1),\quad \rho = \exp(\theta_2).$$
+We have two options for prior. By default, which is the option 
+`prior.theta.param = "theta"`, the `rspde.matern()` function assumes a lognormal prior distribution 
+for $\sigma$ and $\rho$. This prior distribution is obtained by assuming
+that $\theta_1$ and $\theta_2$ follow normal distributions. 
+By default we assume $\theta_1$ and $\theta_2$ to be independent and to follow normal
+distributions $\theta_1\sim N(\log(\sigma_0), 10)$ and $\theta_2\sim N(\log(\rho_0), 10)$. 
+
+$\rho_0$ is suitably defined in terms of the mesh and $\sigma_0$ is defined in terms of $\rho_0$ and on 
+the prior of the smoothness parameter.
+
+Similarly to the priors of $\tau$ and $\kappa$, 
+if one wants to define the prior
+$$\theta_1 \sim N(\text{mean_theta_1}, \text{sd_theta_1}),$$
+one can simply set the argument `prior.tau = list(meanlog=mean_theta_1, sdlog=sd_theta_1)`. Analogously, to define the prior
+$$\theta_2 \sim N(\text{mean_theta_2}, \text{sd_theta_2}),$$
+one can set the argument `prior.kappa = list(meanlog=mean_theta_2, sdlog=sd_theta_2)`.
+
+Another option is to set `prior.theta.param = "spde"`. In this case, a change of variables is performed.
+So, we assume a lognormal prior on $\tau$ and $\kappa$. Then, by the relations $\rho = \frac{\sqrt{8\nu}}{\kappa}$ and 
+$\sigma = \sqrt{\frac{\Gamma(\nu)}{\tau^2 \kappa^{2\nu}(4\pi)^{d/2}\Gamma(\nu + d/2)}}$,
+we obtain a prior for $\rho$ and $\sigma$.
 
 #### Changing the prior of $\nu$
 
@@ -1270,13 +1296,10 @@ the initial value of $\nu$
 will be $\min\{1,\nu_{UB}/2\}$.
 
 Let us consider an example with the same dataset used in the first model of this vignette
-where we change the prior distribution of $\nu$ from beta to lognormal. Let us
-also set `nu.upper.bound` to 2.
+where we change the prior distribution of $\nu$ from beta to lognormal. 
 
 ```{r}
-rspde_model_beta <- rspde.matern(mesh = prmesh, prior.nu.dist = "beta",
-  nu.upper.bound = 2
-)
+rspde_model_beta <- rspde.matern(mesh = prmesh, prior.nu.dist = "beta")
 ```
 
 Since we did not change `rspde.order` and are not fixing $\nu$, we can
@@ -1292,8 +1315,7 @@ rspde_fit_beta <- inla(f.s.beta,
   family = "Gamma", data = inla.stack.data(stk.dat),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
-            inla.mode = "experimental"
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
 )
 ```
 
@@ -1358,8 +1380,7 @@ rspde_fit_order_3_start <- inla(f.s.3.start,
   control.predictor = list(
     A = inla.stack.A(stk.dat.3),
     compute = TRUE
-  ),
-            inla.mode = "experimental"
+  )
 )
 ```
 
@@ -1395,8 +1416,7 @@ rspde_fit_order_1_brasil <- inla(f.s.brasil,
   family = "Gamma", data = inla.stack.data(stk.dat),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE),
-            inla.mode = "experimental"
+  control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE)
 )
 ```
 
@@ -1429,8 +1449,7 @@ rspde_fit_order_3_brasil <- inla(f.s.3,
   family = "Gamma", data = inla.stack.data(stk.dat.3),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE),
-            inla.mode = "experimental"
+  control.predictor = list(A = inla.stack.A(stk.dat.3), compute = TRUE)
 )
 ```
 

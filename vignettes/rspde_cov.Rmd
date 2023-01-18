@@ -437,6 +437,7 @@ op_cov <- matern.operators(
   C = fem$C, G = fem$G, nu = nu,
   kappa = kappa, sigma = sigma, d = 1, m = 2
 )
+tau <- op_cov$tau
 u <- simulate(op_cov)
 
 sigma.e <- 0.3
@@ -454,11 +455,12 @@ mlik_cov <- rSPDE.construct.matern.loglike(op_cov, Y=Y, A=A)
 ```
 
 We will now get suitable initial values for the optimization using
-the `get.inital.values.rSPDE()`. We then add an initial guess for `sigma.e`.
+the `get.initial.values.rSPDE()`. We then add an initial guess for `sigma.e`.
 
 ```{r, message=FALSE, warning=FALSE}
 theta0 <- c(
-  get.inital.values.rSPDE(mesh.range = 1, dim = 1),
+  get.initial.values.rSPDE(mesh.range = 1, dim = 1,
+  parameterization = "spde"),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
 
@@ -471,7 +473,7 @@ end_time <- Sys.time()
 time_optim <- end_time - start_time
 
 print(data.frame(
-  sigma = c(sigma, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
+  tau = c(tau, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
   row.names = c("Truth", "Estimates")
 ))
@@ -513,7 +515,7 @@ end_time <- Sys.time()
 time_optim <- end_time - start_time
 
 print(data.frame(
-  sigma = c(sigma, exp(theta_parallel$par[1])),
+  tau = c(tau, exp(theta_parallel$par[1])),
   kappa = c(kappa, exp(theta_parallel$par[2])),
   nu = c(nu, exp(theta_parallel$par[3])),
   sigma.e = c(sigma.e, exp(theta_parallel$par[4])),
@@ -535,13 +537,13 @@ Let us update the `CBrSPDEobj` object (returned by the `matern.operators()` func
 with the fitted parameters:
 
 ```{r}
-sigma_est <- exp(theta$par[1])
+tau_est <- exp(theta$par[1])
 kappa_est <- exp(theta$par[2])
 nu_est <- exp(theta$par[3])
 
 op_cov <- update(op_cov,
   user_kappa = kappa_est,
-  user_sigma = sigma_est,
+  user_tau = tau_est,
   user_nu = nu_est
 )
 ```
@@ -597,7 +599,8 @@ from the fact that $Y$ is a matrix with more than one column.
 
 ```{r, message=FALSE, warning=FALSE}
 theta0 <- c(
-  get.inital.values.rSPDE(mesh.range = 1, dim = 1),
+  get.initial.values.rSPDE(mesh.range = 1, dim = 1,
+  parameterization = "spde"),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
 
@@ -618,7 +621,7 @@ end_time <- Sys.time()
 time_optim <- end_time - start_time
 
 print(data.frame(
-  sigma = c(sigma, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
+  tau = c(tau, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
   row.names = c("Truth", "Estimates")
 ))
@@ -691,6 +694,7 @@ op_cov_2d <- matern.operators(
   sigma = sigma,
   m = 2
 )
+tau <- op_cov_2d$tau
 ```
 
 Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `r inla_link()` function `inla.spde.make.A()`.
@@ -710,18 +714,29 @@ Y <- A %*% u + matrix(rnorm(n_loc * n.rep), ncol = n.rep) * sigma.e
 
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
 
-```{r, fig.show='hold',fig.align = "center",echo=TRUE}
-opar <- par(mfrow = c(1, 2), mgp = c(1.2, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
+```{r, fig.show='hold',fig.align = "center",echo=TRUE, warning=FALSE, message=FALSE}
+library(viridis)
+library(ggplot2)
 proj <- inla.mesh.projector(mesh_2d, dims = c(70, 70))
-image(inla.mesh.project(proj, field = as.vector(u[, 1])),
-  xlab = "", ylab = "",
-  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
-)
-plot(loc_2d_mesh[, 1], loc_2d_mesh[, 2],
-  cex = 0.2, pch = 16, xlab = "", ylab = "",
-  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
-)
-par(opar)
+
+df_field <- data.frame(x = proj$lattice$loc[,1],
+                        y = proj$lattice$loc[,2],
+                        field = as.vector(inla.mesh.project(proj, 
+                        field = as.vector(u[, 1]))),
+                        type = "field")
+
+df_loc <- data.frame(x = loc_2d_mesh[, 1],
+                      y = loc_2d_mesh[, 2],
+                      field = as.vector(Y[,1]),
+                      type = "locations")
+df_plot <- rbind(df_field, df_loc)
+
+ggplot(df_plot) + aes(x = x, y = y, fill = field) +
+        facet_wrap(~type) + xlim(0,1) + ylim(0,1) + 
+        geom_raster(data = df_field) +
+        geom_point(data = df_loc, aes(colour = field),
+        show.legend = FALSE) + 
+        scale_fill_viridis() + scale_colour_viridis()
 ```
 
 
@@ -743,7 +758,8 @@ We can now estimate the parameter using `optimParallel()`:
 
 ```{r}
 theta0_2d <- c(
-  get.inital.values.rSPDE(mesh = mesh_2d),
+  get.initial.values.rSPDE(mesh = mesh_2d, 
+    parameterization = "spde"),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
 
@@ -758,7 +774,7 @@ pars <- optimParallel(theta0_2d, mlik_2d)
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  sigma = c(sigma, exp(pars$par[1])),
+  tau = c(tau, exp(pars$par[1])),
   kappa = c(kappa, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),
@@ -768,6 +784,128 @@ print(results)
 # Total time
 print(total_time)
 ```
+
+## An example with a non-stationary model
+
+Our goal now is to show how one can fit model with non-stationary $\sigma$ (std. deviation) and non-stationary $\rho$ (a range parameter).
+One can also use the parameterization in terms of non-stationary SPDE parameters $\kappa$ and $\tau$. 
+
+For this example we will consider simulated data. 
+
+### Simulating the data
+
+Let us consider a simple Gaussian linear model with a latent spatial field $x(\mathbf{s})$,
+defined on the rectangle $(0,10) \times (0,5)$, 
+where the std. deviation and range parameter satisfy the following log-linear regressions:
+\begin{align}
+\log(\sigma(\mathbf{s})) &= \theta_1 + \theta_3 b(\mathbf{s}),\\
+\log(\rho(\mathbf{s})) &= \theta_2 + \theta_3 b(\mathbf{s}),
+\end{align}
+where $b(\mathbf{s}) = (s_1-5)/10$. We assume the data is observed at 
+$m$ locations, $\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}$.
+For each $i = 1,\ldots,m,$ we have
+
+$$y_i = x_1(\mathbf{s}_i)+\varepsilon_i,$$
+
+where $\varepsilon_1,\ldots,\varepsilon_{m}$ are iid normally distributed
+with mean 0 and standard deviation 0.1.
+
+We begin by defining the domain and creating the mesh:
+
+```{r fig.align = "center"}
+rec_domain <- cbind(c(0, 1, 1, 0, 0) * 10, c(0, 0, 1, 1, 0) * 5)
+
+mesh <- inla.mesh.2d(loc.domain = rec_domain, cutoff = 0.1, 
+  max.edge = c(0.5, 1.5), offset = c(0.5, 1.5))
+```
+
+We follow the same structure as `INLA`. However, `INLA` only allows one to specify 
+`B.tau` and `B.kappa` matrices, and, in `INLA`, if one wants to parameterize in terms of range and
+standard deviation one needs to do it manually. Here we provide the option to directly provide
+the matrices `B.sigma` and `B.range`. 
+
+The usage of the matrices `B.tau` and `B.kappa` are identical to the corresponding ones in `inla.spde2.matern()` function.
+The matrices `B.sigma` and `B.range` work in the same way, but they parameterize the stardard deviation
+and range, respectively.
+
+The columns of the `B` matrices correspond to the same parameter. The first column does not
+have any parameter to be estimated, it is a constant column. 
+
+So, for instance, if one wants to share a parameter with both `sigma` and `range` (or with both `tau` and `kappa`),
+one simply let the corresponding column to be nonzero on both `B.sigma` and `B.range` (or on `B.tau` and `B.kappa`).
+
+We will assume $\nu = 0.8$, $\theta_1 = 0, \theta_2 = 1$ and $\theta_3=1$. Let us now build the model with the `spde.matern.operators()` function:
+
+
+```{r}
+nu <- 0.8
+true_theta <- c(0,1, 1)
+B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10)
+B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10)
+
+# SPDE model
+op_cov_ns <- spde.matern.operators(mesh = mesh, 
+  theta = true_theta,
+  nu = nu,
+  B.sigma = B.sigma, 
+  B.range = B.range)
+```
+
+Let us now sample the data with the `simulate()` method:
+
+```{r, warning=FALSE}
+u <- as.vector(simulate(op_cov_ns, seed = 123))
+```
+
+Let us now obtain 600 random locations on the rectangle and 
+compute the $A$ matrix:
+
+```{r}
+m <-600
+loc_mesh <- cbind(runif(m) * 10, runif(m) * 5)
+
+A <- inla.spde.make.A(
+  mesh = mesh,
+  loc = loc_mesh
+)
+```
+
+We can now generate the response vector `y`:
+```{r}
+y <- as.vector(A %*% as.vector(u)) + rnorm(m) * 0.1
+```
+
+### Fitting the non-stationary rSPDE model
+
+We can build the likelihood function using the function factory
+`construct.spde.matern.loglike()`:
+
+```{r}
+mlik <- construct.spde.matern.loglike(op_cov_ns, y, A)
+```
+
+Let us now choose some reasonable starting values (on log scale) depending on the size of the domain with the `get.initial.values.rSPDE()` function:
+
+```{r}
+theta0 <- c(get.initial.values.rSPDE(mesh = mesh, B.sigma = B.sigma, B.range = B.range), log(0.01))
+```
+Let us now fit the model:
+
+```{r}
+theta <- optim(theta0, mlik)
+```
+
+Let us now compare with the true values:
+
+```{r}
+print(data.frame(
+  theta1 = c(true_theta[1], theta$par[1]), theta2 = c(true_theta[2], theta$par[2]),
+  theta3 = c(true_theta[3], theta$par[3]), 
+  nu = c(nu, exp(theta$par[4])), sigma.e = c(sigma.e, exp(theta$par[5])),
+  row.names = c("Truth", "Estimates")
+))
+```
+
 
 ## Changing the type and the order of the rational approximation
 
@@ -793,6 +931,7 @@ op_cov_2d_type <- matern.operators(
   m = 2,
   type_rational_approximation = "chebfunLB"
 )
+tau <- op_cov_2d_type$tau
 ```
 
 We can check the order of the rational approximation with the `rational.order()`
@@ -822,7 +961,7 @@ pars <- optimParallel(theta0_2d, mlik_2d_type)
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  sigma = c(sigma, exp(pars$par[1])),
+  tau = c(tau, exp(pars$par[1])),
   kappa = c(kappa, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),
@@ -860,7 +999,7 @@ pars <- optimParallel(theta0_2d, mlik_2d_type)
 end_time <- Sys.time()
 total_time <- end_time - start_time
 results <- data.frame(
-  sigma = c(sigma, exp(pars$par[1])),
+  tau = c(tau, exp(pars$par[1])),
   kappa = c(kappa, exp(pars$par[2])),
   nu = c(nu, exp(pars$par[3])),
   sigma.e = c(sigma.e, exp(pars$par[4])),

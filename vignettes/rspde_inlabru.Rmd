@@ -130,14 +130,12 @@ also on [GitHub](https://github.com/inlabru-org/inlabru).
 
 We begin by loading some libraries we need to get the data and build the plots.
 
-```{r library_loading, message=FALSE}
-library(gridExtra)
+```{r library_loading, message=FALSE, warning=FALSE}
 library(ggplot2)
-library(lattice)
 library(INLA)
 library(inlabru)
 library(splancs)
-library(fields)
+library(viridis)
 ```
 
 Let us load the data and the border of the region
@@ -166,26 +164,18 @@ alt <- PRprec$Altitude[ind]
 
 Let us build a plot for the precipitations:
 
-```{r plot_precipitations, message=FALSE, fig.align = "center", echo=TRUE}
-p <- ggplot() +
+```{r plot_precipitations, message=FALSE, fig.align = "center", echo=TRUE, message=FALSE, warning=FALSE}
+ggplot() +
   geom_point(aes(
     x = coords[, 1], y = coords[, 2],
     colour = Y
   ), size = 2, alpha = 1) +
-  scale_colour_gradientn(colours = tim.colors(100)) +
   geom_path(aes(x = PRborder[, 1], y = PRborder[, 2])) +
   geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[
     1034:1078,
     2
-  ]), colour = "red")
-tryCatch(
-  {
-    print(p)
-  },
-  error = function(e) {
-    print("Unable to build the plot")
-  }
-)
+  ]), colour = "red") + 
+  scale_color_viridis()
 ```
 
 The red line in the figure shows the coast line, and we expect the distance to 
@@ -289,7 +279,6 @@ To fit the model we simply use the `bru()` function:
 rspde_fit <- bru(cmp, data = prdata,
   family = "Gamma",
   options = list(
-    inla.mode = "experimental",
     control.inla = list(int.strategy = "eb"),
     verbose = FALSE)
 )
@@ -411,18 +400,16 @@ pred_df <- cbind(pred_df, pred_obs@coords)
 Finally, we plot the results. First the predicted mean:
 
 ```{r, echo=TRUE, fig.align='center'}
-p <- ggplot(pred_df, aes(x = x1, y = x2, fill = mean)) +
+ggplot(pred_df, aes(x = x1, y = x2, fill = mean)) +
   geom_raster() +
-  scale_fill_gradient(low = "yellow", high = "red")
-p
+  scale_fill_viridis()
 ```
 
 Then, the std. deviations:
 
 ```{r plot_pred_sd_bru, fig.align='center', echo=TRUE}
-p <- ggplot(pred_df, aes(x = x1, y = x2, fill = sd)) +
-  geom_raster()
-p
+ggplot(pred_df, aes(x = x1, y = x2, fill = sd)) +
+  geom_raster() + scale_fill_viridis()
 ```
 
 ## An example with replicates
@@ -523,18 +510,26 @@ y <- as.vector(A %*% as.vector(u)) +
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
 
 ```{r, fig.show='hold', fig.align = "center",echo=TRUE}
-opar <- par(mfrow = c(1, 2), mgp = c(1.2, 0.5, 0),
-   mar = c(2, 2, 0.5, 0.5) + 0.1)
 proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
-image(inla.mesh.project(proj, field = as.vector(u[, 1])),
-  xlab = "", ylab = "",
-  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
-)
-plot(loc_2d_mesh[, 1], loc_2d_mesh[, 2],
-  cex = 0.2, pch = 16, xlab = "", ylab = "",
-  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
-)
-par(opar)
+
+df_field <- data.frame(x = proj$lattice$loc[,1],
+                        y = proj$lattice$loc[,2],
+                        field = as.vector(inla.mesh.project(proj, 
+                        field = as.vector(u[, 1]))),
+                        type = "field")
+
+df_loc <- data.frame(x = loc_2d_mesh[, 1],
+                      y = loc_2d_mesh[, 2],
+                      field = y[1:m],
+                      type = "locations")
+df_plot <- rbind(df_field, df_loc)
+
+ggplot(df_plot) + aes(x = x, y = y, fill = field) +
+        facet_wrap(~type) + xlim(0,1) + ylim(0,1) + 
+        geom_raster(data = df_field) +
+        geom_point(data = df_loc, aes(colour = field),
+        show.legend = FALSE) + 
+        scale_fill_viridis() + scale_colour_viridis()
 ```
 
 
@@ -574,10 +569,7 @@ cmp.rep <-
 rspde_fit.rep <-
   bru(cmp.rep,
     data = rep.df,
-    family = "gaussian",
-    options = list(
-      list(inla.mode = "experimental")
-    )
+    family = "gaussian"
   )
 ```
 
@@ -662,19 +654,21 @@ We will assume $\nu = 0.8$, $\theta_1 = 0, \theta_2 = 1$ and $\theta_3=1$. Let u
 ```{r}
 nu <- 0.8
 true_theta <- c(0,1, 1)
+B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10)
+B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10)
 
 # SPDE model
 rspde_nonstat_sample <- rspde.matern(mesh, 
-  B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10), 
-  B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10),
-  start.theta = true_theta,
+  B.sigma = B.sigma, 
+  B.range = B.range,
+  start.theta = true_theta, 
   nu = nu)
 ```
 
 In order to sample the data, we will obtain the precision matrix:
 
 ```{r}
-prec_mat <- inla.cgeneric.q(rspde_nonstat_sample)$Q
+prec_mat <- precision(rspde_nonstat_sample)
 ```
 
 Let us now sample the data with `inla.qsample()` function:
@@ -710,8 +704,8 @@ so that we do not start the estimation at the true values.
 
 ```{r}
 rspde_model_nonstat <- rspde.matern(mesh = mesh,
-  B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10), 
-  B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10)) 
+  B.sigma = B.sigma,
+  B.range = B.range) 
 ```
 
 Let us now create the `data.frame()` and the vector with the replicates indexes:
@@ -737,10 +731,7 @@ cmp_nonstat <-
 rspde_fit_nonstat <-
   bru(cmp_nonstat,
     data = nonstat_df,
-    family = "gaussian",
-    options = list(
-      list(inla.mode = "experimental")
-    )
+    family = "gaussian"
   )
 ```
 
