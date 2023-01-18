@@ -375,7 +375,6 @@ matern.operators <- function(kappa = NULL,
                              d = NULL,
                              mesh = NULL,
                              m = 1,
-                             parameterization = c("spde", "matern"),
                              type = c("covariance", "operator"),
                              compute_higher_order = FALSE,
                              return_block_list = FALSE,
@@ -384,13 +383,6 @@ matern.operators <- function(kappa = NULL,
                              fem_mesh_matrices = NULL) {
   type <- type[[1]]
   nu <- min(nu, 10)
-
-  parameterization <- parameterization[[1]]
-
-  if (!parameterization %in% c("matern", "spde")) {
-    stop("parameterization should be either 'matern' or 'spde'!")
-  } 
-
   if (!type %in% c("covariance", "operator")) {
     stop("The type should be 'covariance' or 'operator'!")
   }
@@ -416,28 +408,23 @@ matern.operators <- function(kappa = NULL,
       C <- fem$c0
       G <- fem$g1
     }
-    if(parameterization == "spde"){
-      if(is.null(tau)){
-        stop("When using the spde parameterization, you must provide tau!")
-      }
-      sigma <- sqrt(gamma(nu) / (tau^2 * kappa^(2 * nu) *
-      (4 * pi)^(d / 2) * gamma(nu + d / 2)))
-      if(is.null(kappa)){
-        stop("When using the spde parameterization, you must provide kappa!")
-      }
-       range <- sqrt(8 * nu) / kappa
-    } else{
-      if(is.null(sigma)){
-        stop("When using the matern parameterization, you must provide sigma!")
-      }
-      if(is.null(range)){
-        stop("When using the matern parameterization, you must provide range!")
-      }
 
+    if(!is.null(range)){
       kappa <- sqrt(8 * nu) / range
-      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-      (4 * pi)^(d / 2) * gamma(nu + d / 2)))
     }
+
+    if(is.null(tau)){
+      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+    }
+
+    if(!is.null(tau)){
+    sigma <- sqrt(gamma(nu) / (tau^2 * kappa^(2 * nu) *
+    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+    }
+
+
+
 
   if (type == "operator") {
   
