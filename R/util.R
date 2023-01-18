@@ -581,9 +581,10 @@ character.only = FALSE) {
 #'
 
 get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
-                                    dim = NULL,
+                                    dim = NULL, B.tau = NULL, B.kappa = NULL,
+                                    B.sigma = NULL, B.range = NULL, nu = NULL,
+                                    parameterization = c("matern", "spde"),
                                     include.nu = TRUE, log.scale = TRUE,
-                                    include.tau = FALSE,
                                     nu.upper.bound = NULL) {
   if (is.null(mesh) && is.null(mesh.range)) {
     stop("You should either provide mesh or mesh.range!")
@@ -598,36 +599,76 @@ get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
     } else {
       nu <- 1
     }
+  } else{
+    if(is.null(nu)){
+      stop("If include.nu is FALSE, then nu must be provided!")
+    }
   }
 
-  if (!is.null(mesh)) {
-    dim <- get_inla_mesh_dimension(inla_mesh = mesh)
-    mesh.range <- ifelse(dim == 2, (max(c(diff(range(mesh$loc[
-      ,
-      1
-    ])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[
-      ,
-      3
-    ]))))), diff(mesh$interval))
+  if(parameterization == "matern"){
+    if(is.null(B.sigma)){
+      B.sigma = matrix(c(0, 1, 0), 1, 3)
+    }
+    if(is.null(B.range)){
+      B.range = matrix(c(0, 0, 1), 1, 3)
+    }
+
+    param <- get_parameters_rSPDE(mesh = mesh,
+                                  alpha = nu + dim/2,
+                                  B.tau = B.tau,
+                                  B.kappa = B.kappa,
+                                  B.sigma = B.sigma,
+                                  B.range = B.range,
+                                  nu.nominal = nu,
+                                  alpha.nominal = nu + dim/2,
+                                  parameterization = parameterization,
+                                  prior.std.dev.nominal = 1,
+                                  prior.range.nominal = NULL,
+                                  prior.tau = NULL,
+                                  prior.kappa = NULL,
+                                  theta.prior.mean = NULL,
+                                  theta.prior.prec = 0.1,
+                                  mesh.range = mesh.range,
+                                  d = dim
+                                  )
+    initial <- param$theta.prior.mean
+  } else{
+    if(is.null(B.tau)){
+      B.tau = matrix(c(0, 1, 0), 1, 3)
+    }
+    if(is.null(B.kappa)){
+      B.kappa = matrix(c(0, 0, 1), 1, 3)
+    }
+
+    param <- get_parameters_rSPDE(mesh = mesh,
+                                  alpha = nu + dim/2,
+                                  B.tau = B.tau,
+                                  B.kappa = B.kappa,
+                                  B.sigma = B.sigma,
+                                  B.range = B.range,
+                                  nu.nominal = nu,
+                                  alpha.nominal = nu + dim/2,
+                                  parameterization = parameterization,
+                                  prior.std.dev.nominal = 1,
+                                  prior.range.nominal = NULL,
+                                  prior.tau = NULL,
+                                  prior.kappa = NULL,
+                                  theta.prior.mean = NULL,
+                                  theta.prior.prec = 0.1,
+                                  mesh.range = mesh.range,
+                                  d = dim
+                                  )
+  initial <- param$theta.prior.mean
   }
 
-  range.nominal <- mesh.range * 0.2
-
-  kappa <- sqrt(8 * nu) / range.nominal
-
-  if (include.tau) {
-    tau <- sqrt(gamma(nu) / (kappa^(2 * nu) *
-    (4 * pi)^(dim / 2) * gamma(nu + dim / 2)))
-
-    initial <- c(tau, kappa, nu)
-  } else {
-    initial <- c(1, kappa, nu)
+  if(include.nu){
+    initial <- c(initial, log(nu))
   }
 
   if (log.scale) {
-    return(log(initial))
-  } else {
     return(initial)
+  } else {
+    return(exp(initial))
   }
 }
 
@@ -1133,6 +1174,7 @@ summary.CBrSPDEobj <- function(object, ...) {
   out$type <- object$type
   out$kappa <- object$kappa
   out$sigma <- object$sigma
+  out$theta <- object$theta
   out$nu <- object$nu
   out$m <- object$m
   out$stationary <- object$stationary
@@ -1151,10 +1193,18 @@ print.summary.CBrSPDEobj <- function(x, ...) {
   cat("Type of approximation: ", x$type, "\n")
   cat("Type of rational approximation: ",
   x[["type_rational_approximation"]], "\n")
-  cat(
-    "Parameters of covariance function: kappa = ",
-    x$kappa, ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
-  )
+  if(x$stationary){
+    cat(
+      "Parameters of covariance function: kappa = ",
+      x$kappa, ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
+    )
+  } else if (!is.null(x$theta)){
+        cat(
+      "Parameters of covariance function: theta = ",
+      x$theta, ", nu = ", x$nu, "\n"
+    )
+  }
+
   cat("Order or rational approximation: ", x$m, "\n")
   cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
   if(x$stationary){
@@ -1543,18 +1593,27 @@ get_parameters_rSPDE <- function (mesh, alpha,
     prior.tau, 
     prior.kappa, 
     theta.prior.mean, 
-    theta.prior.prec) 
+    theta.prior.prec,
+    mesh.range = NULL,
+    d = NULL) 
 {
+  if(!is.null(mesh)){
     if(!inherits(mesh, c("inla.mesh", "inla.mesh.1d"))){
       stop("The mesh should be created using INLA!")
     }
+
+    d <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+    n.spde <- ifelse(d == 2, mesh$n, mesh$m)
+  } else{
+    n.spde <- 1
+  }
+
     if (is.null(B.tau) && is.null(B.sigma)) 
         stop("One of B.tau or B.sigma must not be NULL.")
     if (is.null(B.kappa) && is.null(B.range)) 
         stop("One of B.kappa or B.range must not be NULL.")
 
-    d <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
-    n.spde <- ifelse(d == 2, mesh$n, mesh$m)
+
 
     if(parameterization == "spde"){
       n.theta <- ncol(B.kappa) - 1L
@@ -1602,9 +1661,11 @@ get_parameters_rSPDE <- function (mesh, alpha,
     
     if (is.null(theta.prior.mean)) {
         if (is.null(prior.range.nominal)) {
+          if(is.null(mesh.range)){
             mesh.range = ifelse(d == 2, (max(c(diff(range(mesh$loc[, 
                 1])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[, 
                 3]))))), diff(mesh$interval))
+          }
             prior.range.nominal = mesh.range * 0.2
         }
         if (is.null(prior.kappa)) {

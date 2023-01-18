@@ -293,8 +293,7 @@ rspde_fit <-
     data = inla.stack.data(st.dat),
     family = "gaussian",
     control.predictor =
-      list(A = inla.stack.A(st.dat)),
-       inla.mode = "experimental"
+      list(A = inla.stack.A(st.dat))
   )
 ```
 
@@ -467,8 +466,7 @@ rspde_bru_fit <-
   bru(cmp,
       data=toy_df,
     options=list(
-    family = "gaussian",
-    inla.mode = "experimental")
+    family = "gaussian")
   )
 ```
 
@@ -598,7 +596,7 @@ parallel::clusterExport(cl, "A")
 
 # Fitting the model
 theta0 <- c(get.inital.values.rSPDE(mesh = mesh_2d, 
-            include.tau = TRUE),
+            parameterization = "spde"),
             log(0.1 * sqrt(var(as.vector(y))))
 )
 

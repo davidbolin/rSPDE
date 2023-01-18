@@ -460,7 +460,7 @@ the `get.inital.values.rSPDE()`. We then add an initial guess for `sigma.e`.
 ```{r, message=FALSE, warning=FALSE}
 theta0 <- c(
   get.inital.values.rSPDE(mesh.range = 1, dim = 1,
-  include.tau = TRUE),
+  parameterization = "spde"),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
 
@@ -600,7 +600,7 @@ from the fact that $Y$ is a matrix with more than one column.
 ```{r, message=FALSE, warning=FALSE}
 theta0 <- c(
   get.inital.values.rSPDE(mesh.range = 1, dim = 1,
-  include.tau = TRUE),
+  parameterization = "spde"),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
 
@@ -759,7 +759,7 @@ We can now estimate the parameter using `optimParallel()`:
 ```{r}
 theta0_2d <- c(
   get.inital.values.rSPDE(mesh = mesh_2d, 
-    include.tau = TRUE),
+    parameterization = "spde"),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
 
@@ -784,6 +784,107 @@ print(results)
 # Total time
 print(total_time)
 ```
+
+## An example with a non-stationary model
+
+Our goal now is to show how one can fit model with non-stationary $\sigma$ (std. deviation) and non-stationary $\rho$ (a range parameter).
+One can also use the parameterization in terms of non-stationary SPDE parameters $\kappa$ and $\tau$. 
+
+For this example we will consider simulated data. 
+
+### Simulating the data
+
+Let us consider a simple Gaussian linear model with a latent spatial field $x(\mathbf{s})$,
+defined on the rectangle $(0,10) \times (0,5)$, 
+where the std. deviation and range parameter satisfy the following log-linear regressions:
+\begin{align}
+\log(\sigma(\mathbf{s})) &= \theta_1 + \theta_3 b(\mathbf{s}),\\
+\log(\rho(\mathbf{s})) &= \theta_2 + \theta_3 b(\mathbf{s}),
+\end{align}
+where $b(\mathbf{s}) = (s_1-5)/10$. We assume the data is observed at 
+$m$ locations, $\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}$.
+For each $i = 1,\ldots,m,$ we have
+
+$$y_i = x_1(\mathbf{s}_i)+\varepsilon_i,$$
+
+where $\varepsilon_1,\ldots,\varepsilon_{m}$ are iid normally distributed
+with mean 0 and standard deviation 0.1.
+
+We begin by defining the domain and creating the mesh:
+
+```{r fig.align = "center"}
+rec_domain <- cbind(c(0, 1, 1, 0, 0) * 10, c(0, 0, 1, 1, 0) * 5)
+
+mesh <- inla.mesh.2d(loc.domain = rec_domain, cutoff = 0.1, 
+  max.edge = c(0.5, 1.5), offset = c(0.5, 1.5))
+```
+
+We follow the same structure as `INLA`. However, `INLA` only allows one to specify 
+`B.tau` and `B.kappa` matrices, and, in `INLA`, if one wants to parameterize in terms of range and
+standard deviation one needs to do it manually. Here we provide the option to directly provide
+the matrices `B.sigma` and `B.range`. 
+
+The usage of the matrices `B.tau` and `B.kappa` are identical to the corresponding ones in `inla.spde2.matern()` function.
+The matrices `B.sigma` and `B.range` work in the same way, but they parameterize the stardard deviation
+and range, respectively.
+
+The columns of the `B` matrices correspond to the same parameter. The first column does not
+have any parameter to be estimated, it is a constant column. 
+
+So, for instance, if one wants to share a parameter with both `sigma` and `range` (or with both `tau` and `kappa`),
+one simply let the corresponding column to be nonzero on both `B.sigma` and `B.range` (or on `B.tau` and `B.kappa`).
+
+We will assume $\nu = 0.8$, $\theta_1 = 0, \theta_2 = 1$ and $\theta_3=1$. Let us now build the model with the `spde.matern.operators()` function:
+
+
+```{r}
+nu <- 0.8
+true_theta <- c(0,1, 1)
+B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10)
+B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10)
+
+# SPDE model
+op_cov_ns <- spde.matern.operators(mesh = mesh, 
+  theta = true_theta,
+  nu = nu,
+  B.sigma = B.sigma, 
+  B.range = B.range)
+```
+
+Let us now sample the data with the `simulate()` method:
+
+```{r, warning=FALSE}
+u <- as.vector(simulate(op_cov_ns, seed = 123))
+```
+
+Let us now obtain 600 random locations on the rectangle and 
+compute the $A$ matrix:
+
+```{r}
+m <-600
+loc_mesh <- cbind(runif(m) * 10, runif(m) * 5)
+
+A <- inla.spde.make.A(
+  mesh = mesh,
+  loc = loc_mesh
+)
+```
+
+We can now generate the response vector `y`:
+```{r}
+y <- as.vector(A %*% as.vector(u)) + rnorm(m) * 0.1
+```
+
+### Fitting the non-stationary rSPDE model
+
+We can build the likelihood function using the function factory
+`construct.spde.matern.loglike()`:
+
+```{r}
+mlik <- construct.spde.matern.loglike(op_cov_ns, Y, A)
+```
+
+
 
 ## Changing the type and the order of the rational approximation
 

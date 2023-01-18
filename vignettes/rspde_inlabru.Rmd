@@ -279,7 +279,6 @@ To fit the model we simply use the `bru()` function:
 rspde_fit <- bru(cmp, data = prdata,
   family = "Gamma",
   options = list(
-    inla.mode = "experimental",
     control.inla = list(int.strategy = "eb"),
     verbose = FALSE)
 )
@@ -570,10 +569,7 @@ cmp.rep <-
 rspde_fit.rep <-
   bru(cmp.rep,
     data = rep.df,
-    family = "gaussian",
-    options = list(
-      list(inla.mode = "experimental")
-    )
+    family = "gaussian"
   )
 ```
 
@@ -658,14 +654,14 @@ We will assume $\nu = 0.8$, $\theta_1 = 0, \theta_2 = 1$ and $\theta_3=1$. Let u
 ```{r}
 nu <- 0.8
 true_theta <- c(0,1, 1)
-B.tau = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10)
-B.kappa = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10)
+B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10)
+B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10)
 
 # SPDE model
 rspde_nonstat_sample <- rspde.matern(mesh, 
-  B.tau = B.tau, 
-  B.kappa = B.kappa,
-  start.theta = true_theta, parameterization = "spde",
+  B.sigma = B.sigma, 
+  B.range = B.range,
+  start.theta = true_theta, 
   nu = nu)
 ```
 
@@ -708,9 +704,8 @@ so that we do not start the estimation at the true values.
 
 ```{r}
 rspde_model_nonstat <- rspde.matern(mesh = mesh,
-  B.tau = B.tau,
-  B.kappa = B.kappa,
-  parameterization = "spde") 
+  B.sigma = B.sigma,
+  B.range = B.range) 
 ```
 
 Let us now create the `data.frame()` and the vector with the replicates indexes:
@@ -736,10 +731,7 @@ cmp_nonstat <-
 rspde_fit_nonstat <-
   bru(cmp_nonstat,
     data = nonstat_df,
-    family = "gaussian",
-    options = list(
-      list(inla.mode = "experimental")
-    )
+    family = "gaussian"
   )
 ```
 

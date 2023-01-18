@@ -1085,8 +1085,7 @@ rspde.make.A <- function(mesh = NULL,
 #'   data = inla.stack.data(st.dat),
 #'   family = "gaussian",
 #'   control.predictor =
-#'     list(A = inla.stack.A(st.dat)),
-#'            inla.mode = "experimental"
+#'     list(A = inla.stack.A(st.dat))
 #' )
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
@@ -1273,8 +1272,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #'   data = inla.stack.data(st.dat),
 #'   family = "gaussian",
 #'   control.predictor =
-#'     list(A = inla.stack.A(st.dat)),
-#'            inla.mode = "experimental"
+#'     list(A = inla.stack.A(st.dat))
 #' )
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
@@ -1799,8 +1797,7 @@ gg_df.rspde_result <- function(result,
 #'   data = inla.stack.data(st.dat),
 #'   family = "gaussian",
 #'   control.predictor =
-#'     list(A = inla.stack.A(st.dat)),
-#'            inla.mode = "experimental"
+#'     list(A = inla.stack.A(st.dat))
 #' )
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
