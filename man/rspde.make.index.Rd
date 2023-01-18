@@ -45,8 +45,7 @@ A list of named index vectors.
 Generates a list of named index vectors for an rSPDE model.
 }
 \examples{
-\donttest{ #tryCatch version
-tryCatch({
+\donttest{ #devel version
 if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
 
@@ -95,7 +94,6 @@ rspde_fit <- inla(f,
 result <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result)
 }
-#stable.tryCatch
-}, error = function(e){print("Could not run the example")})
+#devel.tag
 }
 }

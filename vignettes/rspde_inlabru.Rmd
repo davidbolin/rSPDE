@@ -251,7 +251,7 @@ rational approximation.
 Therefore, to set up a model all we have to do is use the `rspde.matern()` function:
 
 ```{r create_model, message=FALSE}
-rspde_model <- rspde.matern(mesh = prmesh, B.sigma = cbind(0, 1, rep(0,prmesh$n)), shared_lib = "INLA")
+rspde_model <- rspde.matern(mesh = prmesh)
 ```
 
 Notice that this function is very reminiscent of `r inla_link()`'s `inla.spde2.matern()` function.
@@ -280,7 +280,7 @@ rspde_fit <- bru(cmp, data = prdata,
   family = "Gamma",
   options = list(
     control.inla = list(int.strategy = "eb"),
-    verbose = TRUE)
+    verbose = FALSE)
 )
 ```
 

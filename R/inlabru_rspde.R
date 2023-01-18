@@ -13,8 +13,7 @@
 #' }
 #' 
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE) && 
 #'      requireNamespace("inlabru", quietly = TRUE)){
 #' library(INLA)
@@ -60,8 +59,7 @@
 #' rspde_fit <- bru(cmp, data = data_df)
 #' summary(rspde_fit)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 bru_get_mapper.inla_rspde <- function(model,...) {
   mapper <- list(model = model)

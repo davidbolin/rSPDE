@@ -856,8 +856,7 @@ restructure_matrices_less <- function(matrices_less, m_alpha){
 #' @return The \eqn{A} matrix for rSPDE models.
 #' @export
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #' 
@@ -870,8 +869,7 @@ restructure_matrices_less <- function(matrices_less, m_alpha){
 #' )
 #' A <- rspde.make.A(mesh, loc = loc, rspde.order = 3)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 rspde.make.A <- function(mesh = NULL,
                          loc = NULL,
@@ -1043,8 +1041,7 @@ rspde.make.A <- function(mesh = NULL,
 #' \item{name.repl}{Indices for replicates}
 #' @export
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #' 
@@ -1093,8 +1090,7 @@ rspde.make.A <- function(mesh = NULL,
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
                              n.repl = 1, mesh = NULL,
@@ -1232,8 +1228,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' \item{summary.nu}{Summary statistics for nu}
 #' @export
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #' 
@@ -1282,8 +1277,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
   check_class_inla_rspde(rspde)
@@ -1759,8 +1753,7 @@ gg_df.rspde_result <- function(result,
 #' @export
 #' @method summary rspde_result
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #' 
@@ -1809,8 +1802,7 @@ gg_df.rspde_result <- function(result,
 #' result <- rspde.result(rspde_fit, "field", rspde_model)
 #' summary(result)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 #'
 summary.rspde_result <- function(object,
