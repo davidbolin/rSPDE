@@ -47,6 +47,7 @@ of the fractional SPDE model corresponding to the Gaussian process."><meta prope
     <a class="dropdown-item" href="../articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a>
     <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a>
+    <a class="dropdown-item" href="../articles/build_source.html">Building the rSPDE package from source on Mac and Linux</a>
   </div>
 </li>
 <li class="nav-item">
@@ -102,6 +103,8 @@ of the fractional SPDE model corresponding to the Gaussian process.</p>
 <span>  user_nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_sigma <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_m <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pivot <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -143,8 +146,17 @@ function.</p></dd>
 
 
 <dt>user_sigma</dt>
-<dd><p>If non-null, update the standard deviation of the
-covariance function.</p></dd>
+<dd><p>If non-null, update the standard deviation of
+the covariance function.</p></dd>
+
+
+<dt>user_range</dt>
+<dd><p>If non-null, update the range parameter
+of the covariance function.</p></dd>
+
+
+<dt>user_tau</dt>
+<dd><p>If non-null, update the parameter tau.</p></dd>
 
 
 <dt>user_m</dt>
@@ -233,14 +245,14 @@ is TRUE</p></dd>
 <span class="r-in"><span>  method <span class="op">=</span> <span class="st">"L-BFGS-B"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>              kappa     sigma        nu    sigma.e</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Truth     5.000000 1.0000000 0.8000000 0.10000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Estimates 6.035851 0.9608295 0.8683651 0.09866989</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Estimates 5.298476 0.9404033 0.8022152 0.09837292</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

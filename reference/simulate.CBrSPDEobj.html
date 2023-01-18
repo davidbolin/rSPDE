@@ -35,6 +35,7 @@ covariance-based rational SPDE approximation."><meta property="og:image" content
     <a class="dropdown-item" href="../articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a>
     <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a>
+    <a class="dropdown-item" href="../articles/build_source.html">Building the rSPDE package from source on Mac and Linux</a>
   </div>
 </li>
 <li class="nav-item">
@@ -83,6 +84,9 @@ covariance-based rational SPDE approximation.</p>
 <span>  user_nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_sigma <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_theta <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_m <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pivot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -115,8 +119,21 @@ of the covariance function.</p></dd>
 
 
 <dt>user_sigma</dt>
-<dd><p>If non-null, update the standard deviation
+<dd><p>If non-null, update the standard deviation of
+the covariance function.</p></dd>
+
+
+<dt>user_range</dt>
+<dd><p>If non-null, update the range parameter
 of the covariance function.</p></dd>
+
+
+<dt>user_tau</dt>
+<dd><p>If non-null, update the parameter tau.</p></dd>
+
+
+<dt>user_theta</dt>
+<dd><p>For non-stationary models. If non-null, update the vector of parameters.</p></dd>
 
 
 <dt>user_m</dt>

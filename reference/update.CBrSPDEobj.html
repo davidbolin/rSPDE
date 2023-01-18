@@ -31,6 +31,7 @@
     <a class="dropdown-item" href="../articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a>
     <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a>
+    <a class="dropdown-item" href="../articles/build_source.html">Building the rSPDE package from source on Mac and Linux</a>
   </div>
 </li>
 <li class="nav-item">
@@ -74,7 +75,10 @@
 <span>  <span class="va">object</span>,</span>
 <span>  user_nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_sigma <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_theta <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_m <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  compute_higher_order <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">higher_order</span>,</span>
 <span>  type_rational_approximation <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">type_rational_approximation</span>,</span>
@@ -100,9 +104,22 @@ covariance function.</p></dd>
 of the covariance function.</p></dd>
 
 
+<dt>user_tau</dt>
+<dd><p>If non-null, update the parameter tau.</p></dd>
+
+
 <dt>user_sigma</dt>
 <dd><p>If non-null, update the standard deviation of
 the covariance function.</p></dd>
+
+
+<dt>user_range</dt>
+<dd><p>If non-null, update the range parameter
+of the covariance function.</p></dd>
+
+
+<dt>user_theta</dt>
+<dd><p>For non-stationary models. If non-null, update the vector of parameters.</p></dd>
 
 
 <dt>user_m</dt>
@@ -161,20 +178,22 @@ same quantities listed in the output of <code><a href="matern.operators.html">ma
 <span class="r-in"><span>  kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, d <span class="op">=</span> <span class="fl">1</span>, m <span class="op">=</span> <span class="fl">2</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">op_cov</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Type of approximation:  Covariance-Based Matern SPDE approximation </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Type of approximation:  Covariance-Based Matern SPDE Approximation </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Type of rational approximation:  chebfun </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: kappa =  10 , sigma =  1 , nu =  0.8 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Order or rational approximation:  2 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Size of discrete operators:  101  x  101 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Stationary Model</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Update the range parameter of the model:</span></span></span>
 <span class="r-in"><span><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">op_cov</span>, user_kappa <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">op_cov</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Type of approximation:  Covariance-Based Matern SPDE approximation </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Type of approximation:  Covariance-Based Matern SPDE Approximation </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Type of rational approximation:  chebfun </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: kappa =  20 , sigma =  1 , nu =  0.8 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: kappa =  20 , sigma =  0.5743492 , nu =  0.8 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Order or rational approximation:  2 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Size of discrete operators:  101  x  101 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Stationary Model</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

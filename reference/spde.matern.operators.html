@@ -37,6 +37,7 @@ $$(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.$$"><meta property="og:image" con
     <a class="dropdown-item" href="../articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a>
     <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a>
+    <a class="dropdown-item" href="../articles/build_source.html">Building the rSPDE package from source on Mac and Linux</a>
   </div>
 </li>
 <li class="nav-item">
@@ -78,7 +79,24 @@ $$(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.$$</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">spde.matern.operators</span><span class="op">(</span><span class="va">kappa</span>, <span class="va">tau</span>, <span class="va">nu</span>, <span class="va">G</span>, <span class="va">C</span>, <span class="va">d</span>, m <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">spde.matern.operators</span><span class="op">(</span></span>
+<span>  kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  theta <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  B.tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  B.kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  B.sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  B.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  <span class="va">nu</span>,</span>
+<span>  parameterization <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"matern"</span>, <span class="st">"spde"</span><span class="op">)</span>,</span>
+<span>  G <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  C <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  d <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  m <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"covariance"</span>, <span class="st">"operator"</span><span class="op">)</span>,</span>
+<span>  type_rational_approximation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chebfun"</span>, <span class="st">"brasil"</span>, <span class="st">"chebfunLB"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -95,10 +113,35 @@ parameter evaluated at the locations
 of the mesh used for the finite element discretization of the SPDE.</p></dd>
 
 
+<dt>theta</dt>
+<dd><p>Theta parameter that connects B.tau and B.kappa to tau and kappa through a log-linear regression, in case the parameterization is <code>spde</code>,
+and that connects B.sigma and B.range to tau and kappa in case the parameterization is <code>matern</code>.</p></dd>
+
+
+<dt>B.tau</dt>
+<dd><p>Matrix with specification of log-linear model for \(\tau\). Will be used if <code>parameterization = 'spde'</code>.</p></dd>
+
+
+<dt>B.kappa</dt>
+<dd><p>Matrix with specification of log-linear model for \(\kappa\). Will be used if <code>parameterization = 'spde'</code>.</p></dd>
+
+
+<dt>B.sigma</dt>
+<dd><p>Matrix with specification of log-linear model for \(\sigma\). Will be used if <code>parameterization = 'matern'</code>.</p></dd>
+
+
+<dt>B.range</dt>
+<dd><p>Matrix with specification of log-linear model for \(\rho\), which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if <code>parameterization = 'matern'</code>.</p></dd>
+
+
 <dt>nu</dt>
 <dd><p>Shape parameter of the covariance function, related to
 \(\beta\) through the equation
 \(\beta = (\nu + d/2)/2\).</p></dd>
+
+
+<dt>parameterization</dt>
+<dd><p>Which parameterization to use? <code>matern</code> uses range, std. deviation and nu (smoothness). <code>spde</code> uses kappa, tau and nu (smoothness). The default is <code>matern</code>.</p></dd>
 
 
 <dt>G</dt>
@@ -112,13 +155,29 @@ domain of interest.</p></dd>
 
 
 <dt>d</dt>
-<dd><p>The dimension of the domain.</p></dd>
+<dd><p>The dimension of the domain. Does not need to be given if
+<code>mesh</code> is used.</p></dd>
+
+
+<dt>mesh</dt>
+<dd><p>An optional inla mesh. <code>d</code>, <code>C</code> and <code>G</code>
+must be given if <code>mesh</code> is not given.</p></dd>
 
 
 <dt>m</dt>
-<dd><p>The order of the rational approximation, which needs to
-be a positive integer.
-The default value is 1.</p></dd>
+<dd><p>The order of the rational approximation, which needs to be a
+positive integer. The default value is 1.</p></dd>
+
+
+<dt>type</dt>
+<dd><p>The type of the rational approximation. The options are
+"covariance" and "operator". The default is "covariance".</p></dd>
+
+
+<dt>type_rational_approximation</dt>
+<dd><p>Which type of rational
+approximation should be used? The current types are
+"chebfun", "brasil" or "chebfunLB".</p></dd>
 
 </dl></div>
     <div class="section level2">

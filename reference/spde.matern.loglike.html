@@ -37,6 +37,7 @@ $$(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.$$"><meta property="og:image" con
     <a class="dropdown-item" href="../articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a>
     <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a>
+    <a class="dropdown-item" href="../articles/build_source.html">Building the rSPDE package from source on Mac and Linux</a>
   </div>
 </li>
 <li class="nav-item">
@@ -78,30 +79,26 @@ $$(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.$$</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">spde.matern.loglike</span><span class="op">(</span><span class="va">kappa</span>, <span class="va">tau</span>, <span class="va">nu</span>, <span class="va">sigma.e</span>, <span class="va">Y</span>, <span class="va">G</span>, <span class="va">C</span>, <span class="va">A</span>, d <span class="op">=</span> <span class="fl">2</span>, m <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">spde.matern.loglike</span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  <span class="va">Y</span>,</span>
+<span>  <span class="va">A</span>,</span>
+<span>  <span class="va">sigma.e</span>,</span>
+<span>  mu <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  user_nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_theta <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_m <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  pivot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>kappa</dt>
-<dd><p>Vector with the, possibly spatially varying, range parameter
-evaluated at the locations of the mesh used for the finite element
-discretization of the SPDE.</p></dd>
-
-
-<dt>tau</dt>
-<dd><p>Vector with the, possibly spatially varying, precision
-parameter evaluated at the locations of the mesh used for the
-finite element discretization of the SPDE.</p></dd>
-
-
-<dt>nu</dt>
-<dd><p>Shape parameter of the covariance function, related
-to \(\beta\) through the equation \(\beta = (\nu + d/2)/2\).</p></dd>
-
-
-<dt>sigma.e</dt>
-<dd><p>The standard deviation of the measurement noise.</p></dd>
+    <dl><dt>object</dt>
+<dd><p>The rational SPDE approximation,
+computed using <code><a href="spde.matern.operators.html">spde.matern.operators()</a></code></p></dd>
 
 
 <dt>Y</dt>
@@ -109,27 +106,44 @@ to \(\beta\) through the equation \(\beta = (\nu + d/2)/2\).</p></dd>
 the columns correspond to independent replicates of observations.</p></dd>
 
 
-<dt>G</dt>
-<dd><p>The stiffness matrix of a finite element discretization of
-the domain.</p></dd>
-
-
-<dt>C</dt>
-<dd><p>The mass matrix of a finite element discretization of the domain.</p></dd>
-
-
 <dt>A</dt>
-<dd><p>A matrix linking the measurement locations to the basis of the
-FEM approximation of the latent model.</p></dd>
+<dd><p>An observation matrix that links the measurement location to the
+finite element basis.</p></dd>
 
 
-<dt>d</dt>
-<dd><p>The dimension of the domain. The default value is 2.</p></dd>
+<dt>sigma.e</dt>
+<dd><p>IF non-null, the standard deviation of the measurement noise will be kept fixed in
+the returned likelihood.</p></dd>
 
 
-<dt>m</dt>
-<dd><p>The order of the rational approximation, which needs to be a
-positive integer. The default value is 1.</p></dd>
+<dt>mu</dt>
+<dd><p>Expectation vector of the latent field (default = 0).</p></dd>
+
+
+<dt>user_nu</dt>
+<dd><p>If non-null, the shape parameter will be kept fixed in the returned likelihood.</p></dd>
+
+
+<dt>user_kappa</dt>
+<dd><p>If non-null, updates the range parameter.</p></dd>
+
+
+<dt>user_tau</dt>
+<dd><p>If non-null, updates the parameter tau.</p></dd>
+
+
+<dt>user_theta</dt>
+<dd><p>If non-null, updates the parameter theta (that connects tau and kappa to the model matrices in <code>object</code>).</p></dd>
+
+
+<dt>user_m</dt>
+<dd><p>If non-null, update the order of the rational approximation,
+which needs to be a positive integer.</p></dd>
+
+
+<dt>pivot</dt>
+<dd><p>Should pivoting be used for the Cholesky decompositions?
+Default is TRUE</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -155,62 +169,51 @@ rational approximation of the fractional SPDE model.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># this example illustrates how the function can be used for maximum</span></span></span>
 <span class="r-in"><span><span class="co"># likelihood estimation</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Sample a Gaussian Matern process on R using a rational approximation</span></span></span>
 <span class="r-in"><span><span class="va">sigma.e</span> <span class="op">&lt;-</span> <span class="fl">0.1</span></span></span>
 <span class="r-in"><span><span class="va">n.rep</span> <span class="op">&lt;-</span> <span class="fl">10</span></span></span>
 <span class="r-in"><span><span class="va">n.obs</span> <span class="op">&lt;-</span> <span class="fl">100</span></span></span>
 <span class="r-in"><span><span class="va">n.x</span> <span class="op">&lt;-</span> <span class="fl">51</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># create mass and stiffness matrices for a FEM discretization</span></span></span>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">1</span>, length.out <span class="op">=</span> <span class="va">n.x</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="rSPDE.fem1d.html">rSPDE.fem1d</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="va">n.x</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span></span>
 <span class="r-in"><span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">n.x</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># compute rational approximation</span></span></span>
 <span class="r-in"><span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="spde.matern.operators.html">spde.matern.operators</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  kappa <span class="op">=</span> <span class="va">kappa</span>, tau <span class="op">=</span> <span class="va">tau</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span></span>
 <span class="r-in"><span>  G <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span>, C <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span>, d <span class="op">=</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Sample the model</span></span></span>
 <span class="r-in"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op</span>, <span class="va">n.rep</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Create some data</span></span></span>
 <span class="r-in"><span><span class="va">obs.loc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">n.obs</span>, min <span class="op">=</span> <span class="fl">0</span>, max <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="rSPDE.A1d.html">rSPDE.A1d</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">obs.loc</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">noise</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n.obs</span> <span class="op">*</span> <span class="va">n.rep</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">noise</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n.obs</span>, <span class="va">n.rep</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">u</span> <span class="op">+</span> <span class="va">sigma.e</span> <span class="op">*</span> <span class="va">noise</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># define negative likelihood function for optimization using matern.loglike</span></span></span>
-<span class="r-in"><span><span class="va">mlik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">Y</span>, <span class="va">G</span>, <span class="va">C</span>, <span class="va">A</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="fu">spde.matern.loglike</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, <span class="va">n.x</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, <span class="va">n.x</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    Y <span class="op">=</span> <span class="va">Y</span>, G <span class="op">=</span> <span class="va">G</span>, C <span class="op">=</span> <span class="va">C</span>, A <span class="op">=</span> <span class="va">A</span>, d <span class="op">=</span> <span class="fl">1</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">mlik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="fu">spde.matern.loglike</span><span class="op">(</span><span class="va">op</span>, <span class="va">Y</span>, <span class="va">A</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                                 user_nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                                 user_kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                                 user_tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                                 pivot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">#' #The parameters can now be estimated by minimizing mlik with optim</span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="co"># Choose some reasonable starting values depending on the size of the domain</span></span></span>
-<span class="r-in"><span><span class="va">theta0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">8</span><span class="op">)</span>, <span class="fl">1</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, <span class="fl">0.9</span>, <span class="fl">0.01</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">theta0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">8</span><span class="op">)</span>, <span class="fl">0.9</span>, <span class="fl">0.01</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># run estimation and display the results</span></span></span>
-<span class="r-in"><span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim</a></span><span class="op">(</span><span class="va">theta0</span>, <span class="va">mlik</span>, Y <span class="op">=</span> <span class="va">Y</span>, G <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span>, C <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span>, A <span class="op">=</span> <span class="va">A</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tau</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim</a></span><span class="op">(</span><span class="va">theta0</span>, <span class="va">mlik</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Matrices must have same dimensions in .Arith.Csparse(e1, e2, .Generic, class. = "dgCMatrix")</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tau</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              kappa       tau        nu   sigma.e</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Truth     1.000000 0.5000000 0.8000000 0.1000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Estimates 1.254077 0.5437648 0.7929743 0.0987481</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in h(simpleError(msg, call)):</span> error in evaluating the argument 'x' in selecting a method for function 'print': object 'theta' not found</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
