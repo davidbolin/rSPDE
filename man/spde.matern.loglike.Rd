@@ -38,6 +38,8 @@ the returned likelihood.}
 
 \item{user_kappa}{If non-null, updates the range parameter.}
 
+\item{user_tau}{If non-null, updates the parameter tau.}
+
 \item{user_theta}{If non-null, updates the parameter theta (that connects tau and kappa to the model matrices in \code{object}).}
 
 \item{user_m}{If non-null, update the order of the rational approximation,
@@ -45,8 +47,6 @@ which needs to be a positive integer.}
 
 \item{pivot}{Should pivoting be used for the Cholesky decompositions?
 Default is TRUE}
-
-\item{user_sigma}{If non-null, updates the standard deviation.}
 }
 \value{
 The log-likelihood value.

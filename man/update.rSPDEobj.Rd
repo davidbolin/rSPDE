@@ -34,6 +34,9 @@ of the covariance function.}
 
 \item{user_tau}{If non-null, update the parameter tau.}
 
+\item{user_theta}{If non-null, update the parameter theta, that connects
+tau and kappa to the model matrices.}
+
 \item{user_m}{If non-null, update the order of the rational
 approximation, which needs to be a positive integer.}
 

@@ -84,51 +84,55 @@ kappa <- 15
 sigma <- 1
 sigma.e <- 0.1
 n.rep <- 10
-n.obs <- 100
+n.obs <- 200
 n.x <- 51
-
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = n.x)
 fem <- rSPDE.fem1d(x)
-
 tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
 (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
-
 # Compute the covariance-based rational approximation
 op_cov <- matern.operators(
   C = fem$C, G = fem$G, nu = nu,
   kappa = kappa, sigma = sigma, d = 1, m = 2
 )
-
 # Sample the model
 u <- simulate(op_cov, n.rep)
-
 # Create some data
 obs.loc <- runif(n = n.obs, min = 0, max = 1)
 A <- rSPDE.A1d(x, obs.loc)
 noise <- rnorm(n.obs * n.rep)
 dim(noise) <- c(n.obs, n.rep)
 Y <- as.matrix(A \%*\% u + sigma.e * noise)
-
+\donttest{
 # Define the negative likelihood function for optimization
 # using CBrSPDE.matern.loglike
-
-# Notice that we are also using sigma instead of tau, so it can be compared
-# to matern.loglike()
-loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A) 
+# Matern parameterization
+loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A, parameterization = "matern") 
 
 # The parameters can now be estimated by minimizing mlik with optim
-\donttest{
+
 # Choose some reasonable starting values depending on the size of the domain
 theta0 <- log(c(1/sqrt(var(c(Y))), sqrt(8),  0.9, 0.01))
+# run estimation and display the results
+theta <- optim(theta0, loglike,
+  method = "L-BFGS-B"
+)
+print(data.frame(
+  sigma = c(sigma, exp(theta$par[1])), range = c(sqrt(8*nu)/kappa, exp(theta$par[2])),
+  nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
+  row.names = c("Truth", "Estimates")
+))
+
+# SPDE parameterization:
+loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A, parameterization = "spde") 
 
 # run estimation and display the results
 theta <- optim(theta0, loglike,
   method = "L-BFGS-B"
 )
-
 print(data.frame(
-  sigma = c(sigma, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
+  tau = c(tau, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
   row.names = c("Truth", "Estimates")
 ))

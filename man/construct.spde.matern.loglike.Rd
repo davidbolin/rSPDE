@@ -63,6 +63,7 @@ rational approximation of the fractional SPDE model.
 # this example illustrates how the function can be used for maximum
 # likelihood estimation
 # Sample a Gaussian Matern process on R using a rational approximation
+set.seed(123)
 sigma.e <- 0.1
 n.rep <- 10
 n.obs <- 100
@@ -73,10 +74,41 @@ fem <- rSPDE.fem1d(x)
 tau <- rep(0.5, n.x)
 nu <- 0.8
 kappa <- rep(1, n.x)
+# Matern parameterization
 # compute rational approximation
  op <- spde.matern.operators(
    kappa = kappa, tau = tau, nu = nu,
    G = fem$G, C = fem$C, d = 1
+ )
+# Sample the model
+u <- simulate(op, n.rep)
+# Create some data
+obs.loc <- runif(n = n.obs, min = 0, max = 1)
+A <- rSPDE.A1d(x, obs.loc)
+noise <- rnorm(n.obs * n.rep)
+dim(noise) <- c(n.obs, n.rep)
+Y <- as.matrix(A \%*\% u + sigma.e * noise)
+# define negative likelihood function for optimization using matern.loglike
+mlik <- construct.spde.matern.loglike(op, Y, A)
+#' #The parameters can now be estimated by minimizing mlik with optim
+\donttest{
+# Choose some reasonable starting values depending on the size of the domain
+theta0 <- log(c( 1 / sqrt(var(c(Y))),sqrt(8), 0.9, 0.01))
+# run estimation and display the results
+theta <- optim(theta0, mlik)
+print(data.frame(
+  tau = c(tau[1], exp(theta$par[1])), kappa = c(kappa[1], exp(theta$par[2])),
+  nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
+  row.names = c("Truth", "Estimates")
+))
+}
+
+# SPDE parameterization
+# compute rational approximation
+ op <- spde.matern.operators(
+   kappa = kappa, tau = tau, nu = nu,
+   G = fem$G, C = fem$C, d = 1, 
+   parameterization = "spde"
  )
 # Sample the model
 u <- simulate(op, n.rep)
