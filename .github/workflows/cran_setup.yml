@@ -59,22 +59,29 @@ jobs:
           Rscript -e "rmarkdown::render('vignettes/rspde_inla.Rmd')"
           Rscript -e "rmarkdown::render('vignettes/rspde_base.Rmd')"
           Rscript -e "rmarkdown::render('vignettes/rspde_inlabru.Rmd')"
+          Rscript -e "rmarkdown::render('vignettes/rspde_inlabru.Rmd')"
+          Rscript -e "rmarkdown::render('vignettes/build_source.rmd')"
           git add vignettes
           git add vignettes/rSPDE.html
           git add vignettes/rspde_base.html
           git add vignettes/rspde_cov.html
           git add vignettes/rspde_inla.html
           git add vignettes/rspde_inlabru.html
+          git add vignettes/build_source.html
       
       - name: Finish the setup
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          sed -i .bak 's/knitr/R.rsp/' DESCRIPTION
+          sed -i .'s/knitr/R.rsp/' DESCRIPTION
           touch vignettes/rSPDE.html.asis
           echo "%\VignetteIndexEntry{An introduction to the rSPDE package}" >> vignettes/rSPDE.html.asis
           echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rSPDE.html.asis
           echo "%\VignetteEncoding{UTF-8}" >> vignettes/rSPDE.html.asis
+          touch vignettes/build_source.html.asis
+          echo "%\VignetteIndexEntry{Building the rSPDE package from source on Mac and Linux}" >> vignettes/build_source.html.asis
+          echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/build_source.html.asis
+          echo "%\VignetteEncoding{UTF-8}" >> vignettes/build_source.html.asis
           touch vignettes/rspde_inla.html.asis
           echo "%\VignetteIndexEntry{R-INLA implementation of the rational SPDE approach}" >> vignettes/rspde_inla.html.asis
           echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rspde_inla.html.asis
@@ -92,24 +99,24 @@ jobs:
           echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rspde_base.html.asis
           echo "%\VignetteEncoding{UTF-8}" >> vignettes/rspde_base.html.asis
           echo "^vignettes/.*\.Rmd$" >> .Rbuildignore
-          sed -i .bak 's/#devel\.tag/#stable\.tag/' R/inla_rspde.R
-          sed -i .bak '/donttest{ #devel version$/a\
+          sed -i 's/#devel\.tag/#stable\.tag/' R/inla_rspde.R
+          sed -i '/donttest{ #devel version$/a\
           #'\'' tryCatch({
           ' R/inla_rspde.R
-          sed -i .bak 's/donttest{ #devel version/donttest{ #tryCatch version/' R/inla_rspde.R
-          sed -i .bak '/#stable\.tag$/a\
+          sed -i 's/donttest{ #devel version/donttest{ #tryCatch version/' R/inla_rspde.R
+          sed -i '/#stable\.tag$/a\
           #'\'' }, error = function(e){print("Could not run the example")})
           ' R/inla_rspde.R
-          sed -i .bak 's/#stable\.tag/#stable\.tryCatch/' R/inla_rspde.R
-          sed -i .bak 's/#devel\.tag/#stable\.tag/' R/inlabru_rspde.R
-          sed -i .bak '/donttest{ #devel version$/a\
+          sed -i 's/#stable\.tag/#stable\.tryCatch/' R/inla_rspde.R
+          sed -i 's/#devel\.tag/#stable\.tag/' R/inlabru_rspde.R
+          sed -i '/donttest{ #devel version$/a\
           #'\'' tryCatch({
           ' R/inlabru_rspde.R
-          sed -i .bak 's/donttest{ #devel version/donttest{ #tryCatch version/' R/inlabru_rspde.R
-          sed -i .bak '/#stable\.tag$/a\
+          sed -i 's/donttest{ #devel version/donttest{ #tryCatch version/' R/inlabru_rspde.R
+          sed -i '/#stable\.tag$/a\
           #'\'' }, error = function(e){print("Could not run the example")})
           ' R/inlabru_rspde.R
-          sed -i .bak 's/#stable\.tag/#stable\.tryCatch/' R/inlabru_rspde.R
+          sed -i 's/#stable\.tag/#stable\.tryCatch/' R/inlabru_rspde.R
           Rscript -e "devtools::document()"
           git rm -rf src/
           git rm -rf inst/shared/
