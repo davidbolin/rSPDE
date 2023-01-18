@@ -455,11 +455,11 @@ mlik_cov <- rSPDE.construct.matern.loglike(op_cov, Y=Y, A=A)
 ```
 
 We will now get suitable initial values for the optimization using
-the `get.inital.values.rSPDE()`. We then add an initial guess for `sigma.e`.
+the `get.initial.values.rSPDE()`. We then add an initial guess for `sigma.e`.
 
 ```{r, message=FALSE, warning=FALSE}
 theta0 <- c(
-  get.inital.values.rSPDE(mesh.range = 1, dim = 1,
+  get.initial.values.rSPDE(mesh.range = 1, dim = 1,
   parameterization = "spde"),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
@@ -599,7 +599,7 @@ from the fact that $Y$ is a matrix with more than one column.
 
 ```{r, message=FALSE, warning=FALSE}
 theta0 <- c(
-  get.inital.values.rSPDE(mesh.range = 1, dim = 1,
+  get.initial.values.rSPDE(mesh.range = 1, dim = 1,
   parameterization = "spde"),
   log(0.1 * sqrt(var(as.vector(Y))))
 )
@@ -758,7 +758,7 @@ We can now estimate the parameter using `optimParallel()`:
 
 ```{r}
 theta0_2d <- c(
-  get.inital.values.rSPDE(mesh = mesh_2d, 
+  get.initial.values.rSPDE(mesh = mesh_2d, 
     parameterization = "spde"),
   log(0.1 * sqrt(var(as.vector(Y))))
 )

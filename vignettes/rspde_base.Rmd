@@ -469,7 +469,7 @@ mlik <- rSPDE.construct.matern.loglike(op_obj, Y=Y, A=A)
 We can now estimate the parameter using `optim()`.
 ```{r}
 theta0 <- c(
-  get.inital.values.rSPDE(mesh = mesh_2d,
+  get.initial.values.rSPDE(mesh = mesh_2d,
   parameterization = "spde"),
   log(0.1 * sqrt(var(as.vector(Y))))
 )

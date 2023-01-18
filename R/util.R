@@ -561,7 +561,7 @@ character.only = FALSE) {
   )
 }
 
-#' @name get.inital.values.rSPDE
+#' @name get.initial.values.rSPDE
 #' @title Initial values for log-likelihood optimization in rSPDE models
 #' with a latent stationary Gaussian Matern model
 #' @description Auxiliar function to obtain domain-based initial values for
@@ -580,7 +580,7 @@ character.only = FALSE) {
 #' @export
 #'
 
-get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
+get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
                                     dim = NULL, B.tau = NULL, B.kappa = NULL,
                                     B.sigma = NULL, B.range = NULL, nu = NULL,
                                     parameterization = c("matern", "spde"),
@@ -593,6 +593,15 @@ get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
   if (is.null(mesh) && is.null(dim)) {
     stop("If you don't provide mesh, you have to provide dim!")
   }
+
+  if(!is.null(mesh)){
+    if(!inherits(mesh, c("inla.mesh", "inla.mesh.1d"))){
+      stop("The mesh should be created using INLA!")
+    }
+
+    dim <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+  } 
+
   if (include.nu) {
     if (!is.null(nu.upper.bound)) {
       nu <- min(1, nu.upper.bound / 2)
@@ -629,7 +638,8 @@ get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
                                   theta.prior.mean = NULL,
                                   theta.prior.prec = 0.1,
                                   mesh.range = mesh.range,
-                                  d = dim
+                                  d = dim,
+                                  n.spde = n.spde
                                   )
     initial <- param$theta.prior.mean
   } else{
@@ -656,7 +666,8 @@ get.inital.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
                                   theta.prior.mean = NULL,
                                   theta.prior.prec = 0.1,
                                   mesh.range = mesh.range,
-                                  d = dim
+                                  d = dim,
+                                  n.spde = n.spde
                                   )
   initial <- param$theta.prior.mean
   }
@@ -1595,7 +1606,8 @@ get_parameters_rSPDE <- function (mesh, alpha,
     theta.prior.mean, 
     theta.prior.prec,
     mesh.range = NULL,
-    d = NULL) 
+    d = NULL,
+    n.spde = NULL) 
 {
   if(!is.null(mesh)){
     if(!inherits(mesh, c("inla.mesh", "inla.mesh.1d"))){
@@ -1605,8 +1617,13 @@ get_parameters_rSPDE <- function (mesh, alpha,
     d <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
     n.spde <- ifelse(d == 2, mesh$n, mesh$m)
   } else{
-    n.spde <- 1
-  }
+    if(is.null(d)){
+      stop("If you do not provide the mesh, you must provide the dimension!")
+    }
+    if(is.null(n.spde)){
+      stop("If you do not provide the mesh, you must provide n.spde!")
+    }
+  } 
 
     if (is.null(B.tau) && is.null(B.sigma)) 
         stop("One of B.tau or B.sigma must not be NULL.")
