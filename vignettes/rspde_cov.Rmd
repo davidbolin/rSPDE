@@ -884,6 +884,21 @@ We can build the likelihood function using the function factory
 mlik <- construct.spde.matern.loglike(op_cov_ns, Y, A)
 ```
 
+Let us now choose some reasonable starting values (on log scale) depending on the size of the domain with the `get.initial.values.rSPDE()` function:
+
+```{r}
+theta0 <- c(get.initial.values.rSPDE(mesh = mesh, B.sigma = B.sigma, B.range = B.range), log(0.01))
+```
+Let us now fit the model:
+
+```{r}
+theta <- optim(theta0, mlik)
+```
+#' print(data.frame(
+#'   tau = c(tau[1], exp(theta$par[1])), kappa = c(kappa[1], exp(theta$par[2])),
+#'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
+#'   row.names = c("Truth", "Estimates")
+#' ))
 
 
 ## Changing the type and the order of the rational approximation

@@ -590,6 +590,12 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
     stop("You should either provide mesh or mesh.range!")
   }
 
+    parameterization <- parameterization[[1]]
+
+  if (!parameterization %in% c("matern", "spde")) {
+    stop("parameterization should be either 'matern' or 'spde'!")
+  }
+
   if (is.null(mesh) && is.null(dim)) {
     stop("If you don't provide mesh, you have to provide dim!")
   }

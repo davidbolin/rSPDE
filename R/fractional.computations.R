@@ -235,7 +235,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           }
 
           if (!is.null(user_m)) {
-            new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
+            new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
           }
 
           new_object <- spde.matern.operators(
@@ -1157,6 +1157,7 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                    user_theta = NULL,
                                    user_m = NULL,
                                    pivot = TRUE) {
+
   Y <- as.matrix(Y)
   if (length(dim(Y)) == 2) {
     n.rep <- dim(Y)[2]
@@ -1169,6 +1170,7 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
       n <- length(Y)
     }
   }
+
 
   ## get relevant parameters
 
@@ -1206,6 +1208,13 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
   } else{
     Abar <- kronecker(matrix(1, 1, m + 1), A)
   }
+
+  print("m")
+  print(m)
+
+  print("dimAbar")
+  print(dim(Abar))
+
   Q_xgiveny <- t(Abar) %*% Q.e %*% Abar + Q
   ## construct mu_x|y
 
@@ -1693,6 +1702,9 @@ spde.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                  pivot = TRUE) {
 if (inherits(object, "CBrSPDEobj")) {
 
+  print("n_antes")
+  print(object$m)
+
     object <- update.CBrSPDEobj(object,
           user_nu = user_nu,
           user_kappa = user_kappa,
@@ -1700,6 +1712,12 @@ if (inherits(object, "CBrSPDEobj")) {
           user_theta = user_theta,
           user_m = user_m
         )
+
+        print("m_depois")
+        print(object$m)
+
+        print("user_m")
+        print(user_m)
 
     
     return(aux_CBrSPDE.matern.loglike(object = object, Y = Y, A = A, sigma.e = sigma.e, mu = mu,
@@ -2366,6 +2384,7 @@ construct.spde.matern.loglike <- function(object, Y, A,
                                  return_negative_likelihood = TRUE,
                                  pivot = TRUE){
         
+
         loglik <- function(theta){
 
           n_tmp <- length(theta)

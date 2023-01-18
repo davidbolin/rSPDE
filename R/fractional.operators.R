@@ -1028,7 +1028,7 @@ spde.matern.operators <- function(kappa = NULL,
 
       Q <- (L - p[1] * C)/r[1]
         if(m_alpha > 0){
-          for(m in 1:m_alpha){
+          for(count_m in 1:m_alpha){
             Q <- Q %*% CinvL
           }
         }
