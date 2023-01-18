@@ -575,6 +575,7 @@ character.only = FALSE) {
 #' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
 #' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
 #' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
+#' @param nu The smoothness parameter.
 #' @param include.nu Should we also provide an initial guess for nu?
 #' @param n.spde The number of basis functions in the mesh model.
 #' @param log.scale Should the results be provided in log scale?
