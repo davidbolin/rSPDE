@@ -1209,12 +1209,6 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
     Abar <- kronecker(matrix(1, 1, m + 1), A)
   }
 
-  print("m")
-  print(m)
-
-  print("dimAbar")
-  print(dim(Abar))
-
   Q_xgiveny <- t(Abar) %*% Q.e %*% Abar + Q
   ## construct mu_x|y
 
@@ -1702,8 +1696,6 @@ spde.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                  pivot = TRUE) {
 if (inherits(object, "CBrSPDEobj")) {
 
-  print("n_antes")
-  print(object$m)
 
     object <- update.CBrSPDEobj(object,
           user_nu = user_nu,
@@ -1713,13 +1705,6 @@ if (inherits(object, "CBrSPDEobj")) {
           user_m = user_m
         )
 
-        print("m_depois")
-        print(object$m)
-
-        print("user_m")
-        print(user_m)
-
-    
     return(aux_CBrSPDE.matern.loglike(object = object, Y = Y, A = A, sigma.e = sigma.e, mu = mu,
                                    user_nu = user_nu,
                                    user_kappa = user_kappa,
