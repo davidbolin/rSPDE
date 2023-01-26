@@ -4,8 +4,8 @@ obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o 
 
 all : rSPDE.so
 
-CC = clang
-CXX = clang++
+CC = gcc-12
+CXX = g++-12
 
 EIGEN_MAC = /usr/local/include/eigen3/
 EIGEN_LINUX = /usr/include/eigen3/
