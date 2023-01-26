@@ -1,5 +1,4 @@
 #include <vector>
-#include <iostream>
 #include <Eigen/Dense>
 #include <Eigen/SparseCore>
 
