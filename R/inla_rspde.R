@@ -10,9 +10,9 @@
 #' @param rspde.order The order of the covariance-based rational SPDE approach.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
 #' be estimated. If nu is `NULL`, it will be estimated.
-#' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if `parameterization = 'matern'`.
-#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'`.
-#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
+#' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma} (for 'matern' parameterization) or for \eqn{\sigma^2} (for 'matern2' parameterization). Will be used if `parameterization = 'matern'` or `parameterization = 'matern2'`. 
+#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'` or `parameterization = 'matern'`.
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). `matern2` uses range-like (1/kappa), variance and nu (smoothness). The default is `matern`.
 #' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
 #' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
 #' @param prior.kappa a `list` containing the elements `meanlog` and
@@ -68,7 +68,7 @@ rspde.matern <- function(mesh,
                          nu = NULL, 
                          B.sigma = matrix(c(0, 1, 0), 1, 3), 
                          B.range = matrix(c(0, 0, 1), 1, 3), 
-                         parameterization = c("matern", "spde"),
+                         parameterization = c("matern", "spde", "matern2"),
                          B.tau = matrix(c(0, 1, 0), 1, 3), 
                          B.kappa = matrix(c(0, 0, 1), 1, 3), 
                          start.nu = NULL,
@@ -107,8 +107,8 @@ rspde.matern <- function(mesh,
     stop("prior.nu.dist should be either 'beta' or 'lognormal'!")
   }
 
-  if (!parameterization %in% c("matern", "spde")) {
-    stop("parameterization should be either 'matern' or 'spde'!")
+  if (!parameterization %in% c("matern", "spde", "matern2")) {
+    stop("parameterization should be either 'matern', 'spde' or 'matern2'!")
   }
 
   if (!type.rational.approx %in% c("chebfun", "brasil", "chebfunLB")) {
@@ -304,12 +304,19 @@ rspde.matern <- function(mesh,
           if (!is.null(start.ltau)) {
             start.theta[1] <- start.ltau
           }
-      } else{
+      } else if(parameterization == "matern"){
           if(!is.null(start.lrange)){
             start.theta[2] <- start.lrange
           }
           if(!is.null(start.lstd.dev)){
             start.theta[1] <- start.lstd.dev
+          }
+      } else if(parameterization == "matern2"){
+          if(!is.null(start.lrange)){
+            start.theta[2] <- start.lrange
+          }
+          if(!is.null(start.lstd.dev)){
+            start.theta[1] <- 2*start.lstd.dev
           }
       }
   }
@@ -667,6 +674,9 @@ rspde.matern <- function(mesh,
         rspde.order = rspde.order,
         force_non_integer = TRUE)
 
+        matern_par_tmp <- as.integer(!(parameterization == "spde"))
+        matern_par_tmp <- matern_par_tmp + as.integer(parameterization == "matern2")
+
 
     graph_opt <- transpose_cgeneric(graph_opt) 
 
@@ -693,8 +703,8 @@ rspde.matern <- function(mesh,
             start.theta = start.theta,
             theta.prior.mean = param$theta.prior.mean,
             theta.prior.prec = param$theta.prior.prec,
-            matern_par = as.integer(!(parameterization == "spde"),
-            prior.theta.param = prior.theta.param)
+            matern_par = matern_par_tmp,
+            prior.theta.param = prior.theta.param
             ))
     
     model$cgeneric_type <- "general"

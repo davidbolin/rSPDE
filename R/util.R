@@ -1666,6 +1666,21 @@ get_parameters_rSPDE <- function (mesh, alpha,
                 B.sigma[,1], 
                 - nu.nominal * B.kappa[, -1, drop = FALSE] -
                 B.sigma[, -1, drop = FALSE])
+  } else if(parameterization == "matern2"){
+      n.theta <- ncol(B.sigma) - 1L
+      
+      B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
+          n.theta)
+      B.range <- prepare_B_matrices(B.range, n.spde, 
+          n.theta)
+
+      B.kappa <- -B.range
+
+      B.tau <- cbind(0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) - 
+                d/2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] - 
+                0.5 * B.sigma[,1], 
+                - nu.nominal * B.kappa[, -1, drop = FALSE] -
+                0.5 * B.sigma[, -1, drop = FALSE])
     }
 
 
@@ -1713,6 +1728,10 @@ get_parameters_rSPDE <- function (mesh, alpha,
               theta.prior.mean = qr.solve(rbind(B.sigma[, -1, drop = FALSE], 
                   B.range[, -1, drop = FALSE]), c(log(prior.std.dev.nominal) - 
                   B.sigma[, 1], log(prior.range.nominal) - B.range[, 1]))
+          } else if(parameterization == "matern2"){
+              theta.prior.mean = qr.solve(rbind(B.sigma[, -1, drop = FALSE], 
+                  B.range[, -1, drop = FALSE]), c(2*log(prior.std.dev.nominal) - 
+                  B.sigma[, 1], -log(prior.kappa) - B.range[, 1]))
           }
         }
         else {
