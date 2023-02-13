@@ -85,7 +85,12 @@ double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *the
       ltau = - theta[0] + 0.5 *(
         lgamma(nu) - 2.0 * nu * lkappa - (d/2.0) * log(4 * M_PI) - lgamma(nu + d/2.0)
       );
-    } else {
+    } else if(!strcasecmp(parameterization, "matern2")) {
+      lkappa = - theta[1];
+      ltau = - 0.5 * theta[0] + 0.5 *(
+        lgamma(nu) - 2.0 * nu * lkappa - (d/2.0) * log(4 * M_PI) - lgamma(nu + d/2.0)
+      );
+    }  else {
       ltau = theta[0];
       lkappa = theta[1];
     }
