@@ -13,7 +13,7 @@ EIGEN_LINUX = /usr/include/eigen3/
 flags = -O2 -Wall -Wextra -fpic
 
 %.o: %.c
-	test -f cgeneric.h || wget -O cgeneric.h https://raw.githubusercontent.com/hrue/r-inla/devel/inlaprog/src/cgeneric.h
+	test -f ${R_LIBRARY_DIR}/INLA/include/cgeneric.h || test -f cgeneric.h || wget -O cgeneric.h https://raw.githubusercontent.com/hrue/r-inla/devel/inlaprog/src/cgeneric.h
 	$(CC) $(flags) -Iinclude -I$(toInclude)  -c $^ -o $@
 
 %.o: %.cpp
