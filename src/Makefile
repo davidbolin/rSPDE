@@ -13,6 +13,7 @@ EIGEN_LINUX = /usr/include/eigen3/
 flags = -O2 -Wall -Wextra -fpic
 
 %.o: %.c
+	test -f cgeneric.h || wget -O cgeneric.h https://raw.githubusercontent.com/hrue/r-inla/devel/inlaprog/src/cgeneric.h
 	$(CC) $(flags) -Iinclude -I$(toInclude)  -c $^ -o $@
 
 %.o: %.cpp
@@ -23,5 +24,6 @@ rSPDE.so: $(obj)
 
 clean :
 	rm -f *.o
+	rm -f cgeneric.h
 
 .PHONY: all clean
