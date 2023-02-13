@@ -1303,14 +1303,18 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
           if (!rspde$est_nu) {
               if(parameterization == "spde"){
                 row_names <- c("tau", "kappa")
-              } else{
+              } else if (parameterization == "matern") {
                 row_names <- c("std.dev", "range")
+              } else if (parameterization == "matern2") {
+                row_names <- c("var", "r")
               }
             } else {
               if(parameterization == "spde"){
                 row_names <- c("tau", "kappa", "nu")
-              } else{
+              } else if (parameterization == "matern") {
                 row_names <- c("std.dev", "range", "nu")
+              } else if (parameterization == "matern2") {
+                row_names <- c("var", "r", "nu")
               }
             }
 
@@ -1324,9 +1328,12 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
             if(parameterization == "spde"){
               name_theta1 <- "tau"
               name_theta2 <- "kappa"
-            } else{
+              } else if (parameterization == "matern") {
               name_theta1 <- "std.dev"
               name_theta2 <- "range"
+              } else if (parameterization == "matern2") {
+              name_theta1 <- "var"
+              name_theta2 <- "r"
             }
 
 
@@ -1458,15 +1465,20 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE) {
       if (!rspde$est_nu) {
         if(parameterization == "spde"){
                 row_names <- sapply(1:n_par, function(i){paste0("Theta",i,".spde")})
-         } else{
+         } else if(parameterization == "matern"){
                 row_names <- sapply(1:n_par, function(i){paste0("Theta",i,".matern")})
+         } else if(parameterization == "matern2"){
+                row_names <- sapply(1:n_par, function(i){paste0("Theta",i,".matern2")})
          }
       } else {
        if(parameterization == "spde"){
               row_names <- sapply(1:n_par, function(i){paste0("Theta",i,".spde")})
               row_names <- c(row_names, "nu")
-        } else{
+         } else if(parameterization == "matern"){
                row_names <- sapply(1:n_par, function(i){paste0("Theta",i,".matern")})
+               row_names <- c(row_names, "nu")
+         } else if(parameterization == "matern2"){
+               row_names <- sapply(1:n_par, function(i){paste0("Theta",i,".matern2")})
                row_names <- c(row_names, "nu")
          }
        }
