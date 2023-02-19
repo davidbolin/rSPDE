@@ -13,6 +13,9 @@ rational SPDE approximation}
   sigma.e,
   mu = 0,
   compute.variances = FALSE,
+  posterior_samples = FALSE,
+  n_samples = 100,
+  only_latent = FALSE,
   pivot = TRUE,
   ...
 )
@@ -37,6 +40,12 @@ Put to zero if the model does not have measurement noise.}
 \item{mu}{Expectation vector of the latent field (default = 0).}
 
 \item{compute.variances}{Set to also TRUE to compute the kriging variances.}
+
+\item{posterior_samples}{If \code{TRUE}, posterior samples will be returned.}
+
+\item{n_samples}{Number of samples to be returned. Will only be used if \code{sampling} is \code{TRUE}.}
+
+\item{only_latent}{Should the posterior samples be only given to the laten model?}
 
 \item{pivot}{Should pivoting be used on the Cholesky decompositions?}
 

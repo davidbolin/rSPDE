@@ -4,7 +4,18 @@
 \alias{predict.rSPDEobj}
 \title{Prediction of a fractional SPDE using a rational SPDE approximation}
 \usage{
-\method{predict}{rSPDEobj}(object, A, Aprd, Y, sigma.e, compute.variances = FALSE, ...)
+\method{predict}{rSPDEobj}(
+  object,
+  A,
+  Aprd,
+  Y,
+  sigma.e,
+  compute.variances = FALSE,
+  posterior_samples = FALSE,
+  n_samples = 100,
+  only_latent = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{The rational SPDE approximation, computed using
@@ -27,12 +38,19 @@ does not have measurement noise.}
 
 \item{compute.variances}{Set to also TRUE to compute the kriging variances.}
 
+\item{posterior_samples}{If \code{TRUE}, posterior samples will be returned.}
+
+\item{n_samples}{Number of samples to be returned. Will only be used if \code{sampling} is \code{TRUE}.}
+
+\item{only_latent}{Should the posterior samples be only given to the laten model?}
+
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
 A list with elements
 \item{mean }{The kriging predictor (the posterior mean of u|Y).}
 \item{variance }{The posterior variances (if computed).}
+\item{samples }{A matrix containing the samples if \code{sampling} is \code{TRUE}.}
 }
 \description{
 The function is used for computing kriging predictions based on data
