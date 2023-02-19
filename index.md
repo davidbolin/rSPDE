@@ -139,11 +139,11 @@ rspde_model <- rspde.matern(mesh = prmesh)
 mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
 stk.dat <- inla.stack(
   data = list(y = Y), A = list(Abar, 1), tag = "est", 
-  effects = list(c(mesh.index, 
-                   list(Intercept = 1)), 
+  effects = list(c(mesh.index), 
                  list(long = inla.group(coords[, 1]), 
                       lat = inla.group(coords[,2]),
-                      seaDist = inla.group(seaDist))))
+                      seaDist = inla.group(seaDist),
+                      Intercept = 1)))
                       
 #Create the formula object and fit the model
 f.s <- y ~ -1 + Intercept +  f(seaDist, model = "rw1") + 
@@ -236,10 +236,11 @@ coord.prd <- projgrid$lattice$loc[xy.in, ]
 A.prd <- projgrid$proj$A[xy.in, ]
 seaDist.prd <- apply(spDists(coord.prd, 
     PRborder[1034:1078, ], longlat = TRUE), 1, min)
-ef.prd = list(c(mesh.index, list(Intercept = 1)), 
+ef.prd = list(c(mesh.index), 
     list(long = inla.group(coord.prd[, 
     1]), lat = inla.group(coord.prd[, 2]), 
-    seaDist = inla.group(seaDist.prd)))
+    seaDist = inla.group(seaDist.prd),
+    Intercept = 1))
 stk.prd <- inla.stack(data = list(y = NA), 
     A = list(A.prd, 1), tag = "prd", 
     effects = ef.prd)

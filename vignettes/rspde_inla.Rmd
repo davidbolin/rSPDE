@@ -308,11 +308,11 @@ stk.dat <- inla.stack(
   data = list(y = Y), A = list(Abar, 1), tag = "est",
   effects = list(
     c(
-      mesh.index,
-      list(Intercept = 1)
+      mesh.index
     ),
     list(
-      seaDist = inla.group(seaDist)
+      seaDist = inla.group(seaDist),
+      Intercept = 1
     )
   )
 )
@@ -479,13 +479,14 @@ NA`. We then join this stack with the estimation stack.
 
 ```{r stk.prd}
 ef.prd <- list(
-  c(mesh.index, list(Intercept = 1)),
+  c(mesh.index),
   list(
     long = inla.group(coord.prd[
       ,
       1
     ]), lat = inla.group(coord.prd[, 2]),
-    seaDist = inla.group(seaDist.prd)
+    seaDist = inla.group(seaDist.prd),
+    Intercept = 1
   )
 )
 stk.prd <- inla.stack(
@@ -884,13 +885,13 @@ stk.dat.3 <- inla.stack(
   data = list(y = Y), A = list(Abar_3, 1), tag = "est",
   effects = list(
     c(
-      mesh.index.3,
-      list(Intercept = 1)
+      mesh.index.3
     ),
     list(
       long = inla.group(coords[, 1]),
       lat = inla.group(coords[, 2]),
-      seaDist = inla.group(seaDist)
+      seaDist = inla.group(seaDist),
+      Intercept = 1
     )
   )
 )
@@ -963,13 +964,13 @@ stk.dat.1 <- inla.stack(
   data = list(y = Y), A = list(Abar, 1), tag = "est",
   effects = list(
     c(
-      mesh.index,
-      list(Intercept = 1)
+      mesh.index
     ),
     list(
       long = inla.group(coords[, 1]),
       lat = inla.group(coords[, 2]),
-      seaDist = inla.group(seaDist)
+      seaDist = inla.group(seaDist),
+      Intercept = 1
     )
   )
 )
@@ -1109,13 +1110,13 @@ stk.dat.int <- inla.stack(
   data = list(y = Y), A = list(Abar.int, 1), tag = "est",
   effects = list(
     c(
-      mesh.index.int,
-      list(Intercept = 1)
+      mesh.index.int
     ),
     list(
       long = inla.group(coords[, 1]),
       lat = inla.group(coords[, 2]),
-      seaDist = inla.group(seaDist)
+      seaDist = inla.group(seaDist),
+      Intercept = 1
     )
   )
 )

@@ -678,7 +678,7 @@ predict.rSPDEobj <- function(object,
         X <- solve(LQ, Z)
         X <- X + mean_tmp[,i]
         if(!only_latent){
-          X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e))
+          X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
         }
         return(X)
     })
@@ -1998,7 +1998,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
         X <- solve(LQ, Z)
         X <- X + mean_tmp[,i]
         if(!only_latent){
-          X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e))
+          X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
         }
         return(X)
     })
