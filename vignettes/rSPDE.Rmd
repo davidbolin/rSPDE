@@ -536,13 +536,13 @@ ggplot(field_pred_df, aes(x = x1, y = x2, fill = sd)) +
 
 An alternative and very simple approach is to use the `pixels()` function:
 
-```{r plot_pred_pxl, fig.align='center'}
+```{r plot_pred_pxl, fig.align='center', warning=FALSE}
 pxl <- pixels(mesh_2d)
 
 field_pred <- predict(rspde_bru_fit, pxl, ~field)
 
 ggplot() + gg(field_pred) +
-  scale_fill_viridis()
+  scale_fill_viridis() + xlim(0,1) + ylim(0,1)
 ```
 
 ## Fitting the model with `rSPDE`

@@ -509,7 +509,7 @@ y <- as.vector(A %*% as.vector(u)) +
 
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
 
-```{r, fig.show='hold', fig.align = "center",echo=TRUE}
+```{r, fig.show='hold', fig.align = "center",echo=TRUE,warning=FALSE}
 proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
 
 df_field <- data.frame(x = proj$lattice$loc[,1],
