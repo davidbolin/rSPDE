@@ -86,7 +86,18 @@ a fractional SPDE \(L^\beta u(s) = W\), where
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for rSPDEobj</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">A</span>, <span class="va">Aprd</span>, <span class="va">Y</span>, <span class="va">sigma.e</span>, compute.variances <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  <span class="va">A</span>,</span>
+<span>  <span class="va">Aprd</span>,</span>
+<span>  <span class="va">Y</span>,</span>
+<span>  <span class="va">sigma.e</span>,</span>
+<span>  compute.variances <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  posterior_samples <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  n_samples <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  only_latent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -123,6 +134,18 @@ does not have measurement noise.</p></dd>
 <dd><p>Set to also TRUE to compute the kriging variances.</p></dd>
 
 
+<dt>posterior_samples</dt>
+<dd><p>If <code>TRUE</code>, posterior samples will be returned.</p></dd>
+
+
+<dt>n_samples</dt>
+<dd><p>Number of samples to be returned. Will only be used if <code>sampling</code> is <code>TRUE</code>.</p></dd>
+
+
+<dt>only_latent</dt>
+<dd><p>Should the posterior samples be only given to the laten model?</p></dd>
+
+
 <dt>...</dt>
 <dd><p>further arguments passed to or from other methods.</p></dd>
 
@@ -137,6 +160,9 @@ does not have measurement noise.</p></dd>
 
 <dt>variance </dt>
 <dd><p>The posterior variances (if computed).</p></dd>
+
+<dt>samples </dt>
+<dd><p>A matrix containing the samples if <code>sampling</code> is <code>TRUE</code>.</p></dd>
 
 </dl></div>
 
