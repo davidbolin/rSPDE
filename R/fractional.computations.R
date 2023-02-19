@@ -1899,12 +1899,22 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
         reorder <- attr(R, "pivot")
         # make it lower triangle
         R <- t(R)
-        v <- solve(R, mu_xgiveny[reorder])
+        if(dim(Y)[2] == 1){
+          v <- solve(R, mu_xgiveny[reorder])
+        } else{
+          v <- solve(R, mu_xgiveny[reorder,])
+        }
+
         mu_xgiveny <- solve(t(R), v)
         # order back
         orderback <- numeric(length(reorder))
         orderback[reorder] <- seq_len(length(reorder))
-        mu_xgiveny <- mu_xgiveny[orderback]
+        if(dim(Y)[2]==1){
+          mu_xgiveny <- mu_xgiveny[orderback]
+        } else{
+          mu_xgiveny <- mu_xgiveny[orderback,]
+        }
+
       } else {
         R <- t(R)
         v <- solve(R, mu_xgiveny)
@@ -1933,12 +1943,20 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
         reorder <- attr(R, "pivot")
         # make it lower triangle
         R <- t(R)
-        v <- solve(R, mu_xgiveny[reorder])
+        if(dim(Y)[2] == 1){
+          v <- solve(R, mu_xgiveny[reorder])
+        } else{
+          v <- solve(R, mu_xgiveny[reorder,])
+        }
         mu_xgiveny <- solve(t(R), v)
 
         orderback <- numeric(length(reorder))
         orderback[reorder] <- seq_len(length(reorder))
-        mu_xgiveny <- mu_xgiveny[orderback]
+        if(dim(Y)[2]==1){
+          mu_xgiveny <- mu_xgiveny[orderback]
+        } else{
+          mu_xgiveny <- mu_xgiveny[orderback,]
+        }
       } else {
         R <- t(R)
         v <- solve(R, mu_xgiveny)
