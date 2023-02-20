@@ -145,12 +145,18 @@ process_link <- function(link_name){
 
 #' @noRd 
 
-bru_rerun_with_data <- function(result, idx_data, true_CV) {
+bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
   stopifnot(inherits(result, "bru"))
   if(!true_CV){
       options <- list(control.mode = list(restart = FALSE))
   } else{
     options <- list()
+  }
+
+  if(fit_verbose){
+    options$verbose <- TRUE
+  } else{
+    options$verbose <- FALSE
   }
 
   info <- result[["bru_info"]]
@@ -281,6 +287,7 @@ get_post_var <- function(density_df){
 #' @param n_samples Number of samples to compute the posterior statistics to be used to compute the scores.
 #' @param true_CV Should a `TRUE` cross-validation be performed? If `TRUE` the models will be fitted on the training dataset. If `FALSE`, the parameters will be kept fixed at the ones obtained in the result object.
 #' @param print Should partial results be printed throughout the computation?
+#' @param fit_verbose Should INLA's run during cross-validation be verbose?
 #' @return A data.frame with the fitted models and the corresponding scores.
 #' @export
 #' @examples
@@ -301,7 +308,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                               cv_type = c("k-fold", "loo", "lpo"),
                               data = NULL,
                               k = 5, percentage = 30, number_folds = 10,
-                              n_samples = 1000, true_CV = FALSE, print = TRUE){
+                              n_samples = 1000, true_CV = FALSE, print = TRUE,
+                              fit_verbose = FALSE){
 
                                 scores <- intersect(scores, c("mse", "crps", "scrps", "dss"))
 
@@ -439,7 +447,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         df_train <- data[train_list[[fold]],]
                                         df_pred <- data[test_list[[fold]],]
 
-                                        new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV)
+                                        new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV, fit_verbose = fit_verbose)
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
@@ -516,7 +524,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         df_train <- data[train_list[[fold]],]
                                         df_pred <- data[test_list[[fold]],]
 
-                                        new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV)
+                                        new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV, fit_verbose = fit_verbose)
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
@@ -591,7 +599,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         df_train <- data[train_list[[fold]],]
                                         df_pred <- data[test_list[[fold]],]
 
-                                        new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV)
+                                        new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV, fit_verbose = fit_verbose)
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
