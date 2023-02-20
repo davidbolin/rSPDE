@@ -138,9 +138,7 @@ process_link <- function(link_name){
  "tan" = function(x){INLA::inla.link.tan(x, inverse=TRUE)},
  "invtan" = function(x){INLA::inla.link.invtan(x, inverse=TRUE)},
  "identity" = function(x){INLA::inla.link.identity(x, inverse=TRUE)},
- "invidentity" = function(x){INLA::inla.link.invidentity(x, inverse=TRUE)},
- "invalid" = function(x){INLA::inla.link.invalid(x, inverse=TRUE)},
- "invinvalid" = function(x){INLA::inla.link.invinvalid(x, inverse=TRUE)}
+ "invidentity" = function(x){INLA::inla.link.invidentity(x, inverse=TRUE)}
   )
   return(return_link)
 }
@@ -440,7 +438,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
-                                        posterior_samples <- inlabru::generate.bru(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
+                                        posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
 
                                         test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[,"BRU_response"]
 
@@ -517,7 +515,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
-                                        posterior_samples <- inlabru::generate.bru(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
+                                        posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
 
                                         test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[,"BRU_response"]
 
@@ -592,7 +590,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
-                                        posterior_samples <- inlabru::generate.bru(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
+                                        posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
 
                                         test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[,"BRU_response"]
 
