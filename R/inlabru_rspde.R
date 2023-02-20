@@ -184,6 +184,13 @@ bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
     lhoods_tmp[[1]]$weights <- lhoods_tmp[[1]]$weights[idx_data]
   }
 
+  if(isS4(lhoods_tmp[[1]]$data)){
+    lhoods_tmp[[1]]$drange <- lapply(lhoods_tmp[[1]]$data@data, function(i){range(i)})
+  } else{
+    lhoods_tmp[[1]]$drange <- lapply(lhoods_tmp[[1]]$data, function(i){range(i)})
+  }
+  
+
 
   result <- inlabru::iinla(
     model = info[["model"]],
