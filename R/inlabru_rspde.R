@@ -127,20 +127,20 @@ process_formula <- function(bru_result){
 
 process_link <- function(link_name){
   return_link <- switch(link_name,
-  "log" = function(x){inla.link.log(x, inverse=TRUE)},
-  "invlog" = function(x){inla.link.invlog(x, inverse=TRUE)},
-  "logit" = function(x){inla.link.logit(x, inverse=TRUE)},
-   "invlogit" = function(x){inla.link.invlogit(x, inverse=TRUE)},
-  "probit" = function(x){inla.link.probit(x, inverse=TRUE)},
- "invprobit" = function(x){inla.link.invprobit(x, inverse=TRUE)},
- "cloglog" = function(x){inla.link.cloglog(x, inverse=TRUE)},
- "invcloglog" = function(x){inla.link.invcloglog(x, inverse=TRUE)},
- "tan" = function(x){inla.link.tan(x, inverse=TRUE)},
- "invtan" = function(x){inla.link.invtan(x, inverse=TRUE)},
- "identity" = function(x){inla.link.identity(x, inverse=TRUE)},
- "invidentity" = function(x){inla.link.invidentity(x, inverse=TRUE)},
- "invalid" = function(x){inla.link.invalid(x, inverse=TRUE)},
- "invinvalid" = function(x){inla.link.invinvalid(x, inverse=TRUE)}
+  "log" = function(x){INLA::inla.link.log(x, inverse=TRUE)},
+  "invlog" = function(x){INLA::inla.link.invlog(x, inverse=TRUE)},
+  "logit" = function(x){INLA::inla.link.logit(x, inverse=TRUE)},
+   "invlogit" = function(x){INLA::inla.link.invlogit(x, inverse=TRUE)},
+  "probit" = function(x){INLA::inla.link.probit(x, inverse=TRUE)},
+ "invprobit" = function(x){INLA::inla.link.invprobit(x, inverse=TRUE)},
+ "cloglog" = function(x){INLA::inla.link.cloglog(x, inverse=TRUE)},
+ "invcloglog" = function(x){INLA::inla.link.invcloglog(x, inverse=TRUE)},
+ "tan" = function(x){INLA::inla.link.tan(x, inverse=TRUE)},
+ "invtan" = function(x){INLA::inla.link.invtan(x, inverse=TRUE)},
+ "identity" = function(x){INLA::inla.link.identity(x, inverse=TRUE)},
+ "invidentity" = function(x){INLA::inla.link.invidentity(x, inverse=TRUE)},
+ "invalid" = function(x){INLA::inla.link.invalid(x, inverse=TRUE)},
+ "invinvalid" = function(x){INLA::inla.link.invinvalid(x, inverse=TRUE)}
   )
   return(return_link)
 }
@@ -156,10 +156,10 @@ bru_rerun_with_data <- function(result, idx_data, true_CV) {
   }
 
   info <- result[["bru_info"]]
-  info[["options"]] <- bru_call_options(
-    bru_options(
+  info[["options"]] <- inlabru::bru_call_options(
+    inlabru::bru_options(
       info[["options"]],
-      as.bru_options(options)
+      inlabru::as.bru_options(options)
     )
   )
 
@@ -204,7 +204,7 @@ bru_rerun_with_data <- function(result, idx_data, true_CV) {
 #' @noRd 
 
 scrps_pois <- function(y, lambda){
-  E1 <- (y - lambda) * (2 * ppois(y, lambda) - 1) + 2 * lambda * dpois(floor(y), lambda)
+  E1 <- (y - lambda) * (2 * stats::ppois(y, lambda) - 1) + 2 * lambda * stats::dpois(floor(y), lambda)
   E2 <- 2*lambda*(BesselI(2 * lambda, 0, expon.scaled = TRUE) + besselI(2 * lambda, 1, expon.scaled = TRUE))
   return(-E1/E2 - 0.5 * log(E2))
 }
