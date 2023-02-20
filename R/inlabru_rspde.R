@@ -119,7 +119,7 @@ process_formula <- function(bru_result){
             }
     }
     form_proc <- paste("~", "linkfuninv(", form_proc, ")")
-    return(as.formula(form_proc))
+    return(stats::as.formula(form_proc))
 }
 
 #' @noRd 
@@ -179,7 +179,7 @@ bru_rerun_with_data <- function(result, idx_data, true_CV) {
   }
 
 
-  result <- iinla(
+  result <- inlabru::iinla(
     model = info[["model"]],
     lhoods = lhoods_tmp,
     initial = result,
@@ -203,7 +203,7 @@ bru_rerun_with_data <- function(result, idx_data, true_CV) {
 
 scrps_pois <- function(y, lambda){
   E1 <- (y - lambda) * (2 * stats::ppois(y, lambda) - 1) + 2 * lambda * stats::dpois(floor(y), lambda)
-  E2 <- 2*lambda*(BesselI(2 * lambda, 0, expon.scaled = TRUE) + besselI(2 * lambda, 1, expon.scaled = TRUE))
+  E2 <- 2*lambda*(besselI(2 * lambda, 0, expon.scaled = TRUE) + besselI(2 * lambda, 1, expon.scaled = TRUE))
   return(-E1/E2 - 0.5 * log(E2))
 }
 
