@@ -285,6 +285,7 @@ get_post_var <- function(density_df){
 #' @param percentage The percentage (from 1 to 99) of the data to be used to train the model. Will only be used if `cv_type` is `lpo`.
 #' @param number_folds Number of folds to be done if `cv_type` is `lpo`.
 #' @param n_samples Number of samples to compute the posterior statistics to be used to compute the scores.
+#' @param return_scores_folds If `TRUE`, the scores for each fold will also be returned.
 #' @param true_CV Should a `TRUE` cross-validation be performed? If `TRUE` the models will be fitted on the training dataset. If `FALSE`, the parameters will be kept fixed at the ones obtained in the result object.
 #' @param print Should partial results be printed throughout the computation?
 #' @param fit_verbose Should INLA's run during cross-validation be verbose?
@@ -308,7 +309,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                               cv_type = c("k-fold", "loo", "lpo"),
                               data = NULL,
                               k = 5, percentage = 30, number_folds = 10,
-                              n_samples = 1000, true_CV = FALSE, print = TRUE,
+                              n_samples = 1000, return_scores_folds = FALSE,
+                              true_CV = FALSE, print = TRUE,
                               fit_verbose = FALSE){
 
                                 scores <- intersect(scores, c("mse", "crps", "scrps", "dss"))
@@ -410,18 +412,18 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                 } else if (cv_type == "lpo"){
                                             test_list <- list()
                                             n_Y <- length(data[1])
-                                            for (i in 1:number_folds) {
+                                            for (i in number_folds:1) {
                                               test_list[[i]] <- sample(1:n_Y, size = (1-percentage/100) * n_Y)
                                             }
                                             idx <- seq_len(nrow(data[1]))
-                                            train_list <- lapply(1:k, function(i){
+                                            train_list <- lapply(1:number_folds, function(i){
                                               idx[-test_list[[i]]]
                                             })
                                 }
 
                                 # Perform the cross-validation
                                 
-                                result_df <- data.frame(Models = model_names)
+                                result_df <- data.frame(Model = model_names)
 
                                 dss <- matrix(numeric(length(train_list)*length(models)), ncol = length(models))
                                 mse <- matrix(numeric(length(train_list)*length(models)), ncol = length(models))
@@ -683,24 +685,29 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                 
 
                                 if("dss" %in% scores){
-                                  dss <- colMeans(dss)
-                                  resuld_df <- data.frame(result_df, dss = dss)
+                                  dss_mean <- colMeans(dss)
+                                  result_df <- data.frame(result_df, dss = dss_mean)
                                 } 
                                 if("mse" %in% scores){
-                                  mse <- colMeans(mse)
-                                  resuld_df <- data.frame(result_df, mse = mse)
+                                  mse_mean <- colMeans(mse)
+                                  result_df <- data.frame(result_df, mse = mse_mean)
                                 }
                                 if("crps" %in% scores){
-                                  crps <- colMeans(crps)
-                                  resuld_df <- data.frame(result_df, crps = crps)
+                                  crps_mean <- colMeans(crps)
+                                  result_df <- data.frame(result_df, crps = crps_mean)
                                 }
 
                                 if("scrps" %in% scores){
-                                  scrps <- colMeans(scrps)
-                                  resuld_df <- data.frame(result_df, scrps = scrps)
+                                  scrps_mean <- colMeans(scrps)
+                                  result_df <- data.frame(result_df, scrps = scrps_mean)
                                 }
-
+        if(!return_scores_folds){
             return(result_df)
+        } else{
+          return(list(scores_df = return_df,
+                      scores_folds = list(dss = dss, mse = mse, crps = crps, scrps = scrps)))
+        }
+
 
 }
 
