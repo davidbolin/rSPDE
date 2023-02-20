@@ -387,14 +387,14 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                 if(cv_type == "k-fold"){
                                         # split idx into k
-                                            idx <- seq_along(data[1])
+                                            idx <- seq_len(nrow(data[1]))
                                             folds <- cut(sample(idx), breaks = k, label = FALSE)
                                             test_list <- lapply(1:k, function(i) {which(folds == i, arr.ind = TRUE)})
                                             train_list <- lapply(1:k, function(i){
                                               idx[-test_list[[i]]]
                                             })
                                 } else if (cv_type == "loo"){
-                                          idx <- seq_along(data[1])
+                                          idx <- seq_len(nrow(data[1]))
                                           train_list <- lapply(1:length(idx), function(i){
                                             idx[-i]
                                           })
@@ -405,7 +405,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                             for (i in 1:number_folds) {
                                               test_list[[i]] <- sample(1:n_Y, size = (1-percentage/100) * n_Y)
                                             }
-                                            idx <- seq_along(data[1])
+                                            idx <- seq_len(nrow(data[1]))
                                             train_list <- lapply(1:k, function(i){
                                               idx[-test_list[[i]]]
                                             })
