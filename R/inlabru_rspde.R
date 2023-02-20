@@ -471,6 +471,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
 
+                                        if(nrow(posterior_samples) == 1){
+                                          posterior_samples <- matrix(rep(posterior_samples, length(test_data)),ncol=ncol(posterior_samples), byrow = TRUE)
+                                        }                                        
+
                                         posterior_mean <- rowMeans(posterior_samples)
 
                                         if("dss" %in% scores){
@@ -528,6 +532,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           linkfuninv <- process_link(link_name)
                                         } 
 
+                                        formula_tmp <- formula_list[[model_number]]
+                                        env_tmp <- environment(formula_tmp)
+                                        assign("linkfuninv", linkfuninv, envir = env_tmp)
+
                                         df_train <- data[train_list[[fold]],]
                                         df_pred <- data[test_list[[fold]],]
 
@@ -537,11 +545,15 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         cat("Generating samples...\n")
 
-                                        posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
+                                        posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_tmp, n.samples = n_samples)
 
                                         cat("Samples generated!\n")
 
                                         test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
+
+                                        if(nrow(posterior_samples) == 1){
+                                          posterior_samples <- matrix(rep(posterior_samples, length(test_data)),ncol=ncol(posterior_samples), byrow = TRUE)
+                                        }
 
                                         posterior_mean <- rowMeans(posterior_samples)
 
@@ -599,6 +611,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           linkfuninv <- process_link(link_name)
                                         } 
 
+                                        formula_tmp <- formula_list[[model_number]]
+                                        env_tmp <- environment(formula_tmp)
+                                        assign("linkfuninv", linkfuninv, envir = env_tmp)
+
                                         df_train <- data[train_list[[fold]],]
                                         df_pred <- data[test_list[[fold]],]
 
@@ -608,11 +624,15 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         cat("Generating samples...\n")
 
-                                        posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
+                                        posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_tmp, n.samples = n_samples)
 
                                         cat("Samples generated!\n")
 
                                         test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
+
+                                        if(nrow(posterior_samples) == 1){
+                                          posterior_samples <- matrix(rep(posterior_samples, length(test_data)),ncol=ncol(posterior_samples), byrow = TRUE)
+                                        }
 
                                         posterior_mean <- rowMeans(posterior_samples)
 
