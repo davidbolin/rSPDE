@@ -432,9 +432,17 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                 formula_list <- lapply(models, function(model){process_formula(model)})
 
-                                for(fold in 1:length(train_list)){
-                                  
+                                for(fold in 1:length(train_list)){                                 
                                   for(model_number in 1:length(models)){
+                                        if(print){
+                                            cat(paste("Fold:",fold,"/",length(train_list),"\n"))
+                                            if(!is.null(model_names)){
+                                              cat(paste("Model:",model_names[[model_number]],"\n"))                                                                                          
+                                            } else{
+                                              cat(paste("Model:", model_number,"\n"))
+                                            }
+                                          }
+
                                       # Generate posterior samples of the mean
                                       if(models[[model_number]]$.args$family == "gaussian"){
                                         link_name <- models[[model_number]]$.args$control.family[[1]]$link
@@ -451,20 +459,20 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
-                                        posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
+                                        formula_tmp <- formula_list[[model_number]]
+                                        env_tmp <- environment(formula_tmp)
+                                        assign("linkfuninv", linkfuninv, envir = env_tmp)
+
+                                        cat("Generating samples...\n")
+
+                                        posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_tmp, n.samples = n_samples)
+
+                                        cat("Samples generated!\n")
 
                                         test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[,"BRU_response"]
 
                                         posterior_mean <- rowMeans(posterior_samples)
 
-                                          if(print){
-                                            print(paste("Fold:",fold,"/",length(train_list)))
-                                            if(!is.null(model_names)){
-                                              print(paste("Model:",model_names[[model_number]]))                                                                                          
-                                            } else{
-                                              print(paste("Model:", model_number))
-                                            }
-                                          }
 
                                         if("dss" %in% scores){
                                           density_df <- new_model$marginals.hyperpar$`Precision for the Gaussian observations`
@@ -475,14 +483,14 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                           dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
                                           if(print){
-                                            print(paste("DSS:", dss[fold, model_number]))
+                                            cat(paste("DSS:", dss[fold, model_number],"\n"))
                                           }
                                         }
 
                                         if("mse" %in% scores){
                                           mse[fold, model_number] <- mean((test_data - posterior_mean)^2)                      
                                          if(print){
-                                            print(paste("MSE:",mse[fold, model_number]))
+                                            cat(paste("MSE:",mse[fold, model_number],"\n"))
                                           }                                                           
                                         }
 
@@ -496,7 +504,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
                                             if(print){
-                                              print(paste("CRPS:",crps[fold, model_number]))
+                                              cat(paste("CRPS:",crps[fold, model_number],"\n"))
                                             }      
                                           }
                                           if("scrps" %in% scores){
@@ -506,7 +514,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               scrps_temp <- unlist(scrps_temp)
                                               scrps[fold, model_number] <- mean(scrps_temp)  
                                             if(print){
-                                              print(paste("SCRPS:",scrps[fold, model_number]))
+                                              cat(paste("SCRPS:",scrps[fold, model_number],"\n"))
                                             }                                                  
                                           }
 
@@ -534,14 +542,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         posterior_mean <- rowMeans(posterior_samples)
 
-                                          if(print){
-                                            print(paste("Fold:",fold,"/",length(train_list)))
-                                            if(!is.null(model_names)){
-                                              print(paste("Model:",model_names[[model_number]]))                                                                                          
-                                            } else{
-                                              print(paste("Model:", model_number))
-                                            }
-                                          }
 
                                         if("dss" %in% scores){
                                           Expected_post_var <- new_model$summary.hyperpar["Precision parameter for the Gamma observations","mean"]/(posterior_mean^2)
@@ -550,14 +550,14 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           post_var <- Expected_post_var + posterior_variance_of_mean                                          
                                           dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
                                           if(print){
-                                            print(paste("DSS:", dss[fold, model_number]))
+                                            cat(paste("DSS:", dss[fold, model_number],"\n"))
                                           }
                                         }
 
                                         if("mse" %in% scores){
                                           mse[fold, model_number] <- mean((test_data - posterior_mean)^2)                      
                                          if(print){
-                                            print(paste("MSE:",mse[fold, model_number]))
+                                            cat(paste("MSE:",mse[fold, model_number],"\n"))
                                           }                                                           
                                         }
 
@@ -572,7 +572,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
                                             if(print){
-                                              print(paste("CRPS:",crps[fold, model_number]))
+                                              cat(paste("CRPS:",crps[fold, model_number],"\n"))
                                             }      
                                           }
                                           if("scrps" %in% scores){
@@ -582,7 +582,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               scrps_temp <- unlist(scrps_temp)
                                               scrps[fold, model_number] <- mean(scrps_temp)  
                                             if(print){
-                                              print(paste("SCRPS:",scrps[fold, model_number]))
+                                              cat(paste("SCRPS:",scrps[fold, model_number],"\n"))
                                             }                                                  
                                           }
 
@@ -609,14 +609,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         posterior_mean <- rowMeans(posterior_samples)
 
-                                          if(print){
-                                            print(paste("Fold:",fold,"/",length(train_list)))
-                                            if(!is.null(model_names)){
-                                              print(paste("Model:",model_names[[model_number]]))                                                                                          
-                                            } else{
-                                              print(paste("Model:", model_number))
-                                            }
-                                          }
 
                                         if("dss" %in% scores){
                                           posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
@@ -624,14 +616,14 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                           dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
                                           if(print){
-                                            print(paste("DSS:", dss[fold, model_number]))
+                                            cat(paste("DSS:", dss[fold, model_number],"\n"))
                                           }
                                         }
 
                                         if("mse" %in% scores){
                                           mse[fold, model_number] <- mean((test_data - posterior_mean)^2)                      
                                          if(print){
-                                            print(paste("MSE:",mse[fold, model_number]))
+                                            cat(paste("MSE:",mse[fold, model_number],"\n"))
                                           }                                                           
                                         }
 
@@ -642,7 +634,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
                                             if(print){
-                                              print(paste("CRPS:",crps[fold, model_number]))
+                                              cat(paste("CRPS:",crps[fold, model_number],"\n"))
                                             }      
                                           }
                                         if("scrps" %in% scores){
@@ -652,7 +644,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               scrps_temp <- unlist(scrps_temp)
                                               scrps[fold, model_number] <- mean(scrps_temp)  
                                             if(print){
-                                              print(paste("SCRPS:",scrps[fold, model_number]))
+                                              cat(paste("SCRPS:",scrps[fold, model_number],"\n"))
                                             }                                                  
                                           }
 
