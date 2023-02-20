@@ -102,3 +102,556 @@ ibm_jacobian.bru_mapper_inla_rspde <- function(mapper, input, ...) {
                                 rspde.order = rspde_order,
                                 nu=nu)
 }
+
+#' @noRd 
+#' Function to process bru's formula
+
+process_formula <- function(bru_result){
+    form <- bru_result$bru_info$model$formula[3]
+    form <- as.character(form)
+    form <- strsplit(form, "f\\(")
+    form <- form[[1]]
+    form <- form[-1]
+    form_proc <- sub(",.*", "",strsplit(form, "f\\(")[1])
+    if(length(form)>1){
+            for(i in 2:(length(form))){
+                form_proc <- paste(form_proc, " + ",  sub(",.*", "",strsplit(form, "f\\(")[i]))
+            }
+    }
+    form_proc <- paste("~", "linkfuninv(", form_proc, ")")
+    return(as.formula(form_proc))
+}
+
+#' @noRd 
+#' Function to process the link function
+
+process_link <- function(link_name){
+  return_link <- switch(link_name,
+  "log" = function(x){inla.link.log(x, inverse=TRUE)},
+  "invlog" = function(x){inla.link.invlog(x, inverse=TRUE)},
+  "logit" = function(x){inla.link.logit(x, inverse=TRUE)},
+   "invlogit" = function(x){inla.link.invlogit(x, inverse=TRUE)},
+  "probit" = function(x){inla.link.probit(x, inverse=TRUE)},
+ "invprobit" = function(x){inla.link.invprobit(x, inverse=TRUE)},
+ "cloglog" = function(x){inla.link.cloglog(x, inverse=TRUE)},
+ "invcloglog" = function(x){inla.link.invcloglog(x, inverse=TRUE)},
+ "tan" = function(x){inla.link.tan(x, inverse=TRUE)},
+ "invtan" = function(x){inla.link.invtan(x, inverse=TRUE)},
+ "identity" = function(x){inla.link.identity(x, inverse=TRUE)},
+ "invidentity" = function(x){inla.link.invidentity(x, inverse=TRUE)},
+ "invalid" = function(x){inla.link.invalid(x, inverse=TRUE)},
+ "invinvalid" = function(x){inla.link.invinvalid(x, inverse=TRUE)}
+  )
+  return(return_link)
+}
+
+#' @noRd 
+
+bru_rerun_with_data <- function(result, idx_data, true_CV) {
+  stopifnot(inherits(result, "bru"))
+  if(!true_CV){
+      options <- list(control.mode = list(restart = FALSE))
+  } else{
+    options <- list()
+  }
+
+  info <- result[["bru_info"]]
+  info[["options"]] <- bru_call_options(
+    bru_options(
+      info[["options"]],
+      as.bru_options(options)
+    )
+  )
+
+  original_timings <- result[["bru_timings"]]
+
+  lhoods_tmp <- info[["lhoods"]]
+  lhoods_tmp[[1]]$response_data <- lhoods_tmp[[1]]$response_data[idx_data,]
+  lhoods_tmp[[1]]$data <- lhoods_tmp[[1]]$data[idx_data,]
+  if(length(lhoods_tmp[[1]]$E)>1){
+    lhoods_tmp[[1]]$E <- lhoods_tmp[[1]]$E[idx_data]
+  }
+
+  if(length(lhoods_tmp[[1]]$Ntrials)>1){
+    lhoods_tmp[[1]]$Ntrials <- lhoods_tmp[[1]]$Ntrials[idx_data]
+  }
+
+  if(length(lhoods_tmp[[1]]$weights)>1){
+    lhoods_tmp[[1]]$weights <- lhoods_tmp[[1]]$weights[idx_data]
+  }
+
+
+  result <- iinla(
+    model = info[["model"]],
+    lhoods = lhoods_tmp,
+    initial = result,
+    options = info[["options"]]
+  )
+
+  timing_end <- Sys.time()
+  result$bru_timings <-
+    rbind(
+      original_timings[1, , drop = FALSE],
+      result[["bru_iinla"]][["timings"]]
+    )
+
+  # Add bru information to the result
+  result$bru_info <- info
+  class(result) <- c("bru", class(result))
+  return(result)
+}
+
+#' @noRd 
+
+scrps_pois <- function(y, lambda){
+  E1 <- (y - lambda) * (2 * ppois(y, lambda) - 1) + 2 * lambda * dpois(floor(y), lambda)
+  E2 <- 2*lambda*(BesselI(2 * lambda, 0, expon.scaled = TRUE) + besselI(2 * lambda, 1, expon.scaled = TRUE))
+  return(-E1/E2 - 0.5 * log(E2))
+}
+
+#' @noRd 
+
+scrps_gaussian <- function(y, mu, tau){
+  z <- (mu-y)*sqrt(tau)
+  return(-sqrt(pi)*stats::dnorm(z) - sqrt(pi)*z/2 * (2*stats::pnorm(z) - 1) - 0.5*log(2/sqrt(tau*pi)))
+}
+
+#' @noRd 
+
+scrps_gamma <- function(y, mu, phi){
+  shape <- phi
+  scale <- mu/shape
+  E1 <- 2*y*stats::pgamma(y,shape = shape, scale = scale) - y - 2*shape*scale*stats::pgamma(y, shape = shape+1, scale = scale) + shape*scale
+  E2 <- 2*scale/beta(1/2, shape)
+  return(-E1/E2 - 0.5*log(E2))
+}
+
+#' @noRd 
+
+scrps_lognormal <- function(y, mu, tau){
+  sdlog <- 1/sqrt(tau)
+  temp <- stats::pnorm((log(y) - mu - sdlog^2)/sdlog)
+  E1 <- y*(2*stats::plnorm(y,meanlog = mu, sdlog = sdlog) - 1) -2*exp(mu + (sdlog^2)/2)*(temp-0.5)
+  E2 <- 4*exp(mu + (sdlog^2)/2)*(stats::pnorm(sdlog/sqrt(2))-0.5)
+  return(-E1/E2 - 0.5*log(E2))
+}
+
+#' @noRd 
+
+get_post_var <- function(density_df){
+    min_x <- min(density_df[, "x"])
+    max_x <- max(density_df[, "x"])
+    denstemp <- function(x) {
+      dens <- sapply(x, function(z) {
+        if (z < min_x) {
+          return(0)
+        } else if (z > max_x) {
+          return(0)
+        } else {
+          return(approx(x = density_df[, "x"], y = density_df[, "y"], xout = z)$y)
+        }
+      })
+      return(dens)
+    }
+    
+    post_var <- stats::integrate(
+      f = function(z) {
+        denstemp(z) * 1/z
+      }, lower = min_x, upper = max_x,
+      subdivisions = nrow(density_df)
+    )$value
+
+    return(post_var)
+}
+
+
+#' @name cross_validation
+#' @title Perform cross-validation on a list of fitted models.
+#' @description Obtain several scores for a list of fitted models according 
+#' to a folding scheme.
+#' @param models A fitted model obtained from calling the `bru()` function or a list of models fitted with the `bru()` function.
+#' @param model_names A vector containing the names of the models to appear in the returned `data.frame`. If `NULL`, the names will be of the form `Model 1`, `Model 2`, and so on.
+#' @param scores A vector containing the scores to be computed. The options are "mse", "crps", "scrps" and "dss". By default, all scores are computed.
+#' @param cv_type The type of the folding to be carried out. The options are `k-fold` for `k`-fold cross-validation, in which case the parameter `k` should be provided, 
+#' `loo`, for leave-one-out and `lpo` for leave-percentage-out, in this case, the parameter `percentage` should be given, and also the `number_folds` 
+#' with the number of folds to be done. The default is `k-fold`.
+#' @param data A dataset to be used to perform crossvalidation on all models. Observe that this means that the data must contain all the variables for all the models. If `NULL`,
+#' then the data will be extracted from the first fitted model. Observe that if `data` is `NULL`, then the models need to be trained on the same dataset as the first model of the list.
+#' @param k The number of folds to be used in `k`-fold cross-validation. Will only be used if `cv_type` is `k-fold`.
+#' @param percentage The percentage (from 1 to 99) of the data to be used to train the model. Will only be used if `cv_type` is `lpo`.
+#' @param number_folds Number of folds to be done if `cv_type` is `lpo`.
+#' @param n_samples Number of samples to compute the posterior statistics to be used to compute the scores.
+#' @param true_CV Should a `TRUE` cross-validation be performed? If `TRUE` the models will be fitted on the training dataset. If `FALSE`, the parameters will be kept fixed at the ones obtained in the result object.
+#' @param print Should partial results be printed throughout the computation?
+#' @return A data.frame with the fitted models and the corresponding scores.
+#' @export
+#' @examples
+#' \donttest{ #devel version
+#' if (requireNamespace("INLA", quietly = TRUE)){
+#' library(INLA)
+#' if (requireNamespace("inlabru", quietly = TRUE)){
+#' library(inlabru)
+#' 
+#' set.seed(123)
+#' 
+#' 
+#' }
+#' #devel.tag
+#' }
+
+cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps", "scrps", "dss"),
+                              cv_type = c("k-fold", "loo", "lpo"),
+                              data = NULL,
+                              k = 5, percentage = 30, number_folds = 10,
+                              n_samples = 1000, true_CV = FALSE, print = TRUE){
+
+                                scores <- intersect(scores, c("mse", "crps", "scrps", "dss"))
+
+                                cv_type <- cv_type[[1]]
+                                if(!(cv_type %in% c("k-fold", "loo", "lpo"))){
+                                  stop("The possible options for cv_type are 'k-fold', 'loo' or 'lpo'!")
+                                }
+
+                                if(!is.numeric(percentage)){
+                                  stop("percentage must be numeric!")
+                                }
+
+                                if(percentage %%1 != 0){
+                                  warning("Non-integer percentage given, it will be rounded to an integer number.")
+                                  percentage <- round(percentage)
+                                }
+
+                                if(percentage <= 0 || percentage >= 100){
+                                  stop("percentage must be a number between 1 and 99!")
+                                }
+
+                                if(!is.numeric(number_folds)){
+                                  stop("number_folds must be numeric!")
+                                }
+
+                                if(number_folds %% 1 != 0){
+                                  warning("Non-integer number_folds given, it will be rounded to an integer number.")
+                                  number_folds <- round(number_folds)
+                                }
+
+                                if(number_folds <= 0){
+                                  stop("number_folds must be positive!")
+                                }
+
+
+                                if(!is.numeric(n_samples)){
+                                  stop("n_samples must be numeric!")
+                                }
+
+                                if(n_samples %% 1 != 0){
+                                  warning("Non-integer n_samples given, it will be rounded to an integer number.")
+                                  n_samples <- round(n_samples)
+                                }
+
+                                if(n_samples <= 0){
+                                  stop("n_samples must be positive!")
+                                }
+
+                                if(!is.list(models)){
+                                  stop("models should either be a result from a bru() call or a list of results from bru() calls!")
+                                }
+
+                                if(inherits(models, "bru")){
+                                  models <- list(models)
+                                } else{
+                                  for(i in 1:length(models)){
+                                    if(!inherits(models[[i]],"bru")){
+                                      stop("models must be either a result from a bru call or a list of results from bru() calls!")
+                                    }
+                                  }
+                                }
+
+                                if(!is.null(model_names)){
+                                  if(!is.character(model_names)){
+                                    stop("model_names must be a vector of strings!")
+                                  }
+                                  if(length(models)!= length(model_names)){
+                                    stop("model_names must contain one name for each model!")
+                                  }
+                                }
+
+                                # Getting the data if NULL
+                                if(is.null(data)){
+                                  data <- models[[1]]$bru_info$lhoods[[1]]$data
+                                }
+
+                                # Creating lists of train and test datasets
+
+                                if(cv_type == "k-fold"){
+                                        # split idx into k
+                                            idx <- seq_along(data[1])
+                                            folds <- cut(sample(idx), breaks = k, label = FALSE)
+                                            test_list <- lapply(1:k, function(i) {which(folds == i, arr.ind = TRUE)})
+                                            train_list <- lapply(1:k, function(i){
+                                              idx[-test_list[[i]]]
+                                            })
+                                } else if (cv_type == "loo"){
+                                          idx <- seq_along(data[1])
+                                          train_list <- lapply(1:length(idx), function(i){
+                                            idx[-i]
+                                          })
+                                          test_list <- lapply(1:length(data[1]), function(i){i})
+                                } else if (cv_type == "lpo"){
+                                            test_list <- list()
+                                            n_Y <- length(data[1])
+                                            for (i in 1:number_folds) {
+                                              test_list[[i]] <- sample(1:n_Y, size = (1-percentage/100) * n_Y)
+                                            }
+                                            idx <- seq_along(data[1])
+                                            train_list <- lapply(1:k, function(i){
+                                              idx[-test_list[[i]]]
+                                            })
+                                }
+
+                                # Perform the cross-validation
+                                
+                                result_df <- data.frame(Models = model_names)
+
+                                dss <- matrix(numeric(length(train_list)*length(models)), ncol = length(models))
+                                mse <- matrix(numeric(length(train_list)*length(models)), ncol = length(models))
+                                crps <- matrix(numeric(length(train_list)*length(models)), ncol = length(models))
+                                scrps <- matrix(numeric(length(train_list)*length(models)), ncol = length(models))
+
+                                # Get the formulas for the models
+
+                                formula_list <- lapply(models, function(model){process_formula(model)})
+
+                                for(fold in 1:length(train_list)){
+                                  
+                                  for(model_number in 1:length(models)){
+                                      # Generate posterior samples of the mean
+                                      if(models[[model_number]]$.args$family == "gaussian"){
+                                        link_name <- models[[model_number]]$.args$control.family[[1]]$link
+                                        if(link_name == "default"){
+                                          linkfuninv <- function(x){x}
+                                        } else {
+                                          linkfuninv <- process_link(link_name)
+                                        } 
+
+                                        df_train <- data[train_list[[fold]],]
+                                        df_pred <- data[test_list[[fold]],]
+
+                                        new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV)
+
+                                        resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
+
+                                        posterior_samples <- inlabru::generate.bru(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
+
+                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[,"BRU_response"]
+
+                                        posterior_mean <- rowMeans(posterior_samples)
+
+                                          if(print){
+                                            print(paste("Fold:",fold,"/",length(train_list)))
+                                            if(!is.null(model_names)){
+                                              print(paste("Model:",model_names[[model_number]]))                                                                                          
+                                            } else{
+                                              print(paste("Model:", model_number))
+                                            }
+                                          }
+
+                                        if("dss" %in% scores){
+                                          density_df <- new_model$marginals.hyperpar$`Precision for the Gaussian observations`
+                                          Expect_post_var <- get_post_var(density_df)       
+
+                                          posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
+                                          post_var <- Expect_post_var + posterior_variance_of_mean                                          
+
+                                          dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
+                                          if(print){
+                                            print(paste("DSS:", dss[fold, model_number]))
+                                          }
+                                        }
+
+                                        if("mse" %in% scores){
+                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)                      
+                                         if(print){
+                                            print(paste("MSE:",mse[fold, model_number]))
+                                          }                                                           
+                                        }
+
+                                        if(("crps" %in% scores) || ("scrps" %in% scores)){
+                                          phi_sample <- INLA::inla.rmarginal(n_samples, new_model$marginals.hyperpar$`Precision for the Gaussian observations`)
+                                          if("crps" %in% scores){
+                                              sd_sample <- 1/sqrt(phi_sample)
+                                              crps_temp <- lapply(1:length(test_data), function(i){
+                                                -mean(scoringRules::crps_norm(test_data[i], posterior_samples[i,], sd_sample))
+                                              })
+                                              crps_temp <- unlist(crps_temp)
+                                              crps[fold, model_number] <- mean(crps_temp)  
+                                            if(print){
+                                              print(paste("CRPS:",crps[fold, model_number]))
+                                            }      
+                                          }
+                                          if("scrps" %in% scores){
+                                              scrps_temp <- lapply(1:length(test_data), function(i){
+                                                mean(scrps_gaussian(test_data[i], posterior_samples[i,], phi_sample))
+                                              })
+                                              scrps_temp <- unlist(scrps_temp)
+                                              scrps[fold, model_number] <- mean(scrps_temp)  
+                                            if(print){
+                                              print(paste("SCRPS:",scrps[fold, model_number]))
+                                            }                                                  
+                                          }
+
+                                        }
+
+                                      } else if (models[[model_number]]$.args$family == "gamma"){
+
+                                      link_name <- models[[model_number]]$.args$control.family[[1]]$link
+                                        if(link_name == "default"){
+                                          linkfuninv <- function(x){exp(x)}
+                                        } else {
+                                          linkfuninv <- process_link(link_name)
+                                        } 
+
+                                        df_train <- data[train_list[[fold]],]
+                                        df_pred <- data[test_list[[fold]],]
+
+                                        new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV)
+
+                                        resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
+
+                                        posterior_samples <- inlabru::generate.bru(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
+
+                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[,"BRU_response"]
+
+                                        posterior_mean <- rowMeans(posterior_samples)
+
+                                          if(print){
+                                            print(paste("Fold:",fold,"/",length(train_list)))
+                                            if(!is.null(model_names)){
+                                              print(paste("Model:",model_names[[model_number]]))                                                                                          
+                                            } else{
+                                              print(paste("Model:", model_number))
+                                            }
+                                          }
+
+                                        if("dss" %in% scores){
+                                          Expected_post_var <- new_model$summary.hyperpar["Precision parameter for the Gamma observations","mean"]/(posterior_mean^2)
+                                          posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
+
+                                          post_var <- Expected_post_var + posterior_variance_of_mean                                          
+                                          dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
+                                          if(print){
+                                            print(paste("DSS:", dss[fold, model_number]))
+                                          }
+                                        }
+
+                                        if("mse" %in% scores){
+                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)                      
+                                         if(print){
+                                            print(paste("MSE:",mse[fold, model_number]))
+                                          }                                                           
+                                        }
+
+                                        if(("crps" %in% scores) || ("scrps" %in% scores)){
+                                          phi_sample <- INLA::inla.rmarginal(n_samples, new_model$marginals.hyperpar$`Precision parameter for the Gamma observations`)
+                                          if("crps" %in% scores){
+                                              shape_sample <- phi_sample
+                                              crps_temp <- lapply(1:length(test_data), function(i){
+                                                scale_sample <- posterior_samples[i,] / shape_sample
+                                                -scoringRules::crps_gamma(test_data[i], shape = shape_sample, scale = scale_sample)
+                                              })
+                                              crps_temp <- unlist(crps_temp)
+                                              crps[fold, model_number] <- mean(crps_temp)  
+                                            if(print){
+                                              print(paste("CRPS:",crps[fold, model_number]))
+                                            }      
+                                          }
+                                          if("scrps" %in% scores){
+                                              scrps_temp <- lapply(1:length(test_data), function(i){
+                                                mean(scrps_gamma(test_data[i], posterior_samples[i,], phi_sample))
+                                              })
+                                              scrps_temp <- unlist(scrps_temp)
+                                              scrps[fold, model_number] <- mean(scrps_temp)  
+                                            if(print){
+                                              print(paste("SCRPS:",scrps[fold, model_number]))
+                                            }                                                  
+                                          }
+
+                                        }
+                                     } else if (models[[model_number]]$.args$family == "poisson"){
+
+                                        link_name <- models[[model_number]]$.args$control.family[[1]]$link
+                                        if(link_name == "default"){
+                                          linkfuninv <- function(x){exp(x)}
+                                        } else {
+                                          linkfuninv <- process_link(link_name)
+                                        } 
+
+                                        df_train <- data[train_list[[fold]],]
+                                        df_pred <- data[test_list[[fold]],]
+
+                                        new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV)
+
+                                        resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
+
+                                        posterior_samples <- inlabru::generate.bru(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
+
+                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[,"BRU_response"]
+
+                                        posterior_mean <- rowMeans(posterior_samples)
+
+                                          if(print){
+                                            print(paste("Fold:",fold,"/",length(train_list)))
+                                            if(!is.null(model_names)){
+                                              print(paste("Model:",model_names[[model_number]]))                                                                                          
+                                            } else{
+                                              print(paste("Model:", model_number))
+                                            }
+                                          }
+
+                                        if("dss" %in% scores){
+                                          posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
+                                          post_var <- posterior_mean + posterior_variance_of_mean
+
+                                          dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
+                                          if(print){
+                                            print(paste("DSS:", dss[fold, model_number]))
+                                          }
+                                        }
+
+                                        if("mse" %in% scores){
+                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)                      
+                                         if(print){
+                                            print(paste("MSE:",mse[fold, model_number]))
+                                          }                                                           
+                                        }
+
+                                        if("crps" %in% scores){
+                                              crps_temp <- lapply(1:length(test_data), function(i){
+                                                -scoringRules::crps_pois(test_data[i], posterior_samples[i,])
+                                              })
+                                              crps_temp <- unlist(crps_temp)
+                                              crps[fold, model_number] <- mean(crps_temp)  
+                                            if(print){
+                                              print(paste("CRPS:",crps[fold, model_number]))
+                                            }      
+                                          }
+                                        if("scrps" %in% scores){
+                                              scrps_temp <- lapply(1:length(test_data), function(i){
+                                                mean(scrps_pois(test_data[i], posterior_samples[i,]))
+                                              })
+                                              scrps_temp <- unlist(scrps_temp)
+                                              scrps[fold, model_number] <- mean(scrps_temp)  
+                                            if(print){
+                                              print(paste("SCRPS:",scrps[fold, model_number]))
+                                            }                                                  
+                                          }
+
+                                      }
+
+                                  } 
+
+                                }
+                                
+                                
+
+}
+
