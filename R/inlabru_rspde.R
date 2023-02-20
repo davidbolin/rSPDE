@@ -371,6 +371,11 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                   if(length(models)!= length(model_names)){
                                     stop("model_names must contain one name for each model!")
                                   }
+                                } else{
+                                  model_names <- vector(mode = "character", length(models))
+                                  for(i in 1:length(models)){
+                                    model_names[i] <- paste("Model",i)
+                                  }
                                 }
 
                                 # Getting the data if NULL
@@ -649,7 +654,26 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                 }
                                 
-                                
+
+                                if("dss" %in% scores){
+                                  dss <- colMeans(dss)
+                                  resuld_df <- data.frame(result_df, dss = dss)
+                                } 
+                                if("mse" %in% scores){
+                                  mse <- colMeans(mse)
+                                  resuld_df <- data.frame(result_df, mse = mse)
+                                }
+                                if("crps" %in% scores){
+                                  crps <- colMeans(crps)
+                                  resuld_df <- data.frame(result_df, crps = crps)
+                                }
+
+                                if("scrps" %in% scores){
+                                  scrps <- colMeans(scrps)
+                                  resuld_df <- data.frame(result_df, scrps = scrps)
+                                }
+
+            return(result_df)
 
 }
 
