@@ -469,10 +469,9 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         cat("Samples generated!\n")
 
-                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[,"BRU_response"]
+                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
 
                                         posterior_mean <- rowMeans(posterior_samples)
-
 
                                         if("dss" %in% scores){
                                           density_df <- new_model$marginals.hyperpar$`Precision for the Gaussian observations`
@@ -536,9 +535,13 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
+                                        cat("Generating samples...\n")
+
                                         posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
 
-                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[,"BRU_response"]
+                                        cat("Samples generated!\n")
+
+                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
 
                                         posterior_mean <- rowMeans(posterior_samples)
 
@@ -603,9 +606,13 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
+                                        cat("Generating samples...\n")
+
                                         posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_list[[model_number]], n.samples = n_samples)
 
-                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[,"BRU_response"]
+                                        cat("Samples generated!\n")
+
+                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
 
                                         posterior_mean <- rowMeans(posterior_samples)
 
