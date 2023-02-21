@@ -295,6 +295,32 @@ get_post_var <- function(density_df){
     return(post_var)
 }
 
+#' @noRd 
+
+prepare_df_pred <- function(df_pred, result, idx_test){
+  info <- result[["bru_info"]]
+  list_of_components <- names(info[["model"]][["effects"]])
+
+  for(comp in list_of_components){
+    name_input_group <- info[["model"]][["effects"]][[comp]][["group"]][["input"]][["input"]]
+    if(!is.null(name_input_group)){
+      name_input_group <- as.character(name_input_group)
+      comp_group_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
+      comp_group_tmp <- comp_group_tmp[idx_test]
+      df_pred[[name_input_group]] <- comp_group_tmp
+    }
+    name_input_repl <- info[["model"]][["effects"]][[comp]][["replicate"]][["input"]][["input"]]
+    if(!is.null(name_input_repl)){
+      name_input_repl <- as.character(name_input_repl)
+      comp_repl_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
+      comp_repl_tmp <- comp_repl_tmp[idx_data]
+      df_pred[[name_input_repl]] <- comp_repl_tmp
+    }
+  }
+
+
+}
+
 
 #' @name cross_validation
 #' @title Perform cross-validation on a list of fitted models.
@@ -484,6 +510,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         df_train <- data[train_list[[fold]],]
                                         df_pred <- data[test_list[[fold]],]
 
+                                        df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
+
                                         new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV, fit_verbose = fit_verbose)
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
@@ -494,7 +522,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         cat("Generating samples...\n")
 
-                                        posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_tmp, n.samples = n_samples)
+                                        posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
 
                                         cat("Samples generated!\n")
 
