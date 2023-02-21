@@ -313,12 +313,11 @@ prepare_df_pred <- function(df_pred, result, idx_test){
     if(!is.null(name_input_repl)){
       name_input_repl <- as.character(name_input_repl)
       comp_repl_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
-      comp_repl_tmp <- comp_repl_tmp[idx_data]
+      comp_repl_tmp <- comp_repl_tmp[idx_test]
       df_pred[[name_input_repl]] <- comp_repl_tmp
     }
   }
-
-
+  return(df_pred)
 }
 
 
@@ -596,13 +595,15 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         df_train <- data[train_list[[fold]],]
                                         df_pred <- data[test_list[[fold]],]
 
+                                        df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
+
                                         new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV, fit_verbose = fit_verbose)
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
                                         cat("Generating samples...\n")
 
-                                        posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_tmp, n.samples = n_samples)
+                                        posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
 
                                         cat("Samples generated!\n")
 
@@ -675,13 +676,15 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         df_train <- data[train_list[[fold]],]
                                         df_pred <- data[test_list[[fold]],]
 
+                                        df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
+
                                         new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV, fit_verbose = fit_verbose)
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
                                         cat("Generating samples...\n")
 
-                                        posterior_samples <- inlabru::generate(new_model, data = data[test_list[[fold]],], formula = formula_tmp, n.samples = n_samples)
+                                        posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
 
                                         cat("Samples generated!\n")
 
