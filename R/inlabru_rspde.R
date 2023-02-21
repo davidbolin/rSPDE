@@ -190,6 +190,26 @@ bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
     lhoods_tmp[[1]]$drange <- lapply(lhoods_tmp[[1]]$data, function(i){range(i)})
   }
   
+  # Get the components list
+
+  list_of_components <- names(info[["model"]][["effects"]])
+
+  for(comp in list_of_components){
+    name_input_group <- info[["model"]][["effects"]][[comp]][["group"]][["input"]][["input"]]
+    if(!is.null(name_input_group)){
+      name_input_group <- as.character(name_input_group)
+      comp_group_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
+      comp_group_tmp <- comp_group_tmp[idx_data]
+      assign(name_input_group, comp_group_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+    }
+    name_input_repl <- info[["model"]][["effects"]][[comp]][["replicate"]][["input"]][["input"]]
+    if(!is.null(name_input_repl)){
+      name_input_repl <- as.character(name_input_repl)
+      comp_repl_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
+      comp_repl_tmp <- comp_repl_tmp[idx_data]
+      assign(name_input_repl, comp_repl_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+    }
+  }
 
 
   result <- inlabru::iinla(
