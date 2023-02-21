@@ -14,8 +14,10 @@ cross_validation(
   percentage = 30,
   number_folds = 10,
   n_samples = 1000,
+  return_scores_folds = FALSE,
   true_CV = FALSE,
-  print = TRUE
+  print = TRUE,
+  fit_verbose = FALSE
 )
 }
 \arguments{
@@ -40,9 +42,13 @@ then the data will be extracted from the first fitted model. Observe that if \co
 
 \item{n_samples}{Number of samples to compute the posterior statistics to be used to compute the scores.}
 
+\item{return_scores_folds}{If \code{TRUE}, the scores for each fold will also be returned.}
+
 \item{true_CV}{Should a \code{TRUE} cross-validation be performed? If \code{TRUE} the models will be fitted on the training dataset. If \code{FALSE}, the parameters will be kept fixed at the ones obtained in the result object.}
 
 \item{print}{Should partial results be printed throughout the computation?}
+
+\item{fit_verbose}{Should INLA's run during cross-validation be verbose?}
 }
 \value{
 A data.frame with the fitted models and the corresponding scores.

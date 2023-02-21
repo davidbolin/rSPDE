@@ -762,7 +762,11 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
         if(!return_scores_folds){
             return(result_df)
         } else{
-          return(list(scores_df = return_df,
+          colnames(dss) <- model_names
+          colnames(mse) <- model_names
+          colnames(crps) <- model_names
+          colnames(scrps) <- model_names
+          return(list(scores_df = result_df,
                       scores_folds = list(dss = dss, mse = mse, crps = crps, scrps = scrps)))
         }
 
