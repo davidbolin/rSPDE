@@ -195,11 +195,14 @@ stopifnot(inherits(result, "bru"))
 
   list_of_components <- names(info[["model"]][["effects"]])
 
+  backup_list <- list()
+
   for(comp in list_of_components){
     name_input_group <- info[["model"]][["effects"]][[comp]][["group"]][["input"]][["input"]]
     if(!is.null(name_input_group)){
       name_input_group <- as.character(name_input_group)
       comp_group_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
+      backup_list[[comp]][["group_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
       comp_group_tmp <- comp_group_tmp[idx_data]
       assign(name_input_group, comp_group_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
     }
@@ -207,6 +210,7 @@ stopifnot(inherits(result, "bru"))
     if(!is.null(name_input_repl)){
       name_input_repl <- as.character(name_input_repl)
       comp_repl_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
+      backup_list[[comp]][["repl_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
       comp_repl_tmp <- comp_repl_tmp[idx_data]
       assign(name_input_repl, comp_repl_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
     }
@@ -226,6 +230,21 @@ stopifnot(inherits(result, "bru"))
         initial = result,
     options = info[["options"]]
   )
+  }
+
+  # Assigning back:
+
+  for(comp in list_of_components){
+    name_input_group <- info[["model"]][["effects"]][[comp]][["group"]][["input"]][["input"]]
+    if(!is.null(name_input_group)){
+      name_input_group <- as.character(name_input_group)
+      assign(name_input_group, backup_list[[comp]][["group_val"]], envir = info[["model"]][["effects"]][[comp]][["env"]])
+    }
+    name_input_repl <- info[["model"]][["effects"]][[comp]][["replicate"]][["input"]][["input"]]
+    if(!is.null(name_input_repl)){
+      name_input_repl <- as.character(name_input_repl)
+      assign(name_input_repl, backup_list[[comp]][["repl_val"]], envir = info[["model"]][["effects"]][[comp]][["env"]])
+    }
   }
 
 
@@ -341,8 +360,6 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @param cv_type The type of the folding to be carried out. The options are `k-fold` for `k`-fold cross-validation, in which case the parameter `k` should be provided, 
 #' `loo`, for leave-one-out and `lpo` for leave-percentage-out, in this case, the parameter `percentage` should be given, and also the `number_folds` 
 #' with the number of folds to be done. The default is `k-fold`.
-#' @param data A dataset to be used to perform crossvalidation on all models. Observe that this means that the data must contain all the variables for all the models. If `NULL`,
-#' then the data will be extracted from the first fitted model. Observe that if `data` is `NULL`, then the models need to be trained on the same dataset as the first model of the list.
 #' @param k The number of folds to be used in `k`-fold cross-validation. Will only be used if `cv_type` is `k-fold`.
 #' @param percentage The percentage (from 1 to 99) of the data to be used to train the model. Will only be used if `cv_type` is `lpo`.
 #' @param number_folds Number of folds to be done if `cv_type` is `lpo`.
@@ -369,7 +386,6 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 
 cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps", "scrps", "dss"),
                               cv_type = c("k-fold", "loo", "lpo"),
-                              data = NULL,
                               k = 5, percentage = 30, number_folds = 10,
                               n_samples = 1000, return_scores_folds = FALSE,
                               true_CV = FALSE, print = TRUE,
@@ -451,9 +467,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                 }
 
                                 # Getting the data if NULL
-                                if(is.null(data)){
-                                  data <- models[[1]]$bru_info$lhoods[[1]]$data
-                                }
+                                data <- models[[1]]$bru_info$lhoods[[1]]$data
 
                                 # Creating lists of train and test datasets
 
@@ -535,7 +549,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         cat("Samples generated!\n")
 
-                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
+                                        test_data <- data[[resp_var]][test_list[[fold]]]
 
                                         if(nrow(posterior_samples) == 1){
                                           posterior_samples <- matrix(rep(posterior_samples, length(test_data)),ncol=ncol(posterior_samples), byrow = TRUE)
