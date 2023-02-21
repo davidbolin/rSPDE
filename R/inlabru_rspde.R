@@ -146,9 +146,10 @@ process_link <- function(link_name){
 #' @noRd 
 
 bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
-  stopifnot(inherits(result, "bru"))
+stopifnot(inherits(result, "bru"))
   if(!true_CV){
-      options <- list(control.mode = list(restart = FALSE))
+      options <- list(control.mode = list(restart = FALSE,
+              theta=result$mode$theta, fixed = TRUE))
   } else{
     options <- list()
   }
@@ -212,12 +213,21 @@ bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
   }
 
 
+  if(!true_CV){
   result <- inlabru::iinla(
     model = info[["model"]],
     lhoods = lhoods_tmp,
-    initial = result,
     options = info[["options"]]
   )
+  } else{
+      result <- inlabru::iinla(
+    model = info[["model"]],
+    lhoods = lhoods_tmp,
+        initial = result,
+    options = info[["options"]]
+  )
+  }
+
 
   timing_end <- Sys.time()
   result$bru_timings <-
@@ -535,7 +545,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         if("dss" %in% scores){
                                           density_df <- new_model$marginals.hyperpar$`Precision for the Gaussian observations`
-                                          Expect_post_var <- get_post_var(density_df)       
+                                          Expect_post_var <- tryCatch(get_post_var(density_df), error = function(e) NA)
+                                          if(is.na(Expect_post_var)){
+                                            Expect_post_var <- 1/new_model$summary.hyperpar["Precision for the Gaussian observations","mean"]
+                                          }    
 
                                           posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
                                           post_var <- Expect_post_var + posterior_variance_of_mean                                          
