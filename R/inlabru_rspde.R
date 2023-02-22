@@ -394,7 +394,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                               k = 5, percentage = 30, number_folds = 10,
                               n_samples = 1000, return_scores_folds = FALSE,
                               orientation_results = c("negative", "positive"),
-                              parallelize_RP = TRUE, n_cores_RP = parallel::detectCores()-1,
+                              parallelize_RP = FALSE, n_cores_RP = parallel::detectCores()-1,
                               true_CV = FALSE, save_settings = FALSE, print = TRUE,
                               fit_verbose = FALSE){
 
@@ -893,6 +893,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
             settings_list[["number_folds"]] <- number_folds
           }
         }
+
+        parallel::stopCluster(cluster_tmp)
         
         if(!return_scores_folds){
             if(save_settings){
