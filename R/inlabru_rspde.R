@@ -366,6 +366,8 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @param n_samples Number of samples to compute the posterior statistics to be used to compute the scores.
 #' @param return_scores_folds If `TRUE`, the scores for each fold will also be returned.
 #' @param orientation_results character vector. The options are "negative" and "positive". If "negative", the smaller the scores the better. If "positive", the larger the scores the better.
+#' @param parallelize_RP Logical. Should the computation of CRPS and SCRPS be parallelized?
+#' @param n_cores_RP Number of cores to be used if `parallelize_rp` is `TRUE`.
 #' @param true_CV Should a `TRUE` cross-validation be performed? If `TRUE` the models will be fitted on the training dataset. If `FALSE`, the parameters will be kept fixed at the ones obtained in the result object.
 #' @param save_settings Logical. If `TRUE`, the settings used in the cross-validation will also be returned.
 #' @param print Should partial results be printed throughout the computation?
@@ -392,6 +394,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                               k = 5, percentage = 30, number_folds = 10,
                               n_samples = 1000, return_scores_folds = FALSE,
                               orientation_results = c("negative", "positive"),
+                              parallelize_RP = TRUE, n_cores_RP = parallel::detectCores()-1,
                               true_CV = FALSE, save_settings = FALSE, print = TRUE,
                               fit_verbose = FALSE){
 
@@ -450,6 +453,11 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                 if(!is.list(models)){
                                   stop("models should either be a result from a bru() call or a list of results from bru() calls!")
                                 }
+
+                                if(parallelize_RP){
+                                      cluster_tmp <-  parallel::makeCluster(n_cores_RP)
+                                      doParallel::registerDoParallel(cluster_tmp)
+                                }                                
 
                                 if(inherits(models, "bru")){
                                   models <- list(models)
@@ -600,9 +608,17 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           phi_sample <- as.vector(hyper_sample[,"Precision for the Gaussian observations"])                                          
                                           if("crps" %in% scores){
                                               sd_sample <- 1/sqrt(phi_sample)
-                                              crps_temp <- lapply(1:length(test_data), function(i){
-                                                -mean(scoringRules::crps_norm(test_data[i], posterior_samples[i,], sd_sample))
-                                              })
+
+                                              if(parallelize_RP){
+                                                    crps_temp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            -mean(scoringRules::crps_norm(test_data[i], posterior_samples[i,], sd_sample))
+                                                          })
+                                              } else{
+                                                    crps_temp <- lapply(1:length(test_data), function(i){
+                                                      -mean(scoringRules::crps_norm(test_data[i], posterior_samples[i,], sd_sample))
+                                                    })
+                                              }
+
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
                                               if(orientation_results == "negative"){
@@ -614,9 +630,15 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                             }      
                                           }
                                           if("scrps" %in% scores){
-                                              scrps_temp <- lapply(1:length(test_data), function(i){
-                                                mean(scrps_gaussian(test_data[i], posterior_samples[i,], phi_sample))
-                                              })
+                                              if(parallelize_RP){
+                                                    scrps_temp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            mean(scrps_gaussian(test_data[i], posterior_samples[i,], phi_sample))
+                                                          })
+                                              } else{
+                                                      scrps_temp <- lapply(1:length(test_data), function(i){
+                                                        mean(scrps_gaussian(test_data[i], posterior_samples[i,], phi_sample))
+                                                      })
+                                              }
                                               scrps_temp <- unlist(scrps_temp)
                                               scrps[fold, model_number] <- mean(scrps_temp)  
                                               if(orientation_results == "negative"){
@@ -696,10 +718,17 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           phi_sample <- as.vector(hyper_sample[,"Precision parameter for the Gamma observations"])
                                           if("crps" %in% scores){
                                               shape_sample <- phi_sample
-                                              crps_temp <- lapply(1:length(test_data), function(i){
-                                                scale_sample <- posterior_samples[i,] / shape_sample
-                                                -scoringRules::crps_gamma(test_data[i], shape = shape_sample, scale = scale_sample)
-                                              })
+                                              if(parallelize_RP){
+                                                  crps_temp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                    scale_sample <- posterior_samples[i,] / shape_sample
+                                                    -scoringRules::crps_gamma(test_data[i], shape = shape_sample, scale = scale_sample)
+                                                          })
+                                              } else{
+                                                  crps_temp <- lapply(1:length(test_data), function(i){
+                                                    scale_sample <- posterior_samples[i,] / shape_sample
+                                                    -scoringRules::crps_gamma(test_data[i], shape = shape_sample, scale = scale_sample)
+                                                  })
+                                              }
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
                                               if(orientation_results == "negative"){
@@ -710,9 +739,15 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                             }      
                                           }
                                           if("scrps" %in% scores){
-                                              scrps_temp <- lapply(1:length(test_data), function(i){
-                                                mean(scrps_gamma(test_data[i], posterior_samples[i,], phi_sample))
-                                              })
+                                              if(parallelize_RP){
+                                                  scrps_temp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                      mean(scrps_gamma(test_data[i], posterior_samples[i,], phi_sample))
+                                                          })
+                                              } else{                                            
+                                                    scrps_temp <- lapply(1:length(test_data), function(i){
+                                                      mean(scrps_gamma(test_data[i], posterior_samples[i,], phi_sample))
+                                                    })
+                                              }
                                               scrps_temp <- unlist(scrps_temp)
                                               scrps[fold, model_number] <- mean(scrps_temp)  
                                               if(orientation_results == "negative"){
@@ -785,9 +820,15 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if("crps" %in% scores){
-                                              crps_temp <- lapply(1:length(test_data), function(i){
-                                                -scoringRules::crps_pois(test_data[i], posterior_samples[i,])
-                                              })
+                                              if(parallelize_RP){
+                                                  scrps_temp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                       -scoringRules::crps_pois(test_data[i], posterior_samples[i,])
+                                                          })
+                                              } else{     
+                                                      crps_temp <- lapply(1:length(test_data), function(i){
+                                                        -scoringRules::crps_pois(test_data[i], posterior_samples[i,])
+                                                      })
+                                              }
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
                                               if(orientation_results == "negative"){
@@ -798,9 +839,15 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                             }      
                                           }
                                         if("scrps" %in% scores){
-                                              scrps_temp <- lapply(1:length(test_data), function(i){
-                                                mean(scrps_pois(test_data[i], posterior_samples[i,]))
-                                              })
+                                              if(parallelize_RP){
+                                                  scrps_temp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                        mean(scrps_pois(test_data[i], posterior_samples[i,]))
+                                                          })
+                                              } else{     
+                                                      scrps_temp <- lapply(1:length(test_data), function(i){
+                                                        mean(scrps_pois(test_data[i], posterior_samples[i,]))
+                                                      })
+                                              }
                                               scrps_temp <- unlist(scrps_temp)
                                               scrps[fold, model_number] <- mean(scrps_temp)  
                                               if(orientation_results == "negative"){

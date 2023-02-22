@@ -15,6 +15,8 @@ cross_validation(
   n_samples = 1000,
   return_scores_folds = FALSE,
   orientation_results = c("negative", "positive"),
+  parallelize_RP = TRUE,
+  n_cores_RP = parallel::detectCores() - 1,
   true_CV = FALSE,
   save_settings = FALSE,
   print = TRUE,
@@ -43,6 +45,10 @@ with the number of folds to be done. The default is \code{k-fold}.}
 \item{return_scores_folds}{If \code{TRUE}, the scores for each fold will also be returned.}
 
 \item{orientation_results}{character vector. The options are "negative" and "positive". If "negative", the smaller the scores the better. If "positive", the larger the scores the better.}
+
+\item{parallelize_RP}{Logical. Should the computation of CRPS and SCRPS be parallelized?}
+
+\item{n_cores_RP}{Number of cores to be used if \code{parallelize_rp} is \code{TRUE}.}
 
 \item{true_CV}{Should a \code{TRUE} cross-validation be performed? If \code{TRUE} the models will be fitted on the training dataset. If \code{FALSE}, the parameters will be kept fixed at the ones obtained in the result object.}
 
