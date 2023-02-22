@@ -9,13 +9,14 @@ cross_validation(
   model_names = NULL,
   scores = c("mse", "crps", "scrps", "dss"),
   cv_type = c("k-fold", "loo", "lpo"),
-  data = NULL,
   k = 5,
   percentage = 30,
   number_folds = 10,
   n_samples = 1000,
   return_scores_folds = FALSE,
+  orientation_results = c("negative", "positive"),
   true_CV = FALSE,
+  save_settings = FALSE,
   print = TRUE,
   fit_verbose = FALSE
 )
@@ -31,9 +32,6 @@ cross_validation(
 \code{loo}, for leave-one-out and \code{lpo} for leave-percentage-out, in this case, the parameter \code{percentage} should be given, and also the \code{number_folds}
 with the number of folds to be done. The default is \code{k-fold}.}
 
-\item{data}{A dataset to be used to perform crossvalidation on all models. Observe that this means that the data must contain all the variables for all the models. If \code{NULL},
-then the data will be extracted from the first fitted model. Observe that if \code{data} is \code{NULL}, then the models need to be trained on the same dataset as the first model of the list.}
-
 \item{k}{The number of folds to be used in \code{k}-fold cross-validation. Will only be used if \code{cv_type} is \code{k-fold}.}
 
 \item{percentage}{The percentage (from 1 to 99) of the data to be used to train the model. Will only be used if \code{cv_type} is \code{lpo}.}
@@ -44,7 +42,11 @@ then the data will be extracted from the first fitted model. Observe that if \co
 
 \item{return_scores_folds}{If \code{TRUE}, the scores for each fold will also be returned.}
 
+\item{orientation_results}{character vector. The options are "negative" and "positive". If "negative", the smaller the scores the better. If "positive", the larger the scores the better.}
+
 \item{true_CV}{Should a \code{TRUE} cross-validation be performed? If \code{TRUE} the models will be fitted on the training dataset. If \code{FALSE}, the parameters will be kept fixed at the ones obtained in the result object.}
+
+\item{save_settings}{Logical. If \code{TRUE}, the settings used in the cross-validation will also be returned.}
 
 \item{print}{Should partial results be printed throughout the computation?}
 
