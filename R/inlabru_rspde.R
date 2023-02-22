@@ -104,7 +104,7 @@ ibm_jacobian.bru_mapper_inla_rspde <- function(mapper, input, ...) {
 }
 
 #' @noRd 
-#' Function to process bru's formula
+# Function to process bru's formula
 
 process_formula <- function(bru_result){
     form <- bru_result$bru_info$model$formula[3]
@@ -123,7 +123,7 @@ process_formula <- function(bru_result){
 }
 
 #' @noRd 
-#' Function to process the link function
+# Function to process the link function
 
 process_link <- function(link_name){
   return_link <- switch(link_name,
@@ -385,6 +385,7 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' }
 #' #devel.tag
 #' }
+#' }
 
 cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps", "scrps", "dss"),
                               cv_type = c("k-fold", "loo", "lpo"),
@@ -595,7 +596,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
-                                          phi_sample <- INLA::inla.rmarginal(n_samples, new_model$marginals.hyperpar$`Precision for the Gaussian observations`)
+                                          hyper_sample <- INLA::inla.hyperpar.sample(n_samples, new_model, improve.marginals=TRUE) # INLA::inla.rmarginal(n_samples, new_model$marginals.hyperpar$`Precision for the Gaussian observations`)
+                                          phi_sample <- as.vector(hyper_sample[,"Precision for the Gaussian observations"])                                          
                                           if("crps" %in% scores){
                                               sd_sample <- 1/sqrt(phi_sample)
                                               crps_temp <- lapply(1:length(test_data), function(i){
@@ -690,7 +692,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
-                                          phi_sample <- INLA::inla.rmarginal(n_samples, new_model$marginals.hyperpar$`Precision parameter for the Gamma observations`)
+                                          hyper_sample <- INLA::inla.hyperpar.sample(n_samples, new_model, improve.marginals=TRUE) # INLA::inla.rmarginal(n_samples, new_model$marginals.hyperpar$`Precision parameter for the Gamma observations`)
+                                          phi_sample <- as.vector(hyper_sample[,"Precision parameter for the Gamma observations"])
                                           if("crps" %in% scores){
                                               shape_sample <- phi_sample
                                               crps_temp <- lapply(1:length(test_data), function(i){
