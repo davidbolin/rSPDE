@@ -15,7 +15,7 @@ cross_validation(
   n_samples = 1000,
   return_scores_folds = FALSE,
   orientation_results = c("negative", "positive"),
-  parallelize_RP = TRUE,
+  parallelize_RP = FALSE,
   n_cores_RP = parallel::detectCores() - 1,
   true_CV = FALSE,
   save_settings = FALSE,
