@@ -365,7 +365,9 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @param number_folds Number of folds to be done if `cv_type` is `lpo`.
 #' @param n_samples Number of samples to compute the posterior statistics to be used to compute the scores.
 #' @param return_scores_folds If `TRUE`, the scores for each fold will also be returned.
+#' @param orientation_results character vector. The options are "negative" and "positive". If "negative", the smaller the scores the better. If "positive", the larger the scores the better.
 #' @param true_CV Should a `TRUE` cross-validation be performed? If `TRUE` the models will be fitted on the training dataset. If `FALSE`, the parameters will be kept fixed at the ones obtained in the result object.
+#' @param save_settings Logical. If `TRUE`, the settings used in the cross-validation will also be returned.
 #' @param print Should partial results be printed throughout the computation?
 #' @param fit_verbose Should INLA's run during cross-validation be verbose?
 #' @return A data.frame with the fitted models and the corresponding scores.
@@ -388,7 +390,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                               cv_type = c("k-fold", "loo", "lpo"),
                               k = 5, percentage = 30, number_folds = 10,
                               n_samples = 1000, return_scores_folds = FALSE,
-                              true_CV = FALSE, print = TRUE,
+                              orientation_results = c("negative", "positive"),
+                              true_CV = FALSE, save_settings = FALSE, print = TRUE,
                               fit_verbose = FALSE){
 
                                 scores <- intersect(scores, c("mse", "crps", "scrps", "dss"))
@@ -568,16 +571,22 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           post_var <- Expect_post_var + posterior_variance_of_mean                                          
 
                                           dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
+                                          if(orientation_results == "positive"){
+                                            dss[fold, model_number] <- - dss[fold, model_number]
+                                          }
                                           if(print){
                                             cat(paste("DSS:", dss[fold, model_number],"\n"))
                                           }
                                         }
 
                                         if("mse" %in% scores){
-                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)                      
+                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)          
+                                          if(orientation_results == "positive"){
+                                            mse[fold, model_number] <- - mse[fold, model_number] 
+                                          }               
                                          if(print){
                                             cat(paste("MSE:",mse[fold, model_number],"\n"))
-                                          }                                                           
+                                          }                                                        
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
@@ -589,6 +598,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               })
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
+                                              if(orientation_results == "negative"){
+                                                crps[fold, model_number] <- - crps[fold, model_number]
+                                              }    
+
                                             if(print){
                                               cat(paste("CRPS:",crps[fold, model_number],"\n"))
                                             }      
@@ -599,6 +612,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               })
                                               scrps_temp <- unlist(scrps_temp)
                                               scrps[fold, model_number] <- mean(scrps_temp)  
+                                              if(orientation_results == "negative"){
+                                                scrps[fold, model_number] <- - scrps[fold, model_number]
+                                              }   
+
                                             if(print){
                                               cat(paste("SCRPS:",scrps[fold, model_number],"\n"))
                                             }                                                  
@@ -649,13 +666,19 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                           post_var <- Expected_post_var + posterior_variance_of_mean                                          
                                           dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
+                                          if(orientation_results == "positive"){
+                                            dss[fold, model_number] <- - dss[fold, model_number]
+                                          }                                          
                                           if(print){
                                             cat(paste("DSS:", dss[fold, model_number],"\n"))
                                           }
                                         }
 
                                         if("mse" %in% scores){
-                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)                      
+                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)       
+                                          if(orientation_results == "positive"){
+                                            mse[fold, model_number] <- - mse[fold, model_number] 
+                                          }                                                             
                                          if(print){
                                             cat(paste("MSE:",mse[fold, model_number],"\n"))
                                           }                                                           
@@ -671,6 +694,9 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               })
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
+                                              if(orientation_results == "negative"){
+                                                crps[fold, model_number] <- - crps[fold, model_number]
+                                              }                                                  
                                             if(print){
                                               cat(paste("CRPS:",crps[fold, model_number],"\n"))
                                             }      
@@ -681,6 +707,9 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               })
                                               scrps_temp <- unlist(scrps_temp)
                                               scrps[fold, model_number] <- mean(scrps_temp)  
+                                              if(orientation_results == "negative"){
+                                                scrps[fold, model_number] <- - scrps[fold, model_number]
+                                              }                                                 
                                             if(print){
                                               cat(paste("SCRPS:",scrps[fold, model_number],"\n"))
                                             }                                                  
@@ -729,13 +758,19 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           post_var <- posterior_mean + posterior_variance_of_mean
 
                                           dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
+                                          if(orientation_results == "positive"){
+                                            dss[fold, model_number] <- - dss[fold, model_number]
+                                          }                                                 
                                           if(print){
                                             cat(paste("DSS:", dss[fold, model_number],"\n"))
                                           }
                                         }
 
                                         if("mse" %in% scores){
-                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)                      
+                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)       
+                                          if(orientation_results == "positive"){
+                                            mse[fold, model_number] <- - mse[fold, model_number] 
+                                          }                                                             
                                          if(print){
                                             cat(paste("MSE:",mse[fold, model_number],"\n"))
                                           }                                                           
@@ -747,6 +782,9 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               })
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
+                                              if(orientation_results == "negative"){
+                                                crps[fold, model_number] <- - crps[fold, model_number]
+                                              }                                                  
                                             if(print){
                                               cat(paste("CRPS:",crps[fold, model_number],"\n"))
                                             }      
@@ -757,6 +795,9 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               })
                                               scrps_temp <- unlist(scrps_temp)
                                               scrps[fold, model_number] <- mean(scrps_temp)  
+                                              if(orientation_results == "negative"){
+                                                scrps[fold, model_number] <- - scrps[fold, model_number]
+                                              }                                                  
                                             if(print){
                                               cat(paste("SCRPS:",scrps[fold, model_number],"\n"))
                                             }                                                  
@@ -786,13 +827,34 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                   scrps_mean <- colMeans(scrps)
                                   result_df <- data.frame(result_df, scrps = scrps_mean)
                                 }
+
+        if(save_settings){
+          settings_list <- list(n_samples = n_samples, cv_type = cv_type, true_CV = true_CV,
+                                  orientation_results = orientation_results)
+          if(cv_type == "k-fold"){
+            settings_list[["k"]] <- k
+          } else if(cv_type == "lpo"){
+            settings_list[["percentage"]] <- percentage
+            settings_list[["number_folds"]] <- number_folds
+          }
+        }
+        
         if(!return_scores_folds){
+            if(save_settings){
+              return(list(scores_df = result_df,
+                      settings = settings_list))
+            }
             return(result_df)
         } else{
           colnames(dss) <- model_names
           colnames(mse) <- model_names
           colnames(crps) <- model_names
           colnames(scrps) <- model_names
+            if(save_settings){
+             return(list(scores_df = result_df,
+                      scores_folds = list(dss = dss, mse = mse, crps = crps, scrps = scrps),
+                      settings = settings_list))           
+            }
           return(list(scores_df = result_df,
                       scores_folds = list(dss = dss, mse = mse, crps = crps, scrps = scrps)))
         }
