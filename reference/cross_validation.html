@@ -78,13 +78,14 @@ to a folding scheme.</p>
 <span>  model_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  scores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mse"</span>, <span class="st">"crps"</span>, <span class="st">"scrps"</span>, <span class="st">"dss"</span><span class="op">)</span>,</span>
 <span>  cv_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"k-fold"</span>, <span class="st">"loo"</span>, <span class="st">"lpo"</span><span class="op">)</span>,</span>
-<span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  k <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  percentage <span class="op">=</span> <span class="fl">30</span>,</span>
 <span>  number_folds <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  n_samples <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  return_scores_folds <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  orientation_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"negative"</span>, <span class="st">"positive"</span><span class="op">)</span>,</span>
 <span>  true_CV <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  save_settings <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  print <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  fit_verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -110,11 +111,6 @@ to a folding scheme.</p>
 with the number of folds to be done. The default is <code>k-fold</code>.</p></dd>
 
 
-<dt>data</dt>
-<dd><p>A dataset to be used to perform crossvalidation on all models. Observe that this means that the data must contain all the variables for all the models. If <code>NULL</code>,
-then the data will be extracted from the first fitted model. Observe that if <code>data</code> is <code>NULL</code>, then the models need to be trained on the same dataset as the first model of the list.</p></dd>
-
-
 <dt>k</dt>
 <dd><p>The number of folds to be used in <code>k</code>-fold cross-validation. Will only be used if <code>cv_type</code> is <code>k-fold</code>.</p></dd>
 
@@ -135,8 +131,16 @@ then the data will be extracted from the first fitted model. Observe that if <co
 <dd><p>If <code>TRUE</code>, the scores for each fold will also be returned.</p></dd>
 
 
+<dt>orientation_results</dt>
+<dd><p>character vector. The options are "negative" and "positive". If "negative", the smaller the scores the better. If "positive", the larger the scores the better.</p></dd>
+
+
 <dt>true_CV</dt>
 <dd><p>Should a <code>TRUE</code> cross-validation be performed? If <code>TRUE</code> the models will be fitted on the training dataset. If <code>FALSE</code>, the parameters will be kept fixed at the ones obtained in the result object.</p></dd>
+
+
+<dt>save_settings</dt>
+<dd><p>Logical. If <code>TRUE</code>, the settings used in the cross-validation will also be returned.</p></dd>
 
 
 <dt>print</dt>
@@ -154,6 +158,23 @@ then the data will be extracted from the first fitted model. Observe that if <co
 <p>A data.frame with the fitted models and the corresponding scores.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span> <span class="co">#devel version</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"INLA"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"inlabru"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://www.inlabru.org" class="external-link">inlabru</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="co">#devel.tag</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 
