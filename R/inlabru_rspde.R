@@ -394,6 +394,11 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                               true_CV = FALSE, save_settings = FALSE, print = TRUE,
                               fit_verbose = FALSE){
 
+                                orientation_results <- orientation_results[[1]]
+                                if(!(orientation_results %in% c("positive", "negative"))){
+                                  stop("orientation_results must be either 'positive' or 'negative'!")
+                                }
+
                                 scores <- intersect(scores, c("mse", "crps", "scrps", "dss"))
 
                                 cv_type <- cv_type[[1]]
