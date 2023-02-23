@@ -894,7 +894,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
           }
         }
 
-        parallel::stopCluster(cluster_tmp)
+
+        if(parallelize_RP){
+              parallel::stopCluster(cluster_tmp)
+        }
         
         if(!return_scores_folds){
             if(save_settings){
