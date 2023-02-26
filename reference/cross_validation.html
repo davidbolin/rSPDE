@@ -84,6 +84,8 @@ to a folding scheme.</p>
 <span>  n_samples <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  return_scores_folds <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  orientation_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"negative"</span>, <span class="st">"positive"</span><span class="op">)</span>,</span>
+<span>  train_test_indexes <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  return_train_test <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  parallelize_RP <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_cores_RP <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span>,</span>
 <span>  true_CV <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -135,6 +137,15 @@ with the number of folds to be done. The default is <code>k-fold</code>.</p></dd
 
 <dt>orientation_results</dt>
 <dd><p>character vector. The options are "negative" and "positive". If "negative", the smaller the scores the better. If "positive", the larger the scores the better.</p></dd>
+
+
+<dt>train_test_indexes</dt>
+<dd><p>A list containing two entries <code>train</code>, which is a list whose elements are vectors of indexes of the training data, and <code>test</code>, which is a list whose elements are vectors of indexes of the test data.
+Typically this will be returned list obtained by setting the argument <code>return_train_test</code> to <code>TRUE</code>.</p></dd>
+
+
+<dt>return_train_test</dt>
+<dd><p>Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list.</p></dd>
 
 
 <dt>parallelize_RP</dt>
