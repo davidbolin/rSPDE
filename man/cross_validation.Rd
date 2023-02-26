@@ -15,6 +15,8 @@ cross_validation(
   n_samples = 1000,
   return_scores_folds = FALSE,
   orientation_results = c("negative", "positive"),
+  train_test_indexes = NULL,
+  return_train_test = FALSE,
   parallelize_RP = FALSE,
   n_cores_RP = parallel::detectCores() - 1,
   true_CV = FALSE,
@@ -45,6 +47,11 @@ with the number of folds to be done. The default is \code{k-fold}.}
 \item{return_scores_folds}{If \code{TRUE}, the scores for each fold will also be returned.}
 
 \item{orientation_results}{character vector. The options are "negative" and "positive". If "negative", the smaller the scores the better. If "positive", the larger the scores the better.}
+
+\item{train_test_indexes}{A list containing two entries \code{train}, which is a list whose elements are vectors of indexes of the training data, and \code{test}, which is a list whose elements are vectors of indexes of the test data.
+Typically this will be returned list obtained by setting the argument \code{return_train_test} to \code{TRUE}.}
+
+\item{return_train_test}{Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list.}
 
 \item{parallelize_RP}{Logical. Should the computation of CRPS and SCRPS be parallelized?}
 

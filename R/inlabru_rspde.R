@@ -366,6 +366,9 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @param n_samples Number of samples to compute the posterior statistics to be used to compute the scores.
 #' @param return_scores_folds If `TRUE`, the scores for each fold will also be returned.
 #' @param orientation_results character vector. The options are "negative" and "positive". If "negative", the smaller the scores the better. If "positive", the larger the scores the better.
+#' @param train_test_indexes A list containing two entries `train`, which is a list whose elements are vectors of indexes of the training data, and `test`, which is a list whose elements are vectors of indexes of the test data.
+#' Typically this will be returned list obtained by setting the argument `return_train_test` to `TRUE`.
+#' @param return_train_test Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list.
 #' @param parallelize_RP Logical. Should the computation of CRPS and SCRPS be parallelized?
 #' @param n_cores_RP Number of cores to be used if `parallelize_rp` is `TRUE`.
 #' @param true_CV Should a `TRUE` cross-validation be performed? If `TRUE` the models will be fitted on the training dataset. If `FALSE`, the parameters will be kept fixed at the ones obtained in the result object.
@@ -394,6 +397,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                               k = 5, percentage = 30, number_folds = 10,
                               n_samples = 1000, return_scores_folds = FALSE,
                               orientation_results = c("negative", "positive"),
+                              train_test_indexes = NULL,
+                              return_train_test = FALSE,
                               parallelize_RP = FALSE, n_cores_RP = parallel::detectCores()-1,
                               true_CV = FALSE, save_settings = FALSE, print = TRUE,
                               fit_verbose = FALSE){
@@ -488,7 +493,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                 # Creating lists of train and test datasets
 
-                                if(cv_type == "k-fold"){
+                                if(is.null(train_test_indexes)){
+                                  if(cv_type == "k-fold"){
                                         # split idx into k
                                             idx <- seq_len(nrow(data[1]))
                                             folds <- cut(sample(idx), breaks = k, label = FALSE)
@@ -513,6 +519,27 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               idx[-test_list[[i]]]
                                             })
                                 }
+                                } else{
+                                  if(!is.list(train_test_indexes)){
+                                    stop("train_test_indexes should be a list!")
+                                  }
+                                  if(is.null(train_test_indexes[["train"]])){
+                                    stop("train_test_indexes must contain a 'train' element.")
+                                  }
+                                  if(is.null(train_test_indexes[["test"]])){
+                                    stop("train_test_indexes must contain a 'test' element.")
+                                  }
+                                  if(!is.list(train_test_indexes[["train"]])){
+                                    stop("train_test_indexes$train must be a list!")
+                                  }
+                                  if(!is.list(train_test_indexes[["test"]])){
+                                    stop("train_test_indexes$test must be a list!")
+                                  }
+                                  train_list <- train_test_indexes[["train"]]
+                                  test_list <- train_test_indexes[["test"]]
+                                }
+
+
 
                                 # Perform the cross-validation
                                 
@@ -560,12 +587,14 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         env_tmp <- environment(formula_tmp)
                                         assign("linkfuninv", linkfuninv, envir = env_tmp)
 
-                                        cat("Generating samples...\n")
+                                        if(print){
+                                            cat("Generating samples...\n")
+                                        }
 
                                         posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
-
-                                        cat("Samples generated!\n")
-
+                                        if(print){ 
+                                          cat("Samples generated!\n")
+                                        }
                                         test_data <- data[[resp_var]][test_list[[fold]]]
 
                                         if(nrow(posterior_samples) == 1){
@@ -674,11 +703,15 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
-                                        cat("Generating samples...\n")
+                                        if(print){
+                                            cat("Generating samples...\n")
+                                        }
 
                                         posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
 
-                                        cat("Samples generated!\n")
+                                        if(print){ 
+                                          cat("Samples generated!\n")
+                                        }
 
                                         test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
 
@@ -781,11 +814,15 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
-                                        cat("Generating samples...\n")
+                                        if(print){
+                                            cat("Generating samples...\n")
+                                        }
 
                                         posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
 
-                                        cat("Samples generated!\n")
+                                        if(print){ 
+                                          cat("Samples generated!\n")
+                                        }
 
                                         test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
 
@@ -901,24 +938,31 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
         
         if(!return_scores_folds){
             if(save_settings){
-              return(list(scores_df = result_df,
-                      settings = settings_list))
+              out <- list(scores_df = result_df,
+                      settings = settings_list)
+              if(return_train_test){
+                out[["train_test"]] <- list(train = train_list, test = test_list)
+              }
+            } else if(return_train_test){
+              out <- list(scores_df = result_df, train_test = list(train = train_list, test = test_list))
+            } else{
+              out <- result_df
             }
-            return(result_df)
         } else{
           colnames(dss) <- model_names
           colnames(mse) <- model_names
           colnames(crps) <- model_names
           colnames(scrps) <- model_names
-            if(save_settings){
-             return(list(scores_df = result_df,
-                      scores_folds = list(dss = dss, mse = mse, crps = crps, scrps = scrps),
-                      settings = settings_list))           
+          out <- list(scores_df = result_df,
+                      scores_folds = list(dss = dss, mse = mse, crps = crps, scrps = scrps))
+          if(save_settings){
+             out[["settings"]] <- settings_list
             }
-          return(list(scores_df = result_df,
-                      scores_folds = list(dss = dss, mse = mse, crps = crps, scrps = scrps)))
+          if(return_train_test){
+            out[["train_test"]] <- list(train = train_list, test = test_list)
+          }
         }
 
-
+  return(out)
 }
 
