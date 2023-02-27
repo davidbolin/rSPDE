@@ -481,7 +481,7 @@ To this end we create a model object with the `matern.operators()` function:
 
 ```{r}
 nu <- 0.5
-sigma <- 4
+sigma <- 1
 range <- 0.1
 kappa <- sqrt(8 * nu) / range
 tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) * (4 * pi) * gamma(nu + 1)))
@@ -541,7 +541,7 @@ We begin by creating the model object.
 
 ```{r}
 rspde_model.rep <- rspde.matern(mesh = mesh_2d,
-          parameterization = "matern2") 
+          parameterization = "spde") 
 ```
 
 Let us now create the `data.frame()` and the vector with the replicates indexes:
@@ -726,7 +726,7 @@ rspde_fit_nonstat <-
   bru(cmp_nonstat,
     data = nonstat_df,
     family = "gaussian",
-    options = list(verbose = TRUE)
+    options = list(verbose = FALSE)
   )
 ```
 
