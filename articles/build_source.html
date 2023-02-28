@@ -96,7 +96,7 @@
                         <h4 data-toc-skip class="author">David Bolin and
 Alexandre B. Simas</h4>
             
-            <h4 data-toc-skip class="date">2023-02-27</h4>
+            <h4 data-toc-skip class="date">2023-02-28</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/build_source.rmd" class="external-link"><code>vignettes/build_source.rmd</code></a></small>
       <div class="d-none name"><code>build_source.rmd</code></div>
@@ -105,63 +105,83 @@ Alexandre B. Simas</h4>
     
     
 <div class="section level2">
+<h2 id="building-from-source">Building from source<a class="anchor" aria-label="anchor" href="#building-from-source"></a>
+</h2>
+<p>To build <code>rSPDE</code> from source you need to obtain the <a href="https://github.com/davidbolin/rSPDE" class="external-link">GitHub version</a>. If you
+have all the dependencies (see below how to install some of them), you
+can install the <code>rSPDE</code> package from source by running the
+following command on <code>R</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"davidbolin/rspde"</span>, ref <span class="op">=</span> <span class="st">"devel"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="dependencies-on-linux">Dependencies on Linux<a class="anchor" aria-label="anchor" href="#dependencies-on-linux"></a>
 </h2>
 <p>The <code>rSPDE</code> package depends on the <a href="https://eigen.tuxfamily.org/" class="external-link">Eigen C++ library</a>.</p>
 <p>To install Eigen on Ubuntu, run:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install libeigen3-dev</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install libeigen3-dev</span></code></pre></div>
 <p>To install Eigen on Arch-Linux or Manjaro, run:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> pacman <span class="at">-S</span> eigen3</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> pacman <span class="at">-S</span> eigen3</span></code></pre></div>
 <p>To install Eigen on Red Hat, Fedor or CentOS, run:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum install eigen3-devel</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum install eigen3-devel</span></code></pre></div>
 <p>To install Eigen on OpenSuse, run:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> zypper install eigen3-devel</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> zypper install eigen3-devel</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="dependencies-on-mac">Dependencies on Mac<a class="anchor" aria-label="anchor" href="#dependencies-on-mac"></a>
 </h2>
 <p>We can install Eigen on MacOS with <a href="https://brew.sh/" class="external-link">Homebrew</a>.</p>
 <p>To install Homebrew, run:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/bin/bash</span> <span class="at">-c</span> <span class="st">"</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="va">)</span><span class="st">"</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/bin/bash</span> <span class="at">-c</span> <span class="st">"</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="va">)</span><span class="st">"</span></span></code></pre></div>
 <p>To install Eigen using Homebrew, run:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install eigen</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install eigen</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="adjusting-the-makefile">Adjusting the Makefile<a class="anchor" aria-label="anchor" href="#adjusting-the-makefile"></a>
 </h2>
-<p>The <code>Makefile</code> has the following base form:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">toInclude</span> = <span class="va">${R_LIBRARY_DIR}</span>/INLA/include/</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">obj</span> = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o <span class="dt">\</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>      cgeneric_rspde_stat_frac_model.o cgeneric_rspde_nonstat_general.o <span class="dt">\</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>      cgeneric_rspde_stat_general.o cgeneric_rspde_stat_parsim_gen.o <span class="dt">\</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>      cgeneric_rspde_stat_parsim_fixed.o cgeneric_rspde_stat_int.o <span class="dt">\</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>      cgeneric_rspde_nonstat_gen_fixed.o cgeneric_rspde_nonstat_int.o <span class="dt">\</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>      cgeneric_aux_nonstat_int.o</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="ex">all</span> : rSPDE.so</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="ex">CC</span> = clang</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="ex">CXX</span> = clang++</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="ex">EIGEN_MAC</span> = /usr/local/include/eigen3/</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="ex">EIGEN_LINUX</span> = /usr/include/eigen3/</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="ex">flags</span> = <span class="at">-O2</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-fpic</span></span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="ex">%.o:</span> %.c</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="va">$(</span><span class="ex">CC</span><span class="va">)</span> <span class="va">$(</span><span class="ex">flags</span><span class="va">)</span> <span class="at">-Iinclude</span> <span class="at">-I</span><span class="va">$(</span><span class="ex">toInclude</span><span class="va">)</span>  <span class="at">-c</span> $^ <span class="at">-o</span> <span class="va">$@</span></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="ex">%.o:</span> %.cpp</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    <span class="va">$(</span><span class="ex">CXX</span><span class="va">)</span> <span class="va">$(</span><span class="ex">flags</span><span class="va">)</span>  <span class="at">-I</span><span class="va">$(</span><span class="ex">toInclude</span><span class="va">)</span> <span class="at">-I</span><span class="va">$(</span><span class="ex">EIGEN_MAC</span><span class="va">)</span> <span class="at">-I</span><span class="va">$(</span><span class="ex">EIGEN_LINUX</span><span class="va">)</span> <span class="at">-c</span> $^ <span class="at">-o</span> <span class="va">$@</span></span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="ex">rSPDE.so:</span> <span class="va">$(</span><span class="ex">obj</span><span class="va">)</span></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    <span class="va">$(</span><span class="ex">CXX</span><span class="va">)</span> <span class="at">-shared</span> <span class="pp">*</span>.o <span class="at">-o</span> ../inst/shared/rspde_cgeneric_models.so <span class="at">-lblas</span> <span class="at">-llapack</span></span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="ex">clean</span> :</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rm</span> <span class="at">-f</span> <span class="pp">*</span>.o</span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="ex">.PHONY:</span> all clean</span></code></pre></div>
+<p>If you experience trouble while installing the <code>rSPDE</code>
+package, you might need to adjust the <code>Makefile</code>. Before
+that, you will need to have <code>rSPDE</code> source files locally on
+your computer. To such an end, you can, for instance, close the
+<code>rSPDE</code> repository by running the following command on a
+terminal:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/davidbolin/rSPDE.git</span></code></pre></div>
+<p>You can also <a href="https://github.com/davidbolin/rSPDE/archive/refs/heads/devel.zip" class="external-link">download
+the source files</a>.</p>
+<p>Now, let us discuss the <code>Makefile</code>. The
+<code>Makefile</code> has the following base form:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">toInclude</span> = <span class="va">${R_LIBRARY_DIR}</span>/INLA/include/</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">obj</span> = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o <span class="dt">\</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>      cgeneric_rspde_stat_frac_model.o cgeneric_rspde_nonstat_general.o <span class="dt">\</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>      cgeneric_rspde_stat_general.o cgeneric_rspde_stat_parsim_gen.o <span class="dt">\</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>      cgeneric_rspde_stat_parsim_fixed.o cgeneric_rspde_stat_int.o <span class="dt">\</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      cgeneric_rspde_nonstat_gen_fixed.o cgeneric_rspde_nonstat_int.o <span class="dt">\</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>      cgeneric_aux_nonstat_int.o</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="ex">all</span> : rSPDE.so</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="ex">CC</span> = clang</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="ex">CXX</span> = clang++</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="ex">EIGEN_MAC</span> = /usr/local/include/eigen3/</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="ex">EIGEN_LINUX</span> = /usr/include/eigen3/</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="ex">flags</span> = <span class="at">-O2</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-fpic</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="ex">%.o:</span> %.c</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    <span class="va">$(</span><span class="ex">CC</span><span class="va">)</span> <span class="va">$(</span><span class="ex">flags</span><span class="va">)</span> <span class="at">-Iinclude</span> <span class="at">-I</span><span class="va">$(</span><span class="ex">toInclude</span><span class="va">)</span>  <span class="at">-c</span> $^ <span class="at">-o</span> <span class="va">$@</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="ex">%.o:</span> %.cpp</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    <span class="va">$(</span><span class="ex">CXX</span><span class="va">)</span> <span class="va">$(</span><span class="ex">flags</span><span class="va">)</span>  <span class="at">-I</span><span class="va">$(</span><span class="ex">toInclude</span><span class="va">)</span> <span class="at">-I</span><span class="va">$(</span><span class="ex">EIGEN_MAC</span><span class="va">)</span> <span class="at">-I</span><span class="va">$(</span><span class="ex">EIGEN_LINUX</span><span class="va">)</span> <span class="at">-c</span> $^ <span class="at">-o</span> <span class="va">$@</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="ex">rSPDE.so:</span> <span class="va">$(</span><span class="ex">obj</span><span class="va">)</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    <span class="va">$(</span><span class="ex">CXX</span><span class="va">)</span> <span class="at">-shared</span> <span class="pp">*</span>.o <span class="at">-o</span> ../inst/shared/rspde_cgeneric_models.so <span class="at">-lblas</span> <span class="at">-llapack</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="ex">clean</span> :</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rm</span> <span class="at">-f</span> <span class="pp">*</span>.o</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a><span class="ex">.PHONY:</span> all clean</span></code></pre></div>
 <div class="section level3">
 <h3 id="adjusts-on-linux">Adjusts on Linux<a class="anchor" aria-label="anchor" href="#adjusts-on-linux"></a>
 </h3>
@@ -169,25 +189,25 @@ Alexandre B. Simas</h4>
 <code>g++-12</code> compilers. To this end, one must install
 <code>gcc</code> and <code>g++</code>, then change the following lines
 on the <code>Makefile</code>:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">CC</span> = gcc</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">CXX</span> = g++</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">CC</span> = gcc</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">CXX</span> = g++</span></code></pre></div>
 <p>One should also confirm the location of the Eigen library. The
 default location is <code>/usr/include/eigen3/</code> and is already set
 at the Makefile. If you have Eigen installed in a different location,
 you will need to update the <code>Makefile</code> by changing the
 <code>EIGEN_LINUX</code> variable:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">EIGEN_LINUX</span> = /correct_path/</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">EIGEN_LINUX</span> = /correct_path/</span></code></pre></div>
 <p>To install <code>gcc</code> and <code>g++</code> on Ubuntu, run</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install gcc g++</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install gcc g++</span></code></pre></div>
 <p>To install <code>gcc</code> and <code>g++</code> on Arch-Linux or
 Manjaro, run:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> pacman <span class="at">-S</span> gcc g++</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> pacman <span class="at">-S</span> gcc g++</span></code></pre></div>
 <p>To install <code>gcc</code> and <code>g++</code> on Red Hat, Fedor or
 CentOS, run:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum install gcc g++</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum install gcc g++</span></code></pre></div>
 <p>To install <code>gcc</code> and <code>g++</code> on OpenSuse,
 run:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> zypper install gcc g++</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> zypper install gcc g++</span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="adjusts-on-mac">Adjusts on Mac<a class="anchor" aria-label="anchor" href="#adjusts-on-mac"></a>
@@ -202,7 +222,7 @@ default location is <code>/usr/local/include/eigen3/</code> and is
 already set at the Makefile.</p>
 <p>If you installed Eigen using Homebrew, you can check the location of
 the Eigen installation by using the following command:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> <span class="at">--prefix</span> eigen</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> <span class="at">--prefix</span> eigen</span></code></pre></div>
 <p>You can, then, update the <code>EIGEN_MAC</code> variable in the
 <code>Makefile</code> with the correct path.</p>
 </div>
