@@ -744,7 +744,7 @@ get_inla_mesh_dimension <- function(inla_mesh) {
   stopifnot(cond1 || cond2)
   if (inla_mesh$manifold == "R1") {
     d <- 1
-  } else if (inla_mesh$manifold == "R2") {
+  } else if (inla_mesh$manifold %in% c("R2","S2")) {
     d <- 2
   } else {
     stop("The mesh should be from a flat manifold.")

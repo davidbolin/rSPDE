@@ -261,40 +261,6 @@ stopifnot(inherits(result, "bru"))
   return(result)
 }
 
-#' @noRd 
-
-scrps_pois <- function(y, lambda){
-  E1 <- (y - lambda) * (2 * stats::ppois(y, lambda) - 1) + 2 * lambda * stats::dpois(floor(y), lambda)
-  E2 <- 2*lambda*(besselI(2 * lambda, 0, expon.scaled = TRUE) + besselI(2 * lambda, 1, expon.scaled = TRUE))
-  return(-E1/E2 - 0.5 * log(E2))
-}
-
-#' @noRd 
-
-scrps_gaussian <- function(y, mu, tau){
-  z <- (mu-y)*sqrt(tau)
-  return(-sqrt(pi)*stats::dnorm(z) - sqrt(pi)*z/2 * (2*stats::pnorm(z) - 1) - 0.5*log(2/sqrt(tau*pi)))
-}
-
-#' @noRd 
-
-scrps_gamma <- function(y, mu, phi){
-  shape <- phi
-  scale <- mu/shape
-  E1 <- 2*y*stats::pgamma(y,shape = shape, scale = scale) - y - 2*shape*scale*stats::pgamma(y, shape = shape+1, scale = scale) + shape*scale
-  E2 <- 2*scale/beta(1/2, shape)
-  return(-E1/E2 - 0.5*log(E2))
-}
-
-#' @noRd 
-
-scrps_lognormal <- function(y, mu, tau){
-  sdlog <- 1/sqrt(tau)
-  temp <- stats::pnorm((log(y) - mu - sdlog^2)/sdlog)
-  E1 <- y*(2*stats::plnorm(y,meanlog = mu, sdlog = sdlog) - 1) -2*exp(mu + (sdlog^2)/2)*(temp-0.5)
-  E2 <- 4*exp(mu + (sdlog^2)/2)*(stats::pnorm(sdlog/sqrt(2))-0.5)
-  return(-E1/E2 - 0.5*log(E2))
-}
 
 #' @noRd 
 
@@ -591,7 +557,12 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                             cat("Generating samples...\n")
                                         }
 
-                                        posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
+                                        if(("crps" %in% scores) || ("scrps" %in% scores)){
+                                            posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
+                                        } else {
+                                          posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
+                                        }
+                                        
                                         if(print){ 
                                           cat("Samples generated!\n")
                                         }
@@ -633,25 +604,55 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
-                                          hyper_sample <- INLA::inla.hyperpar.sample(n_samples, new_model, improve.marginals=TRUE) # INLA::inla.rmarginal(n_samples, new_model$marginals.hyperpar$`Precision for the Gaussian observations`)
-                                          phi_sample <- as.vector(hyper_sample[,"Precision for the Gaussian observations"])                                          
-                                          if("crps" %in% scores){
-                                              sd_sample <- 1/sqrt(phi_sample)
+                                          hyper_sample <- INLA::inla.hyperpar.sample(n_samples, new_model, improve.marginals=TRUE) 
+                                          # phi_sample <- INLA::inla.rmarginal(n_samples, new_model$marginals.hyperpar$`Precision for the Gaussian observations`)
+                                          phi_sample_1 <- as.vector(hyper_sample[,"Precision for the Gaussian observations"])
+                                          sd_sample_1 <- 1/sqrt(phi_sample_1)  
 
-                                              if(parallelize_RP){
-                                                    crps_temp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
-                                                            -mean(scoringRules::crps_norm(test_data[i], posterior_samples[i,], sd_sample))
+                                          hyper_sample2 <- INLA::inla.hyperpar.sample(n_samples, new_model, improve.marginals=TRUE) 
+
+                                          phi_sample_2 <- as.vector(hyper_sample2[,"Precision for the Gaussian observations"])
+                                          sd_sample_2 <- 1/sqrt(phi_sample_2)  
+
+                                          if(parallelize_RP){
+                                            Y1_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            posterior_samples[i,1:n_samples] + sd_sample_1 * rnorm(n_samples)
                                                           })
-                                              } else{
-                                                    crps_temp <- lapply(1:length(test_data), function(i){
-                                                      -mean(scoringRules::crps_norm(test_data[i], posterior_samples[i,], sd_sample))
+                                            Y2_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            posterior_samples[i,(n_samples+1):(2*n_samples)] + sd_sample_2 * rnorm(n_samples)
+                                                          })
+                                            E1_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            mean(abs(Y1_sample[[i]]-test_data[i]))
+                                                          })
+                                            E2_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            mean(abs(Y1_sample[[i]]-Y2_sample[[i]]))
+                                                          })
+                                            
+                                          } else{
+                                            Y1_sample <- lapply(1:length(test_data), function(i){
+                                                      posterior_samples[i,1:n_samples] + sd_sample_1 * rnorm(n_samples)
                                                     })
-                                              }
+                                            Y2_sample <- lapply(1:length(test_data), function(i){
+                                                      posterior_samples[i,(n_samples+1):(2*n_samples)] + sd_sample_2 * rnorm(n_samples)
+                                                    })
+                                            E1_tmp <- lapply(1:length(test_data), function(i){
+                                                      mean(abs(Y1_sample[[i]]-test_data[i]))
+                                                    })
+                                            E2_tmp <- lapply(1:length(test_data), function(i){
+                                                      mean(abs(Y1_sample[[i]]-Y2_sample[[i]]))
+                                                    })              
+                                          }
+                                    
+                                          if("crps" %in% scores){
+                                              
+                                              crps_temp <- lapply(1:length(test_data), function(i){
+                                                return(E1_tmp[[i]] - 0.5*E2_tmp[[i]])
+                                              })
 
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
                                               if(orientation_results == "negative"){
-                                                crps[fold, model_number] <- - crps[fold, model_number]
+                                                crps[fold, model_number] <- crps[fold, model_number]
                                               }    
 
                                             if(print){
@@ -659,15 +660,9 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                             }      
                                           }
                                           if("scrps" %in% scores){
-                                              if(parallelize_RP){
-                                                    scrps_temp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
-                                                            mean(scrps_gaussian(test_data[i], posterior_samples[i,], phi_sample))
-                                                          })
-                                              } else{
-                                                      scrps_temp <- lapply(1:length(test_data), function(i){
-                                                        mean(scrps_gaussian(test_data[i], posterior_samples[i,], phi_sample))
-                                                      })
-                                              }
+                                              scrps_temp <- lapply(1:length(test_data), function(i){
+                                                return(-E1_tmp[[i]]/E2_tmp[[i]] - 0.5*log(E2_tmp[[i]]))
+                                              })
                                               scrps_temp <- unlist(scrps_temp)
                                               scrps[fold, model_number] <- mean(scrps_temp)  
                                               if(orientation_results == "negative"){
@@ -707,7 +702,11 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                             cat("Generating samples...\n")
                                         }
 
-                                        posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
+                                        if(("crps" %in% scores) || ("scrps" %in% scores)){
+                                            posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
+                                        } else {
+                                          posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
+                                        }
 
                                         if(print){ 
                                           cat("Samples generated!\n")
@@ -747,50 +746,73 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
+
                                           hyper_sample <- INLA::inla.hyperpar.sample(n_samples, new_model, improve.marginals=TRUE) # INLA::inla.rmarginal(n_samples, new_model$marginals.hyperpar$`Precision parameter for the Gamma observations`)
-                                          phi_sample <- as.vector(hyper_sample[,"Precision parameter for the Gamma observations"])
-                                          if("crps" %in% scores){
-                                              shape_sample <- phi_sample
-                                              if(parallelize_RP){
-                                                  crps_temp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
-                                                    scale_sample <- posterior_samples[i,] / shape_sample
-                                                    -scoringRules::crps_gamma(test_data[i], shape = shape_sample, scale = scale_sample)
+                                          phi_sample_1 <- as.vector(hyper_sample[,"Precision parameter for the Gamma observations"])
+
+                                          hyper_sample2 <- INLA::inla.hyperpar.sample(n_samples, new_model, improve.marginals=TRUE) 
+
+                                          phi_sample_2 <- as.vector(hyper_sample[,"Precision parameter for the Gamma observations"])
+
+                                          if(parallelize_RP){
+                                            Y1_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            scale_temp <- posterior_samples[i,1:n_samples] / phi_sample_1
+                                                            stats::rgamma(n_samples, shape = phi_sample_1, scale = scale_temp)
                                                           })
-                                              } else{
-                                                  crps_temp <- lapply(1:length(test_data), function(i){
-                                                    scale_sample <- posterior_samples[i,] / shape_sample
-                                                    -scoringRules::crps_gamma(test_data[i], shape = shape_sample, scale = scale_sample)
-                                                  })
-                                              }
+                                            Y2_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            scale_temp <- posterior_samples[i,(n_samples+1):(2*n_samples)] / phi_sample_2
+                                                            stats::rgamma(n_samples, shape = phi_sample_2, scale = scale_temp)
+                                                          })
+                                            E1_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            mean(abs(Y1_sample[[i]]-test_data[i]))
+                                                          })
+                                            E2_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            mean(abs(Y1_sample[[i]]-Y2_sample[[i]]))
+                                                          })
+                                            
+                                          } else{
+                                            Y1_sample <- lapply(1:length(test_data), function(i){
+                                                            scale_temp <- posterior_samples[i,1:n_samples] / phi_sample_1
+                                                            stats::rgamma(n_samples, shape = phi_sample_1, scale = scale_temp)
+                                                    })
+                                            Y2_sample <- lapply(1:length(test_data), function(i){
+                                                            scale_temp <- posterior_samples[i,(n_samples+1):(2*n_samples)] / phi_sample_2
+                                                            stats::rgamma(n_samples, shape = phi_sample_2, scale = scale_temp)
+                                                    })
+                                            E1_tmp <- lapply(1:length(test_data), function(i){
+                                                      mean(abs(Y1_sample[[i]]-test_data[i]))
+                                                    })
+                                            E2_tmp <- lapply(1:length(test_data), function(i){
+                                                      mean(abs(Y1_sample[[i]]-Y2_sample[[i]]))
+                                                    })              
+                                          }
+                                    
+                                          if("crps" %in% scores){
+                                              crps_temp <- lapply(1:length(test_data), function(i){
+                                                return(E1_tmp[[i]] - 0.5*E2_tmp[[i]])
+                                              })
+
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
                                               if(orientation_results == "negative"){
-                                                crps[fold, model_number] <- - crps[fold, model_number]
-                                              }                                                  
+                                                crps[fold, model_number] <- crps[fold, model_number]
+                                              }    
+
                                             if(print){
                                               cat(paste("CRPS:",crps[fold, model_number],"\n"))
                                             }      
                                           }
                                           if("scrps" %in% scores){
-                                              if(parallelize_RP){
-                                                  scrps_temp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
-                                                      mean(scrps_gamma(test_data[i], posterior_samples[i,], phi_sample))
-                                                          })
-                                              } else{                                            
-                                                    scrps_temp <- lapply(1:length(test_data), function(i){
-                                                      mean(scrps_gamma(test_data[i], posterior_samples[i,], phi_sample))
-                                                    })
-                                              }
+                                              scrps_temp <- lapply(1:length(test_data), function(i){
+                                                return(-E1_tmp[[i]]/E2_tmp[[i]] - 0.5*log(E2_tmp[[i]]))
+                                              })
                                               scrps_temp <- unlist(scrps_temp)
                                               scrps[fold, model_number] <- mean(scrps_temp)  
                                               if(orientation_results == "negative"){
                                                 scrps[fold, model_number] <- - scrps[fold, model_number]
-                                              }                                                 
-                                            if(print){
-                                              cat(paste("SCRPS:",scrps[fold, model_number],"\n"))
-                                            }                                                  
-                                          }
+                                              }   
 
+                                        }
                                         }
                                      } else if (models[[model_number]]$.args$family == "poisson"){
 
@@ -818,10 +840,14 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                             cat("Generating samples...\n")
                                         }
 
-                                        posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
+                                        if(("crps" %in% scores) || ("scrps" %in% scores)){
+                                            posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
+                                        } else {
+                                          posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
+                                        }
 
-                                        if(print){ 
-                                          cat("Samples generated!\n")
+                                        if(print){
+                                            cat("Samples generated!\n")
                                         }
 
                                         test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
@@ -856,46 +882,66 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           }                                                           
                                         }
 
-                                        if("crps" %in% scores){
-                                              if(parallelize_RP){
-                                                  scrps_temp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
-                                                       -scoringRules::crps_pois(test_data[i], posterior_samples[i,])
+                                     if(("crps" %in% scores) || ("scrps" %in% scores)){
+
+                                          if(parallelize_RP){
+                                            Y1_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            stats::rpois(n_samples, posterior_samples[i,1:n_samples])
                                                           })
-                                              } else{     
-                                                      crps_temp <- lapply(1:length(test_data), function(i){
-                                                        -scoringRules::crps_pois(test_data[i], posterior_samples[i,])
-                                                      })
-                                              }
+                                            Y2_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            stats::rpois(n_samples, posterior_samples[i,(n_samples+1):(2*n_samples)])
+                                                          })
+                                            E1_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            mean(abs(Y1_sample[[i]]-test_data[i]))
+                                                          })
+                                            E2_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            mean(abs(Y1_sample[[i]]-Y2_sample[[i]]))
+                                                          })
+                                            
+                                          } else{
+                                            Y1_sample <- lapply(1:length(test_data), function(i){
+                                                            stats::rpois(n_samples, posterior_samples[i,1:n_samples])
+                                                    })
+                                            Y2_sample <- lapply(1:length(test_data), function(i){
+                                                            stats::rpois(n_samples, posterior_samples[i,(n_samples+1):(2*n_samples)])
+                                                    })
+                                            E1_tmp <- lapply(1:length(test_data), function(i){
+                                                      mean(abs(Y1_sample[[i]]-test_data[i]))
+                                                    })
+                                            E2_tmp <- lapply(1:length(test_data), function(i){
+                                                      mean(abs(Y1_sample[[i]]-Y2_sample[[i]]))
+                                                    })              
+                                          }
+                                    
+                                          if("crps" %in% scores){
+                                              
+                                              crps_temp <- lapply(1:length(test_data), function(i){
+                                                return(E1_tmp[[i]] - 0.5*E2_tmp[[i]])
+                                              })
+
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
                                               if(orientation_results == "negative"){
-                                                crps[fold, model_number] <- - crps[fold, model_number]
-                                              }                                                  
+                                                crps[fold, model_number] <- crps[fold, model_number]
+                                              }    
+
                                             if(print){
                                               cat(paste("CRPS:",crps[fold, model_number],"\n"))
                                             }      
                                           }
-                                        if("scrps" %in% scores){
-                                              if(parallelize_RP){
-                                                  scrps_temp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
-                                                        mean(scrps_pois(test_data[i], posterior_samples[i,]))
-                                                          })
-                                              } else{     
-                                                      scrps_temp <- lapply(1:length(test_data), function(i){
-                                                        mean(scrps_pois(test_data[i], posterior_samples[i,]))
-                                                      })
-                                              }
+                                          if("scrps" %in% scores){
+                                              scrps_temp <- lapply(1:length(test_data), function(i){
+                                                return(-E1_tmp[[i]]/E2_tmp[[i]] - 0.5*log(E2_tmp[[i]]))
+                                              })
                                               scrps_temp <- unlist(scrps_temp)
                                               scrps[fold, model_number] <- mean(scrps_temp)  
                                               if(orientation_results == "negative"){
                                                 scrps[fold, model_number] <- - scrps[fold, model_number]
-                                              }                                                  
-                                            if(print){
-                                              cat(paste("SCRPS:",scrps[fold, model_number],"\n"))
-                                            }                                                  
-                                          }
+                                              }
+                                          }   
 
-                                      }
+                                        }
+                                     }
 
                                   } 
 
