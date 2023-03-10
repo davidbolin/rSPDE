@@ -122,6 +122,17 @@ rspde.matern <- function(mesh,
     if(!missing(B.sigma)){
       warning("B.sigma was passed, but will not be used since the parameterization is 'spde'.")
     }    
+
+    if(ncol(B.kappa)!=ncol(B.tau)){
+      stop("B.kappa and B.tau must have the same number of columns.")
+    }
+
+    tmp_B <- rbind(B.kappa, B.tau)
+    tmp_B <- colSums(tmp_B^2)
+    tmp_B <- tmp_B[-1]
+    if(any(tmp_B == 0)){
+      stop("The only column that is allowed to be zero simultaneously on B.kappa and B.tau is the first column.")
+    }
   }
 
   if(parameterization %in% c("matern", "matern2")){
@@ -130,7 +141,18 @@ rspde.matern <- function(mesh,
     }
     if(!missing(B.tau)){
       warning("B.tau was passed, but will not be used since the parameterization is NOT 'spde'.")      
-    }    
+    }
+
+    if(ncol(B.sigma)!=ncol(B.range)){
+      stop("B.sigma and B.range must have the same number of columns.")
+    }
+
+    tmp_B <- rbind(B.sigma, B.range)
+    tmp_B <- colSums(tmp_B^2)
+    tmp_B <- tmp_B[-1]
+    if(any(tmp_B == 0)){
+      stop("The only column that is allowed to be zero simultaneously on B.sigma and B.range is the first column.")
+    }
   }
 
   integer.nu <- FALSE

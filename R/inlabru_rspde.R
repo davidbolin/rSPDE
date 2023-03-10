@@ -532,6 +532,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           }
 
                                       # Generate posterior samples of the mean
+                                      if(is.null(models[[model_number]]$.args)){
+                                        stop("There was a problem with INLA's fit. Please, check your model specifications carefully and re-fit the model.")
+                                      }
+
                                       if(models[[model_number]]$.args$family == "gaussian"){
                                         link_name <- models[[model_number]]$.args$control.family[[1]]$link
                                         if(link_name == "default"){
