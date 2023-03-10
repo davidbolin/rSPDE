@@ -11,7 +11,7 @@
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
 #' be estimated. If nu is `NULL`, it will be estimated.
 #' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma} (for 'matern' parameterization) or for \eqn{\sigma^2} (for 'matern2' parameterization). Will be used if `parameterization = 'matern'` or `parameterization = 'matern2'`. 
-#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'` or `parameterization = 'matern'`.
+#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'` or `parameterization = 'matern2'`.
 #' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). `matern2` uses range-like (1/kappa), variance and nu (smoothness). The default is `matern`.
 #' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
 #' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
@@ -113,6 +113,24 @@ rspde.matern <- function(mesh,
 
   if (!type.rational.approx %in% c("chebfun", "brasil", "chebfunLB")) {
     stop("type.rational.approx should be either 'chebfun', 'brasil' or 'chebfunLB'!")
+  }
+
+  if (parameterization == "spde"){
+    if(!missing(B.range)){
+      warning("B.range was passed, but will not be used since the parameterization is 'spde'.")
+    }
+    if(!missing(B.sigma)){
+      warning("B.sigma was passed, but will not be used since the parameterization is 'spde'.")
+    }    
+  }
+
+  if(parameterization %in% c("matern", "matern2")){
+    if(!missing(B.kappa)){
+      warning("B.kappa was passed, but will not be used since the parameterization is NOT 'spde'.")      
+    }
+    if(!missing(B.tau)){
+      warning("B.tau was passed, but will not be used since the parameterization is NOT 'spde'.")      
+    }    
   }
 
   integer.nu <- FALSE
