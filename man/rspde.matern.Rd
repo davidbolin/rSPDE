@@ -50,7 +50,7 @@ be estimated. If nu is \code{NULL}, it will be estimated.}
 
 \item{B.sigma}{Matrix with specification of log-linear model for \eqn{\sigma} (for 'matern' parameterization) or for \eqn{\sigma^2} (for 'matern2' parameterization). Will be used if \code{parameterization = 'matern'} or \code{parameterization = 'matern2'}.}
 
-\item{B.range}{Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if \code{parameterization = 'matern'} or \code{parameterization = 'matern'}.}
+\item{B.range}{Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if \code{parameterization = 'matern'} or \code{parameterization = 'matern2'}.}
 
 \item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). \code{matern2} uses range-like (1/kappa), variance and nu (smoothness). The default is \code{matern}.}
 
