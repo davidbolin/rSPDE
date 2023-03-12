@@ -197,22 +197,35 @@ stopifnot(inherits(result, "bru"))
 
   backup_list <- list()
 
+  total_length <- NULL
+  small_length <- length(idx_data)
+
   for(comp in list_of_components){
     name_input_group <- info[["model"]][["effects"]][[comp]][["group"]][["input"]][["input"]]
     if(!is.null(name_input_group)){
       name_input_group <- as.character(name_input_group)
       comp_group_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
-      backup_list[[comp]][["group_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
-      comp_group_tmp <- comp_group_tmp[idx_data]
-      assign(name_input_group, comp_group_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+      if(is.null(total_length)){
+        total_length <- length(comp_group_tmp)
+      }
+      if(length(comp_group_tmp) == total_length){
+        backup_list[[comp]][["group_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
+        comp_group_tmp <- comp_group_tmp[idx_data]
+        assign(name_input_group, comp_group_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+      }
     }
     name_input_repl <- info[["model"]][["effects"]][[comp]][["replicate"]][["input"]][["input"]]
     if(!is.null(name_input_repl)){
       name_input_repl <- as.character(name_input_repl)
       comp_repl_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
-      backup_list[[comp]][["repl_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
-      comp_repl_tmp <- comp_repl_tmp[idx_data]
-      assign(name_input_repl, comp_repl_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+      if(is.null(total_length)){
+        total_length <- length(comp_repl_tmp)
+      }
+      if(length(comp_repl_tmp) == total_length){
+        backup_list[[comp]][["repl_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
+        comp_repl_tmp <- comp_repl_tmp[idx_data]
+        assign(name_input_repl, comp_repl_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+      }
     }
   }
 
@@ -238,12 +251,16 @@ stopifnot(inherits(result, "bru"))
     name_input_group <- info[["model"]][["effects"]][[comp]][["group"]][["input"]][["input"]]
     if(!is.null(name_input_group)){
       name_input_group <- as.character(name_input_group)
-      assign(name_input_group, backup_list[[comp]][["group_val"]], envir = info[["model"]][["effects"]][[comp]][["env"]])
+      if(!is.null(backup_list[[comp]][["group_val"]])){
+        assign(name_input_group, backup_list[[comp]][["group_val"]], envir = info[["model"]][["effects"]][[comp]][["env"]])
+      }
     }
     name_input_repl <- info[["model"]][["effects"]][[comp]][["replicate"]][["input"]][["input"]]
     if(!is.null(name_input_repl)){
       name_input_repl <- as.character(name_input_repl)
-      assign(name_input_repl, backup_list[[comp]][["repl_val"]], envir = info[["model"]][["effects"]][[comp]][["env"]])
+      if(!is.null(backup_list[[comp]][["repl_val"]])){
+        assign(name_input_repl, backup_list[[comp]][["repl_val"]], envir = info[["model"]][["effects"]][[comp]][["env"]])
+      }
     }
   }
 
