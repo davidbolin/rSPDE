@@ -96,7 +96,7 @@
                         <h4 data-toc-skip class="author">David Bolin and
 Alexandre B. Simas</h4>
             
-            <h4 data-toc-skip class="date">2023-03-12</h4>
+            <h4 data-toc-skip class="date">2023-03-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_inlabru.Rmd" class="external-link"><code>vignettes/rspde_inlabru.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_inlabru.Rmd</code></div>
@@ -324,7 +324,7 @@ of the RW1, and the parameters of the spatial field):</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## inlabru version: 2.7.0</span></span>
-<span><span class="co">## INLA version: 23.02.27</span></span>
+<span><span class="co">## INLA version: 23.03.19</span></span>
 <span><span class="co">## Components:</span></span>
 <span><span class="co">## Intercept: main = linear(1)</span></span>
 <span><span class="co">## distSea: main = rw1(seaDist)</span></span>
@@ -334,10 +334,10 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 3.36, Running = 14.1, Post = 0.093, Total = 17.6 </span></span>
+<span><span class="co">##     Pre = 3.75, Running = 13, Post = 0.103, Total = 16.9 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.943 0.055      1.836    1.943       2.05 1.943   0</span></span>
+<span><span class="co">## Intercept 1.944 0.056      1.835    1.944      2.054 1.944   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -345,27 +345,27 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">##    field CGeneric</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
-<span><span class="co">##                                                    mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.144    0.893      11.45</span></span>
-<span><span class="co">## Precision for distSea                          9563.869 6966.730    2393.32</span></span>
-<span><span class="co">## Theta1 for field                                 -1.478    0.150      -1.78</span></span>
-<span><span class="co">## Theta2 for field                                 -0.008    0.304      -0.60</span></span>
-<span><span class="co">## Theta3 for field                                 -0.313    0.889      -2.04</span></span>
+<span><span class="co">##                                                     mean       sd 0.025quant</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.140    0.894     11.468</span></span>
+<span><span class="co">## Precision for distSea                          10002.900 7977.822   2453.665</span></span>
+<span><span class="co">## Theta1 for field                                  -1.475    0.153     -1.785</span></span>
+<span><span class="co">## Theta2 for field                                   0.002    0.323     -0.634</span></span>
+<span><span class="co">## Theta3 for field                                  -0.472    0.880     -2.120</span></span>
 <span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.122     14.969   13.091</span></span>
-<span><span class="co">## Precision for distSea                          7676.932  28053.188 5171.360</span></span>
-<span><span class="co">## Theta1 for field                                 -1.476     -1.185   -1.471</span></span>
-<span><span class="co">## Theta2 for field                                 -0.010      0.599   -0.021</span></span>
-<span><span class="co">## Theta3 for field                                 -0.327      1.488   -0.384</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.110     14.988   13.048</span></span>
+<span><span class="co">## Precision for distSea                          7731.742  31197.902 5042.306</span></span>
+<span><span class="co">## Theta1 for field                                 -1.472     -1.180   -1.461</span></span>
+<span><span class="co">## Theta2 for field                                  0.001      0.643   -0.001</span></span>
+<span><span class="co">## Theta3 for field                                 -0.503      1.359   -0.634</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2502.99</span></span>
-<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 694.60</span></span>
-<span><span class="co">## Effective number of parameters .....................: 81.25</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2503.41</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 692.80</span></span>
+<span><span class="co">## Effective number of parameters .....................: 81.85</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2505.25</span></span>
-<span><span class="co">## Effective number of parameters .................: 73.94</span></span>
+<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2505.28</span></span>
+<span><span class="co">## Effective number of parameters .................: 74.09</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1262.23 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1262.32 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -396,9 +396,9 @@ scale by using the function <code><a href="../reference/rspde.result.html">rspde
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##             mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## std.dev 0.230754 0.0344364   0.169751 0.228549   0.304731 0.224493</span></span>
-<span><span class="co">## range   1.038550 0.3221810   0.552260 0.989131   1.807310 0.894471</span></span>
-<span><span class="co">## nu      1.298220 0.5645100   0.355599 1.254540   2.435140 1.053930</span></span></code></pre>
+<span><span class="co">## std.dev 0.231548 0.0351844   0.168456 0.229662   0.306319 0.226538</span></span>
+<span><span class="co">## range   1.055380 0.3477130   0.534331 1.001350   1.887510 0.898239</span></span>
+<span><span class="co">## nu      1.195340 0.5532310   0.328678 1.124580   2.373410 0.858053</span></span></code></pre>
 <p>We can also plot the posterior densities. To this end we will use the
 <code><a href="../reference/gg_df.html">gg_df()</a></code> function, which creates <code>ggplot2</code>
 user-friendly data frames:</p>
@@ -618,7 +618,7 @@ some meaningless model.</p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## inlabru version: 2.7.0</span></span>
-<span><span class="co">## INLA version: 23.02.27</span></span>
+<span><span class="co">## INLA version: 23.03.19</span></span>
 <span><span class="co">## Components:</span></span>
 <span><span class="co">## field: main = cgeneric(coordinates), replicate = iid(repl)</span></span>
 <span><span class="co">## Likelihoods:</span></span>
@@ -626,7 +626,7 @@ some meaningless model.</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 3.18, Running = 103, Post = 8.65, Total = 115 </span></span>
+<span><span class="co">##     Pre = 3.66, Running = 125, Post = 8.16, Total = 137 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
@@ -806,7 +806,7 @@ some meaningless model.</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit_nonstat</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## inlabru version: 2.7.0</span></span>
-<span><span class="co">## INLA version: 23.02.27</span></span>
+<span><span class="co">## INLA version: 23.03.19</span></span>
 <span><span class="co">## Components:</span></span>
 <span><span class="co">## field: main = cgeneric(coordinates)</span></span>
 <span><span class="co">## Likelihoods:</span></span>
@@ -814,7 +814,7 @@ some meaningless model.</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 2.92, Running = 44, Post = 0.525, Total = 47.4 </span></span>
+<span><span class="co">##     Pre = 3.35, Running = 49.7, Post = 0.522, Total = 53.5 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
