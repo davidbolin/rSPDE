@@ -7,8 +7,8 @@ all : rSPDE.so
 CC = gcc
 CXX = g++
 
-EIGEN_MAC = /usr/local/include/eigen3/
-EIGEN_LINUX = /usr/include/eigen3/
+EIGEN_MAC = /usr/local
+EIGEN_LINUX = /usr
 
 flags = -O2 -Wall -Wextra -fpic
 
@@ -17,7 +17,7 @@ flags = -O2 -Wall -Wextra -fpic
 	$(CC) $(flags) -Iinclude -I$(toInclude)  -c $^ -o $@
 
 %.o: %.cpp
-	$(CXX) $(flags)  -I$(toInclude) -I$(EIGEN_MAC) -I$(EIGEN_LINUX) -c $^ -o $@
+	$(CXX) $(flags)  -I$(toInclude) -I$(EIGEN_MAC)/include/eigen3/ -I$(EIGEN_LINUX)/include/eigen3/ -c $^ -o $@
 
 rSPDE.so: $(obj)
 	$(CXX) -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
