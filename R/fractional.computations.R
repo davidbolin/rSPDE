@@ -557,11 +557,15 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 #' Put to zero if the model
 #' does not have measurement noise.
 #' @param compute.variances Set to also TRUE to compute the kriging variances.
+#' @param posterior_samples If `TRUE`, posterior samples will be returned.
+#' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
+#' @param only_latent Should the posterior samples be only given to the laten model?
 #' @param ... further arguments passed to or from other methods.
 #'
 #' @return A list with elements
 #' \item{mean }{The kriging predictor (the posterior mean of u|Y).}
 #' \item{variance }{The posterior variances (if computed).}
+#' \item{samples }{A matrix containing the samples if `sampling` is `TRUE`.} 
 #' @export
 #' @method predict rSPDEobj
 #'
@@ -613,6 +617,9 @@ predict.rSPDEobj <- function(object,
                              Y,
                              sigma.e,
                              compute.variances = FALSE,
+                             posterior_samples = FALSE,
+                             n_samples = 100,
+                             only_latent = FALSE,
                              ...) {
   Y <- as.matrix(Y)
   if (dim(Y)[1] != dim(A)[1]) {
@@ -653,6 +660,30 @@ predict.rSPDEobj <- function(object,
       out$variance <- diag(AA %*% solve(Qhat, t(AA)))
     }
   }
+
+  if(posterior_samples){
+    if(sigma.e > 0){
+      post_cov <- AA %*% solve(Qhat, t(AA))
+    } else{
+      AA <- Aprd %*% object$Pr
+      M <- object$Q - QiAt %*% solve(AQiA, t(QiAt))
+      post_cov <- AA %*% M %*% t(AA)
+    }
+    Y_tmp <- as.matrix(Y)
+    mean_tmp <- as.matrix(out$mean)
+    out$samples <- lapply(1:ncol(Y_tmp), function(i){
+        Z <- rnorm(dim(post_cov)[1] * n_samples)
+        dim(Z) <- c(dim(post_cov)[1], n_samples)
+        LQ <- chol(forceSymmetric(post_cov))
+        X <- solve(LQ, Z)
+        X <- X + mean_tmp[,i]
+        if(!only_latent){
+          X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
+        }
+        return(X)
+    })
+  }
+
   return(out)
 }
 
@@ -1759,6 +1790,9 @@ if (inherits(object, "CBrSPDEobj")) {
 #' Put to zero if the model does not have measurement noise.
 #' @param mu Expectation vector of the latent field (default = 0).
 #' @param compute.variances Set to also TRUE to compute the kriging variances.
+#' @param posterior_samples If `TRUE`, posterior samples will be returned.
+#' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
+#' @param only_latent Should the posterior samples be only given to the laten model?
 #' @param pivot Should pivoting be used on the Cholesky decompositions?
 #' @param ... further arguments passed to or from other methods.
 #' @return A list with elements
@@ -1813,7 +1847,8 @@ if (inherits(object, "CBrSPDEobj")) {
 #' lines(x, u.krig$mean + 2 * sqrt(u.krig$variance), col = 2)
 #' lines(x, u.krig$mean - 2 * sqrt(u.krig$variance), col = 2)
 predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
-                               compute.variances = FALSE, pivot = TRUE,
+                               compute.variances = FALSE, posterior_samples = FALSE,
+                               n_samples = 100, only_latent = FALSE, pivot = TRUE,
                                ...) {
   Y <- as.matrix(Y)
   if (dim(Y)[1] != dim(A)[1]) {
@@ -1864,12 +1899,22 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
         reorder <- attr(R, "pivot")
         # make it lower triangle
         R <- t(R)
-        v <- solve(R, mu_xgiveny[reorder])
+        if(dim(Y)[2] == 1){
+          v <- solve(R, mu_xgiveny[reorder])
+        } else{
+          v <- solve(R, mu_xgiveny[reorder,])
+        }
+
         mu_xgiveny <- solve(t(R), v)
         # order back
         orderback <- numeric(length(reorder))
         orderback[reorder] <- seq_len(length(reorder))
-        mu_xgiveny <- mu_xgiveny[orderback]
+        if(dim(Y)[2]==1){
+          mu_xgiveny <- mu_xgiveny[orderback]
+        } else{
+          mu_xgiveny <- mu_xgiveny[orderback,]
+        }
+
       } else {
         R <- t(R)
         v <- solve(R, mu_xgiveny)
@@ -1898,12 +1943,20 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
         reorder <- attr(R, "pivot")
         # make it lower triangle
         R <- t(R)
-        v <- solve(R, mu_xgiveny[reorder])
+        if(dim(Y)[2] == 1){
+          v <- solve(R, mu_xgiveny[reorder])
+        } else{
+          v <- solve(R, mu_xgiveny[reorder,])
+        }
         mu_xgiveny <- solve(t(R), v)
 
         orderback <- numeric(length(reorder))
         orderback[reorder] <- seq_len(length(reorder))
-        mu_xgiveny <- mu_xgiveny[orderback]
+        if(dim(Y)[2]==1){
+          mu_xgiveny <- mu_xgiveny[orderback]
+        } else{
+          mu_xgiveny <- mu_xgiveny[orderback,]
+        }
       } else {
         R <- t(R)
         v <- solve(R, mu_xgiveny)
@@ -1940,6 +1993,33 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
       M <- Q - QiAt %*% solve(AQiA, t(QiAt))
       out$variance <- diag(Aprd_bar %*% M %*% t(Aprd_bar))
     }
+  }
+
+
+    if(posterior_samples){
+    if(!no_nugget){
+      if (alpha %% 1 == 0) {
+        post_cov <- Aprd %*% solve(Q_xgiveny, t(Aprd))
+      } else{
+        post_cov <- Aprd_bar %*% solve(Q_xgiveny, t(Aprd_bar))
+      }
+    } else{
+      M <- Q - QiAt %*% solve(AQiA, t(QiAt))
+      post_cov <- Aprd_bar %*% M %*% t(Aprd_bar)
+    }
+    Y_tmp <- as.matrix(Y)
+    mean_tmp <- as.matrix(out$mean)
+    out$samples <- lapply(1:ncol(Y_tmp), function(i){
+        Z <- rnorm(dim(post_cov)[1] * n_samples)
+        dim(Z) <- c(dim(post_cov)[1], n_samples)
+        LQ <- chol(forceSymmetric(post_cov))
+        X <- solve(LQ, Z)
+        X <- X + mean_tmp[,i]
+        if(!only_latent){
+          X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
+        }
+        return(X)
+    })
   }
 
 

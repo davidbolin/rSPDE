@@ -509,7 +509,7 @@ y <- as.vector(A %*% as.vector(u)) +
 
 The first replicate of the simulated random field as well as the observation locations are shown in the following figure.
 
-```{r, fig.show='hold', fig.align = "center",echo=TRUE}
+```{r, fig.show='hold', fig.align = "center",echo=TRUE,warning=FALSE}
 proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
 
 df_field <- data.frame(x = proj$lattice$loc[,1],
@@ -547,10 +547,10 @@ rspde_model.rep <- rspde.matern(mesh = mesh_2d,
 Let us now create the `data.frame()` and the vector with the replicates indexes:
 
 ```{r}
-rep.df <- data.frame(y = y, x1 = rep(loc_2d_mesh[,1], 30),
-                      x2 = rep(loc_2d_mesh[,2], 30))
+rep.df <- data.frame(y = y, x1 = rep(loc_2d_mesh[,1], n.rep),
+                      x2 = rep(loc_2d_mesh[,2], n.rep))
 coordinates(rep.df) <- c("x1", "x2")
-repl <- rep(1:30, each=200)
+repl <- rep(1:n.rep, each=m)
 ```
 
 Let us create the component and fit. It is extremely important
@@ -648,7 +648,7 @@ have any parameter to be estimated, it is a constant column.
 So, for instance, if one wants to share a parameter with both `sigma` and `range` (or with both `tau` and `kappa`),
 one simply let the corresponding column to be nonzero on both `B.sigma` and `B.range` (or on `B.tau` and `B.kappa`).
 
-We will assume $\nu = 0.8$, $\theta_1 = 0, \theta_2 = 1$ and $\theta_3=1$. Let us now build the model with the `rspde.matern()` function:
+We will assume $\nu = 0.8$, $\theta_1 = 0, \theta_2 = 1$ and $\theta_3=1$. Let us now build the model to obtain the sample with the `spde.matern.operators()` function:
 
 
 ```{r}
@@ -658,33 +658,27 @@ B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10)
 B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10)
 
 # SPDE model
-rspde_nonstat_sample <- rspde.matern(mesh, 
+op_cov_ns <- spde.matern.operators(mesh = mesh, 
+  theta = true_theta,
+  nu = nu,
   B.sigma = B.sigma, 
-  B.range = B.range,
-  start.theta = true_theta, 
-  nu = nu)
+  B.range = B.range, m = 2)
 ```
 
-In order to sample the data, we will obtain the precision matrix:
-
-```{r}
-prec_mat <- precision(rspde_nonstat_sample)
-```
-
-Let us now sample the data with `inla.qsample()` function:
+Let us now sample the data with the `simulate()` method:
 
 ```{r, warning=FALSE}
-u <- as.vector(inla.qsample(1, prec_mat, seed = 123))
+u <- as.vector(simulate(op_cov_ns, seed = 123))
 ```
 
 Let us now obtain 600 random locations on the rectangle and 
 compute the $A$ matrix:
 
 ```{r}
-m <-600
+m <- 600
 loc_mesh <- cbind(runif(m) * 10, runif(m) * 5)
 
-Abar <- rspde.make.A(
+A <- inla.spde.make.A(
   mesh = mesh,
   loc = loc_mesh
 )
@@ -692,7 +686,7 @@ Abar <- rspde.make.A(
 
 We can now generate the response vector `y`:
 ```{r}
-y <- as.vector(Abar %*% as.vector(u)) + rnorm(m) * 0.1
+y <- as.vector(A %*% as.vector(u)) + rnorm(m) * 0.1
 ```
 
 ### Fitting the inlabru rSPDE model
@@ -731,7 +725,8 @@ cmp_nonstat <-
 rspde_fit_nonstat <-
   bru(cmp_nonstat,
     data = nonstat_df,
-    family = "gaussian"
+    family = "gaussian",
+    options = list(verbose = FALSE)
   )
 ```
 

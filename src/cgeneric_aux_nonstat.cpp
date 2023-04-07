@@ -75,6 +75,13 @@ void compute_Q(int size, double *entries_C, int *i_C, int *j_C,
                             for(i = 1; i < B_tau.cols(); i++){
                                 B_tau.col(i) += start_nu * B_kappa.col(i) - nu * B_kappa.col(i);
                             }
+                        } else if(matern_par == 2){
+                            B_tau.col(0) += 0.5 * (lgamma(start_nu + d/2.0) -
+                                                    lgamma(start_nu) - lgamma(nu + d/2.0) + lgamma(nu)) * Eigen::VectorXd::Constant(B_kappa.rows(),1) +
+                                                     start_nu * B_kappa.col(0) - nu * B_kappa.col(0);
+                            for(i = 1; i < B_tau.cols(); i++){
+                                B_tau.col(i) += start_nu * B_kappa.col(i) - nu * B_kappa.col(i);
+                            }                            
                         }
 
 
