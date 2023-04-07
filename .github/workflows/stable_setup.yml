@@ -59,6 +59,15 @@ jobs:
           Rscript -e "rmarkdown::render('vignettes/rspde_inla.Rmd')"
           Rscript -e "rmarkdown::render('vignettes/rspde_base.Rmd')"
           Rscript -e "rmarkdown::render('vignettes/rspde_inlabru.Rmd')"
+          Rscript -e "rmarkdown::render('vignettes/rspde_inlabru.Rmd')"
+          Rscript -e "rmarkdown::render('vignettes/build_source.rmd')"
+          git add vignettes
+          git add vignettes/rSPDE.html
+          git add vignettes/rspde_base.html
+          git add vignettes/rspde_cov.html
+          git add vignettes/rspde_inla.html
+          git add vignettes/rspde_inlabru.html
+          git add vignettes/build_source.html
       
       - name: Finish the setup
         run: |
@@ -69,6 +78,10 @@ jobs:
           echo "%\VignetteIndexEntry{An introduction to the rSPDE package}" >> vignettes/rSPDE.html.asis
           echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rSPDE.html.asis
           echo "%\VignetteEncoding{UTF-8}" >> vignettes/rSPDE.html.asis
+          touch vignettes/build_source.html.asis
+          echo "%\VignetteIndexEntry{Building the rSPDE package from source on Mac and Linux}" >> vignettes/build_source.html.asis
+          echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/build_source.html.asis
+          echo "%\VignetteEncoding{UTF-8}" >> vignettes/build_source.html.asis
           touch vignettes/rspde_inla.html.asis
           echo "%\VignetteIndexEntry{R-INLA implementation of the rational SPDE approach}" >> vignettes/rspde_inla.html.asis
           echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rspde_inla.html.asis
@@ -105,8 +118,11 @@ jobs:
           ' R/inlabru_rspde.R
           sed -i .bak 's/#stable\.tag/#stable\.tryCatch/' R/inlabru_rspde.R
           Rscript -e "devtools::document()"
-          rm -rf src/
-          rm -rf inst/shared/
+          git rm -rf src/
+          git rm -rf inst/shared/
+          git rm -rf shiny_app/
+          git rm -rf pkgdown/
+          git rm index.md
           git add man
           git add .Rbuildignore
           git add vignettes
@@ -114,6 +130,7 @@ jobs:
           git add R/inla_rspde.R
           git add R/inlabru_rspde.R
           git rm tests/testthat/test.inla_rspde.R
+          git rm vignettes/*.Rmd
           git commit -m "Doing the setup"
           git push
         shell: bash
