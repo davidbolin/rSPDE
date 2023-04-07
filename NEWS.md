@@ -1,3 +1,5 @@
+# rSPDE (development version)
+
 # rSPDE 2.2.0
 * Adding a new parameterization (variance and a range-like parameter)
 * Posterior sampling on the predict method.
