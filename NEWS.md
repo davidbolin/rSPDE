@@ -1,4 +1,4 @@
-# rSPDE (development version)
+# rSPDE 2.2.0
 * Adding a new parameterization (variance and a range-like parameter)
 * Posterior sampling on the predict method.
 * Added the `cross_validation` function which has several scoring rules implemented (MSE, CRPS, SCRPS, DSS) based on our `inlabru` implementation of the rational SPDE approach.
