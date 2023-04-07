@@ -16,6 +16,16 @@ knitr::opts_chunk$set(
 )
 ```
 
+## Building from source
+
+To build `rSPDE` from source you need to obtain the [GitHub version](https://github.com/davidbolin/rSPDE).
+If you have all the dependencies (see below how to install some of them), you can install the `rSPDE` package from source by 
+running the following command on `R`:
+
+```{r, eval=FALSE}
+remotes::install_github("davidbolin/rspde", ref = "devel")
+```
+
 ## Dependencies on Linux
 
 The `rSPDE` package depends on the [Eigen C++ library](https://eigen.tuxfamily.org/).
@@ -62,7 +72,17 @@ brew install eigen
 
 ## Adjusting the Makefile
 
-The `Makefile` has the following base form:
+If you experience trouble while installing the `rSPDE` package, you might need to adjust the `Makefile`. Before that, you will need to have `rSPDE`
+source files locally on your computer. To such an end, you can, for instance, close the `rSPDE` repository by running the following command on 
+a terminal:
+
+```{bash, eval=FALSE}
+git clone https://github.com/davidbolin/rSPDE.git
+```
+
+You can also [download the source files](https://github.com/davidbolin/rSPDE/archive/refs/heads/devel.zip).
+
+Now, let us discuss the `Makefile`. The `Makefile` has the following base form:
 
 ```{bash, eval=FALSE}
 toInclude = ${R_LIBRARY_DIR}/INLA/include/
@@ -154,7 +174,7 @@ CXX = clang++
 ```
 
 One should also confirm the location of the Eigen library. The
-default location is `/usr/local/include/eigen3/` and is already set at the Makefile.
+default location is `/usr/local` and is already set at the Makefile.
 
 If you installed Eigen using Homebrew, you can 
 check the location of the Eigen installation by using the following command:

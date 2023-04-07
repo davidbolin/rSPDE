@@ -11,7 +11,7 @@ rspde.matern(
   nu = NULL,
   B.sigma = matrix(c(0, 1, 0), 1, 3),
   B.range = matrix(c(0, 0, 1), 1, 3),
-  parameterization = c("matern", "spde"),
+  parameterization = c("matern", "spde", "matern2"),
   B.tau = matrix(c(0, 1, 0), 1, 3),
   B.kappa = matrix(c(0, 0, 1), 1, 3),
   start.nu = NULL,
@@ -48,11 +48,11 @@ and G, the stiffness matrix.}
 \item{nu}{If nu is set to a parameter, nu will be kept fixed and will not
 be estimated. If nu is \code{NULL}, it will be estimated.}
 
-\item{B.sigma}{Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if \code{parameterization = 'matern'}.}
+\item{B.sigma}{Matrix with specification of log-linear model for \eqn{\sigma} (for 'matern' parameterization) or for \eqn{\sigma^2} (for 'matern2' parameterization). Will be used if \code{parameterization = 'matern'} or \code{parameterization = 'matern2'}.}
 
-\item{B.range}{Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if \code{parameterization = 'matern'}.}
+\item{B.range}{Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if \code{parameterization = 'matern'} or \code{parameterization = 'matern2'}.}
 
-\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). The default is \code{matern}.}
+\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). \code{matern2} uses range-like (1/kappa), variance and nu (smoothness). The default is \code{matern}.}
 
 \item{B.tau}{Matrix with specification of log-linear model for \eqn{\tau}. Will be used if \code{parameterization = 'spde'}.}
 
