@@ -64,7 +64,7 @@
 #' @export
 
 rspde.matern <- function(mesh,
-                         nu.upper.bound = 3, rspde.order = 2,
+                         nu.upper.bound = 4, rspde.order = 2,
                          nu = NULL, 
                          B.sigma = matrix(c(0, 1, 0), 1, 3), 
                          B.range = matrix(c(0, 0, 1), 1, 3), 
@@ -85,7 +85,7 @@ rspde.matern <- function(mesh,
                          start.ltau = NULL,
                          start.lkappa = NULL,
                          prior.theta.param = c("theta", "spde"),
-                         prior.nu.dist = c("lognormal", "beta"),
+                         prior.nu.dist = c("beta", "lognormal"),
                          nu.prec.inc = 1,
                          type.rational.approx = c("chebfun",
                          "brasil", "chebfunLB"),

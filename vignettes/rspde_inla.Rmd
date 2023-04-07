@@ -1228,19 +1228,7 @@ we obtain a prior for $\rho$ and $\sigma$.
 
 Finally, let us consider the smoothness parameter $\nu$. 
 
-By default, we assume that $\nu$ follows a truncated lognormal distribution.
-The truncated lognormal distribution is defined
-in the following sense. We assume that $\log(\nu)$ has prior distribution given by a [truncated normal distribution](https://en.wikipedia.org/wiki/Truncated_normal_distribution#One_sided_truncation_(of_upper_tail))
-with support $(-\infty,\log(\nu_{UB}))$, where $\nu_{UB}$ is the upper bound for $\nu$, with location parameter $\mu_0 =\log(\nu_0)= \log\Big(\min\{1,\nu_{UB}/2\}\Big)$ and
-scale parameter $\sigma_0 = 1$. More precisely, let $\Phi(\cdot; \mu,\sigma)$ stand for the cumulative distribution function (CDF) of a normal distribution
-with mean $\mu$ and standard deviation $\sigma$.
-Then, $\log(\nu)$ has cumulative distribution function given by
-$$F_{\log(\nu)}(x) = \frac{\Phi(x;\mu_0,\sigma_0)}{\Phi(\nu_{UB})},\quad x\leq \nu_{UB},$$
-and $F_{\log(\nu)}(x) = 1$ if $x>\nu_{UB}$. We will call $\mu_0$ and $\sigma_0$ the log-location and log-scale parameters of $\nu$, respectively, and we say that
-$\log(\nu)$ follows a truncated normal distribution with location parameter $\mu_0$ and scale parameter $\sigma_0$.
-
-
-We can have another possibility of prior distribution for $\nu$, namely, a beta distribution on the interval $(0,\nu_{UB})$, where $\nu_{UB}$
+By default, we assume that $\nu$ follows a beta distribution on the interval $(0,\nu_{UB})$, where $\nu_{UB}$
 is the upper bound for $\nu$, with mean $\nu_0=\min\{1, \nu_{UB}/2\}$ and variance $\frac{\nu_0(\nu_{UB}-\nu_0)}{1+\phi_0}$, and
 we call $\phi_0$ the precision parameter, whose default value is
 $$\phi_0 = \max\Big\{\frac{\nu_{UB}}{\nu_0}, \frac{\nu_{UB}}{\nu_{UB}-\nu_0}\Big\} + \phi_{inc}.$$
@@ -1279,6 +1267,16 @@ will be $\min\{1,\nu_{UB}/2\}$.
 We also assume that, in terms of `r inla_link()`'s parameters,
 $$\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
 
+We can have another possibility of prior distribution for $\nu$, namely, truncated lognormal distribution. The truncated lognormal distribution is defined
+in the following sense. We assume that $\log(\nu)$ has prior distribution given by a [truncated normal distribution](https://en.wikipedia.org/wiki/Truncated_normal_distribution#One_sided_truncation_(of_upper_tail))
+with support $(-\infty,\log(\nu_{UB}))$, where $\nu_{UB}$ is the upper bound for $\nu$, with location parameter $\mu_0 =\log(\nu_0)= \log\Big(\min\{1,\nu_{UB}/2\}\Big)$ and
+scale parameter $\sigma_0 = 1$. More precisely, let $\Phi(\cdot; \mu,\sigma)$ stand for the cumulative distribution function (CDF) of a normal distribution
+with mean $\mu$ and standard deviation $\sigma$.
+Then, $\log(\nu)$ has cumulative distribution function given by
+$$F_{\log(\nu)}(x) = \frac{\Phi(x;\mu_0,\sigma_0)}{\Phi(\nu_{UB})},\quad x\leq \nu_{UB},$$
+and $F_{\log(\nu)}(x) = 1$ if $x>\nu_{UB}$. We will call $\mu_0$ and $\sigma_0$ the log-location and log-scale parameters of $\nu$, respectively, and we say that
+$\log(\nu)$ follows a truncated normal distribution with location parameter $\mu_0$ and scale parameter $\sigma_0$.
+
 To change the prior distribution of $\nu$ to the truncated lognormal distribution, we need
 to set the argument `prior.nu.dist="lognormal"`.
 
@@ -1300,7 +1298,7 @@ Let us consider an example with the same dataset used in the first model of this
 where we change the prior distribution of $\nu$ from beta to lognormal. 
 
 ```{r}
-rspde_model_beta <- rspde.matern(mesh = prmesh, prior.nu.dist = "beta")
+rspde_model_beta <- rspde.matern(mesh = prmesh, prior.nu.dist = "lognormal")
 ```
 
 Since we did not change `rspde.order` and are not fixing $\nu$, we can
