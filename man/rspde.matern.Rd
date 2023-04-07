@@ -6,7 +6,7 @@
 \usage{
 rspde.matern(
   mesh,
-  nu.upper.bound = 3,
+  nu.upper.bound = 4,
   rspde.order = 2,
   nu = NULL,
   B.sigma = matrix(c(0, 1, 0), 1, 3),
@@ -28,7 +28,7 @@ rspde.matern(
   start.ltau = NULL,
   start.lkappa = NULL,
   prior.theta.param = c("theta", "spde"),
-  prior.nu.dist = c("lognormal", "beta"),
+  prior.nu.dist = c("beta", "lognormal"),
   nu.prec.inc = 1,
   type.rational.approx = c("chebfun", "brasil", "chebfunLB"),
   debug = FALSE,
