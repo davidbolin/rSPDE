@@ -374,9 +374,9 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' 
 #' 
 #' }
+#' }
 #' #stable.tryCatch
 #' }, error = function(e){print("Could not run the example")})
-#' }
 #' }
 
 cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps", "scrps", "dss"),

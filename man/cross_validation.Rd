@@ -84,8 +84,8 @@ set.seed(123)
 
 
 }
+}
 #stable.tryCatch
 }, error = function(e){print("Could not run the example")})
-}
 }
 }
