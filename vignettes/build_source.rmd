@@ -70,6 +70,12 @@ To install Eigen using Homebrew, run:
 brew install eigen
 ```
 
+Finally, if after installing `eigen` with `brew` it gives you an error that it cannot find `eigen` library, you can create a symbolic link to `eigen`'s path as:
+
+```{bash, eval=FALSE}
+sudo ln -s $(brew --prefix eigen)/include/eigen3 /usr/local/include/eigen3
+```
+
 ## Adjusting the Makefile
 
 If you experience trouble while installing the `rSPDE` package, you might need to adjust the `Makefile`. Before that, you will need to have `rSPDE`
