@@ -178,18 +178,24 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 
         if (!is.null(user_kappa)) {
           new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
+          new_object$range <- NULL
+          new_object$sigma <- NULL
         }
 
         if (!is.null(user_range)) {
           new_object$range <- rspde_check_user_input(user_range, "range")
+          new_object$kappa <- NULL
+          new_object$tau <- NULL
         }
 
         if (!is.null(user_tau)) {
           new_object$tau <- rspde_check_user_input(user_tau, "tau")
+          new_object$sigma <- NULL
         }
 
         if (!is.null(user_sigma)) {
           new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
+          new_object$tau <- NULL
         }
 
         if (!is.null(user_m)) {
@@ -320,18 +326,24 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 
   if (!is.null(user_kappa)) {
     new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
+    new_object$range <- NULL
+    new_object$sigma <- NULL
   }
-
-  if (!is.null(user_sigma)) {
-    new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
-  }
-
-  if (!is.null(user_tau)) {
-    new_object$tau <- rspde_check_user_input(user_tau, "tau")
-  }
-
+  
   if (!is.null(user_range)) {
     new_object$range <- rspde_check_user_input(user_range, "range")
+    new_object$kappa <- NULL
+    new_object$tau <- NULL
+  }
+  
+  if (!is.null(user_tau)) {
+    new_object$tau <- rspde_check_user_input(user_tau, "tau")
+    new_object$sigma <- NULL
+  }
+  
+  if (!is.null(user_sigma)) {
+    new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
+    new_object$tau <- NULL
   }
 
   if (!is.null(user_m)) {
