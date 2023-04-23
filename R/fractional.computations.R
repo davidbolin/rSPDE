@@ -2187,7 +2187,8 @@ precision.CBrSPDEobj <- function(object,
 #' # The parameters can now be estimated by minimizing mlik with optim
 #' 
 #' # Choose some reasonable starting values depending on the size of the domain
-#' theta0 <- log(c(1/sqrt(var(c(Y))), sqrt(8),  0.9, 0.01))
+#' theta0 <- c(get.initial.values.rSPDE(mesh.range = 1, dim = 1), 
+#'                                  log(0.1*sd(as.vector(Y))))
 #' # run estimation and display the results
 #' theta <- optim(theta0, loglike,
 #'   method = "L-BFGS-B"
@@ -2200,6 +2201,9 @@ precision.CBrSPDEobj <- function(object,
 #'
 #' # SPDE parameterization:
 #' loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A, parameterization = "spde") 
+#' 
+#' theta0 <- c(get.initial.values.rSPDE(mesh.range = 1, dim = 1, parameterization = "spde"), 
+#'                                  log(0.1*sd(as.vector(Y))))
 #' 
 #' # run estimation and display the results
 #' theta <- optim(theta0, loglike,

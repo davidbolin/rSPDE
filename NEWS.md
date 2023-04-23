@@ -1,4 +1,5 @@
 # rSPDE (development version)
+* Fixed a bug on rSPDE.construct.matern.loglike when the parameterization is "matern".
 
 # rSPDE 2.2.0
 * Adding a new parameterization (variance and a range-like parameter)
