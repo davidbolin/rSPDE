@@ -2792,8 +2792,26 @@ rspde.metric_graph <- function(graph_obj,
     mesh <- list(d = 1, C = graph_obj$mesh$C, 
                                 G = graph_obj$mesh$G)
     class(mesh) <- "metric_graph"
-
-    rspde_model <- rspde.matern(mesh = mesh,
+    if(parameterization == "matern"){
+        rspde_model <- rspde.matern(mesh = mesh,
+                                nu.upper.bound = nu.upper.bound,
+                                rspde.order = rspde.order,
+                                nu = nu,
+                                debug = debug,
+                                B.sigma = B.sigma,
+                                B.range = B.range,
+                                start.theta = start.theta,
+                                theta.prior.mean = theta.prior.mean,
+                                theta.prior.prec = theta.prior.prec,
+                                parameterization = parameterization,
+                                prior.nu.dist = prior.nu.dist,
+                                nu.prec.inc = nu.prec.inc,
+                                type.rational.approx = type.rational.approx,
+                                vec_param = param,
+                                prior.theta.param = prior.theta.param
+                                )
+    } else{
+        rspde_model <- rspde.matern(mesh = mesh,
                                 nu.upper.bound = nu.upper.bound,
                                 rspde.order = rspde.order,
                                 nu = nu,
@@ -2810,6 +2828,8 @@ rspde.metric_graph <- function(graph_obj,
                                 vec_param = param,
                                 prior.theta.param = prior.theta.param
                                 )
+    }
+
         
         rspde_model$mesh <- rspde_model$graph_spde <- graph_obj
         # rspde_model$n.spde <- nrow(graph_obj$mesh$E)
