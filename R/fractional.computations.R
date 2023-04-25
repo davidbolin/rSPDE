@@ -571,7 +571,7 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 #' @param compute.variances Set to also TRUE to compute the kriging variances.
 #' @param posterior_samples If `TRUE`, posterior samples will be returned.
 #' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
-#' @param only_latent Should the posterior samples be only given to the laten model?
+#' @param only_latent Should the posterior samples be only given to the latent model?
 #' @param ... further arguments passed to or from other methods.
 #'
 #' @return A list with elements
@@ -687,7 +687,7 @@ predict.rSPDEobj <- function(object,
         Z <- rnorm(dim(post_cov)[1] * n_samples)
         dim(Z) <- c(dim(post_cov)[1], n_samples)
         LQ <- chol(forceSymmetric(post_cov))
-        X <- solve(LQ, Z)
+        X <- LQ %*% Z
         X <- X + mean_tmp[,i]
         if(!only_latent){
           X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
@@ -2025,7 +2025,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
         Z <- rnorm(dim(post_cov)[1] * n_samples)
         dim(Z) <- c(dim(post_cov)[1], n_samples)
         LQ <- chol(forceSymmetric(post_cov))
-        X <- solve(LQ, Z)
+        X <- LQ %*% Z
         X <- X + mean_tmp[,i]
         if(!only_latent){
           X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
