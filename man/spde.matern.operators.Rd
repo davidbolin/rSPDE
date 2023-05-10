@@ -12,12 +12,15 @@ spde.matern.operators(
   B.kappa = matrix(c(0, 0, 1), 1, 3),
   B.sigma = matrix(c(0, 1, 0), 1, 3),
   B.range = matrix(c(0, 0, 1), 1, 3),
-  nu,
+  nu = NULL,
   parameterization = c("matern", "spde"),
   G = NULL,
   C = NULL,
   d = NULL,
+  graph = NULL,
   mesh = NULL,
+  mesh_range = NULL,
+  mesh_loc = NULL,
   m = 1,
   type = c("covariance", "operator"),
   type_rational_approximation = c("chebfun", "brasil", "chebfunLB")
@@ -58,6 +61,8 @@ domain of interest.}
 \item{d}{The dimension of the domain. Does not need to be given if
 \code{mesh} is used.}
 
+\item{graph}{An optional \code{metric_graph} object. Replaces \code{d}, \code{C} and \code{G}.}
+
 \item{mesh}{An optional inla mesh. \code{d}, \code{C} and \code{G}
 must be given if \code{mesh} is not given.}
 
@@ -70,6 +75,10 @@ positive integer. The default value is 1.}
 \item{type_rational_approximation}{Which type of rational
 approximation should be used? The current types are
 "chebfun", "brasil" or "chebfunLB".}
+
+\item{mesh.range}{The range of the mesh. Will be used to provide starting values for the parameters. Will be used if \code{mesh} and \code{graph} are \code{NULL}, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.}
+
+\item{mesh.loc}{The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the \code{rspde_lme()} function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the \code{graph} argument.}
 }
 \value{
 \code{spde.matern.operators} returns an object of

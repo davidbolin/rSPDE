@@ -9,13 +9,17 @@ matern.operators(
   sigma = NULL,
   tau = NULL,
   range = NULL,
-  nu,
+  nu = NULL,
   G = NULL,
   C = NULL,
   d = NULL,
   mesh = NULL,
+  graph = NULL,
+  mesh_range = NULL,
+  mesh_loc = NULL,
   m = 1,
   type = c("covariance", "operator"),
+  parameterization = c("matern", "spde"),
   compute_higher_order = FALSE,
   return_block_list = FALSE,
   type_rational_approximation = c("chebfun", "brasil", "chebfunLB"),
@@ -23,33 +27,36 @@ matern.operators(
 )
 }
 \arguments{
-\item{kappa}{Parameter kappa of the covariance function.}
+\item{kappa}{Parameter kappa of the covariance function. If \code{NULL}, the range parameter will be used. If the range is also \code{NULL}, a starting value based on the mesh will be supplied.}
 
-\item{sigma}{Standard deviation of the covariance function.}
+\item{sigma}{Standard deviation of the covariance function. If \code{NULL}, tau will be used. If tau is also \code{NULL}, a starting value based on the mesh will be supplied.}
 
-\item{tau}{Parameter tau of the covariance function (will be used if sigma is not provided).}
+\item{tau}{Parameter tau of the covariance function (will be used if sigma is not provided). If both sigma and tau are \code{NULL}, a starting value based on the mesh will be supplied.}
 
-\item{range}{Range parameter of the covariance function (will be used if kappa is not provided).}
+\item{range}{Range parameter of the covariance function (will be used if kappa is not provided). If both kappa and range are \code{NULL}, a starting value based on the mesh will be supplied.}
 
-\item{nu}{Shape parameter of the covariance function.}
+\item{nu}{Shape parameter of the covariance function. If \code{NULL}, a starting value will be supplied.}
 
 \item{G}{The stiffness matrix of a finite element discretization of the
-domain of interest. Does not need to be given if \code{mesh} is used.}
+domain of interest. Does not need to be given if either \code{mesh} or \code{graph} is supplied.}
 
 \item{C}{The mass matrix of a finite element discretization of the domain
-of interest. Does not need to be given if \code{mesh} is used.}
+of interest. Does not need to be given if either \code{mesh} or \code{graph} is supplied.}
 
-\item{d}{The dimension of the domain. Does not need to be given if
-\code{mesh} is used.}
+\item{d}{The dimension of the domain. Does not need to be given if either
+\code{mesh} or \code{graph} is provided.}
 
-\item{mesh}{An optional inla mesh. \code{d}, \code{C} and \code{G}
-must be given if \code{mesh} is not given.}
+\item{mesh}{An optional inla mesh. Replaces \code{d}, \code{C} and \code{G}.}
+
+\item{graph}{An optional \code{metric_graph} object. Replaces \code{d}, \code{C} and \code{G}.}
 
 \item{m}{The order of the rational approximation, which needs to be a
 positive integer. The default value is 1.}
 
 \item{type}{The type of the rational approximation. The options are
 "covariance" and "operator". The default is "covariance".}
+
+\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). The default is \code{matern}.}
 
 \item{compute_higher_order}{Logical. Should the higher order finite
 element matrices be computed?}
@@ -64,6 +71,10 @@ approximation should be used? The current types are
 
 \item{fem_mesh_matrices}{A list containing FEM-related matrices.
 The list should contain elements c0, g1, g2, g3, etc.}
+
+\item{mesh.range}{The range of the mesh. Will be used to provide starting values for the parameters. Will be used if \code{mesh} and \code{graph} are \code{NULL}, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.}
+
+\item{mesh.loc}{The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the \code{rspde_lme()} function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the \code{graph} argument.}
 }
 \value{
 If \code{type} is "covariance", then \code{matern.operators}

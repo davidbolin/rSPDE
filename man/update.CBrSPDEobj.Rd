@@ -14,6 +14,7 @@
   user_theta = NULL,
   user_m = NULL,
   compute_higher_order = object$higher_order,
+  parameterization = NULL,
   type_rational_approximation = object$type_rational_approximation,
   return_block_list = object$return_block_list,
   ...
@@ -44,6 +45,8 @@ approximation, which needs to be a positive integer.}
 
 \item{compute_higher_order}{Logical. Should the higher order
 finite element matrices be computed?}
+
+\item{parameterization}{If non-null, update the parameterization. Only works for stationary models.}
 
 \item{type_rational_approximation}{Which type of rational
 approximation should be used? The current types are "chebfun",

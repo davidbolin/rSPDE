@@ -8,6 +8,7 @@ with a latent stationary Gaussian Matern model}
 get.initial.values.rSPDE(
   mesh = NULL,
   mesh.range = NULL,
+  graph.obj = NULL,
   n.spde = 1,
   dim = NULL,
   B.tau = NULL,
@@ -25,6 +26,8 @@ get.initial.values.rSPDE(
 \item{mesh}{An in INLA mesh}
 
 \item{mesh.range}{The range of the mesh.}
+
+\item{graph.obj}{A \code{metric_graph} object. To be used in case both \code{mesh} and \code{mesh.range} are \code{NULL}.}
 
 \item{n.spde}{The number of basis functions in the mesh model.}
 
