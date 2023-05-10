@@ -387,10 +387,13 @@ summary.rSPDEobj <- function(object, ...) {
   if (out$type == "Matern approximation") {
     out$kappa <- object$kappa
     out$sigma <- object$sigma
+    out$tau <- object$tau
+    out[["range"]] <- object[["range"]]
     out$nu <- object$nu
   }
   out$m <- object$m
   out$stationary <- object$stationary
+  out$parameterization <- object$parameterization
   out$n <- dim(object$L)[1]
   return(out)
 }
@@ -402,11 +405,19 @@ summary.rSPDEobj <- function(object, ...) {
 #' @rdname summary.rSPDEobj
 print.summary.rSPDEobj <- function(x, ...) {
   cat("Type of approximation: ", x$type, "\n")
+  cat("Parameterization: ", x$parameterization, "\n")  
   if (x$type == "Matern approximation") {
+    if(x$parameterization == "spde"){
     cat(
       "Parameters of covariance function: kappa = ",
-      x$kappa, ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
+      x$kappa, ", tau = ", x$tau, ", nu = ", x$nu, "\n"
     )
+    } else{
+      cat(
+      "Parameters of covariance function: range = ",
+      x[["range"]], ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
+    )
+    }
   }
   cat("Order or rational approximation: ", x$m, "\n")
   cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
@@ -1248,9 +1259,12 @@ summary.CBrSPDEobj <- function(object, ...) {
   out$kappa <- object$kappa
   out$sigma <- object$sigma
   out$theta <- object$theta
+  out$tau <- object$tau
+  out[["range"]] <- object[["range"]]  
   out$nu <- object$nu
   out$m <- object$m
   out$stationary <- object$stationary
+  out$parameterization <- object$parameterization  
   out$n <- dim(object$C)[1]
   out[["type_rational_approximation"]] <-
   object[["type_rational_approximation"]]
@@ -1264,13 +1278,20 @@ summary.CBrSPDEobj <- function(object, ...) {
 #' @rdname summary.CBrSPDEobj
 print.summary.CBrSPDEobj <- function(x, ...) {
   cat("Type of approximation: ", x$type, "\n")
+  cat("Parameterization: ", x$parameterization, "\n")
   cat("Type of rational approximation: ",
   x[["type_rational_approximation"]], "\n")
   if(x$stationary){
-    cat(
+    if(x$parameterization == "spde"){
+      cat(
       "Parameters of covariance function: kappa = ",
-      x$kappa, ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
+      x$kappa, ", tau = ", x$tau, ", nu = ", x$nu, "\n"
+    )} else{
+        cat(
+      "Parameters of covariance function: range = ",
+      x[["range"]], ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
     )
+    }
   } else if (!is.null(x$theta)){
         cat(
       "Parameters of covariance function: theta = ",
@@ -1766,8 +1787,8 @@ get_parameters_rSPDE <- function (mesh, alpha,
             prior.kappa = sqrt(8 * nu.nominal)/prior.range.nominal
         }
         if (is.null(prior.tau)) {
-            prior.tau = sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/(4 * 
-                pi * prior.kappa^(2 * nu.nominal) * prior.std.dev.nominal^2))
+            prior.tau = sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/((4 * 
+                pi)^(d/2) * prior.kappa^(2 * nu.nominal) * prior.std.dev.nominal^2))
         }
         if (n.theta > 0) {
           if(parameterization == "spde"){

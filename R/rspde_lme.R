@@ -149,10 +149,12 @@ rspde_lme <- function(formula, loc, data,
             y_tmp <- y_resp[ind_tmp]            
             na_obs <- is.na(y_tmp)
             A_list[[as.character(j)]] <- model$make_A(loc_df[ind_tmp,])
-              
-        if(model$alpha %% 1 != 0){
-                A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
-            }
+
+        if(inherits(model, "CBrSPDEobj")){
+          if(model$alpha %% 1 != 0){
+                  A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
+              }
+        }  
         }
     } else{
         stop("When creating the model object using matern.operators() or spde.matern.operators(), you should either supply a graph, or a mesh, or mesh_loc (this last one only works for dimension 1).")
@@ -211,10 +213,63 @@ rspde_lme <- function(formula, loc, data,
 
                 loglik <- aux_lme_CBrSPDE.matern.loglike(object = model, y = y_resp, X_cov = X_cov, repl = repl,
                 A_list = A_list, sigma_e = sigma_e, beta_cov = beta_cov)
+
             return(-loglik)
         }
     } else{
-            ### If type is operator
+           likelihood <- function(theta){
+                sigma_e <- exp(theta[1])
+                n_cov <- ncol(X_cov)
+                n_initial <- n_coeff_nonfixed                
+                if(estimate_nu){
+                    nu <- exp(theta[2])
+                    gap <- 1
+                } else{
+                    gap <- 0
+                    if(!is.numeric(nu)){
+                        stop("nu must be numeric!")
+                    }
+                    if(length(nu)>1){
+                        stop("nu must have length 1")
+                    }
+                    if(nu < 0){
+                        stop("nu must be positive.")
+                    }
+                }
+                    
+                if(model$stationary){
+                    if(model$parameterization == "spde"){
+                        tau <- exp(theta[2+gap])
+                        kappa <- exp(theta[3+gap])
+                        model <- update.rSPDEobj(model,
+                            user_nu = nu, user_tau = tau,
+                            user_kappa = kappa, parameterization = "spde")
+                    } else{
+                        sigma <- exp(theta[2+gap])
+                        range <- exp(theta[3+gap])
+                        model <- update.rSPDEobj(model,
+                            user_nu = nu,
+                            user_sigma = sigma, user_range = range,
+                            parameterization = "matern")
+                    }
+                } else{
+                    theta_model <- theta[(2+gap):(n_initial-1-gap)]
+                    model <- update.rSPDEobj(model,
+                            user_theta = theta,
+                            user_nu = nu)
+                }
+                
+                if(n_cov > 0){
+                    beta_cov <- theta[(n_initial+1):(n_initial+n_cov)]
+                } else{
+                    beta_cov <- NULL
+                }
+
+                loglik <- aux_lme_rSPDE.matern.loglike(object = model, y = y_resp, X_cov = X_cov, repl = repl,
+                A_list = A_list, sigma_e = sigma_e, beta_cov = beta_cov)
+
+            return(-loglik)
+        }
     }
 
  if(ncol(X_cov)>0 && !is.null(model)){
@@ -235,6 +290,8 @@ if(parallel){
   parallel::clusterExport(cl, "A_list", envir = environment())
   parallel::clusterExport(cl, "X_cov", envir = environment())
   parallel::clusterExport(cl, "aux_lme_CBrSPDE.matern.loglike",
+                 envir = as.environment("package:rSPDE"))
+  parallel::clusterExport(cl, "aux_lme_rSPDE.matern.loglike",
                  envir = as.environment("package:rSPDE"))
 
     start_fit <- Sys.time()
@@ -257,7 +314,6 @@ if(parallel){
   time_fit <- end_fit-start_fit
 }
 
-
   coeff <- res$par
   coeff <- exp(c(res$par[1:n_coeff_nonfixed]))
   coeff <- c(coeff, res$par[-c(1:n_coeff_nonfixed)])
@@ -267,10 +323,10 @@ if(parallel){
   n_fixed <- ncol(X_cov)
   n_random <- length(coeff) - n_fixed - 1  
 
-  observed_fisher <- res$hessian
+  # observed_fisher <- res$hessian
+  observed_fisher <- numDeriv::hessian(likelihood, res$par)
   inv_fisher <- tryCatch(solve(observed_fisher), error = function(e) matrix(NA, nrow(observed_fisher), ncol(observed_fisher)))
   
-  print(diag(inv_fisher))
   std_err <- sqrt(diag(inv_fisher))
 
   coeff_random <- coeff[2:(n_coeff_nonfixed)]
@@ -372,40 +428,42 @@ if(parallel){
 
 }
 
-#' @name logLik.graph_lme
+#' @name logLik.rspde_lme
 #' @title log-likelihood for \code{graph_lme} Objects
-#' @description Gives the log-likelihood for a fitted mixed effects model on metric graphs.
-#' @param x object of class "graph_lme" containing results from the fitted model.
+#' @description Gives the log-likelihood for a fitted mixed effects model with a Whittle-Matern latent model.
+#' @param x object of class "rspde_lme" containing results from the fitted model.
 #' @param ... further arguments passed to or from other methods.
 #' @return log-likelihood at the fitted coefficients.
 #' @noRd
-#' @method logLik graph_lme
+#' @method logLik rspde_lme
 #' @export 
 
-logLik.graph_lme <- function(object, ...){
+logLik.rspde_lme <- function(object, ...){
   return(object$loglik)
 }
 
 
-#' @name print.graph_lme
-#' @title Print Method for \code{graph_lme} Objects
-#' @description Provides a brief description of results related to mixed effects metric graph models.
-#' @param x object of class "graph_lme" containing results from the fitted model.
+#' @name print.rspde_lme
+#' @title Print Method for \code{rspde_lme} Objects
+#' @description Provides a brief description of results related to mixed effects with Whittle-Matern latent models.
+#' @param x object of class "rspde_lme" containing results from the fitted model.
 #' @param ... further arguments passed to or from other methods.
 #' @return Called for its side effects.
 #' @noRd
-#' @method print graph_lme
+#' @method print rspde_lme
 #' @export 
 
-print.graph_lme <- function(x, ...) {
+print.rspde_lme <- function(x, ...) {
   #
-  model_type <- tolower(x$latent_model$type)
-  call_name <- switch(model_type,
-                      "whittlematern" = {paste0("Latent model - Whittle-Matern with alpha = ",x$latent_model$alpha)},
-                      "graphlaplacian" = {paste0("Latent model - graph Laplacian SPDE with alpha = ",x$latent_model$alpha)},
-                      "isocov" = {"Latent model - Covariance-based model"},
-                      "linearmodel" = {"Linear regression model"}
-  )
+  if(!is.null(x$latent_model)){
+    if(x$latent_model$stationary){
+      call_name <- "Latent model - Whittle-Matern"
+    } else{
+      call_name <- "Latent model - Generalized Whittle-Matern"
+    }
+  } else{
+    call_name <- "Linear regression model"
+  }
 
   coeff_fixed <- x$coeff$fixed_effects
   coeff_random <- x$coeff$random_effects
@@ -434,27 +492,30 @@ print.graph_lme <- function(x, ...) {
 }
 
 
-#' @name summary.graph_lme
-#' @title Summary Method for \code{graph_lme} Objects.
-#' @description Function providing a summary of results related to metric graph mixed effects regression models.
-#' @param object an object of class "graph_lme" containing results from the fitted model.
+#' @name summary.rspde_lme
+#' @title Summary Method for \code{rspde_lme} Objects.
+#' @description Function providing a summary of results related to mixed effects regression models with Whittle-Matern latent models.
+#' @param object an object of class "rspde_lme" containing results from the fitted model.
 #' @param ... not used.
-#' @return An object of class \code{summary_graph_lme} containing several
-#' informations of a *graph_lme* object.
-#' @method summary graph_lme
+#' @return An object of class \code{summary_rspde_lme} containing several
+#' informations of a *rspde_lme* object.
+#' @method summary rspde_lme
 #' @export
-summary.graph_lme <- function(object, ...) {
+summary.rspde_lme <- function(object, ...) {
   ans <- list()
 
   nfixed <- length(object$coeff$fixed_effects)
   nrandom <- length(object$coeff$random_effects)
-  model_type <- tolower(object$latent_model$type)
-  call_name <- switch(model_type,
-                      "whittlematern" = {paste0("Latent model - Whittle-Matern with alpha = ",object$latent_model$alpha)},
-                      "graphlaplacian" = {paste0("Latent model - graph Laplacian SPDE with alpha = ",object$latent_model$alpha)},
-                      "isocov" = {"Latent model - Covariance-based model"},
-                      "linearmodel" = {"Linear regression model"}
-  )
+  model_type <- is.null(object$latent_model)
+  if(!is.null(model_type)){
+    if(object$latent_model$stationary){
+      call_name <- "Latent model - Whittle-Matern"
+    } else{
+      call_name <- "Latent model - Generalized Whittle-Matern"
+    }
+  } else{
+    call_name <- "Linear regression model"
+  }
 
   coeff_fixed <- object$coeff$fixed_effects
   coeff_random <- object$coeff$random_effects#
@@ -477,9 +538,6 @@ summary.graph_lme <- function(object, ...) {
     tab <- list(fixed_effects = SEr_fixed, coeff_meas = coeff_meas)
   }
 
-
-
-
   ans$coefficients <- tab
 
   ans$model_type <- model_type
@@ -492,20 +550,22 @@ summary.graph_lme <- function(object, ...) {
 
   ans$niter <- object$niter
 
-  class(ans) <- "summary_graph_lme"
+  ans$fitting_time <- object$fitting_time
+
+  class(ans) <- "summary_rspde_lme"
   ans
 }
 
-#' @name print.summary_graph_lme
-#' @title Print Method for \code{summary_graph_lme} Objects
-#' @description Provides a brief description of results related to metric graph mixed effects regression models.
-#' @param x object of class "summary_graph_lme" containing results of summary method applied to a fitted model.
+#' @name print.summary_rspde_lme
+#' @title Print Method for \code{summary_rspde_lme} Objects
+#' @description Provides a brief description of results related to mixed effects regression models with Whittle-Matern latent models.
+#' @param x object of class "summary_rspde_lme" containing results of summary method applied to a fitted model.
 #' @param ... further arguments passed to or from other methods.
 #' @return Called for its side effects.
 #' @noRd
-#' @method print summary_graph_lme
+#' @method print summary_rspde_lme
 #' @export
-print.summary_graph_lme <- function(x, ...) {
+print.summary_rspde_lme <- function(x, ...) {
   tab <- x$coefficients
 
   #
@@ -560,6 +620,7 @@ print.summary_graph_lme <- function(x, ...) {
   cat("Log-Likelihood: ", x$loglik,"\n")
   if(model_type != "linearmodel"){
     cat(paste0("Number of function calls by 'optim' = ", x$niter[1],"\n"))
+    cat(paste0("Time to fit the model = ", paste(trunc(x$fitting_time[[1]] * 10^5)/10^5,attr(x$fitting_time, "units"),"\n")))
   }
 }
 

@@ -292,6 +292,10 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
             C = new_object$C,
             d = new_object$d,
             m = new_object$m,
+            mesh = mesh,
+            loc_mesh = loc_mesh,
+            range_mesh = range_mesh,
+            graph = graph,            
             parameterization = "spde",
             type = "covariance",
             type_rational_approximation = new_object$type_rational_approximation
@@ -351,36 +355,19 @@ update.rSPDEobj <- function(object, user_nu = NULL,
                             user_kappa = NULL,
                             user_sigma = NULL,
                             user_range = NULL,
-                            user_tau = NULL,
+                            user_tau = NULL,                            
                             user_theta = NULL,
-                            user_m = NULL, ...) {
+                            user_m = NULL,
+                            mesh = NULL,
+                            loc_mesh = NULL,
+                            graph = NULL,
+                            range_mesh = NULL,
+                            parameterization = NULL, ...) {
   new_object <- object
 
   ## get parameters
   if (!is.null(user_nu)) {
     new_object$nu <- rspde_check_user_input(user_nu, "nu")
-  }
-
-  if (!is.null(user_kappa)) {
-    new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
-    new_object$range <- NULL
-    new_object$sigma <- NULL
-  }
-  
-  if (!is.null(user_range)) {
-    new_object$range <- rspde_check_user_input(user_range, "range")
-    new_object$kappa <- NULL
-    new_object$tau <- NULL
-  }
-  
-  if (!is.null(user_tau)) {
-    new_object$tau <- rspde_check_user_input(user_tau, "tau")
-    new_object$sigma <- NULL
-  }
-  
-  if (!is.null(user_sigma)) {
-    new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
-    new_object$tau <- NULL
   }
 
   if (!is.null(user_m)) {
@@ -392,6 +379,57 @@ update.rSPDEobj <- function(object, user_nu = NULL,
   }
 
  if(new_object$stationary){
+        if(is.null(parameterization)){
+          parameterization <- new_object$parameterization
+        } else{
+            parameterization <- parameterization[[1]]
+            if (!parameterization %in% c("matern", "spde")) {
+                stop("parameterization should be either 'matern' or 'spde'!")
+            }
+        }
+
+        if(parameterization == "spde"){
+          if (!is.null(user_kappa)) {
+            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
+            new_object$range <- NULL
+            new_object$sigma <- NULL
+          }
+
+          if (!is.null(user_tau)) {
+            new_object$tau <- rspde_check_user_input(user_tau, "tau")
+            new_object$sigma <- NULL
+          }
+        } else{
+          if (!is.null(user_range)) {
+            new_object$range <- rspde_check_user_input(user_range, "range")
+            new_object$kappa <- NULL
+            new_object$tau <- NULL
+          }
+
+          if (!is.null(user_sigma)) {
+            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
+            new_object$tau <- NULL
+          }
+        }
+
+
+
+
+        if (!is.null(user_m)) {
+          new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+        }
+
+        if(is.null(mesh)){
+          mesh <- new_object[["mesh"]]
+        }
+        if(is.null(range_mesh)){
+          range_mesh <- new_object[["range_mesh"]]
+        }
+        if(is.null(loc_mesh)){
+          loc_mesh <- new_object[["loc_mesh"]]
+        }
+
+
   new_object <- matern.operators(
     kappa = new_object$kappa,
     sigma = new_object$sigma,
@@ -402,9 +440,39 @@ update.rSPDEobj <- function(object, user_nu = NULL,
     C = new_object$C,
     d = new_object$d,
     m = new_object$m,
+    mesh = mesh,
+    loc_mesh = loc_mesh,
+    range_mesh = range_mesh,
+    graph = graph,
+    parameterization = parameterization,    
     type = "operator"
   )
  } else{
+
+          if (!is.null(user_nu)) {
+            new_object$nu <- rspde_check_user_input(user_nu, "nu")
+          }
+
+
+          if (!is.null(user_tau)) {
+            new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
+          }
+
+          if (!is.null(user_kappa)) {
+            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa" , 0)
+          }
+
+          if (!is.null(user_theta)) {
+            if(!is.numeric(user_theta)){
+              stop("user_theta must be numeric!")
+            }
+            new_object$theta <- user_theta
+          }
+
+          if (!is.null(user_m)) {
+            new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+          } 
+  
           new_object <- spde.matern.operators(
             kappa = new_object$kappa,
             tau = new_object$tau,
@@ -416,6 +484,10 @@ update.rSPDEobj <- function(object, user_nu = NULL,
             C = new_object$C,
             d = new_object$d,
             m = new_object$m,
+            mesh = mesh,
+            loc_mesh = loc_mesh,
+            range_mesh = range_mesh,
+            graph = graph,            
             type = "operator"
           )  
  }
@@ -1144,7 +1216,8 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
     user_sigma = user_sigma,
     user_range = user_range,
     user_tau = user_tau,
-    user_m = user_m
+    user_m = user_m,
+    parameterization =  object$parameterization
   )
 
   m <- object$m
@@ -2560,7 +2633,7 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
 
   Q <- object$Q
 
-  R <- Matrix::chol(Q)
+  R <- Matrix::chol(Matrix::forceSymmetric(Q))
 
   repl_val <- unique(repl)
 
@@ -2600,6 +2673,80 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
         0.5 * n.o * log(2*pi)
 
   }
+
+  return(as.double(l))
+}
+
+
+
+#' @noRd 
+
+aux_lme_rSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
+ 
+  m <- object$m
+
+  Q <- object$Q
+
+  R <- tryCatch(Matrix::Cholesky(object$Pl), error = function(e){return(NULL)})
+  if(is.null(R)){
+    return(-10^100)
+  }
+
+  prior.ld <- 2 * c(determinant(R, logarithm = TRUE)$modulus) -
+  sum(log(diag(object$C)))/2  
+
+  repl_val <- unique(repl)
+
+  l <- 0
+  
+  for(i in repl_val){
+      ind_tmp <- (repl %in% i)
+      y_tmp <- y[ind_tmp]
+
+      if(ncol(X_cov) == 0){
+        X_cov_tmp <- 0
+      } else {
+        X_cov_tmp <- X_cov[ind_tmp,,drop=FALSE]
+      }
+      na_obs <- is.na(y_tmp)
+      
+      y_ <- y_tmp[!na_obs]
+      n.o <- length(y_)
+      A_tmp <- A_list[[as.character(i)]]
+      A_tmp <- A_tmp %*% object$Pr
+      Q.p <- Q  + t(A_tmp) %*% A_tmp/sigma_e^2
+      R.p <- tryCatch(Matrix::chol(Q.p), error = function(e){return(NULL)})
+      if(is.null(R.p)){
+        return(-10^100)
+      }
+
+      v <- y_
+
+      if(ncol(X_cov) != 0){
+        X_cov_tmp <- X_cov_tmp[!na_obs, , drop = FALSE] 
+        v <- v - X_cov_tmp %*% beta_cov
+      }
+
+      R.post <- tryCatch(Matrix::Cholesky(Q.p), error=function(e){return(NULL)})
+      if(is.null(R.post)){
+        return(-10^100)
+      }
+
+      AtY <- t(A_tmp) %*% v / sigma_e^2
+
+      mu.p <- solve(R.post, AtY, system = "A")
+
+      v <- v - A_tmp%*%mu.p
+
+      posterior.ld <-  c(determinant(R.post, logarithm = TRUE)$modulus)
+
+      l <- l + prior.ld - posterior.ld - n.o*log(sigma_e)
+
+      l <- l - 0.5*(t(mu.p) %*% Q %*% mu.p + t(v) %*% v / sigma_e^2) -
+        0.5 * n.o * log(2*pi)
+
+  }
+
 
   return(as.double(l))
 }

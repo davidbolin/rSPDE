@@ -17,6 +17,8 @@ rspde_lme(
   nu = NULL,
   rspde_order = NULL,
   model_matrix = TRUE,
+  parallel = FALSE,
+  n_cores = parallel::detectCores() - 1,
   optim_controls = list()
 )
 }
@@ -42,6 +44,10 @@ rspde_lme(
 \item{nu}{If \code{NULL}, the smoothness parameter will be estimated, otherwise the smoothness parameter will be kept fixed at the provided value.}
 
 \item{model_matrix}{logical indicating whether the model matrix should be returned as component of the returned value.}
+
+\item{parallel}{logical. Indicating whether to use optimParallel or not.}
+
+\item{n_cores}{Number of cores to be used if parallel is true.}
 
 \item{optim_controls}{Additional controls to be passed to \code{optim} or \code{optimParallel}.}
 }

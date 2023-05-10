@@ -389,7 +389,9 @@ matern.operators <- function(kappa = NULL,
                              "brasil", "chebfunLB"),
                              fem_mesh_matrices = NULL) {
   type <- type[[1]]
-  nu <- min(nu, 10)
+  if(!is.null(nu)){
+    nu <- min(nu, 10)
+  }
   if (!type %in% c("covariance", "operator")) {
     stop("The type should be 'covariance' or 'operator'!")
   }

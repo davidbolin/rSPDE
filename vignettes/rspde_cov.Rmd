@@ -436,7 +436,7 @@ nu <- 0.8
 r <- sqrt(8*nu)/kappa
 op_cov <- matern.operators(
   C = fem$C, G = fem$G, loc_mesh = s, nu = nu,
-  range = r, sigma = sigma, d = 1, m = 2
+  range = r, sigma = sigma, d = 1, m = 2, type = "operator"
 )
 
 u <- simulate(op_cov)
@@ -454,7 +454,7 @@ df_data <- data.frame(y = Y, loc = obs.loc)
 
 ```{r}
 op_cov_est <- matern.operators(
-  C = fem$C, G = fem$G, loc_mesh = s, d = 1, m = 2
+  C = fem$C, G = fem$G, loc_mesh = s, d = 1, m = 2, parameterization = "spde"
 )
 ```
 

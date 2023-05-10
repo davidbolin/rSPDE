@@ -19,8 +19,8 @@ spde.matern.operators(
   d = NULL,
   graph = NULL,
   mesh = NULL,
-  mesh_range = NULL,
-  mesh_loc = NULL,
+  range_mesh = NULL,
+  loc_mesh = NULL,
   m = 1,
   type = c("covariance", "operator"),
   type_rational_approximation = c("chebfun", "brasil", "chebfunLB")
