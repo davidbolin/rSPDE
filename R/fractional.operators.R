@@ -204,23 +204,25 @@ fractional.operators <- function(L,
 #' (\kappa h)^\nu K_\nu(\kappa h)}{C(h) = (\sigma^2/(2^{\nu-1}\Gamma(\nu))
 #' (\kappa h)^\nu K_\nu(\kappa h).}
 #'
-#' @param kappa Parameter kappa of the covariance function.
-#' @param range Range parameter of the covariance function (will be used if kappa is not provided).
-#' @param sigma Standard deviation of the covariance function.
-#' @param tau Parameter tau of the covariance function (will be used if sigma is not provided).
-#' @param nu Shape parameter of the covariance function.
+#' @param kappa Parameter kappa of the covariance function. If `NULL`, the range parameter will be used. If the range is also `NULL`, a starting value based on the mesh will be supplied.
+#' @param range Range parameter of the covariance function (will be used if kappa is not provided). If both kappa and range are `NULL`, a starting value based on the mesh will be supplied.
+#' @param sigma Standard deviation of the covariance function. If `NULL`, tau will be used. If tau is also `NULL`, a starting value based on the mesh will be supplied.
+#' @param tau Parameter tau of the covariance function (will be used if sigma is not provided). If both sigma and tau are `NULL`, a starting value based on the mesh will be supplied.
+#' @param nu Shape parameter of the covariance function. If `NULL`, a starting value will be supplied.
 #' @param G The stiffness matrix of a finite element discretization of the
-#' domain of interest. Does not need to be given if `mesh` is used.
+#' domain of interest. Does not need to be given if either `mesh` or `graph` is supplied.
 #' @param C The mass matrix of a finite element discretization of the domain
-#' of interest. Does not need to be given if `mesh` is used.
-#' @param mesh An optional inla mesh. `d`, `C` and `G`
-#' must be given if `mesh` is not given.
-#' @param d The dimension of the domain. Does not need to be given if
-#' `mesh` is used.
+#' of interest. Does not need to be given if either `mesh` or `graph` is supplied.
+#' @param mesh An optional inla mesh. Replaces `d`, `C` and `G`.
+#' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`. 
+#' @param mesh.range The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
+#' @param d The dimension of the domain. Does not need to be given if either
+#' `mesh` or `graph` is provided.
 #' @param m The order of the rational approximation, which needs to be a
 #' positive integer. The default value is 1.
 #' @param type The type of the rational approximation. The options are
 #' "covariance" and "operator". The default is "covariance".
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
 #' @param compute_higher_order Logical. Should the higher order finite
 #' element matrices be computed?
 #' @param return_block_list Logical. For `type = "covariance"`,
@@ -369,13 +371,16 @@ matern.operators <- function(kappa = NULL,
                              sigma = NULL,
                              tau = NULL,
                              range = NULL,
-                             nu,
+                             nu = NULL,
                              G = NULL,
                              C = NULL,
                              d = NULL,
                              mesh = NULL,
+                             graph = NULL,
+                             mesh_range = NULL,
                              m = 1,
                              type = c("covariance", "operator"),
+                            parameterization = c("matern", "spde"),                             
                              compute_higher_order = FALSE,
                              return_block_list = FALSE,
                              type_rational_approximation = c("chebfun",
@@ -386,45 +391,90 @@ matern.operators <- function(kappa = NULL,
   if (!type %in% c("covariance", "operator")) {
     stop("The type should be 'covariance' or 'operator'!")
   }
-  if (is.null(d) && is.null(mesh)) {
-    stop("You should give either the dimension d or the mesh!")
+  if (is.null(d) && is.null(mesh) && is.null(graph)) {
+    stop("You should give either the dimension d, the mesh or graph!")
   }
 
-  if ((is.null(C) || is.null(G)) && is.null(mesh)) {
-    stop("You should either provide mesh, or provide C *and* G!")
+  if ((is.null(C) || is.null(G)) && is.null(mesh) && is.null(graph)) {
+    stop("You should either provide mesh, graph, or provide both C *and* G!")
+  }
+  
+  parameterization <- parameterization[[1]]
+
+  if (!parameterization %in% c("matern", "spde")) {
+    stop("parameterization should be either 'matern' or 'spde'!")
   }
 
-  if(is.null(sigma)&&is.null(tau)){
-    stop("You must either provide sigma or tau.")
+  if(!is.null(graph)){
+    if(!inherits(graph, "metric_graph")){
+      stop("graph should be a metric_graph object!")
+    }
+    d <- 1
+    if(is.null(graph$mesh)){
+      warning("The graph object did not contain a mesh, one was created with h = 0.01.")
+      grahp$build_mesh(h = 0.01)
+    }
+    if(is.null(graph$mesh$C)){
+      graph$compute_fem()
+    }
+    C <- graph$mesh$C
+    G <- graph$mesh$G
   }
 
-  if(is.null(range)&&is.null(kappa)){
-    stop("You must either provide range or kappa.")
+  if (!is.null(mesh)) {
+    d <- get_inla_mesh_dimension(inla_mesh = mesh)
+    fem <- INLA::inla.mesh.fem(mesh)
+    C <- fem$c0
+    G <- fem$g1
   }
 
-    if (!is.null(mesh)) {
-      d <- get_inla_mesh_dimension(inla_mesh = mesh)
-      fem <- INLA::inla.mesh.fem(mesh)
-      C <- fem$c0
-      G <- fem$g1
+  if(is.null(nu)){
+    nu <- 1
+  }
+
+  if(parameterization == "spde"){
+    if(is.null(kappa) || is.null(tau)){
+      if(is.null(graph) && is.null(mesh) && is.null(mesh_range)){
+        stop("You should either provide all the parameters, or you should provide one of the following: mesh, mesh_range or graph.")
+      }
+      if(!is.null(mesh) || !is.null(mesh_range)){
+         param <- get.initial.values.rSPDE(mesh.range = mesh_range, dim = d, parameterization = parameterization, mesh = mesh, nu = nu)
+      } else if(!is.null(graph)){
+        param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = parameterization, nu = nu)
+      }
     }
 
-    if(!is.null(range)){
-      kappa <- sqrt(8 * nu) / range
+    if(is.null(kappa)){
+      kappa <- param[2]
     }
-
     if(is.null(tau)){
-      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+      tau <- param[1]
     }
-
-    if(!is.null(tau)){
+    range <- sqrt(8 * nu) / kappa
     sigma <- sqrt(gamma(nu) / (tau^2 * kappa^(2 * nu) *
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+  } else{
+    if(is.null(sigma) || is.null(range)){
+      if(is.null(graph) && is.null(mesh) && is.null(mesh_range)){
+        stop("You should either provide all the parameters, or you should provide one of the following: mesh, mesh_range or graph.")
+      }
+      if(!is.null(mesh) || !is.null(mesh_range)){
+         param <- get.initial.values.rSPDE(mesh.range = mesh_range, dim = d, parameterization = parameterization, mesh = mesh, nu = nu)
+      } else if(!is.null(graph)){
+        param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = parameterization, nu = nu)
+      }
     }
 
-
-
+    if(is.null(range)){
+      range <- param[2]
+    } 
+    if(is.null(sigma)){
+      sigma <- param[1]
+    } 
+    kappa <- sqrt(8 * nu) / range
+    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+  }
 
   if (type == "operator") {
   
@@ -447,6 +497,7 @@ matern.operators <- function(kappa = NULL,
     output$G <- G
     output$type <- "Matern approximation"
     output$stationary <- TRUE
+    output$parameterization <- parameterization
     return(output)
   } else {
     type_rational_approximation <- type_rational_approximation[[1]]
@@ -458,6 +509,7 @@ matern.operators <- function(kappa = NULL,
     )
     out$range <- range
     out$tau <- tau
+    out$parameterization <- parameterization
     return(out)
   }
 }
@@ -783,7 +835,7 @@ CBrSPDE.matern.operators <- function(C,
   output <- list(
     C = C, G = G, L = L, Ci = Ci, GCi = GCi, Gk = Gk,
     fem_mesh_matrices = fem_mesh_matrices,
-    alpha = alpha, nu = nu, kappa = kappa,
+    alpha = alpha, nu = nu, kappa = kappa, range = sqrt(8 * nu) / kappa,
     tau = tau, m = m, d = d,
     sigma = sigma,
     logdetL = logdetL, logdetC = logdetC,

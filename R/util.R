@@ -569,6 +569,7 @@ character.only = FALSE) {
 #' with a latent stationary Gaussian Matern model
 #' @param mesh An in INLA mesh
 #' @param mesh.range The range of the mesh.
+#' @param graph.obj A `metric_graph` object. To be used in case both `mesh` and `mesh.range` are `NULL`.
 #' @param dim The dimension of the domain.
 #' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if `parameterization = 'matern'`.
 #' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'`.
@@ -586,14 +587,16 @@ character.only = FALSE) {
 #' @export
 #'
 
-get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
+get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
+                                     graph.obj = NULL,
+                                    n.spde = 1,
                                     dim = NULL, B.tau = NULL, B.kappa = NULL,
-                                    B.sigma = NULL, B.range = NULL, nu = NULL,
+                                     B.sigma = NULL, B.range = NULL, nu = NULL,
                                     parameterization = c("matern", "spde"),
                                     include.nu = TRUE, log.scale = TRUE,
                                     nu.upper.bound = NULL) {
-  if (is.null(mesh) && is.null(mesh.range)) {
-    stop("You should either provide mesh or mesh.range!")
+  if (is.null(mesh) && is.null(mesh.range) && is.null(graph.obj)) {
+    stop("You should either provide mesh, mesh.range or graph_obj!")
   }
 
     parameterization <- parameterization[[1]]
@@ -602,7 +605,7 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
     stop("parameterization should be either 'matern' or 'spde'!")
   }
 
-  if (is.null(mesh) && is.null(dim)) {
+  if (is.null(mesh) && is.null(graph) && is.null(dim)) {
     stop("If you don't provide mesh, you have to provide dim!")
   }
 
@@ -613,6 +616,14 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
 
     dim <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
   } 
+
+  if(!is.null(graph_obj)){
+    if(!inherits(graph_obj, "metric_graph")){
+      stop("graph_obj should be a metric_graph object.")
+    }
+    
+    dim <- 1
+  }
 
   if (include.nu) {
     if (!is.null(nu.upper.bound)) {
@@ -634,7 +645,8 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
       B.range = matrix(c(0, 0, 1), 1, 3)
     }
 
-    param <- get_parameters_rSPDE(mesh = mesh,
+    if(is.null(graph.obj)){
+      param <- get_parameters_rSPDE(mesh = mesh,
                                   alpha = nu + dim/2,
                                   B.tau = B.tau,
                                   B.kappa = B.kappa,
@@ -653,6 +665,25 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
                                   d = dim,
                                   n.spde = n.spde
                                   )
+    } else{
+      param <- get_parameters_rSPDE_graph(mesh = graph_obj,
+                                  alpha = nu + 1/2,
+                                  B.tau = B.tau,
+                                  B.kappa = B.kappa,
+                                  B.sigma = B.sigma,
+                                  B.range = B.range,
+                                  nu.nominal = nu,
+                                  alpha.nominal = nu + 1/2,
+                                  parameterization = parameterization,
+                                  prior.std.dev.nominal = 1,
+                                  prior.range.nominal = NULL,
+                                  prior.tau = NULL,
+                                  prior.kappa = NULL,
+                                  theta.prior.mean = NULL,
+                                  theta.prior.prec = 0.1
+                                  )
+    }
+
     initial <- param$theta.prior.mean
   } else{
     if(is.null(B.tau)){
@@ -661,8 +692,8 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
     if(is.null(B.kappa)){
       B.kappa = matrix(c(0, 0, 1), 1, 3)
     }
-
-    param <- get_parameters_rSPDE(mesh = mesh,
+    if(is.null(graph_obj)){
+      param <- get_parameters_rSPDE(mesh = mesh,
                                   alpha = nu + dim/2,
                                   B.tau = B.tau,
                                   B.kappa = B.kappa,
@@ -681,6 +712,25 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
                                   d = dim,
                                   n.spde = n.spde
                                   )
+    } else {
+      param <- get_parameters_rSPDE_graph(mesh = graph_obj,
+                                  alpha = nu + 1/2,
+                                  B.tau = B.tau,
+                                  B.kappa = B.kappa,
+                                  B.sigma = B.sigma,
+                                  B.range = B.range,
+                                  nu.nominal = nu,
+                                  alpha.nominal = nu + 1/2,
+                                  parameterization = parameterization,
+                                  prior.std.dev.nominal = 1,
+                                  prior.range.nominal = NULL,
+                                  prior.tau = NULL,
+                                  prior.kappa = NULL,
+                                  theta.prior.mean = NULL,
+                                  theta.prior.prec = 0.1
+                                  )
+    }
+
   initial <- param$theta.prior.mean
   }
 
