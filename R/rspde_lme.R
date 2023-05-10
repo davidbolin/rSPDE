@@ -13,6 +13,8 @@
 #' @param start_nu Starting value for the smoothness parameter.
 #' @param nu If `NULL`, the smoothness parameter will be estimated, otherwise the smoothness parameter will be kept fixed at the provided value.
 #' @param model_matrix logical indicating whether the model matrix should be returned as component of the returned value.
+#' @param parallel logical. Indicating whether to use optimParallel or not.
+#' @param n_cores Number of cores to be used if parallel is true.
 #' @param optim_controls Additional controls to be passed to `optim` or `optimParallel`.
 #' @return A list containing the fitted model.
 #' @rdname rspde_lme
@@ -28,6 +30,8 @@ rspde_lme <- function(formula, loc, data,
                 nu = NULL,
                 rspde_order = NULL,
                 model_matrix = TRUE,
+                parallel = FALSE,
+                n_cores = parallel::detectCores()-1,
                 optim_controls = list()) {
 
    if(!is.null(model)){
@@ -223,10 +227,36 @@ rspde_lme <- function(formula, loc, data,
     rm(data_tmp)
   }
 
-  res <- optim(start_values, 
-                likelihood, method = optim_method,
-                control = optim_controls,
-                hessian = TRUE)
+if(parallel){
+  cl <- parallel::makeCluster(n_cores)
+  parallel::setDefaultCluster(cl = cl)
+  parallel::clusterExport(cl, "y_resp", envir = environment())
+  parallel::clusterExport(cl, "model", envir = environment())
+  parallel::clusterExport(cl, "A_list", envir = environment())
+  parallel::clusterExport(cl, "X_cov", envir = environment())
+  parallel::clusterExport(cl, "aux_lme_CBrSPDE.matern.loglike",
+                 envir = as.environment("package:rSPDE"))
+
+    start_fit <- Sys.time()
+    res <- optimParallel::optimParallel(start_values, 
+                  likelihood, method = optim_method,
+                  control = optim_controls,
+                  hessian = TRUE,
+                  parallel = list(forward = FALSE, cl = cl,
+                      loginfo = FALSE))
+  end_fit <- Sys.time()
+  time_fit <- end_fit-start_fit
+  parallel::stopCluster(cl)
+} else{
+  start_fit <- Sys.time()
+      res <- optim(start_values, 
+                  likelihood, method = optim_method,
+                  control = optim_controls,
+                  hessian = TRUE)
+  end_fit <- Sys.time()
+  time_fit <- end_fit-start_fit
+}
+
 
   coeff <- res$par
   coeff <- exp(c(res$par[1:n_coeff_nonfixed]))
@@ -239,6 +269,8 @@ rspde_lme <- function(formula, loc, data,
 
   observed_fisher <- res$hessian
   inv_fisher <- tryCatch(solve(observed_fisher), error = function(e) matrix(NA, nrow(observed_fisher), ncol(observed_fisher)))
+  
+  print(diag(inv_fisher))
   std_err <- sqrt(diag(inv_fisher))
 
   coeff_random <- coeff[2:(n_coeff_nonfixed)]
@@ -326,6 +358,7 @@ rspde_lme <- function(formula, loc, data,
   object$niter <- res$counts
   object$response <- y_term
   object$covariates <- cov_term
+  object$fitting_time <- time_fit
   if(model_matrix){
     if(ncol(X_cov)>0){
       object$model_matrix <- cbind(y_resp, X_cov)
