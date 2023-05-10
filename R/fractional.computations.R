@@ -91,6 +91,7 @@ simulate.rSPDEobj <- function(object,
 #' covariance function.
 #' @param user_m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
+#' @param parameterization If non-null, update the parameterization. Only works for stationary models.
 #' @param compute_higher_order Logical. Should the higher order
 #' finite element matrices be computed?
 #' @param return_block_list Logical. For `type = "covariance"`,
@@ -135,6 +136,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
                               user_theta = NULL,
                               user_m = NULL,
                               compute_higher_order = object$higher_order,
+                              parameterization = NULL,
                               type_rational_approximation =
                               object$type_rational_approximation,
                               return_block_list = object$return_block_list,
@@ -202,6 +204,15 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
         }
 
+        if(is.null(parameterization)){
+          parameterization <- new_object$parameterization
+        } else{
+            parameterization <- parameterization[[1]]
+            if (!parameterization %in% c("matern", "spde")) {
+                stop("parameterization should be either 'matern' or 'spde'!")
+            }
+        }
+
         new_object <- matern.operators(
           kappa = new_object$kappa,
           sigma = new_object$sigma,
@@ -212,6 +223,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           C = new_object$C,
           d = new_object$d,
           m = new_object$m,
+          parameterization = parameterization,
           type = "covariance",
           return_block_list = return_block_list,
           type_rational_approximation = type_rational_approximation,
@@ -2511,3 +2523,60 @@ construct.spde.matern.loglike <- function(object, Y, A,
         return(loglik)
 }
 
+
+
+
+
+#' @noRd 
+
+aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
+ 
+  n.rep <- length(unique(repl))
+
+  m <- object$m
+
+  Q <- object$Q
+
+  R <- Matrix::chol(Q)
+
+  repl_val <- unique(repl_vec)
+
+  l <- 0
+  
+  for(i in repl_val){
+      ind_tmp <- (repl %in% i)
+      y_tmp <- y[ind_tmp]
+
+      if(ncol(X_cov) == 0){
+        X_cov_tmp <- 0
+      } else {
+        X_cov_tmp <- X_cov[ind_tmp,,drop=FALSE]
+      }
+      na_obs <- is.na(y_tmp)
+      
+      y_ <- y_tmp[!na_obs]
+      n.o <- length(y_)
+      A_tmp <- A_list[[as.character(i)]]
+      Q.p <- Q  + t(A_tmp) %*% A_tmp/sigma_e^2
+      R.p <- Matrix::chol(Q.p)
+
+      l <- l + sum(log(diag(R))) - sum(log(diag(R.p))) - n.o*log(sigma_e)
+
+      v <- y_
+
+      if(ncol(X_cov) != 0){
+        X_cov_tmp <- X_cov_tmp[!na_obs, ]
+        v <- v - X_cov_tmp %*% beta_cov
+      }
+
+      mu.p <- solve(Q.p,as.vector(t(A_tmp) %*% Q.e %*% v))
+
+      v <- v - A_tmp%*%mu.p
+
+      l <- l - 0.5*(t(mu.p) %*% Q %*% mu.p + t(v) %*% v / sigma_e^2) -
+        0.5 * n.o * log(2*pi)
+
+  }
+
+  return(as.double(l))
+}

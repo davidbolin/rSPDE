@@ -216,6 +216,7 @@ fractional.operators <- function(L,
 #' @param mesh An optional inla mesh. Replaces `d`, `C` and `G`.
 #' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`. 
 #' @param mesh.range The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
+#' @param mesh.loc The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument. 
 #' @param d The dimension of the domain. Does not need to be given if either
 #' `mesh` or `graph` is provided.
 #' @param m The order of the rational approximation, which needs to be a
@@ -378,6 +379,7 @@ matern.operators <- function(kappa = NULL,
                              mesh = NULL,
                              graph = NULL,
                              mesh_range = NULL,
+                             mesh_loc = NULL,
                              m = 1,
                              type = c("covariance", "operator"),
                             parameterization = c("matern", "spde"),                             
@@ -398,6 +400,9 @@ matern.operators <- function(kappa = NULL,
   if ((is.null(C) || is.null(G)) && is.null(mesh) && is.null(graph)) {
     stop("You should either provide mesh, graph, or provide both C *and* G!")
   }
+
+  has_mesh <- FALSE
+  has_graph <- FALSE
   
   parameterization <- parameterization[[1]]
 
@@ -411,14 +416,13 @@ matern.operators <- function(kappa = NULL,
     }
     d <- 1
     if(is.null(graph$mesh)){
-      warning("The graph object did not contain a mesh, one was created with h = 0.01.")
-      grahp$build_mesh(h = 0.01)
+      warning("The graph object did not contain a mesh, one was created with h = 0.01. Use the build_mesh() method to replace this mesh with a new one.")
+      graph$build_mesh(h = 0.01)
     }
-    if(is.null(graph$mesh$C)){
-      graph$compute_fem()
-    }
+    graph$compute_fem()
     C <- graph$mesh$C
     G <- graph$mesh$G
+    has_graph <- TRUE
   }
 
   if (!is.null(mesh)) {
@@ -426,6 +430,7 @@ matern.operators <- function(kappa = NULL,
     fem <- INLA::inla.mesh.fem(mesh)
     C <- fem$c0
     G <- fem$g1
+    has_mesh <- TRUE
   }
 
   if(is.null(nu)){
@@ -476,6 +481,22 @@ matern.operators <- function(kappa = NULL,
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
   }
 
+  if(!is.null(mesh)){
+      make_A <- function(loc){
+        return(INLA::inla.spde.make.A(mesh = mesh, loc = loc))
+      }
+  } else if(!is.null(graph)){
+      make_A <- function(loc){
+        return(graph$mesh_A(loc))
+      }
+  } else if(!is.null(mesh_loc) && d == 1){
+    make_A <- function(loc){
+          return(rspde.make.A(mesh = mesh_loc, loc = loc))
+          }   
+  } else {
+    make_A <- NULL
+  }
+
   if (type == "operator") {
   
     beta <- (nu + d / 2) / 2
@@ -498,6 +519,10 @@ matern.operators <- function(kappa = NULL,
     output$type <- "Matern approximation"
     output$stationary <- TRUE
     output$parameterization <- parameterization
+    output$has_mesh <- has_mesh
+    output$has_graph <- has_graph
+    output$make_A <- make_A
+    output$alpha <- 2*beta
     return(output)
   } else {
     type_rational_approximation <- type_rational_approximation[[1]]
@@ -510,6 +535,9 @@ matern.operators <- function(kappa = NULL,
     out$range <- range
     out$tau <- tau
     out$parameterization <- parameterization
+    out$has_mesh <- has_mesh
+    out$has_graph <- has_graph
+    out$make_A <- make_A
     return(out)
   }
 }
@@ -881,6 +909,9 @@ CBrSPDE.matern.operators <- function(C,
 #' domain of interest.
 #' @param mesh An optional inla mesh. `d`, `C` and `G`
 #' must be given if `mesh` is not given.
+#' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`. 
+#' @param mesh.range The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
+#' @param mesh.loc The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument.
 #' @param d The dimension of the domain. Does not need to be given if
 #' `mesh` is used.
 #' @param m The order of the rational approximation, which needs to be a
@@ -949,12 +980,15 @@ spde.matern.operators <- function(kappa = NULL,
                                   B.kappa = matrix(c(0, 0, 1), 1, 3), 
                                   B.sigma = matrix(c(0, 1, 0), 1, 3), 
                                   B.range = matrix(c(0, 0, 1), 1, 3),
-                                  nu,
+                                  nu = NULL,
                                   parameterization = c("matern", "spde"),
                                   G = NULL,
                                   C = NULL,
                                   d = NULL,
+                                  graph = NULL,
                                   mesh = NULL,
+                                  mesh_range = NULL,
+                                  mesh_loc = NULL,
                                   m = 1,
                                   type = c("covariance", "operator"),
                                   type_rational_approximation = c("chebfun",
@@ -970,12 +1004,12 @@ spde.matern.operators <- function(kappa = NULL,
     stop("parameterization should be either 'matern' or 'spde'!")
   }
 
-  if (is.null(d) && is.null(mesh)) {
-    stop("You should give either the dimension d or the mesh!")
+  if (is.null(d) && is.null(mesh) && is.null(graph)) {
+    stop("You should give either the dimension d, the mesh or graph!")
   }
 
-  if ((is.null(C) || is.null(G)) && is.null(mesh)) {
-    stop("You should either provide mesh, or provide C *and* G!")
+  if ((is.null(C) || is.null(G)) && is.null(mesh) && is.null(graph)) {
+    stop("You should either provide mesh, graph, or provide both C *and* G!")
   }
 
   if (!is.null(mesh)) {
@@ -983,6 +1017,26 @@ spde.matern.operators <- function(kappa = NULL,
       fem <- INLA::inla.mesh.fem(mesh)
       C <- fem$c0
       G <- fem$g1
+      has_mesh <- TRUE
+  }
+
+    if(!is.null(graph)){
+    if(!inherits(graph, "metric_graph")){
+      stop("graph should be a metric_graph object!")
+    }
+    has_graph <- TRUE
+    d <- 1
+    if(is.null(graph$mesh)){
+      warning("The graph object did not contain a mesh, one was created with h = 0.01. Use the build_mesh() method to replace this mesh with a new one.")
+      graph$build_mesh(h = 0.01)
+    }
+    graph$compute_fem()
+    C <- graph$mesh$C
+    G <- graph$mesh$G
+  }
+
+  if(is.null(nu)){
+    nu <- 1
   }
 
   if(!is.null(theta)){
@@ -1011,8 +1065,46 @@ spde.matern.operators <- function(kappa = NULL,
       kappa <- exp(B.kappa %*% new_theta)
 
   } else if(is.null(kappa) || is.null(tau)){
-    stop("If theta is NULL, then kappa and tau must not be NULL!")
+      if(any(dim(B.tau) != dim(B.kappa))){
+        stop("B.tau and B.kappa must have the same dimensions!")
+      }
+      if(any(dim(B.sigma) != dim(B.range))){
+        stop("B.sigma and B.range must have the same dimensions!")
+      }
+
+      if(is.null(graph) && is.null(mesh) && is.null(mesh_range)){
+        stop("You should either provide all the parameters, or you should provide one of the following: mesh, mesh_range or graph.")
+      }
+      if(!is.null(mesh) || !is.null(mesh_range)){
+         theta <- get.initial.values.rSPDE(mesh.range = mesh_range, dim = d, parameterization = parameterization, mesh = mesh, nu = nu, B.tau = B.tau, B.sigma = B.sigma, B.range = B.range,
+         B.kappa = B.kappa, include.nu = FALSE)
+      } else if(!is.null(graph)){
+        theta <- get.initial.values.rSPDE(graph.obj = graph, parameterization = parameterization, nu = nu, B.tau = B.tau, B.sigma = B.sigma, B.range = B.range,
+         B.kappa = B.kappa, include.nu = FALSE)
+      }
+    if(is.null(tau)){
+      tau <- exp(B.tau %*% theta)
+    }
+    if(is.null(kappa)){
+      kappa <- exp(B.kappa %*% theta)
+    }
   } 
+
+  if(!is.null(mesh)){
+      make_A <- function(loc){
+        return(INLA::inla.spde.make.A(mesh = mesh, loc = loc))
+      }
+  } else if(!is.null(graph)){
+      make_A <- function(loc){
+        return(graph$mesh_A(loc))
+      }
+  } else if(!is.null(mesh_loc) && d == 1){
+    make_A <- function(loc){
+          return(rspde.make.A(mesh = mesh_loc, loc = loc))
+          }   
+  } else {
+    make_A <- NULL
+  }
 
   alpha <- nu + d / 2
   
@@ -1033,6 +1125,8 @@ spde.matern.operators <- function(kappa = NULL,
         tau = tau
       )
       output <- operators
+      output$d <- d
+      output$alpha <- alpha
       output$beta <- beta
       output$B.tau <- B.tau
       output$B.kappa <- B.kappa
@@ -1041,6 +1135,9 @@ spde.matern.operators <- function(kappa = NULL,
       output$theta <- theta
       output$stationary <- FALSE
       output$type <- "Matern SPDE approximation"
+      output$has_mesh <- has_mesh
+      output$has_graph <- has_graph
+      output$make_A <- make_A
   } else{
     type_rational_approximation <- type_rational_approximation[[1]]
     m_alpha <- floor(alpha)
@@ -1133,6 +1230,9 @@ spde.matern.operators <- function(kappa = NULL,
     stationary = FALSE
   )
   output$type <- "Covariance-Based Matern SPDE Approximation"
+  output$has_mesh <- has_mesh
+  output$has_graph <- has_graph  
+  output$make_A <- make_A
   class(output) <- "CBrSPDEobj"
   }
 

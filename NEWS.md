@@ -1,5 +1,7 @@
 # rSPDE (development version)
 * Fixed a bug on rSPDE.construct.matern.loglike when the parameterization is "matern".
+* Add MetricGraph to suggested packages.
+* Created the rspde_lme() interface, with corresponding standard methods(predict, summary, etc).
 
 # rSPDE 2.2.0
 * Adding a new parameterization (variance and a range-like parameter)
