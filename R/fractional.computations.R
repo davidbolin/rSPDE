@@ -135,6 +135,10 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
                               user_range = NULL,
                               user_theta = NULL,
                               user_m = NULL,
+                              mesh = NULL,
+                              loc_mesh = NULL,
+                              graph = NULL,
+                              range_mesh = NULL,
                               compute_higher_order = object$higher_order,
                               parameterization = NULL,
                               type_rational_approximation =
@@ -178,32 +182,6 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
             new_object$nu <- rspde_check_user_input(user_nu, "nu")
         }
 
-        if (!is.null(user_kappa)) {
-          new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
-          new_object$range <- NULL
-          new_object$sigma <- NULL
-        }
-
-        if (!is.null(user_range)) {
-          new_object$range <- rspde_check_user_input(user_range, "range")
-          new_object$kappa <- NULL
-          new_object$tau <- NULL
-        }
-
-        if (!is.null(user_tau)) {
-          new_object$tau <- rspde_check_user_input(user_tau, "tau")
-          new_object$sigma <- NULL
-        }
-
-        if (!is.null(user_sigma)) {
-          new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
-          new_object$tau <- NULL
-        }
-
-        if (!is.null(user_m)) {
-          new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
-        }
-
         if(is.null(parameterization)){
           parameterization <- new_object$parameterization
         } else{
@@ -211,6 +189,50 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
             if (!parameterization %in% c("matern", "spde")) {
                 stop("parameterization should be either 'matern' or 'spde'!")
             }
+        }
+
+        if(parameterization == "spde"){
+          if (!is.null(user_kappa)) {
+            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
+            new_object$range <- NULL
+            new_object$sigma <- NULL
+          }
+
+          if (!is.null(user_tau)) {
+            new_object$tau <- rspde_check_user_input(user_tau, "tau")
+            new_object$sigma <- NULL
+          }
+        } else{
+          if (!is.null(user_range)) {
+            new_object$range <- rspde_check_user_input(user_range, "range")
+            new_object$kappa <- NULL
+            new_object$tau <- NULL
+          }
+
+          if (!is.null(user_sigma)) {
+            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
+            new_object$tau <- NULL
+          }
+        }
+
+
+
+
+        if (!is.null(user_m)) {
+          new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+        }
+
+        if(is.null(mesh)){
+          mesh <- new_object[["mesh"]]
+        }
+        if(is.null(range_mesh)){
+          range_mesh <- new_object[["range_mesh"]]
+        }
+        if(is.null(loc_mesh)){
+          loc_mesh <- new_object[["loc_mesh"]]
+        }
+        if(is.null(graph)){
+          graph <- new_object$graph
         }
 
         new_object <- matern.operators(
@@ -223,11 +245,14 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           C = new_object$C,
           d = new_object$d,
           m = new_object$m,
+          mesh = mesh,
+          loc_mesh = loc_mesh,
+          range_mesh = range_mesh,
+          graph = graph,
           parameterization = parameterization,
           type = "covariance",
           return_block_list = return_block_list,
           type_rational_approximation = type_rational_approximation,
-          mesh = NULL,
           fem_mesh_matrices = new_object$fem_mesh_matrices
         )
   } else{
@@ -2531,15 +2556,13 @@ construct.spde.matern.loglike <- function(object, Y, A,
 
 aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
  
-  n.rep <- length(unique(repl))
-
   m <- object$m
 
   Q <- object$Q
 
   R <- Matrix::chol(Q)
 
-  repl_val <- unique(repl_vec)
+  repl_val <- unique(repl)
 
   l <- 0
   
@@ -2565,11 +2588,11 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
       v <- y_
 
       if(ncol(X_cov) != 0){
-        X_cov_tmp <- X_cov_tmp[!na_obs, ]
+        X_cov_tmp <- X_cov_tmp[!na_obs, , drop = FALSE] 
         v <- v - X_cov_tmp %*% beta_cov
       }
 
-      mu.p <- solve(Q.p,as.vector(t(A_tmp) %*% Q.e %*% v))
+      mu.p <- solve(Q.p,as.vector(t(A_tmp) %*% v / sigma_e^2))
 
       v <- v - A_tmp%*%mu.p
 

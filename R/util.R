@@ -605,7 +605,7 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
     stop("parameterization should be either 'matern' or 'spde'!")
   }
 
-  if (is.null(mesh) && is.null(graph) && is.null(dim)) {
+  if (is.null(mesh) && is.null(graph.obj) && is.null(dim)) {
     stop("If you don't provide mesh, you have to provide dim!")
   }
 
@@ -617,8 +617,8 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
     dim <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
   } 
 
-  if(!is.null(graph_obj)){
-    if(!inherits(graph_obj, "metric_graph")){
+  if(!is.null(graph.obj)){
+    if(!inherits(graph.obj, "metric_graph")){
       stop("graph_obj should be a metric_graph object.")
     }
     
@@ -666,7 +666,7 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
                                   n.spde = n.spde
                                   )
     } else{
-      param <- get_parameters_rSPDE_graph(mesh = graph_obj,
+      param <- get_parameters_rSPDE_graph(mesh = graph.obj,
                                   alpha = nu + 1/2,
                                   B.tau = B.tau,
                                   B.kappa = B.kappa,
@@ -692,7 +692,7 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
     if(is.null(B.kappa)){
       B.kappa = matrix(c(0, 0, 1), 1, 3)
     }
-    if(is.null(graph_obj)){
+    if(is.null(graph.obj)){
       param <- get_parameters_rSPDE(mesh = mesh,
                                   alpha = nu + dim/2,
                                   B.tau = B.tau,
@@ -713,7 +713,7 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
                                   n.spde = n.spde
                                   )
     } else {
-      param <- get_parameters_rSPDE_graph(mesh = graph_obj,
+      param <- get_parameters_rSPDE_graph(mesh = graph.obj,
                                   alpha = nu + 1/2,
                                   B.tau = B.tau,
                                   B.kappa = B.kappa,

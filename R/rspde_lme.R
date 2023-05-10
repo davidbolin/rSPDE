@@ -59,7 +59,7 @@ rspde_lme <- function(formula, loc, data,
   y_term <- stats::terms(formula)[[2]]
 
   y_resp <- eval(y_term, envir = data, enclos = parent.frame())
-  y_resp <- as.numeric(y_graph)
+  y_resp <- as.numeric(y_resp)
 
   cov_term <- stats::delete.response(terms(formula))
 
@@ -67,39 +67,43 @@ rspde_lme <- function(formula, loc, data,
 
   if(all(dim(X_cov) == c(0,1))){
     names_temp <- colnames(X_cov)
-    X_cov <- matrix(1, nrow = length(y_graph))
+    X_cov <- matrix(1, nrow = length(y_resp))
     colnames(X_cov) <- names_temp
   }
 
-  if(is.null(starting_values_latent)){
-    if(!model$stationary){
-        if(is.null(theta)){
-            stop("For models given by spde.matern.operators(), theta must be non-null!")
-        }
-        starting_values_latent <- model$theta
+  if(!is.null(model)){
+    if(is.null(starting_values_latent)){
+      if(!model$stationary){
+          if(is.null(theta)){
+              stop("For models given by spde.matern.operators(), theta must be non-null!")
+          }
+          starting_values_latent <- model$theta
+      } else{
+          if(model$parameterization == "spde"){
+              starting_values_latent <- log(c(model$tau, model$kappa))
+          } else{
+              starting_values_latent <- log(c(model$sigma, model$range))
+          }
+      }
     } else{
-        if(model$parameterization == "spde"){
-            starting_values_latent <- log(c(model$tau, model$kappa))
-        } else{
-            starting_values_latent <- log(c(model$sigma, model$range))
-        }
+      if(model$stationary){
+          if(length(starting_values_latent)!=2){
+              stop("starting_values_latent must be a vector of length 2.")
+          }
+          if(any(starting_values_latent<0)){
+            stop("For stationary models, the values of starting_values_latent must be positive.")
+          }
+      } else{
+          if(length(starting_values_latent)!=ncol(model$B.tau)){
+              stop("starting_values_latent must be a vector of the same length as the number of the covariates for the latent model.")
+          }
+      }
     }
-  } else{
-    if(model$stationary){
-        if(length(starting_values_latent)!=2){
-            stop("starting_values_latent must be a vector of length 2.")
-        }
-    } else{
-        if(length(starting_values_latent)!=ncol(model$B.tau)){
-            stop("starting_values_latent must be a vector of the same length as the number of the covariates for the latent model.")
-        }
-    }
-  }
 
     if(estimate_nu){
-        start_values <- c(log(0.1*sd(y_resp), 1,starting_values_latent))
+        start_values <- c(log(c(0.1*sd(y_resp), 1)),starting_values_latent)
     } else{
-        start_values <- c(log(0.1*sd(y_resp), starting_values_latent))
+        start_values <- c(log(0.1*sd(y_resp)), starting_values_latent)
     }
 
     if(!is.null(start_sigma_e)){
@@ -133,12 +137,11 @@ rspde_lme <- function(formula, loc, data,
     }
   }
   
-  if(!is.null(model)){
     repl_val <- unique(repl)
     A_list <- list()
     if(!is.null(model$make_A)) {
         for(j in repl_val){
-            ind_tmp <- (repl %in% i)
+            ind_tmp <- (repl %in% j)
             y_tmp <- y_resp[ind_tmp]            
             na_obs <- is.na(y_tmp)
             A_list[[as.character(j)]] <- model$make_A(loc_df[ind_tmp,])
@@ -151,13 +154,15 @@ rspde_lme <- function(formula, loc, data,
         stop("When creating the model object using matern.operators() or spde.matern.operators(), you should either supply a graph, or a mesh, or mesh_loc (this last one only works for dimension 1).")
     }
 
+    n_coeff_nonfixed <- length(start_values)
+
     if(inherits(model, "CBrSPDEobj")){
             likelihood <- function(theta){
-                sigma_e <- theta[1]
+                sigma_e <- exp(theta[1])
                 n_cov <- ncol(X_cov)
-                n_initial <- length(start_values)                
+                n_initial <- n_coeff_nonfixed                
                 if(estimate_nu){
-                    nu <- theta[2]
+                    nu <- exp(theta[2])
                     gap <- 1
                 } else{
                     gap <- 0
@@ -174,14 +179,14 @@ rspde_lme <- function(formula, loc, data,
                     
                 if(model$stationary){
                     if(model$parameterization == "spde"){
-                        tau <- theta[2+gap]
-                        kappa <- theta[3+gap]
+                        tau <- exp(theta[2+gap])
+                        kappa <- exp(theta[3+gap])
                         model <- update.CBrSPDEobj(model,
                             user_nu = nu, user_tau = tau,
                             user_kappa = kappa, parameterization = "spde")
                     } else{
-                        sigma <- theta[2+gap]
-                        range <- theta[3+gap]
+                        sigma <- exp(theta[2+gap])
+                        range <- exp(theta[3+gap])
                         model <- update.CBrSPDEobj(model,
                             user_nu = nu,
                             user_sigma = sigma, user_range = range,
@@ -199,6 +204,7 @@ rspde_lme <- function(formula, loc, data,
                 } else{
                     beta_cov <- NULL
                 }
+
                 loglik <- aux_lme_CBrSPDE.matern.loglike(object = model, y = y_resp, X_cov = X_cov, repl = repl,
                 A_list = A_list, sigma_e = sigma_e, beta_cov = beta_cov)
             return(-loglik)
@@ -207,10 +213,9 @@ rspde_lme <- function(formula, loc, data,
             ### If type is operator
     }
 
-
  if(ncol(X_cov)>0 && !is.null(model)){
     names_tmp <- colnames(X_cov)
-    data_tmp <- cbind(y_graph, X_cov)
+    data_tmp <- cbind(y_resp, X_cov)
     data_tmp <- na.omit(data_tmp)
     temp_coeff <- lm(data_tmp[,1] ~ data_tmp[,-1] - 1)$coeff
     names(temp_coeff) <- names_tmp
@@ -218,15 +223,14 @@ rspde_lme <- function(formula, loc, data,
     rm(data_tmp)
   }
 
-
   res <- optim(start_values, 
                 likelihood, method = optim_method,
                 control = optim_controls,
                 hessian = TRUE)
 
   coeff <- res$par
-  coeff <- exp(c(res$par[1:3]))
-  coeff <- c(coeff, res$par[-c(1:3)])
+  coeff <- exp(c(res$par[1:n_coeff_nonfixed]))
+  coeff <- c(coeff, res$par[-c(1:n_coeff_nonfixed)])
 
   loglik <- -res$value
 
@@ -237,8 +241,28 @@ rspde_lme <- function(formula, loc, data,
   inv_fisher <- tryCatch(solve(observed_fisher), error = function(e) matrix(NA, nrow(observed_fisher), ncol(observed_fisher)))
   std_err <- sqrt(diag(inv_fisher))
 
-  coeff_random <- coeff[2:(1+n_random)]
-  std_random <- std_err[2:(1+n_random)]
+  coeff_random <- coeff[2:(n_coeff_nonfixed)]
+  std_random <- std_err[2:(n_coeff_nonfixed)]
+
+  if(model$stationary){
+    if(model$parameterization == "spde"){
+        par_names <- c("tau", "kappa")
+    } else{
+        par_names <- c("sigma", "range")
+    }
+  } else{
+    par_names <- c("Theta 1") 
+    if(ncol(model$B.tau)>2){
+        for(i in 2:(ncol(model$B.tau)-1)){
+            par_names <- c(par_names, paste("Theta",i))
+        }
+    }
+  }
+
+  if(estimate_nu){
+      par_names <- c("nu", par_names)
+  }
+
   names(coeff_random) <- par_names
 
   coeff_meas <- coeff[1]
@@ -254,7 +278,7 @@ rspde_lme <- function(formula, loc, data,
     std_fixed <- NULL
   }
 
-  } else{
+  } else{ # If model is NULL
     coeff_random <- NULL
     std_random <- NULL
 
@@ -289,12 +313,12 @@ rspde_lme <- function(formula, loc, data,
   fixed_effects = coeff_fixed, random_effects = coeff_random)
   object$std_errors <- list(std_meas = std_meas,
         std_fixed = std_fixed, std_random = std_random) 
-  object$call <- call_graph_rspde
+  object$call <- call_rspde_lme
   object$terms <- list(fixed_effects = X_cov)
   object$response <- list(y = y_resp)
   object$formula <- formula
   object$estimation_method <- optim_method
-  object$parameterization_latent <- parameterization_latent
+  object$parameterization_latent <- model$parameterization
   object$repl <- repl
   object$optim_controls <- optim_controls
   object$latent_model <- model

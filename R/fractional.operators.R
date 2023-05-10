@@ -378,8 +378,8 @@ matern.operators <- function(kappa = NULL,
                              d = NULL,
                              mesh = NULL,
                              graph = NULL,
-                             mesh_range = NULL,
-                             mesh_loc = NULL,
+                             range_mesh = NULL,
+                             loc_mesh = NULL,
                              m = 1,
                              type = c("covariance", "operator"),
                             parameterization = c("matern", "spde"),                             
@@ -403,6 +403,13 @@ matern.operators <- function(kappa = NULL,
 
   has_mesh <- FALSE
   has_graph <- FALSE
+
+  if(!is.null(loc_mesh)){
+    if(!is.numeric(loc_mesh)){
+      stop("loc_mesh must be numerical.")
+    }
+    range_mesh <- abs(diff(range(loc_mesh)))
+  }
   
   parameterization <- parameterization[[1]]
 
@@ -439,42 +446,42 @@ matern.operators <- function(kappa = NULL,
 
   if(parameterization == "spde"){
     if(is.null(kappa) || is.null(tau)){
-      if(is.null(graph) && is.null(mesh) && is.null(mesh_range)){
-        stop("You should either provide all the parameters, or you should provide one of the following: mesh, mesh_range or graph.")
+      if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
+        stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
       }
-      if(!is.null(mesh) || !is.null(mesh_range)){
-         param <- get.initial.values.rSPDE(mesh.range = mesh_range, dim = d, parameterization = parameterization, mesh = mesh, nu = nu)
+      if(!is.null(mesh) || !is.null(range_mesh)){
+         param <- get.initial.values.rSPDE(mesh.range = range_mesh, dim = d, parameterization = parameterization, mesh = mesh, nu = nu)
       } else if(!is.null(graph)){
         param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = parameterization, nu = nu)
       }
     }
 
     if(is.null(kappa)){
-      kappa <- param[2]
+      kappa <- exp(param[2])
     }
     if(is.null(tau)){
-      tau <- param[1]
+      tau <- exp(param[1])
     }
     range <- sqrt(8 * nu) / kappa
     sigma <- sqrt(gamma(nu) / (tau^2 * kappa^(2 * nu) *
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
   } else{
     if(is.null(sigma) || is.null(range)){
-      if(is.null(graph) && is.null(mesh) && is.null(mesh_range)){
-        stop("You should either provide all the parameters, or you should provide one of the following: mesh, mesh_range or graph.")
+      if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
+        stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
       }
-      if(!is.null(mesh) || !is.null(mesh_range)){
-         param <- get.initial.values.rSPDE(mesh.range = mesh_range, dim = d, parameterization = parameterization, mesh = mesh, nu = nu)
+      if(!is.null(mesh) || !is.null(range_mesh)){
+         param <- get.initial.values.rSPDE(mesh.range = range_mesh, dim = d, parameterization = parameterization, mesh = mesh, nu = nu)
       } else if(!is.null(graph)){
         param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = parameterization, nu = nu)
       }
     }
 
     if(is.null(range)){
-      range <- param[2]
+      range <- exp(param[2])
     } 
     if(is.null(sigma)){
-      sigma <- param[1]
+      sigma <- exp(param[1])
     } 
     kappa <- sqrt(8 * nu) / range
     tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
@@ -489,9 +496,9 @@ matern.operators <- function(kappa = NULL,
       make_A <- function(loc){
         return(graph$mesh_A(loc))
       }
-  } else if(!is.null(mesh_loc) && d == 1){
+  } else if(!is.null(loc_mesh) && d == 1){
     make_A <- function(loc){
-          return(rspde.make.A(mesh = mesh_loc, loc = loc))
+          return(rSPDE::rSPDE.A1d(x = loc_mesh, loc = loc))
           }   
   } else {
     make_A <- NULL
@@ -523,6 +530,10 @@ matern.operators <- function(kappa = NULL,
     output$has_graph <- has_graph
     output$make_A <- make_A
     output$alpha <- 2*beta
+    output$mesh <- mesh
+    output$range_mesh <- range_mesh
+    output$graph <- graph
+    output$loc_mesh <- loc_mesh
     return(output)
   } else {
     type_rational_approximation <- type_rational_approximation[[1]]
@@ -538,6 +549,10 @@ matern.operators <- function(kappa = NULL,
     out$has_mesh <- has_mesh
     out$has_graph <- has_graph
     out$make_A <- make_A
+    out$mesh <- mesh
+    out$range_mesh <- range_mesh
+    out$graph <- graph
+    out$loc_mesh <- loc_mesh    
     return(out)
   }
 }
@@ -987,8 +1002,8 @@ spde.matern.operators <- function(kappa = NULL,
                                   d = NULL,
                                   graph = NULL,
                                   mesh = NULL,
-                                  mesh_range = NULL,
-                                  mesh_loc = NULL,
+                                  range_mesh = NULL,
+                                  loc_mesh = NULL,
                                   m = 1,
                                   type = c("covariance", "operator"),
                                   type_rational_approximation = c("chebfun",
@@ -1072,11 +1087,11 @@ spde.matern.operators <- function(kappa = NULL,
         stop("B.sigma and B.range must have the same dimensions!")
       }
 
-      if(is.null(graph) && is.null(mesh) && is.null(mesh_range)){
-        stop("You should either provide all the parameters, or you should provide one of the following: mesh, mesh_range or graph.")
+      if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
+        stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
       }
-      if(!is.null(mesh) || !is.null(mesh_range)){
-         theta <- get.initial.values.rSPDE(mesh.range = mesh_range, dim = d, parameterization = parameterization, mesh = mesh, nu = nu, B.tau = B.tau, B.sigma = B.sigma, B.range = B.range,
+      if(!is.null(mesh) || !is.null(range_mesh)){
+         theta <- get.initial.values.rSPDE(mesh.range = range_mesh, dim = d, parameterization = parameterization, mesh = mesh, nu = nu, B.tau = B.tau, B.sigma = B.sigma, B.range = B.range,
          B.kappa = B.kappa, include.nu = FALSE)
       } else if(!is.null(graph)){
         theta <- get.initial.values.rSPDE(graph.obj = graph, parameterization = parameterization, nu = nu, B.tau = B.tau, B.sigma = B.sigma, B.range = B.range,
@@ -1098,9 +1113,9 @@ spde.matern.operators <- function(kappa = NULL,
       make_A <- function(loc){
         return(graph$mesh_A(loc))
       }
-  } else if(!is.null(mesh_loc) && d == 1){
+  } else if(!is.null(loc_mesh) && d == 1){
     make_A <- function(loc){
-          return(rspde.make.A(mesh = mesh_loc, loc = loc))
+          return(rspde.make.A(mesh = loc_mesh, loc = loc))
           }   
   } else {
     make_A <- NULL
@@ -1138,6 +1153,10 @@ spde.matern.operators <- function(kappa = NULL,
       output$has_mesh <- has_mesh
       output$has_graph <- has_graph
       output$make_A <- make_A
+      output$mesh <- mesh
+      output$range_mesh <- range_mesh
+      output$graph <- graph
+      output$loc_mesh <- loc_mesh        
   } else{
     type_rational_approximation <- type_rational_approximation[[1]]
     m_alpha <- floor(alpha)
@@ -1233,6 +1252,10 @@ spde.matern.operators <- function(kappa = NULL,
   output$has_mesh <- has_mesh
   output$has_graph <- has_graph  
   output$make_A <- make_A
+  output$mesh <- mesh
+  output$range_mesh <- range_mesh
+  output$graph <- graph
+  output$loc_mesh <- loc_mesh      
   class(output) <- "CBrSPDEobj"
   }
 
