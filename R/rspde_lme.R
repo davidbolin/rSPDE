@@ -50,7 +50,7 @@ rspde_lme <- function(formula, loc, data,
     estimate_nu <- FALSE
    }
 
-    if(is.null(rspde_order) && !is.null(model)){
+    if(!is.null(rspde_order) && !is.null(model)){
         model <- update(model, user_m = rspde_order)
     }
 
@@ -109,7 +109,7 @@ rspde_lme <- function(formula, loc, data,
     }
 
     if(estimate_nu){
-        start_values <- c(log(c(0.1*sd(y_resp), 1)),starting_values_latent)
+        start_values <- c(log(c(0.1*sd(y_resp), model$nu)),starting_values_latent)
     } else{
         start_values <- c(log(0.1*sd(y_resp)), starting_values_latent)
     }
@@ -254,6 +254,10 @@ rspde_lme <- function(formula, loc, data,
                 n_initial <- n_coeff_nonfixed                
                 if(estimate_nu){
                     nu <- exp(theta[2])
+                    if(nu %% 1 == 0){
+                      nu <- nu - 1e-5
+                    }
+                    nu <- min(nu, 9.99)
                     gap <- 1
                 } else{
                     gap <- 0
@@ -267,6 +271,7 @@ rspde_lme <- function(formula, loc, data,
                         stop("nu must be positive.")
                     }
                 }
+
                 if(model$stationary){
                     if(model_tmp$parameterization == "spde"){
                         tau <- exp(theta[2+gap])
@@ -277,16 +282,16 @@ rspde_lme <- function(formula, loc, data,
                     } else{
                         sigma <- exp(theta[2+gap])
                         range <- exp(theta[3+gap])
-                        model <- update.rSPDEobj(model_tmp,
+                        model_tmp <- update.rSPDEobj(model_tmp,
                             user_nu = nu,
                             user_sigma = sigma, user_range = range,
                             parameterization = "matern")
                     }
                 } else{
-                    theta_model <- theta[(2+gap):(n_initial-1-gap)]
+                    theta_model <- theta[(2+gap):(n_initial)]
                     model_tmp <- update.rSPDEobj(model_tmp,
                             user_theta = theta_model,
-                            user_nu = nu)
+                            user_nu = nu, parameterization = parameterization)
                 }
                 
                 if(n_cov > 0){

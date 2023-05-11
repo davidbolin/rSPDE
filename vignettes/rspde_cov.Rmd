@@ -586,7 +586,7 @@ one replicate. We need to turn `y` into a vector and create an auxiliary vector 
 y_vec <- as.vector(Y.rep)
 repl <- rep(1:n.rep, each = n.obs)
 
-df_data_repl <- data.frame(y = y_vec, loc = rep(obs.loc, n.rep))
+df_data_repl  <- data.frame(y = y_vec, loc = rep(obs.loc, n.rep))
 ```
 
 We can now fit the model in the same way as before by using the `rspde_lme()` function:
