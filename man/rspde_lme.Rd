@@ -19,7 +19,8 @@ rspde_lme(
   model_matrix = TRUE,
   parallel = FALSE,
   n_cores = parallel::detectCores() - 1,
-  optim_controls = list()
+  optim_controls = list(),
+  improve_hessian = FALSE
 )
 }
 \arguments{
@@ -50,6 +51,8 @@ rspde_lme(
 \item{n_cores}{Number of cores to be used if parallel is true.}
 
 \item{optim_controls}{Additional controls to be passed to \code{optim} or \code{optimParallel}.}
+
+\item{improve_hessian}{Should a more precise estimate of the hessian be obtained? This might take longer.}
 }
 \value{
 A list containing the fitted model.

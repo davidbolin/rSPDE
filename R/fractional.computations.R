@@ -2626,15 +2626,17 @@ construct.spde.matern.loglike <- function(object, Y, A,
 
 
 #' @noRd 
+#' @export
 
 aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
- 
   m <- object$m
 
   Q <- object$Q
 
-  R <- Matrix::chol(Matrix::forceSymmetric(Q))
-
+  R <- tryCatch(Matrix::chol(Matrix::forceSymmetric(Q)), error=function(e){return(NULL)})
+  if(is.null(R)){
+    return(-10^100)
+  }
   repl_val <- unique(repl)
 
   l <- 0
@@ -2642,26 +2644,33 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
   for(i in repl_val){
       ind_tmp <- (repl %in% i)
       y_tmp <- y[ind_tmp]
-
+      
       if(ncol(X_cov) == 0){
         X_cov_tmp <- 0
       } else {
         X_cov_tmp <- X_cov[ind_tmp,,drop=FALSE]
       }
+
       na_obs <- is.na(y_tmp)
       
       y_ <- y_tmp[!na_obs]
+      # y_ <- y_list[[as.character(i)]]
       n.o <- length(y_)
       A_tmp <- A_list[[as.character(i)]]
       Q.p <- Q  + t(A_tmp) %*% A_tmp/sigma_e^2
-      R.p <- Matrix::chol(Q.p)
+      R.p <- tryCatch(Matrix::chol(Q.p), error=function(e){return(NULL)})
+      if(is.null(R.p)){
+        return(-10^100)
+      }
 
       l <- l + sum(log(diag(R))) - sum(log(diag(R.p))) - n.o*log(sigma_e)
 
       v <- y_
 
-      if(ncol(X_cov) != 0){
+      # if(has_cov){
+      if(ncol(X_cov)>0){
         X_cov_tmp <- X_cov_tmp[!na_obs, , drop = FALSE] 
+        # X_cov_tmp <- X_cov_list[[as.character(i)]]
         v <- v - X_cov_tmp %*% beta_cov
       }
 
@@ -2680,6 +2689,7 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
 
 
 #' @noRd 
+#' @export
 
 aux_lme_rSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
  

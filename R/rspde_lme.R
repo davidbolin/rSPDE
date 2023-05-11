@@ -16,6 +16,7 @@
 #' @param parallel logical. Indicating whether to use optimParallel or not.
 #' @param n_cores Number of cores to be used if parallel is true.
 #' @param optim_controls Additional controls to be passed to `optim` or `optimParallel`.
+#' @param improve_hessian Should a more precise estimate of the hessian be obtained? This might take longer.
 #' @return A list containing the fitted model.
 #' @rdname rspde_lme
 #' @export
@@ -32,7 +33,8 @@ rspde_lme <- function(formula, loc, data,
                 model_matrix = TRUE,
                 parallel = FALSE,
                 n_cores = parallel::detectCores()-1,
-                optim_controls = list()) {
+                optim_controls = list(),
+                improve_hessian = FALSE) {
 
    if(!is.null(model)){
     if(!inherits(model, c("CBrSPDEobj","rSPDEobj"))){
@@ -127,33 +129,43 @@ rspde_lme <- function(formula, loc, data,
             stop("If 'loc' is a character vector, it must have the same length as the dimension (unless model comes from a metric graph).")
         }
         if(dim == 1){
-            loc_df <- data.frame(x = data[[loc[1]]])
+            loc_df <- matrix(data[[loc[1]]], ncol=1)
         } else if (dim == 2){
-            loc_df <- data.frame(x = data[[loc[1]]], 
-                                    y = data[[loc[2]]])
+            loc_df <- cbind(as.vector(data[[loc[1]]]), 
+                                    as.vector(data[[loc[2]]]))
         }
     } else{
         if(length(loc)!=2){
             stop("For a metric graph, 'loc' must have length two.")
         }
-        loc_df <- data.frame(x = data[[loc[1]]], 
-                                    y = data[[loc[2]]])
+            loc_df <- cbind(as.vector(data[[loc[1]]]), 
+                                    as.vector(data[[loc[2]]]))
     }
   }
-  
+
     repl_val <- unique(repl)
     A_list <- list()
+    # y_list <- list()
+    # X_cov_list <- list()
+    # has_cov <- FALSE
+    # if(ncol(X_cov) > 0){
+    #   has_cov <- TRUE
+    # }
     if(!is.null(model$make_A)) {
         for(j in repl_val){
             ind_tmp <- (repl %in% j)
             y_tmp <- y_resp[ind_tmp]            
             na_obs <- is.na(y_tmp)
+            # y_list[[as.character(j)]] <- y_tmp[!na_obs]
             A_list[[as.character(j)]] <- model$make_A(loc_df[ind_tmp,])
+            A_list[[as.character(j)]] <- A_list[[as.character(j)]][!na_obs, , drop = FALSE]
+            # if(has_cov){
+            #   X_cov_list[[as.character(j)]] <- X_cov[ind_tmp, , drop = FALSE]
+            #   X_cov_list[[as.character(j)]] <- X_cov_list[[as.character(j)]][!na_obs, , drop = FALSE]
+            # }
 
         if(inherits(model, "CBrSPDEobj")){
-          if(model$alpha %% 1 != 0){
                   A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
-              }
         }  
         }
     } else{
@@ -162,6 +174,11 @@ rspde_lme <- function(formula, loc, data,
 
     n_coeff_nonfixed <- length(start_values)
 
+    model_tmp <- model
+    model_tmp$mesh <- NULL
+    model_tmp$graph <- NULL
+    model_tmp$make_A <- NULL
+
     if(inherits(model, "CBrSPDEobj")){
             likelihood <- function(theta){
                 sigma_e <- exp(theta[1])
@@ -169,6 +186,9 @@ rspde_lme <- function(formula, loc, data,
                 n_initial <- n_coeff_nonfixed                
                 if(estimate_nu){
                     nu <- exp(theta[2])
+                    if(nu %% 1 == 0){
+                      nu <- nu - 1e-5
+                    }
                     gap <- 1
                 } else{
                     gap <- 0
@@ -183,24 +203,24 @@ rspde_lme <- function(formula, loc, data,
                     }
                 }
                     
-                if(model$stationary){
-                    if(model$parameterization == "spde"){
+                if(model_tmp$stationary){
+                    if(model_tmp$parameterization == "spde"){
                         tau <- exp(theta[2+gap])
                         kappa <- exp(theta[3+gap])
-                        model <- update.CBrSPDEobj(model,
+                        model_tmp <- update.CBrSPDEobj(model_tmp,
                             user_nu = nu, user_tau = tau,
                             user_kappa = kappa, parameterization = "spde")
                     } else{
                         sigma <- exp(theta[2+gap])
                         range <- exp(theta[3+gap])
-                        model <- update.CBrSPDEobj(model,
+                        model_tmp <- update.CBrSPDEobj(model_tmp,
                             user_nu = nu,
                             user_sigma = sigma, user_range = range,
                             parameterization = "matern")
                     }
                 } else{
                     theta_model <- theta[(2+gap):(n_initial-1-gap)]
-                    model <- update.CBrSPDEobj(model,
+                    model_tmp <- update.CBrSPDEobj(model_tmp,
                             user_theta = theta,
                             user_nu = nu)
                 }
@@ -211,7 +231,7 @@ rspde_lme <- function(formula, loc, data,
                     beta_cov <- NULL
                 }
 
-                loglik <- aux_lme_CBrSPDE.matern.loglike(object = model, y = y_resp, X_cov = X_cov, repl = repl,
+                loglik <- aux_lme_CBrSPDE.matern.loglike(object = model_tmp, y = y_resp, X_cov = X_cov, repl = repl,
                 A_list = A_list, sigma_e = sigma_e, beta_cov = beta_cov)
 
             return(-loglik)
@@ -238,23 +258,23 @@ rspde_lme <- function(formula, loc, data,
                 }
                     
                 if(model$stationary){
-                    if(model$parameterization == "spde"){
+                    if(model_tmp$parameterization == "spde"){
                         tau <- exp(theta[2+gap])
                         kappa <- exp(theta[3+gap])
-                        model <- update.rSPDEobj(model,
+                        model_tmp <- update.rSPDEobj(model_tmp,
                             user_nu = nu, user_tau = tau,
                             user_kappa = kappa, parameterization = "spde")
                     } else{
                         sigma <- exp(theta[2+gap])
                         range <- exp(theta[3+gap])
-                        model <- update.rSPDEobj(model,
+                        model <- update.rSPDEobj(model_tmp,
                             user_nu = nu,
                             user_sigma = sigma, user_range = range,
                             parameterization = "matern")
                     }
                 } else{
                     theta_model <- theta[(2+gap):(n_initial-1-gap)]
-                    model <- update.rSPDEobj(model,
+                    model_tmp <- update.rSPDEobj(model_tmp,
                             user_theta = theta,
                             user_nu = nu)
                 }
@@ -265,7 +285,7 @@ rspde_lme <- function(formula, loc, data,
                     beta_cov <- NULL
                 }
 
-                loglik <- aux_lme_rSPDE.matern.loglike(object = model, y = y_resp, X_cov = X_cov, repl = repl,
+                loglik <- aux_lme_rSPDE.matern.loglike(object = model_tmp, y = y_resp, X_cov = X_cov, repl = repl,
                 A_list = A_list, sigma_e = sigma_e, beta_cov = beta_cov)
 
             return(-loglik)
@@ -282,13 +302,20 @@ rspde_lme <- function(formula, loc, data,
     rm(data_tmp)
   }
 
+hessian <- TRUE
+
+if(improve_hessian){
+  hessian <- FALSE
+}
+
 if(parallel){
   cl <- parallel::makeCluster(n_cores)
   parallel::setDefaultCluster(cl = cl)
   parallel::clusterExport(cl, "y_resp", envir = environment())
-  parallel::clusterExport(cl, "model", envir = environment())
+  parallel::clusterExport(cl, "model_tmp", envir = environment())
   parallel::clusterExport(cl, "A_list", envir = environment())
   parallel::clusterExport(cl, "X_cov", envir = environment())
+  # parallel::clusterExport(cl, "y_list", envir = environment())  
   parallel::clusterExport(cl, "aux_lme_CBrSPDE.matern.loglike",
                  envir = as.environment("package:rSPDE"))
   parallel::clusterExport(cl, "aux_lme_rSPDE.matern.loglike",
@@ -298,7 +325,7 @@ if(parallel){
     res <- optimParallel::optimParallel(start_values, 
                   likelihood, method = optim_method,
                   control = optim_controls,
-                  hessian = TRUE,
+                  hessian = hessian,
                   parallel = list(forward = FALSE, cl = cl,
                       loginfo = FALSE))
   end_fit <- Sys.time()
@@ -309,7 +336,7 @@ if(parallel){
       res <- optim(start_values, 
                   likelihood, method = optim_method,
                   control = optim_controls,
-                  hessian = TRUE)
+                  hessian = hessian)
   end_fit <- Sys.time()
   time_fit <- end_fit-start_fit
 }
@@ -323,8 +350,11 @@ if(parallel){
   n_fixed <- ncol(X_cov)
   n_random <- length(coeff) - n_fixed - 1  
 
-  # observed_fisher <- res$hessian
-  observed_fisher <- numDeriv::hessian(likelihood, res$par)
+  if(!improve_hessian){
+    observed_fisher <- res$hessian
+  } else{
+    observed_fisher <- numDeriv::hessian(likelihood, res$par)
+  }
   inv_fisher <- tryCatch(solve(observed_fisher), error = function(e) matrix(NA, nrow(observed_fisher), ncol(observed_fisher)))
   
   std_err <- sqrt(diag(inv_fisher))
@@ -393,8 +423,6 @@ if(parallel){
   if(is.null(coeff_fixed) && is.null(coeff_random)){
     stop("The model does not have either random nor fixed effects.")
   }
-
-
 
   object <- list()
   object$coeff <- list(measurement_error = coeff_meas, 

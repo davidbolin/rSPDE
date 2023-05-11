@@ -13,6 +13,11 @@
   user_tau = NULL,
   user_theta = NULL,
   user_m = NULL,
+  mesh = NULL,
+  loc_mesh = NULL,
+  graph = NULL,
+  range_mesh = NULL,
+  parameterization = NULL,
   ...
 )
 }
