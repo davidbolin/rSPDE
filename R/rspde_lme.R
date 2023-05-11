@@ -122,7 +122,7 @@ rspde_lme <- function(formula, loc, data,
     repl <- rep(1, length(y_resp))
   }
 
-  if(is.data.frame(loc)){
+  if(is.data.frame(loc) || is.matrix(loc)){
     loc_df <- loc
   } else if(is.character(loc)){
     if(!model$has_graph){
@@ -143,6 +143,8 @@ rspde_lme <- function(formula, loc, data,
             loc_df <- cbind(as.vector(data[[loc[1]]]), 
                                     as.vector(data[[loc[2]]]))
     }
+  } else{
+    stop("loc must be either a matrix, a data.frame or a character vector with the names of the columns of the observation locations.")
   }
 
     repl_val <- unique(repl)
@@ -690,7 +692,7 @@ print.summary_rspde_lme <- function(x, ...) {
   cat("Log-Likelihood: ", x$loglik,"\n")
   if(model_type != "linearmodel"){
     cat(paste0("Number of function calls by 'optim' = ", x$niter[1],"\n"))
-    cat(paste0("\nTimes:"))
+    cat(paste0("\nTime used:"))
     cat("\t Fit the model = ", paste(trunc(x$fitting_time[[1]] * 10^5)/10^5,attr(x$fitting_time, "units"),"\n"))
     if(x$improve_hessian){
     cat(paste0("\t Compute the Hessian = ", paste(trunc(x$time_hessian[[1]] * 10^5)/10^5,attr(x$time_hessian, "units"),"\n")))      
