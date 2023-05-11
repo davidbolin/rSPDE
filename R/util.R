@@ -632,7 +632,6 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
     if(!inherits(graph.obj, "metric_graph")){
       stop("graph_obj should be a metric_graph object.")
     }
-    
     dim <- 1
   }
 
@@ -677,7 +676,7 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
                                   n.spde = n.spde
                                   )
     } else{
-      param <- get_parameters_rSPDE_graph(mesh = graph.obj,
+      param <- get_parameters_rSPDE_graph(graph_obj = graph.obj,
                                   alpha = nu + 1/2,
                                   B.tau = B.tau,
                                   B.kappa = B.kappa,
@@ -724,7 +723,7 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
                                   n.spde = n.spde
                                   )
     } else {
-      param <- get_parameters_rSPDE_graph(mesh = graph.obj,
+      param <- get_parameters_rSPDE_graph(graph_obj = graph.obj,
                                   alpha = nu + 1/2,
                                   B.tau = B.tau,
                                   B.kappa = B.kappa,
@@ -1891,13 +1890,14 @@ get_parameters_rSPDE_graph <- function (graph_obj, alpha,
 
     d <- 1
     n.spde <- nrow(graph_obj$mesh$C)
-    n.theta <- ncol(B.kappa) - 1L
 
     if(parameterization == "spde"){
+      n.theta <- ncol(B.kappa) - 1L
       B.kappa <- prepare_B_matrices(B.kappa, n.spde, 
           n.theta)
       B.tau <- prepare_B_matrices(B.tau, n.spde, n.theta)
     } else if(parameterization == "matern"){
+      n.theta <- ncol(B.sigma) - 1L
       B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
           n.theta)
       B.range <- prepare_B_matrices(B.range, n.spde, 

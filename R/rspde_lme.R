@@ -36,7 +36,7 @@ rspde_lme <- function(formula, loc, data,
                 n_cores = parallel::detectCores()-1,
                 optim_controls = list(),
                 improve_hessian = FALSE,
-                hessian_controls = list()) {
+                hessian_args = list()) {
 
    if(!is.null(model)){
     if(!inherits(model, c("CBrSPDEobj","rSPDEobj"))){

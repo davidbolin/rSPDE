@@ -406,10 +406,8 @@ range $0.1$. We choose $\nu=0.5$ so that the model corresponds to a Gaussian pro
 nu <- 0.5
 sigma <- 1
 range <- 0.1
-kappa <- sqrt(8 * nu) / range
-tau <- 1 / (sqrt(4 * pi) * kappa * sigma)
-op <- spde.matern.operators(kappa = kappa, tau = tau,
-nu = nu, G = G, C = C, d = 2, m = 1)
+op <- matern.operators(range = range, sigma = sigma,
+nu = nu, G = G, C = C, d = 2, m = 1, mesh = mesh_2d)
 ```
 Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `r inla_link()` function `inla.spde.make.A()`. We sample 30 replicates of the latent field.
 ```{r}
@@ -454,26 +452,29 @@ To simplify parameter estimation, we create an object containing the `rSPDE` mod
 
 ```{r}
 op_obj <- matern.operators(
-    kappa = 1, sigma = 1, nu = 1,
     G = G, C = C, d = 2, m = 1,
-    type = "operator"
+    type = "operator", mesh = mesh_2d
   )
-tau <- op_obj$tau
 ```
 
-We can now obtain the objective function to minimize, which is the negative log-likelihood, parametrized using the logarithm of 
-each parameter to avoid constrained optimization, using the `rSPDE.construct.matern.loglike()` function factory:
-```{r}
-mlik <- rSPDE.construct.matern.loglike(op_obj, Y=Y, A=A)
-```
-We can now estimate the parameter using `optim()`.
-```{r}
-theta0 <- c(
-  get.initial.values.rSPDE(mesh = mesh_2d,
-  parameterization = "spde"),
-  log(0.1 * sqrt(var(as.vector(Y))))
-)
+Now, we set up a vector with the response variables and create an auxiliary replicates vector, `repl`, that contains the indexes of the replicates of each observation. Then, we build the `data.frame()`, that also contanis the spatial locations, and we fit the model:
 
+```{r}
+y_vec <- as.vector(Y)
+repl <- rep(1:n.rep, each = m)
+df_data_2d <- data.frame(y = y_vec, x_coord = loc_2d_mesh[,1],
+                      y_coord = loc_2d_mesh[,2])
+
+fit_2d <- rspde_lme(y ~ -1, model = op_obj, 
+          data = df_data_2d, repl = repl,
+          loc = c("x_coord", "y_coord"), parallel = FALSE)
+```
+
+We can now fit the model:
+
+
+Let us compare with the true values:
+```{r}
 start_time <- Sys.time()
 pars <- optim(theta0, mlik, method = "L-BFGS-B")
 end_time <- Sys.time()
