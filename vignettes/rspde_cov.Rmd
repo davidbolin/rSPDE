@@ -504,8 +504,8 @@ Let us compare with the true values and compare the time:
 
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit$coeff$random_effects[2]), range = c(r, fit$coeff$random_effects[3]),
-  nu = c(nu, fit$coeff$random_effects[1]),
+  sigma = c(sigma, fit_par$coeff$random_effects[2]), range = c(r, fit_par$coeff$random_effects[3]),
+  nu = c(nu, fit_par$coeff$random_effects[1]),
   row.names = c("Truth", "Estimates")
 ))
 
@@ -593,10 +593,18 @@ We can now fit the model in the same way as before by using the `rspde_lme()` fu
 
 ```{r}
 fit_repl <- rspde_lme(y_vec ~ -1, model = op_cov_est, repl = repl, 
-      data = df_data, loc = "loc", parallel = TRUE, improve_hessian = TRUE)
+      data = df_data, loc = "loc", parallel = TRUE)
+```
 
+Let us see a summary of the fit:
+
+```{r}
 summary(fit_repl)
+```
 
+Let us compare with the true values:
+
+```{r}
 print(data.frame(
   sigma = c(sigma, fit_repl$coeff$random_effects[2]), range = c(r, fit_repl$coeff$random_effects[3]),
   nu = c(nu, fit_repl$coeff$random_effects[1]),
@@ -605,6 +613,19 @@ print(data.frame(
 
 # Total time
 print(fit_repl$fitting_time)
+```
+
+We can obtain better estimates of the Hessian by setting `improve_hessian` to `FALSE`, however this might make the process take longer:
+
+```{r}
+fit_repl2 <- rspde_lme(y_vec ~ -1, model = op_cov_est, repl = repl, 
+      data = df_data, loc = "loc", parallel = TRUE, 
+      improve_hessian = TRUE)
+```
+
+Let us get a summary:
+```{r}
+summary(fit_repl2)
 ```
 
 ## Spatial data and parameter estimation
@@ -715,58 +736,8 @@ ggplot(df_plot) + aes(x = x, y = y, fill = field) +
         scale_fill_viridis() + scale_colour_viridis()
 ```
 
+Let us now create a new object to fit the model:
 
-
-We now use the function `rSPDE.matern.loglike()` to define the likelihood. This function
-is object-based, in the sense that it obtains several of the quantities
-it needs from the `rSPDE` model object. In our case, for this example,
-the object `op_cov_2d`.
-
-To simplify parameter estimation, we create an objective function to minimize 
-which is the negative log-likelihood, parametrized using the logarithm of each 
-parameter to avoid constrained optimization. 
-
-```{r}
-
-chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-if (nzchar(chk) && chk == "TRUE") {
-  n_cores <- 2L
-} else {
-  n_cores <- parallel::detectCores() - 1
-}
-
-cl <- makeCluster(n_cores)
-setDefaultCluster(cl = cl)
-
-mlik_2d <- rSPDE.construct.matern.loglike(op_cov_2d, Y=Y, A=A)
-
-theta0_2d <- c(
-  get.initial.values.rSPDE(mesh = mesh_2d, 
-    parameterization = "spde"),
-  log(0.1 * sqrt(var(as.vector(Y))))
-)
-
-# Exporting the needed objects to the parallel cores
-# This step is not necessary for the regular optim
-parallel::clusterExport(cl, "op_cov_2d")
-parallel::clusterExport(cl, "Y")
-parallel::clusterExport(cl, "A")
-
-start_time <- Sys.time()
-pars <- optimParallel(theta0_2d, mlik_2d)
-end_time <- Sys.time()
-total_time <- end_time - start_time
-results <- data.frame(
-  tau = c(tau, exp(pars$par[1])),
-  kappa = c(kappa, exp(pars$par[2])),
-  nu = c(nu, exp(pars$par[3])),
-  sigma.e = c(sigma.e, exp(pars$par[4])),
-  row.names = c("True", "Estimate")
-)
-print(results)
-```
-
-We can now estimate the parameter using `optimParallel()`:
 ```{r}
 op_cov_2d_est <- matern.operators(
   mesh = mesh_2d,
@@ -774,28 +745,34 @@ op_cov_2d_est <- matern.operators(
 )
 ```
 
+We can now proceed as in the previous cases. We set up a vector with the response variables and create an auxiliary replicates vector, `repl`, that contains the indexes of the replicates of each observation, and then we fit the model:
 
 ```{r}
 y_vec <- as.vector(Y)
 repl <- rep(1:n.rep, each = n_loc)
-df_data <- data.frame(y = y_vec, x_coord = loc_2d_mesh[,1],
+df_data_2d <- data.frame(y = y_vec, x_coord = loc_2d_mesh[,1],
                       y_coord = loc_2d_mesh[,2])
 
-fit_2d <- rspde_lme(y ~ -1, model = op_cov_2d_est, data = df_data, repl = repl,
+fit_2d <- rspde_lme(y ~ -1, model = op_cov_2d_est, 
+          data = df_data_2d, repl = repl,
           loc = c("x_coord", "y_coord"), parallel = TRUE)
+```
 
+Let us get a summary:
+
+```{r}
 summary(fit_2d)
 ```
 Let us compare the estimated results with the true values:
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_2d$coeff$random_effects[2]), range = c(r, fit_2d$coeff$random_effects[3]),
+  sigma = c(sigma, fit_2d$coeff$random_effects[2]), range = c(range, fit_2d$coeff$random_effects[3]),
   nu = c(nu, fit_2d$coeff$random_effects[1]),
   row.names = c("Truth", "Estimates")
 ))
 
 # Total time
-print(fit_repl$fitting_time)
+print(fit_2d$fitting_time)
 ```
 
 ## An example with a non-stationary model
@@ -888,46 +865,41 @@ We can now generate the response vector `y`:
 y <- as.vector(A %*% as.vector(u)) + rnorm(m) * 0.1
 ```
 
+Let us now create the object to fit the data:
+
 ```{r}
 op_cov_ns_est <- op_cov_ns <- spde.matern.operators(mesh = mesh, 
   B.sigma = B.sigma, 
   B.range = B.range)
 ```
 
+Let us also create the `data.frame()` that contains the data and the locations:
+
+```{r}
+df_data_ns <- data.frame(y= y, x_coord = loc_mesh[,1], y_coord = loc_mesh[,2])
+```
+
 ### Fitting the non-stationary rSPDE model
 
 ```{r}
-fit_ns <- rspde_lme(y ~ -1, model = op_cov_ns_est, data = data.frame(y= y, x_coord = loc_mesh[,1], y_coord = loc_mesh[,2]), loc = c("x_coord", "y_coord"))
+fit_ns <- rspde_lme(y ~ -1, model = op_cov_ns_est, data = df_data_ns, loc = c("x_coord", "y_coord"), parallel = TRUE)
 ```
 
-
-We can build the likelihood function using the function factory
-`construct.spde.matern.loglike()`:
+Let us get the summary:
 
 ```{r}
-mlik <- construct.spde.matern.loglike(op_cov_ns, y, A)
-```
-
-Let us now choose some reasonable starting values (on log scale) depending on the size of the domain with the `get.initial.values.rSPDE()` function:
-
-```{r}
-theta0 <- c(get.initial.values.rSPDE(mesh = mesh, B.sigma = B.sigma, B.range = B.range), log(0.01))
-```
-Let us now fit the model:
-
-```{r}
-theta <- optim(theta0, mlik)
+summary(fit_ns)
 ```
 
 Let us now compare with the true values:
 
 ```{r}
 print(data.frame(
-  theta1 = c(true_theta[1], theta$par[1]), theta2 = c(true_theta[2], theta$par[2]),
-  theta3 = c(true_theta[3], theta$par[3]), 
-  nu = c(nu, exp(theta$par[4])), sigma.e = c(sigma.e, exp(theta$par[5])),
+  theta1 = c(true_theta[1], fit_ns$coeff$random_effects[2]), theta2 = c(true_theta[2], fit_ns$coeff$random_effects[3]),
+  theta3 = c(true_theta[3], fit_ns$coeff$random_effects[4]), 
+  nu = c(nu, fit_ns$coeff$random_effects[1])),
   row.names = c("Truth", "Estimates")
-))
+)
 ```
 
 
@@ -949,9 +921,6 @@ approximation by
 ```{r}
 op_cov_2d_type <- matern.operators(
   mesh = mesh_2d,
-  nu = nu,
-  kappa = kappa,
-  sigma = sigma,
   m = 2,
   type_rational_approximation = "chebfunLB"
 )
@@ -964,36 +933,28 @@ function and assign a new order with the `rational.order<-()` function:
 ```{r}
 rational.order(op_cov_2d_type)
 
-rational.order(op_cov_2d_type) <- 3
+rational.order(op_cov_2d_type) <- 1
 ```
 
 Let us fit a model using the data from the previous example:
 
 ```{r}
-mlik_2d_type <- rSPDE.construct.matern.loglike(op_cov_2d_type, Y=Y, A=A)
+fit_order1 <- rspde_lme(y ~ -1, model = op_cov_2d_type, data = df_data_2d,repl = repl,
+          loc = c("x_coord", "y_coord"), parallel = TRUE)
 ```
 
-We can now estimate the parameter using `optimParallel()`:
+```{r}
+summary(fit_order1)
+```
+
+Let us compare with the true values:
 
 ```{r}
-# Exporting the needed objects to the parallel cores
-# This step is not necessary for the regular optim
-parallel::clusterExport(cl, "op_cov_2d_type")
-
-start_time <- Sys.time()
-pars <- optimParallel(theta0_2d, mlik_2d_type)
-end_time <- Sys.time()
-total_time <- end_time - start_time
-results <- data.frame(
-  tau = c(tau, exp(pars$par[1])),
-  kappa = c(kappa, exp(pars$par[2])),
-  nu = c(nu, exp(pars$par[3])),
-  sigma.e = c(sigma.e, exp(pars$par[4])),
-  row.names = c("True", "Estimate")
-)
-print(results)
-# Total time
-print(total_time)
+print(data.frame(
+  sigma = c(sigma, fit_order1$coeff$random_effects[2]), range = c(range, fit_order1$coeff$random_effects[3]),
+  nu = c(nu, fit_order1$coeff$random_effects[1]),
+  row.names = c("Truth", "Estimates")
+))
 ```
 
 Finally, we can check the type of rational approximation with the `rational.type()`
@@ -1008,30 +969,22 @@ rational.type(op_cov_2d_type) <- "brasil"
 Let us now fit this model, with the data from the previous example, with `brasil` rational approximation:
 
 ```{r}
-mlik_2d_type <- rSPDE.construct.matern.loglike(op_cov_2d_type, Y=Y, A=A)
+fit_brasil <- rspde_lme(y ~ -1, model = op_cov_2d_type, data = df_data_2d,repl = repl,
+          loc = c("x_coord", "y_coord"), parallel = TRUE)
 ```
 
-We can now estimate the parameter using `optimParallel()`:
+```{r}
+summary(fit_brasil)
+```
+
+Let us compare with the true values:
 
 ```{r}
-# Exporting the needed objects to the parallel cores
-# This step is not necessary for the regular optim
-parallel::clusterExport(cl, "op_cov_2d_type")
-
-start_time <- Sys.time()
-pars <- optimParallel(theta0_2d, mlik_2d_type)
-end_time <- Sys.time()
-total_time <- end_time - start_time
-results <- data.frame(
-  tau = c(tau, exp(pars$par[1])),
-  kappa = c(kappa, exp(pars$par[2])),
-  nu = c(nu, exp(pars$par[3])),
-  sigma.e = c(sigma.e, exp(pars$par[4])),
-  row.names = c("True", "Estimate")
-)
-print(results)
-# Total time
-print(total_time)
+print(data.frame(
+  sigma = c(sigma, fit_brasil$coeff$random_effects[2]), range = c(range, fit_brasil$coeff$random_effects[3]),
+  nu = c(nu, fit_brasil$coeff$random_effects[1]),
+  row.names = c("Truth", "Estimates")
+))
 ```
 
 ## References

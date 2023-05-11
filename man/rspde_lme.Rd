@@ -20,7 +20,8 @@ rspde_lme(
   parallel = FALSE,
   n_cores = parallel::detectCores() - 1,
   optim_controls = list(),
-  improve_hessian = FALSE
+  improve_hessian = FALSE,
+  hessian_controls = list(method = c("Richardson", "complex"))
 )
 }
 \arguments{
@@ -52,7 +53,9 @@ rspde_lme(
 
 \item{optim_controls}{Additional controls to be passed to \code{optim} or \code{optimParallel}.}
 
-\item{improve_hessian}{Should a more precise estimate of the hessian be obtained? This might take longer.}
+\item{improve_hessian}{Should a more precise estimate of the hessian be obtained? Turning on might increase the overall time.}
+
+\item{hessian_controls}{List of controls to be used if \code{improve_hessian} is \code{TRUE}. The list can contain \code{method} and \code{method.args}. See the help of the \code{hessian} function in \code{numDeriv} package for details.}
 }
 \value{
 A list containing the fitted model.

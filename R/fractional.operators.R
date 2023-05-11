@@ -1097,7 +1097,6 @@ spde.matern.operators <- function(kappa = NULL,
       B_matrices <- convert_B_matrices(B.sigma, B.range, ncol(C), nu, d)
       B.tau <- B_matrices[["B.tau"]]
       B.kappa <- B_matrices[["B.kappa"]]
-      print(B.tau)
     } else{
       B.tau <- prepare_B_matrices(B.tau, ncol(C), 
           ncol(B.tau)-1)

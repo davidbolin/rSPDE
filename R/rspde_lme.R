@@ -16,7 +16,8 @@
 #' @param parallel logical. Indicating whether to use optimParallel or not.
 #' @param n_cores Number of cores to be used if parallel is true.
 #' @param optim_controls Additional controls to be passed to `optim` or `optimParallel`.
-#' @param improve_hessian Should a more precise estimate of the hessian be obtained? This might take longer.
+#' @param improve_hessian Should a more precise estimate of the hessian be obtained? Turning on might increase the overall time.
+#' @param hessian_args List of controls to be used if `improve_hessian` is `TRUE`. The list can contain the arguments to be passed to the `method.args` argument in the `hessian` function. See the help of the `hessian` function in `numDeriv` package for details. Observet that it only accepts the "Richardson" method for now, the method "complex" is not supported. 
 #' @return A list containing the fitted model.
 #' @rdname rspde_lme
 #' @export
@@ -34,7 +35,8 @@ rspde_lme <- function(formula, loc, data,
                 parallel = FALSE,
                 n_cores = parallel::detectCores()-1,
                 optim_controls = list(),
-                improve_hessian = FALSE) {
+                improve_hessian = FALSE,
+                hessian_controls = list()) {
 
    if(!is.null(model)){
     if(!inherits(model, c("CBrSPDEobj","rSPDEobj"))){
@@ -171,13 +173,10 @@ rspde_lme <- function(formula, loc, data,
         }
     } else{
       print(model$make_A)
-      print("Here 2")
         stop("When creating the model object using matern.operators() or spde.matern.operators(), you should either supply a graph, or a mesh, or mesh_loc (this last one only works for dimension 1).")
     }
 
     n_coeff_nonfixed <- length(start_values)
-
-    print(start_values)
 
     model_tmp <- model
     model_tmp$mesh <- NULL
@@ -317,7 +316,10 @@ if(improve_hessian){
   hessian <- FALSE
 }
 
+time_par <- NULL
+
 if(parallel){
+  start_par <- Sys.time()
   cl <- parallel::makeCluster(n_cores)
   parallel::setDefaultCluster(cl = cl)
   parallel::clusterExport(cl, "y_resp", envir = environment())
@@ -329,6 +331,9 @@ if(parallel){
                  envir = as.environment("package:rSPDE"))
   parallel::clusterExport(cl, "aux_lme_rSPDE.matern.loglike",
                  envir = as.environment("package:rSPDE"))
+
+  end_par <- Sys.time()
+  time_par <- end_par - start_par
 
     start_fit <- Sys.time()
     res <- optimParallel::optimParallel(start_values, 
@@ -350,8 +355,15 @@ if(parallel){
   time_fit <- end_fit-start_fit
 }
 
-  coeff <- res$par
-  coeff <- exp(c(res$par[1:n_coeff_nonfixed]))
+
+  if(model$stationary){
+    coeff <- exp(c(res$par[1:n_coeff_nonfixed]))
+  } else{
+    coeff <- res$par[1:n_coeff_nonfixed]
+    if(estimate_nu){
+      coeff[2] <- exp(coeff[2])
+    }
+  }
   coeff <- c(coeff, res$par[-c(1:n_coeff_nonfixed)])
 
   loglik <- -res$value
@@ -359,10 +371,19 @@ if(parallel){
   n_fixed <- ncol(X_cov)
   n_random <- length(coeff) - n_fixed - 1  
 
+  time_hessian <- NULL
+
   if(!improve_hessian){
     observed_fisher <- res$hessian
   } else{
-    observed_fisher <- numDeriv::hessian(likelihood, res$par)
+    if(!is.list(hessian_args)){
+      stop("hessian_controls must be a list")
+    }
+
+    start_hessian <- Sys.time()
+    observed_fisher <- numDeriv::hessian(likelihood, res$par, method.args = hessian_args)
+    end_hessian <- Sys.time()
+    time_hessian <- end_hessian-start_hessian
   }
   inv_fisher <- tryCatch(solve(observed_fisher), error = function(e) matrix(NA, nrow(observed_fisher), ncol(observed_fisher)))
   
@@ -452,6 +473,10 @@ if(parallel){
   object$response <- y_term
   object$covariates <- cov_term
   object$fitting_time <- time_fit
+  object$improve_hessian <- improve_hessian
+  object$time_hessian <- time_hessian
+  object$parallel <- parallel
+  object$time_par <- time_par
   if(model_matrix){
     if(ncol(X_cov)>0){
       object$model_matrix <- cbind(y_resp, X_cov)
@@ -589,6 +614,14 @@ summary.rspde_lme <- function(object, ...) {
 
   ans$fitting_time <- object$fitting_time
 
+  ans$improve_hessian <- object$improve_hessian
+
+  ans$time_hessian <- object$time_hessian
+
+  ans$parallel <- object$parallel
+
+  ans$time_par <- object$time_par
+
   class(ans) <- "summary_rspde_lme"
   ans
 }
@@ -657,7 +690,15 @@ print.summary_rspde_lme <- function(x, ...) {
   cat("Log-Likelihood: ", x$loglik,"\n")
   if(model_type != "linearmodel"){
     cat(paste0("Number of function calls by 'optim' = ", x$niter[1],"\n"))
-    cat(paste0("Time to fit the model = ", paste(trunc(x$fitting_time[[1]] * 10^5)/10^5,attr(x$fitting_time, "units"),"\n")))
+    cat(paste0("\nTimes:"))
+    cat("\t Fit the model = ", paste(trunc(x$fitting_time[[1]] * 10^5)/10^5,attr(x$fitting_time, "units"),"\n"))
+    if(x$improve_hessian){
+    cat(paste0("\t Compute the Hessian = ", paste(trunc(x$time_hessian[[1]] * 10^5)/10^5,attr(x$time_hessian, "units"),"\n")))      
+    }
+    if(x$parallel){
+    cat(paste0("\t Set up the parallelization = ", paste(trunc(x$time_par[[1]] * 10^5)/10^5,attr(x$time_par, "units"),"\n")))      
+    }
+
   }
 }
 
