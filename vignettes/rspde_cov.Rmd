@@ -888,7 +888,18 @@ We can now generate the response vector `y`:
 y <- as.vector(A %*% as.vector(u)) + rnorm(m) * 0.1
 ```
 
+```{r}
+op_cov_ns_est <- op_cov_ns <- spde.matern.operators(mesh = mesh, 
+  B.sigma = B.sigma, 
+  B.range = B.range)
+```
+
 ### Fitting the non-stationary rSPDE model
+
+```{r}
+fit_ns <- rspde_lme(y ~ -1, model = op_cov_ns_est, data = data.frame(y= y, x_coord = loc_mesh[,1], y_coord = loc_mesh[,2]), loc = c("x_coord", "y_coord"))
+```
+
 
 We can build the likelihood function using the function factory
 `construct.spde.matern.loglike()`:

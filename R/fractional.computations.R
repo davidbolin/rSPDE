@@ -277,9 +277,31 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
             new_object$theta <- user_theta
           }
 
-          if (!is.null(user_m)) {
-            new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
-          }
+        if (!is.null(user_m)) {
+          new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+        }
+
+        if(is.null(mesh)){
+          mesh <- new_object[["mesh"]]
+        }
+        if(is.null(range_mesh)){
+          range_mesh <- new_object[["range_mesh"]]
+        }
+        if(is.null(loc_mesh)){
+          loc_mesh <- new_object[["loc_mesh"]]
+        }
+        if(is.null(graph)){
+          graph <- new_object$graph
+        }
+
+        if(is.null(parameterization)){
+          parameterization <- new_object$parameterization
+        } else{
+            parameterization <- parameterization[[1]]
+            if (!parameterization %in% c("matern", "spde")) {
+                stop("parameterization should be either 'matern' or 'spde'!")
+            }
+        }        
 
           new_object <- spde.matern.operators(
             kappa = new_object$kappa,
@@ -296,7 +318,9 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
             loc_mesh = loc_mesh,
             range_mesh = range_mesh,
             graph = graph,            
-            parameterization = "spde",
+            parameterization = parameterization,
+            B.sigma = new_object$B.sigma,
+            B.range = new_object$B.range,
             type = "covariance",
             type_rational_approximation = new_object$type_rational_approximation
           )

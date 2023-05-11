@@ -1081,8 +1081,8 @@ spde.matern.operators <- function(kappa = NULL,
     
       new_theta <- c(1, theta)
 
-      tau <- exp(B.tau %*% new_theta)
-      kappa <- exp(B.kappa %*% new_theta)
+      tau <- c(exp(B.tau %*% new_theta))
+      kappa <- c(exp(B.kappa %*% new_theta))
 
   } else if(is.null(kappa) || is.null(tau)){
       if(any(dim(B.tau) != dim(B.kappa))){
@@ -1091,6 +1091,19 @@ spde.matern.operators <- function(kappa = NULL,
       if(any(dim(B.sigma) != dim(B.range))){
         stop("B.sigma and B.range must have the same dimensions!")
       }
+
+
+    if(parameterization == "matern"){
+      B_matrices <- convert_B_matrices(B.sigma, B.range, ncol(C), nu, d)
+      B.tau <- B_matrices[["B.tau"]]
+      B.kappa <- B_matrices[["B.kappa"]]
+      print(B.tau)
+    } else{
+      B.tau <- prepare_B_matrices(B.tau, ncol(C), 
+          ncol(B.tau)-1)
+      B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
+          ncol(B.kappa)-1)
+    }      
 
       if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
         stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
@@ -1102,11 +1115,14 @@ spde.matern.operators <- function(kappa = NULL,
         theta <- get.initial.values.rSPDE(graph.obj = graph, parameterization = parameterization, nu = nu, B.tau = B.tau, B.sigma = B.sigma, B.range = B.range,
          B.kappa = B.kappa, include.nu = FALSE)
       }
+
+    new_theta <- c(1, theta)
+
     if(is.null(tau)){
-      tau <- exp(B.tau %*% theta)
+      tau <- c(exp(B.tau %*% new_theta))
     }
     if(is.null(kappa)){
-      kappa <- exp(B.kappa %*% theta)
+      kappa <- c(exp(B.kappa %*% new_theta))
     }
   } 
 
@@ -1162,6 +1178,9 @@ spde.matern.operators <- function(kappa = NULL,
       output$range_mesh <- range_mesh
       output$graph <- graph
       output$loc_mesh <- loc_mesh        
+      output$B.sigma <- B.sigma
+      output$B.range <- B.range
+      output$parameterization <- parameterization
   } else{
     type_rational_approximation <- type_rational_approximation[[1]]
     m_alpha <- floor(alpha)
@@ -1261,6 +1280,9 @@ spde.matern.operators <- function(kappa = NULL,
   output$range_mesh <- range_mesh
   output$graph <- graph
   output$loc_mesh <- loc_mesh      
+  output$B.sigma <- B.sigma
+  output$B.range <- B.range
+  output$parameterization <- parameterization  
   class(output) <- "CBrSPDEobj"
   }
 

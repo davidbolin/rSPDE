@@ -80,7 +80,7 @@ rspde_lme <- function(formula, loc, data,
   if(!is.null(model)){
     if(is.null(starting_values_latent)){
       if(!model$stationary){
-          if(is.null(theta)){
+          if(is.null(model$theta)){
               stop("For models given by spde.matern.operators(), theta must be non-null!")
           }
           starting_values_latent <- model$theta
@@ -151,6 +151,7 @@ rspde_lme <- function(formula, loc, data,
     # if(ncol(X_cov) > 0){
     #   has_cov <- TRUE
     # }
+
     if(!is.null(model$make_A)) {
         for(j in repl_val){
             ind_tmp <- (repl %in% j)
@@ -169,10 +170,14 @@ rspde_lme <- function(formula, loc, data,
         }  
         }
     } else{
+      print(model$make_A)
+      print("Here 2")
         stop("When creating the model object using matern.operators() or spde.matern.operators(), you should either supply a graph, or a mesh, or mesh_loc (this last one only works for dimension 1).")
     }
 
     n_coeff_nonfixed <- length(start_values)
+
+    print(start_values)
 
     model_tmp <- model
     model_tmp$mesh <- NULL
@@ -190,6 +195,7 @@ rspde_lme <- function(formula, loc, data,
                     if(nu %% 1 == 0){
                       nu <- nu - 1e-5
                     }
+                    nu <- min(nu, 9.99)
                     gap <- 1
                 } else{
                     gap <- 0
@@ -222,10 +228,11 @@ rspde_lme <- function(formula, loc, data,
 
                     }
                 } else{
-                    theta_model <- theta[(2+gap):(n_initial-1-gap)]
+                    theta_model <- theta[(2+gap):(n_initial)]
+
                     model_tmp <- update.CBrSPDEobj(model_tmp,
-                            user_theta = theta,
-                            user_nu = nu)
+                            user_theta = theta_model,
+                            user_nu = nu)                        
                 }
                 
                 if(n_cov > 0){
@@ -277,7 +284,7 @@ rspde_lme <- function(formula, loc, data,
                 } else{
                     theta_model <- theta[(2+gap):(n_initial-1-gap)]
                     model_tmp <- update.rSPDEobj(model_tmp,
-                            user_theta = theta,
+                            user_theta = theta_model,
                             user_nu = nu)
                 }
                 
