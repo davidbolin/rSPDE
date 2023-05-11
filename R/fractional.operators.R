@@ -399,8 +399,14 @@ matern.operators <- function(kappa = NULL,
     stop("You should give either the dimension d, the mesh or graph!")
   }
 
-  if ((is.null(C) || is.null(G)) && is.null(mesh) && is.null(graph)) {
+  if ((is.null(C) || is.null(G)) && is.null(mesh) && is.null(graph) &&(is.null(loc_mesh) || d != 1)) {
     stop("You should either provide mesh, graph, or provide both C *and* G!")
+  }
+
+  if( (is.null(C) || is.null(G)) && (is.null(graph)) && (!is.null(loc_mesh) && d==1)){
+    fem <- rSPDE.fem1d(loc_mesh)
+    C <- fem$C
+    G <- fem$G
   }
 
   has_mesh <- FALSE

@@ -148,10 +148,7 @@ Assume that we want to define a model on the interval $[0,1]$. We then start by 
 ```{r}
 s <- seq(from = 0, to = 1, length.out = 101)
 ```
-Based on these nodes, we use the built-in function `rSPDE.fem1d()` to assemble two matrices needed for creating the approximation of a basic Matérn model. These matrices are the mass matrix $\boldsymbol{\mathrm{C}}$, with elements $C_{ij} = \int \varphi_j(s) \varphi_i(s) ds$, and the stiffness matrix $\boldsymbol{\mathrm{G}}$, with elements $G_{ij} = \int \nabla\varphi_j(s) \cdot \nabla\varphi_i(s) ds$. 
-```{r}
-fem <- rSPDE.fem1d(s)
-```
+Based on these nodes, we use (implicitly) the built-in function `rSPDE.fem1d()` to assemble two matrices needed for creating the approximation of a basic Matérn model. These matrices are the mass matrix $\boldsymbol{\mathrm{C}}$, with elements $C_{ij} = \int \varphi_j(s) \varphi_i(s) ds$, and the stiffness matrix $\boldsymbol{\mathrm{G}}$, with elements $G_{ij} = \int \nabla\varphi_j(s) \cdot \nabla\varphi_i(s) ds$. 
 
 We can now use `matern.operators()` to construct a rational SPDE approximation of degree $m=1$ for a Gaussian random field with a Matérn covariance function on the interval. Since
 we are using the operator-based approximation, we must set `type` to `"operator"`.
@@ -159,9 +156,9 @@ we are using the operator-based approximation, we must set `type` to `"operator"
 kappa <- 20
 sigma <- 2
 nu <- 0.8
-op <- matern.operators(
-  kappa = kappa, sigma = sigma, nu = nu,
-  G = fem$G, C = fem$C, d = 1, m = 1,
+r <- sqrt(8*nu)/kappa
+op <- matern.operators( sigma = sigma, range = r,
+  loc_mesh = s, d = 1, m = 1,
   type = "operator"
 )
 ```
@@ -210,8 +207,8 @@ To improve the approximation we can increase the degree of the polynomials, by i
 
 ```{r}
 op2 <- matern.operators(
-  kappa = kappa, sigma = sigma, nu = nu,
-  G = fem$G, C = fem$C, d = 1, m = 2,
+  range = r, sigma = sigma, nu = nu,
+  loc_mesh = s, d = 1, m = 2,
   type = "operator"
 )
 c.approx2 <- op2$Pr %*% solve(op2$Q, op2$Pr %*% v)
@@ -219,16 +216,16 @@ c.approx2 <- op2$Pr %*% solve(op2$Q, op2$Pr %*% v)
 s2 <- seq(from = 0, to = 1, length.out = 501)
 fem2 <- rSPDE.fem1d(s2)
 op <- matern.operators(
-  kappa = kappa, sigma = sigma, nu = nu,
-  G = fem2$G, C = fem2$C, d = 1, m = 1,
+  range = r, sigma = sigma, nu = nu,
+  loc_mesh = s2, d = 1, m = 1,
   type = "operator"
 )
 A <- rSPDE.A1d(s2, s)
 v <- t(rSPDE.A1d(s2, 0.5))
 c.approx3 <- A %*% op$Pr %*% solve(op$Q, op$Pr %*% v)
 op <- matern.operators(
-  kappa = kappa, sigma = sigma, nu = nu,
-  G = fem2$G, C = fem2$C, d = 1, m = 2,
+  range = r, sigma = sigma, nu = nu,
+  loc_mesh = s2, d = 1, m = 2,
   type = "operator"
 )
 c.approx4 <- A %*% op$Pr %*% solve(op$Q, op$Pr %*% v)
@@ -261,8 +258,8 @@ Since the error induced by the rational approximation decreases exponentially in
 errors <- rep(0, 4)
 for (i in 1:4) {
   op <- matern.operators(
-    kappa = kappa, sigma = sigma, nu = nu,
-    G = fem2$G, C = fem2$C, d = 1, m = i,
+    range = r, sigma = sigma, nu = nu,
+    loc_mesh = s2, d = 1, m = i,
     type = "operator"
   )
   c.app <- A %*% op$Pr %*% solve(op$Q, op$Pr %*% v)
@@ -280,8 +277,8 @@ To handle this issue for the operator-based rational approximation, the package 
 errors2 <- rep(0, 4)
 for (i in 1:4) {
   op <- matern.operators(
-    kappa = kappa, sigma = sigma, nu = nu,
-    G = fem2$G, C = fem2$C, d = 1, m = i,
+    range = r, sigma = sigma, nu = nu,
+    loc_mesh = s2, d = 1, m = i,
     type = "operator"
   )
   c.app <- A %*% Sigma.mult(op, v)
@@ -385,7 +382,7 @@ par(opar)
 The functions used in the previous examples also work for spatial models. We then need to construct a mesh over the domain of interest and then compute the matrices needed to define the operator. These tasks can be performed, for example, using the `r inla_link()` package. Let us start by defining a mesh over $[0,1]\times [0, 1]$ and compute the mass and stiffness matrices for that mesh. 
 ```{r fig.align = "center", message=FALSE}
 library(INLA)
-m <- 100
+m <- 200
 loc_2d_mesh <- matrix(runif(m * 2), m, 2)
 mesh_2d <- inla.mesh.create.helper(
   points = loc_2d_mesh,
@@ -464,34 +461,33 @@ y_vec <- as.vector(Y)
 repl <- rep(1:n.rep, each = m)
 df_data_2d <- data.frame(y = y_vec, x_coord = loc_2d_mesh[,1],
                       y_coord = loc_2d_mesh[,2])
+```
 
+We can now fit the model (and speed up by setting `parallel` to `TRUE`):
+
+```{r}
 fit_2d <- rspde_lme(y ~ -1, model = op_obj, 
           data = df_data_2d, repl = repl,
           loc = c("x_coord", "y_coord"), parallel = FALSE)
 ```
 
-We can now fit the model:
+Let us see a summary of the fitted model:
 
-
-Let us compare with the true values:
 ```{r}
-start_time <- Sys.time()
-pars <- optim(theta0, mlik, method = "L-BFGS-B")
-end_time <- Sys.time()
-total_time <- end_time - start_time
-results <- data.frame(
-  tau = c(tau, exp(pars$par[1])),
-  kappa = c(kappa, exp(pars$par[2])),
-  nu = c(nu, exp(pars$par[3])),
-  sigma.e = c(sigma.e, exp(pars$par[4])),
-  row.names = c("True", "Estimate")
-)
-print(results)
-
-# Total time
-print(total_time)
+summary(fit_2d)
 ```
 
+Let us compare the estimated results with the true values:
+```{r}
+print(data.frame(
+  sigma = c(sigma, fit_2d$coeff$random_effects[2]), range = c(range, fit_2d$coeff$random_effects[3]),
+  nu = c(nu, fit_2d$coeff$random_effects[1]),
+  row.names = c("Truth", "Estimates")
+))
+
+# Total time
+print(fit_2d$fitting_time)
+```
 
 Finally, we observe that we can use the `rational.order()` function, to check
 the order of the rational approximation of the `rSPDE` object, as well
@@ -501,24 +497,30 @@ as to use the `rational.order<-()` function to assign new orders:
 rational.order(op_obj)
 
 rational.order(op_obj) <- 2
+```
 
-mlik_order2 <- rSPDE.construct.matern.loglike(op_obj, Y=Y, A=A)
+Let us fit again and check the results:
 
-start_time <- Sys.time()
-pars <- optim(theta0, mlik_order2, method = "L-BFGS-B")
-end_time <- Sys.time()
-total_time <- end_time - start_time
-results <- data.frame(
-  tau = c(tau, exp(pars$par[1])),
-  kappa = c(kappa, exp(pars$par[2])),
-  nu = c(nu, exp(pars$par[3])),
-  sigma.e = c(sigma.e, exp(pars$par[4])),
-  row.names = c("True", "Estimate")
-)
-print(results)
+```{r}
+fit_2d <- rspde_lme(y ~ -1, model = op_obj, 
+          data = df_data_2d, repl = repl,
+          loc = c("x_coord", "y_coord"), parallel = FALSE)
+```
+
+Let us check the summary:
+```{r}
+summary(fit_2d)
+```
+Let us compare the estimated results with the true values:
+```{r}
+print(data.frame(
+  sigma = c(sigma, fit_2d$coeff$random_effects[2]), range = c(range, fit_2d$coeff$random_effects[3]),
+  nu = c(nu, fit_2d$coeff$random_effects[1]),
+  row.names = c("Truth", "Estimates")
+))
 
 # Total time
-print(total_time)
+print(fit_2d$fitting_time)
 ```
 
 
