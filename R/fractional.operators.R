@@ -1015,6 +1015,9 @@ spde.matern.operators <- function(kappa = NULL,
     stop("The type should be 'covariance' or 'operator'!")
   }
 
+  has_mesh <- FALSE
+  has_graph <- FALSE
+
   parameterization <- parameterization[[1]]
 
   if (!parameterization %in% c("matern", "spde")) {

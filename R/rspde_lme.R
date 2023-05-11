@@ -181,6 +181,7 @@ rspde_lme <- function(formula, loc, data,
 
     if(inherits(model, "CBrSPDEobj")){
             likelihood <- function(theta){
+
                 sigma_e <- exp(theta[1])
                 n_cov <- ncol(X_cov)
                 n_initial <- n_coeff_nonfixed                
@@ -211,12 +212,14 @@ rspde_lme <- function(formula, loc, data,
                             user_nu = nu, user_tau = tau,
                             user_kappa = kappa, parameterization = "spde")
                     } else{
+
                         sigma <- exp(theta[2+gap])
                         range <- exp(theta[3+gap])
                         model_tmp <- update.CBrSPDEobj(model_tmp,
                             user_nu = nu,
                             user_sigma = sigma, user_range = range,
                             parameterization = "matern")
+
                     }
                 } else{
                     theta_model <- theta[(2+gap):(n_initial-1-gap)]
@@ -256,7 +259,6 @@ rspde_lme <- function(formula, loc, data,
                         stop("nu must be positive.")
                     }
                 }
-                    
                 if(model$stationary){
                     if(model_tmp$parameterization == "spde"){
                         tau <- exp(theta[2+gap])
