@@ -65,13 +65,19 @@ rspde_lme <- function(formula, loc, data,
   if (missing(data) && (!model$has_graph)) {
     data <- environment(formula)
   } else if(model$has_graph){
-    data <- model$graph$data
-    repl <- model$graph$data[["__group"]]
-    if(missing(loc)){
-      # Don't do anything, we will replace loc anyway
-    }
-    loc <- cbind(model$graph$data[["__edge_number"]],
+    if(use_data_from_graph){
+      if(is.null(model$graph$data)){
+        stop("The graph has no data! Either add data to the graph, or add the data manually and set 'use_data_from_graph' to FALSE.")
+      }
+          data <- model$graph$data
+          repl <- model$graph$data[["__group"]]
+          if(missing(loc)){
+              # Don't do anything, we will replace loc anyway
+          }
+          loc <- cbind(model$graph$data[["__edge_number"]],
                   model$graph$data[["__distance_on_edge"]])
+          }
+
   }
 
   y_term <- stats::terms(formula)[[2]]
@@ -707,13 +713,13 @@ print.summary_rspde_lme <- function(x, ...) {
   cat("Log-Likelihood: ", x$loglik,"\n")
   if(model_type != "linearmodel"){
     cat(paste0("Number of function calls by 'optim' = ", x$niter[1],"\n"))
-    cat(paste0("\nTime used:"))
-    cat("\t Fit the model = ", paste(trunc(x$fitting_time[[1]] * 10^5)/10^5,attr(x$fitting_time, "units"),"\n"))
+    cat(paste0("\nTime used to:"))
+    cat("\t fit the model = ", paste(trunc(x$fitting_time[[1]] * 10^5)/10^5,attr(x$fitting_time, "units"),"\n"))
     if(x$improve_hessian){
-    cat(paste0("\t Compute the Hessian = ", paste(trunc(x$time_hessian[[1]] * 10^5)/10^5,attr(x$time_hessian, "units"),"\n")))      
+    cat(paste0("\t compute the Hessian = ", paste(trunc(x$time_hessian[[1]] * 10^5)/10^5,attr(x$time_hessian, "units"),"\n")))      
     }
     if(x$parallel){
-    cat(paste0("\t Set up the parallelization = ", paste(trunc(x$time_par[[1]] * 10^5)/10^5,attr(x$time_par, "units"),"\n")))      
+    cat(paste0("\t set up the parallelization = ", paste(trunc(x$time_par[[1]] * 10^5)/10^5,attr(x$time_par, "units"),"\n")))      
     }
 
   }
