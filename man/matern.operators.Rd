@@ -19,7 +19,7 @@ matern.operators(
   loc_mesh = NULL,
   m = 1,
   type = c("covariance", "operator"),
-  parameterization = c("matern", "spde"),
+  parameterization = c("matern", "spde", "graph"),
   compute_higher_order = FALSE,
   return_block_list = FALSE,
   type_rational_approximation = c("chebfun", "brasil", "chebfunLB"),

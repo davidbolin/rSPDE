@@ -567,13 +567,14 @@ matern.operators <- function(kappa = NULL,
   } else {
     type_rational_approximation <- type_rational_approximation[[1]]
     out <- CBrSPDE.matern.operators(
-      C = C, G = G, mesh = mesh, nu = nu, kappa = kappa, sigma = sigma,
+      C = C, G = G, mesh = mesh, nu = nu, kappa = kappa, tau = tau,
       m = m, d = d, compute_higher_order = compute_higher_order,
       return_block_list = return_block_list,
       type_rational_approximation = type_rational_approximation
     )
     out$range <- range
     out$tau <- tau
+    out$sigma <- sigma
     out$parameterization <- parameterization
     out$has_mesh <- has_mesh
     out$has_graph <- has_graph
@@ -598,7 +599,8 @@ matern.operators <- function(kappa = NULL,
 #' K_\nu(\kappa h)}{C(h) =
 #' (\sigma^2/(2^{\nu-1}\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
 #' @param kappa Range parameter of the covariance function.
-#' @param sigma Standard deviation of the covariance function.
+#  @param sigma Standard deviation of the covariance function.
+#' @param tau Precision parameter.
 #' @param nu Shape parameter of the covariance function.
 #' @param G The stiffness matrix of a finite element discretization
 #' of the domain of interest.
@@ -692,7 +694,7 @@ CBrSPDE.matern.operators <- function(C,
                                      mesh,
                                      nu,
                                      kappa,
-                                     sigma,
+                                     tau,
                                      m = 2,
                                      d,
                                      compute_higher_order = FALSE,
@@ -709,8 +711,8 @@ CBrSPDE.matern.operators <- function(C,
       alpha <- nu + d / 2
       m_alpha <- floor(alpha)
       m_order <- m_alpha + 1
-      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-      (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+      # tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+      # (4 * pi)^(d / 2) * gamma(nu + d / 2)))
 
       if (d > 1) {
         if (compute_higher_order) {
@@ -752,8 +754,8 @@ CBrSPDE.matern.operators <- function(C,
       alpha <- nu + d / 2
       m_alpha <- floor(alpha)
       m_order <- m_alpha + 1
-      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-      (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+      # tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+      # (4 * pi)^(d / 2) * gamma(nu + d / 2)))
 
       ## get lumped mass matrix
       C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
@@ -798,8 +800,8 @@ CBrSPDE.matern.operators <- function(C,
     if (!is.null(mesh)) {
       d <- get_inla_mesh_dimension(inla_mesh = mesh)
     }
-    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+    # tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+    # (4 * pi)^(d / 2) * gamma(nu + d / 2)))
     Gk <- list()
     Gk[[1]] <- G
     for (i in 2:m_order) {
@@ -909,7 +911,7 @@ CBrSPDE.matern.operators <- function(C,
     fem_mesh_matrices = fem_mesh_matrices,
     alpha = alpha, nu = nu, kappa = kappa, range = sqrt(8 * nu) / kappa,
     tau = tau, m = m, d = d,
-    sigma = sigma,
+    # sigma = sigma,
     logdetL = logdetL, logdetC = logdetC,
     Q.frac = Q.frac, Q.int = Q.int,
     Q = Q, sizeC = dim(C)[1],

@@ -589,7 +589,7 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' @param user_m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
 #' @param pivot Should pivoting be used for the Cholesky
-#' decompositions? Default is TRUE
+#' decompositions? Default is FALSE
 #' @param ... Currently not used.
 #' @return A matrix with the `n` samples as columns.
 #' @method simulate CBrSPDEobj
@@ -625,7 +625,7 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
                                 user_tau = NULL,
                                 user_theta = NULL,
                                 user_m = NULL,
-                                pivot = TRUE,
+                                pivot = FALSE,
                                 ...) {
   if(!is.null(seed)){
     set.seed(seed)
@@ -645,6 +645,7 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       user_tau = user_tau,
       user_range = user_range,
       user_m = user_m,
+      parameterization = object$parameterization,
       compute_higher_order = TRUE
     )
 
@@ -690,7 +691,8 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       user_m = user_m,
       user_range = user_range,
       user_tau = user_tau,
-      user_theta = user_theta
+      user_theta = user_theta,
+      parameterization = object$parameterization,
     )
 
     m <- object$m

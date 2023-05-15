@@ -34,6 +34,7 @@ rspde_lme <- function(formula, loc, data,
                 start_sigma_e = NULL,
                 start_nu = NULL,
                 nu = NULL,
+                nu_upper_bound = 4,
                 rspde_order = NULL,
                 model_matrix = TRUE,
                 parallel = FALSE,
@@ -113,7 +114,9 @@ rspde_lme <- function(formula, loc, data,
   idx_repl <- (repl %in% which_repl)
 
   y_resp <- y_resp[idx_repl]
-  X_cov <- X_cov[idx_repl,]
+  if(ncol(X_cov)>0){
+    X_cov <- X_cov[idx_repl, , drop = FALSE]
+  }
   repl <- repl[idx_repl] 
 
 
@@ -210,7 +213,6 @@ rspde_lme <- function(formula, loc, data,
         }  
         }
     } else{
-      print(model$make_A)
         stop("When creating the model object using matern.operators() or spde.matern.operators(), you should either supply a graph, or a mesh, or mesh_loc (this last one only works for dimension 1).")
     }
 
@@ -298,7 +300,7 @@ rspde_lme <- function(formula, loc, data,
                     if(nu %% 1 == 0){
                       nu <- nu - 1e-5
                     }
-                    nu <- min(nu, 9.99)
+                    nu <- min(nu, nu_upper_bound)
                     gap <- 1
                 } else{
                     gap <- 0
@@ -327,7 +329,7 @@ rspde_lme <- function(formula, loc, data,
                             user_nu = nu,
                             user_sigma = sigma, user_range = range,
                             parameterization = "matern")
-                    }  if(model_tmp$parameterization == "graph"){
+                    } else if(model_tmp$parameterization == "graph"){
                         sigma <- exp(theta[2+gap])
                         kappa <- exp(theta[3+gap])
                         model_tmp <- update.rSPDEobj(model_tmp,
