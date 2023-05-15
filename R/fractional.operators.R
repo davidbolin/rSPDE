@@ -382,7 +382,7 @@ matern.operators <- function(kappa = NULL,
                              loc_mesh = NULL,
                              m = 1,
                              type = c("covariance", "operator"),
-                            parameterization = c("matern", "spde"),                             
+                            parameterization = c("matern", "spde", "graph"),                             
                              compute_higher_order = FALSE,
                              return_block_list = FALSE,
                              type_rational_approximation = c("chebfun",
@@ -421,8 +421,8 @@ matern.operators <- function(kappa = NULL,
   
   parameterization <- parameterization[[1]]
 
-  if (!parameterization %in% c("matern", "spde")) {
-    stop("parameterization should be either 'matern' or 'spde'!")
+  if (!parameterization %in% c("matern", "spde", "graph")) {
+    stop("parameterization should be either 'matern', 'spde' or 'graph'!")
   }
 
   if(!is.null(graph)){
@@ -473,7 +473,7 @@ matern.operators <- function(kappa = NULL,
     range <- sqrt(8 * nu) / kappa
     sigma <- sqrt(gamma(nu) / (tau^2 * kappa^(2 * nu) *
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
-  } else{
+  } else if(parameterization == "matern") {
     if(is.null(sigma) || is.null(range)){
       if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
         stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
@@ -494,6 +494,27 @@ matern.operators <- function(kappa = NULL,
     kappa <- sqrt(8 * nu) / range
     tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+  } else if(parameterization == "graph"){
+    if(is.null(kappa) || is.null(sigma)){
+      if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
+        stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
+      }
+      if(!is.null(mesh) || !is.null(range_mesh)){
+         param <- get.initial.values.rSPDE(mesh.range = range_mesh, dim = d, parameterization = "spde", mesh = mesh, nu = nu)
+      } else if(!is.null(graph)){
+        param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = "spde", nu = nu)
+      }
+    }
+
+    if(is.null(kappa)){
+      kappa <- exp(param[2])
+    }
+    if(is.null(sigma)){
+      tau <- exp(param[1])
+      sigma <- 1 / tau
+    }
+    range <- sqrt(8 * nu) / kappa
+    tau <- 1 / sigma
   }
 
   if(!is.null(mesh)){
@@ -1026,8 +1047,8 @@ spde.matern.operators <- function(kappa = NULL,
 
   parameterization <- parameterization[[1]]
 
-  if (!parameterization %in% c("matern", "spde")) {
-    stop("parameterization should be either 'matern' or 'spde'!")
+  if (!parameterization %in% c("matern", "spde", "graph")) {
+    stop("parameterization should be either 'matern', 'spde' or 'graph'!")
   }
 
   if (is.null(d) && is.null(mesh) && is.null(graph)) {
@@ -1067,22 +1088,33 @@ spde.matern.operators <- function(kappa = NULL,
 
   if(!is.null(theta)){
 
-    if(any(dim(B.tau) != dim(B.kappa))){
-      stop("B.tau and B.kappa must have the same dimensions!")
-    }
-    if(any(dim(B.sigma) != dim(B.range))){
-      stop("B.sigma and B.range must have the same dimensions!")
-    }
-
     if(parameterization == "matern"){
+      if(any(dim(B.sigma) != dim(B.range))){
+        stop("B.sigma and B.range must have the same dimensions!")
+      }
+
       B_matrices <- convert_B_matrices(B.sigma, B.range, ncol(C), nu, d)
       B.tau <- B_matrices[["B.tau"]]
       B.kappa <- B_matrices[["B.kappa"]]
-    } else{
+    } else if(parameterization == "spde") {
+      if(any(dim(B.tau) != dim(B.kappa))){
+        stop("B.tau and B.kappa must have the same dimensions!")
+      }
+
       B.tau <- prepare_B_matrices(B.tau, ncol(C), 
           ncol(B.tau)-1)
       B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
           ncol(B.kappa)-1)
+    } else if(parameterization == "spde") {
+      if(any(dim(B.sigma) != dim(B.kappa))){
+        stop("B.sigma and B.kappa must have the same dimensions!")
+      }
+
+      B.sigma <- prepare_B_matrices(B.sigma, ncol(C), 
+          ncol(B.sigma)-1)
+      B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
+          ncol(B.kappa)-1)
+      B.tau <- -B.sigma
     }
     
       new_theta <- c(1, theta)

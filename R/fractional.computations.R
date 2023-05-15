@@ -186,8 +186,8 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           parameterization <- new_object$parameterization
         } else{
             parameterization <- parameterization[[1]]
-            if (!parameterization %in% c("matern", "spde")) {
-                stop("parameterization should be either 'matern' or 'spde'!")
+            if (!parameterization %in% c("matern", "spde", "graph")) {
+                stop("parameterization should be either 'matern', 'spde' or 'graph'!")
             }
         }
 
@@ -202,10 +202,21 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
             new_object$tau <- rspde_check_user_input(user_tau, "tau")
             new_object$sigma <- NULL
           }
-        } else{
+        } else if(parameterization == "matern"){
           if (!is.null(user_range)) {
             new_object$range <- rspde_check_user_input(user_range, "range")
             new_object$kappa <- NULL
+            new_object$tau <- NULL
+          }
+
+          if (!is.null(user_sigma)) {
+            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
+            new_object$tau <- NULL
+          }
+        } else if(parameterization == "graph"){
+          if (!is.null(user_kappa)) {
+            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
+            new_object$range <- NULL
             new_object$tau <- NULL
           }
 
@@ -298,8 +309,8 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           parameterization <- new_object$parameterization
         } else{
             parameterization <- parameterization[[1]]
-            if (!parameterization %in% c("matern", "spde")) {
-                stop("parameterization should be either 'matern' or 'spde'!")
+            if (!parameterization %in% c("matern", "spde", "graph")) {
+                stop("parameterization should be either 'matern', 'spde' or 'graph'!")
             }
         }        
 
@@ -407,8 +418,8 @@ update.rSPDEobj <- function(object, user_nu = NULL,
           parameterization <- new_object$parameterization
         } else{
             parameterization <- parameterization[[1]]
-            if (!parameterization %in% c("matern", "spde")) {
-                stop("parameterization should be either 'matern' or 'spde'!")
+            if (!parameterization %in% c("matern", "spde", "graph")) {
+                stop("parameterization should be either 'matern', 'spde' or 'graph'!")
             }
         }
 
@@ -423,7 +434,7 @@ update.rSPDEobj <- function(object, user_nu = NULL,
             new_object$tau <- rspde_check_user_input(user_tau, "tau")
             new_object$sigma <- NULL
           }
-        } else{
+        } else if(parameterization == "matern"){
           if (!is.null(user_range)) {
             new_object$range <- rspde_check_user_input(user_range, "range")
             new_object$kappa <- NULL
@@ -434,10 +445,18 @@ update.rSPDEobj <- function(object, user_nu = NULL,
             new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
             new_object$tau <- NULL
           }
+        } else if(parameterization == "graph"){
+          if (!is.null(user_kappa)) {
+            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
+            new_object$range <- NULL
+            new_object$tau <- NULL
+          }
+
+          if (!is.null(user_tau)) {
+            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
+            new_object$tau <- NULL
+          }
         }
-
-
-
 
         if (!is.null(user_m)) {
           new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
@@ -516,8 +535,8 @@ update.rSPDEobj <- function(object, user_nu = NULL,
           parameterization <- new_object$parameterization
         } else{
             parameterization <- parameterization[[1]]
-            if (!parameterization %in% c("matern", "spde")) {
-                stop("parameterization should be either 'matern' or 'spde'!")
+            if (!parameterization %in% c("matern", "spde", "graph")) {
+                stop("parameterization should be either 'matern', 'spde' or 'graph'!")
             }
         }        
 
