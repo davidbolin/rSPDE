@@ -536,6 +536,7 @@ if(parallel){
   object$parallel <- parallel
   object$time_par <- time_par
   object$A_list <- A_list
+  object$estimate_nu <- estimate_nu
   object$which_repl <- which_repl
   if(model_matrix){
     if(ncol(X_cov)>0){

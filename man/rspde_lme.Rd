@@ -17,6 +17,7 @@ rspde_lme(
   start_sigma_e = NULL,
   start_nu = NULL,
   nu = NULL,
+  nu_upper_bound = 4,
   rspde_order = NULL,
   model_matrix = TRUE,
   parallel = FALSE,
