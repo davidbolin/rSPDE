@@ -14,7 +14,7 @@
 #' @param start_sigma_e Starting value for the standard deviation of the measurament error.
 #' @param start_nu Starting value for the smoothness parameter.
 #' @param nu If `NULL`, the smoothness parameter will be estimated, otherwise the smoothness parameter will be kept fixed at the provided value.
-#' @param model_matrix logical indicating whether the model matrix should be returned as component of the returned value.
+# @param model_matrix logical indicating whether the model matrix should be returned as component of the returned value.
 #' @param parallel logical. Indicating whether to use optimParallel or not.
 #' @param n_cores Number of cores to be used if parallel is true.
 #' @param optim_controls Additional controls to be passed to `optim` or `optimParallel`.
@@ -36,7 +36,7 @@ rspde_lme <- function(formula, loc, data,
                 nu = NULL,
                 nu_upper_bound = 4,
                 rspde_order = NULL,
-                model_matrix = TRUE,
+                # model_matrix = TRUE,
                 parallel = FALSE,
                 n_cores = parallel::detectCores()-1,
                 optim_controls = list(),
@@ -538,13 +538,13 @@ if(parallel){
   object$A_list <- A_list
   object$estimate_nu <- estimate_nu
   object$which_repl <- which_repl
-  if(model_matrix){
+  # if(model_matrix){
     if(ncol(X_cov)>0){
       object$model_matrix <- cbind(y_resp, X_cov)
     } else{
       object$model_matrix <- y_resp
     }
-  }
+  # }
 
   class(object) <- "rspde_lme"
   return(object)
@@ -803,6 +803,20 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
   coeff_random <- object$coeff$random_effects
   coeff_meas <- object$coeff$measurement_error
 
+  if(inherits(object, "graph_lme")){
+    if(object$estimate_nu){
+      coeff_random[1] <- coeff_random[1] - 0.5
+    }
+  }
+
+  if(object$has_graph){
+    loc <- cbind(data[[edge_number]], data[[distance_on_edge]])
+  } else if(is.character(loc)){
+    loc <- data[loc]
+  }
+
+  loc <- as.matrix(loc)
+
   X_cov_initial <- stats::model.matrix(object$covariates, graph_bkp$data)
   if(ncol(X_cov_initial) > 0){
     if(mesh){
@@ -810,322 +824,120 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
     }
   }
 
+  X_cov_pred <- stats::model.matrix(object$covariates, data)
 
-  if(sum(duplicated(cbind(data["edge_number"], data["distance_on_edge"]))) > 0){
+  if(sum(duplicated(loc)) > 0){
     warning("There are duplicated locations for prediction, we will try to process the data to extract the unique locations,
     along with the corresponding covariates.")
-    cov_names <- attr(object$covariates,"term.labels")
-    data <- data[c(edge_number,distance_on_edge,cov_names)]
-    data <- unique(data) 
-    if(sum(duplicated(cbind(data["edge_number"], data["distance_on_edge"]))) > 0){
+    if(nrow(X_cov_pred) == nrow(loc)){
+      data_tmp <- cbind(loc, X_cov_pred)
+    }
+    data_tmp <- unique(data_tmp) 
+    if(sum(duplicated(cbind(data_tmp[,1:ncol(loc)]))) > 0){
       stop("Data processing failed, please provide a data with unique locations.")
     }
   }
   
+  
   if(!mesh){
-    n_prd <- length(data[[edge_number]])
-    data[["__dummy_var"]] <- rep(0, n_prd)
+    n_prd <- length(loc[,1])
     # Convert data to normalized
-    if(!normalized){
-      data[[distance_on_edge]] <- data[[distance_on_edge]] / graph_bkp$edge_lengths[data[[edge_number]]]
+    if(object$has_graph && !normalized){
+      loc[,2] <- loc[,2] / object$graph$edge_lengths[loc[,1]]
     }
+    Aprd <- object$latent_model$make_A(loc)
   } else{
-    if(is.null(graph_bkp$mesh)){
-      graph_bkp$build_mesh(h = mesh_h)
-    }
-    data <- list()
-    n_prd <- nrow(graph_bkp$mesh$VtE)
-    data[["__dummy_var"]] <- rep(0, n_prd)
-    data[[edge_number]] <- graph_bkp$mesh$VtE[,1]
-    data[[distance_on_edge]] <- graph_bkp$mesh$VtE[,2]
-    normalized <- TRUE
+    Aprd <- Matrix::Diagonal(nrow(object$latent_model$C))
   }
-
-    ord_idx <- order(data[[edge_number]], data[[distance_on_edge]])
-  
-
-  if(!is.null(data[[as.character(object$response)]])){
-    data[[as.character(object$response)]] <- NULL
-  }
-
-  data_graph_temp <- list()
-  idx_group1 <-  graph_bkp$data[["__group"]] == graph_bkp$data[["__group"]][1]
-  data_graph_temp[[edge_number]] <- graph_bkp$data[["__edge_number"]][idx_group1]
-  data_graph_temp[[distance_on_edge]] <- graph_bkp$data[["__distance_on_edge"]][idx_group1]
-  data_graph_temp[[as.character(object$response)]] <- graph_bkp$data[[as.character(object$response)]][idx_group1]
-  data_graph_temp <- as.data.frame(data_graph_temp)
-
-  data_prd_temp <- list()
-  data_prd_temp[[edge_number]] <- data[[edge_number]]
-  data_prd_temp[[distance_on_edge]] <- data[[distance_on_edge]]
-  data_prd_temp[["included"]] <- TRUE
-
-  temp_merge <- merge(data_prd_temp, data_graph_temp, all = TRUE)
-
-  temp_merge <- temp_merge[!is.na(temp_merge[["included"]]),]
-
-  temp_merge[["included"]] <- NULL
-
-  data <- merge(temp_merge, data)
-  
-  rm(temp_merge)
-  # rm(data_prd_temp)
-  rm(data_graph_temp)
-
-  old_data <- graph_bkp$data
-
-  data[["__group"]] <- old_data[["__group"]][1]
-
-  graph_bkp$clear_observations()
-
-  graph_bkp$add_observations(data = data, edge_number = edge_number, distance_on_edge = distance_on_edge, normalized = TRUE, group = "__group")
-
-  graph_bkp$add_observations(data = old_data, edge_number = "__edge_number", distance_on_edge = "__distance_on_edge", group = "__group", normalized = TRUE)
-
-  graph_bkp$data[["__dummy_ord_var"]] <- 1:length(graph_bkp$data[["__edge_number"]])
-
-  n <- sum(graph_bkp$data[["__group"]] == graph_bkp$data[["__group"]][1])
 
   ## 
-  repl_vec <- graph_bkp[["data"]][["__group"]]
-
-  if(is.null(repl)){
-    u_repl <- unique(graph_bkp$data[["__group"]])
+  repl_vec <- object$repl
+  if(is.null(which_repl)){
+    u_repl <- unique(repl_vec)
   } else{
-    u_repl <- unique(repl)
+    u_repl <- unique(which_repl)
   }
 
   ##
 
-  X_cov_pred <- stats::model.matrix(object$covariates, graph_bkp$data)
-  
   if(all(dim(X_cov_pred) == c(0,1))){
-    X_cov_pred <- matrix(1, nrow = length(graph_bkp$data[["__group"]]), ncol=1)
+    X_cov_pred <- matrix(1, nrow = length(repl_vec), ncol=1)
   }
   if(ncol(X_cov_pred) > 0){
-    mu <- X_cov_pred %*% coeff_fixed
+    mu_prd <- X_cov_pred %*% coeff_fixed
   } else{
-    mu <- matrix(0, nrow = length(graph_bkp$data[["__group"]]), ncol=1)
+    mu_prd <- matrix(0, nrow = length(repl_vec), ncol=1)
   }
 
-  Y <- graph_bkp$data[[as.character(object$response)]] - mu
+  model_matrix_fit <- object$model_matrix
+
+  model_matrix_fit <- as.matrix(model_matrix_fit)
+
+  if(ncol(model_matrix_fit)>1){
+    X_cov_fit <- model_matrix_fit[,2:ncol(model_matrix_fit)]
+    mu <- X_cov_fit %*% coeff_fixed
+  } else{
+    mu <- 0
+  }
+
+
+  Y <- model_matrix_fit[,1] - mu
 
   model_type <- object$latent_model
 
   sigma.e <- coeff_meas[[1]]
   sigma_e <- sigma.e
 
-  if(!is.null(graph_bkp$data[["__dummy_var"]])){
-      idx_prd <- !is.na(graph_bkp$data[["__dummy_var"]][1:n])
-  } else {
-      idx_prd <- !is.na(graph_bkp$data[["X__dummy_var"]][1:n])
-  }
-
-  n_prd <- sum(idx_prd)
-
-  edge_nb <- graph_bkp$data[["__edge_number"]][1:n][idx_prd]
-  dist_ed <- graph_bkp$data[["__distance_on_edge"]][1:n][idx_prd]
-
   ## construct Q
 
-  # graph_bkp$data <- lapply(graph_bkp$data, function(dat){dat_temp <- dat
-  #                       dat_temp[graph_bkp$data[["__dummy_ord_var"]]] <- dat
-  #                                       return(dat_temp)})
-
-
-  if(tolower(model_type$type) == "whittlematern"){
-    sigma <- object$coeff$random_effects[1]
-    if(object$parameterization_latent == "spde"){
-      kappa <- object$coeff$random_effects[2]
-    } else{
-      kappa <- sqrt(8 * 0.5) / object$coeff$random_effects[2]
+  if(object$estimate_nu){
+    nu_est <- coeff_random[1]
+    if(object$parameterization_latent == "graph"){
+      sigma_est <- coeff_random[2]
+      kappa_est <- coeff_random[3]
+      tau_est <- NULL
+      range_est <- NULL
+    } else if(object$parameterization_latent == "spde"){
+      tau_est <- coeff_random[2]
+      kappa_est <- coeff_random[3]
+      range_est <- NULL
+      sigma_est <- NULL
+    } else if(object$parameterization_latent == "matern"){
+      sigma_est <- coeff_random[2]
+      range_est <- coeff_random[3]
+      kappa_est <- NULL
+      tau_est <- NULL
     }
-
-      # if(model_type$alpha == 1){
-      #     Q <- spde_precision(kappa = kappa, sigma = sigma,
-      #                       alpha = 1, graph = graph_bkp)
-      # } 
-      # else{
-      #   PtE <- graph_bkp$get_PtE()
-      #   n.c <- 1:length(graph_bkp$CoB$S)
-      #   Q <- spde_precision(kappa = kappa, sigma = sigma, alpha = 2,
-      #                       graph = graph_bkp, BC = BC)
-      #   Qtilde <- (graph_bkp$CoB$T) %*% Q %*% t(graph_bkp$CoB$T)
-      #   Qtilde <- Qtilde[-n.c,-n.c]
-      #   Sigma.overdetermined  = t(graph_bkp$CoB$T[-n.c,]) %*% solve(Qtilde) %*%
-      #     (graph_bkp$CoB$T[-n.c,])
-      #   index.obs <- 4 * (PtE[,1] - 1) + 1.0 * (abs(PtE[, 2]) < 1e-16) +
-      #     3.0 * (abs(PtE[, 2]) > 1e-16)
-      #   Sigma <-  as.matrix(Sigma.overdetermined[index.obs, index.obs])
-      #   Q <- solve(Sigma)        
-      # }
-
-  } else if(tolower(model_type$type) == "graphlaplacian"){
-    graph_bkp$observation_to_vertex()
-    sigma <- object$coeff$random_effects[1]
-    #nV before 
-    nV_temp <- object$nV_orig
-    # graph_bkp$observation_to_vertex()
-    if(graph_bkp$nV > nV_temp){
-      warning("There are prediction locations outside of the observation locations. Refit the model with all the locations you want to obtain predictions.")
+  } else{
+    if(object$parameterization_latent == "graph"){
+      sigma_est <- coeff_random[1]
+      kappa_est <- coeff_random[2]
+      tau_est <- NULL
+      range_est <- NULL      
+    } else if(object$parameterization_latent == "spde"){
+      tau_est <- coeff_random[1]
+      kappa_est <- coeff_random[2]
+      range_est <- NULL
+      sigma_est <- NULL      
+    } else if(object$parameterization_latent == "matern"){
+      sigma_est <- coeff_random[1]
+      range_est <- coeff_random[2]
+      kappa_est <- NULL
+      tau_est <- NULL      
     }
-    graph_bkp$compute_laplacian()
-    if(object$parameterization_latent == "spde"){
-      kappa <- object$coeff$random_effects[2]
-    } else{
-      kappa <- sqrt(8 * 0.5) / object$coeff$random_effects[2]
-    }
-      if(model_type$alpha == 1){
-        Q <- (kappa^2 * Matrix::Diagonal(graph_bkp$nV, 1) + graph_bkp$Laplacian[[1]]) / sigma^2
-      } else{
-        Q <- kappa^2 * Matrix::Diagonal(graph_bkp$nV, 1) + graph_bkp$Laplacian[[1]]
-        Q <- Q %*% Q / sigma^2
-      }
-
-  } else if(tolower(model_type$type) == "isocov"){
-      if(is.character(model_type$cov_function)){
-        sigma <- object$coeff$random_effects[1]
-        kappa <- object$coeff$random_effects[2]
-        # if(model_type$cov_function == "alpha1"){
-        #   # graph_bkp$observation_to_vertex()
-        #   Q <- spde_precision(kappa = kappa, sigma = sigma,
-        #                     alpha = 1, graph = graph_bkp)
-        # } else if(model_type$cov_function == "alpha2"){
-        #   PtE <- graph_bkp$get_PtE()
-        #   n.c <- 1:length(graph_bkp$CoB$S)
-        #   Q <- spde_precision(kappa = kappa, sigma = sigma, alpha = 2,
-        #                       graph = graph_bkp, BC = BC)
-        #   Qtilde <- (graph_bkp$CoB$T) %*% Q %*% t(graph_bkp$CoB$T)
-        #   Qtilde <- Qtilde[-n.c,-n.c]
-        #   Sigma.overdetermined  = t(graph_bkp$CoB$T[-n.c,]) %*% solve(Qtilde) %*%
-        #     (graph_bkp$CoB$T[-n.c,])
-        #   index.obs <- 4 * (PtE[,1] - 1) + 1.0 * (abs(PtE[, 2]) < 1e-14) +
-        #     3.0 * (abs(PtE[, 2]) > 1e-14)
-        #   Sigma <-  as.matrix(Sigma.overdetermined[index.obs, index.obs])
-        #   Q <- solve(Sigma)
-        # } else 
-        if(model_type$cov_function == "GL1"){
-              #nV before 
-              nV_temp <- object$nV_orig
-              graph_bkp$observation_to_vertex()
-              if(graph_bkp$nV > nV_temp){
-                warning("There are prediction locations outside of the observation locations. Refit the model with all the locations you want to obtain predictions.")
-              }
-              graph_bkp$compute_laplacian()        
-              Q <- (kappa^2 * Matrix::Diagonal(graph_bkp$nV, 1) + graph_bkp$Laplacian[[1]]) / sigma^2
-        } else if(model_type$cov_function == "GL2"){
-              #nV before 
-              nV_temp <- object$nV_orig
-              graph_bkp$observation_to_vertex()
-              if(graph_bkp$nV > nV_temp){
-                warning("There are prediction locations outside of the observation locations. Refit the model with all the locations you want to obtain predictions.")
-              }
-              graph_bkp$compute_laplacian()
-              Q <- kappa^2 * Matrix::Diagonal(graph_bkp$nV, 1) + graph_bkp$Laplacian[[1]]
-              Q <- Q %*% Q / sigma^2
-        # } else if(model_type$cov_function == "exp_covariance"){
-        #           graph_bkp$compute_resdist(full = TRUE)
-        #           Sigma <- as.matrix(exp_covariance(graph_bkp$res_dist[[1]], c(sigma,kappa)))
-        #           Q <- solve(Sigma)
-        # } 
-        }
-      } else{
-        graph_bkp$compute_resdist(full = TRUE)
-        cov_function <- model_type$cov_function
-        Sigma <- as.matrix(cov_function(graph_bkp$res_dist[[1]], coeff_random))
-      }
+    nu_est <- NULL
   }
 
-  # gap <- dim(Q)[1] - n
-  
-  ## compute Q_x|y
-  # A <- Matrix::Diagonal(dim(Q)[1])[(gap+1):dim(Q)[1], ]
-  # if(tolower(model_type$type) == "isocov"){
-  #   # A <- Matrix::Diagonal(dim(Q)[1])
-  #   # A[graph_bkp$data[["__dummy_ord_var"]],] <- A
-  #   A <- Matrix::Diagonal(dim(Q)[1])[graph_bkp$data[["__dummy_ord_var"]], ]
-  #   A <- Matrix::Diagonal(dim(Q)[1])[graph_bkp$PtV, ]
+  new_rspde_obj <- update(object$latent_model,
+                        user_nu = nu_est,
+                        user_sigma = sigma_est,
+                        user_kappa = kappa_est,
+                        user_tau = tau_est,
+                        user_range = range_est,
+                        parameterization = object$parameterization_latent)
 
-  #   print(graph_bkp$PtV)
-  # } else{
-  #   A <- Matrix::Diagonal(dim(Q)[1])[graph_bkp$PtV, ]
-  # }
-
-  cond_aux1 <- (tolower(model_type$type) == "whittlematern")
-  cond_aux2 <- (tolower(model_type$type) == "isocov" && is.character(model_type$cov_function))
-  if(cond_aux2){
-    cond_aux2 <- (model_type$cov_function == "alpha2" || model_type$cov_function == "alpha1")
-  }
-  cond_wm <- cond_aux1 || cond_aux2 
-
-  cond_isocov <- (tolower(model_type$type) == "isocov" && !is.character(model_type$cov_function))
-
-  if(!cond_wm && !cond_isocov){
-    A <- Matrix::Diagonal(dim(Q)[1])[graph_bkp$PtV, ]
-  }
-
-  idx_obs_full <- as.vector(!is.na(Y))
-  
-  # idx_obs_full <- !is.na(graph_bkp$data[[as.character(object$response)]])
-
-  if(return_original_order){
-          dist_ed[ord_idx] <- dist_ed
-          edge_nb[ord_idx] <- edge_nb
-  }
-
-  if(!return_as_list){
-    out$distance_on_edge <- rep(dist_ed,length(u_repl))
-    out$edge_number <- rep(edge_nb,length(u_repl))
-  }
-
-  if(cond_wm){
-    PtE_full <- graph_bkp$get_PtE()
-    PtE_pred <- PtE_full[idx_prd,]
-  }
-
-  cond_alpha2 <- FALSE
-  cond_alpha1 <- FALSE
-  if(cond_aux1){
-    if(model_type$alpha == 2){
-      cond_alpha2 <- TRUE
-    } else {
-      cond_alpha1 <- TRUE
-    }
-  }
-  if(cond_aux2){
-    if(model_type$cov_function == "alpha2"){
-      cond_alpha2 <- TRUE
-    } else{
-      cond_alpha1 <- TRUE
-    }
-  }
-
-  if(compute_variances || posterior_samples){
-    if(cond_wm){
-      graph_bkp2 <- graph_bkp$clone()
-      graph_bkp2$observation_to_vertex()
-      if(cond_alpha1){
-        Q <- spde_precision(kappa = kappa, sigma = sigma,
-                          alpha = 1, graph = graph_bkp2)
-      } else{
-        PtE <- graph_bkp2$get_PtE()
-        n.c <- 1:length(graph_bkp2$CoB$S)
-        Q <- spde_precision(kappa = kappa, sigma = sigma, alpha = 2,
-                            graph = graph_bkp2, BC = BC)
-        Qtilde <- (graph_bkp2$CoB$T) %*% Q %*% t(graph_bkp2$CoB$T)
-        Qtilde <- Qtilde[-n.c,-n.c]
-        Sigma.overdetermined  = t(graph_bkp2$CoB$T[-n.c,]) %*% solve(Qtilde) %*%
-          (graph_bkp2$CoB$T[-n.c,])
-        index.obs <- 4 * (PtE[,1] - 1) + 1.0 * (abs(PtE[, 2]) < 1e-14) +
-          3.0 * (abs(PtE[, 2]) > 1e-14)
-        Sigma <-  as.matrix(Sigma.overdetermined[index.obs, index.obs])
-        Q <- solve(Sigma)
-      }
-      A <- Matrix::Diagonal(dim(Q)[1])[graph_bkp2$PtV, ]
-      rm(graph_bkp2)
-    }
-  }
-
+                   
+  Q <- new_rspde_obj$Q                   
 
   for(repl_y in u_repl){
     if(return_as_list){
@@ -1139,70 +951,21 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
     y_repl <- Y[idx_repl]
     y_repl <- y_repl[idx_obs]
 
-    if(!cond_wm && !cond_isocov){
-        Q_xgiveny <- t(A[idx_obs,]) %*% A[idx_obs,]/sigma_e^2 + Q
-    
-        mu_krig <- solve(Q_xgiveny,as.vector(t(A[idx_obs,]) %*% y_repl / sigma_e^2))
-    
-        # mu_krig <- mu_krig[(gap+1):length(mu_krig)]
-        mu_krig <- A[idx_prd,] %*% mu_krig
-    
-        if(!only_latent){
-          mu_fe <- mu[idx_repl, , drop = FALSE]
-          mu_krig <- mu_fe[idx_prd, , drop=FALSE] + mu_krig
-        } 
-    } else if (cond_wm){
+    A_repl <- object$A_list[[repl_y]]
 
-      PtE_obs <- PtE_full[idx_obs,]
+    Q_xgiveny <- t(A_repl) %*% A_repl/sigma_e^2 + Q
 
-      if(cond_alpha2){
-          mu_krig <- posterior_mean_obs_alpha2(c(sigma.e,sigma,kappa),
-                        graph = graph_bkp, PtE_resp = PtE_obs, resp = y_repl,
-                        PtE_pred = cbind(data_prd_temp[[edge_number]], data_prd_temp[[distance_on_edge]]))
-        if(!only_latent){
-          mu_fe <- mu[idx_repl, , drop = FALSE]
-          mu_krig <- mu_fe[idx_prd, , drop=FALSE] + mu_krig[ord_idx]
-        } else{
-            mu_krig <- mu_krig[ord_idx]
-          }   
-      } else{
-          mu_krig <- posterior_mean_obs_alpha1(c(sigma.e,sigma,kappa),
-                        graph = graph_bkp, PtE_resp = PtE_obs, resp = y_repl,
-                        PtE_pred = cbind(data_prd_temp[[edge_number]], data_prd_temp[[distance_on_edge]]))
-                        # PtE_pred = cbind(edge_nb, dist_ed))
-          if(!only_latent){
-            mu_fe <- mu[idx_repl, , drop = FALSE]
-            mu_krig <- mu_fe[idx_prd, , drop=FALSE] + mu_krig[ord_idx]
-          } else{
-            mu_krig <- mu_krig[ord_idx]
-          }                        
-      }
-    } else { 
-        Sigma <- as.matrix(cov_function(graph_bkp$res_dist[[1]], coeff_random))
+    mu_krig <- solve(Q_xgiveny,as.vector(t(A_repl) %*% y_repl / sigma_e^2))
 
-        cov_loc <- Sigma[idx_prd, idx_obs]
-        cov_Obs <- Sigma[idx_obs, idx_obs]
-        
-        # Observe that the "fixed-effects" mean has been subtracted from y_repl 
-    
-        mu_krig <- cov_loc %*%  solve(cov_Obs, y_repl)
+    # mu_krig <- mu_krig[(gap+1):length(mu_krig)]
+    mu_krig <- Aprd %*% mu_krig
 
-        if(!only_latent){
-            mu_fe <- mu[idx_repl, , drop = FALSE]
-            mu_krig <- mu_fe[idx_prd, , drop=FALSE] + mu_krig
-          } else{
-            mu_krig <- mu_krig
-          }
-    
-    }
+    if(!only_latent){
+      mu_krig <- mu_prd + mu_krig
+    } 
 
 
     mean_tmp <- as.vector(mu_krig)
-
-    if(return_original_order){
-        mean_tmp[ord_idx] <- mean_tmp
-      # var_tmp[ord_idx] <- var_tmp
-    } 
         
     if(!return_as_list){
       out$mean <- c(out$mean, mean_tmp)
@@ -1211,30 +974,13 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
       out$mean[[repl_y]] <- mean_tmp
     }
 
-    if(compute_variances || posterior_samples){
-      if(cond_wm){
-            Q_xgiveny <- t(A[idx_obs,]) %*% A[idx_obs,]/sigma_e^2 + Q
-      } 
-    }
-
     if (compute_variances) {
-      if(!cond_isocov){
-        post_cov <- A[idx_prd,]%*%solve(Q_xgiveny, t(A[idx_prd,]))
+        post_cov <- Aprd%*%solve(Q_xgiveny, t(Aprd))
         var_tmp <- max(diag(post_cov),0)
-      } else{
-        var_tmp <- diag(Sigma[idx_prd, idx_prd] - Sigma[idx_prd, idx_obs] %*% solve(Sigma[idx_obs, idx_obs],t(Sigma[idx_prd, idx_obs])))
-        var_tmp <- ifelse(var_tmp < 0, 0, var_tmp) # possible numerical errors
-      }
 
-        # var_tmp[graph_bkp$data[["__dummy_ord_var"]]] <- var_tmp
-
-      if(return_original_order){
-        var_tmp[ord_idx] <- var_tmp
-      }
       if(!return_as_list){
         out$variance <- rep(var_tmp, length(u_repl))
-      }
-      else {
+      } else {
           for(repl_y in u_repl){
             out$variance[[repl_y]] <- var_tmp
           }
@@ -1243,11 +989,7 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
 
     if(posterior_samples){
       mean_tmp <- as.vector(mu_krig)
-      if(cond_isocov){
-        post_cov <- Sigma[idx_prd, idx_prd] - Sigma[idx_prd, idx_obs] %*% solve(Sigma[idx_obs, idx_obs], t(Sigma[idx_prd,  idx_obs]))
-      } else{
-        post_cov <- A[idx_prd,]%*%solve(Q_xgiveny, t(A[idx_prd,]))
-      }
+      post_cov <- Aprd%*%solve(Q_xgiveny, t(Aprd))
       Z <- rnorm(dim(post_cov)[1] * n_samples)
       dim(Z) <- c(dim(post_cov)[1], n_samples)
       LQ <- chol(forceSymmetric(post_cov))
@@ -1256,11 +998,7 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
       if(!only_latent){
         X <- X + matrix(rnorm(n_samples * length(mean_tmp), sd = sigma.e), nrow = length(mean_tmp))
       } else{
-        X <- X - as.vector(mu_fe[idx_prd, , drop=FALSE])
-      }
-
-      if(return_original_order){
-        X[ord_idx,] <- X
+        X <- X - as.vector(mu_prd)
       }
 
       if(!return_as_list){

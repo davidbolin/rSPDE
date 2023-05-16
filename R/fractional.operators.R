@@ -204,11 +204,12 @@ fractional.operators <- function(L,
 #' (\kappa h)^\nu K_\nu(\kappa h)}{C(h) = (\sigma^2/(2^{\nu-1}\Gamma(\nu))
 #' (\kappa h)^\nu K_\nu(\kappa h).}
 #'
-#' @param kappa Parameter kappa of the covariance function. If `NULL`, the range parameter will be used. If the range is also `NULL`, a starting value based on the mesh will be supplied.
-#' @param range Range parameter of the covariance function (will be used if kappa is not provided). If both kappa and range are `NULL`, a starting value based on the mesh will be supplied.
-#' @param sigma Standard deviation of the covariance function. If `NULL`, tau will be used. If tau is also `NULL`, a starting value based on the mesh will be supplied.
-#' @param tau Parameter tau of the covariance function (will be used if sigma is not provided). If both sigma and tau are `NULL`, a starting value based on the mesh will be supplied.
-#' @param nu Shape parameter of the covariance function. If `NULL`, a starting value will be supplied.
+#' @param kappa Parameter kappa of the SPDE representation. If `NULL`, the range parameter will be used. If the range is also `NULL`, a starting value based on the mesh will be supplied.
+#' @param tau Parameter tau of the SPDE representation. If both sigma and tau are `NULL`, a starting value based on the mesh will be supplied.
+#' @param alpha Parameter alpha of the SPDE representation. If `alpha` is `NULL`, a starting value will be supplied.
+#' @param range Range parameter of the covariance function. Used if `parameterization` is `matern`. If range is `NULL`, a starting value based on the mesh will be supplied.
+#' @param sigma Standard deviation of the covariance function. Used if `parameterization` is `matern`. If `NULL`, tau will be used. If tau is also `NULL`, a starting value based on the mesh will be supplied.
+#' @param nu Shape parameter of the covariance function. Used if `parameterization` is `matern`. If `NULL`, a starting value will be supplied.
 #' @param G The stiffness matrix of a finite element discretization of the
 #' domain of interest. Does not need to be given if either `mesh` or `graph` is supplied.
 #' @param C The mass matrix of a finite element discretization of the domain
@@ -223,7 +224,7 @@ fractional.operators <- function(L,
 #' positive integer. The default value is 1.
 #' @param type The type of the rational approximation. The options are
 #' "covariance" and "operator". The default is "covariance".
-#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and alpha. The default is `spde`.
 #' @param compute_higher_order Logical. Should the higher order finite
 #' element matrices be computed?
 #' @param return_block_list Logical. For `type = "covariance"`,
@@ -369,8 +370,9 @@ fractional.operators <- function(L,
 #' )
 #' lines(x, c.approx, col = 2)
 matern.operators <- function(kappa = NULL,
-                             sigma = NULL,
                              tau = NULL,
+                             alpha = NULL,
+                             sigma = NULL,
                              range = NULL,
                              nu = NULL,
                              G = NULL,
@@ -382,16 +384,14 @@ matern.operators <- function(kappa = NULL,
                              loc_mesh = NULL,
                              m = 1,
                              type = c("covariance", "operator"),
-                            parameterization = c("matern", "spde", "graph"),                             
+                             parameterization = c("spde", "matern"),                             
                              compute_higher_order = FALSE,
                              return_block_list = FALSE,
                              type_rational_approximation = c("chebfun",
                              "brasil", "chebfunLB"),
                              fem_mesh_matrices = NULL) {
   type <- type[[1]]
-  if(!is.null(nu)){
-    nu <- min(nu, 10)
-  }
+
   if (!type %in% c("covariance", "operator")) {
     stop("The type should be 'covariance' or 'operator'!")
   }
@@ -421,7 +421,7 @@ matern.operators <- function(kappa = NULL,
   
   parameterization <- parameterization[[1]]
 
-  if (!parameterization %in% c("matern", "spde", "graph")) {
+  if (!parameterization %in% c("matern", "spde")) {
     stop("parameterization should be either 'matern', 'spde' or 'graph'!")
   }
 
@@ -448,10 +448,6 @@ matern.operators <- function(kappa = NULL,
     has_mesh <- TRUE
   }
 
-  if(is.null(nu)){
-    nu <- 1
-  }
-
   if(parameterization == "spde"){
     if(is.null(kappa) || is.null(tau)){
       if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
@@ -470,6 +466,15 @@ matern.operators <- function(kappa = NULL,
     if(is.null(tau)){
       tau <- exp(param[1])
     }
+
+    if(is.null(alpha)){
+      alpha <- 1 + d/2
+    } else {
+      alpha <- min(alpha, 10)
+    }
+
+    nu <- alpha - d/2
+
     range <- sqrt(8 * nu) / kappa
     sigma <- sqrt(gamma(nu) / (tau^2 * kappa^(2 * nu) *
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
@@ -494,28 +499,31 @@ matern.operators <- function(kappa = NULL,
     kappa <- sqrt(8 * nu) / range
     tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
-  } else if(parameterization == "graph"){
-    if(is.null(kappa) || is.null(sigma)){
-      if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
-        stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
-      }
-      if(!is.null(mesh) || !is.null(range_mesh)){
-         param <- get.initial.values.rSPDE(mesh.range = range_mesh, dim = d, parameterization = "spde", mesh = mesh, nu = nu)
-      } else if(!is.null(graph)){
-        param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = "spde", nu = nu)
-      }
-    }
+    alpha <- nu + d/2
+  } 
+  
+  # else if(parameterization == "graph"){
+  #   if(is.null(kappa) || is.null(sigma)){
+  #     if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
+  #       stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
+  #     }
+  #     if(!is.null(mesh) || !is.null(range_mesh)){
+  #        param <- get.initial.values.rSPDE(mesh.range = range_mesh, dim = d, parameterization = "spde", mesh = mesh, nu = nu)
+  #     } else if(!is.null(graph)){
+  #       param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = "spde", nu = nu)
+  #     }
+  #   }
 
-    if(is.null(kappa)){
-      kappa <- exp(param[2])
-    }
-    if(is.null(sigma)){
-      tau <- exp(param[1])
-      sigma <- 1 / tau
-    }
-    range <- sqrt(8 * nu) / kappa
-    tau <- 1 / sigma
-  }
+  #   if(is.null(kappa)){
+  #     kappa <- exp(param[2])
+  #   }
+  #   if(is.null(sigma)){
+  #     tau <- exp(param[1])
+  #     sigma <- 1 / tau
+  #   }
+  #   range <- sqrt(8 * nu) / kappa
+  #   tau <- 1 / sigma
+  # }
 
   if(!is.null(mesh)){
       make_A <- function(loc){
@@ -549,6 +557,7 @@ matern.operators <- function(kappa = NULL,
     output$range <- range
     output$tau <- tau
     output$sigma <- sigma
+    output$alpha <- alpha
     output$nu <- nu
     output$d <- d
     output$G <- G
@@ -574,6 +583,7 @@ matern.operators <- function(kappa = NULL,
     )
     out$range <- range
     out$tau <- tau
+    out$alpha <- alpha
     out$sigma <- sigma
     out$parameterization <- parameterization
     out$has_mesh <- has_mesh
@@ -1026,8 +1036,9 @@ spde.matern.operators <- function(kappa = NULL,
                                   B.kappa = matrix(c(0, 0, 1), 1, 3), 
                                   B.sigma = matrix(c(0, 1, 0), 1, 3), 
                                   B.range = matrix(c(0, 0, 1), 1, 3),
+                                  alpha = NULL,
                                   nu = NULL,
-                                  parameterization = c("matern", "spde"),
+                                  parameterization = c("spde", "matern"),
                                   G = NULL,
                                   C = NULL,
                                   d = NULL,
@@ -1049,8 +1060,8 @@ spde.matern.operators <- function(kappa = NULL,
 
   parameterization <- parameterization[[1]]
 
-  if (!parameterization %in% c("matern", "spde", "graph")) {
-    stop("parameterization should be either 'matern', 'spde' or 'graph'!")
+  if (!parameterization %in% c("matern", "spde")) {
+    stop("parameterization should be either 'matern' or 'spde'!")
   }
 
   if (is.null(d) && is.null(mesh) && is.null(graph)) {
@@ -1084,10 +1095,6 @@ spde.matern.operators <- function(kappa = NULL,
     G <- graph$mesh$G
   }
 
-  if(is.null(nu)){
-    nu <- 1
-  }
-
   if(!is.null(theta)){
 
     if(parameterization == "matern"){
@@ -1098,6 +1105,12 @@ spde.matern.operators <- function(kappa = NULL,
       B_matrices <- convert_B_matrices(B.sigma, B.range, ncol(C), nu, d)
       B.tau <- B_matrices[["B.tau"]]
       B.kappa <- B_matrices[["B.kappa"]]
+
+      if(is.null(nu)){
+        nu <- 1
+      }       
+      
+      alpha <- nu + d / 2
     } else if(parameterization == "spde") {
       if(any(dim(B.tau) != dim(B.kappa))){
         stop("B.tau and B.kappa must have the same dimensions!")
@@ -1107,17 +1120,28 @@ spde.matern.operators <- function(kappa = NULL,
           ncol(B.tau)-1)
       B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
           ncol(B.kappa)-1)
-    } else if(parameterization == "spde") {
-      if(any(dim(B.sigma) != dim(B.kappa))){
-        stop("B.sigma and B.kappa must have the same dimensions!")
+      
+      if(is.null(alpha)){
+        alpha <- 1 + d/2
+      } else {
+        alpha <- min(alpha, 10)
       }
 
-      B.sigma <- prepare_B_matrices(B.sigma, ncol(C), 
-          ncol(B.sigma)-1)
-      B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
-          ncol(B.kappa)-1)
-      B.tau <- -B.sigma
-    }
+      nu <- alpha - d/2
+      
+    } 
+    
+    # else if(parameterization == "graph") {
+    #   if(any(dim(B.sigma) != dim(B.kappa))){
+    #     stop("B.sigma and B.kappa must have the same dimensions!")
+    #   }
+
+    #   B.sigma <- prepare_B_matrices(B.sigma, ncol(C), 
+    #       ncol(B.sigma)-1)
+    #   B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
+    #       ncol(B.kappa)-1)
+    #   B.tau <- -B.sigma
+    # }
     
       new_theta <- c(1, theta)
 
@@ -1137,11 +1161,26 @@ spde.matern.operators <- function(kappa = NULL,
       B_matrices <- convert_B_matrices(B.sigma, B.range, ncol(C), nu, d)
       B.tau <- B_matrices[["B.tau"]]
       B.kappa <- B_matrices[["B.kappa"]]
+
+      if(is.null(nu)){
+        nu <- 1
+      }
+
+      alpha <- nu + d/2
+
     } else{
       B.tau <- prepare_B_matrices(B.tau, ncol(C), 
           ncol(B.tau)-1)
       B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
           ncol(B.kappa)-1)
+      if(is.null(alpha)){
+        alpha <- 1 + d/2
+      } else {
+        alpha <- min(alpha, 10)
+      }
+
+      nu <- alpha - d/2
+
     }      
 
       if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
@@ -1180,8 +1219,6 @@ spde.matern.operators <- function(kappa = NULL,
   } else {
     make_A <- NULL
   }
-
-  alpha <- nu + d / 2
   
   if (nu < 0) {
     stop("nu must be positive")
