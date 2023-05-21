@@ -32,6 +32,8 @@ for the locations to obtain the prediction.}
 
 \item{mesh}{Obtain predictions for mesh nodes? The graph must have a mesh, and either \code{only_latent} is set to TRUE or the model does not have covariates.}
 
+\item{which_repl}{Which replicates to use? If \code{NULL} all replicates will be used.}
+
 \item{compute_variances}{Set to also TRUE to compute the kriging variances.}
 
 \item{posterior_samples}{If \code{TRUE}, posterior samples will be returned.}
@@ -51,8 +53,6 @@ for the locations to obtain the prediction.}
 \item{return_original_order}{Should the results be return in the original (input) order or in the order inside the graph?}
 
 \item{...}{Not used.}
-
-\item{repl}{Which replicates to obtain the prediction. If \code{NULL} predictions will be obtained for all replicates. Default is \code{NULL}.}
 }
 \description{
 Prediction of a mixed effects regression model on a metric graph.

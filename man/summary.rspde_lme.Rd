@@ -9,6 +9,8 @@
 \arguments{
 \item{object}{an object of class "rspde_lme" containing results from the fitted model.}
 
+\item{all_times}{Show all computed times.}
+
 \item{...}{not used.}
 }
 \value{

@@ -49,9 +49,17 @@ rspde_lme(
 
 \item{start_sigma_e}{Starting value for the standard deviation of the measurament error.}
 
+\item{start_alpha}{Starting value for the smoothness parameter. Will be used if \code{start_nu} is not given.}
+
+\item{alpha}{If \code{NULL}, the smoothness parameter will be estimated, otherwise the smoothness parameter will be kept fixed at the provided value. Will be used if \code{nu} is not given.}
+
 \item{start_nu}{Starting value for the smoothness parameter.}
 
 \item{nu}{If \code{NULL}, the smoothness parameter will be estimated, otherwise the smoothness parameter will be kept fixed at the provided value.}
+
+\item{nu_upper_bound}{A parameter that limits the maximum value that nu can assume.}
+
+\item{rspde_order}{The order of the rational approximation to be used while fitting the model. If not given, the order from the model object will be used.}
 
 \item{parallel}{logical. Indicating whether to use optimParallel or not.}
 

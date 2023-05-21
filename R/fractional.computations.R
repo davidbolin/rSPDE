@@ -91,6 +91,10 @@ simulate.rSPDEobj <- function(object,
 #' @param user_alpha If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.
 #' @param user_m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
+#' @param mesh An optional inla mesh. Replaces `d`, `C` and `G`.
+#' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`. 
+#' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
+#' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument. 
 #' @param parameterization If non-null, update the parameterization. Only works for stationary models.
 #' @param compute_higher_order Logical. Should the higher order
 #' finite element matrices be computed?
@@ -378,6 +382,11 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
 #' @param user_alpha If non-null, update the fractional order.
 #' @param user_m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
+#' @param mesh An optional inla mesh. Replaces `d`, `C` and `G`.
+#' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`. 
+#' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
+#' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument. 
+#' @param parameterization If non-null, update the parameterization. Only works for stationary models.
 #' @param ... Currently not used.
 #' @return It returns an object of class "rSPDEobj. This object contains the
 #' same quantities listed in the output of [matern.operators()].

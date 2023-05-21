@@ -53,6 +53,10 @@ of interest. Does not need to be given if either \code{mesh} or \code{graph} is 
 
 \item{graph}{An optional \code{metric_graph} object. Replaces \code{d}, \code{C} and \code{G}.}
 
+\item{range_mesh}{The range of the mesh. Will be used to provide starting values for the parameters. Will be used if \code{mesh} and \code{graph} are \code{NULL}, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.}
+
+\item{loc_mesh}{The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the \code{rspde_lme()} function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the \code{graph} argument.}
+
 \item{m}{The order of the rational approximation, which needs to be a
 positive integer. The default value is 1.}
 
@@ -74,10 +78,6 @@ approximation should be used? The current types are
 
 \item{fem_mesh_matrices}{A list containing FEM-related matrices.
 The list should contain elements c0, g1, g2, g3, etc.}
-
-\item{mesh.range}{The range of the mesh. Will be used to provide starting values for the parameters. Will be used if \code{mesh} and \code{graph} are \code{NULL}, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.}
-
-\item{mesh.loc}{The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the \code{rspde_lme()} function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the \code{graph} argument.}
 }
 \value{
 If \code{type} is "covariance", then \code{matern.operators}

@@ -216,8 +216,8 @@ fractional.operators <- function(L,
 #' of interest. Does not need to be given if either `mesh` or `graph` is supplied.
 #' @param mesh An optional inla mesh. Replaces `d`, `C` and `G`.
 #' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`. 
-#' @param mesh.range The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
-#' @param mesh.loc The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument. 
+#' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
+#' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument. 
 #' @param d The dimension of the domain. Does not need to be given if either
 #' `mesh` or `graph` is provided.
 #' @param m The order of the rational approximation, which needs to be a
@@ -971,9 +971,8 @@ CBrSPDE.matern.operators <- function(C,
 #' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
 #' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
 #' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
-#' @param nu Shape parameter of the covariance function, related to
-#' \eqn{\beta} through the equation
-#' \eqn{\beta = (\nu + d/2)/2}.
+#' @param nu Shape parameter of the covariance function. Will be used if the parameterization is 'matern'.
+#' @param alpha smoothness parameter. Will be used if the parameterization is 'spde'.
 #' @param G The stiffness matrix of a finite element discretization of
 #' the domain of interest.
 #' @param C The mass matrix of a finite element discretization of the
@@ -981,8 +980,8 @@ CBrSPDE.matern.operators <- function(C,
 #' @param mesh An optional inla mesh. `d`, `C` and `G`
 #' must be given if `mesh` is not given.
 #' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`. 
-#' @param mesh.range The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
-#' @param mesh.loc The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument.
+#' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
+#' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument.
 #' @param d The dimension of the domain. Does not need to be given if
 #' `mesh` is used.
 #' @param m The order of the rational approximation, which needs to be a

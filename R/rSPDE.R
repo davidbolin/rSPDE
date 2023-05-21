@@ -38,6 +38,6 @@
 #' @importFrom stats rnorm approx quantile
 #' @importFrom stats dnorm pnorm dbeta
 #' @importFrom methods as
-#' @importFrom stats simulate
+#' @importFrom stats simulate lm logLik na.omit optim sd terms
 #' 
 NULL

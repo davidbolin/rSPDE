@@ -8,11 +8,14 @@ test_that("Operator construction for fractional stationary Matern", {
   nu <- 0.8
   sigma <- 0.5
   kappa <- 20
+  alpha <- nu + d/2
+  range <- sqrt(8*nu)/kappa
 
   op1 <- matern.operators(
-    kappa = kappa, sigma = sigma, nu = nu,
-    G = fem$G, C = fem$C, d = 1,
-    type = "operator"
+    range = range, sigma = sigma, nu = nu,,
+    loc_mesh = x, d = 1,
+    type = "operator",
+    parameterization = "matern"
   )
 
   tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
@@ -20,8 +23,9 @@ test_that("Operator construction for fractional stationary Matern", {
   beta <- (nu + d / 2) / 2
 
   op2 <- spde.matern.operators(
-    kappa = kappa, tau = tau, nu = nu,
-    G = fem$G, C = fem$C, d = d, type = "operator"
+    range = range, tau = tau, nu = nu,,
+    loc_mesh = x, d = d, type = "operator",
+    parameterization = "matern"
   )
 
   L <- fem$G + kappa^2 * fem$C
@@ -49,11 +53,14 @@ test_that("Operator construction for non-fractional stationary Matern", {
   nu <- 1.5
   sigma <- 0.5
   kappa <- 20
+  alpha <- nu + d/2
+  range <- sqrt(8*nu)/kappa
 
   op1 <- matern.operators(
-    kappa = kappa, sigma = sigma, nu = nu,
-    G = fem$G, C = fem$C, d = 1,
-    type = "operator"
+    range = range, sigma = sigma, nu = nu,
+    loc_mesh = x, d = 1,
+    type = "operator",
+    parameterization = "matern"
   )
 
   tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
@@ -61,8 +68,10 @@ test_that("Operator construction for non-fractional stationary Matern", {
   beta <- (nu + d / 2) / 2
 
   op2 <- spde.matern.operators(
-    kappa = kappa, tau = tau, nu = nu,
-    G = fem$G, C = fem$C, d = d, type = "operator"
+    range = range, tau = tau, nu = nu,,
+    loc_mesh = x, d = d, type = "operator",
+    parameterization = "matern"
+    
   )
 
   L <- fem$G + kappa^2 * fem$C
@@ -92,11 +101,14 @@ stationary Matern with beta>1", {
   nu <- 2
   sigma <- 0.5
   kappa <- 20
+  alpha <- nu + d/2
+  range <- sqrt(8*nu)/kappa
 
   op1 <- matern.operators(
-    kappa = kappa, sigma = sigma, nu = nu,
-    G = fem$G, C = fem$C, d = 1,
-    type = "operator"
+    range = range, sigma = sigma, nu = nu,
+    loc_mesh = x, d = 1,
+    type = "operator",
+    parameterization = "matern"
   )
 
   tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
@@ -104,8 +116,9 @@ stationary Matern with beta>1", {
   beta <- (nu + d / 2) / 2
 
   op2 <- spde.matern.operators(
-    kappa = kappa, tau = tau, nu = nu,
-    G = fem$G, C = fem$C, d = d, type = "operator"
+    kappa = kappa, tau = tau, alpha = alpha,
+    loc_mesh = x, d = d, type = "operator",
+    parameterization = "spde"
   )
 
   L <- fem$G + kappa^2 * fem$C
@@ -134,9 +147,11 @@ test_that("Operator construction for non-stationary Matern", {
   nu <- 0.8
   kappa <- 10 * (1 + 2 * x^2)
   tau <- 0.1 * (1 - 0.7 * x^2)
+  alpha <- nu + d/2
   op1 <- spde.matern.operators(
-    kappa = kappa, tau = tau, nu = nu,
-    G = fem$G, C = fem$C, d = d, m = 1, type = "operator"
+    kappa = kappa, tau = tau, alpha = alpha,
+    loc_mesh = x, d = d, m = 1, type = "operator",
+    parameterization = "spde"
   )
 
   beta <- (nu + d / 2) / 2
