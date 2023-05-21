@@ -96,6 +96,8 @@ rspde_lme <- function(formula, loc, data,
 
   call_rspde_lme <- match.call()
 
+  time_data_start <- Sys.time()
+
   if (missing(data) && (!model$has_graph)) {
     data <- environment(formula)
   } else if(model$has_graph){
@@ -150,8 +152,13 @@ rspde_lme <- function(formula, loc, data,
   }
   repl <- repl[idx_repl] 
 
+  time_data_end <- Sys.time()
+
+  time_data <- time_data_end - time_data_start
 
   if(!is.null(model)){
+    time_build_likelihood_start <- Sys.time()
+
     if(is.null(starting_values_latent)){
       if(!model$stationary){
           if(is.null(model$theta)){
@@ -391,6 +398,10 @@ rspde_lme <- function(formula, loc, data,
     rm(data_tmp)
   }
 
+  time_build_likelihood_end <- Sys.time()
+
+  time_build_likelihood <- time_build_likelihood_end - time_build_likelihood_start 
+
 hessian <- TRUE
 
 if(improve_hessian){
@@ -512,6 +523,7 @@ if(parallel){
   } else{ # If model is NULL
     coeff_random <- NULL
     std_random <- NULL
+    time_build_likelihood <- NULL
 
     if(ncol(X_cov) == 0){
       stop("The model does not have either random nor fixed effects.")
@@ -560,6 +572,8 @@ if(parallel){
   object$time_hessian <- time_hessian
   object$parallel <- parallel
   object$time_par <- time_par
+  object$time_data <- time_data
+  object$time_likelihood <- time_build_likelihood
   object$A_list <- A_list
   object$estimate_nu <- estimate_nu
   object$which_repl <- which_repl
@@ -649,7 +663,7 @@ print.rspde_lme <- function(x, ...) {
 #' informations of a *rspde_lme* object.
 #' @method summary rspde_lme
 #' @export
-summary.rspde_lme <- function(object, ...) {
+summary.rspde_lme <- function(object, all_times = FALSE,...) {
   ans <- list()
 
   nfixed <- length(object$coeff$fixed_effects)
@@ -698,6 +712,8 @@ summary.rspde_lme <- function(object, ...) {
 
   ans$niter <- object$niter
 
+  ans$all_times <- all_times
+
   ans$fitting_time <- object$fitting_time
 
   ans$improve_hessian <- object$improve_hessian
@@ -708,6 +724,10 @@ summary.rspde_lme <- function(object, ...) {
 
   ans$time_par <- object$time_par
 
+  ans$time_data <- object$time_data
+
+  ans$time_likelihood <- object$time_likelihood
+
   class(ans) <- "summary_rspde_lme"
   ans
 }
@@ -716,12 +736,13 @@ summary.rspde_lme <- function(object, ...) {
 #' @title Print Method for \code{summary_rspde_lme} Objects
 #' @description Provides a brief description of results related to mixed effects regression models with Whittle-Matern latent models.
 #' @param x object of class "summary_rspde_lme" containing results of summary method applied to a fitted model.
+#' @param all_times Show all computed times.
 #' @param ... further arguments passed to or from other methods.
 #' @return Called for its side effects.
 #' @noRd
 #' @method print summary_rspde_lme
 #' @export
-print.summary_rspde_lme <- function(x, ...) {
+print.summary_rspde_lme <- function(x,...) {
   tab <- x$coefficients
 
   #
@@ -777,6 +798,10 @@ print.summary_rspde_lme <- function(x, ...) {
   if(model_type != "linearmodel"){
     cat(paste0("Number of function calls by 'optim' = ", x$niter[1],"\n"))
     cat(paste0("\nTime used to:"))
+    if(x$all_times){
+      cat("\t prepare the data = ", paste(trunc(x$time_data[[1]] * 10^5)/10^5,attr(x$time_data, "units"),"\n"))
+      cat("\t build the likelihood = ", paste(trunc(x$time_likelihood[[1]] * 10^5)/10^5,attr(x$time_likelihood, "units"),"\n"))
+    }
     cat("\t fit the model = ", paste(trunc(x$fitting_time[[1]] * 10^5)/10^5,attr(x$fitting_time, "units"),"\n"))
     if(x$improve_hessian){
     cat(paste0("\t compute the Hessian = ", paste(trunc(x$time_hessian[[1]] * 10^5)/10^5,attr(x$time_hessian, "units"),"\n")))      
