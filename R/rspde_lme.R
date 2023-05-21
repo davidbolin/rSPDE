@@ -18,8 +18,10 @@
 #' @param parallel logical. Indicating whether to use optimParallel or not.
 #' @param n_cores Number of cores to be used if parallel is true.
 #' @param optim_controls Additional controls to be passed to `optim` or `optimParallel`.
+#' @param improve_gradient Should a more precise estimate of the gradient be obtained? Turning on might increase the overall time. If `TRUE`, the "Richardson" method will be used. See the help of the `grad` function in `numDeriv` package for details. 
+#' @param gradient_args List of controls to be used for the gradient. The list can contain the arguments to be passed to the `method.args` argument in the `numDeriv::grad` function. See the help of the `grad` function in `numDeriv` package for details. 
 #' @param improve_hessian Should a more precise estimate of the hessian be obtained? Turning on might increase the overall time.
-#' @param hessian_args List of controls to be used if `improve_hessian` is `TRUE`. The list can contain the arguments to be passed to the `method.args` argument in the `hessian` function. See the help of the `hessian` function in `numDeriv` package for details. Observet that it only accepts the "Richardson" method for now, the method "complex" is not supported. 
+#' @param hessian_args List of controls to be used if `improve_hessian` is `TRUE`. The list can contain the arguments to be passed to the `method.args` argument in the `numDeriv::hessian` function. See the help of the `hessian` function in `numDeriv` package for details. Observe that it only accepts the "Richardson" method for now, the method "complex" is not supported. 
 #' @return A list containing the fitted model.
 #' @rdname rspde_lme
 #' @export
@@ -36,10 +38,13 @@ rspde_lme <- function(formula, loc, data,
                 nu = NULL,
                 nu_upper_bound = 4,
                 rspde_order = NULL,
+                parameterization = c("matern", "spde"),
                 # model_matrix = TRUE,
                 parallel = FALSE,
                 n_cores = parallel::detectCores()-1,
                 optim_controls = list(),
+                improve_gradient = FALSE,
+                gradient_args = list(),
                 improve_hessian = FALSE,
                 hessian_args = list()) {
 

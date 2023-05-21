@@ -79,16 +79,16 @@ simulate.rSPDEobj <- function(object,
 #' @description Function to change the parameters of a CBrSPDEobj object
 #' @param object The covariance-based rational SPDE approximation,
 #' computed using [matern.operators()]
-#' @param user_kappa If non-null, update the range parameter
-#' of the covariance function.
-#' @param user_tau If non-null, update the parameter tau.
+#' @param user_kappa If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.
+#' @param user_tau If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.
 #' @param user_sigma If non-null, update the standard deviation of
-#' the covariance function.
+#' the covariance function. Will be used if parameterization is 'matern'.
 #' @param user_range If non-null, update the range parameter
-#' of the covariance function.
+#' of the covariance function. Will be used if parameterization is 'matern'.
 #' @param user_theta For non-stationary models. If non-null, update the vector of parameters.
 #' @param user_nu If non-null, update the shape parameter of the
-#' covariance function.
+#' covariance function. Will be used if parameterization is 'matern'.
+#' @param user_alpha If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.
 #' @param user_m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
 #' @param parameterization If non-null, update the parameterization. Only works for stationary models.
@@ -128,7 +128,7 @@ simulate.rSPDEobj <- function(object,
 #' op_cov <- update(op_cov, user_kappa = 20)
 #' op_cov
 #'
-update.CBrSPDEobj <- function(object, user_nu = NULL,
+update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
                               user_kappa = NULL,
                               user_tau = NULL,
                               user_sigma = NULL,
@@ -156,11 +156,69 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           user_nu <- object$nu
         }
 
+        new_object[["fem_mesh_matrices"]] <- fem_mesh_matrices
+
+        if(is.null(parameterization)){
+          parameterization <- new_object$parameterization
+        } else{
+            parameterization <- parameterization[[1]]
+            if (!parameterization %in% c("matern", "spde")) {
+                stop("parameterization should be either 'matern' or 'spde'!")
+            }
+        }
+
+        if(parameterization == "spde"){
+          if (!is.null(user_kappa)) {
+            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa", 0)
+            new_object$range <- NULL
+            new_object$sigma <- NULL
+          }
+
+          if (!is.null(user_tau)) {
+            new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
+            new_object$sigma <- NULL
+          }
+
+          if(!is.null(user_alpha)){
+            alpha <- rspde_check_user_input(user_alpha, "alpha", d/2)
+            user_nu <- alpha - d/2
+            new_object$nu <- user_nu
+            new_object$alpha <- alpha
+          }
+
+        } else if(parameterization == "matern"){
+          if (!is.null(user_range)) {
+            new_object$range <- rspde_check_user_input(user_range, "range", 0)
+            new_object$kappa <- NULL
+            new_object$tau <- NULL
+          }
+
+          if (!is.null(user_sigma)) {
+            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma", 0)
+            new_object$tau <- NULL
+          }
+          if(!is.null(user_nu)){
+            new_object$nu <- rspde_check_user_input(user_nu, "nu")
+          }
+          alpha <- new_object$nu + d / 2
+          new_object$alpha <- alpha
+
+        } 
+        # else if(parameterization == "graph"){
+        #   if (!is.null(user_kappa)) {
+        #     new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
+        #     new_object$range <- NULL
+        #     new_object$tau <- NULL
+        #   }
+
+        #   if (!is.null(user_sigma)) {
+        #     new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
+        #     new_object$tau <- NULL
+        #   }
+        # }
+
         ## get parameters
-        if (!is.null(user_nu)) {
-          new_object$nu <- rspde_check_user_input(user_nu, "nu")
-          nu <- user_nu
-          alpha <- nu + d / 2
+  
           m_alpha <- floor(alpha)
           m_order <- m_alpha + 1
 
@@ -174,59 +232,6 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
               }
             }
           }
-        }
-
-        new_object[["fem_mesh_matrices"]] <- fem_mesh_matrices
-
-        if (!is.null(user_nu)) {
-            new_object$nu <- rspde_check_user_input(user_nu, "nu")
-        }
-
-        if(is.null(parameterization)){
-          parameterization <- new_object$parameterization
-        } else{
-            parameterization <- parameterization[[1]]
-            if (!parameterization %in% c("matern", "spde", "graph")) {
-                stop("parameterization should be either 'matern', 'spde' or 'graph'!")
-            }
-        }
-
-        if(parameterization == "spde"){
-          if (!is.null(user_kappa)) {
-            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
-            new_object$range <- NULL
-            new_object$sigma <- NULL
-          }
-
-          if (!is.null(user_tau)) {
-            new_object$tau <- rspde_check_user_input(user_tau, "tau")
-            new_object$sigma <- NULL
-          }
-        } else if(parameterization == "matern"){
-          if (!is.null(user_range)) {
-            new_object$range <- rspde_check_user_input(user_range, "range")
-            new_object$kappa <- NULL
-            new_object$tau <- NULL
-          }
-
-          if (!is.null(user_sigma)) {
-            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
-            new_object$tau <- NULL
-          }
-        } else if(parameterization == "graph"){
-          if (!is.null(user_kappa)) {
-            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
-            new_object$range <- NULL
-            new_object$tau <- NULL
-          }
-
-          if (!is.null(user_sigma)) {
-            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
-            new_object$tau <- NULL
-          }
-        }
-
-
 
 
         if (!is.null(user_m)) {
@@ -252,6 +257,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           range = new_object$range,
           tau = new_object$tau,
           nu = new_object$nu,
+          alpha = new_object$alpha,
           G = new_object$G,
           C = new_object$C,
           d = new_object$d,
@@ -268,10 +274,6 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
         )
   } else{
   ## get parameters
-          if (!is.null(user_nu)) {
-            new_object$nu <- rspde_check_user_input(user_nu, "nu")
-          }
-
 
           if (!is.null(user_tau)) {
             new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
@@ -309,10 +311,26 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           parameterization <- new_object$parameterization
         } else{
             parameterization <- parameterization[[1]]
-            if (!parameterization %in% c("matern", "spde", "graph")) {
+            if (!parameterization %in% c("matern", "spde")) {
                 stop("parameterization should be either 'matern', 'spde' or 'graph'!")
             }
         }        
+
+       if(parameterization == "spde"){
+          if(!is.null(user_alpha)){
+            alpha <- rspde_check_user_input(user_alpha, "alpha", d/2)
+            user_nu <- alpha - d/2
+            new_object$nu <- user_nu
+            new_object$alpha <- alpha
+          }
+
+        } else if(parameterization == "matern"){
+          if(!is.null(user_nu)){
+            new_object$nu <- rspde_check_user_input(user_nu, "nu")
+          }
+          alpha <- new_object$nu + d / 2
+          new_object$alpha <- alpha
+        } 
 
           new_object <- spde.matern.operators(
             kappa = new_object$kappa,
@@ -401,9 +419,6 @@ update.rSPDEobj <- function(object, user_nu = NULL,
   new_object <- object
 
   ## get parameters
-  if (!is.null(user_nu)) {
-    new_object$nu <- rspde_check_user_input(user_nu, "nu")
-  }
 
   if (!is.null(user_m)) {
     new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
@@ -423,40 +438,42 @@ update.rSPDEobj <- function(object, user_nu = NULL,
             }
         }
 
-        if(parameterization == "spde"){
+       if(parameterization == "spde"){
           if (!is.null(user_kappa)) {
-            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
+            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa", 0)
             new_object$range <- NULL
             new_object$sigma <- NULL
           }
 
           if (!is.null(user_tau)) {
-            new_object$tau <- rspde_check_user_input(user_tau, "tau")
+            new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
             new_object$sigma <- NULL
           }
+
+          if(!is.null(user_alpha)){
+            alpha <- rspde_check_user_input(user_alpha, "alpha", d/2)
+            user_nu <- alpha - d/2
+            new_object$nu <- user_nu
+            new_object$alpha <- alpha
+          }
+
         } else if(parameterization == "matern"){
           if (!is.null(user_range)) {
-            new_object$range <- rspde_check_user_input(user_range, "range")
+            new_object$range <- rspde_check_user_input(user_range, "range", 0)
             new_object$kappa <- NULL
             new_object$tau <- NULL
           }
 
           if (!is.null(user_sigma)) {
-            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
+            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma", 0)
             new_object$tau <- NULL
           }
-        } else if(parameterization == "graph"){
-          if (!is.null(user_kappa)) {
-            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
-            new_object$range <- NULL
-            new_object$tau <- NULL
+          if(!is.null(user_nu)){
+            new_object$nu <- rspde_check_user_input(user_nu, "nu")
           }
-
-          if (!is.null(user_tau)) {
-            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
-            new_object$tau <- NULL
-          }
-        }
+          alpha <- new_object$nu + d / 2
+          new_object$alpha <- alpha
+        } 
 
         if (!is.null(user_m)) {
           new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
@@ -481,6 +498,7 @@ update.rSPDEobj <- function(object, user_nu = NULL,
     range = new_object$range,
     tau = new_object$tau,
     nu = new_object$nu,
+    alpha = new_object$alpha,
     G = new_object$G,
     C = new_object$C,
     d = new_object$d,
@@ -493,12 +511,6 @@ update.rSPDEobj <- function(object, user_nu = NULL,
     type = "operator"
   )
  } else{
-
-          if (!is.null(user_nu)) {
-            new_object$nu <- rspde_check_user_input(user_nu, "nu")
-          }
-
-
           if (!is.null(user_tau)) {
             new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
           }
@@ -539,6 +551,23 @@ update.rSPDEobj <- function(object, user_nu = NULL,
                 stop("parameterization should be either 'matern', 'spde' or 'graph'!")
             }
         }        
+
+       if(parameterization == "spde"){
+          if(!is.null(user_alpha)){
+            alpha <- rspde_check_user_input(user_alpha, "alpha", d/2)
+            user_nu <- alpha - d/2
+            new_object$nu <- user_nu
+            new_object$alpha <- alpha
+          }
+
+        } else if(parameterization == "matern"){
+          if(!is.null(user_nu)){
+            new_object$nu <- rspde_check_user_input(user_nu, "nu")
+          }
+          alpha <- new_object$nu + d / 2
+          new_object$alpha <- alpha
+
+        }         
 
   
           new_object <- spde.matern.operators(

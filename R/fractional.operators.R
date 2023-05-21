@@ -462,14 +462,19 @@ matern.operators <- function(kappa = NULL,
 
     if(is.null(kappa)){
       kappa <- exp(param[2])
+    } else{
+      kappa <- rspde_check_user_input(kappa, "kappa" , 0)
     }
     if(is.null(tau)){
       tau <- exp(param[1])
+    } else{
+      tau <- rspde_check_user_input(tau, "tau" , 0)
     }
 
     if(is.null(alpha)){
       alpha <- 1 + d/2
     } else {
+      alpha <- rspde_check_user_input(alpha, "alpha" , d/2)
       alpha <- min(alpha, 10)
     }
 
@@ -492,10 +497,20 @@ matern.operators <- function(kappa = NULL,
 
     if(is.null(range)){
       range <- exp(param[2])
+    } else{
+      range <- rspde_check_user_input(range, "range" , 0)
     } 
     if(is.null(sigma)){
       sigma <- exp(param[1])
-    } 
+    } else{
+      sigma <- rspde_check_user_input(sigma, "sigma" , 0)
+    }
+
+    if(is.null(nu)){
+        nu <- 1
+    } else{
+      nu <- rspde_check_user_input(nu, "nu" , 0)
+    }   
     kappa <- sqrt(8 * nu) / range
     tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
@@ -1108,7 +1123,9 @@ spde.matern.operators <- function(kappa = NULL,
 
       if(is.null(nu)){
         nu <- 1
-      }       
+      } else{
+      nu <- rspde_check_user_input(nu, "nu" , 0)
+    }        
       
       alpha <- nu + d / 2
     } else if(parameterization == "spde") {
@@ -1124,6 +1141,7 @@ spde.matern.operators <- function(kappa = NULL,
       if(is.null(alpha)){
         alpha <- 1 + d/2
       } else {
+        alpha <- rspde_check_user_input(alpha, "alpha" , d/2)
         alpha <- min(alpha, 10)
       }
 
@@ -1164,7 +1182,9 @@ spde.matern.operators <- function(kappa = NULL,
 
       if(is.null(nu)){
         nu <- 1
-      }
+      } else{
+      nu <- rspde_check_user_input(nu, "nu" , 0)
+    }    
 
       alpha <- nu + d/2
 
@@ -1176,6 +1196,7 @@ spde.matern.operators <- function(kappa = NULL,
       if(is.null(alpha)){
         alpha <- 1 + d/2
       } else {
+        alpha <- rspde_check_user_input(alpha, "alpha" , d/2)
         alpha <- min(alpha, 10)
       }
 
