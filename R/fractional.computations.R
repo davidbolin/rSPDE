@@ -202,7 +202,6 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
           }
           alpha <- new_object$nu + d / 2
           new_object$alpha <- alpha
-
         } 
         # else if(parameterization == "graph"){
         #   if (!is.null(user_kappa)) {
@@ -218,6 +217,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
         # }
 
         ## get parameters
+          alpha <- new_object$alpha
   
           m_alpha <- floor(alpha)
           m_order <- m_alpha + 1
@@ -337,6 +337,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
             tau = new_object$tau,
             theta = new_object$theta,
             nu = new_object$nu,
+            alpha = new_object$alpha,
             B.tau = new_object$B.tau,
             B.kappa = new_object$B.kappa,
             G = new_object$G,
@@ -374,6 +375,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
 #' tau and kappa to the model matrices.
 #' @param user_nu If non-null, update the shape parameter
 #' of the covariance function.
+#' @param user_alpha If non-null, update the fractional order.
 #' @param user_m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
 #' @param ... Currently not used.
@@ -405,6 +407,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
 #' op
 #'
 update.rSPDEobj <- function(object, user_nu = NULL,
+                            user_alpha = NULL,
                             user_kappa = NULL,
                             user_sigma = NULL,
                             user_range = NULL,
@@ -419,6 +422,8 @@ update.rSPDEobj <- function(object, user_nu = NULL,
   new_object <- object
 
   ## get parameters
+
+  d <- object$d
 
   if (!is.null(user_m)) {
     new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))

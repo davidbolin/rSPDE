@@ -469,7 +469,8 @@ Let us now fit the model. To this end we will use the `rspde_lme()` function:
 
 ```{r}
 fit <- rspde_lme(y~x1+x2, model = op_cov_est,
-                    data = df_data, loc = "loc")
+                    data = df_data, loc = "loc",
+                    parallel = TRUE)
 ```
 
 We can get a summary of the fit with the `summary()` method:
