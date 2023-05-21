@@ -330,10 +330,12 @@ rspde_lme <- function(formula, loc, data,
                     # } 
                 } else{
                     theta_model <- theta[(2+gap):(n_initial)]
-
+                    alpha <- nu + model$d/2
+                    alpha <- max(1e-5 + model$d/2, alpha)
                     model_tmp <- update.CBrSPDEobj(model_tmp,
                             user_theta = theta_model,
-                            user_nu = nu)                        
+                            user_alpha = alpha,
+                            parameterization = "spde")                        
                 }
                 
                 if(n_cov > 0){
@@ -349,7 +351,6 @@ rspde_lme <- function(formula, loc, data,
         }
     } else{
            likelihood <- function(theta){
-            print("Here")
                 sigma_e <- exp(theta[1])
                 n_cov <- ncol(X_cov)
                 n_initial <- n_coeff_nonfixed                
@@ -384,7 +385,6 @@ rspde_lme <- function(formula, loc, data,
                 } else{
                     theta_model <- theta[(2+gap):(n_initial)]
                     alpha <- nu + model$d/2
-                    print(alpha)
                     alpha <- max(1e-5 + model$d/2, alpha)
                     model_tmp <- update.rSPDEobj(model_tmp,
                             user_theta = theta_model,
@@ -487,7 +487,6 @@ if(parallel){
     }
   }
 }
-  print(res)
 
   if(model$stationary){
     coeff <- exp(c(res$par[1:n_coeff_nonfixed]))

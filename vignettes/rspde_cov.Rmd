@@ -818,6 +818,7 @@ nu <- 0.8
 true_theta <- c(0,1, 1)
 B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10)
 B.range = cbind(0, 0, 1, (mesh$loc[,1] - 5) / 10)
+alpha <- nu + 1 # nu + d/2 ; d = 2
 
 # SPDE model
 op_cov_ns <- spde.matern.operators(mesh = mesh, 
@@ -887,7 +888,7 @@ Let us now compare with the true values:
 print(data.frame(
   theta1 = c(true_theta[1], fit_ns$coeff$random_effects[2]), theta2 = c(true_theta[2], fit_ns$coeff$random_effects[3]),
   theta3 = c(true_theta[3], fit_ns$coeff$random_effects[4]), 
-  nu = c(nu, fit_ns$coeff$random_effects[1])),
+  alpha = c(alpha, fit_ns$coeff$random_effects[1])),
   row.names = c("Truth", "Estimates")
 )
 ```
@@ -941,8 +942,9 @@ Let us compare with the true values:
 
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_order1$coeff$random_effects[2]), range = c(range, fit_order1$coeff$random_effects[3]),
-  nu = c(nu, fit_order1$coeff$random_effects[1]),
+  sigma = c(sigma, fit_order1$matern_coeff$random_effects[2]), 
+  range = c(range, fit_order1$matern_coeff$random_effects[3]),
+  nu = c(nu, fit_order1$matern_coeff$random_effects[1]),
   row.names = c("Truth", "Estimates")
 ))
 ```
@@ -971,8 +973,9 @@ Let us compare with the true values:
 
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_brasil$coeff$random_effects[2]), range = c(range, fit_brasil$coeff$random_effects[3]),
-  nu = c(nu, fit_brasil$coeff$random_effects[1]),
+  sigma = c(sigma, fit_brasil$matern_coeff$random_effects[2]), 
+  range = c(range, fit_brasil$matern_coeff$random_effects[3]),
+  nu = c(nu, fit_brasil$matern_coeff$random_effects[1]),
   row.names = c("Truth", "Estimates")
 ))
 ```
