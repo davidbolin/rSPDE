@@ -157,9 +157,12 @@ kappa <- 20
 sigma <- 2
 nu <- 0.8
 r <- sqrt(8*nu)/kappa
-op <- matern.operators( sigma = sigma, range = r,
+op <- matern.operators( sigma = sigma, 
+  range = r,
+  nu = nu,
   loc_mesh = s, d = 1, m = 1,
-  type = "operator"
+  type = "operator",
+  parameterization = "matern"
 )
 ```
 The object `op` contains the matrices needed for evaluating the distribution of the stochastic weights $\boldsymbol{\mathrm{u}}$. If we want to evaluate $u_h(s)$ at some locations $s_1,\ldots, s_n$, we need to multiply the weights with the basis functions $\varphi_i(s)$ evaluated at the locations. For this, we can construct the observation matrix $\boldsymbol{\mathrm{A}}$ with elements $A_{ij} = \varphi_j(s_i)$, which links the FEM basis functions to the locations. This matrix can be constructed using the function `rSPDE.A1d()`.
@@ -209,7 +212,8 @@ To improve the approximation we can increase the degree of the polynomials, by i
 op2 <- matern.operators(
   range = r, sigma = sigma, nu = nu,
   loc_mesh = s, d = 1, m = 2,
-  type = "operator"
+  type = "operator",
+  parameterization = "matern"
 )
 c.approx2 <- op2$Pr %*% solve(op2$Q, op2$Pr %*% v)
 
@@ -218,7 +222,8 @@ fem2 <- rSPDE.fem1d(s2)
 op <- matern.operators(
   range = r, sigma = sigma, nu = nu,
   loc_mesh = s2, d = 1, m = 1,
-  type = "operator"
+  type = "operator",
+  parameterization = "matern"
 )
 A <- rSPDE.A1d(s2, s)
 v <- t(rSPDE.A1d(s2, 0.5))
@@ -226,7 +231,8 @@ c.approx3 <- A %*% op$Pr %*% solve(op$Q, op$Pr %*% v)
 op <- matern.operators(
   range = r, sigma = sigma, nu = nu,
   loc_mesh = s2, d = 1, m = 2,
-  type = "operator"
+  type = "operator",
+  parameterization = "matern"
 )
 c.approx4 <- A %*% op$Pr %*% solve(op$Q, op$Pr %*% v)
 ```
@@ -260,7 +266,8 @@ for (i in 1:4) {
   op <- matern.operators(
     range = r, sigma = sigma, nu = nu,
     loc_mesh = s2, d = 1, m = i,
-    type = "operator"
+    type = "operator",
+  parameterization = "matern"
   )
   c.app <- A %*% op$Pr %*% solve(op$Q, op$Pr %*% v)
   errors[i] <- norm(c.true - c.app)
@@ -279,7 +286,8 @@ for (i in 1:4) {
   op <- matern.operators(
     range = r, sigma = sigma, nu = nu,
     loc_mesh = s2, d = 1, m = i,
-    type = "operator"
+    type = "operator",
+  parameterization = "matern"
   )
   c.app <- A %*% Sigma.mult(op, v)
   errors2[i] <- norm(c.true - c.app)
@@ -297,7 +305,8 @@ tau <- 0.1 * (1 - 0.7 * s^2)
 op <- spde.matern.operators(
   kappa = kappa, tau = tau, nu = nu,
   G = fem$G, C = fem$C, d = 1, m = 1,
-  type = "operator"
+  type = "operator",
+  parameterization = "matern"
 )
 ```
 Let us compute the covariance function $C(s,s_i)$ of the non-stationary model for the locations $s_1=0.1, s_2 = 0.5,$ and $s_3 = 0.9$. 
@@ -400,7 +409,8 @@ nu <- 0.8
 sigma <- 1.3
 range <- 0.15
 op <- matern.operators(range = range, sigma = sigma,
-nu = nu, m = 2, mesh = mesh_2d)
+nu = nu, m = 2, mesh = mesh_2d,
+  parameterization = "matern")
 ```
 Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `r inla_link()` function `inla.spde.make.A()`. We sample 30 replicates of the latent field.
 ```{r}
@@ -476,8 +486,9 @@ summary(fit_2d)
 Let us compare the estimated results with the true values:
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_2d$coeff$random_effects[2]), range = c(range, fit_2d$coeff$random_effects[3]),
-  nu = c(nu, fit_2d$coeff$random_effects[1]),
+  sigma = c(sigma, fit_2d$matern_coeff$random_effects[2]), 
+  range = c(range, fit_2d$matern_coeff$random_effects[3]),
+  nu = c(nu, fit_2d$matern_coeff$random_effects[1]),
   row.names = c("Truth", "Estimates")
 ))
 
@@ -511,8 +522,9 @@ summary(fit_2d)
 Let us compare the estimated results with the true values:
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_2d$coeff$random_effects[2]), range = c(range, fit_2d$coeff$random_effects[3]),
-  nu = c(nu, fit_2d$coeff$random_effects[1]),
+  sigma = c(sigma, fit_2d$matern_coeff$random_effects[2]), 
+  range = c(range, fit_2d$matern_coeff$random_effects[3]),
+  nu = c(nu, fit_2d$matern_coeff$random_effects[1]),
   row.names = c("Truth", "Estimates")
 ))
 
