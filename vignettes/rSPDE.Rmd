@@ -600,15 +600,15 @@ will use the `predict` method on the `rSPDE` model object.
 Observe that we need an $A$ matrix connecting the mesh to the 
 prediction locations. 
 
-Let us now create the $A$ matrix for the same prediction locations we used for the
-previous case (using the `r inla_link()` implementation):
+Let us now create the `data.frame` with the prediction locations:
 
 ```{r create_proj_grid_prd2}
 predgrid <- inla.mesh.projector(mesh_2d,
   xlim = c(0, 1),
   ylim = c(0, 1)
 )
-A.prd2 <- predgrid$proj$A
+pred_coords <- data.frame(coord1 = predgrid$lattice$loc[,1],
+                          coord2 = predgrid$lattice$loc[,2])
 ```
 
 We will now use the `predict()` method on the `rSPDE` model object
@@ -618,17 +618,9 @@ the `rSPDE` model object to the fitted ones, and also save the estimated
 value of `sigma.e`.
 
 ```{r}
-sigma.e.est <- exp(pars$par[4])
-op.prd <- update(op,
-  user_tau = exp(pars$par[1]),
-  user_kappa = exp(pars$par[2]),
-  user_nu = exp(pars$par[3])
-)
-
-pred.rspde <- predict(op.prd,
-  A = A, Aprd = A.prd2, Y = y,
-  sigma.e = sigma.e.est,
-  compute.variances = TRUE
+pred.rspde <- predict(fit_rspde,
+  data = pred_coords, loc = c("coord1", "coord2"),
+  compute_variances = TRUE
 )
 ```
 

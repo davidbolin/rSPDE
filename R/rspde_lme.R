@@ -440,9 +440,9 @@ if(parallel){
   parallel::clusterExport(cl, "X_cov", envir = environment())
   # parallel::clusterExport(cl, "y_list", envir = environment())  
   parallel::clusterExport(cl, "aux_lme_CBrSPDE.matern.loglike",
-                 envir = as.environment("package:rSPDE"))
+                 envir = as.environment(asNamespace("rSPDE")))
   parallel::clusterExport(cl, "aux_lme_rSPDE.matern.loglike",
-                 envir = as.environment("package:rSPDE"))
+                 envir = as.environment(asNamespace("rSPDE")))
 
   end_par <- Sys.time()
   time_par <- end_par - start_par
@@ -1049,12 +1049,12 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
   ##
 
   if(all(dim(X_cov_pred) == c(0,1))){
-    X_cov_pred <- matrix(1, nrow = length(repl_vec), ncol=1)
+    X_cov_pred <- matrix(1, nrow = nrow(loc), ncol=1)
   }
   if(ncol(X_cov_pred) > 0){
     mu_prd <- X_cov_pred %*% coeff_fixed
   } else{
-    mu_prd <- matrix(0, nrow = length(repl_vec), ncol=1)
+    mu_prd <- matrix(0, nrow = nrow(loc), ncol=1)
   }
 
   model_matrix_fit <- object$model_matrix
@@ -1134,7 +1134,7 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
 
     if (compute_variances) {
         post_cov <- Aprd%*%solve(Q_xgiveny, t(Aprd))
-        var_tmp <- max(diag(post_cov),0)
+        var_tmp <- pmax(diag(post_cov),0)
 
       if(!return_as_list){
         out$variance <- rep(var_tmp, length(u_repl))
