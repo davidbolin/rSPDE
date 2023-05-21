@@ -76,11 +76,13 @@ x <- seq(from = 0, to = 1, length.out = n.x)
 fem <- rSPDE.fem1d(x)
 tau <- rep(0.5, n.x)
 nu <- 0.8
+alpha <- nu + 1/2
 kappa <- rep(1, n.x)
 # compute rational approximation
 op <- spde.matern.operators(
-  kappa = kappa, tau = tau, nu = nu,
-  G = fem$G, C = fem$C, d = 1
+  kappa = kappa, tau = tau, alpha = alpha,
+  parameterization = "spde", d = 1,
+  loc_mesh = x
 )
 # Sample the model
 u <- simulate(op, n.rep)
@@ -112,5 +114,5 @@ print(data.frame(
 }
 }
 \seealso{
-\code{\link[=matern.loglike]{matern.loglike()}}, \code{\link[=rSPDE.loglike]{rSPDE.loglike()}}.
+\code{\link[=rSPDE.loglike]{rSPDE.loglike()}}.
 }

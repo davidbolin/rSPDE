@@ -23,9 +23,9 @@ test_that("Operator construction for fractional stationary Matern", {
   beta <- (nu + d / 2) / 2
 
   op2 <- spde.matern.operators(
-    range = range, tau = tau, nu = nu,,
+    kappa = kappa, tau = tau, alpha = alpha,
     loc_mesh = x, d = d, type = "operator",
-    parameterization = "matern"
+    parameterization = "spde"
   )
 
   L <- fem$G + kappa^2 * fem$C
@@ -68,9 +68,9 @@ test_that("Operator construction for non-fractional stationary Matern", {
   beta <- (nu + d / 2) / 2
 
   op2 <- spde.matern.operators(
-    range = range, tau = tau, nu = nu,,
+    kappa = kappa, tau = tau, alpha = alpha,
     loc_mesh = x, d = d, type = "operator",
-    parameterization = "matern"
+    parameterization = "spde"
     
   )
 

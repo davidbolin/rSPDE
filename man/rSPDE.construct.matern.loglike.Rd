@@ -86,6 +86,7 @@ sigma.e <- 0.1
 n.rep <- 10
 n.obs <- 200
 n.x <- 51
+range <- 0.2
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = n.x)
 fem <- rSPDE.fem1d(x)
@@ -93,8 +94,9 @@ tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
 (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 # Compute the covariance-based rational approximation
 op_cov <- matern.operators(
-  C = fem$C, G = fem$G, nu = nu,
-  kappa = kappa, sigma = sigma, d = 1, m = 2
+  loc_mesh = x, nu = nu,
+  range = range, sigma = sigma, d = 1, m = 2,
+ parameterization = "matern"
 )
 # Sample the model
 u <- simulate(op_cov, n.rep)

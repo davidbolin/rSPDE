@@ -73,12 +73,14 @@ x <- seq(from = 0, to = 1, length.out = n.x)
 fem <- rSPDE.fem1d(x)
 tau <- rep(0.5, n.x)
 nu <- 0.8
+alpha <- nu + 0.5
 kappa <- rep(1, n.x)
 # Matern parameterization
 # compute rational approximation
  op <- spde.matern.operators(
-   kappa = kappa, tau = tau, nu = nu,
-   G = fem$G, C = fem$C, d = 1
+    loc_mesh = x,
+   kappa = kappa, tau = tau, alpha = alpha,
+   parameterization = "spde", d = 1
  )
 # Sample the model
 u <- simulate(op, n.rep)
@@ -106,8 +108,8 @@ print(data.frame(
 # SPDE parameterization
 # compute rational approximation
  op <- spde.matern.operators(
-   kappa = kappa, tau = tau, nu = nu,
-   G = fem$G, C = fem$C, d = 1, 
+   kappa = kappa, tau = tau, alpha = alpha,
+   loc_mesh = x, d = 1, 
    parameterization = "spde"
  )
 # Sample the model

@@ -38,6 +38,7 @@
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
+#' range <- sqrt(8*nu)/kappa
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -45,8 +46,9 @@
 #'
 #' # compute rational approximation
 #' op <- matern.operators(
-#'   kappa = kappa, sigma = sigma,
-#'   nu = nu, G = fem$G, C = fem$C, d = 1
+#'   range = range, sigma = sigma,
+#'   nu = nu, loc_mesh = x, d = 1,
+#'   parameterization = "matern"
 #' )
 #'
 #' # Sample the model and plot the result
@@ -116,6 +118,7 @@ simulate.rSPDEobj <- function(object,
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
+#' range <- sqrt(8*nu)/kappa
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -123,8 +126,9 @@ simulate.rSPDEobj <- function(object,
 #'
 #' # compute rational approximation of covariance function at 0.5
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'   parameterization = "matern"
 #' )
 #' op_cov
 #'
@@ -399,15 +403,17 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
-#'
+#' range <- sqrt(8*nu)/kappa
+#' 
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
 #' # compute rational approximation of covariance function at 0.5
 #' op <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2, type = "operator"
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2, type = "operator",
+#'   parameterization = "matern"
 #' )
 #' op
 #'
@@ -642,7 +648,8 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
-#'
+#' range <- sqrt(8*nu)/kappa
+#' 
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
@@ -651,8 +658,9 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
 #' (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'   parameterization = "matern"
 #' )
 #'
 #' # Sample the model and plot the result
@@ -810,15 +818,17 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 #' sigma <- 1
 #' nu <- 0.8
 #' sigma.e <- 0.3
-#'
+#' range <- sqrt(8*nu)/kappa
+#' 
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
 #' # compute rational approximation
 #' op <- matern.operators(
-#'   kappa = kappa, sigma = sigma,
-#'   nu = nu, G = fem$G, C = fem$C, d = 1
+#'   range = range, sigma = sigma,
+#'   nu = nu, loc_mesh = x, d = 1,
+#'   parameterization = "matern"
 #' )
 #'
 #' # Sample the model
@@ -947,10 +957,8 @@ predict.rSPDEobj <- function(object,
 #' @return The log-likelihood value.
 #' @export
 #' @note This example below shows how the function can be used to evaluate
-#' the likelihood of a latent Matern model. Se [matern.loglike()]
-#' for an example of how this can be used for maximum
-#' likelihood estimation.
-#' @seealso [matern.loglike()], [spde.matern.loglike()]
+#' the likelihood of a latent Matern model.
+#' @seealso [spde.matern.loglike()]
 #'
 #' @examples
 #' # Sample a Gaussian Matern process on R using a rational approximation
@@ -958,6 +966,7 @@ predict.rSPDEobj <- function(object,
 #' sigma <- 1
 #' nu <- 0.8
 #' sigma.e <- 0.3
+#' range <- 0.2
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -965,8 +974,8 @@ predict.rSPDEobj <- function(object,
 #'
 #' # compute rational approximation
 #' op <- matern.operators(
-#'   kappa = kappa, sigma = sigma, nu = nu,
-#'   G = fem$G, C = fem$C, d = 1,
+#'   range = range, sigma = sigma, nu = nu,
+#'   loc_mesh = x, d = 1,
 #'   type = "operator"
 #' )
 #'
@@ -1094,6 +1103,7 @@ rSPDE.loglike <- function(obj,
 #' n.rep <- 10
 #' n.obs <- 100
 #' n.x <- 51
+#' range <- 0.2
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = n.x)
@@ -1104,8 +1114,9 @@ rSPDE.loglike <- function(obj,
 #'
 #' # Compute the covariance-based rational approximation
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'  parameterization = "matern"
 #' )
 #'
 #' # Sample the model
@@ -1146,7 +1157,7 @@ rSPDE.loglike <- function(obj,
 #' )
 #'
 #' print(data.frame(
-#'   kappa = c(kappa, exp(theta$par[1])), sigma = c(sigma, exp(theta$par[2])),
+#'   range = c(range, exp(theta$par[1])), sigma = c(sigma, exp(theta$par[2])),
 #'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
 #'   row.names = c("Truth", "Estimates")
 #' ))
@@ -1244,6 +1255,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' n.rep <- 10
 #' n.obs <- 100
 #' n.x <- 51
+#' range <- 0.2
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = n.x)
@@ -1254,8 +1266,9 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #'
 #' # Compute the covariance-based rational approximation
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'  parameterization = "matern"
 #' )
 #'
 #' # Sample the model
@@ -1522,355 +1535,6 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
   return(as.double(log_likelihood))
 }
 
-#' Parameter-based log-likelihood for a latent Gaussian Matern model
-#' using a rational SPDE approximation
-#'
-#' This function evaluates the log-likelihood function for a Gaussian
-#' process with a Matern covariance
-#' function, that is observed under Gaussian measurement noise:
-#' \eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = u(s_i) + \epsilon_i}, where
-#' \eqn{\epsilon_i}{\epsilon_i} are iid mean-zero Gaussian variables.
-#' The latent model is approximated using a rational approximation
-#' of the fractional SPDE model corresponding to the Gaussian process.
-#'
-#' @param kappa Range parameter of the latent process.
-#' @param sigma Standard deviation of the latent process.
-#' @param nu Shape parameter of the latent process.
-#' @param sigma.e The standard deviation of the measurement noise.
-#' @param Y The observations, either a vector or a matrix where
-#' the columns correspond to independent replicates of observations.
-#' @param G The stiffness matrix of a finite element discretization
-#' of the domain.
-#' @param C The mass matrix of a finite element discretization of the domain.
-#' @param A A matrix linking the measurement locations to the basis of
-#' the FEM approximation of the latent model.
-#' @param mu Expectation vector of the latent field (default = 0).
-#' @param d The dimension of the domain. The default value is 2.
-#' @param m The order of the rational approximation, which needs to be a
-#' positive integer. The default value is 1.
-#' @param type The type of the rational approximation. The options are
-#' "covariance" and "operator". The default is "covariance".
-#' @param pivot Should pivoting be used for the Cholesky decompositions?
-#' Default is TRUE
-#'
-#' @return The log-likelihood value.
-#' @export
-#' @seealso [spde.matern.loglike()], [rSPDE.loglike()],
-#' [matern.operators()].
-#'
-#' @examples
-#' # this example illustrates how the function can be used for maximum
-#' # likelihood estimation
-#'
-#' set.seed(123)
-#' # Sample a Gaussian Matern process on R using the covariance-based
-#' # rational approximation
-#' nu <- 0.8
-#' kappa <- 5
-#' sigma <- 1
-#' sigma.e <- 0.1
-#' n.rep <- 10
-#' n.obs <- 100
-#' n.x <- 51
-#'
-#' # create mass and stiffness matrices for a FEM discretization
-#' x <- seq(from = 0, to = 1, length.out = n.x)
-#' fem <- rSPDE.fem1d(x)
-#'
-#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) * (4 * pi)^(1 / 2) *
-#' gamma(nu + 1 / 2)))
-#'
-#' # Compute the covariance-based rational approximation
-#' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
-#' )
-#'
-#' # Sample the model
-#' u <- simulate(op_cov, n.rep)
-#'
-#' # Create some data
-#' obs.loc <- runif(n = n.obs, min = 0, max = 1)
-#' A <- rSPDE.A1d(x, obs.loc)
-#' noise <- rnorm(n.obs * n.rep)
-#' dim(noise) <- c(n.obs, n.rep)
-#' Y <- as.matrix(A %*% u + sigma.e * noise)
-#'
-#' # Define the negative likelihood function for optimization
-#' # using CBrSPDE.matern.loglike
-#' # Notice that we are also using sigma instead of tau, so it can be compared
-#' # to matern.loglike()
-#' mlik_cov2 <- function(theta, Y, A, C, G) {
-#'   kappa <- exp(theta[1])
-#'   sigma <- exp(theta[2])
-#'   nu <- exp(theta[3])
-#'   return(-matern.loglike(
-#'     kappa = kappa, sigma = sigma,
-#'     nu = nu, sigma.e = exp(theta[4]), Y = Y, A = A,
-#'     C = fem$C, G = fem$G, d = 1
-#'   ))
-#' }
-#'
-#' # The parameters can now be estimated by minimizing mlik with optim
-#' \donttest{
-#' # Choose some reasonable starting values depending on the size of the domain
-#' theta0 <- log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
-#'
-#' # run estimation and display the results
-#' theta <- optim(theta0, mlik_cov2,
-#'   Y = Y, A = A, C = C, G = G,
-#'   method = "L-BFGS-B"
-#' )
-#'
-#' print(data.frame(
-#'   kappa = c(kappa, exp(theta$par[1])), sigma = c(sigma, exp(theta$par[2])),
-#'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
-#'   row.names = c("Truth", "Estimates")
-#' ))
-#' }
-#'
-#' # this example illustrates how the function can be used for
-#' # maximum likelihood estimation when using the operator-based
-#' # rational approximation
-#' set.seed(123)
-#' # Sample a Gaussian Matern process on R using a rational approximation
-#' nu <- 0.8
-#' kappa <- 5
-#' sigma <- 1
-#' sigma.e <- 0.1
-#' n.rep <- 10
-#' n.obs <- 100
-#' n.x <- 51
-#'
-#' # create mass and stiffness matrices for a FEM discretization
-#' x <- seq(from = 0, to = 1, length.out = n.x)
-#' fem <- rSPDE.fem1d(x)
-#'
-#' # compute rational approximation
-#' op <- matern.operators(
-#'   kappa = kappa, sigma = sigma, nu = nu,
-#'   G = fem$G, C = fem$C, d = 1,
-#'   type = "operator"
-#' )
-#'
-#' # Sample the model
-#' u <- simulate(op, n.rep)
-#'
-#' # Create some data
-#' obs.loc <- runif(n = n.obs, min = 0, max = 1)
-#' A <- rSPDE.A1d(x, obs.loc)
-#' noise <- rnorm(n.obs * n.rep)
-#' dim(noise) <- c(n.obs, n.rep)
-#' Y <- as.matrix(A %*% u + sigma.e * noise)
-#'
-#' # define negative likelihood function for optimization using matern.loglike
-#' mlik <- function(theta, Y, G, C, A) {
-#'   return(-matern.loglike(exp(theta[1]), exp(theta[2]),
-#'     exp(theta[3]), exp(theta[4]),
-#'     Y = Y, G = G, C = C, A = A, d = 1,
-#'     type = "operator"
-#'   ))
-#' }
-#'
-#' # The parameters can now be estimated by minimizing mlik with optim
-#' \donttest{
-#' # Choose some reasonable starting values depending on the size of the domain
-#' theta0 <- log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
-#'
-#' # run estimation and display the results
-#' theta <- optim(theta0, mlik,
-#'   Y = Y, G = fem$G, C = fem$C, A = A,
-#'   method = "L-BFGS-B"
-#' )
-#'
-#' print(data.frame(
-#'   kappa = c(kappa, exp(theta$par[1])), sigma = c(sigma, exp(theta$par[2])),
-#'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
-#'   row.names = c("Truth", "Estimates")
-#' ))
-#' }
-matern.loglike <- function(kappa,
-                           sigma,
-                           nu,
-                           sigma.e,
-                           Y,
-                           G,
-                           C,
-                           A,
-                           mu = 0,
-                           d = 2,
-                           m = 1,
-                           type = c("covariance", "operator"),
-                           pivot = TRUE) {
-  type <- type[[1]]
-  if (!type %in% c("covariance", "operator")) {
-    stop("The type should be 'covariance' or 'operator'!")
-  }
-  if (is.null(d)) {
-    stop("the dimension d must be supplied")
-  }
-  if (type == "covariance") {
-    return(CBrSPDE.matern.loglike2(
-      kappa = kappa,
-      sigma = sigma,
-      nu = nu,
-      sigma.e = sigma.e,
-      mu = mu,
-      Y = Y,
-      G = G,
-      C = C,
-      A = A,
-      d = d,
-      m = m,
-      pivot = pivot
-    ))
-  } else {
-    op <- matern.operators(
-      kappa = kappa, sigma = sigma, nu = nu,
-      G = G, C = C, d = d, m = m,
-      type = "operator"
-    )
-    return(rSPDE.loglike(obj = op, Y = Y, A = A, sigma.e = sigma.e))
-  }
-}
-
-
-#' @name CBrSPDE.matern.loglike2
-#' @title Parameter-based log-likelihood function for latent Gaussian fractional
-#' SPDE model using the covariance-based rational approximations
-#' @description This function evaluates the log-likelihood function for a
-#' Gaussian process with a Matern covariance function, that is observed under
-#' Gaussian measurement noise:
-#' \eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = u(s_i) + \epsilon_i}, where
-#' \eqn{\epsilon_i}{\epsilon_i} are iid mean-zero Gaussian variables.
-#' The latent model is approximated using the covariance-based rational
-#' approximation of the fractional SPDE model corresponding to the
-#' Gaussian process.
-#' @param kappa Range parameter of the latent process.
-#' @param sigma Standard deviation of the latent process.
-#' @param nu Shape parameter of the latent process.
-#' @param sigma.e The standard deviation of the measurement noise.
-#' @param mu Expectation vector of the latent field (default = 0).
-#' @param Y The observations, either a vector or a matrix where
-#' the columns correspond to independent replicates of observations.
-#' @param G The stiffness matrix of a finite element discretization
-#' of the domain.
-#' @param C The mass matrix of a finite element discretization of the domain.
-#' @param A A matrix linking the measurement locations to the basis of
-#' the FEM approximation of the latent model.
-#' @param d The dimension of the domain. The default value is 2.
-#' @param m The order of the rational approximation, which needs to be
-#' a positive integer.
-#' The default value is 2.
-#' @param pivot Should pivoting be used for the Cholesky decompositions?
-#' Default is TRUE
-#' @return The log-likelihood value.
-#' @noRd
-#' @seealso [matern.operators()], [predict.CBrSPDEobj()]
-#' @examples
-#' # this example illustrates how the function can be used for maximum
-#' # likelihood estimation
-#' set.seed(123)
-#' # Sample a Gaussian Matern process on R using a rational approximation
-#' nu <- 0.8
-#' kappa <- 5
-#' sigma <- 1
-#' sigma.e <- 0.1
-#' n.rep <- 10
-#' n.obs <- 100
-#' n.x <- 51
-#'
-#' # create mass and stiffness matrices for a FEM discretization
-#' x <- seq(from = 0, to = 1, length.out = n.x)
-#' fem <- rSPDE.fem1d(x)
-#'
-#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) * (4 * pi)^(1 / 2) *
-#' gamma(nu + 1 / 2)))
-#'
-#' # Compute the covariance-based rational approximation
-#' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
-#' )
-#'
-#' # Sample the model
-#' u <- simulate(op_cov, n.rep)
-#'
-#' # Create some data
-#' obs.loc <- runif(n = n.obs, min = 0, max = 1)
-#' A <- rSPDE.A1d(x, obs.loc)
-#' noise <- rnorm(n.obs * n.rep)
-#' dim(noise) <- c(n.obs, n.rep)
-#' Y <- as.matrix(A %*% u + sigma.e * noise)
-#'
-#' # Define the negative likelihood function for optimization using
-#' # CBrSPDE.matern.loglike2
-#' # Notice that we are also using sigma instead of tau, so it can be compared
-#' # to matern.loglike()
-#' mlik_cov2 <- function(theta, Y, A, C, G) {
-#'   kappa <- exp(theta[1])
-#'   sigma <- exp(theta[2])
-#'   nu <- exp(theta[3])
-#'   return(-matern.loglike(
-#'     kappa = kappa, sigma = sigma,
-#'     nu = nu, sigma.e = exp(theta[4]), Y = Y,
-#'     A = A, C = fem$C, G = fem$G, d = 1
-#'   ))
-#' }
-#'
-#' # The parameters can now be estimated by minimizing mlik with optim
-#' \donttest{
-#' # Choose some reasonable starting values depending on the size of the domain
-#' theta0 <- log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
-#'
-#' # run estimation and display the results
-#' theta <- optim(theta0, mlik_cov2,
-#'   Y = Y, A = A, C = C, G = G,
-#'   method = "L-BFGS-B"
-#' )
-#'
-#' print(data.frame(
-#'   kappa = c(kappa, exp(theta$par[1])), sigma = c(sigma, exp(theta$par[2])),
-#'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
-#'   row.names = c("Truth", "Estimates")
-#' ))
-#' }
-CBrSPDE.matern.loglike2 <- function(kappa,
-                                    sigma,
-                                    nu,
-                                    sigma.e,
-                                    mu = 0,
-                                    Y,
-                                    G,
-                                    C,
-                                    A,
-                                    d = 2,
-                                    m = 2,
-                                    pivot = TRUE) {
-  obj_cov_rSPDE <- matern.operators(
-    C = C,
-    G = G,
-    nu = nu,
-    kappa = kappa,
-    sigma = sigma,
-    m = m,
-    d = d
-  )
-
-  return(CBrSPDE.matern.loglike(
-    object = obj_cov_rSPDE, Y = Y, A = A, sigma.e = sigma.e, mu = mu,
-    user_nu = NULL,
-    user_kappa = NULL,
-    user_sigma = NULL,
-    user_m = NULL,
-    pivot = pivot
-  ))
-}
-
-
-
-
-
 
 #' Parameter-based log-likelihood for a latent Gaussian Matern SPDE model
 #' using a rational SPDE approximation
@@ -1905,7 +1569,7 @@ CBrSPDE.matern.loglike2 <- function(kappa,
 #' 
 #' @return The log-likelihood value.
 #' @export
-#' @seealso [matern.loglike()], [rSPDE.loglike()].
+#' @seealso [rSPDE.loglike()].
 #'
 #' @examples
 #' # this example illustrates how the function can be used for maximum
@@ -1920,11 +1584,13 @@ CBrSPDE.matern.loglike2 <- function(kappa,
  #' fem <- rSPDE.fem1d(x)
  #' tau <- rep(0.5, n.x)
  #' nu <- 0.8
+ #' alpha <- nu + 1/2
  #' kappa <- rep(1, n.x)
  #' # compute rational approximation
  #' op <- spde.matern.operators(
- #'   kappa = kappa, tau = tau, nu = nu,
- #'   G = fem$G, C = fem$C, d = 1
+ #'   kappa = kappa, tau = tau, alpha = alpha,
+ #'   parameterization = "spde", d = 1,
+ #'   loc_mesh = x
  #' )
  #' # Sample the model
  #' u <- simulate(op, n.rep)
@@ -2043,6 +1709,7 @@ if (inherits(object, "CBrSPDEobj")) {
 #' sigma <- 1
 #' nu <- 0.8
 #' sigma.e <- 0.3
+#' range <- 0.2
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -2053,8 +1720,9 @@ if (inherits(object, "CBrSPDEobj")) {
 #'
 #' # Compute the covariance-based rational approximation
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'   parameterization = "matern"
 #' )
 #'
 #' # Sample the model
@@ -2297,6 +1965,7 @@ precision <- function(object, ...) {
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
+#' range <- 0.2
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -2306,8 +1975,9 @@ precision <- function(object, ...) {
 #' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
 #' (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'   parameterization = "matern"
 #' )
 #'
 #' # Get the precision matrix:
@@ -2384,6 +2054,7 @@ precision.CBrSPDEobj <- function(object,
 #' n.rep <- 10
 #' n.obs <- 200
 #' n.x <- 51
+#' range <- 0.2
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = n.x)
 #' fem <- rSPDE.fem1d(x)
@@ -2391,8 +2062,9 @@ precision.CBrSPDEobj <- function(object,
 #' (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 #' # Compute the covariance-based rational approximation
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'  parameterization = "matern"
 #' )
 #' # Sample the model
 #' u <- simulate(op_cov, n.rep)
@@ -2622,12 +2294,14 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
 #' fem <- rSPDE.fem1d(x)
 #' tau <- rep(0.5, n.x)
 #' nu <- 0.8
+#' alpha <- nu + 0.5
 #' kappa <- rep(1, n.x)
 #' # Matern parameterization
 #' # compute rational approximation
 #'  op <- spde.matern.operators(
-#'    kappa = kappa, tau = tau, nu = nu,
-#'    G = fem$G, C = fem$C, d = 1
+#'     loc_mesh = x,
+#'    kappa = kappa, tau = tau, alpha = alpha,
+#'    parameterization = "spde", d = 1
 #'  )
 #' # Sample the model
 #' u <- simulate(op, n.rep)
@@ -2655,8 +2329,8 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
 #' # SPDE parameterization
 #' # compute rational approximation
 #'  op <- spde.matern.operators(
-#'    kappa = kappa, tau = tau, nu = nu,
-#'    G = fem$G, C = fem$C, d = 1, 
+#'    kappa = kappa, tau = tau, alpha = alpha,
+#'    loc_mesh = x, d = 1, 
 #'    parameterization = "spde"
 #'  )
 #' # Sample the model

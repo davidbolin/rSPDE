@@ -157,6 +157,7 @@ the matrices, since these methods are more numerically stable.
 kappa <- 10
 sigma <- 1
 nu <- 0.8
+range <- sqrt(8*nu)/kappa
 
 # create mass and stiffness matrices for a FEM discretization
 nobs <- 101
@@ -165,8 +166,9 @@ fem <- rSPDE.fem1d(x)
 
 # compute rational approximation of covariance function at 0.5
 op_cov <- matern.operators(
-  C = fem$C, G = fem$G, nu = nu,
-  kappa = kappa, sigma = sigma, d = 1, m = 2
+  loc_mesh = x, nu = nu,
+  range = range, sigma = sigma, d = 1, m = 2,
+  parameterization = "matern"
 )
 
 v <- t(rSPDE.A1d(x, 0.5))
@@ -196,6 +198,7 @@ lines(x, c_cov.approx, col = 2)
 kappa <- 10
 sigma <- 1
 nu <- 0.8
+range <- sqrt(8*nu)/kappa
 
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
@@ -203,9 +206,10 @@ fem <- rSPDE.fem1d(x)
 
 # compute rational approximation of covariance function at 0.5
 op <- matern.operators(
-  kappa = kappa, sigma = sigma, nu = nu,
-  G = fem$G, C = fem$C, d = 1,
-  type = "operator"
+  range = range, sigma = sigma, nu = nu,
+  loc_mesh = x, d = 1,
+  type = "operator",
+  parameterization = "matern"
 )
 
 v <- t(rSPDE.A1d(x, 0.5))

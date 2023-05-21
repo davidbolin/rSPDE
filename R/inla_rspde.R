@@ -1110,7 +1110,8 @@ rspde.make.A <- function(mesh = NULL,
 #' kappa <- sqrt(8 * nu) / range
 #' op <- matern.operators(
 #'   mesh = mesh_2d, nu = nu,
-#'   kappa = kappa, sigma = sigma, m = 2
+#'   range = range, sigma = sigma, m = 2,
+#'   parameterization = "matern"
 #' )
 #' u <- simulate(op)
 #' A <- inla.spde.make.A(
@@ -1297,7 +1298,8 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' kappa <- sqrt(8 * nu) / range
 #' op <- matern.operators(
 #'   mesh = mesh_2d, nu = nu,
-#'   kappa = kappa, sigma = sigma, m = 2
+#'   range = range, sigma = sigma, m = 2,
+#'   parameterization = "matern"
 #' )
 #' u <- simulate(op)
 #' A <- inla.spde.make.A(
@@ -1834,7 +1836,8 @@ gg_df.rspde_result <- function(result,
 #' kappa <- sqrt(8 * nu) / range
 #' op <- matern.operators(
 #'   mesh = mesh_2d, nu = nu,
-#'   kappa = kappa, sigma = sigma, m = 2
+#'   range = range, sigma = sigma, m = 2,
+#'   parameterization = "matern"
 #' )
 #' u <- simulate(op)
 #' A <- inla.spde.make.A(
@@ -2283,9 +2286,11 @@ dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
 #' nu <- 2.6
 #' tau <- sqrt(gamma(nu) / (kappa^(2 * nu) * (4 * pi)^(d / 2) *
 #' gamma(nu + d / 2)))
+#' range <- sqrt(8*nu)/kappa
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu, kappa = kappa, sigma = sigma,
-#'   d = 1, m = 2, compute_higher_order = TRUE
+#'   loc_mesh = x, nu = nu, range = range, sigma = sigma,
+#'   d = 1, m = 2, compute_higher_order = TRUE,
+#'   parameterization = "matern"
 #' )
 #' v <- t(rSPDE.A1d(x, 0.5))
 #' c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
@@ -2545,9 +2550,10 @@ rspde.matern.precision.integer.opt <- function(kappa,
 #' nu <- 0.5
 #' tau <- sqrt(gamma(nu) / (kappa^(2 * nu) *
 #' (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+#' range <- sqrt(8*nu)/kappa
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu, kappa = kappa, sigma = sigma,
-#'   d = 1, m = 2
+#'   loc_mesh = x, nu = nu, range = range, sigma = sigma,
+#'   d = 1, m = 2, parameterization = "matern"
 #' )
 #' v <- t(rSPDE.A1d(x, 0.5))
 #' c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
@@ -2872,16 +2878,17 @@ precision.inla_rspde <- function(object,
     nu <- nu + 1e-10
   }
 
-
+  alpha <- nu + object$dim/2
 
   if(object$stationary){
     if(object$parameterization == "spde"){
       tau <- exp(theta[1])
       kappa <- exp(theta[2])
       op <- matern.operators(mesh = mesh_model, 
-                         nu = nu, kappa = kappa, 
+                         alpha = alpha, kappa = kappa, 
                          tau = tau, 
                          m = rspde_order,
+                         parameterization = "spde",
                          type = "covariance",
                          type_rational_approximation = object$type.rational.approx)
   } else{
@@ -2892,6 +2899,7 @@ precision.inla_rspde <- function(object,
                          sigma = sigma, 
                          m = rspde_order,
                          type = "covariance",
+                         parameterization = "matern",
                          type_rational_approximation = object$type.rational.approx)
   }
   } else {
@@ -2902,7 +2910,7 @@ precision.inla_rspde <- function(object,
     B_tau <- matrix(B_tau_vec[3:n_total], dim_B_matrices[1], dim_B_matrices[2], byrow = TRUE)
     B_kappa <- matrix(B_kappa_vec[3:n_total], dim_B_matrices[1], dim_B_matrices[2], byrow = TRUE)
 
-    op <- spde.matern.operators(B.tau = B_tau, B.kappa = B_kappa, theta = theta, nu = nu, parameterization = "spde",
+    op <- spde.matern.operators(B.tau = B_tau, B.kappa = B_kappa, theta = theta, alpha = alpha, parameterization = "spde",
                                   mesh = mesh_model, m = rspde_order, type = "covariance",
                                    type_rational_approximation = object$type.rational.approx)
   }

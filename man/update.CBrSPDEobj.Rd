@@ -85,6 +85,7 @@ Function to change the parameters of a CBrSPDEobj object
 kappa <- 10
 sigma <- 1
 nu <- 0.8
+range <- sqrt(8*nu)/kappa
 
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
@@ -92,8 +93,9 @@ fem <- rSPDE.fem1d(x)
 
 # compute rational approximation of covariance function at 0.5
 op_cov <- matern.operators(
-  C = fem$C, G = fem$G, nu = nu,
-  kappa = kappa, sigma = sigma, d = 1, m = 2
+  loc_mesh = x, nu = nu,
+  range = range, sigma = sigma, d = 1, m = 2,
+  parameterization = "matern"
 )
 op_cov
 

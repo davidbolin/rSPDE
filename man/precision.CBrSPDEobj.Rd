@@ -53,6 +53,7 @@ Function to get the precision matrix of a CBrSPDEobj object
 kappa <- 10
 sigma <- 1
 nu <- 0.8
+range <- 0.2
 
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
@@ -62,8 +63,9 @@ fem <- rSPDE.fem1d(x)
 tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
 (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 op_cov <- matern.operators(
-  C = fem$C, G = fem$G, nu = nu,
-  kappa = kappa, sigma = sigma, d = 1, m = 2
+  loc_mesh = x, nu = nu,
+  range = range, sigma = sigma, d = 1, m = 2,
+  parameterization = "matern"
 )
 
 # Get the precision matrix:

@@ -307,7 +307,8 @@ fractional.operators <- function(L,
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
-#'
+#' range <- sqrt(8*nu)/kappa
+#' 
 #' # create mass and stiffness matrices for a FEM discretization
 #' nobs <- 101
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -315,8 +316,9 @@ fractional.operators <- function(L,
 #'
 #' # compute rational approximation of covariance function at 0.5
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'   parameterization = "matern"
 #' )
 #'
 #' v <- t(rSPDE.A1d(x, 0.5))
@@ -346,6 +348,7 @@ fractional.operators <- function(L,
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
+#' range <- sqrt(8*nu)/kappa
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -353,9 +356,10 @@ fractional.operators <- function(L,
 #'
 #' # compute rational approximation of covariance function at 0.5
 #' op <- matern.operators(
-#'   kappa = kappa, sigma = sigma, nu = nu,
-#'   G = fem$G, C = fem$C, d = 1,
-#'   type = "operator"
+#'   range = range, sigma = sigma, nu = nu,
+#'   loc_mesh = x, d = 1,
+#'   type = "operator",
+#'   parameterization = "matern"
 #' )
 #'
 #' v <- t(rSPDE.A1d(x, 0.5))
@@ -1078,12 +1082,28 @@ spde.matern.operators <- function(kappa = NULL,
     stop("parameterization should be either 'matern' or 'spde'!")
   }
 
-  if (is.null(d) && is.null(mesh) && is.null(graph)) {
+if (is.null(d) && is.null(mesh) && is.null(graph)) {
     stop("You should give either the dimension d, the mesh or graph!")
   }
 
-  if ((is.null(C) || is.null(G)) && is.null(mesh) && is.null(graph)) {
+  if ((is.null(C) || is.null(G)) && is.null(mesh) && is.null(graph) &&(is.null(loc_mesh) || d != 1)) {
     stop("You should either provide mesh, graph, or provide both C *and* G!")
+  }
+
+  if( (is.null(C) || is.null(G)) && (is.null(graph)) && (!is.null(loc_mesh) && d==1)){
+    fem <- rSPDE.fem1d(loc_mesh)
+    C <- fem$C
+    G <- fem$G
+  }
+
+  has_mesh <- FALSE
+  has_graph <- FALSE
+
+  if(!is.null(loc_mesh)){
+    if(!is.numeric(loc_mesh)){
+      stop("loc_mesh must be numerical.")
+    }
+    range_mesh <- abs(diff(range(loc_mesh)))
   }
 
   if (!is.null(mesh)) {
@@ -1232,7 +1252,25 @@ spde.matern.operators <- function(kappa = NULL,
     if(is.null(kappa)){
       kappa <- c(exp(B.kappa %*% new_theta))
     }
-  } 
+  } else{
+    if(parameterization == "matern"){
+      if(is.null(nu)){
+        nu <- 1
+      } else{
+        nu <- rspde_check_user_input(nu, "nu" , 0)
+      }       
+        alpha <- nu + d/2
+    } else{
+      if(is.null(alpha)){
+        alpha <- 1 + d/2
+      } else {
+        alpha <- rspde_check_user_input(alpha, "alpha" , d/2)
+        alpha <- min(alpha, 10)
+      }
+
+      nu <- alpha - d/2
+    }     
+  }
 
   if(!is.null(mesh)){
       make_A <- function(loc){

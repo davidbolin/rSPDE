@@ -53,9 +53,10 @@ d <- 1
 nu <- 0.5
 tau <- sqrt(gamma(nu) / (kappa^(2 * nu) *
 (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+range <- sqrt(8*nu)/kappa
 op_cov <- matern.operators(
-  C = fem$C, G = fem$G, nu = nu, kappa = kappa, sigma = sigma,
-  d = 1, m = 2
+  loc_mesh = x, nu = nu, range = range, sigma = sigma,
+  d = 1, m = 2, parameterization = "matern"
 )
 v <- t(rSPDE.A1d(x, 0.5))
 c.true <- matern.covariance(abs(x - 0.5), kappa, nu, sigma)
