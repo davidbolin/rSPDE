@@ -1176,6 +1176,11 @@ spde.matern.operators <- function(kappa = NULL,
 
 
     if(parameterization == "matern"){
+      if(is.null(nu)){
+        nu <- 1
+      } else{
+        nu <- rspde_check_user_input(nu, "nu" , 0)
+      }            
       B_matrices <- convert_B_matrices(B.sigma, B.range, ncol(C), nu, d)
       B.tau <- B_matrices[["B.tau"]]
       B.kappa <- B_matrices[["B.kappa"]]
@@ -1208,10 +1213,15 @@ spde.matern.operators <- function(kappa = NULL,
         stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
       }
       if(!is.null(mesh) || !is.null(range_mesh)){
-         theta <- get.initial.values.rSPDE(mesh.range = range_mesh, dim = d, parameterization = parameterization, mesh = mesh, nu = nu, B.tau = B.tau, B.sigma = B.sigma, B.range = B.range,
+         theta <- get.initial.values.rSPDE(mesh.range = range_mesh, 
+         dim = d, parameterization = parameterization, 
+         mesh = mesh, nu = nu, B.tau = B.tau, 
+         B.sigma = B.sigma, B.range = B.range,
          B.kappa = B.kappa, include.nu = FALSE)
       } else if(!is.null(graph)){
-        theta <- get.initial.values.rSPDE(graph.obj = graph, parameterization = parameterization, nu = nu, B.tau = B.tau, B.sigma = B.sigma, B.range = B.range,
+        theta <- get.initial.values.rSPDE(graph.obj = graph, 
+        parameterization = parameterization, nu = nu, 
+        B.tau = B.tau, B.sigma = B.sigma, B.range = B.range,
          B.kappa = B.kappa, include.nu = FALSE)
       }
 

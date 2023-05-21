@@ -90,6 +90,10 @@ rspde_lme <- function(formula, loc, data,
 
     if(!is.null(rspde_order) && !is.null(model)){
         model <- update(model, user_m = rspde_order)
+    } else if (!is.null(model)){
+      rspde_order <- model$m
+    } else{
+      rspde_order <- NULL
     }
 
   if (is.null(formula)) {
@@ -345,6 +349,7 @@ rspde_lme <- function(formula, loc, data,
         }
     } else{
            likelihood <- function(theta){
+            print("Here")
                 sigma_e <- exp(theta[1])
                 n_cov <- ncol(X_cov)
                 n_initial <- n_coeff_nonfixed                
@@ -378,9 +383,12 @@ rspde_lme <- function(formula, loc, data,
                     # }
                 } else{
                     theta_model <- theta[(2+gap):(n_initial)]
+                    alpha <- nu + model$d/2
+                    print(alpha)
+                    alpha <- max(1e-5 + model$d/2, alpha)
                     model_tmp <- update.rSPDEobj(model_tmp,
                             user_theta = theta_model,
-                            user_nu = nu, parameterization = "spde")
+                            user_alpha = alpha, parameterization = "spde")
                 }
                 
                 if(n_cov > 0){
@@ -457,9 +465,9 @@ if(parallel){
   time_fit <- end_fit-start_fit
   if(is.na(res[1])){
     tmp_method <- optim_method
-    while(length(possible_methods)>0){
+    while(length(possible_methods)>1){
       possible_methods <- setdiff(possible_methods, tmp_method)
-      new_method <- possible_methods[[1]]
+      new_method <- possible_methods[1]
       warning(paste("optim method",tmp_method,"failed. Another optimization method was used."))
       start_fit <- Sys.time()
         res <- tryCatch(optim(start_values, 
@@ -474,12 +482,12 @@ if(parallel){
         break
       }
     }
-    if(length(possible_methods) == 0){
+    if(length(possible_methods) == 1){
       stop("All optimization methods failed.")
     }
   }
 }
-
+  print(res)
 
   if(model$stationary){
     coeff <- exp(c(res$par[1:n_coeff_nonfixed]))
@@ -659,6 +667,7 @@ if(parallel){
   object$response <- y_term
   object$covariates <- cov_term
   object$fitting_time <- time_fit
+  object$rspde_order <- rspde_order
   object$time_matern_par <- time_matern_par
   object$improve_hessian <- improve_hessian
   object$time_hessian <- time_hessian
@@ -668,6 +677,7 @@ if(parallel){
   object$optim_method <- optim_method
   object$time_likelihood <- time_build_likelihood
   object$A_list <- A_list
+  object$has_graph <- model$has_graph
   object$which_repl <- which_repl
   object$stationary <- model$stationary
   # if(model_matrix){
@@ -988,7 +998,7 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
 
   loc <- as.matrix(loc)
 
-  X_cov_initial <- stats::model.matrix(object$covariates, graph_bkp$data)
+  X_cov_initial <- as.matrix(object$model_matrix)[,-1]
   if(ncol(X_cov_initial) > 0){
     if(mesh){
       stop("In the presence of covariates, you should provide the data, including the covariates at the prediction locations. If you only want predictions for the latent model, set 'only_latent' to TRUE.")
@@ -996,6 +1006,9 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
   }
 
   X_cov_pred <- stats::model.matrix(object$covariates, data)
+  if(nrow(X_cov_pred) != nrow(as.matrix(loc))){
+    stop("Covariates not found in data.")
+  }
 
   if(sum(duplicated(loc)) > 0){
     warning("There are duplicated locations for prediction, we will try to process the data to extract the unique locations,
@@ -1062,60 +1075,34 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
   ## construct Q
 
   if(object$estimate_nu){
-    nu_est <- coeff_random[1]
-    if(object$parameterization_latent == "graph"){
-      sigma_est <- coeff_random[2]
-      kappa_est <- coeff_random[3]
-      tau_est <- NULL
-      range_est <- NULL
-    } else if(object$parameterization_latent == "spde"){
+      alpha_est <- coeff_random[1]
       tau_est <- coeff_random[2]
       kappa_est <- coeff_random[3]
-      range_est <- NULL
-      sigma_est <- NULL
-    } else if(object$parameterization_latent == "matern"){
-      sigma_est <- coeff_random[2]
-      range_est <- coeff_random[3]
-      kappa_est <- NULL
-      tau_est <- NULL
-    }
   } else{
-    if(object$parameterization_latent == "graph"){
-      sigma_est <- coeff_random[1]
-      kappa_est <- coeff_random[2]
-      tau_est <- NULL
-      range_est <- NULL      
-    } else if(object$parameterization_latent == "spde"){
       tau_est <- coeff_random[1]
       kappa_est <- coeff_random[2]
-      range_est <- NULL
-      sigma_est <- NULL      
-    } else if(object$parameterization_latent == "matern"){
-      sigma_est <- coeff_random[1]
-      range_est <- coeff_random[2]
-      kappa_est <- NULL
-      tau_est <- NULL      
-    }
-    nu_est <- NULL
+      alpha_est <- NULL
   }
 
   new_rspde_obj <- update(object$latent_model,
-                        user_nu = nu_est,
-                        user_sigma = sigma_est,
+                        user_alpha = alpha_est,
                         user_kappa = kappa_est,
                         user_tau = tau_est,
-                        user_range = range_est,
-                        parameterization = object$parameterization_latent)
+                        parameterization = "spde")
 
                    
   Q <- new_rspde_obj$Q                   
+
+  idx_obs_full <- as.vector(!is.na(Y))
+
+  Aprd <- kronecker(matrix(1, 1, object$rspde_order + 1), Aprd)
 
   for(repl_y in u_repl){
     if(return_as_list){
       out$distance_on_edge[[repl_y]] <- dist_ed
       out$edge_number[[repl_y]] <- edge_nb
     }
-    idx_repl <- graph_bkp$data[["__group"]] == repl_y
+    idx_repl <- repl_vec == repl_y
 
     idx_obs <- idx_obs_full[idx_repl]
 
@@ -1129,12 +1116,12 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
     mu_krig <- solve(Q_xgiveny,as.vector(t(A_repl) %*% y_repl / sigma_e^2))
 
     # mu_krig <- mu_krig[(gap+1):length(mu_krig)]
+
     mu_krig <- Aprd %*% mu_krig
 
     if(!only_latent){
       mu_krig <- mu_prd + mu_krig
-    } 
-
+    }
 
     mean_tmp <- as.vector(mu_krig)
         

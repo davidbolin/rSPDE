@@ -242,11 +242,6 @@ Assume that we want to define a model on the interval $[0,1]$. We then start by 
 s <- seq(from = 0, to = 1, length.out = 101)
 ```
 
-Based on these nodes, we use the built-in function `rSPDE.fem1d()` to assemble two matrices needed for creating the approximation of a basic Matérn model. These matrices are the mass matrix $\boldsymbol{\mathrm{C}}$, with elements $C_{ij} = \int \varphi_j(s) \varphi_i(s) ds$, and the stiffness matrix $\boldsymbol{\mathrm{G}}$, with elements $G_{ij} = \int \nabla\varphi_j(s) \cdot \nabla\varphi_i(s) ds$. 
-```{r}
-fem <- rSPDE.fem1d(s)
-```
-
 We can now use `matern.operators()` to construct a rational SPDE approximation of order $m=2$ for a Gaussian random field with a Matérn covariance function on the interval. We also refer the reader to the
 [Operator-based rational approximation](rspde_base.html) for a similar comparison made for the operator-based rational approximation.
 
@@ -426,7 +421,6 @@ set.seed(1)
 s <- seq(from = 0, to = 1, length.out = 501)
 n.obs <- 200
 obs.loc <- runif(n.obs)
-fem <- rSPDE.fem1d(s)
 A <- rSPDE.A1d(s, obs.loc)
 ```
 
@@ -434,7 +428,7 @@ We now generate the observations as $Y_i = 2 + x1 - x2 + u(s_i) + \varepsilon_i$
 with $\kappa=20, \sigma=2$ and $\nu=0.8$:
 ```{r}
 kappa <- 20
-sigma <- 2
+sigma <- 1.3
 nu <- 0.8
 r <- sqrt(8*nu)/kappa
 op_cov <- matern.operators(
@@ -447,13 +441,11 @@ u <- simulate(op_cov)
 
 sigma.e <- 0.3
 
-x1 <- runif(n.obs)
+x1 <- obs.loc
 
-x2 <- rexp(n.obs)
+Y <- 2 - x1 + as.vector(A %*% u + sigma.e * rnorm(n.obs))
 
-Y <- 2 + x1 - x2  + as.vector(A %*% u + sigma.e * rnorm(n.obs))
-
-df_data <- data.frame(y = Y, loc = obs.loc, x1 = x1, x2 = x2)
+df_data <- data.frame(y = Y, loc = obs.loc, x1 = x1)
 ```
 
 Let us create a new object to fit the model:
@@ -468,9 +460,8 @@ op_cov_est <- matern.operators(
 Let us now fit the model. To this end we will use the `rspde_lme()` function:
 
 ```{r}
-fit <- rspde_lme(y~x1+x2, model = op_cov_est,
-                    data = df_data, loc = "loc",
-                    parallel = TRUE)
+fit <- rspde_lme(y~x1, model = op_cov_est,
+                    data = df_data, loc = "loc")
 ```
 
 We can get a summary of the fit with the `summary()` method:
@@ -482,8 +473,8 @@ summary(fit)
 Let us compare the parameters of the latent model:
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit$coeff$random_effects[2]), range = c(r, fit$coeff$random_effects[3]),
-  nu = c(nu, fit$coeff$random_effects[1]),
+  sigma = c(sigma, fit$matern_coeff$random_effects[2]), range = c(r, fit$matern_coeff$random_effects[3]),
+  nu = c(nu, fit$matern_coeff$random_effects[1]),
   row.names = c("Truth", "Estimates")
 ))
 
@@ -495,7 +486,7 @@ We can also speed up the optimization by setting `parallel=TRUE` (which uses imp
 
 ```{r, message=FALSE, warning=FALSE}
 fit_par <- rspde_lme(y~x1+x2, model = op_cov_est,
-                    data = df_data, loc = "loc", parallel = TRUE, improve_hessian = TRUE)
+                    data = df_data, loc = "loc", parallel = TRUE)
 ```
 
 Here is the summary:
@@ -508,41 +499,30 @@ Let us compare with the true values and compare the time:
 
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_par$coeff$random_effects[2]), range = c(r, fit_par$coeff$random_effects[3]),
-  nu = c(nu, fit_par$coeff$random_effects[1]),
+  sigma = c(sigma, fit_par$matern_coeff$random_effects[2]), range = c(r, fit_par$matern_coeff$random_effects[3]),
+  nu = c(nu, fit_par$matern_coeff$random_effects[1]),
   row.names = c("Truth", "Estimates")
 ))
 
-# Total time
-print(fit_par$fitting_time)
+# Total time (time to fit plus time to set up the parallelization)
+total_time <- fit_par$fitting_time + fit_par$time_par
+print(total_time)
 ```
 
 ### Kriging
 
-Finally, we compute the kriging prediction of the process $u$ at the locations in `s` based on these observations. To specify which locations that should be predicted, the argument `Aprd` is used. This argument should be an observation matrix that links the mesh locations to the prediction locations.  
-```{r, fig.show='hold', fig.align = "center"}
-A.krig <- rSPDE.A1d(s, s)
-```
+Finally, we compute the kriging prediction of the process $u$ at the locations in `s` based on these observations. 
 
-Let us update the `CBrSPDEobj` object (returned by the `matern.operators()` function)
-with the fitted parameters:
+Let us create the `data.frame` with locations in which we want to obtain the predictions. Observe that we also must provide the values of the covariates.
 
 ```{r}
-tau_est <- exp(theta$par[1])
-kappa_est <- exp(theta$par[2])
-nu_est <- exp(theta$par[3])
-
-op_cov <- update(op_cov,
-  user_kappa = kappa_est,
-  user_tau = tau_est,
-  user_nu = nu_est
-)
+df_pred <- data.frame(loc = s, x1 = s)
 ```
 
 We can now perform kriging with the `predict()` method:
 
 ```{r}
-u.krig <- predict(op_cov, A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e)
+u.krig <- predict(fit, data = df_pred, loc = "loc")
 ```
 
 
@@ -555,7 +535,6 @@ plot(obs.loc, Y,
   ylim = c(min(c(min(u), min(Y))), max(c(max(u), max(Y)))),
   cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
 )
-lines(s, u)
 lines(s, u.krig$mean, col = 2)
 par(opar)
 ```
@@ -610,8 +589,9 @@ Let us compare with the true values:
 
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_repl$coeff$random_effects[2]), range = c(r, fit_repl$coeff$random_effects[3]),
-  nu = c(nu, fit_repl$coeff$random_effects[1]),
+  sigma = c(sigma, fit_repl$matern_coeff$random_effects[2]), 
+  range = c(r, fit_repl$matern_coeff$random_effects[3]),
+  nu = c(nu, fit_repl$matern_coeff$random_effects[1]),
   row.names = c("Truth", "Estimates")
 ))
 
@@ -623,7 +603,7 @@ We can obtain better estimates of the Hessian by setting `improve_hessian` to `F
 
 ```{r}
 fit_repl2 <- rspde_lme(y_vec ~ -1, model = op_cov_est, repl = repl, 
-      data = df_data, loc = "loc", parallel = TRUE, 
+      data = df_data_repl, loc = "loc", parallel = TRUE, 
       improve_hessian = TRUE)
 ```
 
@@ -693,7 +673,8 @@ op_cov_2d <- matern.operators(
   nu = nu,
   range = range,
   sigma = sigma,
-  m = 2
+  m = 2,
+  parameterization = "matern"
 )
 tau <- op_cov_2d$tau
 ```
@@ -770,8 +751,9 @@ summary(fit_2d)
 Let us compare the estimated results with the true values:
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_2d$coeff$random_effects[2]), range = c(range, fit_2d$coeff$random_effects[3]),
-  nu = c(nu, fit_2d$coeff$random_effects[1]),
+  sigma = c(sigma, fit_2d$matern_coeff$random_effects[2]), 
+  range = c(range, fit_2d$matern_coeff$random_effects[3]),
+  nu = c(nu, fit_2d$matern_coeff$random_effects[1]),
   row.names = c("Truth", "Estimates")
 ))
 
@@ -842,7 +824,8 @@ op_cov_ns <- spde.matern.operators(mesh = mesh,
   theta = true_theta,
   nu = nu,
   B.sigma = B.sigma, 
-  B.range = B.range)
+  B.range = B.range,
+  parameterization = "matern")
 ```
 
 Let us now sample the data with the `simulate()` method:
@@ -874,7 +857,8 @@ Let us now create the object to fit the data:
 ```{r}
 op_cov_ns_est <- op_cov_ns <- spde.matern.operators(mesh = mesh, 
   B.sigma = B.sigma, 
-  B.range = B.range)
+  B.range = B.range,
+  parameterization = "matern")
 ```
 
 Let us also create the `data.frame()` that contains the data and the locations:
@@ -886,7 +870,9 @@ df_data_ns <- data.frame(y= y, x_coord = loc_mesh[,1], y_coord = loc_mesh[,2])
 ### Fitting the non-stationary rSPDE model
 
 ```{r}
-fit_ns <- rspde_lme(y ~ -1, model = op_cov_ns_est, data = df_data_ns, loc = c("x_coord", "y_coord"), parallel = TRUE)
+fit_ns <- rspde_lme(y ~ -1, model = op_cov_ns_est, 
+          data = df_data_ns, loc = c("x_coord", "y_coord"))#, 
+          #parallel = TRUE)
 ```
 
 Let us get the summary:
