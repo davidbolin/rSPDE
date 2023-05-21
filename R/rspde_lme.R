@@ -49,13 +49,14 @@ rspde_lme <- function(formula, loc, data,
                 improve_hessian = FALSE,
                 hessian_args = list()) {
 
+   null_model <- TRUE
    if(!is.null(model)){
     if(!inherits(model, c("CBrSPDEobj","rSPDEobj"))){
         stop("The model should be an object of class 'CBrSPDEobj' or 'rSPDEobj'.")
     }
+    null_model <- FALSE
+    model <- update(model, parameterization = "spde")
    }
-
-   model <- update(model, parameterization = "spde")
 
    estimate_nu <- TRUE
 
@@ -97,8 +98,13 @@ rspde_lme <- function(formula, loc, data,
 
   call_rspde_lme <- match.call()
 
-  time_data_start <- Sys.time()
+  if(null_model){
+    model <- list(has_graph = FALSE,
+                  stationary = FALSE)
+  }
 
+  time_data_start <- Sys.time()
+  
   if (missing(data) && (!model$has_graph)) {
     data <- environment(formula)
   } else if(model$has_graph){
@@ -157,7 +163,7 @@ rspde_lme <- function(formula, loc, data,
 
   time_data <- time_data_end - time_data_start
 
-  if(!is.null(model)){
+  if(!null_model){
     time_build_likelihood_start <- Sys.time()
 
     if(is.null(starting_values_latent)){
@@ -551,6 +557,8 @@ if(parallel){
     std_fixed <- NULL
   }
   if(model$stationary){
+
+    time_matern_par_start <- Sys.time()
     new_likelihood <- function(theta){
       new_par <- res$par
       if(estimate_nu){
@@ -579,17 +587,25 @@ if(parallel){
     matern_coeff$random_effects[2:3] <- change_par$coeff
     matern_coeff$std_random <- std_random
     matern_coeff$std_random[2:3] <- change_par$std_random
+    time_matern_par_end <- Sys.time()
+    time_matern_par <- time_matern_par_end - time_matern_par_start
   } else{
     matern_coeff <- NULL
+    time_matern_par <- NULL
   }
 
 
   } else{ # If model is NULL
     coeff_random <- NULL
+    time_matern_par <- NULL
     std_random <- NULL
     time_build_likelihood <- NULL
     start_values <- NULL
     matern_coeff <- NULL
+    time_fit <- NULL
+    time_hessian <- NULL
+    time_par <- NULL
+    A_list <- NULL
 
     if(ncol(X_cov) == 0){
       stop("The model does not have either random nor fixed effects.")
@@ -619,7 +635,7 @@ if(parallel){
   object$coeff <- list(measurement_error = coeff_meas, 
   fixed_effects = coeff_fixed, random_effects = coeff_random)
   object$estimate_nu <- estimate_nu
-  if(object$estimate_nu){
+  if(object$estimate_nu && !null_model){
     names(object$coeff$random_effects)[1] <- "alpha"
     object$coeff$random_effects[1] <- object$coeff$random_effects[1] + model$d/2
   }
@@ -636,12 +652,14 @@ if(parallel){
   object$repl <- repl
   object$optim_controls <- optim_controls
   object$latent_model <- model
+  object$null_model <- null_model
   object$start_values <- start_values
   object$loglik <- loglik
   object$niter <- res$counts
   object$response <- y_term
   object$covariates <- cov_term
   object$fitting_time <- time_fit
+  object$time_matern_par <- time_matern_par
   object$improve_hessian <- improve_hessian
   object$time_hessian <- time_hessian
   object$parallel <- parallel
@@ -651,6 +669,7 @@ if(parallel){
   object$time_likelihood <- time_build_likelihood
   object$A_list <- A_list
   object$which_repl <- which_repl
+  object$stationary <- model$stationary
   # if(model_matrix){
     if(ncol(X_cov)>0){
       object$model_matrix <- cbind(y_resp, X_cov)
@@ -719,6 +738,10 @@ print.rspde_lme <- function(x, ...) {
   cat(paste0("Random effects:", "\n"))
   if(!is.null(coeff_random)){
     print(coeff_random)
+    if(x$stationary){
+        cat(paste0("\n", "Random effects (Matern parameterization):", "\n"))
+        print(x$matern_coeff$random_effects)
+    }
   } else{
     message("No random effects")
   }
@@ -742,8 +765,8 @@ summary.rspde_lme <- function(object, all_times = FALSE,...) {
 
   nfixed <- length(object$coeff$fixed_effects)
   nrandom <- length(object$coeff$random_effects)
-  model_type <- is.null(object$latent_model)
-  if(!is.null(model_type)){
+  model_type <- !object$null_model
+  if(model_type){
     if(object$latent_model$stationary){
       call_name <- "Latent model - Whittle-Matern"
     } else{
@@ -761,15 +784,27 @@ summary.rspde_lme <- function(object, all_times = FALSE,...) {
   SEr_random <- object$std_errors$std_random
   SEr_meas <- object$std_errors$std_meas
 
-  coeff <- c(coeff_fixed, coeff_random, coeff_meas)
-  SEr <- c(SEr_fixed,SEr_random, SEr_meas)
+  if(object$stationary){
+    coeff <- c(coeff_fixed, coeff_random, object$matern_coeff$random_effects, coeff_meas)
+    SEr <- c(SEr_fixed,SEr_random, object$matern_coeff$std_random, SEr_meas)
+  } else{
+    coeff <- c(coeff_fixed, coeff_random, coeff_meas)
+    SEr <- c(SEr_fixed,SEr_random, SEr_meas)
+  }
 
-  if(model_type != "linearmodel"){
+  if(model_type){
     tab <- cbind(coeff, SEr, coeff / SEr, 2 * stats::pnorm(-abs(coeff / SEr)))
     colnames(tab) <- c("Estimate", "Std.error", "z-value", "Pr(>|z|)")
     rownames(tab) <- names(coeff)
-    tab <- list(fixed_effects = tab[seq.int(length.out = nfixed), , drop = FALSE], random_effects = tab[seq.int(length.out = nrandom) + nfixed, , drop = FALSE], 
-    meas_error = tab[seq.int(length.out = 1) + nfixed+nrandom, , drop = FALSE])
+    if(object$stationary){
+        tab <- list(fixed_effects = tab[seq.int(length.out = nfixed), , drop = FALSE], random_effects = tab[seq.int(length.out = nrandom) + nfixed, , drop = FALSE], 
+        random_effects_matern = tab[seq.int(length.out = nrandom) + nrandom + nfixed, , drop = FALSE], 
+        meas_error = tab[seq.int(length.out = 1) + nfixed+2*nrandom, , drop = FALSE])
+    } else{
+      tab <- list(fixed_effects = tab[seq.int(length.out = nfixed), , drop = FALSE], random_effects = tab[seq.int(length.out = nrandom) + nfixed, , drop = FALSE], 
+        meas_error = tab[seq.int(length.out = 1) + nfixed+nrandom, , drop = FALSE])
+    }
+
   } else{
     tab <- list(fixed_effects = SEr_fixed, coeff_meas = coeff_meas)
   }
@@ -801,6 +836,8 @@ summary.rspde_lme <- function(object, all_times = FALSE,...) {
   ans$time_par <- object$time_par
 
   ans$time_data <- object$time_data
+
+  ans$time_matern_par <- object$time_matern_par
 
   ans$time_likelihood <- object$time_likelihood
 
@@ -838,7 +875,7 @@ print.summary_rspde_lme <- function(x,...) {
   #
   model_type <- tolower(x$model_type)
   #
-  if(model_type != "linearmodel"){
+  if(model_type){
       if (NROW(tab$fixed_effects)) {
         cat(paste0("\nFixed effects:\n"))
         stats::printCoefmat(tab[["fixed_effects"]], digits = digits, signif.legend = FALSE)
@@ -850,8 +887,13 @@ print.summary_rspde_lme <- function(x,...) {
         cat(paste0("\nRandom effects:\n"))
         stats::printCoefmat(tab[["random_effects"]][,1:3], digits = digits, signif.legend = FALSE)
       } else {
-        message("\nNo random effects. \n")
+        cat(paste0("\nRandom effects:\n"))
+        message("No random effects. \n")
       }
+      if (NROW(tab$random_effects_matern)) {
+        cat(paste0("\nRandom effects (Matern parameterization):\n"))
+        stats::printCoefmat(tab[["random_effects_matern"]][,1:3], digits = digits, signif.legend = FALSE)
+      }   
       #
       cat(paste0("\nMeasurement error:\n"))
         stats::printCoefmat(tab[["meas_error"]][1,1:3,drop = FALSE], digits = digits, signif.legend = FALSE)
@@ -859,7 +901,8 @@ print.summary_rspde_lme <- function(x,...) {
         cat(paste0("\nFixed effects:\n"))
         stats::printCoefmat(tab[["fixed_effects"]], digits = digits, signif.legend = FALSE)
 
-        message("\nNo random effects. \n")
+        cat(paste0("\nRandom effects:\n"))
+        message("No random effects. \n")
         cat(paste0("\nMeasurement error:\n"))
         print(tab$coeff_meas)
 
@@ -871,13 +914,14 @@ print.summary_rspde_lme <- function(x,...) {
   #
 
   cat("Log-Likelihood: ", x$loglik,"\n")
-  if(model_type != "linearmodel"){
+  if(model_type){
     cat(paste0("Number of function calls by 'optim' = ", x$niter[1],"\n"))
     cat(paste0("Optimization method used in 'optim' = ", x$optim_method,"\n"))
     cat(paste0("\nTime used to:"))
     if(x$all_times){
       cat("\t prepare the data = ", paste(trunc(x$time_data[[1]] * 10^5)/10^5,attr(x$time_data, "units"),"\n"))
       cat("\t build the likelihood = ", paste(trunc(x$time_likelihood[[1]] * 10^5)/10^5,attr(x$time_likelihood, "units"),"\n"))
+      cat("\t compute Matern parameterization = ", paste(trunc(x$time_matern_par[[1]] * 10^5)/10^5,attr(x$time_likelihood, "units"),"\n"))      
     }
     cat("\t fit the model = ", paste(trunc(x$fitting_time[[1]] * 10^5)/10^5,attr(x$fitting_time, "units"),"\n"))
     if(x$improve_hessian){

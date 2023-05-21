@@ -2000,7 +2000,9 @@ convert_B_matrices <- function(B.sigma, B.range, n.spde, nu.nominal, d){
 #' @noRd 
 # Change parameterization in rspde_lme to matern
 
-change_parameterization_lme <- function(likelihood, d, nu, par, hessian, improve_gradient, gradient_args){
+change_parameterization_lme <- function(likelihood, d, nu, par, hessian
+#, improve_gradient, gradient_args
+){
   tau <- par[1]
   kappa <- par[2]
 
@@ -2016,6 +2018,10 @@ change_parameterization_lme <- function(likelihood, d, nu, par, hessian, improve
   
 
   new_observed_fisher <- t(grad_par) %*% hessian %*% (grad_par)
+
+  # No need to include the additional term as the gradient is approximately zero.
+  # from some numerical experiments, the approximation without the additional term
+  # seems to be better in general.
 
   # hess_par <- matrix(c(2*C2/(kappa^nu * sigma^3), 0,
   #                     -nu * C2/((sigma^2) * (C1^nu)) * range^(nu-1),
