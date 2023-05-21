@@ -2731,7 +2731,6 @@ construct.spde.matern.loglike <- function(object, Y, A,
 
 
 #' @noRd 
-#' @export
 
 aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
   m <- object$m
@@ -2810,7 +2809,6 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
 
 
 #' @noRd 
-#' @export
 
 aux_lme_rSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
  

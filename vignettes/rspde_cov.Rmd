@@ -485,7 +485,7 @@ print(fit$fitting_time)
 We can also speed up the optimization by setting `parallel=TRUE` (which uses implicitly the `optimParallel` function):
 
 ```{r, message=FALSE, warning=FALSE}
-fit_par <- rspde_lme(y~x1+x2, model = op_cov_est,
+fit_par <- rspde_lme(y~x1, model = op_cov_est,
                     data = df_data, loc = "loc", parallel = TRUE)
 ```
 
