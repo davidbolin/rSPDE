@@ -6,8 +6,9 @@
 \usage{
 matern.operators(
   kappa = NULL,
-  sigma = NULL,
   tau = NULL,
+  alpha = NULL,
+  sigma = NULL,
   range = NULL,
   nu = NULL,
   G = NULL,
@@ -19,7 +20,7 @@ matern.operators(
   loc_mesh = NULL,
   m = 1,
   type = c("covariance", "operator"),
-  parameterization = c("matern", "spde", "graph"),
+  parameterization = c("spde", "matern"),
   compute_higher_order = FALSE,
   return_block_list = FALSE,
   type_rational_approximation = c("chebfun", "brasil", "chebfunLB"),
@@ -27,15 +28,17 @@ matern.operators(
 )
 }
 \arguments{
-\item{kappa}{Parameter kappa of the covariance function. If \code{NULL}, the range parameter will be used. If the range is also \code{NULL}, a starting value based on the mesh will be supplied.}
+\item{kappa}{Parameter kappa of the SPDE representation. If \code{NULL}, the range parameter will be used. If the range is also \code{NULL}, a starting value based on the mesh will be supplied.}
 
-\item{sigma}{Standard deviation of the covariance function. If \code{NULL}, tau will be used. If tau is also \code{NULL}, a starting value based on the mesh will be supplied.}
+\item{tau}{Parameter tau of the SPDE representation. If both sigma and tau are \code{NULL}, a starting value based on the mesh will be supplied.}
 
-\item{tau}{Parameter tau of the covariance function (will be used if sigma is not provided). If both sigma and tau are \code{NULL}, a starting value based on the mesh will be supplied.}
+\item{alpha}{Parameter alpha of the SPDE representation. If \code{alpha} is \code{NULL}, a starting value will be supplied.}
 
-\item{range}{Range parameter of the covariance function (will be used if kappa is not provided). If both kappa and range are \code{NULL}, a starting value based on the mesh will be supplied.}
+\item{sigma}{Standard deviation of the covariance function. Used if \code{parameterization} is \code{matern}. If \code{NULL}, tau will be used. If tau is also \code{NULL}, a starting value based on the mesh will be supplied.}
 
-\item{nu}{Shape parameter of the covariance function. If \code{NULL}, a starting value will be supplied.}
+\item{range}{Range parameter of the covariance function. Used if \code{parameterization} is \code{matern}. If range is \code{NULL}, a starting value based on the mesh will be supplied.}
+
+\item{nu}{Shape parameter of the covariance function. Used if \code{parameterization} is \code{matern}. If \code{NULL}, a starting value will be supplied.}
 
 \item{G}{The stiffness matrix of a finite element discretization of the
 domain of interest. Does not need to be given if either \code{mesh} or \code{graph} is supplied.}
@@ -56,7 +59,7 @@ positive integer. The default value is 1.}
 \item{type}{The type of the rational approximation. The options are
 "covariance" and "operator". The default is "covariance".}
 
-\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). The default is \code{matern}.}
+\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and alpha. The default is \code{spde}.}
 
 \item{compute_higher_order}{Logical. Should the higher order finite
 element matrices be computed?}

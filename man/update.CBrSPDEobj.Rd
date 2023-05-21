@@ -7,6 +7,7 @@
 \method{update}{CBrSPDEobj}(
   object,
   user_nu = NULL,
+  user_alpha = NULL,
   user_kappa = NULL,
   user_tau = NULL,
   user_sigma = NULL,
@@ -29,18 +30,19 @@
 computed using \code{\link[=matern.operators]{matern.operators()}}}
 
 \item{user_nu}{If non-null, update the shape parameter of the
-covariance function.}
+covariance function. Will be used if parameterization is 'matern'.}
 
-\item{user_kappa}{If non-null, update the range parameter
-of the covariance function.}
+\item{user_alpha}{If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.}
 
-\item{user_tau}{If non-null, update the parameter tau.}
+\item{user_kappa}{If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.}
+
+\item{user_tau}{If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.}
 
 \item{user_sigma}{If non-null, update the standard deviation of
-the covariance function.}
+the covariance function. Will be used if parameterization is 'matern'.}
 
 \item{user_range}{If non-null, update the range parameter
-of the covariance function.}
+of the covariance function. Will be used if parameterization is 'matern'.}
 
 \item{user_theta}{For non-stationary models. If non-null, update the vector of parameters.}
 

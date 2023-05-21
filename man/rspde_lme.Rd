@@ -19,10 +19,12 @@ rspde_lme(
   nu = NULL,
   nu_upper_bound = 4,
   rspde_order = NULL,
-  model_matrix = TRUE,
+  parameterization = c("matern", "spde"),
   parallel = FALSE,
   n_cores = parallel::detectCores() - 1,
   optim_controls = list(),
+  improve_gradient = FALSE,
+  gradient_args = list(),
   improve_hessian = FALSE,
   hessian_args = list()
 )
@@ -52,17 +54,19 @@ rspde_lme(
 
 \item{nu}{If \code{NULL}, the smoothness parameter will be estimated, otherwise the smoothness parameter will be kept fixed at the provided value.}
 
-\item{model_matrix}{logical indicating whether the model matrix should be returned as component of the returned value.}
-
 \item{parallel}{logical. Indicating whether to use optimParallel or not.}
 
 \item{n_cores}{Number of cores to be used if parallel is true.}
 
 \item{optim_controls}{Additional controls to be passed to \code{optim} or \code{optimParallel}.}
 
+\item{improve_gradient}{Should a more precise estimate of the gradient be obtained? Turning on might increase the overall time. If \code{TRUE}, the "Richardson" method will be used. See the help of the \code{grad} function in \code{numDeriv} package for details.}
+
+\item{gradient_args}{List of controls to be used for the gradient. The list can contain the arguments to be passed to the \code{method.args} argument in the \code{numDeriv::grad} function. See the help of the \code{grad} function in \code{numDeriv} package for details.}
+
 \item{improve_hessian}{Should a more precise estimate of the hessian be obtained? Turning on might increase the overall time.}
 
-\item{hessian_args}{List of controls to be used if \code{improve_hessian} is \code{TRUE}. The list can contain the arguments to be passed to the \code{method.args} argument in the \code{hessian} function. See the help of the \code{hessian} function in \code{numDeriv} package for details. Observet that it only accepts the "Richardson" method for now, the method "complex" is not supported.}
+\item{hessian_args}{List of controls to be used if \code{improve_hessian} is \code{TRUE}. The list can contain the arguments to be passed to the \code{method.args} argument in the \code{numDeriv::hessian} function. See the help of the \code{hessian} function in \code{numDeriv} package for details. Observe that it only accepts the "Richardson" method for now, the method "complex" is not supported.}
 }
 \value{
 A list containing the fitted model.
