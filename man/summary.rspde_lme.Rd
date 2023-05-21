@@ -4,7 +4,7 @@
 \alias{summary.rspde_lme}
 \title{Summary Method for \code{rspde_lme} Objects.}
 \usage{
-\method{summary}{rspde_lme}(object, ...)
+\method{summary}{rspde_lme}(object, all_times = FALSE, ...)
 }
 \arguments{
 \item{object}{an object of class "rspde_lme" containing results from the fitted model.}

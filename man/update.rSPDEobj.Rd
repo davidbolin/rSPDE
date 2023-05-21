@@ -7,6 +7,7 @@
 \method{update}{rSPDEobj}(
   object,
   user_nu = NULL,
+  user_alpha = NULL,
   user_kappa = NULL,
   user_sigma = NULL,
   user_range = NULL,
@@ -27,6 +28,8 @@ computed using \code{\link[=matern.operators]{matern.operators()}} with \code{ty
 
 \item{user_nu}{If non-null, update the shape parameter
 of the covariance function.}
+
+\item{user_alpha}{If non-null, update the fractional order.}
 
 \item{user_kappa}{If non-null, update the range parameter
 of the covariance function.}

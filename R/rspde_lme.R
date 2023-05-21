@@ -18,8 +18,8 @@
 #' @param parallel logical. Indicating whether to use optimParallel or not.
 #' @param n_cores Number of cores to be used if parallel is true.
 #' @param optim_controls Additional controls to be passed to `optim` or `optimParallel`.
-#' @param improve_gradient Should a more precise estimate of the gradient be obtained? Turning on might increase the overall time. If `TRUE`, the "Richardson" method will be used. See the help of the `grad` function in `numDeriv` package for details. 
-#' @param gradient_args List of controls to be used for the gradient. The list can contain the arguments to be passed to the `method.args` argument in the `numDeriv::grad` function. See the help of the `grad` function in `numDeriv` package for details. 
+# @param improve_gradient Should a more precise estimate of the gradient be obtained? Turning on might increase the overall time. If `TRUE`, the "Richardson" method will be used. See the help of the `grad` function in `numDeriv` package for details. 
+# @param gradient_args List of controls to be used for the gradient. The list can contain the arguments to be passed to the `method.args` argument in the `numDeriv::grad` function. See the help of the `grad` function in `numDeriv` package for details. 
 #' @param improve_hessian Should a more precise estimate of the hessian be obtained? Turning on might increase the overall time.
 #' @param hessian_args List of controls to be used if `improve_hessian` is `TRUE`. The list can contain the arguments to be passed to the `method.args` argument in the `numDeriv::hessian` function. See the help of the `hessian` function in `numDeriv` package for details. Observe that it only accepts the "Richardson" method for now, the method "complex" is not supported. 
 #' @return A list containing the fitted model.
@@ -44,8 +44,8 @@ rspde_lme <- function(formula, loc, data,
                 parallel = FALSE,
                 n_cores = parallel::detectCores()-1,
                 optim_controls = list(),
-                improve_gradient = FALSE,
-                gradient_args = list(),
+                # improve_gradient = FALSE,
+                # gradient_args = list(),
                 improve_hessian = FALSE,
                 hessian_args = list()) {
 
@@ -504,6 +504,12 @@ if(parallel){
     end_hessian <- Sys.time()
     time_hessian <- end_hessian-start_hessian
   }
+
+  if(model$stationary){
+    par_change <- diag(c(exp(-c(res$par[1:n_coeff_nonfixed])), rep(1,n_fixed)))
+    observed_fisher <- par_change %*% observed_fisher %*% par_change
+  }
+
   inv_fisher <- tryCatch(solve(observed_fisher), error = function(e) matrix(NA, nrow(observed_fisher), ncol(observed_fisher)))
   
   std_err <- sqrt(diag(inv_fisher))
@@ -544,12 +550,46 @@ if(parallel){
   } else{
     std_fixed <- NULL
   }
+  if(model$stationary){
+    new_likelihood <- function(theta){
+      new_par <- res$par
+      if(estimate_nu){
+        new_par[3:4] <- theta
+      } else{
+        new_par[2:3] <- theta
+      }
+      return(likelihood(new_par))
+    }
+    
+    if(estimate_nu){
+      coeff_random_nonnu <- coeff_random[-1]
+      new_observed_fisher <- observed_fisher[3:4,3:4]
+    } else{
+      coeff_random_nonnu <- coeff_random
+      new_observed_fisher <- observed_fisher[2:3,2:3]
+    }
+    change_par <- change_parameterization_lme(new_likelihood, model$d, coeff_random[1], coeff_random_nonnu,
+                                            hessian = new_observed_fisher #,
+                                            # improve_gradient = improve_gradient,
+                                            # gradient_args = gradient_args
+                                            )
+    matern_coeff <- list()
+    matern_coeff$random_effects <- coeff_random
+    names(matern_coeff$random_effects) <- c("nu", "sigma", "range")
+    matern_coeff$random_effects[2:3] <- change_par$coeff
+    matern_coeff$std_random <- std_random
+    matern_coeff$std_random[2:3] <- change_par$std_random
+  } else{
+    matern_coeff <- NULL
+  }
+
 
   } else{ # If model is NULL
     coeff_random <- NULL
     std_random <- NULL
     time_build_likelihood <- NULL
     start_values <- NULL
+    matern_coeff <- NULL
 
     if(ncol(X_cov) == 0){
       stop("The model does not have either random nor fixed effects.")
@@ -590,6 +630,7 @@ if(parallel){
   object$terms <- list(fixed_effects = X_cov)
   object$response <- list(y = y_resp)
   object$formula <- formula
+  object$matern_coeff <- matern_coeff
   object$estimation_method <- optim_method
   object$parameterization_latent <- model$parameterization
   object$repl <- repl

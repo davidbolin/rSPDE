@@ -1996,3 +1996,61 @@ convert_B_matrices <- function(B.sigma, B.range, n.spde, nu.nominal, d){
     
     return(list(B.tau = B.tau, B.kappa = B.kappa))
 }
+
+#' @noRd 
+# Change parameterization in rspde_lme to matern
+
+change_parameterization_lme <- function(likelihood, d, nu, par, hessian, improve_gradient, gradient_args){
+  tau <- par[1]
+  kappa <- par[2]
+
+  C1 <- sqrt(8*nu)
+  C2 <- sqrt(gamma(nu) / ((4 * pi)^(d / 2) * gamma(nu + d / 2)))
+
+  sigma <- C2/(tau * kappa^nu)
+  range <- C1/kappa
+
+  grad_par <- matrix(c(-C2/(kappa^nu * sigma^2),0,
+                    nu * range^(nu-1) * C2/(sigma * C1^nu), 
+                    -C1/range^2), nrow = 2, ncol=2)
+  
+
+  new_observed_fisher <- t(grad_par) %*% hessian %*% (grad_par)
+
+  # hess_par <- matrix(c(2*C2/(kappa^nu * sigma^3), 0,
+  #                     -nu * C2/((sigma^2) * (C1^nu)) * range^(nu-1),
+  #                     2*C1/range^3) , ncol=2, nrow=2)
+  
+  # if(!improve_gradient){
+  #   grad_lik <- numDeriv::grad(likelihood, log(par), method = "simple", method.args = gradient_args)
+  # } else{
+  #   grad_lik <- numDeriv::grad(likelihood, log(par), method = "Richardson", method.args = gradient_args)
+  # }
+
+  # grad_lik <- c(1/tau, 1/kappa) * grad_lik
+
+  # add_mat <- diag(grad_lik) %*% hess_par
+
+  # add_mat <- 0.5 * (add_mat + t(add_mat))
+
+  # new_observed_fisher <- new_observed_fisher + add_mat
+
+  inv_fisher <- tryCatch(solve(new_observed_fisher), error = function(e) matrix(NA, nrow(new_observed_fisher), ncol(new_observed_fisher)))
+  
+  std_err <- sqrt(diag(inv_fisher))
+
+  # new_lik <- function(theta){
+  #       sigma <- exp(theta[1])
+  #       range <- exp(theta[2])
+
+  #       kappa <- C1/range
+  #       tau <- C2/(sigma * kappa^nu)
+  #       return(likelihood(log(c(tau,kappa))))
+  # }
+
+  # hess_tmp <- numDeriv::hessian(new_lik, log(c(sigma,range)))
+
+  # hess_tmp <- diag(c(1/sigma, 1/range)) %*% hess_tmp %*% diag(c(1/sigma, 1/range))
+
+  return(list(coeff = c(sigma, range), std_random = std_err))
+}
