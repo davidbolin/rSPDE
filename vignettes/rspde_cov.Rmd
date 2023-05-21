@@ -255,9 +255,8 @@ kappa <- 20
 sigma <- 2
 nu <- 0.8
 r <- sqrt(8*nu)/kappa #range parameter
-op_cov <- matern.operators(
-  C = fem$C, G = fem$G, nu = nu,
-  range = r, sigma = sigma, d = 1, m = 2
+op_cov <- matern.operators(loc_mesh = s, nu = nu,
+  range = r, sigma = sigma, d = 1, m = 2, parameterization = "matern"
 )
 ```
 The object `op_cov` contains the matrices needed for evaluating the distribution of the stochastic weights $\boldsymbol{\mathrm{u}}$. If we want to evaluate $u_h(s)$ at some locations $s_1,\ldots, s_n$, we need to multiply the weights with the basis functions $\varphi_i(s)$ evaluated at the locations. For this, we can construct the observation matrix $\boldsymbol{\mathrm{A}}$, with elements $A_{ij} = \varphi_j(s_i)$, which links the FEM basis functions to the locations. 
@@ -325,7 +324,8 @@ To improve the approximation we can increase the degree of the polynomials, by i
 ```{r}
 op_cov2 <- matern.operators(
   range = r, sigma = sigma, nu = nu,
-  G = fem$G, C = fem$C, d = 1, m = 4
+  loc_mesh = s, d = 1, m = 4,
+  parameterization = "matern"
 )
 Q2 <- precision(op_cov2)
 v_bar2 <- kronecker(matrix(1, nrow = 5), v)
@@ -333,10 +333,10 @@ A_bar2 <- kronecker(matrix(1, ncol = 5), A)
 c_cov.approx2 <- (A_bar2) %*% solve(Q2, v_bar2)
 
 s2 <- seq(from = 0, to = 1, length.out = 501)
-fem2 <- rSPDE.fem1d(s2)
 op_cov <- matern.operators(
   range = r, sigma = sigma, nu = nu,
-  G = fem2$G, C = fem2$C, d = 1, m = 2
+  loc_mesh = s2, d = 1, m = 2,
+  parameterization = "matern"
 )
 Q3 <- precision(op_cov)
 A2 <- rSPDE.A1d(s2, s)
@@ -347,7 +347,8 @@ c_cov.approx3 <- (A2_bar) %*% solve(Q3, v2_bar)
 
 op_cov <- matern.operators(
   range = r, sigma = sigma, nu = nu,
-  G = fem2$G, C = fem2$C, d = 1, m = 4
+  loc_mesh = s2, d = 1, m = 4,
+  parameterization = "matern"
 )
 Q4 <- precision(op_cov)
 v2_bar2 <- kronecker(matrix(1, nrow = 5), v2)
@@ -382,7 +383,8 @@ errors <- rep(0, 4)
 for (i in 1:4) {
   op_cov <- matern.operators(
     range = r, sigma = sigma, nu = nu,
-    G = fem2$G, C = fem2$C, d = 1, m = i
+    loc_mesh = s2, d = 1, m = i,
+    parameterization = "matern"
   )
   Q <- precision(op_cov)
   v_bar <- kronecker(matrix(1, nrow = i + 1), v2)
@@ -436,8 +438,9 @@ sigma <- 2
 nu <- 0.8
 r <- sqrt(8*nu)/kappa
 op_cov <- matern.operators(
-  C = fem$C, G = fem$G, loc_mesh = s, nu = nu,
-  range = r, sigma = sigma, d = 1, m = 2
+  loc_mesh = s, nu = nu,
+  range = r, sigma = sigma, d = 1, m = 2,
+  parameterization = "matern"
 )
 
 u <- simulate(op_cov)
@@ -457,7 +460,7 @@ Let us create a new object to fit the model:
 
 ```{r}
 op_cov_est <- matern.operators(
-  C = fem$C, G = fem$G, loc_mesh = s, d = 1, m = 2
+  loc_mesh = s, d = 1, m = 2
 )
 ```
 

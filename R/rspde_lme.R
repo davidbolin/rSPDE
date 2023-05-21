@@ -34,6 +34,8 @@ rspde_lme <- function(formula, loc, data,
                 use_data_from_graph = TRUE,
                 starting_values_latent = NULL,
                 start_sigma_e = NULL,
+                start_alpha = NULL,
+                alpha = NULL,
                 start_nu = NULL,
                 nu = NULL,
                 nu_upper_bound = 4,
@@ -58,6 +60,30 @@ rspde_lme <- function(formula, loc, data,
 
    if(!is.null(nu)){
     estimate_nu <- FALSE
+    if(!is.numeric(nu)){
+        stop("nu must be numeric!")
+    }
+    if(length(nu)>1){
+        stop("nu must have length 1")
+    }
+    if(nu < 0){
+        stop("nu must be positive.")
+    }
+    alpha <- nu + model$d/2
+   }
+
+   if(!is.null(alpha)){
+    estimate_nu <- FALSE
+    if(!is.numeric(alpha)){
+        stop("alpha must be numeric!")
+    }
+    if(length(alpha)>1){
+        stop("alpha must have length 1")
+    }
+    if(alpha <= model$d/2){
+        stop(paste("alpha must be greater than dim/2 = ",model$d/2))
+    }
+    nu <- alpha - model$d/2    
    }
 
     if(!is.null(rspde_order) && !is.null(model)){
@@ -137,8 +163,6 @@ rspde_lme <- function(formula, loc, data,
               starting_values_latent <- log(c(model$tau, model$kappa))
           } else if(model$parameterization == "matern"){
               starting_values_latent <- log(c(model$sigma, model$range))
-          } else if(model$parameterization == "graph"){
-              starting_values_latent <- log(c(model$sigma, model$kappa))
           }
       }
     } else{
@@ -157,7 +181,31 @@ rspde_lme <- function(formula, loc, data,
     }
 
     if(estimate_nu){
+      if(is.null(start_nu) && is.null(start_alpha)){
         start_values <- c(log(c(0.1*sd(y_resp), model$nu)),starting_values_latent)
+      } else if(!is.null(start_nu)){
+        if(!is.numeric(start_nu)){
+          stop("start_nu must be numeric.")
+        }
+        if(length(start_nu>1)){
+          stop("start_nu must have length 1.")
+        }
+        if(start_nu <= 0){
+          stop("start_nu must be positive")
+        }        
+        start_values <- c(log(c(0.1*sd(y_resp), start_nu)),starting_values_latent)
+      } else {
+        if(!is.numeric(start_alpha)){
+          stop("start_alpha must be numeric.")
+        }
+        if(length(start_alpha>1)){
+          stop("start_alpha must have length 1.")
+        }
+        if(start_alpha <= model$d/2){
+          stop(paste("start_alpha must be greater than dim/2 =", model$d/2))
+        }
+        start_values <- c(log(c(0.1*sd(y_resp), start_alpha - model$d/2)),starting_values_latent)
+      }
     } else{
         start_values <- c(log(0.1*sd(y_resp)), starting_values_latent)
     }
@@ -243,23 +291,15 @@ rspde_lme <- function(formula, loc, data,
                     gap <- 1
                 } else{
                     gap <- 0
-                    if(!is.numeric(nu)){
-                        stop("nu must be numeric!")
-                    }
-                    if(length(nu)>1){
-                        stop("nu must have length 1")
-                    }
-                    if(nu < 0){
-                        stop("nu must be positive.")
-                    }
                 }
                     
                 if(model_tmp$stationary){
                     if(model_tmp$parameterization == "spde"){
+                        alpha <- nu + model$d/2
                         tau <- exp(theta[2+gap])
                         kappa <- exp(theta[3+gap])
                         model_tmp <- update.CBrSPDEobj(model_tmp,
-                            user_nu = nu, user_tau = tau,
+                            user_alpha = alpha, user_tau = tau,
                             user_kappa = kappa, parameterization = "spde")
                     } else if(model_tmp$parameterization == "matern"){
                         sigma <- exp(theta[2+gap])
@@ -269,13 +309,7 @@ rspde_lme <- function(formula, loc, data,
                             user_sigma = sigma, user_range = range,
                             parameterization = "matern")
 
-                    } else if(model_tmp$parameterization == "graph"){
-                        sigma <- exp(theta[2+gap])
-                        kappa <- exp(theta[3+gap])
-                        model_tmp <- update.CBrSPDEobj(model_tmp,
-                            user_nu = nu, user_sigma = sigma,
-                            user_kappa = kappa, parameterization = "graph")
-                    }
+                    } 
                 } else{
                     theta_model <- theta[(2+gap):(n_initial)]
 
@@ -309,23 +343,15 @@ rspde_lme <- function(formula, loc, data,
                     gap <- 1
                 } else{
                     gap <- 0
-                    if(!is.numeric(nu)){
-                        stop("nu must be numeric!")
-                    }
-                    if(length(nu)>1){
-                        stop("nu must have length 1")
-                    }
-                    if(nu < 0){
-                        stop("nu must be positive.")
-                    }
                 }
 
                 if(model$stationary){
                     if(model_tmp$parameterization == "spde"){
+                        alpha <- nu + model$d/2
                         tau <- exp(theta[2+gap])
                         kappa <- exp(theta[3+gap])
                         model_tmp <- update.rSPDEobj(model_tmp,
-                            user_nu = nu, user_tau = tau,
+                            user_alpha = alpha, user_tau = tau,
                             user_kappa = kappa, parameterization = "spde")
                     } else if(model_tmp$parameterization == "matern"){
                         sigma <- exp(theta[2+gap])
@@ -334,12 +360,6 @@ rspde_lme <- function(formula, loc, data,
                             user_nu = nu,
                             user_sigma = sigma, user_range = range,
                             parameterization = "matern")
-                    } else if(model_tmp$parameterization == "graph"){
-                        sigma <- exp(theta[2+gap])
-                        kappa <- exp(theta[3+gap])
-                        model_tmp <- update.rSPDEobj(model_tmp,
-                            user_nu = nu, user_sigma = sigma,
-                            user_kappa = kappa, parameterization = "graph")
                     }
                 } else{
                     theta_model <- theta[(2+gap):(n_initial)]
