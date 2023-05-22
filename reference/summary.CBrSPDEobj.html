@@ -104,6 +104,7 @@ to <code>summary.CBrSPDEobj()</code>.</p></dd>
 <span class="r-in"><span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">10</span></span></span>
 <span class="r-in"><span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span></span>
+<span class="r-in"><span><span class="va">range</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">8</span><span class="op">*</span><span class="va">nu</span><span class="op">)</span><span class="op">/</span><span class="va">kappa</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># create mass and stiffness matrices for a FEM discretization</span></span></span>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">101</span><span class="op">)</span></span></span>
@@ -113,14 +114,16 @@ to <code>summary.CBrSPDEobj()</code>.</p></dd>
 <span class="r-in"><span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Special.html" class="external-link">gamma</a></span><span class="op">(</span><span class="va">nu</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">sigma</span><span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="va">kappa</span><span class="op">^</span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">nu</span><span class="op">)</span> <span class="op">*</span></span></span>
 <span class="r-in"><span><span class="op">(</span><span class="fl">4</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span><span class="op">^</span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Special.html" class="external-link">gamma</a></span><span class="op">(</span><span class="va">nu</span> <span class="op">+</span> <span class="fl">1</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="matern.operators.html">matern.operators</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  C <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span>, G <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span></span>
-<span class="r-in"><span>  kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, d <span class="op">=</span> <span class="fl">1</span>, m <span class="op">=</span> <span class="fl">2</span></span></span>
+<span class="r-in"><span>  loc_mesh <span class="op">=</span> <span class="va">x</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span></span>
+<span class="r-in"><span>  range <span class="op">=</span> <span class="va">range</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, d <span class="op">=</span> <span class="fl">1</span>, m <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>  parameterization <span class="op">=</span> <span class="st">"matern"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">op_cov</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Type of approximation:  Covariance-Based Matern SPDE Approximation </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameterization:  matern </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Type of rational approximation:  chebfun </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: kappa =  10 , sigma =  1 , nu =  0.8 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: range =  0.2529822 , sigma =  1 , nu =  0.8 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Order or rational approximation:  2 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Size of discrete operators:  101  x  101 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Stationary Model</span>

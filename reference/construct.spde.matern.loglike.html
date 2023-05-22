@@ -180,12 +180,14 @@ are given in the order theta, nu, sigma.e, whenever they are available.</p>
 <span class="r-in"><span><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="rSPDE.fem1d.html">rSPDE.fem1d</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="va">n.x</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span></span>
+<span class="r-in"><span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="va">nu</span> <span class="op">+</span> <span class="fl">0.5</span></span></span>
 <span class="r-in"><span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">n.x</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Matern parameterization</span></span></span>
 <span class="r-in"><span><span class="co"># compute rational approximation</span></span></span>
 <span class="r-in"><span> <span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="spde.matern.operators.html">spde.matern.operators</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>   kappa <span class="op">=</span> <span class="va">kappa</span>, tau <span class="op">=</span> <span class="va">tau</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span></span>
-<span class="r-in"><span>   G <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span>, C <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span>, d <span class="op">=</span> <span class="fl">1</span></span></span>
+<span class="r-in"><span>    loc_mesh <span class="op">=</span> <span class="va">x</span>,</span></span>
+<span class="r-in"><span>   kappa <span class="op">=</span> <span class="va">kappa</span>, tau <span class="op">=</span> <span class="va">tau</span>, alpha <span class="op">=</span> <span class="va">alpha</span>,</span></span>
+<span class="r-in"><span>   parameterization <span class="op">=</span> <span class="st">"spde"</span>, d <span class="op">=</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span> <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Sample the model</span></span></span>
 <span class="r-in"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op</span>, <span class="va">n.rep</span><span class="op">)</span></span></span>
@@ -208,16 +210,16 @@ are given in the order theta, nu, sigma.e, whenever they are available.</p>
 <span class="r-in"><span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                 tau     kappa        nu    sigma.e</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Truth     0.5000000 1.0000000 0.8000000 0.10000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Estimates 0.5113561 0.8705163 0.7924875 0.09893805</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 tau     kappa       nu    sigma.e</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Truth     0.5000000 1.0000000 0.800000 0.10000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Estimates 0.5225724 0.8764348 2.852455 0.09924265</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># SPDE parameterization</span></span></span>
 <span class="r-in"><span><span class="co"># compute rational approximation</span></span></span>
 <span class="r-in"><span> <span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="spde.matern.operators.html">spde.matern.operators</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>   kappa <span class="op">=</span> <span class="va">kappa</span>, tau <span class="op">=</span> <span class="va">tau</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span></span>
-<span class="r-in"><span>   G <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span>, C <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span>, d <span class="op">=</span> <span class="fl">1</span>, </span></span>
+<span class="r-in"><span>   kappa <span class="op">=</span> <span class="va">kappa</span>, tau <span class="op">=</span> <span class="va">tau</span>, alpha <span class="op">=</span> <span class="va">alpha</span>,</span></span>
+<span class="r-in"><span>   loc_mesh <span class="op">=</span> <span class="va">x</span>, d <span class="op">=</span> <span class="fl">1</span>, </span></span>
 <span class="r-in"><span>   parameterization <span class="op">=</span> <span class="st">"spde"</span></span></span>
 <span class="r-in"><span> <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Sample the model</span></span></span>
@@ -241,9 +243,9 @@ are given in the order theta, nu, sigma.e, whenever they are available.</p>
 <span class="r-in"><span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                 tau    kappa        nu   sigma.e</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Truth     0.5000000 1.000000 0.8000000 0.1000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Estimates 0.6243566 0.978483 0.7304962 0.1009251</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 tau    kappa        nu    sigma.e</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Truth     0.5000000 1.000000 0.8000000 0.10000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Estimates 0.5324063 1.077076 0.7325781 0.09954921</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

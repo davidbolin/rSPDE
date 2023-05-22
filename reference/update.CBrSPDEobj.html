@@ -74,13 +74,19 @@
 <span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span></span>
 <span>  <span class="va">object</span>,</span>
 <span>  user_nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user_alpha <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_sigma <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_theta <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_m <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  loc_mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  graph <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  range_mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  compute_higher_order <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">higher_order</span>,</span>
+<span>  parameterization <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  type_rational_approximation <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">type_rational_approximation</span>,</span>
 <span>  return_block_list <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">return_block_list</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -96,26 +102,29 @@ computed using <code><a href="matern.operators.html">matern.operators()</a></cod
 
 <dt>user_nu</dt>
 <dd><p>If non-null, update the shape parameter of the
-covariance function.</p></dd>
+covariance function. Will be used if parameterization is 'matern'.</p></dd>
+
+
+<dt>user_alpha</dt>
+<dd><p>If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.</p></dd>
 
 
 <dt>user_kappa</dt>
-<dd><p>If non-null, update the range parameter
-of the covariance function.</p></dd>
+<dd><p>If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.</p></dd>
 
 
 <dt>user_tau</dt>
-<dd><p>If non-null, update the parameter tau.</p></dd>
+<dd><p>If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.</p></dd>
 
 
 <dt>user_sigma</dt>
 <dd><p>If non-null, update the standard deviation of
-the covariance function.</p></dd>
+the covariance function. Will be used if parameterization is 'matern'.</p></dd>
 
 
 <dt>user_range</dt>
 <dd><p>If non-null, update the range parameter
-of the covariance function.</p></dd>
+of the covariance function. Will be used if parameterization is 'matern'.</p></dd>
 
 
 <dt>user_theta</dt>
@@ -127,9 +136,29 @@ of the covariance function.</p></dd>
 approximation, which needs to be a positive integer.</p></dd>
 
 
+<dt>mesh</dt>
+<dd><p>An optional inla mesh. Replaces <code>d</code>, <code>C</code> and <code>G</code>.</p></dd>
+
+
+<dt>loc_mesh</dt>
+<dd><p>The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the <code><a href="rspde_lme.html">rspde_lme()</a></code> function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the <code>graph</code> argument.</p></dd>
+
+
+<dt>graph</dt>
+<dd><p>An optional <code>metric_graph</code> object. Replaces <code>d</code>, <code>C</code> and <code>G</code>.</p></dd>
+
+
+<dt>range_mesh</dt>
+<dd><p>The range of the mesh. Will be used to provide starting values for the parameters. Will be used if <code>mesh</code> and <code>graph</code> are <code>NULL</code>, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.</p></dd>
+
+
 <dt>compute_higher_order</dt>
 <dd><p>Logical. Should the higher order
 finite element matrices be computed?</p></dd>
+
+
+<dt>parameterization</dt>
+<dd><p>If non-null, update the parameterization. Only works for stationary models.</p></dd>
 
 
 <dt>type_rational_approximation</dt>
@@ -167,6 +196,7 @@ same quantities listed in the output of <code><a href="matern.operators.html">ma
 <span class="r-in"><span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">10</span></span></span>
 <span class="r-in"><span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span></span>
+<span class="r-in"><span><span class="va">range</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">8</span><span class="op">*</span><span class="va">nu</span><span class="op">)</span><span class="op">/</span><span class="va">kappa</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># create mass and stiffness matrices for a FEM discretization</span></span></span>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">101</span><span class="op">)</span></span></span>
@@ -174,13 +204,15 @@ same quantities listed in the output of <code><a href="matern.operators.html">ma
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># compute rational approximation of covariance function at 0.5</span></span></span>
 <span class="r-in"><span><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="matern.operators.html">matern.operators</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  C <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span>, G <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span></span>
-<span class="r-in"><span>  kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, d <span class="op">=</span> <span class="fl">1</span>, m <span class="op">=</span> <span class="fl">2</span></span></span>
+<span class="r-in"><span>  loc_mesh <span class="op">=</span> <span class="va">x</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span></span>
+<span class="r-in"><span>  range <span class="op">=</span> <span class="va">range</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, d <span class="op">=</span> <span class="fl">1</span>, m <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>  parameterization <span class="op">=</span> <span class="st">"matern"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">op_cov</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Type of approximation:  Covariance-Based Matern SPDE Approximation </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameterization:  matern </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Type of rational approximation:  chebfun </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: kappa =  10 , sigma =  1 , nu =  0.8 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: range =  0.2529822 , sigma =  1 , nu =  0.8 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Order or rational approximation:  2 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Size of discrete operators:  101  x  101 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Stationary Model</span>
@@ -189,8 +221,9 @@ same quantities listed in the output of <code><a href="matern.operators.html">ma
 <span class="r-in"><span><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">op_cov</span>, user_kappa <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">op_cov</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Type of approximation:  Covariance-Based Matern SPDE Approximation </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameterization:  matern </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Type of rational approximation:  chebfun </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: kappa =  20 , sigma =  0.5743492 , nu =  0.8 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameters of covariance function: range =  0.2529822 , sigma =  1 , nu =  0.8 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Order or rational approximation:  2 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Size of discrete operators:  101  x  101 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Stationary Model</span>

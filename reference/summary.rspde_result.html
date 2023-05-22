@@ -125,7 +125,8 @@ their original scales.</p>
 <span class="r-in"><span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">8</span> <span class="op">*</span> <span class="va">nu</span><span class="op">)</span> <span class="op">/</span> <span class="va">range</span></span></span>
 <span class="r-in"><span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="matern.operators.html">matern.operators</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span></span>
-<span class="r-in"><span>  kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, m <span class="op">=</span> <span class="fl">2</span></span></span>
+<span class="r-in"><span>  range <span class="op">=</span> <span class="va">range</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, m <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>  parameterization <span class="op">=</span> <span class="st">"matern"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.spde.make.A.html" class="external-link">inla.spde.make.A</a></span><span class="op">(</span></span></span>
@@ -156,9 +157,9 @@ their original scales.</p>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             mean        sd 0.025quant 0.5quant 0.975quant     mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> std.dev 1.022910 0.1259260   0.785648 1.020740   1.278280 1.022420</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> range   0.220272 0.0593786   0.122513 0.214293   0.354015 0.202401</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> nu      0.847220 0.4037350   0.241920 0.783297   1.702520 0.531337</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> std.dev 0.836807 0.0753747   0.679855 0.842047   0.970308 0.865979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> range   0.157310 0.0301143   0.105880 0.154745   0.223771 0.149695</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nu      1.270440 0.4312300   0.481330 1.287310   1.945410 1.838860</span>
 <span class="r-in"><span><span class="co">#devel.tag</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>

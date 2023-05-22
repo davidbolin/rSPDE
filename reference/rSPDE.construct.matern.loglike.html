@@ -204,6 +204,7 @@ are given in the order sigma, kappa, nu, sigma.e, whenever they are available.</
 <span class="r-in"><span><span class="va">n.rep</span> <span class="op">&lt;-</span> <span class="fl">10</span></span></span>
 <span class="r-in"><span><span class="va">n.obs</span> <span class="op">&lt;-</span> <span class="fl">200</span></span></span>
 <span class="r-in"><span><span class="va">n.x</span> <span class="op">&lt;-</span> <span class="fl">51</span></span></span>
+<span class="r-in"><span><span class="va">range</span> <span class="op">&lt;-</span> <span class="fl">0.2</span></span></span>
 <span class="r-in"><span><span class="co"># create mass and stiffness matrices for a FEM discretization</span></span></span>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">1</span>, length.out <span class="op">=</span> <span class="va">n.x</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="rSPDE.fem1d.html">rSPDE.fem1d</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
@@ -211,8 +212,9 @@ are given in the order sigma, kappa, nu, sigma.e, whenever they are available.</
 <span class="r-in"><span><span class="op">(</span><span class="fl">4</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span><span class="op">^</span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Special.html" class="external-link">gamma</a></span><span class="op">(</span><span class="va">nu</span> <span class="op">+</span> <span class="fl">1</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Compute the covariance-based rational approximation</span></span></span>
 <span class="r-in"><span><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="matern.operators.html">matern.operators</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  C <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span>, G <span class="op">=</span> <span class="va">fem</span><span class="op">$</span><span class="va">G</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span></span>
-<span class="r-in"><span>  kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, d <span class="op">=</span> <span class="fl">1</span>, m <span class="op">=</span> <span class="fl">2</span></span></span>
+<span class="r-in"><span>  loc_mesh <span class="op">=</span> <span class="va">x</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span></span>
+<span class="r-in"><span>  range <span class="op">=</span> <span class="va">range</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, d <span class="op">=</span> <span class="fl">1</span>, m <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span> parameterization <span class="op">=</span> <span class="st">"matern"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Sample the model</span></span></span>
 <span class="r-in"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op_cov</span>, <span class="va">n.rep</span><span class="op">)</span></span></span>
@@ -242,9 +244,9 @@ are given in the order sigma, kappa, nu, sigma.e, whenever they are available.</
 <span class="r-in"><span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">$</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>               sigma     range        nu   sigma.e</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Truth     1.0000000 0.1686548 0.8000000 0.1000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Estimates 0.9777108 0.1521972 0.9317685 0.1002161</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               sigma     range       nu  sigma.e</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Truth     1.0000000 0.1686548 0.800000 0.100000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Estimates 0.9973174 0.1800280 0.978009 0.100262</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># SPDE parameterization:</span></span></span>
 <span class="r-in"><span><span class="va">loglike</span> <span class="op">&lt;-</span> <span class="fu">rSPDE.construct.matern.loglike</span><span class="op">(</span><span class="va">op_cov</span>, <span class="va">Y</span>, <span class="va">A</span>, parameterization <span class="op">=</span> <span class="st">"spde"</span><span class="op">)</span> </span></span>
@@ -263,7 +265,7 @@ are given in the order sigma, kappa, nu, sigma.e, whenever they are available.</
 <span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                  tau    kappa        nu   sigma.e</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Truth     0.06931604 15.00000 0.8000000 0.1000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Estimates 0.03998018 17.95058 0.9321876 0.1002132</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Estimates 0.03989423 14.14214 0.8701964 0.1003115</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

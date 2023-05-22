@@ -82,6 +82,7 @@ with a latent stationary Gaussian Matern model</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get.initial.values.rSPDE</span><span class="op">(</span></span>
 <span>  mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  mesh.range <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  graph.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n.spde <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  dim <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  B.tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -104,6 +105,10 @@ with a latent stationary Gaussian Matern model</p>
 
 <dt>mesh.range</dt>
 <dd><p>The range of the mesh.</p></dd>
+
+
+<dt>graph.obj</dt>
+<dd><p>A <code>metric_graph</code> object. To be used in case both <code>mesh</code> and <code>mesh.range</code> are <code>NULL</code>.</p></dd>
 
 
 <dt>n.spde</dt>

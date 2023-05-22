@@ -87,12 +87,16 @@ $$(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.$$</p>
 <span>  B.kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
 <span>  B.sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
 <span>  B.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
-<span>  <span class="va">nu</span>,</span>
-<span>  parameterization <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"matern"</span>, <span class="st">"spde"</span><span class="op">)</span>,</span>
+<span>  alpha <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  parameterization <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"spde"</span>, <span class="st">"matern"</span><span class="op">)</span>,</span>
 <span>  G <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  C <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  d <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  graph <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  range_mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  loc_mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  m <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"covariance"</span>, <span class="st">"operator"</span><span class="op">)</span>,</span>
 <span>  type_rational_approximation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chebfun"</span>, <span class="st">"brasil"</span>, <span class="st">"chebfunLB"</span><span class="op">)</span></span>
@@ -134,10 +138,12 @@ and that connects B.sigma and B.range to tau and kappa in case the parameterizat
 <dd><p>Matrix with specification of log-linear model for \(\rho\), which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if <code>parameterization = 'matern'</code>.</p></dd>
 
 
+<dt>alpha</dt>
+<dd><p>smoothness parameter. Will be used if the parameterization is 'spde'.</p></dd>
+
+
 <dt>nu</dt>
-<dd><p>Shape parameter of the covariance function, related to
-\(\beta\) through the equation
-\(\beta = (\nu + d/2)/2\).</p></dd>
+<dd><p>Shape parameter of the covariance function. Will be used if the parameterization is 'matern'.</p></dd>
 
 
 <dt>parameterization</dt>
@@ -159,9 +165,21 @@ domain of interest.</p></dd>
 <code>mesh</code> is used.</p></dd>
 
 
+<dt>graph</dt>
+<dd><p>An optional <code>metric_graph</code> object. Replaces <code>d</code>, <code>C</code> and <code>G</code>.</p></dd>
+
+
 <dt>mesh</dt>
 <dd><p>An optional inla mesh. <code>d</code>, <code>C</code> and <code>G</code>
 must be given if <code>mesh</code> is not given.</p></dd>
+
+
+<dt>range_mesh</dt>
+<dd><p>The range of the mesh. Will be used to provide starting values for the parameters. Will be used if <code>mesh</code> and <code>graph</code> are <code>NULL</code>, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.</p></dd>
+
+
+<dt>loc_mesh</dt>
+<dd><p>The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the <code><a href="rspde_lme.html">rspde_lme()</a></code> function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the <code>graph</code> argument.</p></dd>
 
 
 <dt>m</dt>
