@@ -89,8 +89,7 @@ $$(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.$$</p>
 <span>  user_kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user_theta <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  user_m <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  pivot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  user_m <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -139,11 +138,6 @@ the returned likelihood.</p></dd>
 <dt>user_m</dt>
 <dd><p>If non-null, update the order of the rational approximation,
 which needs to be a positive integer.</p></dd>
-
-
-<dt>pivot</dt>
-<dd><p>Should pivoting be used for the Cholesky decompositions?
-Default is TRUE</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -200,8 +194,7 @@ rational approximation of the fractional SPDE model.</p>
 <span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="fu">spde.matern.loglike</span><span class="op">(</span><span class="va">op</span>, <span class="va">Y</span>, <span class="va">A</span>, sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                                 user_nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                                 user_kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                                 user_tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                                 pivot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                                 user_tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="co">#' #The parameters can now be estimated by minimizing mlik with optim</span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
