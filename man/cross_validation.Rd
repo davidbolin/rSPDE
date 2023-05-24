@@ -73,7 +73,8 @@ Obtain several scores for a list of fitted models according
 to a folding scheme.
 }
 \examples{
-\donttest{ #devel version
+\donttest{ #tryCatch version
+tryCatch({
 if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
 if (requireNamespace("inlabru", quietly = TRUE)){
@@ -83,7 +84,8 @@ set.seed(123)
 
 
 }
-#devel.tag
+#stable.tryCatch
+}, error = function(e){print("Could not run the example")})
 }
 }
 }

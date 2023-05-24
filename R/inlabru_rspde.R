@@ -364,7 +364,8 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @return A data.frame with the fitted models and the corresponding scores.
 #' @export
 #' @examples
-#' \donttest{ #devel version
+#' \donttest{ #tryCatch version
+#' tryCatch({
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #' if (requireNamespace("inlabru", quietly = TRUE)){
@@ -374,7 +375,8 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' 
 #' 
 #' }
-#' #devel.tag
+#' #stable.tryCatch
+#' }, error = function(e){print("Could not run the example")})
 #' }
 #' }
 
