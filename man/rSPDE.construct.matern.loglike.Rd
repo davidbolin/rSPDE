@@ -18,8 +18,7 @@ rSPDE.construct.matern.loglike(
   parameterization = c("spde", "matern"),
   user_m = NULL,
   log_scale = TRUE,
-  return_negative_likelihood = TRUE,
-  pivot = TRUE
+  return_negative_likelihood = TRUE
 )
 }
 \arguments{
@@ -55,9 +54,6 @@ which needs to be a positive integer.}
 \item{log_scale}{Should the parameters be evaluated in log-scale?}
 
 \item{return_negative_likelihood}{Return minus the likelihood to turn the maximization into a minimization?}
-
-\item{pivot}{Should pivoting be used for the Cholesky decompositions? Default
-is TRUE}
 }
 \value{
 The log-likelihood function. The parameters of the returned function
@@ -80,7 +76,6 @@ of the fractional SPDE model corresponding to the Gaussian process.
 set.seed(123)
 # Sample a Gaussian Matern process on R using a rational approximation
 nu <- 0.8
-kappa <- 15
 sigma <- 1
 sigma.e <- 0.1
 n.rep <- 10
@@ -89,9 +84,6 @@ n.x <- 51
 range <- 0.2
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = n.x)
-fem <- rSPDE.fem1d(x)
-tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-(4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 # Compute the covariance-based rational approximation
 op_cov <- matern.operators(
   loc_mesh = x, nu = nu,
@@ -122,28 +114,12 @@ theta <- optim(theta0, loglike,
   method = "L-BFGS-B"
 )
 print(data.frame(
-  sigma = c(sigma, exp(theta$par[1])), range = c(sqrt(8*nu)/kappa, exp(theta$par[2])),
+  sigma = c(sigma, exp(theta$par[1])), range = c(range, exp(theta$par[2])),
   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
   row.names = c("Truth", "Estimates")
 ))
 
-# SPDE parameterization:
-loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A, parameterization = "spde") 
-
-theta0 <- c(get.initial.values.rSPDE(mesh.range = 1, dim = 1, parameterization = "spde"), 
-                                 log(0.1*sd(as.vector(Y))))
-
-# run estimation and display the results
-theta <- optim(theta0, loglike,
-  method = "L-BFGS-B"
-)
-print(data.frame(
-  tau = c(tau, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
-  nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
-  row.names = c("Truth", "Estimates")
-))
 }
-
 }
 \seealso{
 \code{\link[=matern.operators]{matern.operators()}}, \code{\link[=predict.CBrSPDEobj]{predict.CBrSPDEobj()}}

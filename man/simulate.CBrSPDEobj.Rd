@@ -16,7 +16,6 @@ covariance-based rational SPDE approximation}
   user_tau = NULL,
   user_theta = NULL,
   user_m = NULL,
-  pivot = FALSE,
   ...
 )
 }
@@ -46,9 +45,6 @@ of the covariance function.}
 
 \item{user_m}{If non-null, update the order of the rational
 approximation, which needs to be a positive integer.}
-
-\item{pivot}{Should pivoting be used for the Cholesky
-decompositions? Default is FALSE}
 
 \item{...}{Currently not used.}
 }

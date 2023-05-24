@@ -15,8 +15,7 @@ spde.matern.loglike(
   user_kappa = NULL,
   user_tau = NULL,
   user_theta = NULL,
-  user_m = NULL,
-  pivot = TRUE
+  user_m = NULL
 )
 }
 \arguments{
@@ -44,9 +43,6 @@ the returned likelihood.}
 
 \item{user_m}{If non-null, update the order of the rational approximation,
 which needs to be a positive integer.}
-
-\item{pivot}{Should pivoting be used for the Cholesky decompositions?
-Default is TRUE}
 }
 \value{
 The log-likelihood value.
@@ -97,8 +93,7 @@ mlik <- function(theta) {
   return(-spde.matern.loglike(op, Y, A, sigma.e = exp(theta[4]),
                                  user_nu = exp(theta[3]),
                                  user_kappa = exp(theta[2]),
-                                 user_tau = exp(theta[1]),
-                                 pivot = TRUE))
+                                 user_tau = exp(theta[1])))
 }
 #' #The parameters can now be estimated by minimizing mlik with optim
 \donttest{

@@ -841,8 +841,8 @@ CBrSPDE.matern.operators <- function(C,
 
   L <- (G + kappa^2 * C) / kappa^2
 
-  Lchol <- chol(L)
-  logdetL <- 2 * sum(log(diag(Lchol)))
+  Lchol <- Matrix::Cholesky(L)
+  logdetL <- 2 * c(determinant(Lchol, logarithm = TRUE)$modulus)
 
   logdetC <- sum(log(diag(C)))
 

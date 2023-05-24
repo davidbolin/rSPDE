@@ -432,6 +432,11 @@ time_par <- NULL
 
 if(parallel){
   start_par <- Sys.time()
+  n_cores_lim <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+
+  if (nzchar(n_cores_lim) && n_cores_lim == "TRUE") {
+    n_cores <- 2L
+  } 
   cl <- parallel::makeCluster(n_cores)
   parallel::setDefaultCluster(cl = cl)
   parallel::clusterExport(cl, "y_resp", envir = environment())

@@ -13,8 +13,7 @@ construct.spde.matern.loglike(
   user_nu = NULL,
   user_m = NULL,
   log_scale = TRUE,
-  return_negative_likelihood = TRUE,
-  pivot = TRUE
+  return_negative_likelihood = TRUE
 )
 }
 \arguments{
@@ -40,9 +39,6 @@ which needs to be a positive integer.}
 \item{log_scale}{Should the parameters be evaluated in log-scale?}
 
 \item{return_negative_likelihood}{Return minus the likelihood to turn the maximization into a minimization?}
-
-\item{pivot}{Should pivoting be used for the Cholesky decompositions? Default
-is TRUE}
 }
 \value{
 The log-likelihood function. The parameters of the returned function

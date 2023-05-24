@@ -637,8 +637,6 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' covariance function.
 #' @param user_m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
-#' @param pivot Should pivoting be used for the Cholesky
-#' decompositions? Default is FALSE
 #' @param ... Currently not used.
 #' @return A matrix with the `n` samples as columns.
 #' @method simulate CBrSPDEobj
@@ -676,7 +674,6 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
                                 user_tau = NULL,
                                 user_theta = NULL,
                                 user_m = NULL,
-                                pivot = FALSE,
                                 ...) {
   if(!is.null(seed)){
     set.seed(seed)
@@ -721,18 +718,13 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
     )
     Z <- rnorm(sizeL * nsim)
     dim(Z) <- c(sizeL, nsim)
-    if (pivot) {
-      LQ <- chol(forceSymmetric(Q), pivot = TRUE)
-      reorder <- attr(LQ, "pivot")
-      X <- solve(LQ, Z)
-      # order back
-      orderback <- numeric(length(reorder))
-      orderback[reorder] <- seq_len(length(reorder))
-      X <- X[orderback, ]
-    } else {
+
+    # LQ <- Matrix::Cholesky(forceSymmetric(Q), LDL = FALSE)
+    # X <- solve(LQ, Z, system = "Lt")
+    # X <- solve(LQ, X, system = "Pt")
       LQ <- chol(forceSymmetric(Q))
       X <- solve(LQ, Z)
-    }
+
   } else {
     object <- update.CBrSPDEobj(
       object = object,
@@ -751,18 +743,12 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 
     Z <- rnorm(dim(Q)[1] * nsim)
     dim(Z) <- c(dim(Q)[1], nsim)
-    if (pivot) {
-      LQ <- chol(forceSymmetric(Q), pivot = TRUE)
-      reorder <- attr(LQ, "pivot")
-      X <- solve(LQ, Z)
-      # order back
-      orderback <- numeric(length(reorder))
-      orderback[reorder] <- seq_len(length(reorder))
-      X <- X[orderback, ]
-    } else {
+
+    # LQ <- Matrix::Cholesky(forceSymmetric(Q), LDL = FALSE)
+    # X <- solve(LQ, Z, system = "Lt")
+    # X <- solve(LQ, X, system = "Pt")
       LQ <- chol(forceSymmetric(Q))
       X <- solve(LQ, Z)
-    }
     if(alpha %% 1 == 0){
       A <- Diagonal(dim(Q)[1])
       Abar <- A
@@ -1085,8 +1071,6 @@ rSPDE.loglike <- function(obj,
 #' function.
 #' @param user_m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
-#' @param pivot Should pivoting be used for the Cholesky decompositions? Default
-#' is TRUE
 #' @return The log-likelihood value.
 #' @export
 #' @seealso [matern.operators()], [predict.CBrSPDEobj()]
@@ -1169,8 +1153,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                  user_sigma = NULL,
                                  user_range = NULL,
                                  user_tau = NULL,
-                                 user_m = NULL,
-                                 pivot = TRUE) {
+                                 user_m = NULL) {
   if (inherits(object, "CBrSPDEobj")) {
     return(CBrSPDE.matern.loglike(
       object = object,
@@ -1182,8 +1165,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
       user_sigma = user_sigma,
       user_tau = user_tau,
       user_range = user_range,
-      user_m = user_m,
-      pivot = pivot
+      user_m = user_m
     ))
   } else {
     if (inherits(object, "rSPDEobj")) {
@@ -1238,8 +1220,6 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' covariance function.
 #' @param user_m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
-#' @param pivot Should pivoting be used for the Cholesky decompositions?
-#' Default is TRUE
 #' @return The log-likelihood value.
 #' @noRd
 #' @seealso [matern.operators()], [predict.CBrSPDEobj()]
@@ -1319,8 +1299,7 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                    user_sigma = NULL,
                                    user_range = NULL,
                                    user_tau = NULL,
-                                   user_m = NULL,
-                                   pivot = TRUE) {
+                                   user_m = NULL) {
   Y <- as.matrix(Y)
   if (length(dim(Y)) == 2) {
     n.rep <- dim(Y)[2]
@@ -1362,17 +1341,20 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
   Q.frac <- object$Q.frac
 
-  Q.fracR <- chol(Q.frac, pivot = pivot)
+  Q.fracR <- Matrix::Cholesky(Q.frac)
 
   logdetL <- object$logdetL
   logdetC <- object$logdetC
   Q.int.order <- object$Q.int$order
 
   if (Q.int.order > 0) {
-    logQ <- 2 * sum(log(diag(Q.fracR))) + (Q.int.order) *
+    # logQ <- 2 * sum(log(diag(Q.fracR))) + (Q.int.order) *
+    # (m + 1) * (logdetL - logdetC)
+    
+    logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE)$modulus) + (Q.int.order) *
     (m + 1) * (logdetL - logdetC)
   } else {
-    logQ <- 2 * sum(log(diag(Q.fracR)))
+    logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE)$modulus)
   }
 
   ## compute Q_x|y
@@ -1390,8 +1372,6 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
 
   R <- Matrix::Cholesky(Q_xgiveny)
-
-
 
   mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
 
@@ -1435,8 +1415,7 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                    user_kappa = NULL,
                                    user_tau = NULL,
                                    user_theta = NULL,
-                                   user_m = NULL,
-                                   pivot = TRUE) {
+                                   user_m = NULL) {
 
   Y <- as.matrix(Y)
   if (length(dim(Y)) == 2) {
@@ -1478,9 +1457,9 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
   Q <- object$Q
 
-  Q.R <- chol(Q, pivot = pivot)
+  Q.R <- Matrix::Cholesky(Q)
 
-  logQ <- 2 * sum(log(diag(Q.R)))
+  logQ <- 2 * c(determinant(Q.R, logarithm = TRUE)$modulus)
 
   ## compute Q_x|y
   if(object$alpha %% 1 == 0){
@@ -1497,8 +1476,6 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
 
   R <- Matrix::Cholesky(Q_xgiveny)
-
-
 
   mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
 
@@ -1564,8 +1541,6 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' @param user_nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
 #' @param user_m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
-#' @param pivot Should pivoting be used for the Cholesky decompositions?
-#' Default is TRUE
 #' 
 #' @return The log-likelihood value.
 #' @export
@@ -1605,8 +1580,7 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
  #'   return(-spde.matern.loglike(op, Y, A, sigma.e = exp(theta[4]),
  #'                                  user_nu = exp(theta[3]),
  #'                                  user_kappa = exp(theta[2]),
- #'                                  user_tau = exp(theta[1]),
- #'                                  pivot = TRUE))
+ #'                                  user_tau = exp(theta[1])))
  #' }
 #' #' #The parameters can now be estimated by minimizing mlik with optim
 #' \donttest{
@@ -1625,8 +1599,7 @@ spde.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                  user_kappa = NULL,
                                  user_tau = NULL,
                                  user_theta = NULL,
-                                 user_m = NULL,
-                                 pivot = TRUE) {
+                                 user_m = NULL) {
 if (inherits(object, "CBrSPDEobj")) {
 
 
@@ -1643,8 +1616,7 @@ if (inherits(object, "CBrSPDEobj")) {
                                    user_kappa = user_kappa,
                                    user_tau = user_tau,
                                    user_theta = user_theta,
-                                   user_m = user_m,
-                                   pivot = pivot))
+                                   user_m = user_m))
 
   } else {
     if (inherits(object, "rSPDEobj")) {
@@ -1695,7 +1667,6 @@ if (inherits(object, "CBrSPDEobj")) {
 #' @param posterior_samples If `TRUE`, posterior samples will be returned.
 #' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
 #' @param only_latent Should the posterior samples be only given to the laten model?
-#' @param pivot Should pivoting be used on the Cholesky decompositions?
 #' @param ... further arguments passed to or from other methods.
 #' @return A list with elements
 #' \item{mean }{The kriging predictor (the posterior mean of u|Y).}
@@ -1752,7 +1723,7 @@ if (inherits(object, "CBrSPDEobj")) {
 #' lines(x, u.krig$mean - 2 * sqrt(u.krig$variance), col = 2)
 predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
                                compute.variances = FALSE, posterior_samples = FALSE,
-                               n_samples = 100, only_latent = FALSE, pivot = TRUE,
+                               n_samples = 100, only_latent = FALSE, 
                                ...) {
   Y <- as.matrix(Y)
   if (dim(Y)[1] != dim(A)[1]) {
@@ -1791,39 +1762,13 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
     if (alpha %% 1 == 0) { # loglikelihood in integer case
       ## construct Q
       Q <- object$Q
-
-      R <- chol(forceSymmetric(Q), pivot = pivot)
       ## compute Q_x|y
       Q_xgiveny <- (t(A) %*% Q.e %*% A) + Q
       ## construct mu_x|y
       mu_xgiveny <- t(A) %*% Q.e %*% Y
-      # upper triangle with reordering
-      R <- chol(forceSymmetric(Q_xgiveny), pivot = pivot)
-      if (pivot) {
-        reorder <- attr(R, "pivot")
-        # make it lower triangle
-        R <- t(R)
-        if(dim(Y)[2] == 1){
-          v <- solve(R, mu_xgiveny[reorder])
-        } else{
-          v <- solve(R, mu_xgiveny[reorder,])
-        }
 
-        mu_xgiveny <- solve(t(R), v)
-        # order back
-        orderback <- numeric(length(reorder))
-        orderback[reorder] <- seq_len(length(reorder))
-        if(dim(Y)[2]==1){
-          mu_xgiveny <- mu_xgiveny[orderback]
-        } else{
-          mu_xgiveny <- mu_xgiveny[orderback,]
-        }
-
-      } else {
-        R <- t(R)
-        v <- solve(R, mu_xgiveny)
-        mu_xgiveny <- solve(t(R), v)
-      }
+      R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
+      mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
 
       mu_xgiveny <- mu + mu_xgiveny
       out$mean <- Aprd %*% mu_xgiveny
@@ -1835,37 +1780,16 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
 
       Q <- object$Q
 
-      R <- chol(forceSymmetric(Q), pivot = pivot)
       ## compute Q_x|y
       Q_xgiveny <- kronecker(matrix(1, m + 1, m + 1), t(A) %*% Q.e %*% A) + Q
       ## construct mu_x|y
       Abar <- kronecker(matrix(1, 1, m + 1), A)
       mu_xgiveny <- t(Abar) %*% Q.e %*% Y
       # upper triangle with reordering
-      R <- chol(forceSymmetric(Q_xgiveny), pivot = pivot)
-      if (pivot) {
-        reorder <- attr(R, "pivot")
-        # make it lower triangle
-        R <- t(R)
-        if(dim(Y)[2] == 1){
-          v <- solve(R, mu_xgiveny[reorder])
-        } else{
-          v <- solve(R, mu_xgiveny[reorder,])
-        }
-        mu_xgiveny <- solve(t(R), v)
+      R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
 
-        orderback <- numeric(length(reorder))
-        orderback[reorder] <- seq_len(length(reorder))
-        if(dim(Y)[2]==1){
-          mu_xgiveny <- mu_xgiveny[orderback]
-        } else{
-          mu_xgiveny <- mu_xgiveny[orderback,]
-        }
-      } else {
-        R <- t(R)
-        v <- solve(R, mu_xgiveny)
-        mu_xgiveny <- solve(t(R), v)
-      }
+      mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
+
       mu_xgiveny <- mu + mu_xgiveny
 
       Aprd_bar <- kronecker(matrix(1, 1, m + 1), Aprd)
@@ -2035,8 +1959,6 @@ precision.CBrSPDEobj <- function(object,
 #' which needs to be a positive integer.
 #' @param log_scale Should the parameters be evaluated in log-scale?
 #' @param return_negative_likelihood Return minus the likelihood to turn the maximization into a minimization?
-#' @param pivot Should pivoting be used for the Cholesky decompositions? Default
-#' is TRUE
 #' @return The log-likelihood function. The parameters of the returned function
 #' are given in the order sigma, kappa, nu, sigma.e, whenever they are available.
 #' @export
@@ -2048,7 +1970,6 @@ precision.CBrSPDEobj <- function(object,
 #' set.seed(123)
 #' # Sample a Gaussian Matern process on R using a rational approximation
 #' nu <- 0.8
-#' kappa <- 15
 #' sigma <- 1
 #' sigma.e <- 0.1
 #' n.rep <- 10
@@ -2057,9 +1978,6 @@ precision.CBrSPDEobj <- function(object,
 #' range <- 0.2
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = n.x)
-#' fem <- rSPDE.fem1d(x)
-#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-#' (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 #' # Compute the covariance-based rational approximation
 #' op_cov <- matern.operators(
 #'   loc_mesh = x, nu = nu,
@@ -2090,30 +2008,14 @@ precision.CBrSPDEobj <- function(object,
 #'   method = "L-BFGS-B"
 #' )
 #' print(data.frame(
-#'   sigma = c(sigma, exp(theta$par[1])), range = c(sqrt(8*nu)/kappa, exp(theta$par[2])),
+#'   sigma = c(sigma, exp(theta$par[1])), range = c(range, exp(theta$par[2])),
 #'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
 #'   row.names = c("Truth", "Estimates")
 #' ))
 #'
-#' # SPDE parameterization:
-#' loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A, parameterization = "spde") 
-#' 
-#' theta0 <- c(get.initial.values.rSPDE(mesh.range = 1, dim = 1, parameterization = "spde"), 
-#'                                  log(0.1*sd(as.vector(Y))))
-#' 
-#' # run estimation and display the results
-#' theta <- optim(theta0, loglike,
-#'   method = "L-BFGS-B"
-#' )
-#' print(data.frame(
-#'   tau = c(tau, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
-#'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
-#'   row.names = c("Truth", "Estimates")
-#' ))
 #' }
 
 
-#'
 rSPDE.construct.matern.loglike <- function(object, Y, A, 
                                  sigma.e = NULL, mu = 0,
                                  user_nu = NULL,
@@ -2124,8 +2026,7 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
                                  parameterization = c("spde", "matern"),
                                  user_m = NULL,
                                  log_scale = TRUE,
-                                 return_negative_likelihood = TRUE,
-                                 pivot = TRUE){
+                                 return_negative_likelihood = TRUE){
         
         parameterization <- parameterization[[1]]
 
@@ -2183,8 +2084,7 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
                 user_kappa = kappa,
                 user_nu = nu,
                 user_tau=tau,
-                user_m = user_m,
-                pivot = pivot)
+                user_m = user_m)
                 if(return_negative_likelihood){
                   return(-loglike)
                 } else{
@@ -2234,8 +2134,7 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
                 user_range = range,
                 user_nu = nu,
                 user_sigma=sigma,
-                user_m = user_m,
-                pivot = pivot)
+                user_m = user_m)
                 if(return_negative_likelihood){
                   return(-loglike)
                 } else{
@@ -2274,8 +2173,6 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
 #' which needs to be a positive integer.
 #' @param log_scale Should the parameters be evaluated in log-scale?
 #' @param return_negative_likelihood Return minus the likelihood to turn the maximization into a minimization?
-#' @param pivot Should pivoting be used for the Cholesky decompositions? Default
-#' is TRUE
 #' @return The log-likelihood function. The parameters of the returned function
 #' are given in the order theta, nu, sigma.e, whenever they are available.
 #' @export
@@ -2360,8 +2257,7 @@ construct.spde.matern.loglike <- function(object, Y, A,
                                  user_nu = NULL,
                                  user_m = NULL,
                                  log_scale = TRUE,
-                                 return_negative_likelihood = TRUE,
-                                 pivot = TRUE){
+                                 return_negative_likelihood = TRUE){
         
 
         loglik <- function(theta){
@@ -2396,8 +2292,7 @@ construct.spde.matern.loglike <- function(object, Y, A,
           mu = mu,
           user_theta = theta[1:n_tmp],
           user_nu = nu,
-          user_m = user_m,
-          pivot = pivot)
+          user_m = user_m)
           if(return_negative_likelihood){
             return(-loglike)
           } else{
