@@ -489,9 +489,10 @@ d <- 2
 operator_information <- matern.operators(
   mesh = mesh_2d,
   nu = nu,
-  kappa = kappa,
+  range = range,
   sigma = sigma,
-  m = 2
+  m = 2,
+  parameterization = "matern"
 )
 ```
 More details on this function can be found at the [Rational approximation with the rSPDE package](rspde_cov.html) vignette.
@@ -662,7 +663,8 @@ op_cov_ns <- spde.matern.operators(mesh = mesh,
   theta = true_theta,
   nu = nu,
   B.sigma = B.sigma, 
-  B.range = B.range, m = 2)
+  B.range = B.range, m = 2,
+  parameterization = "matern")
 ```
 
 Let us now sample the data with the `simulate()` method:

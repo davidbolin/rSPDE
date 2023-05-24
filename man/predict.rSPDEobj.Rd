@@ -42,7 +42,7 @@ does not have measurement noise.}
 
 \item{n_samples}{Number of samples to be returned. Will only be used if \code{sampling} is \code{TRUE}.}
 
-\item{only_latent}{Should the posterior samples be only given to the laten model?}
+\item{only_latent}{Should the posterior samples be only given to the latent model?}
 
 \item{...}{further arguments passed to or from other methods.}
 }
@@ -66,6 +66,7 @@ kappa <- 10
 sigma <- 1
 nu <- 0.8
 sigma.e <- 0.3
+range <- sqrt(8*nu)/kappa
 
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
@@ -73,8 +74,9 @@ fem <- rSPDE.fem1d(x)
 
 # compute rational approximation
 op <- matern.operators(
-  kappa = kappa, sigma = sigma,
-  nu = nu, G = fem$G, C = fem$C, d = 1
+  range = range, sigma = sigma,
+  nu = nu, loc_mesh = x, d = 1,
+  parameterization = "matern"
 )
 
 # Sample the model

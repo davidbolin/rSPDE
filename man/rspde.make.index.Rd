@@ -64,7 +64,8 @@ nu <- 0.8
 kappa <- sqrt(8 * nu) / range
 op <- matern.operators(
   mesh = mesh_2d, nu = nu,
-  kappa = kappa, sigma = sigma, m = 2
+  range = range, sigma = sigma, m = 2,
+  parameterization = "matern"
 )
 u <- simulate(op)
 A <- inla.spde.make.A(

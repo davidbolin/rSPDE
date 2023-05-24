@@ -1,3 +1,9 @@
+# rSPDE 2.3.0
+* Fixed a bug on rSPDE.construct.matern.loglike when the parameterization is "matern".
+* Created the rspde_lme() interface, with corresponding standard methods(predict, summary, etc).
+* Updated the vignettes to use the rspde_lme() interface instead of the likelihood function factory.
+* Replaced chol by Cholesky when using it to compute determinants or to solve systems.
+
 # rSPDE 2.2.0
 * Adding a new parameterization (variance and a range-like parameter)
 * Posterior sampling on the predict method.

@@ -204,23 +204,27 @@ fractional.operators <- function(L,
 #' (\kappa h)^\nu K_\nu(\kappa h)}{C(h) = (\sigma^2/(2^{\nu-1}\Gamma(\nu))
 #' (\kappa h)^\nu K_\nu(\kappa h).}
 #'
-#' @param kappa Parameter kappa of the covariance function.
-#' @param range Range parameter of the covariance function (will be used if kappa is not provided).
-#' @param sigma Standard deviation of the covariance function.
-#' @param tau Parameter tau of the covariance function (will be used if sigma is not provided).
-#' @param nu Shape parameter of the covariance function.
+#' @param kappa Parameter kappa of the SPDE representation. If `NULL`, the range parameter will be used. If the range is also `NULL`, a starting value based on the mesh will be supplied.
+#' @param tau Parameter tau of the SPDE representation. If both sigma and tau are `NULL`, a starting value based on the mesh will be supplied.
+#' @param alpha Parameter alpha of the SPDE representation. If `alpha` is `NULL`, a starting value will be supplied.
+#' @param range Range parameter of the covariance function. Used if `parameterization` is `matern`. If range is `NULL`, a starting value based on the mesh will be supplied.
+#' @param sigma Standard deviation of the covariance function. Used if `parameterization` is `matern`. If `NULL`, tau will be used. If tau is also `NULL`, a starting value based on the mesh will be supplied.
+#' @param nu Shape parameter of the covariance function. Used if `parameterization` is `matern`. If `NULL`, a starting value will be supplied.
 #' @param G The stiffness matrix of a finite element discretization of the
-#' domain of interest. Does not need to be given if `mesh` is used.
+#' domain of interest. Does not need to be given if either `mesh` or `graph` is supplied.
 #' @param C The mass matrix of a finite element discretization of the domain
-#' of interest. Does not need to be given if `mesh` is used.
-#' @param mesh An optional inla mesh. `d`, `C` and `G`
-#' must be given if `mesh` is not given.
-#' @param d The dimension of the domain. Does not need to be given if
-#' `mesh` is used.
+#' of interest. Does not need to be given if either `mesh` or `graph` is supplied.
+#' @param mesh An optional inla mesh. Replaces `d`, `C` and `G`.
+#' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`. 
+#' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
+#' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument. 
+#' @param d The dimension of the domain. Does not need to be given if either
+#' `mesh` or `graph` is provided.
 #' @param m The order of the rational approximation, which needs to be a
 #' positive integer. The default value is 1.
 #' @param type The type of the rational approximation. The options are
 #' "covariance" and "operator". The default is "covariance".
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and alpha. The default is `spde`.
 #' @param compute_higher_order Logical. Should the higher order finite
 #' element matrices be computed?
 #' @param return_block_list Logical. For `type = "covariance"`,
@@ -303,7 +307,8 @@ fractional.operators <- function(L,
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
-#'
+#' range <- sqrt(8*nu)/kappa
+#' 
 #' # create mass and stiffness matrices for a FEM discretization
 #' nobs <- 101
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -311,8 +316,9 @@ fractional.operators <- function(L,
 #'
 #' # compute rational approximation of covariance function at 0.5
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'   parameterization = "matern"
 #' )
 #'
 #' v <- t(rSPDE.A1d(x, 0.5))
@@ -342,6 +348,7 @@ fractional.operators <- function(L,
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
+#' range <- sqrt(8*nu)/kappa
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -349,9 +356,10 @@ fractional.operators <- function(L,
 #'
 #' # compute rational approximation of covariance function at 0.5
 #' op <- matern.operators(
-#'   kappa = kappa, sigma = sigma, nu = nu,
-#'   G = fem$G, C = fem$C, d = 1,
-#'   type = "operator"
+#'   range = range, sigma = sigma, nu = nu,
+#'   loc_mesh = x, d = 1,
+#'   type = "operator",
+#'   parameterization = "matern"
 #' )
 #'
 #' v <- t(rSPDE.A1d(x, 0.5))
@@ -366,65 +374,191 @@ fractional.operators <- function(L,
 #' )
 #' lines(x, c.approx, col = 2)
 matern.operators <- function(kappa = NULL,
-                             sigma = NULL,
                              tau = NULL,
+                             alpha = NULL,
+                             sigma = NULL,
                              range = NULL,
-                             nu,
+                             nu = NULL,
                              G = NULL,
                              C = NULL,
                              d = NULL,
                              mesh = NULL,
+                             graph = NULL,
+                             range_mesh = NULL,
+                             loc_mesh = NULL,
                              m = 1,
                              type = c("covariance", "operator"),
+                             parameterization = c("spde", "matern"),                             
                              compute_higher_order = FALSE,
                              return_block_list = FALSE,
                              type_rational_approximation = c("chebfun",
                              "brasil", "chebfunLB"),
                              fem_mesh_matrices = NULL) {
   type <- type[[1]]
-  nu <- min(nu, 10)
+
   if (!type %in% c("covariance", "operator")) {
     stop("The type should be 'covariance' or 'operator'!")
   }
-  if (is.null(d) && is.null(mesh)) {
-    stop("You should give either the dimension d or the mesh!")
+  if (is.null(d) && is.null(mesh) && is.null(graph)) {
+    stop("You should give either the dimension d, the mesh or graph!")
   }
 
-  if ((is.null(C) || is.null(G)) && is.null(mesh)) {
-    stop("You should either provide mesh, or provide C *and* G!")
+  if ((is.null(C) || is.null(G)) && is.null(mesh) && is.null(graph) &&(is.null(loc_mesh) || d != 1)) {
+    stop("You should either provide mesh, graph, or provide both C *and* G!")
   }
 
-  if(is.null(sigma)&&is.null(tau)){
-    stop("You must either provide sigma or tau.")
+  if( (is.null(C) || is.null(G)) && (is.null(graph)) && (!is.null(loc_mesh) && d==1)){
+    fem <- rSPDE.fem1d(loc_mesh)
+    C <- fem$C
+    G <- fem$G
   }
 
-  if(is.null(range)&&is.null(kappa)){
-    stop("You must either provide range or kappa.")
+  has_mesh <- FALSE
+  has_graph <- FALSE
+
+  if(!is.null(loc_mesh)){
+    if(!is.numeric(loc_mesh)){
+      stop("loc_mesh must be numerical.")
+    }
+    range_mesh <- abs(diff(range(loc_mesh)))
+  }
+  
+  parameterization <- parameterization[[1]]
+
+  if (!parameterization %in% c("matern", "spde")) {
+    stop("parameterization should be either 'matern', 'spde' or 'graph'!")
   }
 
-    if (!is.null(mesh)) {
-      d <- get_inla_mesh_dimension(inla_mesh = mesh)
-      fem <- INLA::inla.mesh.fem(mesh)
-      C <- fem$c0
-      G <- fem$g1
+  if(!is.null(graph)){
+    if(!inherits(graph, "metric_graph")){
+      stop("graph should be a metric_graph object!")
+    }
+    d <- 1
+    if(is.null(graph$mesh)){
+      warning("The graph object did not contain a mesh, one was created with h = 0.01. Use the build_mesh() method to replace this mesh with a new one.")
+      graph$build_mesh(h = 0.01)
+    }
+    graph$compute_fem()
+    C <- graph$mesh$C
+    G <- graph$mesh$G
+    has_graph <- TRUE
+  }
+
+  if (!is.null(mesh)) {
+    d <- get_inla_mesh_dimension(inla_mesh = mesh)
+    fem <- INLA::inla.mesh.fem(mesh)
+    C <- fem$c0
+    G <- fem$g1
+    has_mesh <- TRUE
+  }
+
+  if(parameterization == "spde"){
+    if(is.null(kappa) || is.null(tau)){
+      if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
+        stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
+      }
+      if(!is.null(mesh) || !is.null(range_mesh)){
+         param <- get.initial.values.rSPDE(mesh.range = range_mesh, dim = d, parameterization = parameterization, mesh = mesh, nu = nu)
+      } else if(!is.null(graph)){
+        param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = parameterization, nu = nu)
+      }
     }
 
-    if(!is.null(range)){
-      kappa <- sqrt(8 * nu) / range
+    if(is.null(kappa)){
+      kappa <- exp(param[2])
+    } else{
+      kappa <- rspde_check_user_input(kappa, "kappa" , 0)
     }
-
     if(is.null(tau)){
-      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+      tau <- exp(param[1])
+    } else{
+      tau <- rspde_check_user_input(tau, "tau" , 0)
     }
 
-    if(!is.null(tau)){
+    if(is.null(alpha)){
+      alpha <- 1 + d/2
+    } else {
+      alpha <- rspde_check_user_input(alpha, "alpha" , d/2)
+      alpha <- min(alpha, 10)
+    }
+
+    nu <- alpha - d/2
+
+    range <- sqrt(8 * nu) / kappa
     sigma <- sqrt(gamma(nu) / (tau^2 * kappa^(2 * nu) *
     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+  } else if(parameterization == "matern") {
+    if(is.null(sigma) || is.null(range)){
+      if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
+        stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
+      }
+      if(!is.null(mesh) || !is.null(range_mesh)){
+         param <- get.initial.values.rSPDE(mesh.range = range_mesh, dim = d, parameterization = parameterization, mesh = mesh, nu = nu)
+      } else if(!is.null(graph)){
+        param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = parameterization, nu = nu)
+      }
     }
 
+    if(is.null(range)){
+      range <- exp(param[2])
+    } else{
+      range <- rspde_check_user_input(range, "range" , 0)
+    } 
+    if(is.null(sigma)){
+      sigma <- exp(param[1])
+    } else{
+      sigma <- rspde_check_user_input(sigma, "sigma" , 0)
+    }
 
+    if(is.null(nu)){
+        nu <- 1
+    } else{
+      nu <- rspde_check_user_input(nu, "nu" , 0)
+    }   
+    kappa <- sqrt(8 * nu) / range
+    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+    alpha <- nu + d/2
+  } 
+  
+  # else if(parameterization == "graph"){
+  #   if(is.null(kappa) || is.null(sigma)){
+  #     if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
+  #       stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
+  #     }
+  #     if(!is.null(mesh) || !is.null(range_mesh)){
+  #        param <- get.initial.values.rSPDE(mesh.range = range_mesh, dim = d, parameterization = "spde", mesh = mesh, nu = nu)
+  #     } else if(!is.null(graph)){
+  #       param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = "spde", nu = nu)
+  #     }
+  #   }
 
+  #   if(is.null(kappa)){
+  #     kappa <- exp(param[2])
+  #   }
+  #   if(is.null(sigma)){
+  #     tau <- exp(param[1])
+  #     sigma <- 1 / tau
+  #   }
+  #   range <- sqrt(8 * nu) / kappa
+  #   tau <- 1 / sigma
+  # }
+
+  if(!is.null(mesh)){
+      make_A <- function(loc){
+        return(INLA::inla.spde.make.A(mesh = mesh, loc = loc))
+      }
+  } else if(!is.null(graph)){
+      make_A <- function(loc){
+        return(graph$mesh_A(loc))
+      }
+  } else if(!is.null(loc_mesh) && d == 1){
+    make_A <- function(loc){
+          return(rSPDE::rSPDE.A1d(x = loc_mesh, loc = loc))
+          }   
+  } else {
+    make_A <- NULL
+  }
 
   if (type == "operator") {
   
@@ -442,22 +576,42 @@ matern.operators <- function(kappa = NULL,
     output$range <- range
     output$tau <- tau
     output$sigma <- sigma
+    output$alpha <- alpha
     output$nu <- nu
     output$d <- d
     output$G <- G
     output$type <- "Matern approximation"
     output$stationary <- TRUE
+    output$parameterization <- parameterization
+    output$has_mesh <- has_mesh
+    output$has_graph <- has_graph
+    output$make_A <- make_A
+    output$alpha <- 2*beta
+    output$mesh <- mesh
+    output$range_mesh <- range_mesh
+    output$graph <- graph
+    output$loc_mesh <- loc_mesh
     return(output)
   } else {
     type_rational_approximation <- type_rational_approximation[[1]]
     out <- CBrSPDE.matern.operators(
-      C = C, G = G, mesh = mesh, nu = nu, kappa = kappa, sigma = sigma,
+      C = C, G = G, mesh = mesh, nu = nu, kappa = kappa, tau = tau,
       m = m, d = d, compute_higher_order = compute_higher_order,
       return_block_list = return_block_list,
       type_rational_approximation = type_rational_approximation
     )
     out$range <- range
     out$tau <- tau
+    out$alpha <- alpha
+    out$sigma <- sigma
+    out$parameterization <- parameterization
+    out$has_mesh <- has_mesh
+    out$has_graph <- has_graph
+    out$make_A <- make_A
+    out$mesh <- mesh
+    out$range_mesh <- range_mesh
+    out$graph <- graph
+    out$loc_mesh <- loc_mesh    
     return(out)
   }
 }
@@ -474,7 +628,8 @@ matern.operators <- function(kappa = NULL,
 #' K_\nu(\kappa h)}{C(h) =
 #' (\sigma^2/(2^{\nu-1}\Gamma(\nu))(\kappa h)^\nu K_\nu(\kappa h)}
 #' @param kappa Range parameter of the covariance function.
-#' @param sigma Standard deviation of the covariance function.
+#  @param sigma Standard deviation of the covariance function.
+#' @param tau Precision parameter.
 #' @param nu Shape parameter of the covariance function.
 #' @param G The stiffness matrix of a finite element discretization
 #' of the domain of interest.
@@ -568,7 +723,7 @@ CBrSPDE.matern.operators <- function(C,
                                      mesh,
                                      nu,
                                      kappa,
-                                     sigma,
+                                     tau,
                                      m = 2,
                                      d,
                                      compute_higher_order = FALSE,
@@ -585,8 +740,8 @@ CBrSPDE.matern.operators <- function(C,
       alpha <- nu + d / 2
       m_alpha <- floor(alpha)
       m_order <- m_alpha + 1
-      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-      (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+      # tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+      # (4 * pi)^(d / 2) * gamma(nu + d / 2)))
 
       if (d > 1) {
         if (compute_higher_order) {
@@ -628,8 +783,8 @@ CBrSPDE.matern.operators <- function(C,
       alpha <- nu + d / 2
       m_alpha <- floor(alpha)
       m_order <- m_alpha + 1
-      tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-      (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+      # tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+      # (4 * pi)^(d / 2) * gamma(nu + d / 2)))
 
       ## get lumped mass matrix
       C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
@@ -674,8 +829,8 @@ CBrSPDE.matern.operators <- function(C,
     if (!is.null(mesh)) {
       d <- get_inla_mesh_dimension(inla_mesh = mesh)
     }
-    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+    # tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+    # (4 * pi)^(d / 2) * gamma(nu + d / 2)))
     Gk <- list()
     Gk[[1]] <- G
     for (i in 2:m_order) {
@@ -686,8 +841,8 @@ CBrSPDE.matern.operators <- function(C,
 
   L <- (G + kappa^2 * C) / kappa^2
 
-  Lchol <- chol(L)
-  logdetL <- 2 * sum(log(diag(Lchol)))
+  Lchol <- Matrix::Cholesky(L)
+  logdetL <- 2 * c(determinant(Lchol, logarithm = TRUE)$modulus)
 
   logdetC <- sum(log(diag(C)))
 
@@ -783,9 +938,9 @@ CBrSPDE.matern.operators <- function(C,
   output <- list(
     C = C, G = G, L = L, Ci = Ci, GCi = GCi, Gk = Gk,
     fem_mesh_matrices = fem_mesh_matrices,
-    alpha = alpha, nu = nu, kappa = kappa,
+    alpha = alpha, nu = nu, kappa = kappa, range = sqrt(8 * nu) / kappa,
     tau = tau, m = m, d = d,
-    sigma = sigma,
+    # sigma = sigma,
     logdetL = logdetL, logdetC = logdetC,
     Q.frac = Q.frac, Q.int = Q.int,
     Q = Q, sizeC = dim(C)[1],
@@ -820,15 +975,17 @@ CBrSPDE.matern.operators <- function(C,
 #' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
 #' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
 #' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
-#' @param nu Shape parameter of the covariance function, related to
-#' \eqn{\beta} through the equation
-#' \eqn{\beta = (\nu + d/2)/2}.
+#' @param nu Shape parameter of the covariance function. Will be used if the parameterization is 'matern'.
+#' @param alpha smoothness parameter. Will be used if the parameterization is 'spde'.
 #' @param G The stiffness matrix of a finite element discretization of
 #' the domain of interest.
 #' @param C The mass matrix of a finite element discretization of the
 #' domain of interest.
 #' @param mesh An optional inla mesh. `d`, `C` and `G`
 #' must be given if `mesh` is not given.
+#' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`. 
+#' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
+#' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument.
 #' @param d The dimension of the domain. Does not need to be given if
 #' `mesh` is used.
 #' @param m The order of the rational approximation, which needs to be a
@@ -897,12 +1054,16 @@ spde.matern.operators <- function(kappa = NULL,
                                   B.kappa = matrix(c(0, 0, 1), 1, 3), 
                                   B.sigma = matrix(c(0, 1, 0), 1, 3), 
                                   B.range = matrix(c(0, 0, 1), 1, 3),
-                                  nu,
-                                  parameterization = c("matern", "spde"),
+                                  alpha = NULL,
+                                  nu = NULL,
+                                  parameterization = c("spde", "matern"),
                                   G = NULL,
                                   C = NULL,
                                   d = NULL,
+                                  graph = NULL,
                                   mesh = NULL,
+                                  range_mesh = NULL,
+                                  loc_mesh = NULL,
                                   m = 1,
                                   type = c("covariance", "operator"),
                                   type_rational_approximation = c("chebfun",
@@ -912,18 +1073,37 @@ spde.matern.operators <- function(kappa = NULL,
     stop("The type should be 'covariance' or 'operator'!")
   }
 
+  has_mesh <- FALSE
+  has_graph <- FALSE
+
   parameterization <- parameterization[[1]]
 
   if (!parameterization %in% c("matern", "spde")) {
     stop("parameterization should be either 'matern' or 'spde'!")
   }
 
-  if (is.null(d) && is.null(mesh)) {
-    stop("You should give either the dimension d or the mesh!")
+if (is.null(d) && is.null(mesh) && is.null(graph)) {
+    stop("You should give either the dimension d, the mesh or graph!")
   }
 
-  if ((is.null(C) || is.null(G)) && is.null(mesh)) {
-    stop("You should either provide mesh, or provide C *and* G!")
+  if ((is.null(C) || is.null(G)) && is.null(mesh) && is.null(graph) &&(is.null(loc_mesh) || d != 1)) {
+    stop("You should either provide mesh, graph, or provide both C *and* G!")
+  }
+
+  if( (is.null(C) || is.null(G)) && (is.null(graph)) && (!is.null(loc_mesh) && d==1)){
+    fem <- rSPDE.fem1d(loc_mesh)
+    C <- fem$C
+    G <- fem$G
+  }
+
+  has_mesh <- FALSE
+  has_graph <- FALSE
+
+  if(!is.null(loc_mesh)){
+    if(!is.numeric(loc_mesh)){
+      stop("loc_mesh must be numerical.")
+    }
+    range_mesh <- abs(diff(range(loc_mesh)))
   }
 
   if (!is.null(mesh)) {
@@ -931,38 +1111,182 @@ spde.matern.operators <- function(kappa = NULL,
       fem <- INLA::inla.mesh.fem(mesh)
       C <- fem$c0
       G <- fem$g1
+      has_mesh <- TRUE
+  }
+
+    if(!is.null(graph)){
+    if(!inherits(graph, "metric_graph")){
+      stop("graph should be a metric_graph object!")
+    }
+    has_graph <- TRUE
+    d <- 1
+    if(is.null(graph$mesh)){
+      warning("The graph object did not contain a mesh, one was created with h = 0.01. Use the build_mesh() method to replace this mesh with a new one.")
+      graph$build_mesh(h = 0.01)
+    }
+    graph$compute_fem()
+    C <- graph$mesh$C
+    G <- graph$mesh$G
   }
 
   if(!is.null(theta)){
 
-    if(any(dim(B.tau) != dim(B.kappa))){
-      stop("B.tau and B.kappa must have the same dimensions!")
-    }
-    if(any(dim(B.sigma) != dim(B.range))){
-      stop("B.sigma and B.range must have the same dimensions!")
-    }
-
     if(parameterization == "matern"){
+      if(any(dim(B.sigma) != dim(B.range))){
+        stop("B.sigma and B.range must have the same dimensions!")
+      }
+
       B_matrices <- convert_B_matrices(B.sigma, B.range, ncol(C), nu, d)
       B.tau <- B_matrices[["B.tau"]]
       B.kappa <- B_matrices[["B.kappa"]]
+
+      if(is.null(nu)){
+        nu <- 1
+      } else{
+      nu <- rspde_check_user_input(nu, "nu" , 0)
+    }        
+      
+      alpha <- nu + d / 2
+    } else if(parameterization == "spde") {
+      if(any(dim(B.tau) != dim(B.kappa))){
+        stop("B.tau and B.kappa must have the same dimensions!")
+      }
+
+      B.tau <- prepare_B_matrices(B.tau, ncol(C), 
+          ncol(B.tau)-1)
+      B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
+          ncol(B.kappa)-1)
+      
+      if(is.null(alpha)){
+        alpha <- 1 + d/2
+      } else {
+        alpha <- rspde_check_user_input(alpha, "alpha" , d/2)
+        alpha <- min(alpha, 10)
+      }
+
+      nu <- alpha - d/2
+      
+    } 
+    
+    # else if(parameterization == "graph") {
+    #   if(any(dim(B.sigma) != dim(B.kappa))){
+    #     stop("B.sigma and B.kappa must have the same dimensions!")
+    #   }
+
+    #   B.sigma <- prepare_B_matrices(B.sigma, ncol(C), 
+    #       ncol(B.sigma)-1)
+    #   B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
+    #       ncol(B.kappa)-1)
+    #   B.tau <- -B.sigma
+    # }
+    
+      new_theta <- c(1, theta)
+
+      tau <- c(exp(B.tau %*% new_theta))
+      kappa <- c(exp(B.kappa %*% new_theta))
+
+  } else if(is.null(kappa) || is.null(tau)){
+      if(any(dim(B.tau) != dim(B.kappa))){
+        stop("B.tau and B.kappa must have the same dimensions!")
+      }
+      if(any(dim(B.sigma) != dim(B.range))){
+        stop("B.sigma and B.range must have the same dimensions!")
+      }
+
+
+    if(parameterization == "matern"){
+      if(is.null(nu)){
+        nu <- 1
+      } else{
+        nu <- rspde_check_user_input(nu, "nu" , 0)
+      }            
+      B_matrices <- convert_B_matrices(B.sigma, B.range, ncol(C), nu, d)
+      B.tau <- B_matrices[["B.tau"]]
+      B.kappa <- B_matrices[["B.kappa"]]
+
+      if(is.null(nu)){
+        nu <- 1
+      } else{
+      nu <- rspde_check_user_input(nu, "nu" , 0)
+    }    
+
+      alpha <- nu + d/2
+
     } else{
       B.tau <- prepare_B_matrices(B.tau, ncol(C), 
           ncol(B.tau)-1)
       B.kappa <- prepare_B_matrices(B.kappa, ncol(C), 
           ncol(B.kappa)-1)
+      if(is.null(alpha)){
+        alpha <- 1 + d/2
+      } else {
+        alpha <- rspde_check_user_input(alpha, "alpha" , d/2)
+        alpha <- min(alpha, 10)
+      }
+
+      nu <- alpha - d/2
+
+    }      
+
+      if(is.null(graph) && is.null(mesh) && is.null(range_mesh)){
+        stop("You should either provide all the parameters, or you should provide one of the following: mesh, range_mesh or graph.")
+      }
+      if(!is.null(mesh) || !is.null(range_mesh)){
+         theta <- get.initial.values.rSPDE(mesh.range = range_mesh, 
+         dim = d, parameterization = parameterization, 
+         mesh = mesh, nu = nu, B.tau = B.tau, 
+         B.sigma = B.sigma, B.range = B.range,
+         B.kappa = B.kappa, include.nu = FALSE)
+      } else if(!is.null(graph)){
+        theta <- get.initial.values.rSPDE(graph.obj = graph, 
+        parameterization = parameterization, nu = nu, 
+        B.tau = B.tau, B.sigma = B.sigma, B.range = B.range,
+         B.kappa = B.kappa, include.nu = FALSE)
+      }
+
+    new_theta <- c(1, theta)
+
+    if(is.null(tau)){
+      tau <- c(exp(B.tau %*% new_theta))
     }
-    
-      new_theta <- c(1, theta)
+    if(is.null(kappa)){
+      kappa <- c(exp(B.kappa %*% new_theta))
+    }
+  } else{
+    if(parameterization == "matern"){
+      if(is.null(nu)){
+        nu <- 1
+      } else{
+        nu <- rspde_check_user_input(nu, "nu" , 0)
+      }       
+        alpha <- nu + d/2
+    } else{
+      if(is.null(alpha)){
+        alpha <- 1 + d/2
+      } else {
+        alpha <- rspde_check_user_input(alpha, "alpha" , d/2)
+        alpha <- min(alpha, 10)
+      }
 
-      tau <- exp(B.tau %*% new_theta)
-      kappa <- exp(B.kappa %*% new_theta)
+      nu <- alpha - d/2
+    }     
+  }
 
-  } else if(is.null(kappa) || is.null(tau)){
-    stop("If theta is NULL, then kappa and tau must not be NULL!")
-  } 
-
-  alpha <- nu + d / 2
+  if(!is.null(mesh)){
+      make_A <- function(loc){
+        return(INLA::inla.spde.make.A(mesh = mesh, loc = loc))
+      }
+  } else if(!is.null(graph)){
+      make_A <- function(loc){
+        return(graph$mesh_A(loc))
+      }
+  } else if(!is.null(loc_mesh) && d == 1){
+    make_A <- function(loc){
+          return(rspde.make.A(mesh = loc_mesh, loc = loc))
+          }   
+  } else {
+    make_A <- NULL
+  }
   
   if (nu < 0) {
     stop("nu must be positive")
@@ -981,6 +1305,8 @@ spde.matern.operators <- function(kappa = NULL,
         tau = tau
       )
       output <- operators
+      output$d <- d
+      output$alpha <- alpha
       output$beta <- beta
       output$B.tau <- B.tau
       output$B.kappa <- B.kappa
@@ -989,6 +1315,16 @@ spde.matern.operators <- function(kappa = NULL,
       output$theta <- theta
       output$stationary <- FALSE
       output$type <- "Matern SPDE approximation"
+      output$has_mesh <- has_mesh
+      output$has_graph <- has_graph
+      output$make_A <- make_A
+      output$mesh <- mesh
+      output$range_mesh <- range_mesh
+      output$graph <- graph
+      output$loc_mesh <- loc_mesh        
+      output$B.sigma <- B.sigma
+      output$B.range <- B.range
+      output$parameterization <- parameterization
   } else{
     type_rational_approximation <- type_rational_approximation[[1]]
     m_alpha <- floor(alpha)
@@ -1081,6 +1417,16 @@ spde.matern.operators <- function(kappa = NULL,
     stationary = FALSE
   )
   output$type <- "Covariance-Based Matern SPDE Approximation"
+  output$has_mesh <- has_mesh
+  output$has_graph <- has_graph  
+  output$make_A <- make_A
+  output$mesh <- mesh
+  output$range_mesh <- range_mesh
+  output$graph <- graph
+  output$loc_mesh <- loc_mesh      
+  output$B.sigma <- B.sigma
+  output$B.range <- B.range
+  output$parameterization <- parameterization  
   class(output) <- "CBrSPDEobj"
   }
 
