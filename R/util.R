@@ -387,10 +387,13 @@ summary.rSPDEobj <- function(object, ...) {
   if (out$type == "Matern approximation") {
     out$kappa <- object$kappa
     out$sigma <- object$sigma
+    out$tau <- object$tau
+    out[["range"]] <- object[["range"]]
     out$nu <- object$nu
   }
   out$m <- object$m
   out$stationary <- object$stationary
+  out$parameterization <- object$parameterization
   out$n <- dim(object$L)[1]
   return(out)
 }
@@ -402,11 +405,19 @@ summary.rSPDEobj <- function(object, ...) {
 #' @rdname summary.rSPDEobj
 print.summary.rSPDEobj <- function(x, ...) {
   cat("Type of approximation: ", x$type, "\n")
+  cat("Parameterization: ", x$parameterization, "\n")  
   if (x$type == "Matern approximation") {
+    if(x$parameterization == "spde"){
     cat(
       "Parameters of covariance function: kappa = ",
-      x$kappa, ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
+      x$kappa, ", tau = ", x$tau, ", nu = ", x$nu, "\n"
     )
+    } else{
+      cat(
+      "Parameters of covariance function: range = ",
+      x[["range"]], ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
+    )
+    }
   }
   cat("Order or rational approximation: ", x$m, "\n")
   cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
@@ -569,6 +580,7 @@ character.only = FALSE) {
 #' with a latent stationary Gaussian Matern model
 #' @param mesh An in INLA mesh
 #' @param mesh.range The range of the mesh.
+#' @param graph.obj A `metric_graph` object. To be used in case both `mesh` and `mesh.range` are `NULL`.
 #' @param dim The dimension of the domain.
 #' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if `parameterization = 'matern'`.
 #' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'`.
@@ -586,14 +598,16 @@ character.only = FALSE) {
 #' @export
 #'
 
-get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
+get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
+                                     graph.obj = NULL,
+                                    n.spde = 1,
                                     dim = NULL, B.tau = NULL, B.kappa = NULL,
-                                    B.sigma = NULL, B.range = NULL, nu = NULL,
+                                     B.sigma = NULL, B.range = NULL, nu = NULL,
                                     parameterization = c("matern", "spde"),
                                     include.nu = TRUE, log.scale = TRUE,
                                     nu.upper.bound = NULL) {
-  if (is.null(mesh) && is.null(mesh.range)) {
-    stop("You should either provide mesh or mesh.range!")
+  if (is.null(mesh) && is.null(mesh.range) && is.null(graph.obj)) {
+    stop("You should either provide mesh, mesh.range or graph_obj!")
   }
 
     parameterization <- parameterization[[1]]
@@ -602,7 +616,7 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
     stop("parameterization should be either 'matern' or 'spde'!")
   }
 
-  if (is.null(mesh) && is.null(dim)) {
+  if (is.null(mesh) && is.null(graph.obj) && is.null(dim)) {
     stop("If you don't provide mesh, you have to provide dim!")
   }
 
@@ -613,6 +627,13 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
 
     dim <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
   } 
+
+  if(!is.null(graph.obj)){
+    if(!inherits(graph.obj, "metric_graph")){
+      stop("graph_obj should be a metric_graph object.")
+    }
+    dim <- 1
+  }
 
   if (include.nu) {
     if (!is.null(nu.upper.bound)) {
@@ -634,7 +655,8 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
       B.range = matrix(c(0, 0, 1), 1, 3)
     }
 
-    param <- get_parameters_rSPDE(mesh = mesh,
+    if(is.null(graph.obj)){
+      param <- get_parameters_rSPDE(mesh = mesh,
                                   alpha = nu + dim/2,
                                   B.tau = B.tau,
                                   B.kappa = B.kappa,
@@ -653,6 +675,25 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
                                   d = dim,
                                   n.spde = n.spde
                                   )
+    } else{
+      param <- get_parameters_rSPDE_graph(graph_obj = graph.obj,
+                                  alpha = nu + 1/2,
+                                  B.tau = B.tau,
+                                  B.kappa = B.kappa,
+                                  B.sigma = B.sigma,
+                                  B.range = B.range,
+                                  nu.nominal = nu,
+                                  alpha.nominal = nu + 1/2,
+                                  parameterization = parameterization,
+                                  prior.std.dev.nominal = 1,
+                                  prior.range.nominal = NULL,
+                                  prior.tau = NULL,
+                                  prior.kappa = NULL,
+                                  theta.prior.mean = NULL,
+                                  theta.prior.prec = 0.1
+                                  )
+    }
+
     initial <- param$theta.prior.mean
   } else{
     if(is.null(B.tau)){
@@ -661,8 +702,8 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
     if(is.null(B.kappa)){
       B.kappa = matrix(c(0, 0, 1), 1, 3)
     }
-
-    param <- get_parameters_rSPDE(mesh = mesh,
+    if(is.null(graph.obj)){
+      param <- get_parameters_rSPDE(mesh = mesh,
                                   alpha = nu + dim/2,
                                   B.tau = B.tau,
                                   B.kappa = B.kappa,
@@ -681,6 +722,25 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL, n.spde = 1,
                                   d = dim,
                                   n.spde = n.spde
                                   )
+    } else {
+      param <- get_parameters_rSPDE_graph(graph_obj = graph.obj,
+                                  alpha = nu + 1/2,
+                                  B.tau = B.tau,
+                                  B.kappa = B.kappa,
+                                  B.sigma = B.sigma,
+                                  B.range = B.range,
+                                  nu.nominal = nu,
+                                  alpha.nominal = nu + 1/2,
+                                  parameterization = parameterization,
+                                  prior.std.dev.nominal = 1,
+                                  prior.range.nominal = NULL,
+                                  prior.tau = NULL,
+                                  prior.kappa = NULL,
+                                  theta.prior.mean = NULL,
+                                  theta.prior.prec = 0.1
+                                  )
+    }
+
   initial <- param$theta.prior.mean
   }
 
@@ -1177,6 +1237,7 @@ create_summary_from_density <- function(density_df, name) {
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
+#' range <- sqrt(8*nu)/kappa
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -1186,8 +1247,9 @@ create_summary_from_density <- function(density_df, name) {
 #' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
 #' (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'   parameterization = "matern"
 #' )
 #'
 #' op_cov
@@ -1198,9 +1260,12 @@ summary.CBrSPDEobj <- function(object, ...) {
   out$kappa <- object$kappa
   out$sigma <- object$sigma
   out$theta <- object$theta
+  out$tau <- object$tau
+  out[["range"]] <- object[["range"]]  
   out$nu <- object$nu
   out$m <- object$m
   out$stationary <- object$stationary
+  out$parameterization <- object$parameterization  
   out$n <- dim(object$C)[1]
   out[["type_rational_approximation"]] <-
   object[["type_rational_approximation"]]
@@ -1214,13 +1279,20 @@ summary.CBrSPDEobj <- function(object, ...) {
 #' @rdname summary.CBrSPDEobj
 print.summary.CBrSPDEobj <- function(x, ...) {
   cat("Type of approximation: ", x$type, "\n")
+  cat("Parameterization: ", x$parameterization, "\n")
   cat("Type of rational approximation: ",
   x[["type_rational_approximation"]], "\n")
   if(x$stationary){
-    cat(
+    if(x$parameterization == "spde"){
+      cat(
       "Parameters of covariance function: kappa = ",
-      x$kappa, ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
+      x$kappa, ", tau = ", x$tau, ", nu = ", x$nu, "\n"
+    )} else{
+        cat(
+      "Parameters of covariance function: range = ",
+      x[["range"]], ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
     )
+    }
   } else if (!is.null(x$theta)){
         cat(
       "Parameters of covariance function: theta = ",
@@ -1716,8 +1788,8 @@ get_parameters_rSPDE <- function (mesh, alpha,
             prior.kappa = sqrt(8 * nu.nominal)/prior.range.nominal
         }
         if (is.null(prior.tau)) {
-            prior.tau = sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/(4 * 
-                pi * prior.kappa^(2 * nu.nominal) * prior.std.dev.nominal^2))
+            prior.tau = sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/((4 * 
+                pi)^(d/2) * prior.kappa^(2 * nu.nominal) * prior.std.dev.nominal^2))
         }
         if (n.theta > 0) {
           if(parameterization == "spde"){
@@ -1820,13 +1892,14 @@ get_parameters_rSPDE_graph <- function (graph_obj, alpha,
 
     d <- 1
     n.spde <- nrow(graph_obj$mesh$C)
-    n.theta <- ncol(B.kappa) - 1L
 
     if(parameterization == "spde"){
+      n.theta <- ncol(B.kappa) - 1L
       B.kappa <- prepare_B_matrices(B.kappa, n.spde, 
           n.theta)
       B.tau <- prepare_B_matrices(B.tau, n.spde, n.theta)
     } else if(parameterization == "matern"){
+      n.theta <- ncol(B.sigma) - 1L
       B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
           n.theta)
       B.range <- prepare_B_matrices(B.range, n.spde, 
@@ -1924,4 +1997,68 @@ convert_B_matrices <- function(B.sigma, B.range, n.spde, nu.nominal, d){
                 B.sigma[, -1, drop = FALSE])
     
     return(list(B.tau = B.tau, B.kappa = B.kappa))
+}
+
+#' @noRd 
+# Change parameterization in rspde_lme to matern
+
+change_parameterization_lme <- function(likelihood, d, nu, par, hessian
+#, improve_gradient, gradient_args
+){
+  tau <- par[1]
+  kappa <- par[2]
+
+  C1 <- sqrt(8*nu)
+  C2 <- sqrt(gamma(nu) / ((4 * pi)^(d / 2) * gamma(nu + d / 2)))
+
+  sigma <- C2/(tau * kappa^nu)
+  range <- C1/kappa
+
+  grad_par <- matrix(c(-C2/(kappa^nu * sigma^2),0,
+                    nu * range^(nu-1) * C2/(sigma * C1^nu), 
+                    -C1/range^2), nrow = 2, ncol=2)
+  
+
+  new_observed_fisher <- t(grad_par) %*% hessian %*% (grad_par)
+
+  # No need to include the additional term as the gradient is approximately zero.
+  # from some numerical experiments, the approximation without the additional term
+  # seems to be better in general.
+
+  # hess_par <- matrix(c(2*C2/(kappa^nu * sigma^3), 0,
+  #                     -nu * C2/((sigma^2) * (C1^nu)) * range^(nu-1),
+  #                     2*C1/range^3) , ncol=2, nrow=2)
+  
+  # if(!improve_gradient){
+  #   grad_lik <- numDeriv::grad(likelihood, log(par), method = "simple", method.args = gradient_args)
+  # } else{
+  #   grad_lik <- numDeriv::grad(likelihood, log(par), method = "Richardson", method.args = gradient_args)
+  # }
+
+  # grad_lik <- c(1/tau, 1/kappa) * grad_lik
+
+  # add_mat <- diag(grad_lik) %*% hess_par
+
+  # add_mat <- 0.5 * (add_mat + t(add_mat))
+
+  # new_observed_fisher <- new_observed_fisher + add_mat
+
+  inv_fisher <- tryCatch(solve(new_observed_fisher), error = function(e) matrix(NA, nrow(new_observed_fisher), ncol(new_observed_fisher)))
+  
+  std_err <- sqrt(diag(inv_fisher))
+
+  # new_lik <- function(theta){
+  #       sigma <- exp(theta[1])
+  #       range <- exp(theta[2])
+
+  #       kappa <- C1/range
+  #       tau <- C2/(sigma * kappa^nu)
+  #       return(likelihood(log(c(tau,kappa))))
+  # }
+
+  # hess_tmp <- numDeriv::hessian(new_lik, log(c(sigma,range)))
+
+  # hess_tmp <- diag(c(1/sigma, 1/range)) %*% hess_tmp %*% diag(c(1/sigma, 1/range))
+
+  return(list(coeff = c(sigma, range), std_random = std_err))
 }

@@ -5,16 +5,17 @@ test_that("Checking covariances of CBrSPDE", {
   nobs <- 100
   s <- seq(from = 0, to = 1, length.out = nobs)
   fem <- rSPDE.fem1d(s)
-  kappa <- 40
   sigma <- 1
   d <- 1
+  range <- 0.2
   for (nu in c(0.8, 1.7, 2.6)) {
-    op2 <- matern.operators(
-      C = fem$C, G = fem$G, nu = nu, kappa = kappa, sigma = sigma,
-      d = 1, m = 2
+    op2 <- matern.operators(loc_mesh = s, 
+    nu = nu, range = range, sigma = sigma,
+      d = 1, m = 2,
+      parameterization = "matern"
     )
     v <- t(rSPDE.A1d(s, 0.5))
-    c.true <- matern.covariance(abs(s - 0.5), kappa, nu, sigma)
+    c.true <- folded.matern.covariance.1d(s, rep(0.5,length(s)), kappa = sqrt(8*nu)/range, nu, sigma)
     Q <- op2$Q
     A <- Diagonal(nobs)
     Abar <- cbind(A, A, A)
@@ -30,13 +31,13 @@ test_that("Checking loglike of CBrSPDE", {
   nobs <- 100
   s <- seq(from = 0, to = 1, length.out = nobs)
   fem <- rSPDE.fem1d(s)
-  kappa <- 40
+  range = 0.2
   sigma <- 1
   d <- 1
   for (nu in c(0.8, 1.7, 2.6)) {
-    op2 <- matern.operators(
-      C = fem$C, G = fem$G, nu = nu, kappa = kappa, sigma = sigma,
-      d = 1, m = 2
+    op2 <- matern.operators(loc_mesh = s, nu = nu, range = range, sigma = sigma,
+      d = 1, m = 2,
+      parameterization = "matern"
     )
     A <- Diagonal(nobs)
     sim_data <- A %*% simulate(op2) + rnorm(dim(A)[1], sd = 0.1)
@@ -49,7 +50,8 @@ test_that("Checking loglike of CBrSPDE", {
 
     op1 <- matern.operators(
       kappa = kappa, sigma = sigma, nu = nu,
-      G = fem$G, C = fem$C, d = 1, type = "operator"
+      loc_mesh = s, d = 1, type = "operator",
+      parameterization = "matern"
     )
     loglike1 <- rSPDE.matern.loglike(op1, sim_data, A, sigma.e = 0.1)
 
@@ -62,14 +64,15 @@ test_that("Checking Predict of CBrSPDE", {
   nobs <- 100
   s <- seq(from = 0, to = 1, length.out = nobs)
   fem <- rSPDE.fem1d(s)
-  kappa <- 40
+  range <- 0.2
   sigma <- 1
   d <- 1
   for (nu in c(0.8, 1.7, 2.6)) {
     Aprd <- rSPDE.A1d(s, 0.5)
     op2 <- matern.operators(
-      C = fem$C, G = fem$G, nu = nu, kappa = kappa, sigma = sigma,
-      d = 1, m = 2
+      C = fem$C, G = fem$G, nu = nu, range = range, sigma = sigma,
+      d = 1, m = 2,
+      parameterization = "matern"
     )
     A <- Diagonal(nobs)
     sim_data <- A %*% simulate(op2) + rnorm(dim(A)[1], sd = 0.1)
@@ -80,9 +83,10 @@ test_that("Checking Predict of CBrSPDE", {
     )
 
     op1 <- matern.operators(
-      kappa = kappa, sigma = sigma, nu = nu,
+      range = range, sigma = sigma, nu = nu,
       G = fem$G, C = fem$C, d = 1,
-      type = "operator"
+      type = "operator",
+      parameterization = "matern"
     )
     predict1 <- predict(
       object = op1, Y = sim_data, A = A, Aprd = Aprd, sigma.e = 0.1,
@@ -100,13 +104,14 @@ test_that("Checking loglike of CBrSPDE with replicates", {
   nobs <- 100
   s <- seq(from = 0, to = 1, length.out = nobs)
   fem <- rSPDE.fem1d(s)
-  kappa <- 40
+  range <- 0.2
   sigma <- 1
   d <- 1
   for (nu in c(0.8, 1.7, 2.6)) {
     op2 <- matern.operators(
-      C = fem$C, G = fem$G, nu = nu, kappa = kappa, sigma = sigma,
-      d = 1, m = 2
+      loc_mesh = s, nu = nu, range = range, sigma = sigma,
+      d = 1, m = 2,
+      parameterization = "matern"
     )
     A <- Diagonal(nobs)
     sim_data1 <- A %*% simulate(op2) + rnorm(dim(A)[1], sd = 0.1)
@@ -116,9 +121,10 @@ test_that("Checking loglike of CBrSPDE with replicates", {
     Y = sim_data, A = A, sigma.e = 0.1)
 
     op1 <- matern.operators(
-      kappa = kappa, sigma = sigma, nu = nu,
-      G = fem$G, C = fem$C, d = 1,
-      type = "operator"
+      range = range, sigma = sigma, nu = nu,
+      loc_mesh = s, d = 1,
+      type = "operator",
+      parameterization = "matern"
     )
     loglike1 <- rSPDE.matern.loglike(op1, sim_data, A, sigma.e = 0.1)
 

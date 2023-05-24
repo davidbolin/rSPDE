@@ -38,9 +38,7 @@ are iid mean-zero Gaussian variables and \eqn{x(s) =
 }
 \note{
 This example below shows how the function can be used to evaluate
-the likelihood of a latent Matern model. Se \code{\link[=matern.loglike]{matern.loglike()}}
-for an example of how this can be used for maximum
-likelihood estimation.
+the likelihood of a latent Matern model.
 }
 \examples{
 # Sample a Gaussian Matern process on R using a rational approximation
@@ -48,6 +46,7 @@ kappa <- 10
 sigma <- 1
 nu <- 0.8
 sigma.e <- 0.3
+range <- 0.2
 
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
@@ -55,8 +54,8 @@ fem <- rSPDE.fem1d(x)
 
 # compute rational approximation
 op <- matern.operators(
-  kappa = kappa, sigma = sigma, nu = nu,
-  G = fem$G, C = fem$C, d = 1,
+  range = range, sigma = sigma, nu = nu,
+  loc_mesh = x, d = 1,
   type = "operator"
 )
 
@@ -73,5 +72,5 @@ lik1 <- rSPDE.loglike(op, Y, A, sigma.e)
 cat(lik1)
 }
 \seealso{
-\code{\link[=matern.loglike]{matern.loglike()}}, \code{\link[=spde.matern.loglike]{spde.matern.loglike()}}
+\code{\link[=spde.matern.loglike]{spde.matern.loglike()}}
 }

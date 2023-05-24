@@ -38,6 +38,7 @@
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
+#' range <- sqrt(8*nu)/kappa
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -45,8 +46,9 @@
 #'
 #' # compute rational approximation
 #' op <- matern.operators(
-#'   kappa = kappa, sigma = sigma,
-#'   nu = nu, G = fem$G, C = fem$C, d = 1
+#'   range = range, sigma = sigma,
+#'   nu = nu, loc_mesh = x, d = 1,
+#'   parameterization = "matern"
 #' )
 #'
 #' # Sample the model and plot the result
@@ -79,18 +81,23 @@ simulate.rSPDEobj <- function(object,
 #' @description Function to change the parameters of a CBrSPDEobj object
 #' @param object The covariance-based rational SPDE approximation,
 #' computed using [matern.operators()]
-#' @param user_kappa If non-null, update the range parameter
-#' of the covariance function.
-#' @param user_tau If non-null, update the parameter tau.
+#' @param user_kappa If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.
+#' @param user_tau If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.
 #' @param user_sigma If non-null, update the standard deviation of
-#' the covariance function.
+#' the covariance function. Will be used if parameterization is 'matern'.
 #' @param user_range If non-null, update the range parameter
-#' of the covariance function.
+#' of the covariance function. Will be used if parameterization is 'matern'.
 #' @param user_theta For non-stationary models. If non-null, update the vector of parameters.
 #' @param user_nu If non-null, update the shape parameter of the
-#' covariance function.
+#' covariance function. Will be used if parameterization is 'matern'.
+#' @param user_alpha If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.
 #' @param user_m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
+#' @param mesh An optional inla mesh. Replaces `d`, `C` and `G`.
+#' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`. 
+#' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
+#' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument. 
+#' @param parameterization If non-null, update the parameterization. Only works for stationary models.
 #' @param compute_higher_order Logical. Should the higher order
 #' finite element matrices be computed?
 #' @param return_block_list Logical. For `type = "covariance"`,
@@ -111,6 +118,7 @@ simulate.rSPDEobj <- function(object,
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
+#' range <- sqrt(8*nu)/kappa
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -118,8 +126,9 @@ simulate.rSPDEobj <- function(object,
 #'
 #' # compute rational approximation of covariance function at 0.5
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'   parameterization = "matern"
 #' )
 #' op_cov
 #'
@@ -127,14 +136,19 @@ simulate.rSPDEobj <- function(object,
 #' op_cov <- update(op_cov, user_kappa = 20)
 #' op_cov
 #'
-update.CBrSPDEobj <- function(object, user_nu = NULL,
+update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
                               user_kappa = NULL,
                               user_tau = NULL,
                               user_sigma = NULL,
                               user_range = NULL,
                               user_theta = NULL,
                               user_m = NULL,
+                              mesh = NULL,
+                              loc_mesh = NULL,
+                              graph = NULL,
+                              range_mesh = NULL,
                               compute_higher_order = object$higher_order,
+                              parameterization = NULL,
                               type_rational_approximation =
                               object$type_rational_approximation,
                               return_block_list = object$return_block_list,
@@ -150,11 +164,69 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           user_nu <- object$nu
         }
 
+        new_object[["fem_mesh_matrices"]] <- fem_mesh_matrices
+
+        if(is.null(parameterization)){
+          parameterization <- new_object$parameterization
+        } else{
+            parameterization <- parameterization[[1]]
+            if (!parameterization %in% c("matern", "spde")) {
+                stop("parameterization should be either 'matern' or 'spde'!")
+            }
+        }
+
+        if(parameterization == "spde"){
+          if (!is.null(user_kappa)) {
+            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa", 0)
+            new_object$range <- NULL
+            new_object$sigma <- NULL
+          }
+
+          if (!is.null(user_tau)) {
+            new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
+            new_object$sigma <- NULL
+          }
+
+          if(!is.null(user_alpha)){
+            alpha <- rspde_check_user_input(user_alpha, "alpha", d/2)
+            user_nu <- alpha - d/2
+            new_object$nu <- user_nu
+            new_object$alpha <- alpha
+          }
+
+        } else if(parameterization == "matern"){
+          if (!is.null(user_range)) {
+            new_object$range <- rspde_check_user_input(user_range, "range", 0)
+            new_object$kappa <- NULL
+            new_object$tau <- NULL
+          }
+
+          if (!is.null(user_sigma)) {
+            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma", 0)
+            new_object$tau <- NULL
+          }
+          if(!is.null(user_nu)){
+            new_object$nu <- rspde_check_user_input(user_nu, "nu")
+          }
+          alpha <- new_object$nu + d / 2
+          new_object$alpha <- alpha
+        } 
+        # else if(parameterization == "graph"){
+        #   if (!is.null(user_kappa)) {
+        #     new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
+        #     new_object$range <- NULL
+        #     new_object$tau <- NULL
+        #   }
+
+        #   if (!is.null(user_sigma)) {
+        #     new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
+        #     new_object$tau <- NULL
+        #   }
+        # }
+
         ## get parameters
-        if (!is.null(user_nu)) {
-          new_object$nu <- rspde_check_user_input(user_nu, "nu")
-          nu <- user_nu
-          alpha <- nu + d / 2
+          alpha <- new_object$alpha
+  
           m_alpha <- floor(alpha)
           m_order <- m_alpha + 1
 
@@ -168,32 +240,23 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
               }
             }
           }
-        }
 
-        new_object[["fem_mesh_matrices"]] <- fem_mesh_matrices
-
-        if (!is.null(user_nu)) {
-            new_object$nu <- rspde_check_user_input(user_nu, "nu")
-        }
-
-        if (!is.null(user_kappa)) {
-          new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
-        }
-
-        if (!is.null(user_range)) {
-          new_object$range <- rspde_check_user_input(user_range, "range")
-        }
-
-        if (!is.null(user_tau)) {
-          new_object$tau <- rspde_check_user_input(user_tau, "tau")
-        }
-
-        if (!is.null(user_sigma)) {
-          new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
-        }
 
         if (!is.null(user_m)) {
           new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+        }
+
+        if(is.null(mesh)){
+          mesh <- new_object[["mesh"]]
+        }
+        if(is.null(range_mesh)){
+          range_mesh <- new_object[["range_mesh"]]
+        }
+        if(is.null(loc_mesh)){
+          loc_mesh <- new_object[["loc_mesh"]]
+        }
+        if(is.null(graph)){
+          graph <- new_object$graph
         }
 
         new_object <- matern.operators(
@@ -202,22 +265,23 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
           range = new_object$range,
           tau = new_object$tau,
           nu = new_object$nu,
+          alpha = new_object$alpha,
           G = new_object$G,
           C = new_object$C,
           d = new_object$d,
           m = new_object$m,
+          mesh = mesh,
+          loc_mesh = loc_mesh,
+          range_mesh = range_mesh,
+          graph = graph,
+          parameterization = parameterization,
           type = "covariance",
           return_block_list = return_block_list,
           type_rational_approximation = type_rational_approximation,
-          mesh = NULL,
           fem_mesh_matrices = new_object$fem_mesh_matrices
         )
   } else{
   ## get parameters
-          if (!is.null(user_nu)) {
-            new_object$nu <- rspde_check_user_input(user_nu, "nu")
-          }
-
 
           if (!is.null(user_tau)) {
             new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
@@ -234,22 +298,67 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
             new_object$theta <- user_theta
           }
 
-          if (!is.null(user_m)) {
-            new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+        if (!is.null(user_m)) {
+          new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+        }
+
+        if(is.null(mesh)){
+          mesh <- new_object[["mesh"]]
+        }
+        if(is.null(range_mesh)){
+          range_mesh <- new_object[["range_mesh"]]
+        }
+        if(is.null(loc_mesh)){
+          loc_mesh <- new_object[["loc_mesh"]]
+        }
+        if(is.null(graph)){
+          graph <- new_object$graph
+        }
+
+        if(is.null(parameterization)){
+          parameterization <- new_object$parameterization
+        } else{
+            parameterization <- parameterization[[1]]
+            if (!parameterization %in% c("matern", "spde")) {
+                stop("parameterization should be either 'matern', 'spde' or 'graph'!")
+            }
+        }        
+
+       if(parameterization == "spde"){
+          if(!is.null(user_alpha)){
+            alpha <- rspde_check_user_input(user_alpha, "alpha", d/2)
+            user_nu <- alpha - d/2
+            new_object$nu <- user_nu
+            new_object$alpha <- alpha
           }
+
+        } else if(parameterization == "matern"){
+          if(!is.null(user_nu)){
+            new_object$nu <- rspde_check_user_input(user_nu, "nu")
+          }
+          alpha <- new_object$nu + d / 2
+          new_object$alpha <- alpha
+        } 
 
           new_object <- spde.matern.operators(
             kappa = new_object$kappa,
             tau = new_object$tau,
             theta = new_object$theta,
             nu = new_object$nu,
+            alpha = new_object$alpha,
             B.tau = new_object$B.tau,
             B.kappa = new_object$B.kappa,
             G = new_object$G,
             C = new_object$C,
             d = new_object$d,
             m = new_object$m,
-            parameterization = "spde",
+            mesh = mesh,
+            loc_mesh = loc_mesh,
+            range_mesh = range_mesh,
+            graph = graph,            
+            parameterization = parameterization,
+            B.sigma = new_object$B.sigma,
+            B.range = new_object$B.range,
             type = "covariance",
             type_rational_approximation = new_object$type_rational_approximation
           )
@@ -274,8 +383,14 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 #' tau and kappa to the model matrices.
 #' @param user_nu If non-null, update the shape parameter
 #' of the covariance function.
+#' @param user_alpha If non-null, update the fractional order.
 #' @param user_m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
+#' @param mesh An optional inla mesh. Replaces `d`, `C` and `G`.
+#' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`. 
+#' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
+#' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument. 
+#' @param parameterization If non-null, update the parameterization. Only works for stationary models.
 #' @param ... Currently not used.
 #' @return It returns an object of class "rSPDEobj. This object contains the
 #' same quantities listed in the output of [matern.operators()].
@@ -288,15 +403,17 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
-#'
+#' range <- sqrt(8*nu)/kappa
+#' 
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
 #' # compute rational approximation of covariance function at 0.5
 #' op <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2, type = "operator"
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2, type = "operator",
+#'   parameterization = "matern"
 #' )
 #' op
 #'
@@ -305,34 +422,23 @@ update.CBrSPDEobj <- function(object, user_nu = NULL,
 #' op
 #'
 update.rSPDEobj <- function(object, user_nu = NULL,
+                            user_alpha = NULL,
                             user_kappa = NULL,
                             user_sigma = NULL,
                             user_range = NULL,
-                            user_tau = NULL,
+                            user_tau = NULL,                            
                             user_theta = NULL,
-                            user_m = NULL, ...) {
+                            user_m = NULL,
+                            mesh = NULL,
+                            loc_mesh = NULL,
+                            graph = NULL,
+                            range_mesh = NULL,
+                            parameterization = NULL, ...) {
   new_object <- object
 
   ## get parameters
-  if (!is.null(user_nu)) {
-    new_object$nu <- rspde_check_user_input(user_nu, "nu")
-  }
 
-  if (!is.null(user_kappa)) {
-    new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
-  }
-
-  if (!is.null(user_sigma)) {
-    new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
-  }
-
-  if (!is.null(user_tau)) {
-    new_object$tau <- rspde_check_user_input(user_tau, "tau")
-  }
-
-  if (!is.null(user_range)) {
-    new_object$range <- rspde_check_user_input(user_range, "range")
-  }
+  d <- object$d
 
   if (!is.null(user_m)) {
     new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
@@ -343,19 +449,147 @@ update.rSPDEobj <- function(object, user_nu = NULL,
   }
 
  if(new_object$stationary){
+        if(is.null(parameterization)){
+          parameterization <- new_object$parameterization
+        } else{
+            parameterization <- parameterization[[1]]
+            if (!parameterization %in% c("matern", "spde", "graph")) {
+                stop("parameterization should be either 'matern', 'spde' or 'graph'!")
+            }
+        }
+
+       if(parameterization == "spde"){
+          if (!is.null(user_kappa)) {
+            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa", 0)
+            new_object$range <- NULL
+            new_object$sigma <- NULL
+          }
+
+          if (!is.null(user_tau)) {
+            new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
+            new_object$sigma <- NULL
+          }
+
+          if(!is.null(user_alpha)){
+            alpha <- rspde_check_user_input(user_alpha, "alpha", d/2)
+            user_nu <- alpha - d/2
+            new_object$nu <- user_nu
+            new_object$alpha <- alpha
+          }
+
+        } else if(parameterization == "matern"){
+          if (!is.null(user_range)) {
+            new_object$range <- rspde_check_user_input(user_range, "range", 0)
+            new_object$kappa <- NULL
+            new_object$tau <- NULL
+          }
+
+          if (!is.null(user_sigma)) {
+            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma", 0)
+            new_object$tau <- NULL
+          }
+          if(!is.null(user_nu)){
+            new_object$nu <- rspde_check_user_input(user_nu, "nu")
+          }
+          alpha <- new_object$nu + d / 2
+          new_object$alpha <- alpha
+        } 
+
+        if (!is.null(user_m)) {
+          new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+        }
+
+        if(is.null(mesh)){
+          mesh <- new_object[["mesh"]]
+        }
+        if(is.null(range_mesh)){
+          range_mesh <- new_object[["range_mesh"]]
+        }
+        if(is.null(loc_mesh)){
+          loc_mesh <- new_object[["loc_mesh"]]
+        }
+        if(is.null(graph)){
+          graph <- new_object$graph
+        }
+
   new_object <- matern.operators(
     kappa = new_object$kappa,
     sigma = new_object$sigma,
     range = new_object$range,
     tau = new_object$tau,
     nu = new_object$nu,
+    alpha = new_object$alpha,
     G = new_object$G,
     C = new_object$C,
     d = new_object$d,
     m = new_object$m,
+    mesh = mesh,
+    loc_mesh = loc_mesh,
+    range_mesh = range_mesh,
+    graph = graph,
+    parameterization = parameterization,    
     type = "operator"
   )
  } else{
+          if (!is.null(user_tau)) {
+            new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
+          }
+
+          if (!is.null(user_kappa)) {
+            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa" , 0)
+          }
+
+          if (!is.null(user_theta)) {
+            if(!is.numeric(user_theta)){
+              stop("user_theta must be numeric!")
+            }
+            new_object$theta <- user_theta
+          }
+
+          if (!is.null(user_m)) {
+            new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+          } 
+
+        if(is.null(mesh)){
+          mesh <- new_object[["mesh"]]
+        }
+        if(is.null(range_mesh)){
+          range_mesh <- new_object[["range_mesh"]]
+        }
+        if(is.null(loc_mesh)){
+          loc_mesh <- new_object[["loc_mesh"]]
+        }
+        if(is.null(graph)){
+          graph <- new_object$graph
+        }          
+
+        if(is.null(parameterization)){
+          parameterization <- new_object$parameterization
+        } else{
+            parameterization <- parameterization[[1]]
+            if (!parameterization %in% c("matern", "spde", "graph")) {
+                stop("parameterization should be either 'matern', 'spde' or 'graph'!")
+            }
+        }        
+
+       if(parameterization == "spde"){
+          if(!is.null(user_alpha)){
+            alpha <- rspde_check_user_input(user_alpha, "alpha", d/2)
+            user_nu <- alpha - d/2
+            new_object$nu <- user_nu
+            new_object$alpha <- alpha
+          }
+
+        } else if(parameterization == "matern"){
+          if(!is.null(user_nu)){
+            new_object$nu <- rspde_check_user_input(user_nu, "nu")
+          }
+          alpha <- new_object$nu + d / 2
+          new_object$alpha <- alpha
+
+        }         
+
+  
           new_object <- spde.matern.operators(
             kappa = new_object$kappa,
             tau = new_object$tau,
@@ -367,6 +601,11 @@ update.rSPDEobj <- function(object, user_nu = NULL,
             C = new_object$C,
             d = new_object$d,
             m = new_object$m,
+            mesh = mesh,
+            loc_mesh = loc_mesh,
+            range_mesh = range_mesh,
+            parameterization = parameterization,
+            graph = graph,            
             type = "operator"
           )  
  }
@@ -398,8 +637,6 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' covariance function.
 #' @param user_m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
-#' @param pivot Should pivoting be used for the Cholesky
-#' decompositions? Default is TRUE
 #' @param ... Currently not used.
 #' @return A matrix with the `n` samples as columns.
 #' @method simulate CBrSPDEobj
@@ -409,7 +646,8 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
-#'
+#' range <- sqrt(8*nu)/kappa
+#' 
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
@@ -418,8 +656,9 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
 #' (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'   parameterization = "matern"
 #' )
 #'
 #' # Sample the model and plot the result
@@ -435,7 +674,6 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
                                 user_tau = NULL,
                                 user_theta = NULL,
                                 user_m = NULL,
-                                pivot = TRUE,
                                 ...) {
   if(!is.null(seed)){
     set.seed(seed)
@@ -455,6 +693,7 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       user_tau = user_tau,
       user_range = user_range,
       user_m = user_m,
+      parameterization = object$parameterization,
       compute_higher_order = TRUE
     )
 
@@ -479,18 +718,13 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
     )
     Z <- rnorm(sizeL * nsim)
     dim(Z) <- c(sizeL, nsim)
-    if (pivot) {
-      LQ <- chol(forceSymmetric(Q), pivot = TRUE)
-      reorder <- attr(LQ, "pivot")
-      X <- solve(LQ, Z)
-      # order back
-      orderback <- numeric(length(reorder))
-      orderback[reorder] <- seq_len(length(reorder))
-      X <- X[orderback, ]
-    } else {
+
+    # LQ <- Matrix::Cholesky(forceSymmetric(Q), LDL = FALSE)
+    # X <- solve(LQ, Z, system = "Lt")
+    # X <- solve(LQ, X, system = "Pt")
       LQ <- chol(forceSymmetric(Q))
       X <- solve(LQ, Z)
-    }
+
   } else {
     object <- update.CBrSPDEobj(
       object = object,
@@ -500,7 +734,8 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       user_m = user_m,
       user_range = user_range,
       user_tau = user_tau,
-      user_theta = user_theta
+      user_theta = user_theta,
+      parameterization = object$parameterization,
     )
 
     m <- object$m
@@ -508,18 +743,12 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 
     Z <- rnorm(dim(Q)[1] * nsim)
     dim(Z) <- c(dim(Q)[1], nsim)
-    if (pivot) {
-      LQ <- chol(forceSymmetric(Q), pivot = TRUE)
-      reorder <- attr(LQ, "pivot")
-      X <- solve(LQ, Z)
-      # order back
-      orderback <- numeric(length(reorder))
-      orderback[reorder] <- seq_len(length(reorder))
-      X <- X[orderback, ]
-    } else {
+
+    # LQ <- Matrix::Cholesky(forceSymmetric(Q), LDL = FALSE)
+    # X <- solve(LQ, Z, system = "Lt")
+    # X <- solve(LQ, X, system = "Pt")
       LQ <- chol(forceSymmetric(Q))
       X <- solve(LQ, Z)
-    }
     if(alpha %% 1 == 0){
       A <- Diagonal(dim(Q)[1])
       Abar <- A
@@ -559,7 +788,7 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 #' @param compute.variances Set to also TRUE to compute the kriging variances.
 #' @param posterior_samples If `TRUE`, posterior samples will be returned.
 #' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
-#' @param only_latent Should the posterior samples be only given to the laten model?
+#' @param only_latent Should the posterior samples be only given to the latent model?
 #' @param ... further arguments passed to or from other methods.
 #'
 #' @return A list with elements
@@ -575,15 +804,17 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 #' sigma <- 1
 #' nu <- 0.8
 #' sigma.e <- 0.3
-#'
+#' range <- sqrt(8*nu)/kappa
+#' 
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
 #' fem <- rSPDE.fem1d(x)
 #'
 #' # compute rational approximation
 #' op <- matern.operators(
-#'   kappa = kappa, sigma = sigma,
-#'   nu = nu, G = fem$G, C = fem$C, d = 1
+#'   range = range, sigma = sigma,
+#'   nu = nu, loc_mesh = x, d = 1,
+#'   parameterization = "matern"
 #' )
 #'
 #' # Sample the model
@@ -675,7 +906,7 @@ predict.rSPDEobj <- function(object,
         Z <- rnorm(dim(post_cov)[1] * n_samples)
         dim(Z) <- c(dim(post_cov)[1], n_samples)
         LQ <- chol(forceSymmetric(post_cov))
-        X <- solve(LQ, Z)
+        X <- LQ %*% Z
         X <- X + mean_tmp[,i]
         if(!only_latent){
           X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
@@ -712,10 +943,8 @@ predict.rSPDEobj <- function(object,
 #' @return The log-likelihood value.
 #' @export
 #' @note This example below shows how the function can be used to evaluate
-#' the likelihood of a latent Matern model. Se [matern.loglike()]
-#' for an example of how this can be used for maximum
-#' likelihood estimation.
-#' @seealso [matern.loglike()], [spde.matern.loglike()]
+#' the likelihood of a latent Matern model.
+#' @seealso [spde.matern.loglike()]
 #'
 #' @examples
 #' # Sample a Gaussian Matern process on R using a rational approximation
@@ -723,6 +952,7 @@ predict.rSPDEobj <- function(object,
 #' sigma <- 1
 #' nu <- 0.8
 #' sigma.e <- 0.3
+#' range <- 0.2
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -730,8 +960,8 @@ predict.rSPDEobj <- function(object,
 #'
 #' # compute rational approximation
 #' op <- matern.operators(
-#'   kappa = kappa, sigma = sigma, nu = nu,
-#'   G = fem$G, C = fem$C, d = 1,
+#'   range = range, sigma = sigma, nu = nu,
+#'   loc_mesh = x, d = 1,
 #'   type = "operator"
 #' )
 #'
@@ -841,8 +1071,6 @@ rSPDE.loglike <- function(obj,
 #' function.
 #' @param user_m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
-#' @param pivot Should pivoting be used for the Cholesky decompositions? Default
-#' is TRUE
 #' @return The log-likelihood value.
 #' @export
 #' @seealso [matern.operators()], [predict.CBrSPDEobj()]
@@ -859,6 +1087,7 @@ rSPDE.loglike <- function(obj,
 #' n.rep <- 10
 #' n.obs <- 100
 #' n.x <- 51
+#' range <- 0.2
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = n.x)
@@ -869,8 +1098,9 @@ rSPDE.loglike <- function(obj,
 #'
 #' # Compute the covariance-based rational approximation
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'  parameterization = "matern"
 #' )
 #'
 #' # Sample the model
@@ -911,7 +1141,7 @@ rSPDE.loglike <- function(obj,
 #' )
 #'
 #' print(data.frame(
-#'   kappa = c(kappa, exp(theta$par[1])), sigma = c(sigma, exp(theta$par[2])),
+#'   range = c(range, exp(theta$par[1])), sigma = c(sigma, exp(theta$par[2])),
 #'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
 #'   row.names = c("Truth", "Estimates")
 #' ))
@@ -923,8 +1153,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                  user_sigma = NULL,
                                  user_range = NULL,
                                  user_tau = NULL,
-                                 user_m = NULL,
-                                 pivot = TRUE) {
+                                 user_m = NULL) {
   if (inherits(object, "CBrSPDEobj")) {
     return(CBrSPDE.matern.loglike(
       object = object,
@@ -936,8 +1165,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
       user_sigma = user_sigma,
       user_tau = user_tau,
       user_range = user_range,
-      user_m = user_m,
-      pivot = pivot
+      user_m = user_m
     ))
   } else {
     if (inherits(object, "rSPDEobj")) {
@@ -992,8 +1220,6 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' covariance function.
 #' @param user_m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
-#' @param pivot Should pivoting be used for the Cholesky decompositions?
-#' Default is TRUE
 #' @return The log-likelihood value.
 #' @noRd
 #' @seealso [matern.operators()], [predict.CBrSPDEobj()]
@@ -1009,6 +1235,7 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' n.rep <- 10
 #' n.obs <- 100
 #' n.x <- 51
+#' range <- 0.2
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = n.x)
@@ -1019,8 +1246,9 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #'
 #' # Compute the covariance-based rational approximation
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'  parameterization = "matern"
 #' )
 #'
 #' # Sample the model
@@ -1071,8 +1299,7 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                    user_sigma = NULL,
                                    user_range = NULL,
                                    user_tau = NULL,
-                                   user_m = NULL,
-                                   pivot = TRUE) {
+                                   user_m = NULL) {
   Y <- as.matrix(Y)
   if (length(dim(Y)) == 2) {
     n.rep <- dim(Y)[2]
@@ -1095,7 +1322,8 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
     user_sigma = user_sigma,
     user_range = user_range,
     user_tau = user_tau,
-    user_m = user_m
+    user_m = user_m,
+    parameterization =  object$parameterization
   )
 
   m <- object$m
@@ -1113,17 +1341,20 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
   Q.frac <- object$Q.frac
 
-  Q.fracR <- chol(Q.frac, pivot = pivot)
+  Q.fracR <- Matrix::Cholesky(Q.frac)
 
   logdetL <- object$logdetL
   logdetC <- object$logdetC
   Q.int.order <- object$Q.int$order
 
   if (Q.int.order > 0) {
-    logQ <- 2 * sum(log(diag(Q.fracR))) + (Q.int.order) *
+    # logQ <- 2 * sum(log(diag(Q.fracR))) + (Q.int.order) *
+    # (m + 1) * (logdetL - logdetC)
+    
+    logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE)$modulus) + (Q.int.order) *
     (m + 1) * (logdetL - logdetC)
   } else {
-    logQ <- 2 * sum(log(diag(Q.fracR)))
+    logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE)$modulus)
   }
 
   ## compute Q_x|y
@@ -1141,8 +1372,6 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
 
   R <- Matrix::Cholesky(Q_xgiveny)
-
-
 
   mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
 
@@ -1186,8 +1415,7 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                    user_kappa = NULL,
                                    user_tau = NULL,
                                    user_theta = NULL,
-                                   user_m = NULL,
-                                   pivot = TRUE) {
+                                   user_m = NULL) {
 
   Y <- as.matrix(Y)
   if (length(dim(Y)) == 2) {
@@ -1229,9 +1457,9 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
   Q <- object$Q
 
-  Q.R <- chol(Q, pivot = pivot)
+  Q.R <- Matrix::Cholesky(Q)
 
-  logQ <- 2 * sum(log(diag(Q.R)))
+  logQ <- 2 * c(determinant(Q.R, logarithm = TRUE)$modulus)
 
   ## compute Q_x|y
   if(object$alpha %% 1 == 0){
@@ -1248,8 +1476,6 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
 
   R <- Matrix::Cholesky(Q_xgiveny)
-
-
 
   mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
 
@@ -1286,355 +1512,6 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
   return(as.double(log_likelihood))
 }
 
-#' Parameter-based log-likelihood for a latent Gaussian Matern model
-#' using a rational SPDE approximation
-#'
-#' This function evaluates the log-likelihood function for a Gaussian
-#' process with a Matern covariance
-#' function, that is observed under Gaussian measurement noise:
-#' \eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = u(s_i) + \epsilon_i}, where
-#' \eqn{\epsilon_i}{\epsilon_i} are iid mean-zero Gaussian variables.
-#' The latent model is approximated using a rational approximation
-#' of the fractional SPDE model corresponding to the Gaussian process.
-#'
-#' @param kappa Range parameter of the latent process.
-#' @param sigma Standard deviation of the latent process.
-#' @param nu Shape parameter of the latent process.
-#' @param sigma.e The standard deviation of the measurement noise.
-#' @param Y The observations, either a vector or a matrix where
-#' the columns correspond to independent replicates of observations.
-#' @param G The stiffness matrix of a finite element discretization
-#' of the domain.
-#' @param C The mass matrix of a finite element discretization of the domain.
-#' @param A A matrix linking the measurement locations to the basis of
-#' the FEM approximation of the latent model.
-#' @param mu Expectation vector of the latent field (default = 0).
-#' @param d The dimension of the domain. The default value is 2.
-#' @param m The order of the rational approximation, which needs to be a
-#' positive integer. The default value is 1.
-#' @param type The type of the rational approximation. The options are
-#' "covariance" and "operator". The default is "covariance".
-#' @param pivot Should pivoting be used for the Cholesky decompositions?
-#' Default is TRUE
-#'
-#' @return The log-likelihood value.
-#' @export
-#' @seealso [spde.matern.loglike()], [rSPDE.loglike()],
-#' [matern.operators()].
-#'
-#' @examples
-#' # this example illustrates how the function can be used for maximum
-#' # likelihood estimation
-#'
-#' set.seed(123)
-#' # Sample a Gaussian Matern process on R using the covariance-based
-#' # rational approximation
-#' nu <- 0.8
-#' kappa <- 5
-#' sigma <- 1
-#' sigma.e <- 0.1
-#' n.rep <- 10
-#' n.obs <- 100
-#' n.x <- 51
-#'
-#' # create mass and stiffness matrices for a FEM discretization
-#' x <- seq(from = 0, to = 1, length.out = n.x)
-#' fem <- rSPDE.fem1d(x)
-#'
-#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) * (4 * pi)^(1 / 2) *
-#' gamma(nu + 1 / 2)))
-#'
-#' # Compute the covariance-based rational approximation
-#' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
-#' )
-#'
-#' # Sample the model
-#' u <- simulate(op_cov, n.rep)
-#'
-#' # Create some data
-#' obs.loc <- runif(n = n.obs, min = 0, max = 1)
-#' A <- rSPDE.A1d(x, obs.loc)
-#' noise <- rnorm(n.obs * n.rep)
-#' dim(noise) <- c(n.obs, n.rep)
-#' Y <- as.matrix(A %*% u + sigma.e * noise)
-#'
-#' # Define the negative likelihood function for optimization
-#' # using CBrSPDE.matern.loglike
-#' # Notice that we are also using sigma instead of tau, so it can be compared
-#' # to matern.loglike()
-#' mlik_cov2 <- function(theta, Y, A, C, G) {
-#'   kappa <- exp(theta[1])
-#'   sigma <- exp(theta[2])
-#'   nu <- exp(theta[3])
-#'   return(-matern.loglike(
-#'     kappa = kappa, sigma = sigma,
-#'     nu = nu, sigma.e = exp(theta[4]), Y = Y, A = A,
-#'     C = fem$C, G = fem$G, d = 1
-#'   ))
-#' }
-#'
-#' # The parameters can now be estimated by minimizing mlik with optim
-#' \donttest{
-#' # Choose some reasonable starting values depending on the size of the domain
-#' theta0 <- log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
-#'
-#' # run estimation and display the results
-#' theta <- optim(theta0, mlik_cov2,
-#'   Y = Y, A = A, C = C, G = G,
-#'   method = "L-BFGS-B"
-#' )
-#'
-#' print(data.frame(
-#'   kappa = c(kappa, exp(theta$par[1])), sigma = c(sigma, exp(theta$par[2])),
-#'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
-#'   row.names = c("Truth", "Estimates")
-#' ))
-#' }
-#'
-#' # this example illustrates how the function can be used for
-#' # maximum likelihood estimation when using the operator-based
-#' # rational approximation
-#' set.seed(123)
-#' # Sample a Gaussian Matern process on R using a rational approximation
-#' nu <- 0.8
-#' kappa <- 5
-#' sigma <- 1
-#' sigma.e <- 0.1
-#' n.rep <- 10
-#' n.obs <- 100
-#' n.x <- 51
-#'
-#' # create mass and stiffness matrices for a FEM discretization
-#' x <- seq(from = 0, to = 1, length.out = n.x)
-#' fem <- rSPDE.fem1d(x)
-#'
-#' # compute rational approximation
-#' op <- matern.operators(
-#'   kappa = kappa, sigma = sigma, nu = nu,
-#'   G = fem$G, C = fem$C, d = 1,
-#'   type = "operator"
-#' )
-#'
-#' # Sample the model
-#' u <- simulate(op, n.rep)
-#'
-#' # Create some data
-#' obs.loc <- runif(n = n.obs, min = 0, max = 1)
-#' A <- rSPDE.A1d(x, obs.loc)
-#' noise <- rnorm(n.obs * n.rep)
-#' dim(noise) <- c(n.obs, n.rep)
-#' Y <- as.matrix(A %*% u + sigma.e * noise)
-#'
-#' # define negative likelihood function for optimization using matern.loglike
-#' mlik <- function(theta, Y, G, C, A) {
-#'   return(-matern.loglike(exp(theta[1]), exp(theta[2]),
-#'     exp(theta[3]), exp(theta[4]),
-#'     Y = Y, G = G, C = C, A = A, d = 1,
-#'     type = "operator"
-#'   ))
-#' }
-#'
-#' # The parameters can now be estimated by minimizing mlik with optim
-#' \donttest{
-#' # Choose some reasonable starting values depending on the size of the domain
-#' theta0 <- log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
-#'
-#' # run estimation and display the results
-#' theta <- optim(theta0, mlik,
-#'   Y = Y, G = fem$G, C = fem$C, A = A,
-#'   method = "L-BFGS-B"
-#' )
-#'
-#' print(data.frame(
-#'   kappa = c(kappa, exp(theta$par[1])), sigma = c(sigma, exp(theta$par[2])),
-#'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
-#'   row.names = c("Truth", "Estimates")
-#' ))
-#' }
-matern.loglike <- function(kappa,
-                           sigma,
-                           nu,
-                           sigma.e,
-                           Y,
-                           G,
-                           C,
-                           A,
-                           mu = 0,
-                           d = 2,
-                           m = 1,
-                           type = c("covariance", "operator"),
-                           pivot = TRUE) {
-  type <- type[[1]]
-  if (!type %in% c("covariance", "operator")) {
-    stop("The type should be 'covariance' or 'operator'!")
-  }
-  if (is.null(d)) {
-    stop("the dimension d must be supplied")
-  }
-  if (type == "covariance") {
-    return(CBrSPDE.matern.loglike2(
-      kappa = kappa,
-      sigma = sigma,
-      nu = nu,
-      sigma.e = sigma.e,
-      mu = mu,
-      Y = Y,
-      G = G,
-      C = C,
-      A = A,
-      d = d,
-      m = m,
-      pivot = pivot
-    ))
-  } else {
-    op <- matern.operators(
-      kappa = kappa, sigma = sigma, nu = nu,
-      G = G, C = C, d = d, m = m,
-      type = "operator"
-    )
-    return(rSPDE.loglike(obj = op, Y = Y, A = A, sigma.e = sigma.e))
-  }
-}
-
-
-#' @name CBrSPDE.matern.loglike2
-#' @title Parameter-based log-likelihood function for latent Gaussian fractional
-#' SPDE model using the covariance-based rational approximations
-#' @description This function evaluates the log-likelihood function for a
-#' Gaussian process with a Matern covariance function, that is observed under
-#' Gaussian measurement noise:
-#' \eqn{Y_i = u(s_i) + \epsilon_i}{Y_i = u(s_i) + \epsilon_i}, where
-#' \eqn{\epsilon_i}{\epsilon_i} are iid mean-zero Gaussian variables.
-#' The latent model is approximated using the covariance-based rational
-#' approximation of the fractional SPDE model corresponding to the
-#' Gaussian process.
-#' @param kappa Range parameter of the latent process.
-#' @param sigma Standard deviation of the latent process.
-#' @param nu Shape parameter of the latent process.
-#' @param sigma.e The standard deviation of the measurement noise.
-#' @param mu Expectation vector of the latent field (default = 0).
-#' @param Y The observations, either a vector or a matrix where
-#' the columns correspond to independent replicates of observations.
-#' @param G The stiffness matrix of a finite element discretization
-#' of the domain.
-#' @param C The mass matrix of a finite element discretization of the domain.
-#' @param A A matrix linking the measurement locations to the basis of
-#' the FEM approximation of the latent model.
-#' @param d The dimension of the domain. The default value is 2.
-#' @param m The order of the rational approximation, which needs to be
-#' a positive integer.
-#' The default value is 2.
-#' @param pivot Should pivoting be used for the Cholesky decompositions?
-#' Default is TRUE
-#' @return The log-likelihood value.
-#' @noRd
-#' @seealso [matern.operators()], [predict.CBrSPDEobj()]
-#' @examples
-#' # this example illustrates how the function can be used for maximum
-#' # likelihood estimation
-#' set.seed(123)
-#' # Sample a Gaussian Matern process on R using a rational approximation
-#' nu <- 0.8
-#' kappa <- 5
-#' sigma <- 1
-#' sigma.e <- 0.1
-#' n.rep <- 10
-#' n.obs <- 100
-#' n.x <- 51
-#'
-#' # create mass and stiffness matrices for a FEM discretization
-#' x <- seq(from = 0, to = 1, length.out = n.x)
-#' fem <- rSPDE.fem1d(x)
-#'
-#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) * (4 * pi)^(1 / 2) *
-#' gamma(nu + 1 / 2)))
-#'
-#' # Compute the covariance-based rational approximation
-#' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
-#' )
-#'
-#' # Sample the model
-#' u <- simulate(op_cov, n.rep)
-#'
-#' # Create some data
-#' obs.loc <- runif(n = n.obs, min = 0, max = 1)
-#' A <- rSPDE.A1d(x, obs.loc)
-#' noise <- rnorm(n.obs * n.rep)
-#' dim(noise) <- c(n.obs, n.rep)
-#' Y <- as.matrix(A %*% u + sigma.e * noise)
-#'
-#' # Define the negative likelihood function for optimization using
-#' # CBrSPDE.matern.loglike2
-#' # Notice that we are also using sigma instead of tau, so it can be compared
-#' # to matern.loglike()
-#' mlik_cov2 <- function(theta, Y, A, C, G) {
-#'   kappa <- exp(theta[1])
-#'   sigma <- exp(theta[2])
-#'   nu <- exp(theta[3])
-#'   return(-matern.loglike(
-#'     kappa = kappa, sigma = sigma,
-#'     nu = nu, sigma.e = exp(theta[4]), Y = Y,
-#'     A = A, C = fem$C, G = fem$G, d = 1
-#'   ))
-#' }
-#'
-#' # The parameters can now be estimated by minimizing mlik with optim
-#' \donttest{
-#' # Choose some reasonable starting values depending on the size of the domain
-#' theta0 <- log(c(sqrt(8), sqrt(var(c(Y))), 0.9, 0.01))
-#'
-#' # run estimation and display the results
-#' theta <- optim(theta0, mlik_cov2,
-#'   Y = Y, A = A, C = C, G = G,
-#'   method = "L-BFGS-B"
-#' )
-#'
-#' print(data.frame(
-#'   kappa = c(kappa, exp(theta$par[1])), sigma = c(sigma, exp(theta$par[2])),
-#'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
-#'   row.names = c("Truth", "Estimates")
-#' ))
-#' }
-CBrSPDE.matern.loglike2 <- function(kappa,
-                                    sigma,
-                                    nu,
-                                    sigma.e,
-                                    mu = 0,
-                                    Y,
-                                    G,
-                                    C,
-                                    A,
-                                    d = 2,
-                                    m = 2,
-                                    pivot = TRUE) {
-  obj_cov_rSPDE <- matern.operators(
-    C = C,
-    G = G,
-    nu = nu,
-    kappa = kappa,
-    sigma = sigma,
-    m = m,
-    d = d
-  )
-
-  return(CBrSPDE.matern.loglike(
-    object = obj_cov_rSPDE, Y = Y, A = A, sigma.e = sigma.e, mu = mu,
-    user_nu = NULL,
-    user_kappa = NULL,
-    user_sigma = NULL,
-    user_m = NULL,
-    pivot = pivot
-  ))
-}
-
-
-
-
-
 
 #' Parameter-based log-likelihood for a latent Gaussian Matern SPDE model
 #' using a rational SPDE approximation
@@ -1664,12 +1541,10 @@ CBrSPDE.matern.loglike2 <- function(kappa,
 #' @param user_nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
 #' @param user_m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
-#' @param pivot Should pivoting be used for the Cholesky decompositions?
-#' Default is TRUE
 #' 
 #' @return The log-likelihood value.
 #' @export
-#' @seealso [matern.loglike()], [rSPDE.loglike()].
+#' @seealso [rSPDE.loglike()].
 #'
 #' @examples
 #' # this example illustrates how the function can be used for maximum
@@ -1684,11 +1559,13 @@ CBrSPDE.matern.loglike2 <- function(kappa,
  #' fem <- rSPDE.fem1d(x)
  #' tau <- rep(0.5, n.x)
  #' nu <- 0.8
+ #' alpha <- nu + 1/2
  #' kappa <- rep(1, n.x)
  #' # compute rational approximation
  #' op <- spde.matern.operators(
- #'   kappa = kappa, tau = tau, nu = nu,
- #'   G = fem$G, C = fem$C, d = 1
+ #'   kappa = kappa, tau = tau, alpha = alpha,
+ #'   parameterization = "spde", d = 1,
+ #'   loc_mesh = x
  #' )
  #' # Sample the model
  #' u <- simulate(op, n.rep)
@@ -1703,8 +1580,7 @@ CBrSPDE.matern.loglike2 <- function(kappa,
  #'   return(-spde.matern.loglike(op, Y, A, sigma.e = exp(theta[4]),
  #'                                  user_nu = exp(theta[3]),
  #'                                  user_kappa = exp(theta[2]),
- #'                                  user_tau = exp(theta[1]),
- #'                                  pivot = TRUE))
+ #'                                  user_tau = exp(theta[1])))
  #' }
 #' #' #The parameters can now be estimated by minimizing mlik with optim
 #' \donttest{
@@ -1723,8 +1599,7 @@ spde.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
                                  user_kappa = NULL,
                                  user_tau = NULL,
                                  user_theta = NULL,
-                                 user_m = NULL,
-                                 pivot = TRUE) {
+                                 user_m = NULL) {
 if (inherits(object, "CBrSPDEobj")) {
 
 
@@ -1741,8 +1616,7 @@ if (inherits(object, "CBrSPDEobj")) {
                                    user_kappa = user_kappa,
                                    user_tau = user_tau,
                                    user_theta = user_theta,
-                                   user_m = user_m,
-                                   pivot = pivot))
+                                   user_m = user_m))
 
   } else {
     if (inherits(object, "rSPDEobj")) {
@@ -1793,7 +1667,6 @@ if (inherits(object, "CBrSPDEobj")) {
 #' @param posterior_samples If `TRUE`, posterior samples will be returned.
 #' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
 #' @param only_latent Should the posterior samples be only given to the laten model?
-#' @param pivot Should pivoting be used on the Cholesky decompositions?
 #' @param ... further arguments passed to or from other methods.
 #' @return A list with elements
 #' \item{mean }{The kriging predictor (the posterior mean of u|Y).}
@@ -1807,6 +1680,7 @@ if (inherits(object, "CBrSPDEobj")) {
 #' sigma <- 1
 #' nu <- 0.8
 #' sigma.e <- 0.3
+#' range <- 0.2
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -1817,8 +1691,9 @@ if (inherits(object, "CBrSPDEobj")) {
 #'
 #' # Compute the covariance-based rational approximation
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'   parameterization = "matern"
 #' )
 #'
 #' # Sample the model
@@ -1848,7 +1723,7 @@ if (inherits(object, "CBrSPDEobj")) {
 #' lines(x, u.krig$mean - 2 * sqrt(u.krig$variance), col = 2)
 predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
                                compute.variances = FALSE, posterior_samples = FALSE,
-                               n_samples = 100, only_latent = FALSE, pivot = TRUE,
+                               n_samples = 100, only_latent = FALSE, 
                                ...) {
   Y <- as.matrix(Y)
   if (dim(Y)[1] != dim(A)[1]) {
@@ -1887,39 +1762,13 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
     if (alpha %% 1 == 0) { # loglikelihood in integer case
       ## construct Q
       Q <- object$Q
-
-      R <- chol(forceSymmetric(Q), pivot = pivot)
       ## compute Q_x|y
       Q_xgiveny <- (t(A) %*% Q.e %*% A) + Q
       ## construct mu_x|y
       mu_xgiveny <- t(A) %*% Q.e %*% Y
-      # upper triangle with reordering
-      R <- chol(forceSymmetric(Q_xgiveny), pivot = pivot)
-      if (pivot) {
-        reorder <- attr(R, "pivot")
-        # make it lower triangle
-        R <- t(R)
-        if(dim(Y)[2] == 1){
-          v <- solve(R, mu_xgiveny[reorder])
-        } else{
-          v <- solve(R, mu_xgiveny[reorder,])
-        }
 
-        mu_xgiveny <- solve(t(R), v)
-        # order back
-        orderback <- numeric(length(reorder))
-        orderback[reorder] <- seq_len(length(reorder))
-        if(dim(Y)[2]==1){
-          mu_xgiveny <- mu_xgiveny[orderback]
-        } else{
-          mu_xgiveny <- mu_xgiveny[orderback,]
-        }
-
-      } else {
-        R <- t(R)
-        v <- solve(R, mu_xgiveny)
-        mu_xgiveny <- solve(t(R), v)
-      }
+      R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
+      mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
 
       mu_xgiveny <- mu + mu_xgiveny
       out$mean <- Aprd %*% mu_xgiveny
@@ -1931,37 +1780,16 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
 
       Q <- object$Q
 
-      R <- chol(forceSymmetric(Q), pivot = pivot)
       ## compute Q_x|y
       Q_xgiveny <- kronecker(matrix(1, m + 1, m + 1), t(A) %*% Q.e %*% A) + Q
       ## construct mu_x|y
       Abar <- kronecker(matrix(1, 1, m + 1), A)
       mu_xgiveny <- t(Abar) %*% Q.e %*% Y
       # upper triangle with reordering
-      R <- chol(forceSymmetric(Q_xgiveny), pivot = pivot)
-      if (pivot) {
-        reorder <- attr(R, "pivot")
-        # make it lower triangle
-        R <- t(R)
-        if(dim(Y)[2] == 1){
-          v <- solve(R, mu_xgiveny[reorder])
-        } else{
-          v <- solve(R, mu_xgiveny[reorder,])
-        }
-        mu_xgiveny <- solve(t(R), v)
+      R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
 
-        orderback <- numeric(length(reorder))
-        orderback[reorder] <- seq_len(length(reorder))
-        if(dim(Y)[2]==1){
-          mu_xgiveny <- mu_xgiveny[orderback]
-        } else{
-          mu_xgiveny <- mu_xgiveny[orderback,]
-        }
-      } else {
-        R <- t(R)
-        v <- solve(R, mu_xgiveny)
-        mu_xgiveny <- solve(t(R), v)
-      }
+      mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
+
       mu_xgiveny <- mu + mu_xgiveny
 
       Aprd_bar <- kronecker(matrix(1, 1, m + 1), Aprd)
@@ -2013,7 +1841,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
         Z <- rnorm(dim(post_cov)[1] * n_samples)
         dim(Z) <- c(dim(post_cov)[1], n_samples)
         LQ <- chol(forceSymmetric(post_cov))
-        X <- solve(LQ, Z)
+        X <- LQ %*% Z
         X <- X + mean_tmp[,i]
         if(!only_latent){
           X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
@@ -2061,6 +1889,7 @@ precision <- function(object, ...) {
 #' kappa <- 10
 #' sigma <- 1
 #' nu <- 0.8
+#' range <- 0.2
 #'
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = 101)
@@ -2070,8 +1899,9 @@ precision <- function(object, ...) {
 #' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
 #' (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'   parameterization = "matern"
 #' )
 #'
 #' # Get the precision matrix:
@@ -2129,8 +1959,6 @@ precision.CBrSPDEobj <- function(object,
 #' which needs to be a positive integer.
 #' @param log_scale Should the parameters be evaluated in log-scale?
 #' @param return_negative_likelihood Return minus the likelihood to turn the maximization into a minimization?
-#' @param pivot Should pivoting be used for the Cholesky decompositions? Default
-#' is TRUE
 #' @return The log-likelihood function. The parameters of the returned function
 #' are given in the order sigma, kappa, nu, sigma.e, whenever they are available.
 #' @export
@@ -2142,21 +1970,19 @@ precision.CBrSPDEobj <- function(object,
 #' set.seed(123)
 #' # Sample a Gaussian Matern process on R using a rational approximation
 #' nu <- 0.8
-#' kappa <- 15
 #' sigma <- 1
 #' sigma.e <- 0.1
 #' n.rep <- 10
 #' n.obs <- 200
 #' n.x <- 51
+#' range <- 0.2
 #' # create mass and stiffness matrices for a FEM discretization
 #' x <- seq(from = 0, to = 1, length.out = n.x)
-#' fem <- rSPDE.fem1d(x)
-#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-#' (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 #' # Compute the covariance-based rational approximation
 #' op_cov <- matern.operators(
-#'   C = fem$C, G = fem$G, nu = nu,
-#'   kappa = kappa, sigma = sigma, d = 1, m = 2
+#'   loc_mesh = x, nu = nu,
+#'   range = range, sigma = sigma, d = 1, m = 2,
+#'  parameterization = "matern"
 #' )
 #' # Sample the model
 #' u <- simulate(op_cov, n.rep)
@@ -2175,33 +2001,21 @@ precision.CBrSPDEobj <- function(object,
 #' # The parameters can now be estimated by minimizing mlik with optim
 #' 
 #' # Choose some reasonable starting values depending on the size of the domain
-#' theta0 <- log(c(1/sqrt(var(c(Y))), sqrt(8),  0.9, 0.01))
+#' theta0 <- c(get.initial.values.rSPDE(mesh.range = 1, dim = 1), 
+#'                                  log(0.1*sd(as.vector(Y))))
 #' # run estimation and display the results
 #' theta <- optim(theta0, loglike,
 #'   method = "L-BFGS-B"
 #' )
 #' print(data.frame(
-#'   sigma = c(sigma, exp(theta$par[1])), range = c(sqrt(8*nu)/kappa, exp(theta$par[2])),
+#'   sigma = c(sigma, exp(theta$par[1])), range = c(range, exp(theta$par[2])),
 #'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
 #'   row.names = c("Truth", "Estimates")
 #' ))
 #'
-#' # SPDE parameterization:
-#' loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A, parameterization = "spde") 
-#' 
-#' # run estimation and display the results
-#' theta <- optim(theta0, loglike,
-#'   method = "L-BFGS-B"
-#' )
-#' print(data.frame(
-#'   tau = c(tau, exp(theta$par[1])), kappa = c(kappa, exp(theta$par[2])),
-#'   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
-#'   row.names = c("Truth", "Estimates")
-#' ))
 #' }
 
 
-#'
 rSPDE.construct.matern.loglike <- function(object, Y, A, 
                                  sigma.e = NULL, mu = 0,
                                  user_nu = NULL,
@@ -2212,8 +2026,7 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
                                  parameterization = c("spde", "matern"),
                                  user_m = NULL,
                                  log_scale = TRUE,
-                                 return_negative_likelihood = TRUE,
-                                 pivot = TRUE){
+                                 return_negative_likelihood = TRUE){
         
         parameterization <- parameterization[[1]]
 
@@ -2271,8 +2084,7 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
                 user_kappa = kappa,
                 user_nu = nu,
                 user_tau=tau,
-                user_m = user_m,
-                pivot = pivot)
+                user_m = user_m)
                 if(return_negative_likelihood){
                   return(-loglike)
                 } else{
@@ -2322,8 +2134,7 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
                 user_range = range,
                 user_nu = nu,
                 user_sigma=sigma,
-                user_m = user_m,
-                pivot = pivot)
+                user_m = user_m)
                 if(return_negative_likelihood){
                   return(-loglike)
                 } else{
@@ -2362,8 +2173,6 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
 #' which needs to be a positive integer.
 #' @param log_scale Should the parameters be evaluated in log-scale?
 #' @param return_negative_likelihood Return minus the likelihood to turn the maximization into a minimization?
-#' @param pivot Should pivoting be used for the Cholesky decompositions? Default
-#' is TRUE
 #' @return The log-likelihood function. The parameters of the returned function
 #' are given in the order theta, nu, sigma.e, whenever they are available.
 #' @export
@@ -2382,12 +2191,14 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
 #' fem <- rSPDE.fem1d(x)
 #' tau <- rep(0.5, n.x)
 #' nu <- 0.8
+#' alpha <- nu + 0.5
 #' kappa <- rep(1, n.x)
 #' # Matern parameterization
 #' # compute rational approximation
 #'  op <- spde.matern.operators(
-#'    kappa = kappa, tau = tau, nu = nu,
-#'    G = fem$G, C = fem$C, d = 1
+#'     loc_mesh = x,
+#'    kappa = kappa, tau = tau, alpha = alpha,
+#'    parameterization = "spde", d = 1
 #'  )
 #' # Sample the model
 #' u <- simulate(op, n.rep)
@@ -2415,8 +2226,8 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
 #' # SPDE parameterization
 #' # compute rational approximation
 #'  op <- spde.matern.operators(
-#'    kappa = kappa, tau = tau, nu = nu,
-#'    G = fem$G, C = fem$C, d = 1, 
+#'    kappa = kappa, tau = tau, alpha = alpha,
+#'    loc_mesh = x, d = 1, 
 #'    parameterization = "spde"
 #'  )
 #' # Sample the model
@@ -2446,8 +2257,7 @@ construct.spde.matern.loglike <- function(object, Y, A,
                                  user_nu = NULL,
                                  user_m = NULL,
                                  log_scale = TRUE,
-                                 return_negative_likelihood = TRUE,
-                                 pivot = TRUE){
+                                 return_negative_likelihood = TRUE){
         
 
         loglik <- function(theta){
@@ -2482,8 +2292,7 @@ construct.spde.matern.loglike <- function(object, Y, A,
           mu = mu,
           user_theta = theta[1:n_tmp],
           user_nu = nu,
-          user_m = user_m,
-          pivot = pivot)
+          user_m = user_m)
           if(return_negative_likelihood){
             return(-loglike)
           } else{
@@ -2495,3 +2304,153 @@ construct.spde.matern.loglike <- function(object, Y, A,
         return(loglik)
 }
 
+
+
+
+
+#' @noRd 
+
+aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
+  m <- object$m
+
+  Q <- object$Q
+
+  # R <- tryCatch(Matrix::chol(Matrix::forceSymmetric(Q)), error=function(e){return(NULL)})
+  R <- tryCatch(Matrix::Cholesky(Q), error = function(e){return(NULL)})
+  if(is.null(R)){
+    return(-10^100)
+  }
+
+  prior.ld <- c(determinant(R, logarithm = TRUE)$modulus)
+
+  repl_val <- unique(repl)
+
+  l <- 0
+  
+  for(i in repl_val){
+      ind_tmp <- (repl %in% i)
+      y_tmp <- y[ind_tmp]
+      
+      if(ncol(X_cov) == 0){
+        X_cov_tmp <- 0
+      } else {
+        X_cov_tmp <- X_cov[ind_tmp,,drop=FALSE]
+      }
+
+      na_obs <- is.na(y_tmp)
+      
+      y_ <- y_tmp[!na_obs]
+      # y_ <- y_list[[as.character(i)]]
+      n.o <- length(y_)
+      A_tmp <- A_list[[as.character(i)]]
+      Q.p <- Q  + t(A_tmp) %*% A_tmp/sigma_e^2
+      # R.p <- tryCatch(Matrix::chol(Q.p), error=function(e){return(NULL)})
+      # if(is.null(R.p)){
+      #   return(-10^100)
+      # }
+
+      R.p <- tryCatch(Matrix::Cholesky(Q.p), error=function(e){return(NULL)})
+      if(is.null(R.p)){
+        return(-10^100)
+      }
+
+      posterior.ld <-  c(determinant(R.p, logarithm = TRUE)$modulus)
+
+
+      # l <- l + sum(log(diag(R))) - sum(log(diag(R.p))) - n.o*log(sigma_e)
+
+      l <- l + prior.ld - posterior.ld - n.o*log(sigma_e)
+
+      v <- y_
+
+      # if(has_cov){
+      if(ncol(X_cov)>0){
+        X_cov_tmp <- X_cov_tmp[!na_obs, , drop = FALSE] 
+        # X_cov_tmp <- X_cov_list[[as.character(i)]]
+        v <- v - X_cov_tmp %*% beta_cov
+      }
+
+      # mu.p <- solve(Q.p,as.vector(t(A_tmp) %*% v / sigma_e^2))
+
+      mu.p <- solve(R.p, as.vector(t(A_tmp) %*% v / sigma_e^2), system = "A")
+
+      v <- v - A_tmp%*%mu.p
+
+      l <- l - 0.5*(t(mu.p) %*% Q %*% mu.p + t(v) %*% v / sigma_e^2) -
+        0.5 * n.o * log(2*pi)
+
+  }
+
+  return(as.double(l))
+}
+
+
+
+#' @noRd 
+
+aux_lme_rSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
+ 
+  m <- object$m
+  Q <- object$Q
+
+  R <- tryCatch(Matrix::Cholesky(object$Pl), error = function(e){return(NULL)})
+  if(is.null(R)){
+    return(-10^100)
+  }
+
+  prior.ld <- 2 * c(determinant(R, logarithm = TRUE)$modulus) -
+  sum(log(diag(object$C)))/2  
+
+  repl_val <- unique(repl)
+
+  l <- 0
+  
+  for(i in repl_val){
+      ind_tmp <- (repl %in% i)
+      y_tmp <- y[ind_tmp]
+
+      if(ncol(X_cov) == 0){
+        X_cov_tmp <- 0
+      } else {
+        X_cov_tmp <- X_cov[ind_tmp,,drop=FALSE]
+      }
+      na_obs <- is.na(y_tmp)
+      
+      y_ <- y_tmp[!na_obs]
+      n.o <- length(y_)
+      A_tmp <- A_list[[as.character(i)]]
+      A_tmp <- A_tmp %*% object$Pr
+      Q.p <- Q  + t(A_tmp) %*% A_tmp/sigma_e^2
+      # R.p <- tryCatch(Matrix::chol(Q.p), error = function(e){return(NULL)})
+      # if(is.null(R.p)){
+      #   return(-10^100)
+      # }
+
+      v <- y_
+
+      if(ncol(X_cov) != 0){
+        X_cov_tmp <- X_cov_tmp[!na_obs, , drop = FALSE] 
+        v <- v - X_cov_tmp %*% beta_cov
+      }
+
+      R.post <- tryCatch(Matrix::Cholesky(Q.p), error=function(e){return(NULL)})
+      if(is.null(R.post)){
+        return(-10^100)
+      }
+
+      AtY <- t(A_tmp) %*% v / sigma_e^2
+
+      mu.p <- solve(R.post, AtY, system = "A")
+
+      v <- v - A_tmp%*%mu.p
+
+      posterior.ld <-  c(determinant(R.post, logarithm = TRUE)$modulus)
+
+      l <- l + prior.ld - posterior.ld - n.o*log(sigma_e)
+
+      l <- l - 0.5*(t(mu.p) %*% Q %*% mu.p + t(v) %*% v / sigma_e^2) -
+        0.5 * n.o * log(2*pi)
+
+  }
+  return(as.double(l))
+}

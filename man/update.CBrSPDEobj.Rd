@@ -7,13 +7,19 @@
 \method{update}{CBrSPDEobj}(
   object,
   user_nu = NULL,
+  user_alpha = NULL,
   user_kappa = NULL,
   user_tau = NULL,
   user_sigma = NULL,
   user_range = NULL,
   user_theta = NULL,
   user_m = NULL,
+  mesh = NULL,
+  loc_mesh = NULL,
+  graph = NULL,
+  range_mesh = NULL,
   compute_higher_order = object$higher_order,
+  parameterization = NULL,
   type_rational_approximation = object$type_rational_approximation,
   return_block_list = object$return_block_list,
   ...
@@ -24,26 +30,37 @@
 computed using \code{\link[=matern.operators]{matern.operators()}}}
 
 \item{user_nu}{If non-null, update the shape parameter of the
-covariance function.}
+covariance function. Will be used if parameterization is 'matern'.}
 
-\item{user_kappa}{If non-null, update the range parameter
-of the covariance function.}
+\item{user_alpha}{If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.}
 
-\item{user_tau}{If non-null, update the parameter tau.}
+\item{user_kappa}{If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.}
+
+\item{user_tau}{If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.}
 
 \item{user_sigma}{If non-null, update the standard deviation of
-the covariance function.}
+the covariance function. Will be used if parameterization is 'matern'.}
 
 \item{user_range}{If non-null, update the range parameter
-of the covariance function.}
+of the covariance function. Will be used if parameterization is 'matern'.}
 
 \item{user_theta}{For non-stationary models. If non-null, update the vector of parameters.}
 
 \item{user_m}{If non-null, update the order of the rational
 approximation, which needs to be a positive integer.}
 
+\item{mesh}{An optional inla mesh. Replaces \code{d}, \code{C} and \code{G}.}
+
+\item{loc_mesh}{The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the \code{rspde_lme()} function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the \code{graph} argument.}
+
+\item{graph}{An optional \code{metric_graph} object. Replaces \code{d}, \code{C} and \code{G}.}
+
+\item{range_mesh}{The range of the mesh. Will be used to provide starting values for the parameters. Will be used if \code{mesh} and \code{graph} are \code{NULL}, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.}
+
 \item{compute_higher_order}{Logical. Should the higher order
 finite element matrices be computed?}
+
+\item{parameterization}{If non-null, update the parameterization. Only works for stationary models.}
 
 \item{type_rational_approximation}{Which type of rational
 approximation should be used? The current types are "chebfun",
@@ -68,6 +85,7 @@ Function to change the parameters of a CBrSPDEobj object
 kappa <- 10
 sigma <- 1
 nu <- 0.8
+range <- sqrt(8*nu)/kappa
 
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
@@ -75,8 +93,9 @@ fem <- rSPDE.fem1d(x)
 
 # compute rational approximation of covariance function at 0.5
 op_cov <- matern.operators(
-  C = fem$C, G = fem$G, nu = nu,
-  kappa = kappa, sigma = sigma, d = 1, m = 2
+  loc_mesh = x, nu = nu,
+  range = range, sigma = sigma, d = 1, m = 2,
+  parameterization = "matern"
 )
 op_cov
 

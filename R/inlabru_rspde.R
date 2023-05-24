@@ -34,7 +34,8 @@
 #' kappa <- sqrt(8 * nu) / range
 #' op <- matern.operators(
 #'   mesh = mesh_2d, nu = nu,
-#'   kappa = kappa, sigma = sigma, m = 2
+#'   range = range, sigma = sigma, m = 2,
+#'   parameterization = "matern"
 #' )
 #' u <- simulate(op)
 #' A <- inla.spde.make.A(
@@ -363,8 +364,7 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @return A data.frame with the fitted models and the corresponding scores.
 #' @export
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE)){
 #' library(INLA)
 #' if (requireNamespace("inlabru", quietly = TRUE)){
@@ -374,9 +374,8 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' 
 #' 
 #' }
+#' #devel.tag
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
 #' }
 
 cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps", "scrps", "dss"),

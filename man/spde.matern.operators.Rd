@@ -12,12 +12,16 @@ spde.matern.operators(
   B.kappa = matrix(c(0, 0, 1), 1, 3),
   B.sigma = matrix(c(0, 1, 0), 1, 3),
   B.range = matrix(c(0, 0, 1), 1, 3),
-  nu,
-  parameterization = c("matern", "spde"),
+  alpha = NULL,
+  nu = NULL,
+  parameterization = c("spde", "matern"),
   G = NULL,
   C = NULL,
   d = NULL,
+  graph = NULL,
   mesh = NULL,
+  range_mesh = NULL,
+  loc_mesh = NULL,
   m = 1,
   type = c("covariance", "operator"),
   type_rational_approximation = c("chebfun", "brasil", "chebfunLB")
@@ -43,9 +47,9 @@ and that connects B.sigma and B.range to tau and kappa in case the parameterizat
 
 \item{B.range}{Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if \code{parameterization = 'matern'}.}
 
-\item{nu}{Shape parameter of the covariance function, related to
-\eqn{\beta} through the equation
-\eqn{\beta = (\nu + d/2)/2}.}
+\item{alpha}{smoothness parameter. Will be used if the parameterization is 'spde'.}
+
+\item{nu}{Shape parameter of the covariance function. Will be used if the parameterization is 'matern'.}
 
 \item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). The default is \code{matern}.}
 
@@ -58,8 +62,14 @@ domain of interest.}
 \item{d}{The dimension of the domain. Does not need to be given if
 \code{mesh} is used.}
 
+\item{graph}{An optional \code{metric_graph} object. Replaces \code{d}, \code{C} and \code{G}.}
+
 \item{mesh}{An optional inla mesh. \code{d}, \code{C} and \code{G}
 must be given if \code{mesh} is not given.}
+
+\item{range_mesh}{The range of the mesh. Will be used to provide starting values for the parameters. Will be used if \code{mesh} and \code{graph} are \code{NULL}, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.}
+
+\item{loc_mesh}{The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the \code{rspde_lme()} function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the \code{graph} argument.}
 
 \item{m}{The order of the rational approximation, which needs to be a
 positive integer. The default value is 1.}
