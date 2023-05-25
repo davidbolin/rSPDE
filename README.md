@@ -30,7 +30,13 @@ D. Bolin and K. Kirchner (2020) [The rational SPDE approach for Gaussian random 
 
 # Installation instructions #
 The latest CRAN release of the package can be installed directly from CRAN with `install.packages("rSPDE")`.
-The latest stable version (which is sometimes slightly more recent than the CRAN version), can be installed by using the command
+
+It is also possible to install the CRAN version from github by using the command:
+```r
+remotes::install_github("davidbolin/rspde", ref = "cran")
+```
+
+The latest stable version (which on very rare occasions can be slightly more recent than the CRAN version), can be installed by using the command
 ```r
 remotes::install_github("davidbolin/rspde", ref = "stable")
 ```
@@ -39,17 +45,13 @@ in R. The development version can be installed using the command
 remotes::install_github("davidbolin/rspde", ref = "devel")
 ```
 
-If you want to install the package using the `remotes::install_github`-method on Windows, you first need to install `Rtools` and add the paths to `Rtools` and `gcc` to the Windows `PATH` environment variable. This can be done for the current R session only using the commands
-```r
-rtools = "C:\\Rtools\\bin"
-gcc = "C:\\Rtools\\gcc-4.6.3\\bin"
-Sys.setenv(PATH = paste(c(gcc, rtools, Sys.getenv("PATH")), collapse = ";"))
-```
-where the variables `rtools` and `gcc` need to be changed if `Rtools` is not installed directly on `C:`,
-and `gcc`'s version might need to be changed depending on the version of `Rtools`.
+The `stable` and `devel` branches require compilation, which is not the case for the `cran` branch. 
 
-Finally, if you want to build the `rSPDE` package from source on Mac or Linux, please
-click [here](https://davidbolin.github.io/rSPDE//articles/build_source.html).
+For Windows operating systems, we recommend the user to install from the `cran` branch, which requires no compilation. 
+
+The compilation is required to create a shared object to be used by `INLA`. However, the `INLA` installation comes with such a shared object. Thus, unless there is some specific reason for the user to want to compile from source, it is not required.
+
+Finally, we have the vignette [Building the rSPDE package from source on Mac and Linux](https://davidbolin.github.io/rSPDE//articles/build_source.html) to help you if you want to build the `rSPDE` package from source on Mac or Linux.
 
 # Repository branch workflows #
 The package version format for released versions is `major.minor.bugfix`. All regular development should be performed on the `devel` branch or in a feature branch, managed with `git flow feature`. Ideally, all the changes should be made on the `devel` branch. The `devel` version of the package should contain unit tests and examples for all important functions. Several functions may depend on `INLA`. Examples and tests for such functions might create problems when submitting to CRAN. To solve this problem, we created some Github Actions scripts that get the examples and tests depending on `INLA` on the `devel` branch and adapt to versions that will not fail on CRAN. Therefore, the best way to handle these situations is to avoid as much as possible to do any push to the `stable` branch. The idea is to update the `stable` branch by merges following the workflow that will be described below. 
