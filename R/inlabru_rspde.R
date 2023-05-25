@@ -360,25 +360,9 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @param true_CV Should a `TRUE` cross-validation be performed? If `TRUE` the models will be fitted on the training dataset. If `FALSE`, the parameters will be kept fixed at the ones obtained in the result object.
 #' @param save_settings Logical. If `TRUE`, the settings used in the cross-validation will also be returned.
 #' @param print Should partial results be printed throughout the computation?
-#' @param fit_verbose Should INLA's run during cross-validation be verbose?
+#' @param fit_verbose Should INLA's run during cross-validation be verbose? Default is FALSE
 #' @return A data.frame with the fitted models and the corresponding scores.
 #' @export
-#' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
-#' if (requireNamespace("INLA", quietly = TRUE)){
-#' library(INLA)
-#' if (requireNamespace("inlabru", quietly = TRUE)){
-#' library(inlabru)
-#' 
-#' set.seed(123)
-#' 
-#' 
-#' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
-#' }
-#' }
 
 cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps", "scrps", "dss"),
                               cv_type = c("k-fold", "loo", "lpo"),

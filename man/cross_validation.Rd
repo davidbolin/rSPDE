@@ -63,7 +63,7 @@ Typically this will be returned list obtained by setting the argument \code{retu
 
 \item{print}{Should partial results be printed throughout the computation?}
 
-\item{fit_verbose}{Should INLA's run during cross-validation be verbose?}
+\item{fit_verbose}{Should INLA's run during cross-validation be verbose? Default is FALSE}
 }
 \value{
 A data.frame with the fitted models and the corresponding scores.
@@ -71,21 +71,4 @@ A data.frame with the fitted models and the corresponding scores.
 \description{
 Obtain several scores for a list of fitted models according
 to a folding scheme.
-}
-\examples{
-\donttest{ #tryCatch version
-tryCatch({
-if (requireNamespace("INLA", quietly = TRUE)){
-library(INLA)
-if (requireNamespace("inlabru", quietly = TRUE)){
-library(inlabru)
-
-set.seed(123)
-
-
-}
-#stable.tryCatch
-}, error = function(e){print("Could not run the example")})
-}
-}
 }
