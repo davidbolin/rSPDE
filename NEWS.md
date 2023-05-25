@@ -1,5 +1,9 @@
 # rSPDE (development version)
 
+# rSPDE 2.3.1
+* Adding references in DESCRIPTION.
+* Changing link to eigen library.
+
 # rSPDE 2.3.0
 * Fixed a bug on rSPDE.construct.matern.loglike when the parameterization is "matern".
 * Created the rspde_lme() interface, with corresponding standard methods(predict, summary, etc).
