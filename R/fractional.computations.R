@@ -1457,9 +1457,27 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
   Q <- object$Q
 
-  Q.R <- Matrix::Cholesky(Q)
+  # Q.R <- Matrix::Cholesky(Q)
 
-  logQ <- 2 * c(determinant(Q.R, logarithm = TRUE)$modulus)
+  # logQ <- 2 * c(determinant(Q.R, logarithm = TRUE)$modulus)
+
+  Q.frac <- object$Q.frac
+
+  Q.fracR <- Matrix::Cholesky(Q.frac)
+
+  logdetL <- object$logdetL
+  logdetC <- object$logdetC
+  Q.int.order <- object$Q.int$order
+
+  if (Q.int.order > 0) {
+    # logQ <- 2 * sum(log(diag(Q.fracR))) + (Q.int.order) *
+    # (m + 1) * (logdetL - logdetC)
+    
+    logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE)$modulus) + (Q.int.order) *
+    (m + 1) * (logdetL - logdetC)
+  } else {
+    logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE)$modulus)
+  }
 
   ## compute Q_x|y
   if(object$alpha %% 1 == 0){
