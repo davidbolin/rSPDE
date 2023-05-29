@@ -560,8 +560,6 @@ matern.operators <- function(kappa = NULL,
     make_A <- NULL
   }
 
-  C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
-
   if (type == "operator") {
   
     beta <- (nu + d / 2) / 2
@@ -595,6 +593,8 @@ matern.operators <- function(kappa = NULL,
     output$loc_mesh <- loc_mesh
     return(output)
   } else {
+
+    C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
     type_rational_approximation <- type_rational_approximation[[1]]
     out <- CBrSPDE.matern.operators(
       C = C, G = G, mesh = mesh, nu = nu, kappa = kappa, tau = tau,
@@ -1293,9 +1293,6 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
   if (nu < 0) {
     stop("nu must be positive")
   }
-
-  C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
-  Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
   
   if(type == "operator"){
       beta <- (nu + d / 2) / 2
@@ -1334,6 +1331,9 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
     type_rational_approximation <- type_rational_approximation[[1]]
     m_alpha <- floor(alpha)
     m_order <- m_alpha + 1
+
+    C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
+    Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
 
     L <- Matrix::Diagonal(dim(C)[1], kappa^2 * diag(C))
     L <- L + G
