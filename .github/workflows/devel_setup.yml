@@ -16,12 +16,10 @@ jobs:
         - name: Merge with devel-src and accept all incoming changes
           run: |
             git config --local user.email "actions@github.com"
-            git config --local user.name "GitHub Actions" 
-            git config pull.rebase true                  
+            git config --local user.name "GitHub Actions"             
             git branch devel-src
             git checkout devel-src
-            git pull origin devel-src
-            git merge -X theirs devel --no-edit --no-commit --no-ff     
+            git merge devel --no-edit --no-commit --no-ff     
             git checkout --theirs .
             git add . 
             git reset -- src/
