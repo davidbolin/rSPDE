@@ -2388,7 +2388,9 @@ type_rational_approx = "chebfun") {
     # add k_part into Q
 
     if (m_alpha == 0) {
-      Kpart <- fem_mesh_matrices[["c0"]]
+      C <- fem_mesh_matrices[["c0"]]
+      Kpart <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
+      
       Kpart <- Kpart / k
     } else {
       if (m_alpha == 1) {
@@ -2432,9 +2434,15 @@ type_rational_approx = "chebfun") {
           (L - p[i] * fem_mesh_matrices[["c0"]]) / r[i]
         }
       }
-
+      if(m_alpha==0) {
+        C <- fem_mesh_matrices[["c0"]]
+        Kpart <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
+      } else {
+        Kpart <- fem_mesh_matrices[["c0"]]
+      }
+      
       Q[[length(Q) + 1]] <- kappa^(4 * beta) * tau^2 *
-      fem_mesh_matrices[["c0"]] / k
+      Kpart / k
 
       return(Q)
     } else {
@@ -2446,8 +2454,14 @@ type_rational_approx = "chebfun") {
           Q <- bdiag(Q, temp)
         }
       }
-
-      Q <- bdiag(Q, fem_mesh_matrices[["c0"]] / k)
+      
+      if(m_alpha==0) {
+        C <- fem_mesh_matrices[["c0"]]
+        Kpart <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
+      } else {
+        Kpart <- fem_mesh_matrices[["c0"]]
+      }
+      Q <- bdiag(Q, Kpart / k)
 
 
       Q <- Q * kappa^(4 * beta)
