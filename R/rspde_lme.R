@@ -161,10 +161,15 @@ rspde_lme <- function(formula, loc, data,
 
   idx_repl <- (repl %in% which_repl)
 
+
   y_resp <- y_resp[idx_repl]
+  
   if(ncol(X_cov)>0){
     X_cov <- X_cov[idx_repl, , drop = FALSE]
+  } else {
+    X_cov <- matrix(ncol=0,nrow=0)
   }
+  
   repl <- repl[idx_repl] 
 
   time_data_end <- Sys.time()
@@ -270,13 +275,15 @@ rspde_lme <- function(formula, loc, data,
     #   has_cov <- TRUE
     # }
 
+    loc_df <- loc_df[idx_repl, ,drop=FALSE]
+
     if(!is.null(model$make_A)) {
         for(j in repl_val){
             ind_tmp <- (repl %in% j)
             y_tmp <- y_resp[ind_tmp]            
             na_obs <- is.na(y_tmp)
             # y_list[[as.character(j)]] <- y_tmp[!na_obs]
-            A_list[[as.character(j)]] <- model$make_A(loc_df[ind_tmp,])
+            A_list[[as.character(j)]] <- model$make_A(loc_df[ind_tmp,,drop = FALSE])
             A_list[[as.character(j)]] <- A_list[[as.character(j)]][!na_obs, , drop = FALSE]
             # if(has_cov){
             #   X_cov_list[[as.character(j)]] <- X_cov[ind_tmp, , drop = FALSE]

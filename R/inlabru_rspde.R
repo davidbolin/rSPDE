@@ -302,7 +302,8 @@ get_post_var <- function(density_df){
       f = function(z) {
         denstemp(z) * 1/z
       }, lower = min_x, upper = max_x,
-      subdivisions = nrow(density_df)
+      subdivisions = nrow(density_df),
+                  stop.on.error = FALSE
     )$value
 
     return(post_var)
