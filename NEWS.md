@@ -1,4 +1,5 @@
 # rSPDE (development version)
+* Small improvement on speed for rspde_lme.
 
 # rSPDE 2.3.1
 * Adding references in DESCRIPTION.
