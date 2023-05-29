@@ -148,7 +148,7 @@ void compute_Q(int size, double *entries_C, int *i_C, int *j_C,
                         // Assemble the K part
 
                         if(m_alpha == 0){
-                            Q_tmp = C;
+                            Q_tmp = C.cwiseInverse();
                         } else if(m_alpha == 1){
                            Q_tmp = L;      
                         } else{
