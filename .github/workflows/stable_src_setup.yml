@@ -1,0 +1,31 @@
+on:
+  push:
+    branches:
+      - stable-src
+
+name: stable_src_setup
+  
+jobs:
+    stable_src_setup:
+      runs-on: ubuntu-20.04
+      env:
+        GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      steps:
+        - uses: actions/checkout@v2      
+        
+        - name: Merge with stable and accept all incoming changes
+          run: |
+            git config --local user.email "actions@github.com"
+            git config --local user.name "GitHub Actions"             
+            git config pull.rebase true
+            git fetch origin
+            git checkout stable
+            git merge -X theirs stable-src --no-edit --no-commit --no-ff --allow-unrelated-histories   
+            git checkout --theirs .
+            sed -i 's/NeedsCompilation: yes/NeedsCompilation: no/' DESCRIPTION
+            git add . 
+            git rm -rf src
+            rm -rf src
+            git commit -m "Doing the setup"
+            git push origin stable --force
+          shell: bash

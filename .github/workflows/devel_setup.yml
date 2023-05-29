@@ -2,88 +2,30 @@ on:
   push:
     branches:
       - devel
-      
+
 name: devel_setup
-
+  
 jobs:
-  devel_setup:
-    runs-on: macOS-latest
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: "release"
-          extra-repositories: "https://inla.r-inla-download.org/R/testing"
-
-      - uses: r-lib/actions/setup-pandoc@v2
-
-      - name: Query dependencies
-        run: |
-          install.packages('remotes')
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
-          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
-        shell: Rscript {0}
-
-      - name: Install system dependencies
-        run: |
-          brew install --cask xquartz
-          brew install pkg-config
-          brew install proj@9
-          brew install gdal
-          brew install eigen          
-
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          dependencies: '"all"'
-          extra-packages: |
-             pkgdown
-             rmarkdown
-             devtools
-      - name: Session info
-        run: |
-          options(width = 100)
-          pkgs <- installed.packages()[, "Package"]
-          sessioninfo::session_info(pkgs, include_base = TRUE)
-        shell: Rscript {0}
-
-      - name: Install package
-        run: R CMD INSTALL .
-
-      - name: Finish the setup
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          sed -i .bak '/vignettes/d' .Rbuildignore
-          sed -i .bak '/#'\'' tryCatch({/d' R/inla_rspde.R
-          sed -i .bak '/Could not run the example/d' R/inla_rspde.R
-          sed -i .bak 's/donttest{ #tryCatch version/donttest{ #devel version/' R/inla_rspde.R
-          sed -i .bak 's/#stable\.tag/#devel\.tag/' R/inla_rspde.R
-          sed -i .bak 's/#stable\.tryCatch/#devel\.tag/' R/inla_rspde.R
-          sed -i .bak '/#'\'' tryCatch({/d' R/inlabru_rspde.R
-          sed -i .bak '/Could not run the example/d' R/inlabru_rspde.R
-          sed -i .bak 's/donttest{ #tryCatch version/donttest{ #devel version/' R/inlabru_rspde.R
-          sed -i .bak 's/#stable\.tag/#devel\.tag/' R/inlabru_rspde.R
-          sed -i .bak 's/#stable\.tryCatch/#devel\.tag/' R/inlabru_rspde.R
-          sed -i .bak 's/R.rsp/knitr/' DESCRIPTION
-          html_files=$(shopt -s nullglob dotglob; echo vignettes/*.html)
-          asis_files=$(shopt -s nullglob dotglob; echo vignettes/*.asis)
-          if (( ${#html_files} ))
-          then
-            git rm vignettes/*.html
-          fi
-          if (( ${#asis_files} ))
-          then
-            git rm vignettes/*.asis
-          fi
-          Rscript -e "devtools::document()"
-          git add man
-          git add R/inla_rspde.R
-          git add R/inlabru_rspde.R
-          git add .Rbuildignore
-          git add DESCRIPTION
-          git commit -m "Doing the setup"
-          git push
-        shell: bash
+    devel_setup:
+      runs-on: ubuntu-20.04
+      env:
+        GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      steps:
+        - uses: actions/checkout@v2      
+        
+        - name: Merge with devel-src and accept all incoming changes
+          run: |
+            git config --local user.email "actions@github.com"
+            git config --local user.name "GitHub Actions"     
+            git config pull.rebase true                    
+            git fetch origin
+            git checkout devel-src
+            git merge devel -X theirs --no-edit --no-commit --no-ff --allow-unrelated-histories 
+            git checkout --theirs .
+            git add . 
+            git reset -- src/
+            sed -i 's/NeedsCompilation: no/NeedsCompilation: yes/' DESCRIPTION
+            git add DESCRIPTION
+            git commit -m "Doing the setup"
+            git push origin devel-src --force
+          shell: bash

@@ -1,136 +1,31 @@
 on:
   push:
     branches:
-      - cran
+      - stable
 
-name: cran_setup
-
+name: stable_setup
+  
 jobs:
-  stable_setup:
-    runs-on: macOS-latest
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: "release"
-          extra-repositories: "https://inla.r-inla-download.org/R/testing"
-
-      - uses: r-lib/actions/setup-pandoc@v2
-
-      - name: Query dependencies
-        run: |
-          install.packages('remotes')
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
-          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
-        shell: Rscript {0}
-
-      - name: Install system dependencies
-        run: |
-          brew install --cask xquartz
-          brew install pkg-config
-          brew install proj@9
-          brew install gdal
-          brew install eigen
-
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          dependencies: '"all"'
-          extra-packages: |
-             pkgdown
-             rmarkdown
-             devtools
-      - name: Session info
-        run: |
-          options(width = 100)
-          pkgs <- installed.packages()[, "Package"]
-          sessioninfo::session_info(pkgs, include_base = TRUE)
-        shell: Rscript {0}
-
-      - name: Install package
-        run: R CMD INSTALL .
-
-      - name: Generate html files
-        run: |
-          Rscript -e "rmarkdown::render('vignettes/rSPDE.Rmd')"
-          Rscript -e "rmarkdown::render('vignettes/rspde_cov.Rmd')"
-          Rscript -e "rmarkdown::render('vignettes/rspde_inla.Rmd')"
-          Rscript -e "rmarkdown::render('vignettes/rspde_base.Rmd')"
-          Rscript -e "rmarkdown::render('vignettes/rspde_inlabru.Rmd')"
-          Rscript -e "rmarkdown::render('vignettes/rspde_inlabru.Rmd')"
-          Rscript -e "rmarkdown::render('vignettes/build_source.rmd')"
-          git add vignettes
-          git add vignettes/rSPDE.html
-          git add vignettes/rspde_base.html
-          git add vignettes/rspde_cov.html
-          git add vignettes/rspde_inla.html
-          git add vignettes/rspde_inlabru.html
-          git add vignettes/build_source.html
-      
-      - name: Finish the setup
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          sed -i .bak 's/knitr/R.rsp/' DESCRIPTION
-          touch vignettes/rSPDE.html.asis
-          echo "%\VignetteIndexEntry{An introduction to the rSPDE package}" >> vignettes/rSPDE.html.asis
-          echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rSPDE.html.asis
-          echo "%\VignetteEncoding{UTF-8}" >> vignettes/rSPDE.html.asis
-          touch vignettes/build_source.html.asis
-          echo "%\VignetteIndexEntry{Building the rSPDE package from source on Mac and Linux}" >> vignettes/build_source.html.asis
-          echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/build_source.html.asis
-          echo "%\VignetteEncoding{UTF-8}" >> vignettes/build_source.html.asis
-          touch vignettes/rspde_inla.html.asis
-          echo "%\VignetteIndexEntry{R-INLA implementation of the rational SPDE approach}" >> vignettes/rspde_inla.html.asis
-          echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rspde_inla.html.asis
-          echo "%\VignetteEncoding{UTF-8}" >> vignettes/rspde_inla.html.asis
-          touch vignettes/rspde_inlabru.html.asis
-          echo "%\VignetteIndexEntry{inlabru implementation of the rational SPDE approach}" >> vignettes/rspde_inlabru.html.asis
-          echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rspde_inlabru.html.asis
-          echo "%\VignetteEncoding{UTF-8}" >> vignettes/rspde_inlabru.html.asis
-          touch vignettes/rspde_cov.html.asis
-          echo "%\VignetteIndexEntry{Rational approximation with the rSPDE package}" >> vignettes/rspde_cov.html.asis
-          echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rspde_cov.html.asis
-          echo "%\VignetteEncoding{UTF-8}" >> vignettes/rspde_cov.html.asis
-          touch vignettes/rspde_base.html.asis
-          echo "%\VignetteIndexEntry{Operator-based rational approximation}" >> vignettes/rspde_base.html.asis
-          echo "%\VignetteEngine{R.rsp::asis}" >> vignettes/rspde_base.html.asis
-          echo "%\VignetteEncoding{UTF-8}" >> vignettes/rspde_base.html.asis
-          echo "^vignettes/.*\.Rmd$" >> .Rbuildignore
-          sed -i .bak 's/#devel\.tag/#stable\.tag/' R/inla_rspde.R
-          sed -i .bak '/donttest{ #devel version$/a\
-          #'\'' tryCatch({
-          ' R/inla_rspde.R
-          sed -i .bak 's/donttest{ #devel version/donttest{ #tryCatch version/' R/inla_rspde.R
-          sed -i .bak '/#stable\.tag$/a\
-          #'\'' }, error = function(e){print("Could not run the example")})
-          ' R/inla_rspde.R
-          sed -i .bak 's/#stable\.tag/#stable\.tryCatch/' R/inla_rspde.R
-          sed -i .bak 's/#devel\.tag/#stable\.tag/' R/inlabru_rspde.R
-          sed -i .bak '/donttest{ #devel version$/a\
-          #'\'' tryCatch({
-          ' R/inlabru_rspde.R
-          sed -i .bak 's/donttest{ #devel version/donttest{ #tryCatch version/' R/inlabru_rspde.R
-          sed -i .bak '/#stable\.tag$/a\
-          #'\'' }, error = function(e){print("Could not run the example")})
-          ' R/inlabru_rspde.R
-          sed -i .bak 's/#stable\.tag/#stable\.tryCatch/' R/inlabru_rspde.R
-          Rscript -e "devtools::document()"
-          git rm -rf src/
-          git rm -rf inst/shared/
-          git rm -rf shiny_app/
-          git rm -rf pkgdown/
-          git rm index.md
-          git add man
-          git add .Rbuildignore
-          git add vignettes
-          git add DESCRIPTION
-          git add R/inla_rspde.R
-          git add R/inlabru_rspde.R
-          git rm tests/testthat/test.inla_rspde.R
-          git rm vignettes/*.Rmd
-          git commit -m "Doing the setup"
-          git push
-        shell: bash
+    stable_setup:
+      runs-on: ubuntu-20.04
+      env:
+        GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      steps:
+        - uses: actions/checkout@v2      
+        
+        - name: Merge with stable-src and accept all incoming changes
+          run: |
+            git config --local user.email "actions@github.com"
+            git config --local user.name "GitHub Actions"              
+            git config pull.rebase true
+            git fetch origin
+            git checkout stable-src
+            git merge -X theirs stable --no-edit --no-commit --no-ff --allow-unrelated-histories    
+            git checkout --theirs .
+            git add . 
+            git reset -- src/
+            sed -i 's/NeedsCompilation: no/NeedsCompilation: yes/' DESCRIPTION
+            git add DESCRIPTION
+            git commit -m "Doing the setup"
+            git push origin stable-src --force
+          shell: bash
