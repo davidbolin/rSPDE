@@ -2344,11 +2344,11 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
   repl_val <- unique(repl)
 
   l <- 0
-  
+
   for(i in repl_val){
       ind_tmp <- (repl %in% i)
       y_tmp <- y[ind_tmp]
-      
+
       if(ncol(X_cov) == 0){
         X_cov_tmp <- 0
       } else {
@@ -2358,6 +2358,7 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
       na_obs <- is.na(y_tmp)
       
       y_ <- y_tmp[!na_obs]
+      
       # y_ <- y_list[[as.character(i)]]
       n.o <- length(y_)
       A_tmp <- A_list[[as.character(i)]]
@@ -2373,7 +2374,6 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
       }
 
       posterior.ld <-  c(determinant(R.p, logarithm = TRUE)$modulus)
-
 
       # l <- l + sum(log(diag(R))) - sum(log(diag(R.p))) - n.o*log(sigma_e)
 
