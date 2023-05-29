@@ -150,9 +150,16 @@ double *inla_cgeneric_rspde_stat_frac_model(inla_cgeneric_cmd_tp cmd, double *th
             fact_mult = multQ / (r[j] * SQR(kappa));
             daxpy_(&full_size, &fact_mult, &fem_full->doubles[full_size], &one, &ret[k+j*full_size], &one);
           }
-          dcopy_(&less_size, &fem_less->doubles[0], &one, &ret[k+rspde_order * full_size], &one);
-          fact_mult = multQ/k_rat;
-          dscal_(&less_size, &fact_mult, &ret[k+rspde_order * full_size], &one);
+          // dcopy_(&less_size, &fem_less->doubles[0], &one, &ret[k+rspde_order * full_size], &one);
+          // fact_mult = multQ/k_rat;
+          // dscal_(&less_size, &fact_mult, &ret[k+rspde_order * full_size], &one);
+            for(i = 0; i < less_size; i++){
+              if(fem_less->doubles[i] != 0){
+                ret[k+rspde_order*full_size + i] = multQ * (
+                    1/(k_rat * fem_less->doubles[i])
+                );
+              }
+            }          
           break;
         }
         case 1:
