@@ -6,7 +6,7 @@ on:
 name: stable_setup
   
 jobs:
-    cran_setup:
+    stable_setup:
       runs-on: ubuntu-20.04
       env:
         GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -16,7 +16,8 @@ jobs:
         - name: Merge with stable-src and accept all incoming changes
           run: |
             git config --local user.email "actions@github.com"
-            git config --local user.name "GitHub Actions"           
+            git config --local user.name "GitHub Actions" 
+            git config pull.rebase false                           
             git branch stable-src
             git checkout stable-src
             git pull origin stable-src

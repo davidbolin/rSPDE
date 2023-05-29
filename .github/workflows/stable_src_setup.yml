@@ -6,7 +6,7 @@ on:
 name: stable_src_setup
   
 jobs:
-    cran_setup:
+    stable_src_setup:
       runs-on: ubuntu-20.04
       env:
         GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -17,6 +17,7 @@ jobs:
           run: |
             git config --local user.email "actions@github.com"
             git config --local user.name "GitHub Actions"          
+            git config pull.rebase false              
             git branch stable
             git checkout stable
             git pull origin stable
