@@ -362,20 +362,6 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @param fit_verbose Should INLA's run during cross-validation be verbose?
 #' @return A data.frame with the fitted models and the corresponding scores.
 #' @export
-#' @examples
-#' \donttest{ #devel version
-#' if (requireNamespace("INLA", quietly = TRUE)){
-#' library(INLA)
-#' if (requireNamespace("inlabru", quietly = TRUE)){
-#' library(inlabru)
-#' 
-#' set.seed(123)
-#' 
-#' 
-#' }
-#' #devel.tag
-#' }
-#' }
 
 cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps", "scrps", "dss"),
                               cv_type = c("k-fold", "loo", "lpo"),
