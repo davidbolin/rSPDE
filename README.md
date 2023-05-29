@@ -45,9 +45,9 @@ in R. The development version can be installed using the command
 remotes::install_github("davidbolin/rspde", ref = "devel")
 ```
 
-The `stable` and `devel` branches require compilation, which is not the case for the `cran` branch. 
+*The following is intended for expert use only:* In case you want to build the source, the `stable-src` and `devel-src` branches require compilation, which is not the case for the `cran`, `stable` and `devel` branches. 
 
-For Windows operating systems, we recommend the user to install from the `cran` branch, which requires no compilation. 
+For Windows operating systems, we recommend the user to install from either of the `cran`, `stable` or `devel` branches, which require no compilation. 
 
 The compilation is required to create a shared object to be used by `INLA`. However, the `INLA` installation comes with such a shared object. Thus, unless there is some specific reason for the user to want to compile from source, it is not required.
 
