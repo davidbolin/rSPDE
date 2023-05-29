@@ -318,7 +318,7 @@ We can obtain outputs with respect to parameters in the original scale by
 using the function `rspde.result()`:
 
 ```{r get_result}
-result_fit <- rspde.result(rspde_fit, "field", rspde_model)
+result_fit <- rspde.result(rspde_fit, "field", rspde_model, parameterization = "matern")
 summary(result_fit)
 ```
 
@@ -598,6 +598,29 @@ result_df <- data.frame(
   )
 )
 print(result_df)
+```
+
+We can also obtain the summary on a different parameterization by setting the `parameterization` argument on the `rspde.result()` function:
+
+```{r}
+result_fit_rep_matern <- rspde.result(rspde_fit.rep, "field", rspde_model.rep, 
+                          parameterization = "matern")
+summary(result_fit_rep_matern)
+result_df_matern <- data.frame(
+  parameter = c("std_dev", "range", "nu"),
+  true = c(sigma, range, nu),
+  mean = c(
+    result_fit_rep_matern$summary.std.dev$mean,
+    result_fit_rep_matern$summary.range$mean,
+    result_fit_rep_matern$summary.nu$mean
+  ),
+  mode = c(
+    result_fit_rep$summary.std.dev$mode,
+    result_fit_rep$summary.range$mode,
+    result_fit_rep$summary.nu$mode
+  )
+)
+print(result_df_matern)
 ```
 
 ## An example with a non-stationary model
