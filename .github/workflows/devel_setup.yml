@@ -17,7 +17,9 @@ jobs:
           run: |
             git config --local user.email "actions@github.com"
             git config --local user.name "GitHub Actions"           
+            git branch devel-src
             git checkout devel-src
+            git pull origin devel-src
             git merge devel --no-edit --no-commit --no-ff     
             git checkout --theirs .
             git add . 
