@@ -16,14 +16,14 @@ jobs:
         - name: Merge with devel-src and accept all incoming changes
           run: |
             git config --local user.email "actions@github.com"
-            git config --local user.name "GitHub Actions"           
-            git checkout devel-src
-            git merge devel --no-edit --no-commit --no-ff     
+            git config --local user.name "GitHub Actions"          
+            git checkout devel
+            git merge devel-src --no-edit --no-commit --no-ff     
             git checkout --theirs .
+            sed -i 's/NeedsCompilation: yes/NeedsCompilation: no/' DESCRIPTION
             git add . 
-            git reset -- src/
-            sed -i 's/NeedsCompilation: no/NeedsCompilation: yes/' DESCRIPTION
-            git add DESCRIPTION
+            git rm -rf src
+            rm -rf src
             git commit -m "Doing the setup"
-            git push origin devel-src
+            git push origin devel
           shell: bash
