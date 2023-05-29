@@ -17,11 +17,11 @@ jobs:
           run: |
             git config --local user.email "actions@github.com"
             git config --local user.name "GitHub Actions"  
-            git config pull.rebase true             
+            git config pull.rebase false     
             git branch devel
             git checkout devel
             git pull origin devel
-            git merge devel-src --no-edit --no-commit --no-ff     
+            git merge -X theirs devel-src --no-edit --no-commit --no-ff     
             git checkout --theirs .
             sed -i 's/NeedsCompilation: yes/NeedsCompilation: no/' DESCRIPTION
             git add . 

@@ -17,11 +17,11 @@ jobs:
           run: |
             git config --local user.email "actions@github.com"
             git config --local user.name "GitHub Actions" 
-            git config pull.rebase true                         
+            git config pull.rebase false                    
             git branch stable-src
             git checkout stable-src
             git pull origin stable-src
-            git merge stable --no-edit --no-commit --no-ff     
+            git merge -X theirs stable --no-edit --no-commit --no-ff     
             git checkout --theirs .
             git add . 
             git reset -- src/
