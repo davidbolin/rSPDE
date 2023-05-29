@@ -334,10 +334,10 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 3.66, Running = 19.8, Post = 0.133, Total = 23.6 </span></span>
+<span><span class="co">##     Pre = 3.99, Running = 24.3, Post = 0.129, Total = 28.4 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.943 0.055      1.834    1.943      2.051 1.943   0</span></span>
+<span><span class="co">## Intercept 1.943 0.062      1.821    1.943      2.065 1.943   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -346,26 +346,26 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                                     mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.327    0.913     11.559</span></span>
-<span><span class="co">## Precision for distSea                          11032.589 6246.590   4064.979</span></span>
-<span><span class="co">## Theta1 for field                                  -0.009    0.239     -0.424</span></span>
-<span><span class="co">## Theta2 for field                                   0.758    0.178      0.332</span></span>
-<span><span class="co">## Theta3 for field                                  -1.812    0.228     -2.364</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.261    0.918     11.472</span></span>
+<span><span class="co">## Precision for distSea                          10419.559 5790.644   3975.749</span></span>
+<span><span class="co">## Theta1 for field                                   0.107    0.278     -0.370</span></span>
+<span><span class="co">## Theta2 for field                                   0.572    0.263     -0.016</span></span>
+<span><span class="co">## Theta3 for field                                  -1.869    0.285     -2.507</span></span>
 <span><span class="co">##                                                0.5quant 0.975quant    mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.316      15.15  12.520</span></span>
-<span><span class="co">## Precision for distSea                          9561.096   27744.65 860.817</span></span>
-<span><span class="co">## Theta1 for field                                 -0.017       0.57  -0.075</span></span>
-<span><span class="co">## Theta2 for field                                  0.753       1.01   0.810</span></span>
-<span><span class="co">## Theta3 for field                                 -1.807      -1.48  -1.748</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.254     15.083  12.441</span></span>
+<span><span class="co">## Precision for distSea                          9076.041  25951.040 867.061</span></span>
+<span><span class="co">## Theta1 for field                                  0.123      0.734   0.007</span></span>
+<span><span class="co">## Theta2 for field                                  0.560      1.028   0.667</span></span>
+<span><span class="co">## Theta3 for field                                 -1.884     -1.378  -1.767</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2500.52</span></span>
-<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 704.19</span></span>
-<span><span class="co">## Effective number of parameters .....................: 86.34</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2501.09</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 702.92</span></span>
+<span><span class="co">## Effective number of parameters .....................: 83.93</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2503.25</span></span>
-<span><span class="co">## Effective number of parameters .................: 78.53</span></span>
+<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2503.97</span></span>
+<span><span class="co">## Effective number of parameters .................: 76.72</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1261.63 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1261.76 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -396,9 +396,9 @@ scale by using the function <code><a href="../reference/rspde.result.html">rspde
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##             mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## std.dev 0.295687 0.0836762   0.190946 0.278672   0.496096 0.260612</span></span>
-<span><span class="co">## range   1.361260 0.7280870   0.490769 1.189540   3.165310 0.918911</span></span>
-<span><span class="co">## nu      0.570588 0.1073360   0.364339 0.570977   0.780686 0.576361</span></span></code></pre>
+<span><span class="co">## std.dev 0.285117 0.0837759   0.169561 0.270184   0.481552 0.258081</span></span>
+<span><span class="co">## range   1.353220 0.6437910   0.496531 1.223190   2.898520 0.985947</span></span>
+<span><span class="co">## nu      0.548158 0.1281840   0.308429 0.547263   0.802612 0.556533</span></span></code></pre>
 <p>We can also plot the posterior densities. To this end we will use the
 <code><a href="../reference/gg_df.html">gg_df()</a></code> function, which creates <code>ggplot2</code>
 user-friendly data frames:</p>
@@ -627,7 +627,7 @@ some meaningless model.</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 3.46, Running = 129, Post = 10.7, Total = 143 </span></span>
+<span><span class="co">##     Pre = 3.62, Running = 130, Post = 10.7, Total = 144 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
@@ -848,7 +848,7 @@ some meaningless model.</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 3.19, Running = 34.5, Post = 0.595, Total = 38.3 </span></span>
+<span><span class="co">##     Pre = 3.52, Running = 34.6, Post = 0.607, Total = 38.8 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
