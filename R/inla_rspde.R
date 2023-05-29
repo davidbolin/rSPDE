@@ -2333,6 +2333,8 @@ dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
   if (sharp) {
     if (m_alpha == 0) {
       Kpart <- fem_matrices[["C_less"]]
+      idx_nonzero <- (Kpart != 0)
+      Kpart[idx_nonzero] <- 1/Kpart[idx_nonzero]
       Kpart <- Kpart / k
     } else {
       if (m_alpha == 1) {
@@ -2352,6 +2354,8 @@ dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
   } else {
     if (m_alpha == 0) {
       Kpart <- fem_matrices[["C"]]
+      idx_nonzero <- (Kpart != 0)
+      Kpart[idx_nonzero] <- 1/Kpart[idx_nonzero]      
       Kpart <- Kpart / k
     } else {
       if (m_alpha == 1) {
