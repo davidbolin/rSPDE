@@ -157,7 +157,7 @@ intrinsic.operators <- function(C,
     }
   }
   if(is.null(scaling)) {
-    scaling <- RSpectra::eigs(as(fem$g1,"CsparseMatrix"),2, which = "SM")$values[1]
+    scaling <- RSpectra::eigs(as(G,"CsparseMatrix"),2, which = "SM")$values[1]
   }
   
   L <- G / scaling
@@ -428,13 +428,11 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 #' a non-intrinsic model. 
 #' @examples
 #' x <- seq(from = 0, to = 10, length.out = 201)
-#' mesh <- inla.mesh.1d(loc = x)
-#' fem <- inla.mesh.1d.fem(mesh)
 #' beta <- 1
 #' alpha <- 1
 #' kappa <- 1
 #' op <- intrinsic.matern.operators(kappa = kappa, tau = 1, alpha = alpha, 
-#'                                  beta = beta, G = fem$g1, C = fem$c0, d=1) 
+#'                                  beta = beta, loc_mesh = x, d=1) 
 #' # Compute and plot the variogram of the model
 #' Sigma <- op$A %*% solve(op$Q,t(op$A))
 #' One <- rep(1, times = ncol(Sigma))
@@ -445,9 +443,9 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 #' lines(x, 
 #'       variogram.intrinsic.spde(x[k], x, kappa, alpha, beta, L = 10, d = 1),
 #'       col=2, lty = 2)
-intrinsic.matern.operators <- function(kappa = NULL,
-                                       tau = NULL,
-                                       alpha = NULL,
+intrinsic.matern.operators <- function(kappa,
+                                       tau,
+                                       alpha ,
                                        beta = 1,
                                        G = NULL,
                                        C = NULL,
@@ -476,6 +474,22 @@ intrinsic.matern.operators <- function(kappa = NULL,
     fem <- rSPDE.fem1d(loc_mesh)
     C <- fem$C
     G <- fem$G
+
+    fem_mesh_matrices <- list()
+    fem_mesh_matrices[["c0"]] <- C
+    fem_mesh_matrices[["g1"]] <- G
+
+    Gk <- list()
+    Gk[[1]] <- G
+
+    m_alpha <- floor(alpha)
+    m_order <- m_alpha + 1
+
+    if (compute_higher_order) {
+      for (i in 1:m_order) {
+        fem_mesh_matrices[[paste0("g", i)]] <- Gk[[i]]
+      }
+    }    
   }
   
   has_mesh <- FALSE
@@ -511,10 +525,6 @@ intrinsic.matern.operators <- function(kappa = NULL,
   }
   
   
-  if(is.null(kappa) || is.null(tau) || is.null(alpha)){
-    stop("You should provide all the parameters.")
-  }
-  
   
   kappa <- rspde_check_user_input(kappa, "kappa" , 0)
   tau <- rspde_check_user_input(tau, "tau" , 0)
@@ -548,6 +558,7 @@ intrinsic.matern.operators <- function(kappa = NULL,
   if(alpha>0 && beta>0 && kappa > 0) {
     op1 <- CBrSPDE.matern.operators(
       C = C, G = G, mesh = mesh, nu = alpha - d/2, kappa = kappa, tau = tau,
+      fem_mesh_matrices = fem_mesh_matrices,
       m = m_alpha, d = d, compute_higher_order = compute_higher_order,
       return_block_list = TRUE,
       type_rational_approximation = type_rational_approximation[[1]]
@@ -555,7 +566,7 @@ intrinsic.matern.operators <- function(kappa = NULL,
     op2 <-intrinsic.operators(
       C = C, G = G, mesh = mesh, alpha = beta, 
       m = m_beta, d = d, compute_higher_order = compute_higher_order,
-      return_block_list = TRUE,
+      return_block_list = TRUE, fem_mesh_matrices = fem_mesh_matrices,
       type_rational_approximation = type_rational_approximation[[1]],
       scaling = scaling
     )
@@ -599,6 +610,7 @@ intrinsic.matern.operators <- function(kappa = NULL,
   } else if (alpha > 0 && kappa > 0) {
     op1 <- CBrSPDE.matern.operators(
       C = C, G = G, mesh = mesh, nu = alpha - d/2, kappa = kappa, tau = tau,
+      fem_mesh_matrices = fem_mesh_matrices,
       m = m_alpha, d = d, compute_higher_order = compute_higher_order,
       return_block_list = TRUE,
       type_rational_approximation = type_rational_approximation[[1]]
@@ -636,7 +648,7 @@ intrinsic.matern.operators <- function(kappa = NULL,
     op1 <-intrinsic.operators(
       C = C, G = G, mesh = mesh, alpha = alpha_beta, 
       m = m_beta, d = d, compute_higher_order = compute_higher_order,
-      return_block_list = TRUE,
+      return_block_list = TRUE, fem_mesh_matrices = fem_mesh_matrices,
       type_rational_approximation = type_rational_approximation[[1]]
     )
     if(is.list(op1$Q)) {
@@ -664,8 +676,6 @@ intrinsic.matern.operators <- function(kappa = NULL,
     A <- cbind(kronecker(matrix(rep(1,m1), 1, m1), Diagonal(n)), 
                Matrix(0,ncol=1,nrow=n))
   } 
-  
-
   
   out <- list(C = op1$C, G = op1$G, Ci = op1$Ci, GCi = op1$GCi,
               Q = Q, 
@@ -710,19 +720,16 @@ intrinsic.matern.operators <- function(kappa = NULL,
 #' @details The variogram is computed based on a Karhunen-Loeve expansion of the 
 #' covariance function. 
 #' 
-#' @return
 #' @export
 #' @seealso [intrinsic.matern.operators()]
 #'
 #' @examples
 #' x <- seq(from = 0, to = 10, length.out = 201)
-#' mesh <- inla.mesh.1d(loc = x)
-#' fem <- inla.mesh.1d.fem(mesh)
 #' beta <- 1
 #' alpha <- 1
 #' kappa <- 1
 #' op <- intrinsic.matern.operators(kappa = kappa, tau = 1, alpha = alpha, 
-#'                                  beta = beta, G = fem$g1, C = fem$c0, d=1) 
+#'                                  beta = beta, loc_mesh = x, d=1) 
 #' # Compute and plot the variogram of the model
 #' Sigma <- op$A %*% solve(op$Q,t(op$A))
 #' One <- rep(1, times = ncol(Sigma))

@@ -5,9 +5,9 @@
 \title{Covariance-based approximations of intrinsic fields}
 \usage{
 intrinsic.matern.operators(
-  kappa = NULL,
-  tau = NULL,
-  alpha = NULL,
+  kappa,
+  tau,
+  alpha,
   beta = 1,
   G = NULL,
   C = NULL,
@@ -108,13 +108,11 @@ a non-intrinsic model.
 }
 \examples{
 x <- seq(from = 0, to = 10, length.out = 201)
-mesh <- inla.mesh.1d(loc = x)
-fem <- inla.mesh.1d.fem(mesh)
 beta <- 1
 alpha <- 1
 kappa <- 1
 op <- intrinsic.matern.operators(kappa = kappa, tau = 1, alpha = alpha, 
-                                 beta = beta, G = fem$g1, C = fem$c0, d=1) 
+                                 beta = beta, loc_mesh = x, d=1) 
 # Compute and plot the variogram of the model
 Sigma <- op$A \%*\% solve(op$Q,t(op$A))
 One <- rep(1, times = ncol(Sigma))
