@@ -1617,7 +1617,8 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE, parameteriza
                   f = function(z) {
                     denstemp(z)
                   }, lower = min_x, upper = max_x,
-                  subdivisions = nrow(density_df)
+                  subdivisions = nrow(density_df),
+                  stop.on.error = FALSE
                 )$value
                 return(norm_const)
               }
@@ -1737,7 +1738,8 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE, parameteriza
                 norm_const <- stats::integrate(
                   f = function(z) {
                     denstemp(z)
-                  }, lower = min_x, upper = max_x
+                  }, lower = min_x, upper = max_x,
+                  stop.on.error = FALSE
                 )$value
                 return(norm_const)
               }
