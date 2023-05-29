@@ -20,7 +20,7 @@ jobs:
             git config pull.rebase true
             git fetch origin
             git checkout stable-src
-            git merge -X theirs stable --no-edit --no-commit --no-ff     
+            git merge -X theirs stable --no-edit --no-commit --no-ff --allow-unrelated-histories    
             git checkout --theirs .
             git add . 
             git reset -- src/

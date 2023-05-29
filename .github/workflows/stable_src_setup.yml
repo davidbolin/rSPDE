@@ -20,7 +20,7 @@ jobs:
             git config pull.rebase true
             git fetch origin
             git checkout stable
-            git merge -X theirs stable-src --no-edit --no-commit --no-ff     
+            git merge -X theirs stable-src --no-edit --no-commit --no-ff --allow-unrelated-histories   
             git checkout --theirs .
             sed -i 's/NeedsCompilation: yes/NeedsCompilation: no/' DESCRIPTION
             git add . 
