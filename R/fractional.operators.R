@@ -560,6 +560,8 @@ matern.operators <- function(kappa = NULL,
     make_A <- NULL
   }
 
+  C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
+
   if (type == "operator") {
   
     beta <- (nu + d / 2) / 2
@@ -1291,6 +1293,9 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
   if (nu < 0) {
     stop("nu must be positive")
   }
+
+  C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
+  Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
   
   if(type == "operator"){
       beta <- (nu + d / 2) / 2
@@ -1387,7 +1392,7 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
       # K part
 
       if(m_alpha == 0){
-        Q_tmp <- C
+        Q_tmp <- Ci
       } else if(m_alpha == 1){
         Q_tmp <- L
       } else{
