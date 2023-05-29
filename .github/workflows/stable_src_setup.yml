@@ -1,9 +1,9 @@
 on:
   push:
     branches:
-      - devel-src
+      - stable-src
 
-name: devel_src_setup
+name: stable_src_setup
   
 jobs:
     cran_setup:
@@ -13,17 +13,17 @@ jobs:
       steps:
         - uses: actions/checkout@v2      
         
-        - name: Merge with devel, remove src and accept all incoming changes
+        - name: Merge with stable and accept all incoming changes
           run: |
             git config --local user.email "actions@github.com"
             git config --local user.name "GitHub Actions"          
-            git checkout devel
-            git merge devel-src --no-edit --no-commit --no-ff     
+            git checkout stable
+            git merge stable-src --no-edit --no-commit --no-ff     
             git checkout --theirs .
             sed -i 's/NeedsCompilation: yes/NeedsCompilation: no/' DESCRIPTION
             git add . 
             git rm -rf src
             rm -rf src
             git commit -m "Doing the setup"
-            git push origin devel
+            git push origin stable
           shell: bash
