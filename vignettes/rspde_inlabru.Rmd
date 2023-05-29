@@ -724,7 +724,8 @@ so that we do not start the estimation at the true values.
 ```{r}
 rspde_model_nonstat <- rspde.matern(mesh = mesh,
   B.sigma = B.sigma,
-  B.range = B.range) 
+  B.range = B.range,
+  parameterization = "matern") 
 ```
 
 Let us now create the `data.frame()` and the vector with the replicates indexes:
