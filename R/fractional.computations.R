@@ -154,9 +154,9 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
                               return_block_list = object$return_block_list,
                               ...) {
   new_object <- object
+  d <- object$d
   
   if(object$stationary){
-        d <- object$d
 
         fem_mesh_matrices <- object$fem_mesh_matrices
 
@@ -278,7 +278,8 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
           type = "covariance",
           return_block_list = return_block_list,
           type_rational_approximation = type_rational_approximation,
-          fem_mesh_matrices = new_object$fem_mesh_matrices
+          fem_mesh_matrices = new_object$fem_mesh_matrices,
+          compute_logdet = new_object$compute_logdet
         )
   } else{
   ## get parameters
@@ -1457,7 +1458,7 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
   Q <- object$Q
 
-  if(object$stationary){
+  if(object$stationary && object$compute_logdet){
         Q.frac <- object$Q.frac
       
         Q.fracR <- Matrix::Cholesky(Q.frac)
@@ -2331,16 +2332,13 @@ construct.spde.matern.loglike <- function(object, Y, A,
 
 #' @noRd 
 
-aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
+aux2_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
   m <- object$m
 
   Q <- object$Q
 
   # R <- tryCatch(Matrix::chol(Matrix::forceSymmetric(Q)), error=function(e){return(NULL)})
-  R <- tryCatch(Matrix::Cholesky(Q), error = function(e){return(NULL)})
-  if(is.null(R)){
-    return(-10^100)
-  }
+  R <- Matrix::Cholesky(Q)
 
   prior.ld <- c(determinant(R, logarithm = TRUE)$modulus)
 
@@ -2370,11 +2368,7 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
       # if(is.null(R.p)){
       #   return(-10^100)
       # }
-
-      R.p <- tryCatch(Matrix::Cholesky(Q.p), error=function(e){return(NULL)})
-      if(is.null(R.p)){
-        return(-10^100)
-      }
+      R.p <- Matrix::Cholesky(Q.p)
 
       posterior.ld <-  c(determinant(R.p, logarithm = TRUE)$modulus)
 
@@ -2392,7 +2386,6 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
       }
 
       # mu.p <- solve(Q.p,as.vector(t(A_tmp) %*% v / sigma_e^2))
-
       mu.p <- solve(R.p, as.vector(t(A_tmp) %*% v / sigma_e^2), system = "A")
 
       v <- v - A_tmp%*%mu.p
@@ -2405,11 +2398,24 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
   return(as.double(l))
 }
 
+#' @noRd
+
+aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
+    l_tmp <- tryCatch(aux2_lme_CBrSPDE.matern.loglike(object = object, 
+              y = y, X_cov = X_cov, repl = repl, A_list = A_list, 
+              sigma_e = sigma_e, beta_cov = beta_cov), 
+    error = function(e){return(NULL)})
+  if(is.null(l_tmp)){
+    return(-10^100)
+  }
+  return(l_tmp)
+}
+
 
 
 #' @noRd 
 
-aux_lme_rSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
+aux2_lme_rSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
  
   m <- object$m
   Q <- object$Q
@@ -2474,4 +2480,17 @@ aux_lme_rSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e
 
   }
   return(as.double(l))
+}
+
+#' @noRd
+
+aux_lme_rSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
+    l_tmp <- tryCatch(aux2_lme_rSPDE.matern.loglike(object = object, 
+              y = y, X_cov = X_cov, repl = repl, A_list = A_list, 
+              sigma_e = sigma_e, beta_cov = beta_cov), 
+    error = function(e){return(NULL)})
+  if(is.null(l_tmp)){
+    return(-10^100)
+  }
+  return(l_tmp)
 }

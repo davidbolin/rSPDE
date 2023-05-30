@@ -318,7 +318,8 @@ We can obtain outputs with respect to parameters in the original scale by
 using the function `rspde.result()`:
 
 ```{r get_result}
-result_fit <- rspde.result(rspde_fit, "field", rspde_model, parameterization = "matern")
+result_fit <- rspde.result(rspde_fit, "field", 
+                rspde_model)
 summary(result_fit)
 ```
 
@@ -328,6 +329,23 @@ We can also plot the posterior densities. To this end we will use the `gg_df()` 
 posterior_df_fit <- gg_df(result_fit)
 
 ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
+```
+
+We can also obtain the summary on a different parameterization by setting the `parameterization` argument on the `rspde.result()` function:
+
+```{r get_result_matern}
+result_fit_matern <- rspde.result(rspde_fit, "field", 
+                rspde_model, parameterization = "matern")
+summary(result_fit_matern)
+```
+
+In a similar manner, we can obtain posterior plots on the `matern` parameterization:
+
+```{r plot_post_matern, fig.align='center'}
+posterior_df_fit_matern <- gg_df(result_fit_matern)
+
+ggplot(posterior_df_fit_matern) + geom_line(aes(x = x, y = y)) + 
 facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
 
@@ -600,7 +618,7 @@ result_df <- data.frame(
 print(result_df)
 ```
 
-We can also obtain the summary on a different parameterization by setting the `parameterization` argument on the `rspde.result()` function:
+Let us also obtain the summary on the `matern` parameterization:
 
 ```{r}
 result_fit_rep_matern <- rspde.result(rspde_fit.rep, "field", rspde_model.rep, 

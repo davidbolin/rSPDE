@@ -411,6 +411,23 @@ facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 This function is reminiscent to the `inla.spde.result()` function with the main
 difference that it has the `summary()` and `plot()` methods implemented.
 
+We can also obtain the results for the `matern` parameterization by setting the `parameterization` argument to `matern`:
+
+```{r get_result_matern}
+result_fit_matern <- rspde.result(rspde_fit, "field", 
+                      rspde_model, parameterization = "matern")
+summary(result_fit_matern)
+```
+
+In a similar manner, we can obtain posterior plots on the `matern` parameterization:
+
+```{r plot_post_matern, fig.align='center'}
+posterior_df_fit_matern <- gg_df(result_fit_matern)
+
+ggplot(posterior_df_fit_matern) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
+```
+
 
 ### Predictions
 

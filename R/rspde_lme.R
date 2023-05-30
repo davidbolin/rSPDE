@@ -307,7 +307,6 @@ rspde_lme <- function(formula, loc, data,
 
     if(inherits(model, "CBrSPDEobj")){
             likelihood <- function(theta){
-
                 sigma_e <- exp(theta[1])
                 n_cov <- ncol(X_cov)
                 n_initial <- n_coeff_nonfixed                

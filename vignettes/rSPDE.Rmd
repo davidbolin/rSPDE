@@ -180,9 +180,9 @@ covariance. We also set $\sigma=1$ and the range as $0.2$.
 
 ```{r, message=FALSE}
 library(rSPDE)
-sigma <- 1
+sigma <- 1.3
 range <- 0.2
-nu <- 0.5
+nu <- 0.6
 kappa <- sqrt(8 * nu) / range
 op <- matern.operators(
   mesh = mesh_2d, nu = nu,
@@ -324,6 +324,27 @@ result_df <- data.frame(
 print(result_df)
 ```
 
+We can also obtain the summary in the `matern` parameterization by setting the `parameterization` argument to `matern`:
+
+```{r}
+result_fit_matern <- rspde.result(rspde_fit, "field", rspde_model,
+                                  parameterization = "matern")
+summary(result_fit_matern)
+result_df_matern <- data.frame(
+  parameter = c("sigma", "range", "nu"),
+  true = c(sigma, range, nu), mean = c(
+    result_fit_matern$summary.std.dev$mean,
+    result_fit_matern$summary.range$mean,
+    result_fit_matern$summary.nu$mean
+  ),
+  mode = c(
+    result_fit_matern$summary.std.dev$mode,
+    result_fit_matern$summary.range$mode,
+    result_fit_matern$summary.nu$mode
+  )
+)
+print(result_df_matern)
+```
 
 ## Kriging with `R-INLA` implementation of the rational SPDE approach
 
@@ -498,6 +519,28 @@ print(result_df)
 ```
 
 
+Let us obtain a summary in the `matern` parameterization by setting the `parameterization` argument to `matern`:
+
+```{r}
+result_fit_matern <- rspde.result(rspde_bru_fit, "field", rspde_model,
+                                  parameterization = "matern")
+summary(result_fit_matern)
+result_df_matern <- data.frame(
+  parameter = c("sigma", "range", "nu"),
+  true = c(sigma, range, nu), mean = c(
+    result_fit_matern$summary.std.dev$mean,
+    result_fit_matern$summary.range$mean,
+    result_fit_matern$summary.nu$mean
+  ),
+  mode = c(
+    result_fit_matern$summary.std.dev$mode,
+    result_fit_matern$summary.range$mode,
+    result_fit_matern$summary.nu$mode
+  )
+)
+print(result_df_matern)
+```
+
 ## Kriging with `inlabru` implementation of the rational SPDE approach
 
 Let us now obtain predictions (i.e., do kriging) of the latent field on 
@@ -577,7 +620,16 @@ toy_df_rspde <- data.frame(coord1 = loc_2d_mesh[,1],
 ```{r}
 fit_rspde <- rspde_lme(y ~ -1, data = toy_df_rspde, loc = c("coord1", "coord2"),
                       model = op_est, parallel = TRUE)
+```
 
+We can obtain the summary:
+
+```{r}
+summary(fit_rspde)
+```
+
+Let us compare with the true values:
+```{r}
 print(data.frame(
   sigma = c(sigma, fit_rspde$matern_coeff$random_effects[2]), 
   range = c(range, fit_rspde$matern_coeff$random_effects[3]),

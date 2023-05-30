@@ -235,6 +235,7 @@ fractional.operators <- function(L,
 #' "chebfun", "brasil" or "chebfunLB".
 #' @param fem_mesh_matrices A list containing FEM-related matrices.
 #' The list should contain elements c0, g1, g2, g3, etc.
+#' @param compute_logdet Should log determinants be computed while building the model? (For covariance-based models)
 #' @return If `type` is "covariance", then `matern.operators`
 #' returns an object of class "CBrSPDEobj".
 #' This object is a list containing the
@@ -393,7 +394,8 @@ matern.operators <- function(kappa = NULL,
                              return_block_list = FALSE,
                              type_rational_approximation = c("chebfun",
                              "brasil", "chebfunLB"),
-                             fem_mesh_matrices = NULL) {
+                             fem_mesh_matrices = NULL,
+                             compute_logdet = FALSE) {
   type <- type[[1]]
 
   if (!type %in% c("covariance", "operator")) {
@@ -600,7 +602,8 @@ matern.operators <- function(kappa = NULL,
       C = C, G = G, mesh = mesh, nu = nu, kappa = kappa, tau = tau,
       m = m, d = d, compute_higher_order = compute_higher_order,
       return_block_list = return_block_list,
-      type_rational_approximation = type_rational_approximation
+      type_rational_approximation = type_rational_approximation,
+      compute_logdet = compute_logdet
     )
     out$range <- range
     out$tau <- tau
@@ -642,6 +645,7 @@ matern.operators <- function(kappa = NULL,
 #' @param m The order of the rational approximation, which needs
 #' to be a positive integer.
 #' The default value is 2.
+#' @param compute_logdet Should log determinants be computed while building the model?
 #' @return `CBrSPDE.matern.operators` returns an object of
 #' class "CBrSPDEobj". This object is a list containing the
 #' following quantities:
@@ -732,7 +736,8 @@ CBrSPDE.matern.operators <- function(C,
                                      return_block_list = FALSE,
                                      type_rational_approximation = c("chebfun",
                                      "brasil", "chebfunLB"),
-                                     fem_mesh_matrices = NULL) {
+                                     fem_mesh_matrices = NULL,
+                                     compute_logdet) {
   type_rational_approximation <- type_rational_approximation[[1]]
 
   if (is.null(fem_mesh_matrices)) {
@@ -843,10 +848,15 @@ CBrSPDE.matern.operators <- function(C,
 
   L <- (G + kappa^2 * C) / kappa^2
 
-  Lchol <- Matrix::Cholesky(L)
-  logdetL <- 2 * c(determinant(Lchol, logarithm = TRUE)$modulus)
+  if(compute_logdet){
+      Lchol <- Matrix::Cholesky(L)
+      logdetL <- 2 * c(determinant(Lchol, logarithm = TRUE)$modulus)
 
-  logdetC <- sum(log(diag(C)))
+      logdetC <- sum(log(diag(C)))
+  } else{
+    logdetL <- NULL
+    logdetC <- NULL
+  }
 
   CiL <- GCi / kappa^2 + Diagonal(dim(GCi)[1])
 
@@ -952,6 +962,7 @@ CBrSPDE.matern.operators <- function(C,
     stationary = TRUE
   )
   output$type <- "Covariance-Based Matern SPDE Approximation"
+  output$compute_logdet <- compute_logdet
   class(output) <- "CBrSPDEobj"
   return(output)
 }
