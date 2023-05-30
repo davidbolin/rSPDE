@@ -96,7 +96,7 @@
                         <h4 data-toc-skip class="author">David Bolin,
 Alexandre B. Simas, Zhen Xiong</h4>
             
-            <h4 data-toc-skip class="date">2023-05-29</h4>
+            <h4 data-toc-skip class="date">2023-05-30</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_cov.Rmd" class="external-link"><code>vignettes/rspde_cov.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_cov.Rmd</code></div>
@@ -459,10 +459,10 @@ construct the matrix.</p>
 <span><span class="va">obs.loc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n.obs</span><span class="op">)</span></span>
 <span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rSPDE.A1d.html">rSPDE.A1d</a></span><span class="op">(</span><span class="va">s</span>, <span class="va">obs.loc</span><span class="op">)</span></span></code></pre></div>
 <p>We now generate the observations as <span class="math inline">\(Y_i =
-2 + x1 + u(s_i) + \varepsilon_i\)</span>, where <span class="math inline">\(\varepsilon_i \sim N(0,\sigma_e^2)\)</span> is
+2 - x1 + u(s_i) + \varepsilon_i\)</span>, where <span class="math inline">\(\varepsilon_i \sim N(0,\sigma_e^2)\)</span> is
 Gaussian measurement noise, <span class="math inline">\(x1\)</span> is a
 covariate giving the observation location. We will assume that the
-latent process has a Matérn covariance with <span class="math inline">\(\kappa=20, \sigma=2\)</span> and <span class="math inline">\(\nu=0.8\)</span>:</p>
+latent process has a Matérn covariance with <span class="math inline">\(\kappa=20, \sigma=1.3\)</span> and <span class="math inline">\(\nu=0.8\)</span>:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1.3</span></span>
@@ -531,11 +531,12 @@ method:</p>
 <span><span class="co">## Number of function calls by 'optim' = 99</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  38.76361 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  37.36258 secs</span></span></code></pre>
 <p>Let us compare the parameters of the latent model:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">fit</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">r</span>, <span class="va">fit</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">fit</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, </span>
+<span>  range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">r</span>, <span class="va">fit</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="va">fit</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -545,7 +546,7 @@ method:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 38.76361 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 37.36259 secs</span></span></code></pre>
 <p>We can also speed up the optimization by setting
 <code>parallel=TRUE</code> (which uses implicitly the
 <code>optimParallel</code> function):</p>
@@ -589,8 +590,8 @@ method:</p>
 <span><span class="co">## Number of function calls by 'optim' = 99</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  22.65958 secs </span></span>
-<span><span class="co">##   set up the parallelization = 1.43641 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  21.42641 secs </span></span>
+<span><span class="co">##   set up the parallelization = 1.46075 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -605,7 +606,7 @@ method:</p>
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 24.096 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 22.88718 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -701,8 +702,8 @@ columns, each column containing one replicate. We need to turn
 <span><span class="co">## Number of function calls by 'optim' = 71</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  1.40594 mins </span></span>
-<span><span class="co">##   set up the parallelization = 1.48402 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.36093 mins </span></span>
+<span><span class="co">##   set up the parallelization = 1.71705 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -717,9 +718,9 @@ columns, each column containing one replicate. We need to turn
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 1.405942 mins</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 1.36094 mins</span></span></code></pre>
 <p>We can obtain better estimates of the Hessian by setting
-<code>improve_hessian</code> to <code>FALSE</code>, however this might
+<code>improve_hessian</code> to <code>TRUE</code>, however this might
 make the process take longer:</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_repl2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y_vec</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_est</span>, repl <span class="op">=</span> <span class="va">repl</span>, </span>
@@ -759,9 +760,9 @@ make the process take longer:</p>
 <span><span class="co">## Number of function calls by 'optim' = 71</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  1.2133 mins </span></span>
-<span><span class="co">##   compute the Hessian = 16.85612 secs </span></span>
-<span><span class="co">##   set up the parallelization = 1.4423 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.22107 mins </span></span>
+<span><span class="co">##   compute the Hessian = 16.92243 secs </span></span>
+<span><span class="co">##   set up the parallelization = 1.4737 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -917,8 +918,8 @@ observation, and then we fit the model:</p>
 <span><span class="co">## Number of function calls by 'optim' = 30</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  3.1615 mins </span></span>
-<span><span class="co">##   set up the parallelization = 1.50425 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  3.24875 mins </span></span>
+<span><span class="co">##   set up the parallelization = 1.4788 secs</span></span></code></pre>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -933,7 +934,7 @@ observation, and then we fit the model:</p>
 <div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 3.161507 mins</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 3.248758 mins</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="an-example-with-a-non-stationary-model">An example with a non-stationary model<a class="anchor" aria-label="anchor" href="#an-example-with-a-non-stationary-model"></a>
@@ -1036,8 +1037,8 @@ data and the locations:</p>
 </h3>
 <div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_ns</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_ns_est</span>, </span>
-<span>          data <span class="op">=</span> <span class="va">df_data_ns</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span><span class="op">)</span><span class="co">#, </span></span>
-<span>          <span class="co">#parallel = TRUE)</span></span></code></pre></div>
+<span>          data <span class="op">=</span> <span class="va">df_data_ns</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, </span>
+<span>          parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Let us get the summary:</p>
 <div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_ns</span><span class="op">)</span></span></code></pre></div>
@@ -1046,7 +1047,7 @@ data and the locations:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Call:</span></span>
 <span><span class="co">## rspde_lme(formula = y ~ -1, loc = c("x_coord", "y_coord"), data = df_data_ns, </span></span>
-<span><span class="co">##     model = op_cov_ns_est)</span></span></code></pre>
+<span><span class="co">##     model = op_cov_ns_est, parallel = TRUE)</span></span></code></pre>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## No fixed effects.</span></span></code></pre>
 <pre><code><span><span class="co">## </span></span>
@@ -1067,11 +1068,13 @@ data and the locations:</p>
 <span><span class="co">## Number of function calls by 'optim' = 66</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  33.54122 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  20.14614 secs </span></span>
+<span><span class="co">##   set up the parallelization = 1.47305 secs</span></span></code></pre>
 <p>Let us now compare with the true values:</p>
 <div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  theta1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">true_theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, theta2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">true_theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  theta1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">true_theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, </span>
+<span>  theta2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">true_theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  theta3 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">true_theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>  alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">alpha</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span>
@@ -1114,7 +1117,8 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.order.html">rational.order</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fl">1</span></span></code></pre></div>
 <p>Let us fit a model using the data from the previous example:</p>
 <div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit_order1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_2d_type</span>, data <span class="op">=</span> <span class="va">df_data_2d</span>,repl <span class="op">=</span> <span class="va">repl</span>,</span>
+<code class="sourceCode R"><span><span class="va">fit_order1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_2d_type</span>, </span>
+<span>          data <span class="op">=</span> <span class="va">df_data_2d</span>,repl <span class="op">=</span> <span class="va">repl</span>,</span>
 <span>          loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_order1</span><span class="op">)</span></span></code></pre></div>
@@ -1149,8 +1153,8 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <span><span class="co">## Number of function calls by 'optim' = 43</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.0904 mins </span></span>
-<span><span class="co">##   set up the parallelization = 1.44299 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.11485 mins </span></span>
+<span><span class="co">##   set up the parallelization = 1.46067 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1173,7 +1177,8 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <p>Let us now fit this model, with the data from the previous example,
 with <code>brasil</code> rational approximation:</p>
 <div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit_brasil</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_2d_type</span>, data <span class="op">=</span> <span class="va">df_data_2d</span>,repl <span class="op">=</span> <span class="va">repl</span>,</span>
+<code class="sourceCode R"><span><span class="va">fit_brasil</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_2d_type</span>, </span>
+<span>          data <span class="op">=</span> <span class="va">df_data_2d</span>,repl <span class="op">=</span> <span class="va">repl</span>,</span>
 <span>          loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_brasil</span><span class="op">)</span></span></code></pre></div>
@@ -1208,8 +1213,8 @@ with <code>brasil</code> rational approximation:</p>
 <span><span class="co">## Number of function calls by 'optim' = 38</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  1.81959 mins </span></span>
-<span><span class="co">##   set up the parallelization = 1.41412 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.91346 mins </span></span>
+<span><span class="co">##   set up the parallelization = 1.46845 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
