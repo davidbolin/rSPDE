@@ -737,7 +737,7 @@ CBrSPDE.matern.operators <- function(C,
                                      type_rational_approximation = c("chebfun",
                                      "brasil", "chebfunLB"),
                                      fem_mesh_matrices = NULL,
-                                     compute_logdet) {
+                                     compute_logdet = FALSE) {
   type_rational_approximation <- type_rational_approximation[[1]]
 
   if (is.null(fem_mesh_matrices)) {
