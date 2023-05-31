@@ -1,9 +1,10 @@
-# Description #
+# rSPDE <a href="https://davidbolin.github.io/rSPDE/"><img src="./man/figures/logo.png" align="right" height="138" /></a>
 
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-last-release/rSPDE)](https://cran.r-project.org/package=rSPDE)
 [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)
 [![R-CMD-check](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml)
 
+# Description #
 `rSPDE` is an R package used for computing rational approximations of fractional SPDEs. These rational approximations can be used for computationally efficient statistical inference.
 
 Basic statistical operations such as likelihood evaluations and kriging predictions using the fractional approximations are also implemented. The package also contains interfaces to [R-INLA][ref4] and [inlabru][ref8].
