@@ -153,6 +153,20 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> This is INLA_23.05.30-1 built 2023-05-30 11:52:19 UTC.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - See www.r-inla.org/contact-us for how to get help.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - To enable PARDISO sparse library; see inla.pardiso()</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Please note that rgdal will be retired during October 2023,</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> plan transition to sf/stars/terra functions using GDAL and PROJ</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> at your earliest convenience.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> See https://r-spatial.org/r/2023/05/15/evolution4.html and https://github.com/r-spatial/evolution</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> rgdal: version: 1.6-7, (SVN revision 1203)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Geospatial Data Abstraction Library extensions to R successfully loaded</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loaded GDAL runtime: GDAL 3.0.4, released 2020/01/28</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Path to GDAL shared files: /usr/share/gdal</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> GDAL binary built with GEOS: TRUE </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loaded PROJ runtime: Rel. 6.3.1, February 10th, 2020, [PJ_VERSION: 631]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Path to PROJ shared files: /usr/share/proj</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Linking to sp version:1.6-1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> To mute warnings of possible GDAL/OSR exportToProj4() degradation,</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> use options("rgdal_show_exportToProj4_warnings"="none") before loading sp or rgdal.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Model 'cgeneric' in section 'latent' is marked as 'experimental'; changes may appear at any time.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>   Use this model with extra care!!! Further warnings are disabled.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> inlabru version: 2.7.0</span>
@@ -165,10 +179,10 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Data class: 'SpatialPointsDataFrame'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Predictor: y ~ .</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Time used:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 0.752, Running = 15.2, Post = 0.843, Total = 16.8 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 0.776, Running = 15.9, Post = 1.1, Total = 17.8 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           mean    sd 0.025quant 0.5quant 0.975quant mode kld</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.29 0.179     -0.064     0.29      0.646 0.29   0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.29 0.179     -0.065     0.29      0.647 0.29   0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name	  Model</span>
@@ -176,24 +190,24 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Model hyperparameters:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                          mean    sd 0.025quant 0.5quant</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 64.74 16.49      28.11    66.48</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 64.02 18.62      26.30    66.25</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                        -3.20  0.00      -3.69    -3.20</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                         2.80  0.00       2.70     2.80</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                        -1.41  0.00      -1.62    -1.41</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                         0.975quant  mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations    826.498 39.72</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                            -1.222 -3.20</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                             3.218  2.80</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                            -0.579 -1.41</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations    874.570 35.47</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                            -1.227 -3.20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                             3.217  2.80</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                            -0.581 -1.41</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC) ...............: -107.68</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC, saturated) ....: 158.82</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .....................: 60.62</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC) ...............: -107.90</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC, saturated) ....: 158.72</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .....................: 60.51</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Watanabe-Akaike information criterion (WAIC) ...: -101.66</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .................: 48.91</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Watanabe-Akaike information criterion (WAIC) ...: -101.78</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .................: 48.90</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Marginal log-Likelihood:  -107.45 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Marginal log-Likelihood:  -107.46 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  is computed </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Posterior summaries for the linear predictor and the fitted values are computed</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span>
