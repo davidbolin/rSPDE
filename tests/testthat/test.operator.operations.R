@@ -26,18 +26,18 @@ test_that("Operator algebra", {
   tolerance = 1e-10)
 
   # Pr solve
-  expect_equal(solve(op$Pr, v), Pr.solve(op, v), tolerance = 1e-10)
-  expect_equal(solve(t(op$Pr), v), Pr.solve(op, v, transpose = TRUE),
+  expect_equal(as.vector(solve(op$Pr, v)), Pr.solve(op, v), tolerance = 1e-10)
+  expect_equal(as.vector(solve(t(op$Pr), v)), Pr.solve(op, v, transpose = TRUE),
   tolerance = 1e-10)
 
   # Pl solve
-  expect_equal(solve(op$Pl, v), Pl.solve(op, v), tolerance = 1e-10)
-  expect_equal(solve(t(op$Pl), v), Pl.solve(op, v, transpose = TRUE),
+  expect_equal(as.vector(solve(op$Pl, v)), Pl.solve(op, v), tolerance = 1e-10)
+  expect_equal(as.vector(solve(t(op$Pl), v)), Pl.solve(op, v, transpose = TRUE),
   tolerance = 1e-10)
 
   # Q mult
   expect_equal(as.vector(op$Q %*% v), Q.mult(op, v), tolerance = 1e-10)
-  expect_equal(solve(op$Q, v), Q.solve(op, v), tolerance = 1e-10)
+  expect_equal(as.vector(solve(op$Q, v)), Q.solve(op, v), tolerance = 1e-10)
 
   # Qr mult
   expect_equal(as.vector(sqrt(op$Ci) %*% op$Pl %*% v), Qsqrt.mult(op, v),
@@ -46,8 +46,8 @@ test_that("Operator algebra", {
   transpose = TRUE), tolerance = 1e-10)
 
   # Qr solve
-  expect_equal(solve(sqrt(op$Ci) %*% op$Pl, v), Qsqrt.solve(op, v),
+  expect_equal(as.vector(solve(sqrt(op$Ci) %*% op$Pl, v)), Qsqrt.solve(op, v),
   tolerance = 1e-10)
-  expect_equal(solve(t(sqrt(op$Ci) %*% op$Pl), v), Qsqrt.solve(op, v,
+  expect_equal(as.vector(solve(t(sqrt(op$Ci) %*% op$Pl), v)), Qsqrt.solve(op, v,
   transpose = TRUE), tolerance = 1e-10)
 })
