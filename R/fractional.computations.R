@@ -1009,7 +1009,7 @@ rSPDE.loglike <- function(obj,
 
   R <- Matrix::Cholesky(obj$Pl)
 
-  prior.ld <- 4 * c(determinant(R, logarithm = TRUE)$modulus) -
+  prior.ld <- 4 * c(determinant(R, logarithm = TRUE, sqrt = TRUE)$modulus) -
   sum(log(diag(obj$C)))
 
 
@@ -1019,7 +1019,7 @@ rSPDE.loglike <- function(obj,
 
   R.post <- Matrix::Cholesky(Q.post)
 
-  posterior.ld <- 2 * c(determinant(R.post, logarithm = TRUE)$modulus)
+  posterior.ld <- 2 * c(determinant(R.post, logarithm = TRUE, sqrt = TRUE)$modulus)
 
   AtY <- t(A) %*% Q.e %*% Y
 
@@ -1353,16 +1353,16 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
           # logQ <- 2 * sum(log(diag(Q.fracR))) + (Q.int.order) *
           # (m + 1) * (logdetL - logdetC)
           
-          logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE)$modulus) + (Q.int.order) *
+          logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE, sqrt = TRUE)$modulus) + (Q.int.order) *
           (m + 1) * (logdetL - logdetC)
         } else {
-          logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE)$modulus)
+          logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE, sqrt = TRUE)$modulus)
         }
   } else {
         Q <-  object$Q
         Q.R <- Matrix::Cholesky(Q)
       
-        logQ <- 2 * c(determinant(Q.R, logarithm = TRUE)$modulus)
+        logQ <- 2 * c(determinant(Q.R, logarithm = TRUE, sqrt = TRUE)$modulus)
   }
   ## compute Q_x|y
   Q <- object$Q
@@ -1385,7 +1385,7 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
   mu_xgiveny <- mu + mu_xgiveny
 
   ## compute log|Q_xgiveny|
-  log_Q_xgiveny <- 2 * determinant(R, logarithm = TRUE)$modulus
+  log_Q_xgiveny <- 2 * determinant(R, logarithm = TRUE, sqrt = TRUE)$modulus
   ## compute mu_x|y*Q*mu_x|y
   if (n.rep > 1) {
     mu_part <- sum(colSums((mu_xgiveny - mu) * (Q %*% (mu_xgiveny - mu))))
@@ -1477,15 +1477,15 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
           # logQ <- 2 * sum(log(diag(Q.fracR))) + (Q.int.order) *
           # (m + 1) * (logdetL - logdetC)
           
-          logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE)$modulus) + (Q.int.order) *
+          logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE, sqrt = TRUE)$modulus) + (Q.int.order) *
           (m + 1) * (logdetL - logdetC)
         } else {
-          logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE)$modulus)
+          logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE, sqrt = TRUE)$modulus)
         }
   } else {
         Q.R <- Matrix::Cholesky(Q)
       
-        logQ <- 2 * c(determinant(Q.R, logarithm = TRUE)$modulus)
+        logQ <- 2 * c(determinant(Q.R, logarithm = TRUE, sqrt = TRUE)$modulus)
   }
 
 
@@ -1510,7 +1510,7 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
   mu_xgiveny <- mu + mu_xgiveny
 
   ## compute log|Q_xgiveny|
-  log_Q_xgiveny <- 2 * determinant(R, logarithm = TRUE)$modulus
+  log_Q_xgiveny <- 2 * determinant(R, logarithm = TRUE, sqrt = TRUE)$modulus
   ## compute mu_x|y*Q*mu_x|y
   if (n.rep > 1) {
     mu_part <- sum(colSums((mu_xgiveny - mu) * (Q %*% (mu_xgiveny - mu))))
@@ -2346,7 +2346,7 @@ aux2_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigm
   # R <- tryCatch(Matrix::chol(Matrix::forceSymmetric(Q)), error=function(e){return(NULL)})
   R <- Matrix::Cholesky(Q)
 
-  prior.ld <- c(determinant(R, logarithm = TRUE)$modulus)
+  prior.ld <- c(determinant(R, logarithm = TRUE, sqrt = TRUE)$modulus)
 
   repl_val <- unique(repl)
 
@@ -2376,7 +2376,7 @@ aux2_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigm
       # }
       R.p <- Matrix::Cholesky(Q.p)
 
-      posterior.ld <-  c(determinant(R.p, logarithm = TRUE)$modulus)
+      posterior.ld <-  c(determinant(R.p, logarithm = TRUE, sqrt = TRUE)$modulus)
 
       # l <- l + sum(log(diag(R))) - sum(log(diag(R.p))) - n.o*log(sigma_e)
 
@@ -2431,7 +2431,7 @@ aux2_lme_rSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_
     return(-10^100)
   }
 
-  prior.ld <- 2 * c(determinant(R, logarithm = TRUE)$modulus) -
+  prior.ld <- 2 * c(determinant(R, logarithm = TRUE, sqrt = TRUE)$modulus) -
   sum(log(diag(object$C)))/2  
 
   repl_val <- unique(repl)
@@ -2477,7 +2477,7 @@ aux2_lme_rSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_
 
       v <- v - A_tmp%*%mu.p
 
-      posterior.ld <-  c(determinant(R.post, logarithm = TRUE)$modulus)
+      posterior.ld <-  c(determinant(R.post, logarithm = TRUE, sqrt = TRUE)$modulus)
 
       l <- l + prior.ld - posterior.ld - n.o*log(sigma_e)
 
