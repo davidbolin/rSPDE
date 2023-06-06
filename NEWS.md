@@ -3,6 +3,7 @@
 * Bugfix on Q for small values of nu in dimension 1.
 * Adding parameterization option for rspde.result.
 * Bugfix on which_repl in rspde_lme.
+* Addressing issues related to the new version of the Matrix package.
 
 # rSPDE 2.3.1
 * Adding references in DESCRIPTION.

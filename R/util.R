@@ -2065,3 +2065,18 @@ change_parameterization_lme <- function(likelihood, d, nu, par, hessian
 
   return(list(coeff = c(sigma, range), std_random = std_err))
 }
+
+
+
+#' @noRd 
+#' 
+
+return_same_input_type_matrix_vector <- function(v, orig_v){
+  if(isS4(orig_v)){
+    return(v)
+  } else{
+    v_out <- as.matrix(v)
+    dim(v_out) <- dim(orig_v)
+    return(v_out)
+  }
+}

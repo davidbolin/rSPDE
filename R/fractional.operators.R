@@ -850,7 +850,7 @@ CBrSPDE.matern.operators <- function(C,
 
   if(compute_logdet){
       Lchol <- Matrix::Cholesky(L)
-      logdetL <- 2 * c(determinant(Lchol, logarithm = TRUE)$modulus)
+      logdetL <- 2 * c(determinant(Lchol, logarithm = TRUE, sqrt = TRUE)$modulus)
 
       logdetC <- sum(log(diag(C)))
   } else{
