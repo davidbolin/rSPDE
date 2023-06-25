@@ -49,7 +49,7 @@ test_that("Checking loglike of CBrSPDE", {
     )
 
     op1 <- matern.operators(
-      kappa = kappa, sigma = sigma, nu = nu,
+      range = range, sigma = sigma, nu = nu,
       loc_mesh = s, d = 1, type = "operator",
       parameterization = "matern"
     )

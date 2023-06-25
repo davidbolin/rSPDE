@@ -41,16 +41,16 @@ references:
 - id: xiong22
   title: "Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference"
   author: 
-  - family: Xiong
-    given: Zhen
-  - family: Simas
-    given: Alexandre B.
   - family: Bolin
     given: David
-  container-title: arXiv:2209.04670
-  type: preprint
+  - family: Simas
+    given: Alexandre B.
+  - family: Xiong
+    given: Zhen    
+  container-title: Journal of Computational and Graphical Statistics
+  type: article-journal
   issued:
-    year: 2022
+    year: 2023   
 - id: Hofreither21
   title: "An algorithm for best rational approximation based on barycentric rational interpolation"
   author:
@@ -318,7 +318,8 @@ We can obtain outputs with respect to parameters in the original scale by
 using the function `rspde.result()`:
 
 ```{r get_result}
-result_fit <- rspde.result(rspde_fit, "field", rspde_model)
+result_fit <- rspde.result(rspde_fit, "field", 
+                rspde_model)
 summary(result_fit)
 ```
 
@@ -328,6 +329,23 @@ We can also plot the posterior densities. To this end we will use the `gg_df()` 
 posterior_df_fit <- gg_df(result_fit)
 
 ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
+```
+
+We can also obtain the summary on a different parameterization by setting the `parameterization` argument on the `rspde.result()` function:
+
+```{r get_result_matern}
+result_fit_matern <- rspde.result(rspde_fit, "field", 
+                rspde_model, parameterization = "matern")
+summary(result_fit_matern)
+```
+
+In a similar manner, we can obtain posterior plots on the `matern` parameterization:
+
+```{r plot_post_matern, fig.align='center'}
+posterior_df_fit_matern <- gg_df(result_fit_matern)
+
+ggplot(posterior_df_fit_matern) + geom_line(aes(x = x, y = y)) + 
 facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
 
@@ -600,6 +618,29 @@ result_df <- data.frame(
 print(result_df)
 ```
 
+Let us also obtain the summary on the `matern` parameterization:
+
+```{r}
+result_fit_rep_matern <- rspde.result(rspde_fit.rep, "field", rspde_model.rep, 
+                          parameterization = "matern")
+summary(result_fit_rep_matern)
+result_df_matern <- data.frame(
+  parameter = c("std_dev", "range", "nu"),
+  true = c(sigma, range, nu),
+  mean = c(
+    result_fit_rep_matern$summary.std.dev$mean,
+    result_fit_rep_matern$summary.range$mean,
+    result_fit_rep_matern$summary.nu$mean
+  ),
+  mode = c(
+    result_fit_rep$summary.std.dev$mode,
+    result_fit_rep$summary.range$mode,
+    result_fit_rep$summary.nu$mode
+  )
+)
+print(result_df_matern)
+```
+
 ## An example with a non-stationary model
 
 Our goal now is to show how one can fit model with non-stationary $\sigma$ (std. deviation) and non-stationary $\rho$ (a range parameter).
@@ -701,7 +742,8 @@ so that we do not start the estimation at the true values.
 ```{r}
 rspde_model_nonstat <- rspde.matern(mesh = mesh,
   B.sigma = B.sigma,
-  B.range = B.range) 
+  B.range = B.range,
+  parameterization = "matern") 
 ```
 
 Let us now create the `data.frame()` and the vector with the replicates indexes:

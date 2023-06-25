@@ -25,16 +25,16 @@ references:
 - id: xiong22
   title: "Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference"
   author: 
-  - family: Xiong
-    given: Zhen
-  - family: Simas
-    given: Alexandre B.
   - family: Bolin
     given: David
-  container-title: arXiv:2209.04670
-  type: preprint
+  - family: Simas
+    given: Alexandre B.
+  - family: Xiong
+    given: Zhen    
+  container-title: Journal of Computational and Graphical Statistics
+  type: article-journal
   issued:
-    year: 2022
+    year: 2023   
 - id: lindgren11
   title: "An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach"
   author:
@@ -410,6 +410,23 @@ facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 
 This function is reminiscent to the `inla.spde.result()` function with the main
 difference that it has the `summary()` and `plot()` methods implemented.
+
+We can also obtain the results for the `matern` parameterization by setting the `parameterization` argument to `matern`:
+
+```{r get_result_matern}
+result_fit_matern <- rspde.result(rspde_fit, "field", 
+                      rspde_model, parameterization = "matern")
+summary(result_fit_matern)
+```
+
+In a similar manner, we can obtain posterior plots on the `matern` parameterization:
+
+```{r plot_post_matern, fig.align='center'}
+posterior_df_fit_matern <- gg_df(result_fit_matern)
+
+ggplot(posterior_df_fit_matern) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
+```
 
 
 ### Predictions
