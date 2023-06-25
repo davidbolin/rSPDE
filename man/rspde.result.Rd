@@ -4,7 +4,15 @@
 \alias{rspde.result}
 \title{rSPDE result extraction from INLA estimation results}
 \usage{
-rspde.result(inla, name, rspde, compute.summary = TRUE)
+rspde.result(
+  inla,
+  name,
+  rspde,
+  compute.summary = TRUE,
+  parameterization = "detect",
+  n_samples = 5000,
+  n_density = 1024
+)
 }
 \arguments{
 \item{inla}{An \code{inla} object obtained from a call to
@@ -17,6 +25,12 @@ in the inla formula.}
 the inla formula.}
 
 \item{compute.summary}{Should the summary be computed?}
+
+\item{parameterization}{If 'detect', the parameterization from the model will be used. Otherwise, the options are 'spde', 'matern' and 'matern2'.}
+
+\item{n_samples}{The number of samples to be used if parameterization is different from the one used to fit the model.}
+
+\item{n_density}{The number of equally spaced points to estimate the density.}
 }
 \value{
 If the model was fitted with \code{matern} parameterization (the default), it returns a list containing:

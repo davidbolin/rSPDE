@@ -72,18 +72,3 @@ A data.frame with the fitted models and the corresponding scores.
 Obtain several scores for a list of fitted models according
 to a folding scheme.
 }
-\examples{
-\donttest{ #devel version
-if (requireNamespace("INLA", quietly = TRUE)){
-library(INLA)
-if (requireNamespace("inlabru", quietly = TRUE)){
-library(inlabru)
-
-set.seed(123)
-
-
-}
-#devel.tag
-}
-}
-}
