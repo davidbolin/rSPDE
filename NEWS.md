@@ -1,4 +1,6 @@
 # rSPDE (development version)
+
+# rSPDE 2.3.2
 * Small improvement on speed for rspde_lme.
 * Bugfix on Q for small values of nu in dimension 1.
 * Adding parameterization option for rspde.result.

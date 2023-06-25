@@ -75,10 +75,8 @@ The tests that depend on `INLA` should have the following structure:
 ```
 test_that("Description of the test", {
   testthat::skip_on_cran()
-  inla_installed <- "INLA" %in% rownames(installed.packages())
-  if(!inla_installed){
-    testthat::skip("INLA not installed")
-  }
+  if (!requireNamespace("INLA", quietly=TRUE))
+    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
   
   old_threads <- INLA::inla.getOption("num.threads")
   INLA::inla.setOption(num.threads = "1:1")
