@@ -25,7 +25,7 @@ shiny::runGitHub("davidbolin/rSPDE", subdir="shiny_app")
 ```
 
 # References #
-Z. Xiong, A. Simas, D. Bolin (2022) [Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference][ref9]. 	ArXiv:2209.04670
+D. Bolin, A. B. Simas, Z. Xiong (2023) [Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference][ref9]. Journal of Computational and Graphical Statistics, in press.
 
 D. Bolin and K. Kirchner (2020) [The rational SPDE approach for Gaussian random fields with general smoothness][ref]. Journal of Computational and Graphical Statistics, 29:2, 274-285.
 
