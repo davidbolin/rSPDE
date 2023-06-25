@@ -34,7 +34,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.1.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.2.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -96,7 +96,7 @@
                         <h4 data-toc-skip class="author">David Bolin,
 Alexandre B. Simas, Zhen Xiong</h4>
             
-            <h4 data-toc-skip class="date">2023-06-06</h4>
+            <h4 data-toc-skip class="date">2023-06-25</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_cov.Rmd" class="external-link"><code>vignettes/rspde_cov.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_cov.Rmd</code></div>
@@ -112,8 +112,8 @@ approach and illustrate how to perform statistical inference with
 it.</p>
 <p>The covariance-based approach is an efficient alternative to the
 operator-based rational SPDE approach by <a href="https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537" class="external-link"><span class="citation">Bolin and Kirchner (2020)</span></a> which works when
-one has SPDE driven by Gaussian white noise. We refer the reader to <a href="https://arxiv.org/abs/2209.04670" class="external-link"><span class="citation">Xiong,
-Simas, and Bolin (2022)</span></a> for the theoretical details of the
+one has SPDE driven by Gaussian white noise. We refer the reader to <a href="https://arxiv.org/abs/2209.04670" class="external-link"><span class="citation">Bolin,
+Simas, and Xiong (2023)</span></a> for the theoretical details of the
 approach.</p>
 <p>Details about the operator-based rational SPDE approach are given in
 the <a href="rspde_base.html">Operator-based rational approximation</a>
@@ -530,7 +530,7 @@ method:</p>
 <span><span class="co">## Number of function calls by 'optim' = 71</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  28.37747 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  25.83676 secs</span></span></code></pre>
 <p>Let us compare the parameters of the latent model:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -545,7 +545,7 @@ method:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 28.37747 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 25.83677 secs</span></span></code></pre>
 <p>We can also speed up the optimization by setting
 <code>parallel=TRUE</code> (which uses implicitly the
 <code>optimParallel</code> function):</p>
@@ -589,8 +589,8 @@ method:</p>
 <span><span class="co">## Number of function calls by 'optim' = 71</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  34.52501 secs </span></span>
-<span><span class="co">##   set up the parallelization = 1.6282 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  29.75824 secs </span></span>
+<span><span class="co">##   set up the parallelization = 1.48226 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -605,7 +605,7 @@ method:</p>
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 36.15322 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 31.24051 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -701,8 +701,8 @@ columns, each column containing one replicate. We need to turn
 <span><span class="co">## Number of function calls by 'optim' = 72</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.44815 mins </span></span>
-<span><span class="co">##   set up the parallelization = 1.59918 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.12386 mins </span></span>
+<span><span class="co">##   set up the parallelization = 1.44396 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -717,7 +717,7 @@ columns, each column containing one replicate. We need to turn
 <div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 2.44815 mins</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 2.123862 mins</span></span></code></pre>
 <p>We can obtain better estimates of the Hessian by setting
 <code>improve_hessian</code> to <code>TRUE</code>, however this might
 make the process take longer:</p>
@@ -760,9 +760,9 @@ make the process take longer:</p>
 <span><span class="co">## Number of function calls by 'optim' = 72</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.13618 mins </span></span>
-<span><span class="co">##   compute the Hessian = 17.424 secs </span></span>
-<span><span class="co">##   set up the parallelization = 1.52323 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.90957 mins </span></span>
+<span><span class="co">##   compute the Hessian = 14.80321 secs </span></span>
+<span><span class="co">##   set up the parallelization = 1.60095 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -918,8 +918,8 @@ observation, and then we fit the model:</p>
 <span><span class="co">## Number of function calls by 'optim' = 39</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  6.52944 mins </span></span>
-<span><span class="co">##   set up the parallelization = 1.43895 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  6.42677 mins </span></span>
+<span><span class="co">##   set up the parallelization = 1.4341 secs</span></span></code></pre>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -934,7 +934,7 @@ observation, and then we fit the model:</p>
 <div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 6.529442 mins</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 6.426771 mins</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="an-example-with-a-non-stationary-model">An example with a non-stationary model<a class="anchor" aria-label="anchor" href="#an-example-with-a-non-stationary-model"></a>
@@ -1068,8 +1068,8 @@ data and the locations:</p>
 <span><span class="co">## Number of function calls by 'optim' = 62</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  32.82687 secs </span></span>
-<span><span class="co">##   set up the parallelization = 1.42816 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  33.70812 secs </span></span>
+<span><span class="co">##   set up the parallelization = 1.47483 secs</span></span></code></pre>
 <p>Let us now compare with the true values:</p>
 <div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1090,8 +1090,8 @@ data and the locations:</p>
 <p>We have three rational approximations available. The BRASIL algorithm
 <a href="https://doi.org/10.1007/s11075-020-01042-0" class="external-link"><span class="citation">Hofreither (2021)</span></a>, and two “versions” of the
 Clenshaw-Lord Chebyshev-Pade algorithm, one with lower bound zero and
-another with the lower bound given in <a href="https://arxiv.org/abs/2209.04670" class="external-link"><span class="citation">Xiong,
-Simas, and Bolin (2022)</span></a>.</p>
+another with the lower bound given in <a href="https://arxiv.org/abs/2209.04670" class="external-link"><span class="citation">Bolin,
+Simas, and Xiong (2023)</span></a>.</p>
 <p>The type of rational approximation can be chosen by setting the
 <code>type_rational_approximation</code> argument in the
 <code>matern.operators</code> function. The BRASIL algorithm corresponds
@@ -1153,8 +1153,8 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <span><span class="co">## Number of function calls by 'optim' = 30</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.58743 mins </span></span>
-<span><span class="co">##   set up the parallelization = 1.3194 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.55798 mins </span></span>
+<span><span class="co">##   set up the parallelization = 1.45595 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1214,8 +1214,8 @@ with <code>brasil</code> rational approximation:</p>
 <span><span class="co">## Number of function calls by 'optim' = 43</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  3.4261 mins </span></span>
-<span><span class="co">##   set up the parallelization = 1.38694 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  3.38186 mins </span></span>
+<span><span class="co">##   set up the parallelization = 1.44926 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1238,6 +1238,12 @@ Approach for Gaussian Random Fields with General Smoothness.”</span>
 <em>Journal of Computational and Graphical Statistics</em> 29 (2):
 274–85.
 </div>
+<div id="ref-xiong22" class="csl-entry">
+Bolin, David, Alexandre B. Simas, and Zhen Xiong. 2023.
+<span>“Covariance-Based Rational Approximations of Fractional SPDEs for
+Computationally Efficient Bayesian Inference.”</span> <em>Journal of
+Computational and Graphical Statistics</em>.
+</div>
 <div id="ref-Hofreither21" class="csl-entry">
 Hofreither, Clemens. 2021. <span>“An Algorithm for Best Rational
 Approximation Based on Barycentric Rational Interpolation.”</span>
@@ -1249,12 +1255,6 @@ Explicit Link Between Gaussian Fields and Gaussian Markov Random Fields:
 The Stochastic Partial Differential Equation Approach.”</span>
 <em>Journal of the Royal Statistical Society. Series B. Statistical
 Methodology</em> 73 (4): 423–98.
-</div>
-<div id="ref-xiong22" class="csl-entry">
-Xiong, Zhen, Alexandre B. Simas, and David Bolin. 2022.
-<span>“Covariance-Based Rational Approximations of Fractional SPDEs for
-Computationally Efficient Bayesian Inference.”</span>
-<em>arXiv:2209.04670</em>.
 </div>
 </div>
 </div>
