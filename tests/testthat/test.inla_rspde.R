@@ -3,10 +3,8 @@ context("inla_rspde")
 test_that("testing cgeneric_integer", {
 
   testthat::skip_on_cran()
-  inla_installed <- "INLA" %in% rownames(installed.packages())
-  if(!inla_installed){
-    testthat::skip("INLA not installed")
-  }
+if (!requireNamespace("INLA", quietly=TRUE))
+    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
   
   old_threads <- INLA::inla.getOption("num.threads")
   INLA::inla.setOption(num.threads = "1:1")
@@ -61,10 +59,8 @@ testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
 test_that("testing cgeneric_parsimonious_fixed", {
 
   testthat::skip_on_cran()
-  inla_installed <- "INLA" %in% rownames(installed.packages())
-  if(!inla_installed){
-    testthat::skip("INLA not installed")
-  }
+if (!requireNamespace("INLA", quietly=TRUE))
+    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
   
   old_threads <- INLA::inla.getOption("num.threads")
   INLA::inla.setOption(num.threads = "1:1")
@@ -122,10 +118,8 @@ testthat::expect_equal(sum((Q_tmp$Q - Q_tmp2)^2), 0)
 test_that("testing cgeneric_parsimonious_gen", {
 
   testthat::skip_on_cran()
-  inla_installed <- "INLA" %in% rownames(installed.packages())
-  if(!inla_installed){
-    testthat::skip("INLA not installed")
-  }
+if (!requireNamespace("INLA", quietly=TRUE))
+    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
   
   old_threads <- INLA::inla.getOption("num.threads")
   INLA::inla.setOption(num.threads = "1:1")
@@ -182,10 +176,8 @@ testthat::expect_equal(sum((Q_tmp$Q - Q_tmp2)^2), 0)
 test_that("testing cgeneric_rspde_fixed_gen", {
 
   testthat::skip_on_cran()
-  inla_installed <- "INLA" %in% rownames(installed.packages())
-  if(!inla_installed){
-    testthat::skip("INLA not installed")
-  }
+if (!requireNamespace("INLA", quietly=TRUE))
+    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
   
   old_threads <- INLA::inla.getOption("num.threads")
   INLA::inla.setOption(num.threads = "1:1")
@@ -239,10 +231,8 @@ testthat::expect_equal(sum((Q_tmp$Q - Q_tmp2)^2), 0)
 test_that("testing cgeneric_rspde_gen", {
 
   testthat::skip_on_cran()
-  inla_installed <- "INLA" %in% rownames(installed.packages())
-  if(!inla_installed){
-    testthat::skip("INLA not installed")
-  }
+if (!requireNamespace("INLA", quietly=TRUE))
+    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
   
   old_threads <- INLA::inla.getOption("num.threads")
   INLA::inla.setOption(num.threads = "1:1")
@@ -289,10 +279,8 @@ testthat::expect_equal(sum( (Q_1 - Q_tmp$Q)^2), 0)
 test_that("testing cgeneric_nonstat_gen", {
 
   testthat::skip_on_cran()
-  inla_installed <- "INLA" %in% rownames(installed.packages())
-  if(!inla_installed){
-    testthat::skip("INLA not installed")
-  }
+if (!requireNamespace("INLA", quietly=TRUE))
+    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
   
   old_threads <- INLA::inla.getOption("num.threads")
   INLA::inla.setOption(num.threads = "1:1")
@@ -349,10 +337,8 @@ testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
 test_that("testing cgeneric_nonstat_fixed", {
 
   testthat::skip_on_cran()
-  inla_installed <- "INLA" %in% rownames(installed.packages())
-  if(!inla_installed){
-    testthat::skip("INLA not installed")
-  }
+if (!requireNamespace("INLA", quietly=TRUE))
+    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
   
   old_threads <- INLA::inla.getOption("num.threads")
   INLA::inla.setOption(num.threads = "1:1")
@@ -408,10 +394,8 @@ testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
 test_that("testing cgeneric_nonstat_integer", {
 
   testthat::skip_on_cran()
-  inla_installed <- "INLA" %in% rownames(installed.packages())
-  if(!inla_installed){
-    testthat::skip("INLA not installed")
-  }
+if (!requireNamespace("INLA", quietly=TRUE))
+    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
   
   old_threads <- INLA::inla.getOption("num.threads")
   INLA::inla.setOption(num.threads = "1:1")
