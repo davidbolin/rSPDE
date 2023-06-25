@@ -116,8 +116,6 @@ jobs:
           ' R/inlabru_rspde.R
           sed -i .bak 's/#stable\.tag/#stable\.tryCatch/' R/inlabru_rspde.R
           Rscript -e "devtools::document()"
-          git rm -rf src/
-          git rm -rf inst/shared/
           git rm -rf pkgdown/
           git rm index.md
           git add man
