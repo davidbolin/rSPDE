@@ -132,4 +132,4 @@ git flow hotfix finish hotfix_branch_name
 [ref6]: https://davidbolin.github.io/rSPDE//articles/rspde_cov.html
 [ref7]: https://davidbolin.github.io/rSPDE/reference/index.html "`rSPDE` documentation."
 [ref8]: https://sites.google.com/inlabru.org/inlabru "inlabru homepage"
-[ref9]: https://arxiv.org/abs/2209.04670 "Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference"
+[ref9]: https://doi.org/10.1080/10618600.2023.2231051 "Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference"
