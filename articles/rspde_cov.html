@@ -15,7 +15,7 @@
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.6/font.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.7/font.css" rel="stylesheet">
 <!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Rational approximation with the rSPDE package">
@@ -96,7 +96,7 @@
                         <h4 data-toc-skip class="author">David Bolin,
 Alexandre B. Simas, Zhen Xiong</h4>
             
-            <h4 data-toc-skip class="date">2023-06-30</h4>
+            <h4 data-toc-skip class="date">2023-07-21</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_cov.Rmd" class="external-link"><code>vignettes/rspde_cov.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_cov.Rmd</code></div>
@@ -304,9 +304,9 @@ of the vector <span class="math inline">\(\boldsymbol{\mathrm{v}}\)</span>, wher
 all basis functions evaluated in <span class="math inline">\(s=0.5\)</span>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">v</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="../reference/rSPDE.A1d.html">rSPDE.A1d</a></span><span class="op">(</span><span class="va">s</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">v_bar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">kronecker</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, <span class="va">v</span><span class="op">)</span></span>
+<span><span class="va">v_bar</span> <span class="op">&lt;-</span> <span class="fu">kronecker</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, <span class="va">v</span><span class="op">)</span></span>
 <span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/Diagonal.html" class="external-link">Diagonal</a></span><span class="op">(</span><span class="fl">101</span><span class="op">)</span></span>
-<span><span class="va">A_bar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">kronecker</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, <span class="va">A</span><span class="op">)</span></span>
+<span><span class="va">A_bar</span> <span class="op">&lt;-</span> <span class="fu">kronecker</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, <span class="va">A</span><span class="op">)</span></span>
 <span><span class="va">c_cov.approx</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">A_bar</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/solve-methods.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">Q</span>, <span class="va">v_bar</span><span class="op">)</span></span></code></pre></div>
 <p>Let us now compute the true Matérn covariance function on the
 interval <span class="math inline">\((0,1)\)</span>, which is the folded
@@ -354,8 +354,8 @@ approximation when we increase the number of basis functions and use
 <span>  parameterization <span class="op">=</span> <span class="st">"matern"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">Q2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/precision.CBrSPDEobj.html">precision</a></span><span class="op">(</span><span class="va">op_cov2</span><span class="op">)</span></span>
-<span><span class="va">v_bar2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">kronecker</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="va">v</span><span class="op">)</span></span>
-<span><span class="va">A_bar2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">kronecker</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, ncol <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="va">A</span><span class="op">)</span></span>
+<span><span class="va">v_bar2</span> <span class="op">&lt;-</span> <span class="fu">kronecker</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="va">v</span><span class="op">)</span></span>
+<span><span class="va">A_bar2</span> <span class="op">&lt;-</span> <span class="fu">kronecker</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, ncol <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="va">A</span><span class="op">)</span></span>
 <span><span class="va">c_cov.approx2</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">A_bar2</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/solve-methods.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">Q2</span>, <span class="va">v_bar2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">s2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">501</span><span class="op">)</span></span>
@@ -367,8 +367,8 @@ approximation when we increase the number of basis functions and use
 <span><span class="va">Q3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/precision.CBrSPDEobj.html">precision</a></span><span class="op">(</span><span class="va">op_cov</span><span class="op">)</span></span>
 <span><span class="va">A2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rSPDE.A1d.html">rSPDE.A1d</a></span><span class="op">(</span><span class="va">s2</span>, <span class="va">s</span><span class="op">)</span></span>
 <span><span class="va">v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="../reference/rSPDE.A1d.html">rSPDE.A1d</a></span><span class="op">(</span><span class="va">s2</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">v2_bar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">kronecker</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, <span class="va">v2</span><span class="op">)</span></span>
-<span><span class="va">A2_bar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">kronecker</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, <span class="va">A2</span><span class="op">)</span></span>
+<span><span class="va">v2_bar</span> <span class="op">&lt;-</span> <span class="fu">kronecker</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, <span class="va">v2</span><span class="op">)</span></span>
+<span><span class="va">A2_bar</span> <span class="op">&lt;-</span> <span class="fu">kronecker</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, <span class="va">A2</span><span class="op">)</span></span>
 <span><span class="va">c_cov.approx3</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">A2_bar</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/solve-methods.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">Q3</span>, <span class="va">v2_bar</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/matern.operators.html">matern.operators</a></span><span class="op">(</span></span>
@@ -377,8 +377,8 @@ approximation when we increase the number of basis functions and use
 <span>  parameterization <span class="op">=</span> <span class="st">"matern"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">Q4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/precision.CBrSPDEobj.html">precision</a></span><span class="op">(</span><span class="va">op_cov</span><span class="op">)</span></span>
-<span><span class="va">v2_bar2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">kronecker</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="va">v2</span><span class="op">)</span></span>
-<span><span class="va">A2_bar2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">kronecker</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, ncol <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="va">A2</span><span class="op">)</span></span>
+<span><span class="va">v2_bar2</span> <span class="op">&lt;-</span> <span class="fu">kronecker</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="va">v2</span><span class="op">)</span></span>
+<span><span class="va">A2_bar2</span> <span class="op">&lt;-</span> <span class="fu">kronecker</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, ncol <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="va">A2</span><span class="op">)</span></span>
 <span><span class="va">c_cov.approx4</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">A2_bar2</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/solve-methods.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">Q4</span>, <span class="va">v2_bar2</span><span class="op">)</span></span></code></pre></div>
 <p>The resulting errors are shown in the following figure.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -414,8 +414,8 @@ the norm of the approximation error for different <span class="math inline">\(m\
 <span>    parameterization <span class="op">=</span> <span class="st">"matern"</span></span>
 <span>  <span class="op">)</span></span>
 <span>  <span class="va">Q</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/precision.CBrSPDEobj.html">precision</a></span><span class="op">(</span><span class="va">op_cov</span><span class="op">)</span></span>
-<span>  <span class="va">v_bar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">kronecker</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, nrow <span class="op">=</span> <span class="va">i</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>, <span class="va">v2</span><span class="op">)</span></span>
-<span>  <span class="va">A_bar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">kronecker</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, ncol <span class="op">=</span> <span class="va">i</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>, <span class="va">A2</span><span class="op">)</span></span>
+<span>  <span class="va">v_bar</span> <span class="op">&lt;-</span> <span class="fu">kronecker</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, nrow <span class="op">=</span> <span class="va">i</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>, <span class="va">v2</span><span class="op">)</span></span>
+<span>  <span class="va">A_bar</span> <span class="op">&lt;-</span> <span class="fu">kronecker</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, ncol <span class="op">=</span> <span class="va">i</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>, <span class="va">A2</span><span class="op">)</span></span>
 <span>  <span class="va">c_cov.approx</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">A_bar</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/solve-methods.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">Q</span>, <span class="va">v_bar</span><span class="op">)</span></span>
 <span>  <span class="va">errors</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/norm.html" class="external-link">norm</a></span><span class="op">(</span><span class="va">c.true</span> <span class="op">-</span> <span class="va">c_cov.approx</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
@@ -529,7 +529,7 @@ method:</p>
 <span><span class="co">## Number of function calls by 'optim' = 71</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  20.76135 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  24.87139 secs</span></span></code></pre>
 <p>Let us compare the parameters of the latent model:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -544,7 +544,7 @@ method:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 20.76136 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 24.87139 secs</span></span></code></pre>
 <p>We can also speed up the optimization by setting
 <code>parallel=TRUE</code> (which uses implicitly the
 <code>optimParallel</code> function):</p>
@@ -588,8 +588,8 @@ method:</p>
 <span><span class="co">## Number of function calls by 'optim' = 71</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  24.44577 secs </span></span>
-<span><span class="co">##   set up the parallelization = 1.1966 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  28.56367 secs </span></span>
+<span><span class="co">##   set up the parallelization = 1.68449 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -604,7 +604,7 @@ method:</p>
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 25.64238 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 30.24816 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -700,8 +700,8 @@ columns, each column containing one replicate. We need to turn
 <span><span class="co">## Number of function calls by 'optim' = 72</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  1.73809 mins </span></span>
-<span><span class="co">##   set up the parallelization = 1.22833 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.79386 mins </span></span>
+<span><span class="co">##   set up the parallelization = 1.61447 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -716,7 +716,7 @@ columns, each column containing one replicate. We need to turn
 <div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 1.738091 mins</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 1.793865 mins</span></span></code></pre>
 <p>We can obtain better estimates of the Hessian by setting
 <code>improve_hessian</code> to <code>TRUE</code>, however this might
 make the process take longer:</p>
@@ -759,9 +759,9 @@ make the process take longer:</p>
 <span><span class="co">## Number of function calls by 'optim' = 72</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  1.55114 mins </span></span>
-<span><span class="co">##   compute the Hessian = 12.17861 secs </span></span>
-<span><span class="co">##   set up the parallelization = 1.2099 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.57406 mins </span></span>
+<span><span class="co">##   compute the Hessian = 13.08387 secs </span></span>
+<span><span class="co">##   set up the parallelization = 1.56668 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -917,8 +917,8 @@ observation, and then we fit the model:</p>
 <span><span class="co">## Number of function calls by 'optim' = 39</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  5.37795 mins </span></span>
-<span><span class="co">##   set up the parallelization = 1.19074 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  5.61558 mins </span></span>
+<span><span class="co">##   set up the parallelization = 1.65032 secs</span></span></code></pre>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -933,7 +933,7 @@ observation, and then we fit the model:</p>
 <div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 5.377957 mins</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 5.615583 mins</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="an-example-with-a-non-stationary-model">An example with a non-stationary model<a class="anchor" aria-label="anchor" href="#an-example-with-a-non-stationary-model"></a>
@@ -1067,8 +1067,8 @@ data and the locations:</p>
 <span><span class="co">## Number of function calls by 'optim' = 62</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  28.25878 secs </span></span>
-<span><span class="co">##   set up the parallelization = 1.18966 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  27.98599 secs </span></span>
+<span><span class="co">##   set up the parallelization = 1.56813 secs</span></span></code></pre>
 <p>Let us now compare with the true values:</p>
 <div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1151,8 +1151,8 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <span><span class="co">## Number of function calls by 'optim' = 30</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.13275 mins </span></span>
-<span><span class="co">##   set up the parallelization = 1.17488 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.09804 mins </span></span>
+<span><span class="co">##   set up the parallelization = 1.4818 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1212,8 +1212,8 @@ with <code>brasil</code> rational approximation:</p>
 <span><span class="co">## Number of function calls by 'optim' = 43</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.80476 mins </span></span>
-<span><span class="co">##   set up the parallelization = 1.16896 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.74683 mins </span></span>
+<span><span class="co">##   set up the parallelization = 1.58212 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
