@@ -789,6 +789,9 @@ print.rspde_lme <- function(x, ...) {
   
   cat("\n")
   cat(call_name)
+  if(!x$estimate_nu && !is.null(x$latent_model)){
+      cat(" with fixed smoothness")
+  }
   cat("\n\n")
   cat("Call:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
       "\n\n", sep = "")
@@ -799,6 +802,13 @@ print.rspde_lme <- function(x, ...) {
     message("No fixed effects")
   }
   cat("\n")
+  if(!x$estimate_nu){
+    cat("Smoothness parameter:\n")
+    smooth <- c(x$alpha, x$nu)
+    names(smooth) <- c("alpha", "nu")
+    print(smooth)
+    cat("\n")
+  }
   cat(paste0("Random effects:", "\n"))
   if(!is.null(coeff_random)){
     print(coeff_random)
