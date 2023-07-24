@@ -291,7 +291,13 @@ rspde_lme <- function(formula, loc, data,
             # }
 
         if(inherits(model, "CBrSPDEobj")){
+          if(!is.null(alpha)){
+            if(alpha %% 1 != 0){
                   A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
+              }
+          } else{
+                  A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
+          }
         }  
         }
     } else{
@@ -324,7 +330,9 @@ rspde_lme <- function(formula, loc, data,
                 if(model_tmp$stationary){
                     # if(model_tmp$parameterization == "spde"){
                         alpha <- nu + model$d/2
-                        alpha <- max(1e-5 + model$d/2, alpha)                        
+                        if(estimate_nu){
+                          alpha <- max(1e-5 + model$d/2, alpha)           
+                        }
                         tau <- exp(theta[2+gap])
                         kappa <- exp(theta[3+gap])
                         model_tmp <- update.CBrSPDEobj(model_tmp,
@@ -341,7 +349,9 @@ rspde_lme <- function(formula, loc, data,
                 } else{
                     theta_model <- theta[(2+gap):(n_initial)]
                     alpha <- nu + model$d/2
-                    alpha <- max(1e-5 + model$d/2, alpha)
+                    if(estimate_nu){
+                      alpha <- max(1e-5 + model$d/2, alpha)
+                    }
                     model_tmp <- update.CBrSPDEobj(model_tmp,
                             user_theta = theta_model,
                             user_alpha = alpha,
@@ -378,7 +388,9 @@ rspde_lme <- function(formula, loc, data,
                 if(model$stationary){
                     # if(model_tmp$parameterization == "spde"){
                         alpha <- nu + model$d/2
-                        alpha <- max(1e-5 + model$d/2, alpha)
+                        if(estimate_nu){
+                          alpha <- max(1e-5 + model$d/2, alpha)
+                        }
                         tau <- exp(theta[2+gap])
                         kappa <- exp(theta[3+gap])
                         model_tmp <- update.rSPDEobj(model_tmp,
@@ -395,7 +407,9 @@ rspde_lme <- function(formula, loc, data,
                 } else{
                     theta_model <- theta[(2+gap):(n_initial)]
                     alpha <- nu + model$d/2
-                    alpha <- max(1e-5 + model$d/2, alpha)
+                    if(estimate_nu){
+                      alpha <- max(1e-5 + model$d/2, alpha)
+                    }
                     model_tmp <- update.rSPDEobj(model_tmp,
                             user_theta = theta_model,
                             user_alpha = alpha, parameterization = "spde")
@@ -598,17 +612,37 @@ if(parallel){
       coeff_random_nonnu <- coeff_random
       new_observed_fisher <- observed_fisher[2:3,2:3]
     }
-    change_par <- change_parameterization_lme(new_likelihood, model$d, coeff_random[1], coeff_random_nonnu,
+
+    if(estimate_nu){
+            change_par <- change_parameterization_lme(new_likelihood, model$d, coeff_random[1], coeff_random_nonnu,
                                             hessian = new_observed_fisher #,
                                             # improve_gradient = improve_gradient,
                                             # gradient_args = gradient_args
                                             )
+    } else{
+            change_par <- change_parameterization_lme(new_likelihood, model$d, nu, coeff_random_nonnu,
+                                            hessian = new_observed_fisher #,
+                                            # improve_gradient = improve_gradient,
+                                            # gradient_args = gradient_args
+                                            )
+    }
+
     matern_coeff <- list()
     matern_coeff$random_effects <- coeff_random
-    names(matern_coeff$random_effects) <- c("nu", "sigma", "range")
-    matern_coeff$random_effects[2:3] <- change_par$coeff
+    if(estimate_nu){
+          names(matern_coeff$random_effects) <- c("nu", "sigma", "range")
+          matern_coeff$random_effects[2:3] <- change_par$coeff
+    } else{
+      matern_coeff$random_effects <- change_par$coeff
+      names(matern_coeff$random_effects) <- c("sigma", "range")
+    }
+
     matern_coeff$std_random <- std_random
-    matern_coeff$std_random[2:3] <- change_par$std_random
+    if(estimate_nu){
+      matern_coeff$std_random[2:3] <- change_par$std_random
+    } else{
+      matern_coeff$std_random <- change_par$std_random
+    }
     time_matern_par_end <- Sys.time()
     time_matern_par <- time_matern_par_end - time_matern_par_start
   } else{
@@ -694,6 +728,12 @@ if(parallel){
   object$has_graph <- model$has_graph
   object$which_repl <- which_repl
   object$stationary <- model$stationary
+  object$nu <- nu
+  object$alpha <- alpha
+
+  # object$lik_fun <- likelihood
+  # object$start_val <- start_values
+
   # if(model_matrix){
     if(ncol(X_cov)>0){
       object$model_matrix <- cbind(y_resp, X_cov)
@@ -848,6 +888,12 @@ summary.rspde_lme <- function(object, all_times = FALSE,...) {
 
   ans$niter <- object$niter
 
+  ans$estimate_nu <- object$estimate_nu
+
+  ans$nu <- object[["nu"]]
+
+  ans$alpha <- object$alpha
+
   ans$all_times <- all_times
 
   ans$fitting_time <- object$fitting_time
@@ -891,6 +937,10 @@ print.summary_rspde_lme <- function(x,...) {
   cat("\n")
   cat(call_name)
 
+  if(!x$estimate_nu){
+    cat(" with fixed smoothness")
+  }
+
   cat("\n\n")
   cat("Call:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
       "\n", sep = "")
@@ -907,6 +957,11 @@ print.summary_rspde_lme <- function(x,...) {
         message("\nNo fixed effects. \n")
       }
       #
+      if(!x$estimate_nu){
+        cat("\nSmoothness parameter: \n")
+        cat("\t alpha =",x$alpha,"\n")
+        cat("\t nu =", x$nu, "(Matern parameterization)\n")
+      }
       if (NROW(tab$random_effects)) {
         cat(paste0("\nRandom effects:\n"))
         stats::printCoefmat(tab[["random_effects"]][,1:3], digits = digits, signif.legend = FALSE)
