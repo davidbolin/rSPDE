@@ -290,8 +290,14 @@ rspde_lme <- function(formula, loc, data,
             #   X_cov_list[[as.character(j)]] <- X_cov_list[[as.character(j)]][!na_obs, , drop = FALSE]
             # }
 
-        if(inherits(model, "CBrSPDEobj") && (alpha %% 1 != 0)){
+        if(inherits(model, "CBrSPDEobj")){
+          if(!is.null(alpha)){
+            if(alpha %% 1 != 0){
                   A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
+              }
+          } else{
+                  A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
+          }
         }  
         }
     } else{
@@ -632,7 +638,11 @@ if(parallel){
     }
 
     matern_coeff$std_random <- std_random
-    matern_coeff$std_random[2:3] <- change_par$std_random
+    if(estimate_nu){
+      matern_coeff$std_random[2:3] <- change_par$std_random
+    } else{
+      matern_coeff$std_random <- change_par$std_random
+    }
     time_matern_par_end <- Sys.time()
     time_matern_par <- time_matern_par_end - time_matern_par_start
   } else{
@@ -718,6 +728,8 @@ if(parallel){
   object$has_graph <- model$has_graph
   object$which_repl <- which_repl
   object$stationary <- model$stationary
+  object$nu <- nu
+  object$alpha <- alpha
 
   # object$lik_fun <- likelihood
   # object$start_val <- start_values
@@ -876,6 +888,12 @@ summary.rspde_lme <- function(object, all_times = FALSE,...) {
 
   ans$niter <- object$niter
 
+  ans$estimate_nu <- object$estimate_nu
+
+  ans$nu <- object[["nu"]]
+
+  ans$alpha <- object$alpha
+
   ans$all_times <- all_times
 
   ans$fitting_time <- object$fitting_time
@@ -919,6 +937,10 @@ print.summary_rspde_lme <- function(x,...) {
   cat("\n")
   cat(call_name)
 
+  if(!x$estimate_nu){
+    cat(" with fixed smoothness")
+  }
+
   cat("\n\n")
   cat("Call:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
       "\n", sep = "")
@@ -935,6 +957,11 @@ print.summary_rspde_lme <- function(x,...) {
         message("\nNo fixed effects. \n")
       }
       #
+      if(!x$estimate_nu){
+        cat("\nSmoothness parameter: \n")
+        cat("\t alpha =",x$alpha,"\n")
+        cat("\t nu =", x$nu, "(Matern parameterization)\n")
+      }
       if (NROW(tab$random_effects)) {
         cat(paste0("\nRandom effects:\n"))
         stats::printCoefmat(tab[["random_effects"]][,1:3], digits = digits, signif.legend = FALSE)
