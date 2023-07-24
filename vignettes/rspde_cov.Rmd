@@ -418,7 +418,7 @@ u.rep <- simulate(op_cov, nsim = 2)
 There is built-in support for computing log-likelihood functions and performing kriging prediction in the `rSPDE` package. To illustrate this, we use the simulation to create some noisy observations of the process. For this, we first construct the observation matrix linking the FEM basis functions to the locations where we want to simulate. We first randomly generate some observation locations and then construct the matrix.
 ```{r}
 set.seed(1)
-s <- seq(from = 0, to = 1, length.out = 1001)
+s <- seq(from = 0, to = 1, length.out = 501)
 n.obs <- 200
 obs.loc <- runif(n.obs)
 A <- rSPDE.A1d(s, obs.loc)
@@ -429,7 +429,7 @@ with $\kappa=20, \sigma=1.3$ and $\nu=0.8$:
 ```{r}
 kappa <- 20
 sigma <- 1.3
-nu <- 1.5
+nu <- 0.8
 r <- sqrt(8*nu)/kappa
 op_cov <- matern.operators(
   loc_mesh = s, nu = nu,
