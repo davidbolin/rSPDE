@@ -1,4 +1,5 @@
 # rSPDE (development version)
+* Bugfix on rspde_lme when fitting with fixed smoothness.
 
 # rSPDE 2.3.2
 * Small improvement on speed for rspde_lme.

@@ -551,7 +551,7 @@ rSPDE.fem1d <- function(x) {
 #' @examples
 #' P <- rbind(c(0,0), c(1,0), c(1,1), c(0,1))
 #' FV <- rbind(c(1,2,3), c(2,3,4))
-#' fem <- galerkin_2d(FV,P)
+#' fem <- rSPDE.fem2d(FV,P)
 rSPDE.fem2d <- function(FV, P) {
   
   d <- ncol(FV) - 1
