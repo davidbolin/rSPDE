@@ -290,7 +290,7 @@ rspde_lme <- function(formula, loc, data,
             #   X_cov_list[[as.character(j)]] <- X_cov_list[[as.character(j)]][!na_obs, , drop = FALSE]
             # }
 
-        if(inherits(model, "CBrSPDEobj")){
+        if(inherits(model, "CBrSPDEobj") && (alpha %% 1 != 0)){
                   A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
         }  
         }
@@ -324,7 +324,9 @@ rspde_lme <- function(formula, loc, data,
                 if(model_tmp$stationary){
                     # if(model_tmp$parameterization == "spde"){
                         alpha <- nu + model$d/2
-                        alpha <- max(1e-5 + model$d/2, alpha)                        
+                        if(estimate_nu){
+                          alpha <- max(1e-5 + model$d/2, alpha)           
+                        }
                         tau <- exp(theta[2+gap])
                         kappa <- exp(theta[3+gap])
                         model_tmp <- update.CBrSPDEobj(model_tmp,
@@ -341,7 +343,9 @@ rspde_lme <- function(formula, loc, data,
                 } else{
                     theta_model <- theta[(2+gap):(n_initial)]
                     alpha <- nu + model$d/2
-                    alpha <- max(1e-5 + model$d/2, alpha)
+                    if(estimate_nu){
+                      alpha <- max(1e-5 + model$d/2, alpha)
+                    }
                     model_tmp <- update.CBrSPDEobj(model_tmp,
                             user_theta = theta_model,
                             user_alpha = alpha,
@@ -378,7 +382,9 @@ rspde_lme <- function(formula, loc, data,
                 if(model$stationary){
                     # if(model_tmp$parameterization == "spde"){
                         alpha <- nu + model$d/2
-                        alpha <- max(1e-5 + model$d/2, alpha)
+                        if(estimate_nu){
+                          alpha <- max(1e-5 + model$d/2, alpha)
+                        }
                         tau <- exp(theta[2+gap])
                         kappa <- exp(theta[3+gap])
                         model_tmp <- update.rSPDEobj(model_tmp,
@@ -395,7 +401,9 @@ rspde_lme <- function(formula, loc, data,
                 } else{
                     theta_model <- theta[(2+gap):(n_initial)]
                     alpha <- nu + model$d/2
-                    alpha <- max(1e-5 + model$d/2, alpha)
+                    if(estimate_nu){
+                      alpha <- max(1e-5 + model$d/2, alpha)
+                    }
                     model_tmp <- update.rSPDEobj(model_tmp,
                             user_theta = theta_model,
                             user_alpha = alpha, parameterization = "spde")
@@ -598,15 +606,31 @@ if(parallel){
       coeff_random_nonnu <- coeff_random
       new_observed_fisher <- observed_fisher[2:3,2:3]
     }
-    change_par <- change_parameterization_lme(new_likelihood, model$d, coeff_random[1], coeff_random_nonnu,
+
+    if(estimate_nu){
+            change_par <- change_parameterization_lme(new_likelihood, model$d, coeff_random[1], coeff_random_nonnu,
                                             hessian = new_observed_fisher #,
                                             # improve_gradient = improve_gradient,
                                             # gradient_args = gradient_args
                                             )
+    } else{
+            change_par <- change_parameterization_lme(new_likelihood, model$d, nu, coeff_random_nonnu,
+                                            hessian = new_observed_fisher #,
+                                            # improve_gradient = improve_gradient,
+                                            # gradient_args = gradient_args
+                                            )
+    }
+
     matern_coeff <- list()
     matern_coeff$random_effects <- coeff_random
-    names(matern_coeff$random_effects) <- c("nu", "sigma", "range")
-    matern_coeff$random_effects[2:3] <- change_par$coeff
+    if(estimate_nu){
+          names(matern_coeff$random_effects) <- c("nu", "sigma", "range")
+          matern_coeff$random_effects[2:3] <- change_par$coeff
+    } else{
+      matern_coeff$random_effects <- change_par$coeff
+      names(matern_coeff$random_effects) <- c("sigma", "range")
+    }
+
     matern_coeff$std_random <- std_random
     matern_coeff$std_random[2:3] <- change_par$std_random
     time_matern_par_end <- Sys.time()
@@ -694,6 +718,10 @@ if(parallel){
   object$has_graph <- model$has_graph
   object$which_repl <- which_repl
   object$stationary <- model$stationary
+
+  # object$lik_fun <- likelihood
+  # object$start_val <- start_values
+
   # if(model_matrix){
     if(ncol(X_cov)>0){
       object$model_matrix <- cbind(y_resp, X_cov)

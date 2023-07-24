@@ -712,13 +712,17 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
     sizeL <- dim(L)[1]
 
 
-    Q <- rspde.matern.precision.integer(
-      kappa = kappa, nu = nu, tau = tau,
-      dim = d,
-      fem_mesh_matrices = fem_mesh_matrices
-    )
+    # Q <- rspde.matern.precision.integer(
+    #   kappa = kappa, nu = nu, tau = tau,
+    #   dim = d,
+    #   fem_mesh_matrices = fem_mesh_matrices
+    # )
+
+    Q <- object$Q
+
     Z <- rnorm(sizeL * nsim)
     dim(Z) <- c(sizeL, nsim)
+
 
     # LQ <- Matrix::Cholesky(forceSymmetric(Q), LDL = FALSE)
     # X <- solve(LQ, Z, system = "Lt")
