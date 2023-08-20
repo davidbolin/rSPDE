@@ -28,7 +28,7 @@ Neumann boundary conditions.
 \examples{
 P <- rbind(c(0,0), c(1,0), c(1,1), c(0,1))
 FV <- rbind(c(1,2,3), c(2,3,4))
-fem <- galerkin_2d(FV,P)
+fem <- rSPDE.fem2d(FV,P)
 }
 \seealso{
 \code{\link[=rSPDE.fem1d]{rSPDE.fem1d()}}
