@@ -430,22 +430,24 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 #' conditions and a zero-mean constraint is additionally imposed to obtained 
 #' a non-intrinsic model. 
 #' @examples
-#' x <- seq(from = 0, to = 10, length.out = 201)
-#' beta <- 1
-#' alpha <- 1
-#' kappa <- 1
-#' op <- intrinsic.matern.operators(kappa = kappa, tau = 1, alpha = alpha, 
+#' if (requireNamespace("RSpectra", quietly = TRUE)){
+#'  x <- seq(from = 0, to = 10, length.out = 201)
+#'  beta <- 1
+#'  alpha <- 1
+#'  kappa <- 1
+#'  op <- intrinsic.matern.operators(kappa = kappa, tau = 1, alpha = alpha, 
 #'                                  beta = beta, loc_mesh = x, d=1) 
-#' # Compute and plot the variogram of the model
-#' Sigma <- op$A %*% solve(op$Q,t(op$A))
-#' One <- rep(1, times = ncol(Sigma))
-#' D <- diag(Sigma)
-#' Gamma <- 0.5*(One %*% t(D) + D %*% t(One) - 2 * Sigma)
-#' k <- 100
-#' plot(x, Gamma[k, ], type = "l")
-#' lines(x, 
+#'  # Compute and plot the variogram of the model
+#'  Sigma <- op$A %*% solve(op$Q,t(op$A))
+#'  One <- rep(1, times = ncol(Sigma))
+#'  D <- diag(Sigma)
+#'  Gamma <- 0.5*(One %*% t(D) + D %*% t(One) - 2 * Sigma)
+#'  k <- 100
+#'  plot(x, Gamma[k, ], type = "l")
+#'  lines(x, 
 #'       variogram.intrinsic.spde(x[k], x, kappa, alpha, beta, L = 10, d = 1),
 #'       col=2, lty = 2)
+#' }
 intrinsic.matern.operators <- function(kappa,
                                        tau,
                                        alpha ,
@@ -729,22 +731,24 @@ intrinsic.matern.operators <- function(kappa,
 #' @seealso [intrinsic.matern.operators()]
 #'
 #' @examples
-#' x <- seq(from = 0, to = 10, length.out = 201)
-#' beta <- 1
-#' alpha <- 1
-#' kappa <- 1
-#' op <- intrinsic.matern.operators(kappa = kappa, tau = 1, alpha = alpha, 
+#' if (requireNamespace("RSpectra", quietly = TRUE)){
+#'  x <- seq(from = 0, to = 10, length.out = 201)
+#'  beta <- 1
+#'  alpha <- 1
+#'  kappa <- 1
+#'  op <- intrinsic.matern.operators(kappa = kappa, tau = 1, alpha = alpha, 
 #'                                  beta = beta, loc_mesh = x, d=1) 
-#' # Compute and plot the variogram of the model
-#' Sigma <- op$A %*% solve(op$Q,t(op$A))
-#' One <- rep(1, times = ncol(Sigma))
-#' D <- diag(Sigma)
-#' Gamma <- 0.5*(One %*% t(D) + D %*% t(One) - 2 * Sigma)
-#' k <- 100
-#' plot(x, Gamma[k, ], type = "l")
-#' lines(x, 
+#'  # Compute and plot the variogram of the model
+#'  Sigma <- op$A %*% solve(op$Q,t(op$A))
+#'  One <- rep(1, times = ncol(Sigma))
+#'  D <- diag(Sigma)
+#'  Gamma <- 0.5*(One %*% t(D) + D %*% t(One) - 2 * Sigma)
+#'  k <- 100
+#'  plot(x, Gamma[k, ], type = "l")
+#'  lines(x, 
 #'       variogram.intrinsic.spde(x[k], x, kappa, alpha, beta, L = 10, d = 1),
 #'       col=2, lty = 2)
+#' }
 variogram.intrinsic.spde <- function(s0 = NULL, 
                                      s = NULL, 
                                      kappa = NULL, 

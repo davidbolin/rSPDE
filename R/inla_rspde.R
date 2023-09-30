@@ -373,14 +373,16 @@ rspde.matern <- function(mesh,
           fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 1)
         } else {
           # fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
-          fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha)
+          # fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha)
+          fem_mesh <- fm_fem(mesh, order = m_alpha)
         }
       } else {
         if (d == 1) {
           fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 2)
         } else {
           # fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
-          fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha + 1)
+          # fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha + 1)
+          fem_mesh <- fm_fem(mesh, order = m_alpha + 1)
         }
       }
     } else{
@@ -680,14 +682,16 @@ rspde.matern <- function(mesh,
           fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 1)
         } else {
           # fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
-          fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha)
+          # fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha)
+          fem_mesh <- fm_fem(mesh, order = m_alpha)
         }
       } else {
         if (d == 1) {
           fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 2)
         } else {
           # fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
-          fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha + 1)
+          # fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha + 1)
+          fem_mesh <- fm_fem(mesh, order = m_alpha + 1)
         }
       }
     } else{
@@ -917,7 +921,7 @@ restructure_matrices_less <- function(matrices_less, m_alpha){
 #'   cutoff = 50,
 #'   max.edge = c(50, 500)
 #' )
-#' A <- spde.make.A(mesh, loc = loc, rspde.order = 3)
+#' A <- spde.make.A(mesh, loc = loc)
 #' }
 #' #devel.tag
 #' }
@@ -950,7 +954,10 @@ spde.make.A <- function(mesh = NULL,
 
   if (!is.null(mesh)) {
     if(cond1 || cond2){
-      A <- fmesher::fm_basis(
+      # A <- fmesher::fm_basis(
+      #   x = mesh, loc = loc, repl = repl)
+
+      A <- fm_basis(
         x = mesh, loc = loc, repl = repl)
 
         if(!is.null(index)){
@@ -963,15 +970,19 @@ spde.make.A <- function(mesh = NULL,
           if(is.null(group)){
             group <- 1L
           }
-          blk_grp <- fmesher::fm_block(group)
-          A <- fmesher::fm_row_kron(Matrix::t(blk_grp), A)
+          # blk_grp <- fmesher::fm_block(group)
+          # A <- fmesher::fm_row_kron(Matrix::t(blk_grp), A)
+          blk_grp <- fm_block(group)
+          A <- fm_row_kron(Matrix::t(blk_grp), A)
         }
 
         if(!is.null(n.repl)){
           A <- kronecker(Matrix::Diagonal(n.repl), A)
         } else{
-          blk_rep <- fmesher::fm_block(repl)
-          A <- fmesher::fm_row_kron(Matrix::t(blk_rep), A)
+          # blk_rep <- fmesher::fm_block(repl)
+          # A <- fmesher::fm_row_kron(Matrix::t(blk_rep), A)
+          blk_rep <- fm_block(repl)
+          A <- fm_row_kron(Matrix::t(blk_rep), A)
         }
 
     } else if(cond3){
@@ -1123,7 +1134,9 @@ rspde.make.A <- function(mesh = NULL,
 
   if (!is.null(mesh)) {
     if(cond1 || cond2){
-      A <- fmesher::fm_basis(
+      # A <- fmesher::fm_basis(
+      #   x = mesh, loc = loc, repl = repl)
+      A <- fm_basis(
         x = mesh, loc = loc, repl = repl)
 
         if(!is.null(index)){
@@ -1136,15 +1149,19 @@ rspde.make.A <- function(mesh = NULL,
           if(is.null(group)){
             group <- 1L
           }
-          blk_grp <- fmesher::fm_block(group)
-          A <- fmesher::fm_row_kron(Matrix::t(blk_grp), A)
+          # blk_grp <- fmesher::fm_block(group)
+          # A <- fmesher::fm_row_kron(Matrix::t(blk_grp), A)
+          blk_grp <- fm_block(group)
+          A <- fm_row_kron(Matrix::t(blk_grp), A)
         }
 
         if(!is.null(n.repl)){
           A <- kronecker(Matrix::Diagonal(n.repl), A)
         } else{
-          blk_rep <- fmesher::fm_block(repl)
-          A <- fmesher::fm_row_kron(Matrix::t(blk_rep), A)
+          # blk_rep <- fmesher::fm_block(repl)
+          # A <- fmesher::fm_row_kron(Matrix::t(blk_rep), A)
+          blk_rep <- fm_block(repl)
+          A <- fm_row_kron(Matrix::t(blk_rep), A)
         }
 
     } else if(cond3){

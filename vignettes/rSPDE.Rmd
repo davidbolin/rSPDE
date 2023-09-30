@@ -254,10 +254,12 @@ We will now fit the model of the toy data set using our `r inla_link()` implemen
 rational SPDE approach. Further details on this implementation can be found in
  [R-INLA implementation of the rational SPDE approach](rspde_inla.html).
  
-We begin by creating the $A$ matrix, the index, and the
+We begin by loading the `INLA` package and creating the $A$ matrix, the index, and the
 `inla.stack` object.
 
 ```{r}
+library(INLA)
+
 Abar <- rspde.make.A(mesh = mesh_2d, loc = loc_2d_mesh)
 mesh.index <- rspde.make.index(name = "field", mesh = mesh_2d)
 

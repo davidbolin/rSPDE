@@ -907,8 +907,10 @@ get_inla_mesh_dimension <- function(inla_mesh) {
 
 fem_mesh_order_1d <- function(inla_mesh, m_order) {
   # fem_mesh <- rSPDE.fem1d(inla_mesh[["loc"]])
-  mesh_1d <- fmesher::fm_mesh_1d(inla_mesh[["loc"]])
-  fem_mesh <- fmesher::fm_fem(mesh_1d)
+  # mesh_1d <- fmesher::fm_mesh_1d(inla_mesh[["loc"]])
+  # fem_mesh <- fmesher::fm_fem(mesh_1d)
+  mesh_1d <- fm_mesh_1d(inla_mesh[["loc"]])
+  fem_mesh <- fm_fem(mesh_1d)
   C <- fem_mesh$c0
   C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
   C <- as(C,"TsparseMatrix")
@@ -1051,12 +1053,14 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
   } else if (!is.null(mesh)) {
     if (integer_alpha) {
       # fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha)
-      fem_mesh_matrices <- fmesher::fm_fem(mesh, order = m_alpha)
+      # fem_mesh_matrices <- fmesher::fm_fem(mesh, order = m_alpha)
+      fem_mesh_matrices <- fm_fem(mesh, order = m_alpha)
       return(fem_mesh_matrices[[paste0("g", m_alpha)]])
     } else {
       if (dim == 2) {
         # fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
-        fem_mesh_matrices <- fmesher::fm_fem(mesh, order = m_alpha + 1)
+        # fem_mesh_matrices <- fmesher::fm_fem(mesh, order = m_alpha + 1)
+        fem_mesh_matrices <- fm_fem(mesh, order = m_alpha + 1)
       } else {
         fem_mesh_matrices <- fem_mesh_order_1d(mesh, m_order = m_alpha + 1)
       }
