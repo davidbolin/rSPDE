@@ -948,8 +948,8 @@ fem_mesh_order_1d <- function(inla_mesh, m_order) {
 generic_fem_mesh_order <- function(fem_matrices, m_order) {
   C <- fem_matrices$C
   C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
-  # C <- INLA::inla.as.sparse(C)
-  C <- as(C,"TsparseMatrix")
+  C <- INLA::inla.as.sparse(C)
+  # C <- as(C,"TsparseMatrix")
   G <- fem_matrices$G
   Gk <- list()
   Ci <- C
