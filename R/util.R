@@ -896,7 +896,6 @@ get_inla_mesh_dimension <- function(inla_mesh) {
   return(d)
 }
 
-
 #' @name fem_mesh_order_1d
 #' @title Get fem_mesh_matrices for 1d inla.mesh objects
 #' @description Get fem_mesh_matrices for 1d inla.mesh objects
@@ -907,11 +906,15 @@ get_inla_mesh_dimension <- function(inla_mesh) {
 
 
 fem_mesh_order_1d <- function(inla_mesh, m_order) {
-  fem_mesh <- rSPDE.fem1d(inla_mesh[["loc"]])
-  C <- fem_mesh$C
+  # fem_mesh <- rSPDE.fem1d(inla_mesh[["loc"]])
+  # mesh_1d <- fmesher::fm_mesh_1d(inla_mesh[["loc"]])
+  # fem_mesh <- fmesher::fm_fem(mesh_1d)
+  mesh_1d <- fm_mesh_1d(inla_mesh[["loc"]])
+  fem_mesh <- fm_fem(mesh_1d)
+  C <- fem_mesh$c0
   C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
-  C <- INLA::inla.as.sparse(C)
-  G <- fem_mesh$G
+  C <- as(C,"TsparseMatrix")
+  G <- fem_mesh$g1
   Gk <- list()
   Ci <- C
   Ci@x <- 1 / (C@x)
@@ -948,6 +951,7 @@ generic_fem_mesh_order <- function(fem_matrices, m_order) {
   C <- fem_matrices$C
   C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
   C <- INLA::inla.as.sparse(C)
+  # C <- as(C,"TsparseMatrix")
   G <- fem_matrices$G
   Gk <- list()
   Ci <- C
@@ -1048,11 +1052,15 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
     }
   } else if (!is.null(mesh)) {
     if (integer_alpha) {
-      fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+      # fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+      # fem_mesh_matrices <- fmesher::fm_fem(mesh, order = m_alpha)
+      fem_mesh_matrices <- fm_fem(mesh, order = m_alpha)
       return(fem_mesh_matrices[[paste0("g", m_alpha)]])
     } else {
       if (dim == 2) {
-        fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+        # fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+        # fem_mesh_matrices <- fmesher::fm_fem(mesh, order = m_alpha + 1)
+        fem_mesh_matrices <- fm_fem(mesh, order = m_alpha + 1)
       } else {
         fem_mesh_matrices <- fem_mesh_order_1d(mesh, m_order = m_alpha + 1)
       }
@@ -1099,7 +1107,8 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
 
 build_sparse_matrix_rspde <- function(entries, graph) {
   if (!is.null(graph)) {
-    graph <- as(graph, "dgTMatrix")
+    # graph <- as(graph, "dgTMatrix")
+    graph <- as(graph,"TsparseMatrix")
     idx <- which(graph@i <= graph@j)
     Q <- Matrix::sparseMatrix(
       i = graph@i[idx], j = graph@j[idx], x = entries,
@@ -1216,7 +1225,8 @@ analyze_sparsity_rspde <- function(nu.upper.bound, dim, rspde.order,
 #' @noRd
 
 symmetric_part_matrix <- function(M) {
-  M <- as(M, "dgTMatrix")
+  # M <- as(M, "dgTMatrix")
+  M <- as(M,"TsparseMatrix")
   idx <- which(M@i <= M@j)
   sM <- cbind(M@i[idx], M@j[idx])
   colnames(sM) <- NULL
