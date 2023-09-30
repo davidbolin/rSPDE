@@ -96,7 +96,7 @@
                         <h4 data-toc-skip class="author">David Bolin and
 Alexandre B. Simas</h4>
             
-            <h4 data-toc-skip class="date">2023-07-24</h4>
+            <h4 data-toc-skip class="date">2023-09-30</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/build_source.rmd" class="external-link"><code>vignettes/build_source.rmd</code></a></small>
       <div class="d-none name"><code>build_source.rmd</code></div>
@@ -224,14 +224,12 @@ run:</p>
 <p>For Mac, especially with intel processors, we found the most stable
 compiler to be <code>clang</code> and <code>clang++</code>. Thus, one
 must have the following lines on the <code>Makefile</code>:</p>
-<pre class="make"><code>CC = clang
-CXX = clang++</code></pre>
 <p>One should also confirm the location of the Eigen library. The
 default location is <code>/usr/local</code> and is already set at the
 Makefile.</p>
 <p>If you installed Eigen using Homebrew, you can check the location of
 the Eigen installation by using the following command:</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> <span class="at">--prefix</span> eigen</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> <span class="at">--prefix</span> eigen</span></code></pre></div>
 <p>You can, then, update the <code>EIGEN_MAC</code> variable in the
 <code>Makefile</code> with the correct path.</p>
 </div>
