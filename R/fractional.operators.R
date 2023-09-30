@@ -214,7 +214,7 @@ fractional.operators <- function(L,
 #' domain of interest. Does not need to be given if either `mesh` or `graph` is supplied.
 #' @param C The mass matrix of a finite element discretization of the domain
 #' of interest. Does not need to be given if either `mesh` or `graph` is supplied.
-#' @param mesh An optional inla mesh. Replaces `d`, `C` and `G`.
+#' @param mesh An optional fmesher mesh. Replaces `d`, `C` and `G`.
 #' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`. 
 #' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
 #' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument. 
@@ -409,10 +409,17 @@ matern.operators <- function(kappa = NULL,
     stop("You should either provide mesh, graph, or provide both C *and* G!")
   }
 
+  if(!is.null(loc_mesh) && d!=1){
+    stop("loc_mesh only works with dimension 1.")
+  } else if (!is.null(loc_mesh)){
+    mesh_1d <- fmesher::fm_mesh_1d(loc_mesh)
+  }
+
   if( (is.null(C) || is.null(G)) && (is.null(graph)) && (!is.null(loc_mesh) && d==1)){
-    fem <- rSPDE.fem1d(loc_mesh)
-    C <- fem$C
-    G <- fem$G
+    # fem <- rSPDE.fem1d(loc_mesh)
+    fem <- fmesher::fm_fem(mesh_1d)
+    C <- fem$c0
+    G <- fem$g1
   }
 
   has_mesh <- FALSE
@@ -448,7 +455,8 @@ matern.operators <- function(kappa = NULL,
 
   if (!is.null(mesh)) {
     d <- get_inla_mesh_dimension(inla_mesh = mesh)
-    fem <- INLA::inla.mesh.fem(mesh)
+    # fem <- INLA::inla.mesh.fem(mesh)
+    fem <- fmesher::fm_fem(mesh)
     C <- fem$c0
     G <- fem$g1
     has_mesh <- TRUE
@@ -548,7 +556,8 @@ matern.operators <- function(kappa = NULL,
 
   if(!is.null(mesh)){
       make_A <- function(loc){
-        return(INLA::inla.spde.make.A(mesh = mesh, loc = loc))
+        # return(INLA::inla.spde.make.A(mesh = mesh, loc = loc))
+        return(fmesher::fm_basis(x = mesh, loc = loc))
       }
   } else if(!is.null(graph)){
       make_A <- function(loc){
@@ -556,7 +565,8 @@ matern.operators <- function(kappa = NULL,
       }
   } else if(!is.null(loc_mesh) && d == 1){
     make_A <- function(loc){
-          return(rSPDE::rSPDE.A1d(x = loc_mesh, loc = loc))
+          # return(rSPDE::rSPDE.A1d(x = loc_mesh, loc = loc))
+          return(fmesher::fm_basis(x = mesh_1d, loc = loc))
           }   
   } else {
     make_A <- NULL
@@ -752,9 +762,11 @@ CBrSPDE.matern.operators <- function(C,
 
       if (d > 1) {
         if (compute_higher_order) {
-          fem <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+          # fem <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+          fem <- fmesher::fm_fem(mesh, order = m_alpha + 1)
         } else {
-          fem <- INLA::inla.mesh.fem(mesh)
+          # fem <- INLA::inla.mesh.fem(mesh)
+          fem <- fmesher::fm_fem(mesh)
         }
 
         C <- fem$c0
@@ -765,10 +777,11 @@ CBrSPDE.matern.operators <- function(C,
         Gk <- list()
         Gk[[1]] <- G
         for (i in 2:m_order) {
-          Gk[[i]] <- fem[[paste0("g", i)]]
+            Gk[[i]] <- fem[[paste0("g", i)]]
         }
       } else if (d == 1) {
-        fem <- INLA::inla.mesh.fem(mesh, order = 2)
+        # fem <- INLA::inla.mesh.fem(mesh, order = 2)
+        fem <- fmesher::fm_fem(mesh)
         C <- fem$c0
         G <- fem$g1
         Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
@@ -1121,7 +1134,8 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
 
   if (!is.null(mesh)) {
       d <- get_inla_mesh_dimension(inla_mesh = mesh)
-      fem <- INLA::inla.mesh.fem(mesh)
+      # fem <- INLA::inla.mesh.fem(mesh)
+      fem <- fmesher::fm_fem(mesh)
       C <- fem$c0
       G <- fem$g1
       has_mesh <- TRUE
@@ -1287,7 +1301,8 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
 
   if(!is.null(mesh)){
       make_A <- function(loc){
-        return(INLA::inla.spde.make.A(mesh = mesh, loc = loc))
+        # return(INLA::inla.spde.make.A(mesh = mesh, loc = loc))
+        return(fmesher::fm_basis(x = mesh, loc=loc))
       }
   } else if(!is.null(graph)){
       make_A <- function(loc){

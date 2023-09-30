@@ -162,10 +162,10 @@ to create the mesh and obtain the matrices of interest.
 We will begin by defining a mesh over $[0,1]\times [0, 1]$:
 
 ```{r, message=FALSE, warning=FALSE, fig.align='center'}
-library(INLA)
+library(fmesher)
 n_loc <- 2000
 loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
-mesh_2d <- inla.mesh.2d(
+mesh_2d <- fm_mesh_2d(
   loc = loc_2d_mesh,
   cutoff = 0.05,
   max.edge = c(0.1, 0.5)
@@ -211,12 +211,12 @@ where $\varepsilon_1,\ldots,\varepsilon_{m}$ are iid normally distributed
 with mean 0 and standard deviation 0.1.
 
 To generate a data set `y` from this model, we first draw some observation locations at random in the domain and then
-use the `r inla_link()` function `inla.spde.make.A()` to construct the observation matrix which can be used to evaluate the
+use the `r inla_link()` function `fm_basis()` to construct the observation matrix which can be used to evaluate the
 simulated field $u$ at the observation locations. After this we simply add the measurment noise. 
 
 ```{r}
-A <- inla.spde.make.A(
-  mesh = mesh_2d,
+A <- fm_basis(
+  x = mesh_2d,
   loc = loc_2d_mesh
 )
 sigma.e <- 0.1
@@ -238,8 +238,8 @@ ggplot(df, aes(x = x1, y = x2, col = y)) +
 The simulated random field is shown in the following figure. 
 
 ```{r, fig.show='hold', fig.align = "center",echo=TRUE, message=FALSE,warning=FALSE}
-proj <- inla.mesh.projector(mesh_2d, dims = c(100, 100))
-field <- inla.mesh.project(proj, field = as.vector(u))
+proj <- fm_evaluator(mesh_2d, dims = c(100, 100))
+field <- fm_evaluate(proj, field = as.vector(u))
 field.df <- data.frame(x1 = proj$lattice$loc[,1],
                         x2 = proj$lattice$loc[,2], 
                         y = as.vector(field))
@@ -294,7 +294,7 @@ rspde_fit <-
     data = inla.stack.data(st.dat),
     family = "gaussian",
     control.predictor =
-      list(A = inla.stack.A(st.dat))
+      list(A = inla.stack.A(st.dat)), debug=TRUE, verbose=TRUE
   )
 ```
 
@@ -655,7 +655,7 @@ prediction locations.
 Let us now create the `data.frame` with the prediction locations:
 
 ```{r create_proj_grid_prd2}
-predgrid <- inla.mesh.projector(mesh_2d,
+predgrid <- fm_evaluator(mesh_2d,
   xlim = c(0, 1),
   ylim = c(0, 1)
 )

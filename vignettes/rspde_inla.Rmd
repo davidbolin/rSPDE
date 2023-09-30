@@ -218,13 +218,20 @@ arguments.
 
 #### Mesh
 
-We can use `r inla_link()` for creating the mesh. Let us create a mesh which is based 
+We can use `fmesher` for creating the mesh. We begin by loading the `fmesher` package:
+
+```{r}
+library(fmesher)
+```
+
+Let us create a mesh which is based 
 on a non-convex hull to avoid adding many small triangles outside the domain 
 of interest:
 
 ```{r mesh_creation, message=FALSE, fig.align='center'}
-prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
-prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
+prdomain <- fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(100, 100))
+prmesh <- fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
+
 plot(prmesh, asp = 1, main = "")
 lines(PRborder, col = 3)
 points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")

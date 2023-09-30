@@ -69,9 +69,11 @@ intrinsic.operators <- function(C,
       
       if (d > 1) {
         if (compute_higher_order) {
-          fem <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+          # fem <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+          fem <- fmesher::fm_fem(mesh, order = m_alpha + 1)
         } else {
-          fem <- INLA::inla.mesh.fem(mesh)
+          # fem <- INLA::inla.mesh.fem(mesh)
+          fem <- fmesher::fm_fem(mesh)
         }
         
         C <- fem$c0
@@ -85,7 +87,8 @@ intrinsic.operators <- function(C,
           Gk[[i]] <- fem[[paste0("g", i)]]
         }
       } else if (d == 1) {
-        fem <- INLA::inla.mesh.fem(mesh, order = 2)
+        # fem <- INLA::inla.mesh.fem(mesh, order = 2)
+        fem <- fmesher::fm_fem(mesh)
         C <- fem$c0
         G <- fem$g1
         Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
@@ -518,7 +521,8 @@ intrinsic.matern.operators <- function(kappa,
   
   if (!is.null(mesh)) {
     d <- get_inla_mesh_dimension(inla_mesh = mesh)
-    fem <- INLA::inla.mesh.fem(mesh)
+    # fem <- INLA::inla.mesh.fem(mesh)
+    fem <- fmesher::fm_fem(mesh)
     C <- fem$c0
     G <- fem$g1
     has_mesh <- TRUE
@@ -541,7 +545,8 @@ intrinsic.matern.operators <- function(kappa,
   
   if(!is.null(mesh)){
     make_A <- function(loc){
-      return(INLA::inla.spde.make.A(mesh = mesh, loc = loc))
+      # return(INLA::inla.spde.make.A(mesh = mesh, loc = loc))
+      return(fmesher::fm_basis(x = mesh, loc = loc))
     }
   } else if(!is.null(graph)){
     make_A <- function(loc){

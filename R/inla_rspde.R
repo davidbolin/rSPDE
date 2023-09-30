@@ -677,13 +677,15 @@ rspde.matern <- function(mesh,
         if (d == 1) {
           fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 1)
         } else {
-          fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+          # fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+          fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha)
         }
       } else {
         if (d == 1) {
           fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 2)
         } else {
-          fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+          # fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+          fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha + 1)
         }
       }
     } else{
@@ -854,7 +856,8 @@ rspde.matern <- function(mesh,
 #' @noRd 
 
 transpose_cgeneric <- function(Cmatrix){
-    Cmatrix <- INLA::inla.as.sparse(Cmatrix)
+    # Cmatrix <- INLA::inla.as.sparse(Cmatrix)
+    Cmatrix <- as(Cmatrix, "TsparseMatrix")
     ii <- Cmatrix@i
     Cmatrix@i <- Cmatrix@j
     Cmatrix@j <- ii
@@ -896,8 +899,6 @@ restructure_matrices_less <- function(matrices_less, m_alpha){
 #' @param rspde.order The order of the covariance-based rational SPDE approach.
 #' @param nu If `NULL`, then the model will assume that nu will
 #' be estimated. If nu is fixed, you should provide the value of nu.
-#' @param index For each observation/prediction value, an index into loc.
-#' Default is `seq_len(nrow(A.loc))`.
 #' @param group For each observation/prediction value, an index into
 #' the group model.
 #' @param repl For each observation/prediction value, the replicate index.
@@ -926,7 +927,6 @@ rspde.make.A <- function(mesh = NULL,
                          A = NULL,
                          dim = NULL,
                          rspde.order = 2, nu = NULL,
-                         index = NULL,
                          group = NULL,
                          repl = 1L,
                          n.group = NULL,
@@ -952,12 +952,26 @@ rspde.make.A <- function(mesh = NULL,
 
   if (!is.null(mesh)) {
     if(cond1 || cond2){
-      A <- INLA::inla.spde.make.A(
-        mesh = mesh, loc = loc,
-        index = index, group = group,
-        repl = repl, n.group = n.group,
-        n.repl = n.repl
-      )
+      A <- fmesher::fm_basis(
+        x = mesh, loc = loc, repl = repl)
+
+        if(!is.null(n.group)){
+          A <- kronecker(Matrix::Diagonal(n.group), A)
+        } else{
+          if(is.null(group)){
+            group <- 1L
+          }
+          blk_grp <- fmesher::fm_block(group)
+          A <- fmesher::fm_row_kron(Matrix::t(blk_grp), A)
+        }
+
+        if(!is.null(n.repl)){
+          A <- kronecker(Matrix::Diagonal(n.repl), A)
+        } else{
+          blk_rep <- fmesher::fm_block(repl)
+          A <- fmesher::fm_row_kron(Matrix::t(blk_rep), A)
+        }
+
     } else if(cond3){
       if(is.null(mesh$mesh)){
         stop("The graph object should contain a mesh!")
@@ -2385,7 +2399,8 @@ dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
   Q <- tau^2 * Q
 
   if (!is.null(graph)) {
-    graph <- as(graph, "dgTMatrix")
+    # graph <- as(graph, "dgTMatrix")
+    graph <- as(graph,"TsparseMatrix")
     idx <- which(graph@i <= graph@j)
     Q <- Matrix::sparseMatrix(
       i = graph@i[idx], j = graph@j[idx], x = Q,
@@ -2671,7 +2686,8 @@ rspde.matern.precision.integer.opt <- function(kappa,
   Q <- tau^2 * Q
 
   if (!is.null(graph)) {
-    graph <- as(graph, "dgTMatrix")
+    # graph <- as(graph, "dgTMatrix")
+    graph <- as(graph,"TsparseMatrix")
     idx <- which(graph@i <= graph@j)
     Q <- Matrix::sparseMatrix(
       i = graph@i[idx], j = graph@j[idx], x = Q,
