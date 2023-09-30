@@ -211,12 +211,12 @@ where $\varepsilon_1,\ldots,\varepsilon_{m}$ are iid normally distributed
 with mean 0 and standard deviation 0.1.
 
 To generate a data set `y` from this model, we first draw some observation locations at random in the domain and then
-use the `r inla_link()` function `fm_basis()` to construct the observation matrix which can be used to evaluate the
+use the `spde.make.A()` functions (that wraps the functions `fm_basis()`, `fm_block()` and `fm_row_kron()` of the `fmesher` package) to construct the observation matrix which can be used to evaluate the
 simulated field $u$ at the observation locations. After this we simply add the measurment noise. 
 
 ```{r}
-A <- fm_basis(
-  x = mesh_2d,
+A <- spde.make.A(
+  mesh = mesh_2d,
   loc = loc_2d_mesh
 )
 sigma.e <- 0.1
@@ -294,7 +294,7 @@ rspde_fit <-
     data = inla.stack.data(st.dat),
     family = "gaussian",
     control.predictor =
-      list(A = inla.stack.A(st.dat)), debug=TRUE, verbose=TRUE
+      list(A = inla.stack.A(st.dat))
   )
 ```
 

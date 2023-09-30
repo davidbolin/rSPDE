@@ -618,7 +618,7 @@ points(loc_2d_mesh[, 1], loc_2d_mesh[, 2])
 ```
 
 We then compute the $A$ matrix, which is needed for simulation, and connects the observation
-locations to the mesh. To this end we will use the `spde.make.A()` helper function, which is a wrapper that uses the functions `fm_basis()`, `fm_block()` and `fm_row_block()` from the `fmesher` package.
+locations to the mesh. To this end we will use the `spde.make.A()` helper function, which is a wrapper that uses the functions `fm_basis()`, `fm_block()` and `fm_row_kron()` from the `fmesher` package.
 
 ```{r}
 n.rep <- 30

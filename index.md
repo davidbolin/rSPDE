@@ -119,8 +119,9 @@ seaDist <- apply(spDists(coords, PRborder[1034:1078, ], longlat = TRUE), 1,
                  min)
                  
 #Create the mesh
-prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
-prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
+library(fmesher)
+prdomain <- fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(100, 100))
+prmesh <- fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
 plot(prmesh, asp = 1, main = "")
 lines(PRborder, col = 3)
 points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
@@ -332,8 +333,9 @@ seaDist <- apply(spDists(coords, PRborder[1034:1078, ], longlat = TRUE), 1,
                  min)
                  
 #Create the mesh
-prdomain <- inla.nonconvex.hull(coords, -0.03, -0.05, resolution = c(100, 100))
-prmesh <- inla.mesh.2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
+library(fmesher)
+prdomain <- fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(100, 100))
+prmesh <- fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
 plot(prmesh, asp = 1, main = "")
 lines(PRborder, col = 3)
 points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
