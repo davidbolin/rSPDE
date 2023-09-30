@@ -372,13 +372,15 @@ rspde.matern <- function(mesh,
         if (d == 1) {
           fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 1)
         } else {
-          fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+          # fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+          fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha)
         }
       } else {
         if (d == 1) {
           fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 2)
         } else {
-          fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+          # fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+          fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha + 1)
         }
       }
     } else{
@@ -2125,7 +2127,8 @@ rspde.mesh.projector <- function(mesh,
     args_list[["projection"]] <- projection
   }
   args_list[["dims"]] <- dims
-  out <- do.call(INLA::inla.mesh.projector, args_list)
+  # out <- do.call(INLA::inla.mesh.projector, args_list)
+  out <- do.call(fmesher::fm_evaluator, args_list)
   dim <- get_inla_mesh_dimension(mesh)
 
   out$proj$A <- rspde.make.A(
@@ -2154,16 +2157,18 @@ rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
       loc = loc, rspde.order = rspde.order, nu = nu,
       ...
     )
-    return(INLA::inla.mesh.project(proj, field = field))
+    # return(INLA::inla.mesh.project(proj, field = field))
+    return(fmesher::fm_evaluate(proj, field = field))
   }
   jj <- which(rowSums(matrix(is.na(as.vector(loc)),
     nrow = nrow(loc),
     ncol = ncol(loc)
   )) == 0)
-  smorg <- (INLA::inla.fmesher.smorg(mesh$loc,
-  mesh$graph$tv, points2mesh = loc[jj, ,
-    drop = FALSE
-  ]))
+  # smorg <- (INLA::inla.fmesher.smorg(mesh$loc,
+  # mesh$graph$tv, points2mesh = loc[jj, ,
+  #   drop = FALSE
+  # ]))
+  smorg <- fmesher::fm_bary(mesh,loc=mesh$loc)
   ti <- matrix(0L, nrow(loc), 1)
   b <- matrix(0, nrow(loc), 3)
   ti[jj, 1L] <- smorg$p2m.t
@@ -2205,7 +2210,8 @@ rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
 #'
 
 rspde.mesh.project.rspde.mesh.projector <- function(projector, field, ...) {
-  return(INLA::inla.mesh.project(projector = projector, field = field, ...))
+  # return(INLA::inla.mesh.project(projector = projector, field = field, ...))
+  return(fmesher::fm_evaluate(projector = projector, field = field, ...))
 }
 
 
@@ -2221,9 +2227,11 @@ rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
   if (!missing(field) && !is.null(field)) {
     proj <- rspde.mesh.projector(mesh, loc,
     rspde.order = rspde.order, nu = nu, ...)
-    return(INLA::inla.mesh.project(proj, field))
+    # return(INLA::inla.mesh.project(proj, field))
+    return(fmesher::fm_evaluate(proj, field))
   }
-  A <- INLA::inla.mesh.1d.A(mesh, loc = loc)
+  # A <- INLA::inla.mesh.1d.A(mesh, loc = loc)
+  A <- fmesher::fm_basis(mesh, loc = loc)
   if (!is.null(nu)) {
     if (!is.numeric(nu)) {
       stop("nu must be numeric!")
