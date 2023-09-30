@@ -34,10 +34,11 @@
 #'
 #' @docType package
 #' @name rSPDE
+#' @aliases rSPDE-package
 #' @import Matrix
 #' @importFrom stats rnorm approx quantile
 #' @importFrom stats dnorm pnorm dbeta
 #' @importFrom methods as
 #' @importFrom stats simulate lm logLik na.omit optim sd terms
-#' 
+#'
 NULL
