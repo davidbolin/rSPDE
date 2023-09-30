@@ -1,7 +1,7 @@
 ---
 title: "Operator-based rational approximation"
 author: "David Bolin and Alexandre B. Simas"
-date: "`r Sys.Date()`"
+date: "Created: 2019-08-07. Last Modified: `r Sys.Date()`."
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Operator-based rational approximation}
@@ -388,13 +388,13 @@ par(opar)
 
 ## Spatial data and parameter estimation
 
-The functions used in the previous examples also work for spatial models. We then need to construct a mesh over the domain of interest and then compute the matrices needed to define the operator. These tasks can be performed, for example, using the `r inla_link()` package. Let us start by defining a mesh over $[0,1]\times [0, 1]$ and compute the mass and stiffness matrices for that mesh. 
+The functions used in the previous examples also work for spatial models. We then need to construct a mesh over the domain of interest and then compute the matrices needed to define the operator. These tasks can be performed, for example, using the `fmesher` package. Let us start by defining a mesh over $[0,1]\times [0, 1]$ and compute the mass and stiffness matrices for that mesh. 
 ```{r fig.align = "center", message=FALSE}
-library(INLA)
+library(fmesher)
 m <- 200
 loc_2d_mesh <- matrix(runif(m * 2), m, 2)
-mesh_2d <- inla.mesh.create.helper(
-  points = loc_2d_mesh,
+mesh_2d <- fm_mesh_2d(
+  loc = loc_2d_mesh,
   cutoff = 0.05,
   offset = c(0.1, 0.4),
   max.edge = c(0.05, 0.5)
@@ -412,12 +412,12 @@ op <- matern.operators(range = range, sigma = sigma,
 nu = nu, m = 2, mesh = mesh_2d,
   parameterization = "matern")
 ```
-Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `r inla_link()` function `inla.spde.make.A()`. We sample 30 replicates of the latent field.
+Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `fmesher` function `fm_basis()`. We sample 30 replicates of the latent field.
 ```{r}
 n.rep <- 30
 u <- simulate(op, nsim = n.rep)
-A <- inla.spde.make.A(
-  mesh = mesh_2d,
+A <- fm_basis(
+  x = mesh_2d,
   loc = loc_2d_mesh
 )
 sigma.e <- 0.1
@@ -427,11 +427,11 @@ The first replicate of the simulated random field as well as the observation loc
 ```{r, fig.show='hold', fig.align = "center",echo=TRUE,warning=FALSE,message=FALSE}
 library(viridis)
 library(ggplot2)
-proj <- inla.mesh.projector(mesh_2d, dims = c(70, 70))
+proj <- fm_evaluator(mesh_2d, dims = c(70, 70))
 
 df_field <- data.frame(x = proj$lattice$loc[,1],
                         y = proj$lattice$loc[,2],
-                        field = as.vector(inla.mesh.project(proj, 
+                        field = as.vector(fm_evaluate(proj, 
                         field = as.vector(u[, 1]))),
                         type = "field")
 
