@@ -19,8 +19,8 @@ of the rSPDE models see the [R-INLA implementation of the rational SPDE approach
 The paper [Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference][ref9] contains a study on the accuracy of the various rational approximations that are implemented in the `rSPDE` package. These are summarized in a shiny app that can be run directly from GitHub by using the following command (you may need to install some of the dependencies):
 
 ```r
-# install.packages("shiny", "shinythemes", "plotly")
-# install.packages("tidyr", "dplyr")
+# install.packages(c("shiny", "shinythemes", "plotly"))
+# install.packages(c("tidyr", "dplyr"))
 shiny::runGitHub("davidbolin/rSPDE", subdir="shiny_app")
 ```
 
