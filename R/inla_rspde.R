@@ -1137,7 +1137,7 @@ rspde.make.A <- function(mesh = NULL,
       # A <- fmesher::fm_basis(
       #   x = mesh, loc = loc, repl = repl)
       A <- fm_basis(
-        x = mesh, loc = loc, repl = repl)
+        x = mesh, loc = loc)
 
         if(!is.null(index)){
           A <- A[index,]
@@ -1168,66 +1168,33 @@ rspde.make.A <- function(mesh = NULL,
       if(is.null(mesh$mesh)){
         stop("The graph object should contain a mesh!")
       }
-      if(!is.null(group) || !is.null(n.group)){
-        stop("Groups are still not implemented for metric graphs.")
-      }
-      if(!is.null(n.repl)){
-         if(is.null(loc)){
-          A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(mesh$get_PtE()))
-        } else{
-          A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(loc))
-        }
-      } else if(!is.null(index)){
 
-          if(min(repl)!= 1){
-            stop("The indexes of the replicates should begin at 1!")
-          }
-          if(any(!is.integer(repl))){
-            stop("The indexes of the replicates should be integers!")
-          }
-
-        if(is.null(loc)){
-          loc_PtE <- mesh$get_PtE()
-        } else{
-          loc_PtE <- loc
-        }
-
-
-        if(max(repl) == 1){
-          A <- mesh$mesh_A(loc_PtE[index,])
-        } else{
-          stopifnot(length(index) == length(repl))
-
-          if(max(abs(diff(repl)))>1){
-            stop("The indexes of the replicates should increase by steps of size 1!")
-          }
-
-          total_repl <- max(repl)
-          index_tmp <- index[repl==1]
-          A <- mesh$mesh_A(loc_PtE[index_tmp,])
-          for(i in 2:total_repl){
-            index_tmp <- index[repl==i]
-            A_tmp <- mesh$mesh_A(loc_PtE[index_tmp,])
-            A <- bdiag(A, A_tmp)
-          }
-          if(any(diff(repl)) < 0){
-            col_indexes <- 1:ncol(A)
-            new_col_indexes <- col_indexes[repl==1]
-            for(i in 2:total_repl){
-              new_col_indexes <- c(new_col_indexes, col_indexes[repl==i])
-            }
-            A <- A[,new_col_indexes]
-          }
-        }
-      } else if(length(repl)>1){
-        stop("When using replicates, you should provide index!")
-      } else{
         if(is.null(loc)){
           A <- mesh$mesh_A(mesh$get_PtE())
         } else{
           A <- mesh$mesh_A(loc)
         }
-      }
+
+        if(!is.null(index)){
+          A <- A[index,]
+        }
+
+        if(!is.null(n.group)){
+          A <- kronecker(Matrix::Diagonal(n.group), A)
+        } else{
+          if(is.null(group)){
+            group <- 1L
+          }
+          blk_grp <- fm_block(group)
+          A <- fm_row_kron(Matrix::t(blk_grp), A)
+        }
+
+        if(!is.null(n.repl)){
+          A <- kronecker(Matrix::Diagonal(n.repl), A)
+        } else{
+          blk_rep <- fm_block(repl)
+          A <- fm_row_kron(Matrix::t(blk_rep), A)
+        }        
     }
   } else if (is.null(A)) {
     stop("If mesh is not provided, then you should provide the A matrix from
@@ -1431,6 +1398,86 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
   attr(out, "n.group") <- n.group
   attr(out, "n.repl") <- n.repl
   return(out)
+}
+
+
+#' Extraction of vector of replicates for 'INLA'
+#'
+#' Extracts the vector of replicates from an 'rSPDE'
+#' model object for 'INLA'
+#'
+#' @param graph_spde An `rspde_metric_graph` object built with the
+#' `rspde.metric_graph()` function from the 'rSPDE' package.
+#' @param repl Which replicates? If there is no replicates, one
+#' can set `repl` to `NULL`. If one wants all replicates,
+#' then one sets to `repl` to `__all`.
+#' @param group Which groups? If there is no groups, one
+#' can set `group` to `NULL`. If one wants all groups,
+#' then one sets to `group` to `__all`.
+#' @param group_col Which "column" of the data contains the group variable?
+#' @return The vector of replicates paired with groups.
+#' @export
+
+graph_repl_rspde <- function (graph_spde, repl = NULL, group = NULL, group_col = NULL){
+  # graph_tmp <- graph_spde$graph_spde$clone()
+  if(is.null(repl)){
+    # groups <- graph_tmp$data[["__group"]]
+    groups <- graph_spde$graph_spde$data[["__group"]]
+    repl <- groups[1]
+    # ret <- select_group(graph_tmp$data, repl)
+    ret <- select_repl_group(graph_spde$graph_spde$data, repl = repl, group = group, group_col = group_col)    
+  } else if(repl[1] == "__all") {
+    # ret <- graph_tmp$data
+    ret <- graph_spde$graph_spde$data
+  } else {
+    # ret <- select_group(graph_tmp$data, repl)
+    ret <- select_repl_group(graph_spde$graph_spde$data, repl = repl, group = group, group_col = group_col)    
+  }
+  return(ret[["__group"]])
+}
+
+#' Select replicate and group
+#' @noRd
+#'
+select_repl_group <- function(data_list, repl, group, group_col){
+    if(!is.null(group) && is.null(group_col)){
+      stop("If you specify group, you need to specify group_col!")
+    }
+    if(!is.null(group)){
+      grp <- data_list[[group_col]]
+      grp <- which(grp %in% group)
+      data_result <- lapply(data_list, function(dat){dat[grp]})
+      replicates <- data_result[["__group"]]
+      replicates <- which(replicates %in% repl)
+      data_result <- lapply(data_result, function(dat){dat[replicates]})
+      return(data_result)
+    } else{
+      replicates <- data_list[["__group"]]
+      replicates <- which(replicates %in% repl)
+      data_result <- lapply(data_list, function(dat){dat[replicates]})
+      return(data_result)
+    }
+}
+
+#' Creation of index vector for 'INLA'
+#'
+#' Creates the vector of indexes from an 'rSPDE'
+#' model object for 'INLA'
+#'
+#' @param graph_spde An `rspde_metric_graph` object built with the
+#' `rspde.metric_graph()` function from the 'rSPDE' package.
+#' @param name A character string with the base name of the effect.
+#' @param n.group The size of the group model.
+#' @param n.repl The total number of replicates.
+#' @param rspde.order The order of the rational approximation
+#' @param nu If `NULL``, then the model will assume that nu will be estimated. If nu is fixed, you should provide the value of nu.
+#' @return The vector of indexes.
+#' @export
+
+graph_index_rspde <- function (graph_spde, n.repl = 1, n.group = 1){
+        n_obs <- nrow(graph_spde$graph_spde$get_PtE())
+        rep(rep(1:n_obs, times = n.group), 
+            times = n.repl)
 }
 
 
