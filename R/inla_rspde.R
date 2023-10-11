@@ -1469,8 +1469,6 @@ select_repl_group <- function(data_list, repl, group, group_col){
 #' @param name A character string with the base name of the effect.
 #' @param n.group The size of the group model.
 #' @param n.repl The total number of replicates.
-#' @param rspde.order The order of the rational approximation
-#' @param nu If `NULL``, then the model will assume that nu will be estimated. If nu is fixed, you should provide the value of nu.
 #' @return The vector of indexes.
 #' @export
 
