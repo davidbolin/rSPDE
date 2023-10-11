@@ -4,28 +4,17 @@
 \alias{graph_index_rspde}
 \title{Creation of index vector for 'INLA'}
 \usage{
-graph_index_rspde(
-  graph_spde,
-  name,
-  n.repl = 1,
-  n.group = 1,
-  rspde.order = 2,
-  nu = NULL
-)
+graph_index_rspde(graph_spde, n.repl = 1, n.group = 1)
 }
 \arguments{
 \item{graph_spde}{An \code{rspde_metric_graph} object built with the
 \code{rspde.metric_graph()} function from the 'rSPDE' package.}
 
-\item{name}{A character string with the base name of the effect.}
-
 \item{n.repl}{The total number of replicates.}
 
 \item{n.group}{The size of the group model.}
 
-\item{rspde.order}{The order of the rational approximation}
-
-\item{nu}{If `NULL``, then the model will assume that nu will be estimated. If nu is fixed, you should provide the value of nu.}
+\item{name}{A character string with the base name of the effect.}
 }
 \value{
 The vector of indexes.
