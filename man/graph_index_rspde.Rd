@@ -13,8 +13,6 @@ graph_index_rspde(graph_spde, n.repl = 1, n.group = 1)
 \item{n.repl}{The total number of replicates.}
 
 \item{n.group}{The size of the group model.}
-
-\item{name}{A character string with the base name of the effect.}
 }
 \value{
 The vector of indexes.

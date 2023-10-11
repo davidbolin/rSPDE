@@ -1466,9 +1466,8 @@ select_repl_group <- function(data_list, repl, group, group_col){
 #'
 #' @param graph_spde An `rspde_metric_graph` object built with the
 #' `rspde.metric_graph()` function from the 'rSPDE' package.
-#' @param name A character string with the base name of the effect.
-#' @param n.group The size of the group model.
 #' @param n.repl The total number of replicates.
+#' @param n.group The size of the group model.
 #' @return The vector of indexes.
 #' @export
 
