@@ -1422,15 +1422,15 @@ graph_repl_rspde <- function (graph_spde, repl = NULL, group = NULL, group_col =
   # graph_tmp <- graph_spde$graph_spde$clone()
   if(is.null(repl)){
     # groups <- graph_tmp$data[["__group"]]
-    groups <- graph_spde$graph_spde$data[["__group"]]
+    groups <- graph_spde$graph_spde$.__enclos_env__$private$data[["__group"]]
     repl <- groups[1] 
   } else if(repl[1] == "__all") {
     # ret <- graph_tmp$data
-    groups <- graph_spde$graph_spde$data[["__group"]]
+    groups <- graph_spde$graph_spde$.__enclos_env__$private$data[["__group"]]
     repl <- unique(groups)
   } 
 
-  ret <- select_repl_group(graph_spde$graph_spde$data, repl = repl, group = group, group_col = group_col)    
+  ret <- select_repl_group(graph_spde$graph_spde$.__enclos_env__$private$data, repl = repl, group = group, group_col = group_col)    
   return(ret[["__group"]])
 }
 
