@@ -117,16 +117,16 @@ rspde_lme <- function(formula, loc, data,
     data <- environment(formula)
   } else if(model$has_graph){
     if(use_data_from_graph){
-      if(is.null(model$graph$data)){
+      if(is.null(model$graph$.__enclos_env__$private$data)){
         stop("The graph has no data! Either add data to the graph, or add the data manually and set 'use_data_from_graph' to FALSE.")
       }
-          data <- model$graph$data
-          repl <- model$graph$data[["__group"]]
+          data <- model$graph$.__enclos_env__$private$data
+          repl <- model$graph$.__enclos_env__$private$data[["__group"]]
           if(missing(loc)){
               # Don't do anything, we will replace loc anyway
           }
-          loc <- cbind(model$graph$data[["__edge_number"]],
-                  model$graph$data[["__distance_on_edge"]])
+          loc <- cbind(model$graph$.__enclos_env__$private$data[["__edge_number"]],
+                  model$graph$.__enclos_env__$private$data[["__distance_on_edge"]])
           }
 
   }

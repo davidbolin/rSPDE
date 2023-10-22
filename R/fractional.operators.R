@@ -565,7 +565,7 @@ matern.operators <- function(kappa = NULL,
       }
   } else if(!is.null(graph)){
       make_A <- function(loc){
-        return(graph$mesh_A(loc))
+        return(graph$fem_basis(loc))
       }
   } else if(!is.null(loc_mesh) && d == 1){
     make_A <- function(loc){
@@ -1324,7 +1324,7 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
       }
   } else if(!is.null(graph)){
       make_A <- function(loc){
-        return(graph$mesh_A(loc))
+        return(graph$fem_basis(loc))
       }
   } else if(!is.null(loc_mesh) && d == 1){
     make_A <- function(loc){

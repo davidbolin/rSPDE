@@ -994,9 +994,9 @@ spde.make.A <- function(mesh = NULL,
       }
       if(!is.null(n.repl)){
          if(is.null(loc)){
-          A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(mesh$get_PtE()))
+          A <- kronecker(Matrix::Diagonal(n.repl), mesh$fem_basis(mesh$get_PtE()))
         } else{
-          A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(loc))
+          A <- kronecker(Matrix::Diagonal(n.repl), mesh$fem_basis(loc))
         }
       } else if(!is.null(index)){
 
@@ -1015,7 +1015,7 @@ spde.make.A <- function(mesh = NULL,
 
 
         if(max(repl) == 1){
-          A <- mesh$mesh_A(loc_PtE[index,])
+          A <- mesh$fem_basis(loc_PtE[index,])
         } else{
           stopifnot(length(index) == length(repl))
 
@@ -1025,10 +1025,10 @@ spde.make.A <- function(mesh = NULL,
 
           total_repl <- max(repl)
           index_tmp <- index[repl==1]
-          A <- mesh$mesh_A(loc_PtE[index_tmp,])
+          A <- mesh$fem_basis(loc_PtE[index_tmp,])
           for(i in 2:total_repl){
             index_tmp <- index[repl==i]
-            A_tmp <- mesh$mesh_A(loc_PtE[index_tmp,])
+            A_tmp <- mesh$fem_basis(loc_PtE[index_tmp,])
             A <- bdiag(A, A_tmp)
           }
           if(any(diff(repl)) < 0){
@@ -1044,9 +1044,9 @@ spde.make.A <- function(mesh = NULL,
         stop("When using replicates, you should provide index!")
       } else{
         if(is.null(loc)){
-          A <- mesh$mesh_A(mesh$get_PtE())
+          A <- mesh$fem_basis(mesh$get_PtE())
         } else{
-          A <- mesh$mesh_A(loc)
+          A <- mesh$fem_basis(loc)
         }
       }
     }
@@ -1170,9 +1170,9 @@ rspde.make.A <- function(mesh = NULL,
       }
 
         if(is.null(loc)){
-          A <- mesh$mesh_A(mesh$get_PtE())
+          A <- mesh$fem_basis(mesh$get_PtE())
         } else{
-          A <- mesh$mesh_A(loc)
+          A <- mesh$fem_basis(loc)
         }
 
         if(!is.null(index)){
@@ -1422,15 +1422,15 @@ graph_repl_rspde <- function (graph_spde, repl = NULL, group = NULL, group_col =
   # graph_tmp <- graph_spde$graph_spde$clone()
   if(is.null(repl)){
     # groups <- graph_tmp$data[["__group"]]
-    groups <- graph_spde$graph_spde$data[["__group"]]
+    groups <- graph_spde$graph_spde$.__enclos_env__$private$data[["__group"]]
     repl <- groups[1] 
   } else if(repl[1] == "__all") {
     # ret <- graph_tmp$data
-    groups <- graph_spde$graph_spde$data[["__group"]]
+    groups <- graph_spde$graph_spde$.__enclos_env__$private$data[["__group"]]
     repl <- unique(groups)
   } 
 
-  ret <- select_repl_group(graph_spde$graph_spde$data, repl = repl, group = group, group_col = group_col)    
+  ret <- select_repl_group(graph_spde$graph_spde$.__enclos_env__$private$data, repl = repl, group = group, group_col = group_col)    
   return(ret[["__group"]])
 }
 
