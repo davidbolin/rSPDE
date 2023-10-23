@@ -30,9 +30,17 @@ graph_data_rspde(
 can set \code{repl} to \code{NULL}. If one wants all replicates,
 then one sets to \code{repl} to \verb{__all}.}
 
+\item{group}{Which groups? If there is no groups, one
+can set \code{group} to \code{NULL}. If one wants all groups,
+then one sets to \code{group} to \verb{__all}.}
+
+\item{group_col}{Which "column" of the data contains the group variable?}
+
 \item{only_pred}{Should only return the \code{data.frame} to the prediction data?}
 
-\item{loc}{Character with the name of the location variable to be used in
+\item{loc}{Locations. If not given, they will be chosen as the available locations on the metric graph internal dataset.}
+
+\item{loc_name}{Character with the name of the location variable to be used in
 'inlabru' prediction.}
 
 \item{nu}{If \code{NULL}, then the model will assume that nu will

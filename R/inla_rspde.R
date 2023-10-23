@@ -1412,8 +1412,13 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' @param repl Which replicates? If there is no replicates, one
 #' can set `repl` to `NULL`. If one wants all replicates,
 #' then one sets to `repl` to `__all`.
+#' @param group Which groups? If there is no groups, one
+#' can set `group` to `NULL`. If one wants all groups,
+#' then one sets to `group` to `__all`.
+#' @param group_col Which "column" of the data contains the group variable?
 #' @param only_pred Should only return the `data.frame` to the prediction data?
-#' @param loc Character with the name of the location variable to be used in
+#' @param loc  Locations. If not given, they will be chosen as the available locations on the metric graph internal dataset.
+#' @param loc_name Character with the name of the location variable to be used in
 #' 'inlabru' prediction.
 #' @param nu If `NULL`, then the model will assume that nu will
 #' be estimated. If nu is fixed, you should provide the value of nu.
