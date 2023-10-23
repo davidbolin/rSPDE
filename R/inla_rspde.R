@@ -1401,6 +1401,125 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 }
 
 
+
+#' Data extraction from metric graphs for 'rSPDE' models
+#'
+#' Extracts data from metric graphs to be used by 'INLA' and 'inlabru'.
+#'
+#' @param graph_rspde An `inla_metric_graph_spde` object built with the
+#' `rspde.metric_graph()` function.
+#' @param name A character string with the base name of the effect.
+#' @param repl Which replicates? If there is no replicates, one
+#' can set `repl` to `NULL`. If one wants all replicates,
+#' then one sets to `repl` to `__all`.
+#' @param only_pred Should only return the `data.frame` to the prediction data?
+#' @param loc Character with the name of the location variable to be used in
+#' 'inlabru' prediction.
+#' @param nu If `NULL`, then the model will assume that nu will
+#' be estimated. If nu is fixed, you should provide the value of nu.
+#' @param rspde.order The order of the rational approximation
+#' @param tibble Should the data be returned as a `tidyr::tibble`?
+#' @param drop_na Should the rows with at least one NA for one of the columns be removed? DEFAULT is `FALSE`. This option is turned to `FALSE` if `only_pred` is `TRUE`.
+#' @param drop_all_na Should the rows with all variables being NA be removed? DEFAULT is `TRUE`. This option is turned to `FALSE` if `only_pred` is `TRUE`.
+#' @return An 'INLA' and 'inlabru' friendly list with the data.
+#' @export
+
+graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = NULL, 
+                                group_col = NULL,
+                                only_pred = FALSE,
+                                loc = NULL,
+                                loc_name = NULL,
+                                nu = NULL,
+                                rspde.order = 2,
+                                tibble = FALSE,
+                                drop_na = FALSE, drop_all_na = TRUE){
+
+  ret <- list()
+
+  graph_tmp <- graph_rspde$mesh$clone()
+  if(only_pred){
+    idx_anyNA <- !idx_not_any_NA(graph_tmp$.__enclos_env__$private$data)
+    graph_tmp$.__enclos_env__$private$data <- lapply(graph_tmp$.__enclos_env__$private$data, function(dat){return(dat[idx_anyNA])})
+    drop_na <- FALSE
+    drop_all_na <- FALSE
+  }
+
+  if(is.null(repl)){
+    groups <- graph_tmp$.__enclos_env__$private$data[["__group"]]
+    repl <- groups[1]
+  } else if(repl[1] == "__all") {
+    groups <- graph_tmp$.__enclos_env__$private$data[["__group"]]
+    repl <- unique(groups)
+  } 
+
+   ret[["data"]] <- select_repl_group(graph_tmp$.__enclos_env__$private$data, repl = repl, group = group, group_col = group_col)   
+
+   repl_vec <- ret[["data"]][["__group"]]
+   if(!is.null(group_col)){
+    group_vec <- ret[["data"]][[group_col]]
+   } else{
+    group_vec <- rep(1, length(ret[["data"]][["__group"]]))
+   }
+
+
+  n.repl <- length(unique(repl))
+
+  if(is.null(group)){
+    n.group <- 1
+  } else if (group[1] == "__all"){
+    n.group <- length(unique(graph_tmp$.__enclos_env__$private$data[[group_col]]))
+  } else{
+    n.group <- length(unique(group))
+  }
+
+  if(tibble){
+    ret[["data"]] <-tidyr::as_tibble(ret[["data"]])
+  }
+
+  if(drop_all_na){
+    is_tbl <- inherits(ret, "tbl_df")
+      idx_temp <- idx_not_all_NA(ret[["data"]])
+      ret[["data"]] <- lapply(ret[["data"]], function(dat){dat[idx_temp]}) 
+      if(is_tbl){
+        ret[["data"]] <- tidyr::as_tibble(ret[["data"]])
+      }
+  }    
+  if(drop_na){
+    if(!inherits(ret[["data"]], "tbl_df")){
+      idx_temp <- idx_not_any_NA(ret[["data"]])
+      ret[["data"]] <- lapply(ret[["data"]], function(dat){dat[idx_temp]})
+    } else{
+      ret[["data"]] <- tidyr::drop_na(ret[["data"]])
+    }
+  }
+  
+  if(!is.null(loc_name)){
+      ret[["data"]][[loc_name]] <- cbind(ret[["data"]][["__edge_number"]],
+                          ret[["data"]][["__distance_on_edge"]])
+  }
+
+
+  if(!inherits(ret[["data"]], "metric_graph_data")){
+    class(ret[["data"]]) <- c("metric_graph_data", class(ret))
+  }
+
+
+
+  ret[["index"]] <- rspde.make.index(mesh = graph_tmp, n.group = n.group, n.repl = n.repl, nu = nu, dim = 1, rspde.order = rspde.order, name = name)
+  ret[["repl"]] <- ret[["data"]][["__group"]]
+
+  n_obs <- sum(ret[["data"]][["__group"]] == ret[["data"]][["__group"]][1])
+
+  index_basis <- rep(rep(1:n_obs, times = n.group), 
+            times = n.repl)
+
+  ret[["basis"]] <- rspde.make.A(mesh = graph_tmp, loc = loc, rspde.order = rspde.order, nu = nu, repl = repl_vec, group = group_vec, 
+                                            index = index_basis)
+  
+  return(ret)
+}
+
+
 #' Extraction of vector of replicates for 'INLA'
 #'
 #' Extracts the vector of replicates from an 'rSPDE'
@@ -1416,7 +1535,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' then one sets to `group` to `__all`.
 #' @param group_col Which "column" of the data contains the group variable?
 #' @return The vector of replicates paired with groups.
-#' @export
+#' @noRd
 
 graph_repl_rspde <- function (graph_spde, repl = NULL, group = NULL, group_col = NULL){
   # graph_tmp <- graph_spde$graph_spde$clone()
@@ -1467,10 +1586,10 @@ select_repl_group <- function(data_list, repl, group, group_col){
 #' @param n.repl The total number of replicates.
 #' @param n.group The size of the group model.
 #' @return The vector of indexes.
-#' @export
+#' @noRd
 
 graph_index_rspde <- function (graph_spde, n.repl = 1, n.group = 1){
-        n_obs <- nrow(graph_spde$graph_spde$get_PtE())
+        n_obs <- nrow(graph_spde$mesh$get_PtE())
         rep(rep(1:n_obs, times = n.group), 
             times = n.repl)
 }
@@ -3257,7 +3376,7 @@ rspde.metric_graph <- function(graph_obj,
     }
 
         
-        rspde_model$mesh <- rspde_model$graph_spde <- graph_obj
+        rspde_model$mesh <- graph_obj$clone()
         # rspde_model$n.spde <- nrow(graph_obj$mesh$E)
         rspde_model$n.spde <- nrow(graph_obj$mesh$VtE)
 
