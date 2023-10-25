@@ -700,7 +700,7 @@ if(parallel){
         std_fixed = std_fixed, std_random = std_random) 
   object$call <- call_rspde_lme
   object$terms <- list(fixed_effects = X_cov)
-  object$response <- list(y = y_resp)
+  object$response_data <- list(y = y_resp)
   object$formula <- formula
   object$matern_coeff <- matern_coeff
   object$estimation_method <- optim_method
@@ -708,11 +708,12 @@ if(parallel){
   object$repl <- repl
   object$optim_controls <- optim_controls
   object$latent_model <- model
+  object$nobs <- length(repl)
   object$null_model <- null_model
   object$start_values <- start_values
   object$loglik <- loglik
   object$niter <- res$counts
-  object$response <- y_term
+  object$response_var <- y_term
   object$covariates <- cov_term
   object$fitting_time <- time_fit
   object$rspde_order <- rspde_order
