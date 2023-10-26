@@ -731,6 +731,7 @@ if(parallel){
   object$stationary <- model$stationary
   object$nu <- nu
   object$alpha <- alpha
+  object$df.residual <- object$nobs -(1 + length(object$coeff$fixed_effects) + length(object$coeff$random_effects))
 
   # object$lik_fun <- likelihood
   # object$start_val <- start_values
