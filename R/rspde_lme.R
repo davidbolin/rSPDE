@@ -706,9 +706,10 @@ if(parallel){
   object$estimation_method <- optim_method
   object$parameterization_latent <- model$parameterization
   object$repl <- repl
+  object$idx_repl <- idx_repl
   object$optim_controls <- optim_controls
   object$latent_model <- model
-  object$nobs <- length(repl)
+  object$nobs <- sum(idx_repl)
   object$null_model <- null_model
   object$start_values <- start_values
   object$loglik <- loglik
