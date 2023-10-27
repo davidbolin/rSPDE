@@ -1262,7 +1262,9 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, 
       post_cov <- Aprd%*%solve(Q_xgiveny, t(Aprd))
       Z <- rnorm(dim(post_cov)[1] * n_samples)
       dim(Z) <- c(dim(post_cov)[1], n_samples)
-      LQ <- chol(forceSymmetric(post_cov))
+      print(eigen(post_cov)$values)
+      print(eigen(post_cov + 1e-3*Matrix::Diagonal(nrow(post_cov)))$values)
+      LQ <- tryCatch(chol(post_cov), error =  function(e){chol(post_cov + 1e-8*Matrix::Diagonal(nrow(post_cov)))})
       X <- LQ %*% Z
       X <- X + mean_tmp
       if(!sample_latent){
