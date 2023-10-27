@@ -2036,8 +2036,8 @@ get_parameters_rSPDE_graph <- function (graph_obj, alpha,
             if(is.null(graph_obj$geo_dist)){
               graph_obj$compute_geodist(obs=FALSE)
             }
-            finite_geodist <- is.finite(graph_obj$geo_dist[["__vertices"]])
-            finite_geodist <- graph_obj$geo_dist[["__vertices"]][finite_geodist]
+            finite_geodist <- is.finite(graph_obj$geo_dist[[".vertices"]])
+            finite_geodist <- graph_obj$geo_dist[[".vertices"]][finite_geodist]
             prior.range.nominal <- max(finite_geodist) * 0.2
         }
         if (is.null(prior.kappa)) {

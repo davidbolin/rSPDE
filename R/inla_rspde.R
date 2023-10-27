@@ -1411,10 +1411,10 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' @param name A character string with the base name of the effect.
 #' @param repl Which replicates? If there is no replicates, one
 #' can set `repl` to `NULL`. If one wants all replicates,
-#' then one sets to `repl` to `__all`.
+#' then one sets to `repl` to `.all`.
 #' @param group Which groups? If there is no groups, one
 #' can set `group` to `NULL`. If one wants all groups,
-#' then one sets to `group` to `__all`.
+#' then one sets to `group` to `.all`.
 #' @param group_col Which "column" of the data contains the group variable?
 #' @param only_pred Should only return the `data.frame` to the prediction data?
 #' @param loc  Locations. If not given, they will be chosen as the available locations on the metric graph internal dataset.
@@ -1452,7 +1452,7 @@ graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = 
   if(is.null(repl)){
     groups <- graph_tmp$.__enclos_env__$private$data[[".group"]]
     repl <- groups[1]
-  } else if(repl[1] == "__all") {
+  } else if(repl[1] == ".all") {
     groups <- graph_tmp$.__enclos_env__$private$data[[".group"]]
     repl <- unique(groups)
   } 
@@ -1471,7 +1471,7 @@ graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = 
 
   if(is.null(group)){
     n.group <- 1
-  } else if (group[1] == "__all"){
+  } else if (group[1] == ".all"){
     n.group <- length(unique(graph_tmp$.__enclos_env__$private$data[[group_col]]))
   } else{
     n.group <- length(unique(group))
@@ -1534,10 +1534,10 @@ graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = 
 #' `rspde.metric_graph()` function from the 'rSPDE' package.
 #' @param repl Which replicates? If there is no replicates, one
 #' can set `repl` to `NULL`. If one wants all replicates,
-#' then one sets to `repl` to `__all`.
+#' then one sets to `repl` to `.all`.
 #' @param group Which groups? If there is no groups, one
 #' can set `group` to `NULL`. If one wants all groups,
-#' then one sets to `group` to `__all`.
+#' then one sets to `group` to `.all`.
 #' @param group_col Which "column" of the data contains the group variable?
 #' @return The vector of replicates paired with groups.
 #' @noRd
@@ -1548,7 +1548,7 @@ graph_repl_rspde <- function (graph_spde, repl = NULL, group = NULL, group_col =
     # groups <- graph_tmp$data[[".group"]]
     groups <- graph_spde$graph_spde$.__enclos_env__$private$data[[".group"]]
     repl <- groups[1] 
-  } else if(repl[1] == "__all") {
+  } else if(repl[1] == ".all") {
     # ret <- graph_tmp$data
     groups <- graph_spde$graph_spde$.__enclos_env__$private$data[[".group"]]
     repl <- unique(groups)
