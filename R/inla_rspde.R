@@ -1450,20 +1450,20 @@ graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = 
   }
 
   if(is.null(repl)){
-    groups <- graph_tmp$.__enclos_env__$private$data[["__group"]]
+    groups <- graph_tmp$.__enclos_env__$private$data[[".group"]]
     repl <- groups[1]
   } else if(repl[1] == "__all") {
-    groups <- graph_tmp$.__enclos_env__$private$data[["__group"]]
+    groups <- graph_tmp$.__enclos_env__$private$data[[".group"]]
     repl <- unique(groups)
   } 
 
    ret[["data"]] <- select_repl_group(graph_tmp$.__enclos_env__$private$data, repl = repl, group = group, group_col = group_col)   
 
-   repl_vec <- ret[["data"]][["__group"]]
+   repl_vec <- ret[["data"]][[".group"]]
    if(!is.null(group_col)){
     group_vec <- ret[["data"]][[group_col]]
    } else{
-    group_vec <- rep(1, length(ret[["data"]][["__group"]]))
+    group_vec <- rep(1, length(ret[["data"]][[".group"]]))
    }
 
 
@@ -1499,8 +1499,8 @@ graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = 
   }
   
   if(!is.null(loc_name)){
-      ret[["data"]][[loc_name]] <- cbind(ret[["data"]][["__edge_number"]],
-                          ret[["data"]][["__distance_on_edge"]])
+      ret[["data"]][[loc_name]] <- cbind(ret[["data"]][[".edge_number"]],
+                          ret[["data"]][[".distance_on_edge"]])
   }
 
 
@@ -1511,9 +1511,9 @@ graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = 
 
 
   ret[["index"]] <- rspde.make.index(mesh = graph_tmp, n.group = n.group, n.repl = n.repl, nu = nu, dim = 1, rspde.order = rspde.order, name = name)
-  ret[["repl"]] <- ret[["data"]][["__group"]]
+  ret[["repl"]] <- ret[["data"]][[".group"]]
 
-  n_obs <- sum(ret[["data"]][["__group"]] == ret[["data"]][["__group"]][1])
+  n_obs <- sum(ret[["data"]][[".group"]] == ret[["data"]][[".group"]][1])
 
   index_basis <- rep(rep(1:n_obs, times = n.group), 
             times = n.repl)
@@ -1545,17 +1545,17 @@ graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = 
 graph_repl_rspde <- function (graph_spde, repl = NULL, group = NULL, group_col = NULL){
   # graph_tmp <- graph_spde$graph_spde$clone()
   if(is.null(repl)){
-    # groups <- graph_tmp$data[["__group"]]
-    groups <- graph_spde$graph_spde$.__enclos_env__$private$data[["__group"]]
+    # groups <- graph_tmp$data[[".group"]]
+    groups <- graph_spde$graph_spde$.__enclos_env__$private$data[[".group"]]
     repl <- groups[1] 
   } else if(repl[1] == "__all") {
     # ret <- graph_tmp$data
-    groups <- graph_spde$graph_spde$.__enclos_env__$private$data[["__group"]]
+    groups <- graph_spde$graph_spde$.__enclos_env__$private$data[[".group"]]
     repl <- unique(groups)
   } 
 
   ret <- select_repl_group(graph_spde$graph_spde$.__enclos_env__$private$data, repl = repl, group = group, group_col = group_col)    
-  return(ret[["__group"]])
+  return(ret[[".group"]])
 }
 
 #' Select replicate and group
@@ -1569,12 +1569,12 @@ select_repl_group <- function(data_list, repl, group, group_col){
       grp <- data_list[[group_col]]
       grp <- which(grp %in% group)
       data_result <- lapply(data_list, function(dat){dat[grp]})
-      replicates <- data_result[["__group"]]
+      replicates <- data_result[[".group"]]
       replicates <- which(replicates %in% repl)
       data_result <- lapply(data_result, function(dat){dat[replicates]})
       return(data_result)
     } else{
-      replicates <- data_list[["__group"]]
+      replicates <- data_list[[".group"]]
       replicates <- which(replicates %in% repl)
       data_result <- lapply(data_list, function(dat){dat[replicates]})
       return(data_result)
