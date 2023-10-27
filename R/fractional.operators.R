@@ -608,6 +608,10 @@ matern.operators <- function(kappa = NULL,
     output$range_mesh <- range_mesh
     output$graph <- graph
     output$loc_mesh <- loc_mesh
+    output$cov_function_mesh <- function(p){
+      v <- output$make_A(loc = p)
+      return(output$Pr %*% solve(output$Q, output$Pr %*% v))
+    }
     return(output)
   } else {
 
@@ -632,6 +636,13 @@ matern.operators <- function(kappa = NULL,
     out$range_mesh <- range_mesh
     out$graph <- graph
     out$loc_mesh <- loc_mesh    
+    out$cov_function_mesh <- function(p){
+      v <- t(out$make_A(loc = p))
+      A <- Matrix::Diagonal(dim(C)[1])
+      v_bar <- kronecker(matrix(1, nrow = m + 1), v)
+      A_bar <- kronecker(matrix(1, ncol = m+1), A)
+      return((A_bar) %*% solve(out$Q, v_bar))
+    }
     return(out)
   }
 }

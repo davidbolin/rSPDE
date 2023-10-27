@@ -121,12 +121,12 @@ rspde_lme <- function(formula, loc, data,
         stop("The graph has no data! Either add data to the graph, or add the data manually and set 'use_data_from_graph' to FALSE.")
       }
           data <- model$graph$.__enclos_env__$private$data
-          repl <- model$graph$.__enclos_env__$private$data[["__group"]]
+          repl <- model$graph$.__enclos_env__$private$data[[".group"]]
           if(missing(loc)){
               # Don't do anything, we will replace loc anyway
           }
-          loc <- cbind(model$graph$.__enclos_env__$private$data[["__edge_number"]],
-                  model$graph$.__enclos_env__$private$data[["__distance_on_edge"]])
+          loc <- cbind(model$graph$.__enclos_env__$private$data[[".edge_number"]],
+                  model$graph$.__enclos_env__$private$data[[".distance_on_edge"]])
           }
 
   }
@@ -706,9 +706,10 @@ if(parallel){
   object$estimation_method <- optim_method
   object$parameterization_latent <- model$parameterization
   object$repl <- repl
+  object$idx_repl <- idx_repl
   object$optim_controls <- optim_controls
   object$latent_model <- model
-  object$nobs <- length(repl)
+  object$nobs <- sum(idx_repl)
   object$null_model <- null_model
   object$start_values <- start_values
   object$loglik <- loglik
@@ -1039,20 +1040,43 @@ print.summary_rspde_lme <- function(x,...) {
 #' @param compute_variances Set to also TRUE to compute the kriging variances.
 #' @param posterior_samples If `TRUE`, posterior samples will be returned.
 #' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
-#' @param only_latent Should the posterior samples and predictions be only given to the latent model?
 #' @param edge_number Name of the variable that contains the edge number, the default is `edge_number`.
 #' @param distance_on_edge Name of the variable that contains the distance on edge, the default is `distance_on_edge`.
 #' @param normalized Are the distances on edges normalized?
+#' @param sample_latent Do posterior samples only for the random effects?
 #' @param return_as_list Should the means of the predictions and the posterior samples be returned as a list, with each replicate being an element?
 #' @param return_original_order Should the results be return in the original (input) order or in the order inside the graph?
 #' @param ... Not used.
+#' @param data `r lifecycle::badge("deprecated")` Use `newdata` instead.
+#' @return A list with elements `mean`, which contains the means of the
+#' predictions, `fe_mean`, which is the prediction for the fixed effects, `re_mean`, which is the prediction for the random effects, `variance` (if `compute_variance` is `TRUE`), which contains the
+#' variances of the predictions, `samples` (if `posterior_samples` is `TRUE`),
+#' which contains the posterior samples.
 #' @export
 #' @method predict rspde_lme
 
-predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, which_repl = NULL, compute_variances = FALSE, posterior_samples = FALSE,
-                               n_samples = 100, only_latent = FALSE, edge_number = "edge_number",
+predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, which_repl = NULL, compute_variances = FALSE, posterior_samples = FALSE,
+                               n_samples = 100, sample_latent = FALSE, edge_number = "edge_number",
                                distance_on_edge = "distance_on_edge", normalized = FALSE, return_as_list = FALSE, return_original_order = TRUE,
-                               ...) {
+                               ...,
+                               data = deprecated()) {
+
+    
+  if (lifecycle::is_present(data)) {
+    if (is.null(newdata)) {
+      lifecycle::deprecate_warn("2.3.2.9000", "predict(data)", "predict(newdata)",
+        details = c("`data` was provided but not `newdata`. Setting `newdata <- data`.")
+      )
+      newdata <- data
+    } else {
+      lifecycle::deprecate_warn("2.3.2.9000", "predict(data)", "predict(newdata)",
+        details = c("Both `newdata` and `data` were provided. Only `newdata` will be considered.")
+      )
+    }
+    data <- NULL
+  }
+
+  data <- newdata
 
   if(is.null(data)){
     if(!mesh){
@@ -1197,17 +1221,27 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
 
     mu_krig <- Aprd %*% mu_krig
 
-    if(!only_latent){
-      mu_krig <- mu_prd + mu_krig
-    }
+    mu_re <- mu_krig
+
+    mu_fe <- mu_prd
+
+    mu_krig <- mu_prd + mu_krig
 
     mean_tmp <- as.vector(mu_krig)
+
+    mean_fe_tmp <- as.vector(mu_fe)
+
+    mean_re_tmp <- as.vector(mu_re)
         
     if(!return_as_list){
       out$mean <- c(out$mean, mean_tmp)
       out$repl <- c(out$repl, rep(repl_y,n_prd))
+      out$fe_mean <- c(out$fe_mean, mean_fe_tmp)
+      out$re_mean <- c(out$re_mean, mean_re_tmp)
     } else{
       out$mean[[repl_y]] <- mean_tmp
+      out$fe_mean[[repl_y]] <- mean_fe_tmp
+      out$re_mean[[repl_y]] <- mean_re_tmp
     }
 
     if (compute_variances) {
@@ -1228,10 +1262,10 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
       post_cov <- Aprd%*%solve(Q_xgiveny, t(Aprd))
       Z <- rnorm(dim(post_cov)[1] * n_samples)
       dim(Z) <- c(dim(post_cov)[1], n_samples)
-      LQ <- chol(forceSymmetric(post_cov))
+      LQ <- tryCatch(chol(post_cov), error =  function(e){chol(post_cov + 1e-8*Matrix::Diagonal(nrow(post_cov)))})
       X <- LQ %*% Z
       X <- X + mean_tmp
-      if(!only_latent){
+      if(!sample_latent){
         X <- X + matrix(rnorm(n_samples * length(mean_tmp), sd = sigma.e), nrow = length(mean_tmp))
       } else{
         X <- X - as.vector(mu_prd)

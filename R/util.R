@@ -2181,11 +2181,11 @@ return_same_input_type_matrix_vector <- function(v, orig_v){
 #' @noRd
 #'
 idx_not_all_NA <- function(data_list){
-     data_list[["__edge_number"]] <- NULL
-     data_list[["__distance_on_edge"]] <- NULL
-     data_list[["__coord_x"]] <- NULL
-     data_list[["__coord_y"]] <- NULL
-     data_list[["__group"]] <- NULL
+     data_list[[".edge_number"]] <- NULL
+     data_list[[".distance_on_edge"]] <- NULL
+     data_list[[".coord_x"]] <- NULL
+     data_list[[".coord_y"]] <- NULL
+     data_list[[".group"]] <- NULL
      data_names <- names(data_list)
      n_data <- length(data_list[[data_names[1]]])
      idx_non_na <- logical(n_data)
@@ -2202,11 +2202,11 @@ idx_not_all_NA <- function(data_list){
 #' @noRd
 #'
 idx_not_any_NA <- function(data_list){
-     data_list[["__edge_number"]] <- NULL
-     data_list[["__distance_on_edge"]] <- NULL
-     data_list[["__coord_x"]] <- NULL
-     data_list[["__coord_y"]] <- NULL
-     data_list[["__group"]] <- NULL
+     data_list[[".edge_number"]] <- NULL
+     data_list[[".distance_on_edge"]] <- NULL
+     data_list[[".coord_x"]] <- NULL
+     data_list[[".coord_y"]] <- NULL
+     data_list[[".group"]] <- NULL
      data_names <- names(data_list)
      n_data <- length(data_list[[data_names[1]]])
      idx_non_na <- logical(n_data)
