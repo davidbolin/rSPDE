@@ -1031,7 +1031,7 @@ print.summary_rspde_lme <- function(x,...) {
 #' @name predict.rspde_lme
 #' @title Prediction of a mixed effects regression model on a metric graph.
 #' @param object The fitted object with the `rspde_lme()` function 
-#' @param data A `data.frame` or a `list` containing the covariates, the edge number and the distance on edge
+#' @param newdata A `data.frame` or a `list` containing the covariates, the edge number and the distance on edge
 #' for the locations to obtain the prediction.
 #' @param loc Prediction locations. Can either be a `data.frame`, a `matrix` or a character vector, that contains the names of the columns of the coordinates of the locations. For models using `metric_graph` objects, plase use `edge_number` and `distance_on_edge` instead.
 #' @param mesh Obtain predictions for mesh nodes? The graph must have a mesh, and either `only_latent` is set to TRUE or the model does not have covariates.
