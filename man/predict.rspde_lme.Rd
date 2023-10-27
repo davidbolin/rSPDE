@@ -26,6 +26,9 @@
 \arguments{
 \item{object}{The fitted object with the \code{rspde_lme()} function}
 
+\item{newdata}{A \code{data.frame} or a \code{list} containing the covariates, the edge number and the distance on edge
+for the locations to obtain the prediction.}
+
 \item{loc}{Prediction locations. Can either be a \code{data.frame}, a \code{matrix} or a character vector, that contains the names of the columns of the coordinates of the locations. For models using \code{metric_graph} objects, plase use \code{edge_number} and \code{distance_on_edge} instead.}
 
 \item{mesh}{Obtain predictions for mesh nodes? The graph must have a mesh, and either \code{only_latent} is set to TRUE or the model does not have covariates.}
