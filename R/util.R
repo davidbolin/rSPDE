@@ -2035,6 +2035,8 @@ get_parameters_rSPDE_graph <- function (graph_obj, alpha,
         if (is.null(prior.range.nominal)) {
             if(is.null(graph_obj$geo_dist)){
               graph_obj$compute_geodist(obs=FALSE)
+            } else if(is.null(graph_obj$geo_dist[[".vertices"]])){
+              graph_obj$compute_geodist(obs=FALSE)
             }
             finite_geodist <- is.finite(graph_obj$geo_dist[[".vertices"]])
             finite_geodist <- graph_obj$geo_dist[[".vertices"]][finite_geodist]
