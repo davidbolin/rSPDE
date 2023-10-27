@@ -73,20 +73,21 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for rspde_lme</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span></span>
 <span>  <span class="va">object</span>,</span>
-<span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  newdata <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  loc <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  mesh <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  which_repl <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  compute_variances <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  posterior_samples <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_samples <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>  only_latent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  sample_latent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  edge_number <span class="op">=</span> <span class="st">"edge_number"</span>,</span>
 <span>  distance_on_edge <span class="op">=</span> <span class="st">"distance_on_edge"</span>,</span>
 <span>  normalized <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_as_list <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_original_order <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  <span class="va">...</span></span>
+<span>  <span class="va">...</span>,</span>
+<span>  data <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -94,11 +95,6 @@
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
 <dd><p>The fitted object with the <code><a href="rspde_lme.html">rspde_lme()</a></code> function</p></dd>
-
-
-<dt>data</dt>
-<dd><p>A <code>data.frame</code> or a <code>list</code> containing the covariates, the edge number and the distance on edge
-for the locations to obtain the prediction.</p></dd>
 
 
 <dt>loc</dt>
@@ -125,8 +121,8 @@ for the locations to obtain the prediction.</p></dd>
 <dd><p>Number of samples to be returned. Will only be used if <code>sampling</code> is <code>TRUE</code>.</p></dd>
 
 
-<dt>only_latent</dt>
-<dd><p>Should the posterior samples and predictions be only given to the latent model?</p></dd>
+<dt>sample_latent</dt>
+<dd><p>Do posterior samples only for the random effects?</p></dd>
 
 
 <dt>edge_number</dt>
@@ -152,7 +148,20 @@ for the locations to obtain the prediction.</p></dd>
 <dt>...</dt>
 <dd><p>Not used.</p></dd>
 
+
+<dt>data</dt>
+<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Use <code>newdata</code> instead.</p></dd>
+
 </dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    
+
+<p>A list with elements <code>mean</code>, which contains the means of the
+predictions, <code>fe_mean</code>, which is the prediction for the fixed effects, <code>re_mean</code>, which is the prediction for the random effects, <code>variance</code> (if <code>compute_variance</code> is <code>TRUE</code>), which contains the
+variances of the predictions, <code>samples</code> (if <code>posterior_samples</code> is <code>TRUE</code>),
+which contains the posterior samples.</p>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
