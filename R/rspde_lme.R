@@ -106,6 +106,9 @@ rspde_lme <- function(formula, loc, data,
 
   call_rspde_lme <- match.call()
 
+  likelihood_new <- NULL
+  new_likelihood <- NULL
+
   if(null_model){
     model <- list(has_graph = FALSE,
                   stationary = FALSE)
@@ -853,7 +856,7 @@ if(parallel){
   object$nu <- nu
   object$alpha <- alpha
   object$df.residual <- object$nobs -(1 + length(object$coeff$fixed_effects) + length(object$coeff$random_effects))
-  object$lik_fun <- likelihood
+  object$lik_fun <- likelihood_new
   object$par_lik_fun <- new_likelihood
 
   # object$lik_fun <- likelihood
