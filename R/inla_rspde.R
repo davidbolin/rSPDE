@@ -838,7 +838,7 @@ rspde.matern <- function(mesh,
   model$prior.nu <- prior.nu
   model$theta.prior.prec <- theta.prior.prec
   model$start.nu <- start.nu
-  model$integer.nu <- integer.nu
+  model$integer.nu <- ifelse(fixed_nu, integer_alpha, FALSE)
   model$start.theta <- start.theta
   model$stationary <- stationary
   if (integer.nu) {
@@ -1434,12 +1434,14 @@ graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = 
                                 only_pred = FALSE,
                                 loc = NULL,
                                 loc_name = NULL,
-                                nu = NULL,
-                                rspde.order = 2,
                                 tibble = FALSE,
                                 drop_na = FALSE, drop_all_na = TRUE){
 
   ret <- list()
+
+  rspde.order <- graph_rspde$rspde.order
+
+  nu <- graph_rspde$nu
 
   graph_tmp <- graph_rspde$mesh$clone()
   if(only_pred){
@@ -1462,8 +1464,10 @@ graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = 
    repl_vec <- ret[["data"]][[".group"]]
    if(!is.null(group_col)){
     group_vec <- ret[["data"]][[group_col]]
+    group <- unique(group_vec)
    } else{
     group_vec <- rep(1, length(ret[["data"]][[".group"]]))
+    group <- 1
    }
 
 
@@ -1511,18 +1515,47 @@ graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = 
 
 
   ret[["index"]] <- rspde.make.index(mesh = graph_tmp, n.group = n.group, n.repl = n.repl, nu = nu, dim = 1, rspde.order = rspde.order, name = name)
+
   ret[["repl"]] <- ret[["data"]][[".group"]]
+
+   if(!is.null(group_col)){
+    group_vec <- ret[["data"]][[group_col]]
+    group <- unique(group_vec)
+   } else{
+    group_vec <- rep(1, length(ret[["data"]][[".group"]]))
+    group <- 1
+   }
+
+  repl_vec <- ret[["repl"]]   
 
   n_obs <- sum(ret[["data"]][[".group"]] == ret[["data"]][[".group"]][1])
 
-  index_basis <- rep(rep(1:n_obs, times = n.group), 
-            times = n.repl)
+  # index_basis <- rep(rep(1:n_obs, times = n.group), 
+  #           times = n.repl)
 
-  ret[["basis"]] <- rspde.make.A(mesh = graph_tmp, loc = loc, rspde.order = rspde.order, nu = nu, repl = repl_vec, group = group_vec, 
-                                            index = index_basis)
+  ret[["basis"]] <- Matrix::Matrix(nrow=0,ncol=0)       
+
+  loc_basis <- cbind(ret[["data"]][[".edge_number"]], ret[["data"]][[".distance_on_edge"]])     
+  
+  # We assume the data is ordered by group, then repl. This will be handled by the advanced grouping we are implementing
+
+  for(group_ in group){
+    idx_grp <- (group_vec == group_)
+    for(repl_ in repl){
+      idx_rep <- (repl_vec == repl_)
+      idx_grp_rep <- as.logical(idx_grp * idx_rep)
+      ret[["basis"]] <- Matrix::bdiag(ret[["basis"]], graph_tmp$fem_basis(loc_basis[idx_grp_rep,]))
+    }
+  }
+
+  if(!graph_rspde$integer.nu){
+    ret[["basis"]] <- kronecker(matrix(1, 1, rspde.order + 1), 
+                ret[["basis"]])
+  }
   
   return(ret)
 }
+
 
 
 #' Extraction of vector of replicates for 'INLA'
