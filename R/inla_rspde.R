@@ -1539,10 +1539,10 @@ graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = 
   
   # We assume the data is ordered by group, then repl. This will be handled by the advanced grouping we are implementing
 
-  for(group_ in group){
-    idx_grp <- (group_vec == group_)
-    for(repl_ in repl){
-      idx_rep <- (repl_vec == repl_)
+  for(repl_ in repl){
+    idx_rep <- (repl_vec == repl_)
+    for(group_ in group){
+      idx_grp <- (group_vec == group_)
       idx_grp_rep <- as.logical(idx_grp * idx_rep)
       ret[["basis"]] <- Matrix::bdiag(ret[["basis"]], graph_tmp$fem_basis(loc_basis[idx_grp_rep,]))
     }
