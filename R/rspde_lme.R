@@ -508,8 +508,13 @@ if(parallel){
             end_hessian <- Sys.time()
             time_hessian <- end_hessian-start_hessian
           }
+          eig_hes <- eigen(observed_fisher)$value
+          cond_pos_hes <- (min(eig_hes) > 1e-15)
         } else{
           stop("Could not fit the model. Please, try another method with 'parallel' set to FALSE.")
+        }
+        if(min(eig_hes) < 1e-15){
+          warning("The optimization failed to provide a numerically positive-definite Hessian. You can try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which allows other optimization methods to be used.")        
         }
 } else{
   possible_methods <- c("Nelder-Mead", "L-BFGS-B", "BFGS", "CG")
@@ -638,7 +643,7 @@ if(parallel){
                   observed_fisher <- problem_optim[[max_method]][["hess"]]
                   time_hessian <- problem_optim[[max_method]][["time_hessian"]]
                   time_fit <- problem_optim[[max_method]][["time_fit"]]
-                  warning("All optimization methods failed to provide a positive-definite Hessian. The optimization method with largest likelihood was chosen. You can try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE.")                  
+                  warning("All optimization methods failed to provide a numerically positive-definite Hessian. The optimization method with largest likelihood was chosen. You can try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE.")                  
                 }
           } 
 
