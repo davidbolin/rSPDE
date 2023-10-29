@@ -313,22 +313,22 @@ details.</p>
 <span><span class="co">#&gt;    silent = silent, ", " inla.mode = inla.mode, safe = FALSE, debug = </span></span>
 <span><span class="co">#&gt;    debug, .parent.frame = .parent.frame)" ) </span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 0.587, Running = 8.02, Post = 0.386, Total = 8.99 </span></span>
+<span><span class="co">#&gt;     Pre = 0.7, Running = 9.84, Post = 0.447, Total = 11 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model hyperparameters:</span></span>
 <span><span class="co">#&gt;                                            mean    sd 0.025quant 0.5quant</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations 101.667 3.493     94.935   101.62</span></span>
-<span><span class="co">#&gt; Theta1 for field                         -4.047 0.765     -5.727    -3.99</span></span>
-<span><span class="co">#&gt; Theta2 for field                          2.265 0.291      1.753     2.25</span></span>
-<span><span class="co">#&gt; Theta3 for field                         -0.166 0.442     -0.914    -0.20</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations 101.667 3.493     94.934  101.617</span></span>
+<span><span class="co">#&gt; Theta1 for field                         -4.029 0.762     -5.697   -3.972</span></span>
+<span><span class="co">#&gt; Theta2 for field                          2.260 0.291      1.745    2.243</span></span>
+<span><span class="co">#&gt; Theta3 for field                         -0.176 0.441     -0.927   -0.209</span></span>
 <span><span class="co">#&gt;                                         0.975quant    mode</span></span>
 <span><span class="co">#&gt; Precision for the Gaussian observations    108.685 101.539</span></span>
-<span><span class="co">#&gt; Theta1 for field                            -2.755  -3.689</span></span>
-<span><span class="co">#&gt; Theta2 for field                             2.892   2.160</span></span>
-<span><span class="co">#&gt; Theta3 for field                             0.805  -0.371</span></span>
+<span><span class="co">#&gt; Theta1 for field                            -2.733  -3.688</span></span>
+<span><span class="co">#&gt; Theta2 for field                             2.885   2.159</span></span>
+<span><span class="co">#&gt; Theta3 for field                             0.789  -0.372</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Marginal log-Likelihood:  855.46 </span></span>
 <span><span class="co">#&gt;  is computed </span></span>
@@ -339,10 +339,10 @@ following:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             mean        sd 0.025quant  0.5quant 0.975quant       mode</span></span>
-<span><span class="co">#&gt; tau    0.0226481 0.0160306 0.00332479 0.0189593  0.0632959 0.00965911</span></span>
-<span><span class="co">#&gt; kappa 10.0535000 3.1317900 5.79028000 9.4032700 17.9005000 8.16919000</span></span>
-<span><span class="co">#&gt; nu     0.9188600 0.2103400 0.57375100 0.8944770  1.3773100 0.80247600</span></span>
+<span><span class="co">#&gt;             mean        sd 0.025quant 0.5quant 0.975quant       mode</span></span>
+<span><span class="co">#&gt; tau    0.0230313 0.0163676 0.00342241 0.019226  0.0647206 0.00990287</span></span>
+<span><span class="co">#&gt; kappa 10.0052000 3.1092100 5.74854000 9.367360 17.7791000 8.15478000</span></span>
+<span><span class="co">#&gt; nu     0.9142530 0.2096890 0.56844300 0.890516  1.3704200 0.80266300</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
@@ -359,9 +359,9 @@ following:</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter         true        mean        mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.004452908  0.02264814 0.009659106</span></span>
-<span><span class="co">#&gt; 2     kappa 12.899612397 10.05351475 8.169185547</span></span>
-<span><span class="co">#&gt; 3        nu  1.300000000  0.91886002 0.802476088</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       tau  0.004452908  0.02303128 0.009902873</span></span>
+<span><span class="co">#&gt; 2     kappa 12.899612397 10.00517817 8.154778683</span></span>
+<span><span class="co">#&gt; 3        nu  1.300000000  0.91425336 0.802663231</span></span></code></pre></div>
 <p>We can also obtain the summary in the <code>matern</code>
 parameterization by setting the <code>parameterization</code> argument
 to <code>matern</code>:</p>
@@ -370,9 +370,9 @@ to <code>matern</code>:</p>
 <span>                                  parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_matern</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">#&gt; std.dev 2.535560 0.3877920   1.760520 2.527110   3.317530 2.469430</span></span>
-<span><span class="co">#&gt; range   0.279152 0.0599175   0.171270 0.276148   0.405038 0.275246</span></span>
-<span><span class="co">#&gt; nu      0.918860 0.2103400   0.573751 0.894477   1.377310 0.802476</span></span>
+<span><span class="co">#&gt; std.dev 2.535870 0.3869570   1.765940 2.526730   3.318420 2.463080</span></span>
+<span><span class="co">#&gt; range   0.280063 0.0597648   0.172462 0.277044   0.405545 0.276262</span></span>
+<span><span class="co">#&gt; nu      0.914253 0.2096890   0.568443 0.890516   1.370420 0.802663</span></span>
 <span><span class="va">result_df_matern</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sigma"</span>, <span class="st">"range"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
 <span>  true <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">range</span>, <span class="va">nu</span><span class="op">)</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -388,9 +388,9 @@ to <code>matern</code>:</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df_matern</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter true      mean      mode</span></span>
-<span><span class="co">#&gt; 1     sigma 2.00 2.5355649 2.4694277</span></span>
-<span><span class="co">#&gt; 2     range 0.25 0.2791523 0.2752461</span></span>
-<span><span class="co">#&gt; 3        nu 1.30 0.9188600 0.8024761</span></span></code></pre></div>
+<span><span class="co">#&gt; 1     sigma 2.00 2.5358705 2.4630773</span></span>
+<span><span class="co">#&gt; 2     range 0.25 0.2800633 0.2762625</span></span>
+<span><span class="co">#&gt; 3        nu 1.30 0.9142534 0.8026632</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kriging-with-r-inla-implementation-of-the-rational-spde-approach">Kriging with <code>R-INLA</code> implementation of the rational SPDE
@@ -534,31 +534,31 @@ form the stack manually, but can simply collect the required data in a
 <span><span class="co">#&gt;     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">#&gt;     Predictor: y ~ .</span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 0.327, Running = 8.12, Post = 0.486, Total = 8.93 </span></span>
+<span><span class="co">#&gt;     Pre = 0.406, Running = 10.5, Post = 0.557, Total = 11.5 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model hyperparameters:</span></span>
 <span><span class="co">#&gt;                                            mean    sd 0.025quant 0.5quant</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations 101.667 3.492      94.94  101.617</span></span>
-<span><span class="co">#&gt; Theta1 for field                         -4.288 1.164      -6.86   -4.191</span></span>
-<span><span class="co">#&gt; Theta2 for field                          2.340 0.400       1.66    2.311</span></span>
-<span><span class="co">#&gt; Theta3 for field                         -0.025 0.674      -1.15   -0.081</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations 101.660 3.492     94.925  101.612</span></span>
+<span><span class="co">#&gt; Theta1 for field                         -4.246 0.861     -6.192   -4.153</span></span>
+<span><span class="co">#&gt; Theta2 for field                          2.297 0.282      1.823    2.275</span></span>
+<span><span class="co">#&gt; Theta3 for field                         -0.051 0.498     -0.844   -0.104</span></span>
 <span><span class="co">#&gt;                                         0.975quant    mode</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations     108.68 101.539</span></span>
-<span><span class="co">#&gt; Theta1 for field                             -2.35  -3.706</span></span>
-<span><span class="co">#&gt; Theta2 for field                              3.21   2.167</span></span>
-<span><span class="co">#&gt; Theta3 for field                              1.46  -0.361</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations     108.67 101.539</span></span>
+<span><span class="co">#&gt; Theta1 for field                             -2.88  -3.706</span></span>
+<span><span class="co">#&gt; Theta2 for field                              2.92   2.163</span></span>
+<span><span class="co">#&gt; Theta3 for field                              1.07  -0.362</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Deviance Information Criterion (DIC) ...............: -3266.18</span></span>
-<span><span class="co">#&gt; Deviance Information Criterion (DIC, saturated) ....: 2300.63</span></span>
-<span><span class="co">#&gt; Effective number of parameters .....................: 297.93</span></span>
+<span><span class="co">#&gt; Deviance Information Criterion (DIC) ...............: -3266.11</span></span>
+<span><span class="co">#&gt; Deviance Information Criterion (DIC, saturated) ....: 2301.00</span></span>
+<span><span class="co">#&gt; Effective number of parameters .....................: 298.07</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Watanabe-Akaike information criterion (WAIC) ...: -3257.58</span></span>
-<span><span class="co">#&gt; Effective number of parameters .................: 265.61</span></span>
+<span><span class="co">#&gt; Watanabe-Akaike information criterion (WAIC) ...: -3257.56</span></span>
+<span><span class="co">#&gt; Effective number of parameters .................: 265.69</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Marginal log-Likelihood:  855.86 </span></span>
+<span><span class="co">#&gt; Marginal log-Likelihood:  855.48 </span></span>
 <span><span class="co">#&gt;  is computed </span></span>
 <span><span class="co">#&gt; Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">#&gt; (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre></div>
@@ -566,10 +566,10 @@ form the stack manually, but can simply collect the required data in a
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_bru_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             mean        sd 0.025quant 0.5quant 0.975quant       mode</span></span>
-<span><span class="co">#&gt; tau    0.0240084 0.0261995 0.00109849 0.015625  0.0952388 0.00254255</span></span>
-<span><span class="co">#&gt; kappa 11.2727000 5.0686600 5.25946000 9.981600 24.5908000 7.95071000</span></span>
-<span><span class="co">#&gt; nu     0.9830820 0.3049840 0.48198100 0.950295  1.6189700 0.79008000</span></span>
+<span><span class="co">#&gt;             mean        sd 0.025quant  0.5quant 0.975quant       mode</span></span>
+<span><span class="co">#&gt; tau    0.0195652 0.0145813 0.00208028 0.0161136  0.0558717 0.00622493</span></span>
+<span><span class="co">#&gt; kappa 10.3561000 3.1606600 6.20505000 9.6529800 18.3690000 8.29224000</span></span>
+<span><span class="co">#&gt; nu     0.9724850 0.2344400 0.60330200 0.9411700  1.4856300 0.80718200</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
@@ -585,10 +585,10 @@ form the stack manually, but can simply collect the required data in a
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   parameter         true        mean        mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.004452908  0.02400839 0.002542548</span></span>
-<span><span class="co">#&gt; 2     kappa 12.899612397 11.27273353 7.950705799</span></span>
-<span><span class="co">#&gt; 3        nu  1.300000000  0.98308201 0.790080474</span></span></code></pre></div>
+<span><span class="co">#&gt;   parameter         true       mean        mode</span></span>
+<span><span class="co">#&gt; 1       tau  0.004452908  0.0195652 0.006224932</span></span>
+<span><span class="co">#&gt; 2     kappa 12.899612397 10.3561256 8.292236326</span></span>
+<span><span class="co">#&gt; 3        nu  1.300000000  0.9724845 0.807182293</span></span></code></pre></div>
 <p>Let us obtain a summary in the <code>matern</code> parameterization
 by setting the <code>parameterization</code> argument to
 <code>matern</code>:</p>
@@ -597,9 +597,9 @@ by setting the <code>parameterization</code> argument to
 <span>                                  parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_matern</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">#&gt; std.dev 2.405010 0.4636270   1.425290 2.427330   3.293940 2.440030</span></span>
-<span><span class="co">#&gt; range   0.267036 0.0690228   0.135934 0.265896   0.406472 0.266405</span></span>
-<span><span class="co">#&gt; nu      0.983082 0.3049840   0.481981 0.950295   1.618970 0.790080</span></span>
+<span><span class="co">#&gt; std.dev 2.552730 0.4027320   1.719320 2.554400   3.358490 2.551320</span></span>
+<span><span class="co">#&gt; range   0.271165 0.0565544   0.163848 0.269226   0.385855 0.267235</span></span>
+<span><span class="co">#&gt; nu      0.972485 0.2344400   0.603302 0.941170   1.485630 0.807182</span></span>
 <span><span class="va">result_df_matern</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sigma"</span>, <span class="st">"range"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
 <span>  true <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">range</span>, <span class="va">nu</span><span class="op">)</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -615,9 +615,9 @@ by setting the <code>parameterization</code> argument to
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df_matern</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter true      mean      mode</span></span>
-<span><span class="co">#&gt; 1     sigma 2.00 2.4050114 2.4400275</span></span>
-<span><span class="co">#&gt; 2     range 0.25 0.2670357 0.2664047</span></span>
-<span><span class="co">#&gt; 3        nu 1.30 0.9830820 0.7900805</span></span></code></pre></div>
+<span><span class="co">#&gt; 1     sigma 2.00 2.5527326 2.5513202</span></span>
+<span><span class="co">#&gt; 2     range 0.25 0.2711648 0.2672346</span></span>
+<span><span class="co">#&gt; 3        nu 1.30 0.9724845 0.8071823</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kriging-with-inlabru-implementation-of-the-rational-spde-approach">Kriging with <code>inlabru</code> implementation of the rational
@@ -726,8 +726,8 @@ function.</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 86</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  39.19217 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 2.10088 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  46.77374 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 2.46108 secs</span></span></code></pre></div>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -742,7 +742,7 @@ function.</p>
 <span></span>
 <span><span class="co"># Time to fit</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_rspde</span><span class="op">$</span><span class="va">fitting_tim</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 39.19217 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 46.77375 secs</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kriging-with-rspde">Kriging with <code>rSPDE</code><a class="anchor" aria-label="anchor" href="#kriging-with-rspde"></a>
