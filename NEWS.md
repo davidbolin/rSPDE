@@ -3,6 +3,7 @@
 * Added a 2d fem interface.
 * Moved from using INLA's mesh functions to fmesher's mesh functions.
 * Removing rgdal from suggests.
+* Adding `covariance_mesh` and `cov_function_mesh` methods as functions in the list returned by objects obtained from `matern.operators()` and `spde.matern.operators()`.
 
 # rSPDE 2.3.2
 * Small improvement on speed for rspde_lme.
