@@ -1444,6 +1444,9 @@ graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = 
   nu <- graph_rspde$nu
 
   graph_tmp <- graph_rspde$mesh$clone()
+  if(is.null((graph_tmp$.__enclos_env__$private$data))){
+    stop("The graph has no data!")
+  }
   if(only_pred){
     idx_anyNA <- !idx_not_any_NA(graph_tmp$.__enclos_env__$private$data)
     graph_tmp$.__enclos_env__$private$data <- lapply(graph_tmp$.__enclos_env__$private$data, function(dat){return(dat[idx_anyNA])})
