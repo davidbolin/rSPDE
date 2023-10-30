@@ -13,8 +13,6 @@ graph_data_rspde(
   only_pred = FALSE,
   loc = NULL,
   loc_name = NULL,
-  nu = NULL,
-  rspde.order = 2,
   tibble = FALSE,
   drop_na = FALSE,
   drop_all_na = TRUE
@@ -43,16 +41,16 @@ then one sets to \code{group} to \code{.all}.}
 \item{loc_name}{Character with the name of the location variable to be used in
 'inlabru' prediction.}
 
-\item{nu}{If \code{NULL}, then the model will assume that nu will
-be estimated. If nu is fixed, you should provide the value of nu.}
-
-\item{rspde.order}{The order of the rational approximation}
-
 \item{tibble}{Should the data be returned as a \code{tidyr::tibble}?}
 
 \item{drop_na}{Should the rows with at least one NA for one of the columns be removed? DEFAULT is \code{FALSE}. This option is turned to \code{FALSE} if \code{only_pred} is \code{TRUE}.}
 
 \item{drop_all_na}{Should the rows with all variables being NA be removed? DEFAULT is \code{TRUE}. This option is turned to \code{FALSE} if \code{only_pred} is \code{TRUE}.}
+
+\item{nu}{If \code{NULL}, then the model will assume that nu will
+be estimated. If nu is fixed, you should provide the value of nu.}
+
+\item{rspde.order}{The order of the rational approximation}
 }
 \value{
 An 'INLA' and 'inlabru' friendly list with the data.
