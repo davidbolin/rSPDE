@@ -613,7 +613,7 @@ matern.operators <- function(kappa = NULL,
       return(output$Pr %*% solve(output$Q, output$Pr %*% v))
     }
     output$covariance_mesh <- function(){
-      return(output$Pr %*% solve(output$Q, output$Pr))
+      return(output$Pr %*% solve(output$Q, t(output$Pr)))
   }    
     return(output)
   } else {
@@ -650,7 +650,7 @@ matern.operators <- function(kappa = NULL,
   out$covariance_mesh <- function(){
       A <- Matrix::Diagonal(dim(C)[1])
       A_bar <- kronecker(matrix(1, ncol = m+1), A)
-      return((A_bar) %*% solve(out$Q, A_bar))
+      return((A_bar) %*% solve(out$Q, t(A_bar)))
   }    
     return(out)
   }
@@ -1516,7 +1516,7 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
   output$covariance_mesh <- function(){
       A <- Matrix::Diagonal(dim(C)[1])
       A_bar <- kronecker(matrix(1, ncol = m+1), A)
-      return((A_bar) %*% solve(output$Q, A_bar))
+      return((A_bar) %*% solve(output$Q, t(A_bar)))
   }
 
   return(output)
