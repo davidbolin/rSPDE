@@ -612,6 +612,9 @@ matern.operators <- function(kappa = NULL,
       v <- output$make_A(loc = p)
       return(output$Pr %*% solve(output$Q, output$Pr %*% v))
     }
+    output$covariance_mesh <- function(){
+      return(output$Pr %*% solve(output$Q, output$Pr))
+  }    
     return(output)
   } else {
 
@@ -643,6 +646,12 @@ matern.operators <- function(kappa = NULL,
       A_bar <- kronecker(matrix(1, ncol = m+1), A)
       return((A_bar) %*% solve(out$Q, v_bar))
     }
+
+  out$covariance_mesh <- function(){
+      A <- Matrix::Diagonal(dim(C)[1])
+      A_bar <- kronecker(matrix(1, ncol = m+1), A)
+      return((A_bar) %*% solve(out$Q, A_bar))
+  }    
     return(out)
   }
 }
@@ -1382,6 +1391,13 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
       output$B.sigma <- B.sigma
       output$B.range <- B.range
       output$parameterization <- parameterization
+      output$cov_function_mesh <- function(p){
+      v <- output$make_A(loc = p)
+      return(output$Pr %*% solve(output$Q, output$Pr %*% v))
+    }
+    output$covariance_mesh <- function(){
+      return(output$Pr %*% solve(output$Q, output$Pr))
+  }    
   } else{
     type_rational_approximation <- type_rational_approximation[[1]]
     m_alpha <- floor(alpha)
@@ -1487,7 +1503,20 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
   output$B.sigma <- B.sigma
   output$B.range <- B.range
   output$parameterization <- parameterization  
+  output$cov_function_mesh <- function(p){
+      v <- t(out$make_A(loc = p))
+      A <- Matrix::Diagonal(dim(C)[1])
+      v_bar <- kronecker(matrix(1, nrow = m + 1), v)
+      A_bar <- kronecker(matrix(1, ncol = m+1), A)
+      return((A_bar) %*% solve(output$Q, v_bar))
+    }
   class(output) <- "CBrSPDEobj"
+  }
+
+  output$covariance_mesh <- function(){
+      A <- Matrix::Diagonal(dim(C)[1])
+      A_bar <- kronecker(matrix(1, ncol = m+1), A)
+      return((A_bar) %*% solve(output$Q, A_bar))
   }
 
   return(output)
