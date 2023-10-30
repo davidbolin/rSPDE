@@ -46,11 +46,6 @@ then one sets to \code{group} to \code{.all}.}
 \item{drop_na}{Should the rows with at least one NA for one of the columns be removed? DEFAULT is \code{FALSE}. This option is turned to \code{FALSE} if \code{only_pred} is \code{TRUE}.}
 
 \item{drop_all_na}{Should the rows with all variables being NA be removed? DEFAULT is \code{TRUE}. This option is turned to \code{FALSE} if \code{only_pred} is \code{TRUE}.}
-
-\item{nu}{If \code{NULL}, then the model will assume that nu will
-be estimated. If nu is fixed, you should provide the value of nu.}
-
-\item{rspde.order}{The order of the rational approximation}
 }
 \value{
 An 'INLA' and 'inlabru' friendly list with the data.

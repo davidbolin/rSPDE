@@ -1420,9 +1420,6 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' @param loc  Locations. If not given, they will be chosen as the available locations on the metric graph internal dataset.
 #' @param loc_name Character with the name of the location variable to be used in
 #' 'inlabru' prediction.
-#' @param nu If `NULL`, then the model will assume that nu will
-#' be estimated. If nu is fixed, you should provide the value of nu.
-#' @param rspde.order The order of the rational approximation
 #' @param tibble Should the data be returned as a `tidyr::tibble`?
 #' @param drop_na Should the rows with at least one NA for one of the columns be removed? DEFAULT is `FALSE`. This option is turned to `FALSE` if `only_pred` is `TRUE`.
 #' @param drop_all_na Should the rows with all variables being NA be removed? DEFAULT is `TRUE`. This option is turned to `FALSE` if `only_pred` is `TRUE`.
