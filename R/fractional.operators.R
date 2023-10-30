@@ -440,6 +440,28 @@ matern.operators <- function(kappa = NULL,
     stop("parameterization should be either 'matern', 'spde' or 'graph'!")
   }
 
+  if(parameterization == "spde"){
+    if(!is.null(nu)){
+      stop("For 'spde' parameterization, you should NOT supply 'nu'. You need to provide 'alpha'!")
+    }
+    if(!is.null(sigma)){
+      stop("For 'spde' parameterization, you should NOT supply 'sigma'. You need to provide 'tau'!")
+    }
+    if(!is.null(range)){
+      stop("For 'spde' parameterization, you should NOT supply 'range'. You need to provide 'kappa'!")
+    }
+  } else{
+    if(!is.null(alpha)){
+      stop("For 'matern' parameterization, you should NOT supply 'alpha'. You need to provide 'nu'!")
+    }
+    if(!is.null(tau)){
+      stop("For 'matern' parameterization, you should NOT supply 'tau'. You need to provide 'sigma'!")
+    }
+    if(!is.null(kappa)){
+      stop("For 'matern' parameterization, you should NOT supply 'kappa'. You need to provide 'range'!")
+    }
+  }
+
   if(!is.null(graph)){
     if(!inherits(graph, "metric_graph")){
       stop("graph should be a metric_graph object!")
@@ -1134,6 +1156,28 @@ spde.matern.operators <- function(kappa = NULL,
 
   if (!parameterization %in% c("matern", "spde")) {
     stop("parameterization should be either 'matern' or 'spde'!")
+  }
+
+    if(parameterization == "spde"){
+    if(!is.null(nu)){
+      stop("For 'spde' parameterization, you should NOT supply 'nu'. You need to provide 'alpha'!")
+    }
+    if(!is.null(B.sigma)){
+      stop("For 'spde' parameterization, you should NOT supply 'B.sigma'. You need to provide 'B.tau'!")
+    }
+    if(!is.null(B.range)){
+      stop("For 'spde' parameterization, you should NOT supply 'B.range'. You need to provide 'B.kappa'!")
+    }
+  } else{
+    if(!is.null(alpha)){
+      stop("For 'matern' parameterization, you should NOT supply 'alpha'. You need to provide 'nu'!")
+    }
+    if(!is.null(B.tau)){
+      stop("For 'matern' parameterization, you should NOT supply 'B.tau'. You need to provide 'B.sigma'!")
+    }
+    if(!is.null(B.kappa)){
+      stop("For 'matern' parameterization, you should NOT supply 'B.kappa'. You need to provide 'B.range'!")
+    }
   }
 
 if (is.null(d) && is.null(mesh) && is.null(graph)) {
