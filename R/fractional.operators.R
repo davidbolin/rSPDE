@@ -1162,20 +1162,20 @@ spde.matern.operators <- function(kappa = NULL,
     if(!is.null(nu)){
       stop("For 'spde' parameterization, you should NOT supply 'nu'. You need to provide 'alpha'!")
     }
-    if(!is.null(B.sigma)){
+    if(!missing(B.sigma)){
       stop("For 'spde' parameterization, you should NOT supply 'B.sigma'. You need to provide 'B.tau'!")
     }
-    if(!is.null(B.range)){
+    if(!missing(B.range)){
       stop("For 'spde' parameterization, you should NOT supply 'B.range'. You need to provide 'B.kappa'!")
     }
   } else{
     if(!is.null(alpha)){
       stop("For 'matern' parameterization, you should NOT supply 'alpha'. You need to provide 'nu'!")
     }
-    if(!is.null(B.tau)){
+    if(!missing(B.tau)){
       stop("For 'matern' parameterization, you should NOT supply 'B.tau'. You need to provide 'B.sigma'!")
     }
-    if(!is.null(B.kappa)){
+    if(!missing(B.kappa)){
       stop("For 'matern' parameterization, you should NOT supply 'B.kappa'. You need to provide 'B.range'!")
     }
   }
