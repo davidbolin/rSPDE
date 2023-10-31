@@ -656,6 +656,7 @@ if(parallel){
     coeff <- exp(c(res$par[1:n_coeff_nonfixed]))
   } else{
     coeff <- res$par[1:n_coeff_nonfixed]
+    coeff[1] <- exp(coeff[1])
     if(estimate_nu){
       coeff[2] <- exp(coeff[2])
     }
@@ -858,6 +859,7 @@ if(parallel){
   object$df.residual <- object$nobs -(1 + length(object$coeff$fixed_effects) + length(object$coeff$random_effects))
   object$lik_fun <- likelihood_new
   object$par_lik_fun <- new_likelihood
+  object$mle_par_orig <- res$par
 
   # object$lik_fun <- likelihood
   # object$start_val <- start_values
