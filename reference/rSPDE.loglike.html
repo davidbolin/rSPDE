@@ -161,19 +161,23 @@ the likelihood of a latent Matern model.</p>
 <span class="r-in"><span>  loc_mesh <span class="op">=</span> <span class="va">x</span>, d <span class="op">=</span> <span class="fl">1</span>,</span></span>
 <span class="r-in"><span>  type <span class="op">=</span> <span class="st">"operator"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in matern.operators(range = range, sigma = sigma, nu = nu, loc_mesh = x,     d = 1, type = "operator"):</span> For 'spde' parameterization, you should NOT supply 'nu'. You need to provide 'alpha'!</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Sample the model</span></span></span>
 <span class="r-in"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in eval(expr, envir, enclos):</span> object 'op' not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Create some data</span></span></span>
 <span class="r-in"><span><span class="va">obs.loc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">10</span>, min <span class="op">=</span> <span class="fl">0</span>, max <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="rSPDE.A1d.html">rSPDE.A1d</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">obs.loc</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">u</span> <span class="op">+</span> <span class="va">sigma.e</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in eval(expr, envir, enclos):</span> object 'u' not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># compute log-likelihood of the data</span></span></span>
 <span class="r-in"><span><span class="va">lik1</span> <span class="op">&lt;-</span> <span class="fu">rSPDE.loglike</span><span class="op">(</span><span class="va">op</span>, <span class="va">Y</span>, <span class="va">A</span>, <span class="va">sigma.e</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in h(simpleError(msg, call)):</span> error in evaluating the argument 'x' in selecting a method for function 'as.matrix': object 'Y' not found</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="va">lik1</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -9.196023</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in eval(expr, envir, enclos):</span> object 'lik1' not found</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
