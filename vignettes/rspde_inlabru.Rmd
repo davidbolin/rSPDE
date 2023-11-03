@@ -813,6 +813,68 @@ facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
 
 
+## Comparing the results by cross-validation
+
+We can compare the models fitted by `inlabru` by using the function `cross_validation()`. To illustrate, we will consider the nonstationary model `rspde_fit_nonstat` fitted in the previous example and 
+a stationary fit of the same dataset.
+
+Let us, then, fit a stationary model with the previous dataset. We start by defining the stationary model:
+
+```{r}
+rspde_model_stat <- rspde.matern(mesh = mesh)
+```
+
+Then, `inlabru`'s component:
+
+```{r}
+cmp_stat <-
+  y ~ -1 + field(coordinates,
+    model = rspde_model_stat
+  )
+```
+
+We can now fit the model:
+
+```{r}
+rspde_fit_stat <-
+  bru(cmp_stat,
+    data = nonstat_df,
+    family = "gaussian",
+    options = list(verbose = FALSE)
+  )
+```
+
+To perform cross-validation, we create a list with the fitted models, and we pass this list to the `cross_validation()` function. It is also important to create a named list, so that the output has meaningful names for the models. We will perform a `leave percentage out` cross-validation, with the default that fits the model on 30% of the data, to predict 70% of the data.
+
+Let us create the models list:
+
+```{r}
+models <- list(stationary = rspde_fit_stat, 
+                nonstationary = rspde_fit_nonstat)
+```
+
+We will now run the cross-validation on the models above. We set the `cv_type` to `lpo` to perform the leave percentage out cross-validation, there are also the `k-fold` (default) and `loo` options to perform k-fold and leave one out cross-validations, respectively. Observe that by default we are performing a pseudo cross-validation, that is, we will not refit the model for each fold, however only the training data will be used to perform the prediction.
+
+```{r}
+cv_result <- cross_validation(models, cv_type = "lpo", print = FALSE)
+```
+
+We can now look at the results by printing `cv_result`. Observe that the best model with respect to each score is displayed in the last row.
+
+```{r}
+cv_result
+```
+
+The `cross_validation()` function also has the following useful options:
+
+* `return_score_folds` option, so that the scores for each fold can be returned in order to create confidence regions for the scores. 
+* `return_train_test` To return the train and test indexes that were used to perform the cross-validation.
+* `true_CV` To perform true cross-validation, that is, the data will be fit again for each fold, which is more costly.
+* `train_test_indexes` In which the user can provide the indexes for the train and test sets.
+
+More details can be found in the manual page of the `cross_validation()` function.
+
+
 ## Further options of the `inlabru` implementation
 
 There are several additional options that are available. For instance, it is possible to change the order of the rational approximation,

@@ -341,7 +341,7 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @description Obtain several scores for a list of fitted models according 
 #' to a folding scheme.
 #' @param models A fitted model obtained from calling the `bru()` function or a list of models fitted with the `bru()` function.
-#' @param model_names A vector containing the names of the models to appear in the returned `data.frame`. If `NULL`, the names will be of the form `Model 1`, `Model 2`, and so on.
+#' @param model_names A vector containing the names of the models to appear in the returned `data.frame`. If `NULL`, the names will be of the form `Model 1`, `Model 2`, and so on. By default, it will try to obtain the name from the models list.
 #' @param scores A vector containing the scores to be computed. The options are "mse", "crps", "scrps" and "dss". By default, all scores are computed.
 #' @param cv_type The type of the folding to be carried out. The options are `k-fold` for `k`-fold cross-validation, in which case the parameter `k` should be provided, 
 #' `loo`, for leave-one-out and `lpo` for leave-percentage-out, in this case, the parameter `percentage` should be given, and also the `number_folds` 
@@ -352,6 +352,7 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @param n_samples Number of samples to compute the posterior statistics to be used to compute the scores.
 #' @param return_scores_folds If `TRUE`, the scores for each fold will also be returned.
 #' @param orientation_results character vector. The options are "negative" and "positive". If "negative", the smaller the scores the better. If "positive", the larger the scores the better.
+#' @param include_best Should a row indicating which model was the best for each score be included?
 #' @param train_test_indexes A list containing two entries `train`, which is a list whose elements are vectors of indexes of the training data, and `test`, which is a list whose elements are vectors of indexes of the test data.
 #' Typically this will be returned list obtained by setting the argument `return_train_test` to `TRUE`.
 #' @param return_train_test Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list.
@@ -366,9 +367,10 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 
 cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps", "scrps", "dss"),
                               cv_type = c("k-fold", "loo", "lpo"),
-                              k = 5, percentage = 30, number_folds = 10,
+                              k = 5, percentage = 20, number_folds = 10,
                               n_samples = 1000, return_scores_folds = FALSE,
                               orientation_results = c("negative", "positive"),
+                              include_best = TRUE,
                               train_test_indexes = NULL,
                               return_train_test = FALSE,
                               parallelize_RP = FALSE, n_cores_RP = parallel::detectCores()-1,
@@ -444,6 +446,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                       stop("models must be either a result from a bru call or a list of results from bru() calls!")
                                     }
                                   }
+                                }
+
+                                if(is.null(model_names) && is.list(models)){
+                                  model_names <- names(models)
                                 }
 
                                 if(!is.null(model_names)){
@@ -985,6 +991,22 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
             settings_list[["percentage"]] <- percentage
             settings_list[["number_folds"]] <- number_folds
           }
+        }
+
+        if(include_best){
+          n_fit_scores <- ncol(result_df)-1
+          final_row <- c("Best")
+          for(j in 2:ncol(result_df)){
+            if(orientation_results == "negative"){
+              best_tmp <- which.min(result_df[,j])
+              final_row <- c(final_row, model_names[best_tmp])
+            } else{
+              best_tmp <- which.max(result_df[,j])
+              final_row <- c(final_row, model_names[best_tmp])
+            }
+          }
+          result_df <- rbind(result_df, final_row)
+          row.names(result_df)[nrow(result_df)] <- ""
         }
 
 
