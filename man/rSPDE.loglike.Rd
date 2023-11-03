@@ -56,7 +56,7 @@ fem <- rSPDE.fem1d(x)
 op <- matern.operators(
   range = range, sigma = sigma, nu = nu,
   loc_mesh = x, d = 1,
-  type = "operator"
+  type = "operator", parameterization = "matern"
 )
 
 # Sample the model
