@@ -172,7 +172,7 @@ stopifnot(inherits(result, "bru"))
   original_timings <- result[["bru_timings"]]
 
   lhoods_tmp <- info[["lhoods"]]
-  lhoods_tmp[[1]]$response_data <- lhoods_tmp[[1]]$response_data[idx_data,]
+  lhoods_tmp[[1]]$response_data$BRU_response <- lhoods_tmp[[1]]$response_data$BRU_response[idx_data]
   lhoods_tmp[[1]]$data <- lhoods_tmp[[1]]$data[idx_data,]
   if(length(lhoods_tmp[[1]]$E)>1){
     lhoods_tmp[[1]]$E <- lhoods_tmp[[1]]$E[idx_data]
@@ -206,26 +206,27 @@ stopifnot(inherits(result, "bru"))
     if(!is.null(name_input_group)){
       name_input_group <- as.character(name_input_group)
       comp_group_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
-      if(is.null(total_length)){
+      if(is.null(total_length) && !is.null(comp_group_tmp)){
         total_length <- length(comp_group_tmp)
-      }
-      if(length(comp_group_tmp) == total_length){
-        backup_list[[comp]][["group_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
-        comp_group_tmp <- comp_group_tmp[idx_data]
-        assign(name_input_group, comp_group_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+
+        if(length(comp_group_tmp) == total_length){
+          backup_list[[comp]][["group_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
+          comp_group_tmp <- comp_group_tmp[idx_data]
+          assign(name_input_group, comp_group_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+        }
       }
     }
     name_input_repl <- info[["model"]][["effects"]][[comp]][["replicate"]][["input"]][["input"]]
     if(!is.null(name_input_repl)){
       name_input_repl <- as.character(name_input_repl)
       comp_repl_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
-      if(is.null(total_length)){
+      if(is.null(total_length) && !is.null(comp_repl_tmp)){
         total_length <- length(comp_repl_tmp)
-      }
-      if(length(comp_repl_tmp) == total_length){
-        backup_list[[comp]][["repl_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
-        comp_repl_tmp <- comp_repl_tmp[idx_data]
-        assign(name_input_repl, comp_repl_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+        if(length(comp_repl_tmp) == total_length){
+          backup_list[[comp]][["repl_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
+          comp_repl_tmp <- comp_repl_tmp[idx_data]
+          assign(name_input_repl, comp_repl_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+        }
       }
     }
   }
@@ -567,9 +568,9 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
-                                            posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
+                                            posterior_samples <- inlabru::generate(new_model, newdata = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
                                         } else {
-                                          posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
+                                          posterior_samples <- inlabru::generate(new_model, newdata = df_pred, formula = formula_tmp, n.samples = n_samples)
                                         }
                                         
                                         if(print){ 
@@ -712,16 +713,16 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
-                                            posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
+                                            posterior_samples <- inlabru::generate(new_model, newdata = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
                                         } else {
-                                          posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
+                                          posterior_samples <- inlabru::generate(new_model, newdata = df_pred, formula = formula_tmp, n.samples = n_samples)
                                         }
 
                                         if(print){ 
                                           cat("Samples generated!\n")
                                         }
 
-                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
+                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data$BRU_response[test_list[[fold]]]
 
                                         if(nrow(posterior_samples) == 1){
                                           posterior_samples <- matrix(rep(posterior_samples, length(test_data)),ncol=ncol(posterior_samples), byrow = TRUE)
@@ -850,16 +851,16 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
-                                            posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
+                                            posterior_samples <- inlabru::generate(new_model, newdata = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
                                         } else {
-                                          posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
+                                          posterior_samples <- inlabru::generate(new_model, newdata = df_pred, formula = formula_tmp, n.samples = n_samples)
                                         }
 
                                         if(print){
                                             cat("Samples generated!\n")
                                         }
 
-                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
+                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data$BRU_response[test_list[[fold]]]
 
                                         if(nrow(posterior_samples) == 1){
                                           posterior_samples <- matrix(rep(posterior_samples, length(test_data)),ncol=ncol(posterior_samples), byrow = TRUE)
