@@ -1110,10 +1110,10 @@ CBrSPDE.matern.operators <- function(C,
 #'
 #' # define a non-stationary range parameter
 #' kappa <- seq(from = 2, to = 20, length.out = length(x))
-#'
+#' alpha <- nu + 1/2
 #' # compute rational approximation
 #' op <- spde.matern.operators(
-#'   kappa = kappa, tau = tau, nu = nu,
+#'   kappa = kappa, tau = tau, alpha = alpha,
 #'   G = fem$G, C = fem$C, d = 1
 #' )
 #'

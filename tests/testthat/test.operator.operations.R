@@ -9,7 +9,7 @@ test_that("Operator algebra", {
   kappa <- seq(from = 2, to = 20, length.out = length(x))
 
   op <- spde.matern.operators(
-    kappa = kappa, tau = tau, nu = nu,
+    kappa = kappa, tau = tau, alpha = nu + 1/2,
     G = fem$G, C = fem$C, d = 1, type = "operator"
   )
   v <- x
