@@ -6,26 +6,27 @@
 \usage{
 \method{predict}{rspde_lme}(
   object,
-  data = NULL,
+  newdata = NULL,
   loc = NULL,
   mesh = FALSE,
   which_repl = NULL,
   compute_variances = FALSE,
   posterior_samples = FALSE,
   n_samples = 100,
-  only_latent = FALSE,
+  sample_latent = FALSE,
   edge_number = "edge_number",
   distance_on_edge = "distance_on_edge",
   normalized = FALSE,
   return_as_list = FALSE,
   return_original_order = TRUE,
-  ...
+  ...,
+  data = deprecated()
 )
 }
 \arguments{
 \item{object}{The fitted object with the \code{rspde_lme()} function}
 
-\item{data}{A \code{data.frame} or a \code{list} containing the covariates, the edge number and the distance on edge
+\item{newdata}{A \code{data.frame} or a \code{list} containing the covariates, the edge number and the distance on edge
 for the locations to obtain the prediction.}
 
 \item{loc}{Prediction locations. Can either be a \code{data.frame}, a \code{matrix} or a character vector, that contains the names of the columns of the coordinates of the locations. For models using \code{metric_graph} objects, plase use \code{edge_number} and \code{distance_on_edge} instead.}
@@ -40,7 +41,7 @@ for the locations to obtain the prediction.}
 
 \item{n_samples}{Number of samples to be returned. Will only be used if \code{sampling} is \code{TRUE}.}
 
-\item{only_latent}{Should the posterior samples and predictions be only given to the latent model?}
+\item{sample_latent}{Do posterior samples only for the random effects?}
 
 \item{edge_number}{Name of the variable that contains the edge number, the default is \code{edge_number}.}
 
@@ -53,6 +54,14 @@ for the locations to obtain the prediction.}
 \item{return_original_order}{Should the results be return in the original (input) order or in the order inside the graph?}
 
 \item{...}{Not used.}
+
+\item{data}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{newdata} instead.}
+}
+\value{
+A list with elements \code{mean}, which contains the means of the
+predictions, \code{fe_mean}, which is the prediction for the fixed effects, \code{re_mean}, which is the prediction for the random effects, \code{variance} (if \code{compute_variance} is \code{TRUE}), which contains the
+variances of the predictions, \code{samples} (if \code{posterior_samples} is \code{TRUE}),
+which contains the posterior samples.
 }
 \description{
 Prediction of a mixed effects regression model on a metric graph.

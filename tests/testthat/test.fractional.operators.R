@@ -1,8 +1,11 @@
 context("factional.operators")
 
 test_that("Operator construction for fractional stationary Matern", {
+  library(fmesher)
   x <- seq(from = 0, to = 1, length.out = 51)
-  fem <- rSPDE.fem1d(x)
+  mesh_1d <- fm_mesh_1d(x)
+  # fem <- rSPDE.fem1d(x)
+  fem <- fm_fem(mesh_1d)
 
   d <- 1
   nu <- 0.8
@@ -28,12 +31,13 @@ test_that("Operator construction for fractional stationary Matern", {
     parameterization = "spde"
   )
 
-  L <- fem$G + kappa^2 * fem$C
+  L <- fem$g1 + kappa^2 * fem$c0
   op3 <- fractional.operators(
     L = L, scale.factor = kappa^2, tau = tau,
-    beta = beta, C = fem$C
+    beta = beta, C = fem$c0
   )
-  v <- t(rSPDE.A1d(x, 0.5))
+  # v <- t(rSPDE.A1d(x, 0.5))
+  v <- t(fm_basis(mesh_1d, 0.5))
   c1 <- as.vector(Sigma.mult(op1, v))
   c2 <- as.vector(Sigma.mult(op2, v))
   c3 <- as.vector(Sigma.mult(op3, v))
@@ -46,8 +50,11 @@ test_that("Operator construction for fractional stationary Matern", {
 })
 
 test_that("Operator construction for non-fractional stationary Matern", {
+  library(fmesher)
   x <- seq(from = 0, to = 1, length.out = 51)
-  fem <- rSPDE.fem1d(x)
+  mesh_1d <- fm_mesh_1d(x)
+  # fem <- rSPDE.fem1d(x)
+  fem <- fm_fem(mesh_1d)
 
   d <- 1
   nu <- 1.5
@@ -74,12 +81,13 @@ test_that("Operator construction for non-fractional stationary Matern", {
     
   )
 
-  L <- fem$G + kappa^2 * fem$C
+  L <- fem$g1 + kappa^2 * fem$c0
   op3 <- fractional.operators(
     L = L, scale.factor = kappa^2, tau = tau,
-    beta = beta, C = fem$C
+    beta = beta, C = fem$c0
   )
-  v <- t(rSPDE.A1d(x, 0.5))
+  # v <- t(rSPDE.A1d(x, 0.5))
+  v <- t(fm_basis(mesh_1d, 0.5))
   c1 <- as.vector(Sigma.mult(op1, v))
   c2 <- as.vector(Sigma.mult(op2, v))
   c3 <- as.vector(Sigma.mult(op3, v))
@@ -94,8 +102,11 @@ test_that("Operator construction for non-fractional stationary Matern", {
 
 test_that("Operator construction for fractional
 stationary Matern with beta>1", {
+  library(fmesher)
   x <- seq(from = 0, to = 1, length.out = 51)
-  fem <- rSPDE.fem1d(x)
+  mesh_1d <- fm_mesh_1d(x)
+  # fem <- rSPDE.fem1d(x)
+  fem <- fm_fem(mesh_1d)
 
   d <- 1
   nu <- 2
@@ -121,12 +132,13 @@ stationary Matern with beta>1", {
     parameterization = "spde"
   )
 
-  L <- fem$G + kappa^2 * fem$C
+  L <- fem$g1 + kappa^2 * fem$c0
   op3 <- fractional.operators(
     L = L, scale.factor = kappa^2, tau = tau,
-    beta = beta, C = fem$C
+    beta = beta, C = fem$c0
   )
-  v <- t(rSPDE.A1d(x, 0.5))
+  # v <- t(rSPDE.A1d(x, 0.5))
+  v <- t(fm_basis(mesh_1d, 0.5))
   c1 <- as.vector(Sigma.mult(op1, v))
   c2 <- as.vector(Sigma.mult(op2, v))
   c3 <- as.vector(Sigma.mult(op3, v))
@@ -140,8 +152,11 @@ stationary Matern with beta>1", {
 
 
 test_that("Operator construction for non-stationary Matern", {
+  library(fmesher)
   x <- seq(from = 0, to = 1, length.out = 51)
-  fem <- rSPDE.fem1d(x)
+  mesh_1d <- fm_mesh_1d(x)
+  # fem <- rSPDE.fem1d(x)
+  fem <- fm_fem(mesh_1d)
 
   d <- 1
   nu <- 0.8
@@ -156,12 +171,13 @@ test_that("Operator construction for non-stationary Matern", {
 
   beta <- (nu + d / 2) / 2
 
-  L <- fem$G + fem$C %*% Matrix::Diagonal(dim(fem$C)[1], kappa^2)
+  L <- fem$g1 + fem$c0 %*% Matrix::Diagonal(dim(fem$c0)[1], kappa^2)
   op2 <- fractional.operators(
     L = L, scale.factor = min(kappa)^2, tau = tau,
-    beta = beta, C = fem$C
+    beta = beta, C = fem$c0
   )
-  v <- t(rSPDE.A1d(x, 0.5))
+  # v <- t(rSPDE.A1d(x, 0.5))
+  v <- t(fm_basis(mesh_1d, 0.5))
   c1 <- as.vector(Sigma.mult(op1, v))
   c2 <- as.vector(Sigma.mult(op2, v))
   expect_equal(c1, c2, tolerance = 1e-10)

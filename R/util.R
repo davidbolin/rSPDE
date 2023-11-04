@@ -529,6 +529,90 @@ rSPDE.fem1d <- function(x) {
   return(list(G = G, C = C))
 }
 
+#' Finite element calculations for problems in 2D
+#'
+#' This function computes mass and stiffness matrices for a mesh in 2D, assuming
+#' Neumann boundary conditions.
+#'
+#' @param FV Matrix where each row defines a triangle
+#' @param P Locations of the nodes in the mesh.
+#'
+#' @return The function returns a list with the following elements
+#' \item{G }{The stiffness matrix with elements \eqn{(\nabla \phi_i, \nabla \phi_j)}.}
+#' \item{C }{The mass matrix with elements \eqn{(\phi_i, \phi_j)}.}
+#' \item{Cd }{The mass lumped matrix with diagonal elements \eqn{(\phi_i, 1)}.}
+#' \item{Hxx }{Matrix with elements \eqn{(\partial_x \phi_i, \partial_x \phi_j)}.}
+#' \item{Hyy }{Matrix with elements \eqn{(\partial_y \phi_i, \partial_y \phi_j)}.}
+#' \item{Hxy }{Matrix with elements \eqn{(\partial_x \phi_i, \partial_y \phi_j)}.}
+#' \item{Hyx }{Matrix with elements \eqn{(\partial_y \phi_i, \partial_x \phi_j)}.}
+#' @export
+#' @author David Bolin \email{davidbolin@@gmail.com}
+#' @seealso [rSPDE.fem1d()]
+#' @examples
+#' P <- rbind(c(0,0), c(1,0), c(1,1), c(0,1))
+#' FV <- rbind(c(1,2,3), c(2,3,4))
+#' fem <- rSPDE.fem2d(FV,P)
+rSPDE.fem2d <- function(FV, P) {
+  
+  d <- ncol(FV) - 1
+  if(d != 2){stop("Only 2d supported")}
+  if(ncol(P) != d){P <- t(P)}
+  if(ncol(P) != d){stop("Wrong dimension of P")}
+  
+  nV <- nrow(P)
+  nF <- nrow(FV)
+  Gi <- matrix(0, nrow = nF*3, ncol = 3)
+  Gj <- Gz <- Ci <- Cj <- Cz <- Gxx <- Gxy <- Gyx <- Gyy <- Gi
+  
+  Mxx <- matrix(c(1, -1, 0,-1, 1, 0, 0, 0, 0), 3, 3)   
+  Myy <- matrix(c(1, 0, -1, 0, 0, 0, -1, 0, 1), 3, 3)
+  Mxy <- matrix(c(1, -1, 0, 0, 0, 0, -1, 1, 0), 3, 3)
+  Myx <- matrix(c(1, 0, -1, -1, 0, 1, 0, 0, 0), 3, 3)
+  for(f in 1:nF) {
+    dd <- 3*(f-1)+(1:3)
+    Gi[dd, ] <- Ci[dd, ] <- FV[f, ] %*% t(rep(1,3))
+    Gj[dd, ] <- Cj[dd, ] <- t(Gi[dd, ])
+    
+    xy <- t(P[FV[f, ], ])
+    m1 <- rbind(rep(1, 3), xy)
+    m2 <- rbind(rep(0, 2), diag(1, 2))
+    m <- solve(m1, m2)
+    ddet <- abs(det(m1))
+    Gz[dd,] <- ddet * (m %*% t(m)) / 2
+    Cz[dd,] <- ddet * (rep(1, 3) + diag(3)) / 24
+    
+    Bk <- matrix(c(xy[1, 2] - xy[1, 1], 
+                   xy[2, 2] - xy[2, 1],
+                   xy[1, 3] - xy[1, 1], 
+                   xy[2, 3] - xy[2, 1]), 2, 2)
+    
+    Bki <- solve(Bk)
+    Cxx <- Bki%*%matrix(c(1, 0, 0, 0), 2, 2)%*%t(Bki)
+    Cyy <- Bki%*%matrix(c(0, 0, 0, 1), 2, 2)%*%t(Bki)
+    Cxy <- Bki%*%matrix(c(0, 0, 1, 0), 2, 2)%*%t(Bki)
+    Cyx <- Bki%*%matrix(c(0, 1, 0, 0), 2, 2)%*%t(Bki)
+    
+    Gxx[dd, ] <- ddet*(Cxx[1, 1]*Mxx + Cxx[1, 2]*Mxy + Cxx[2, 1]*Myx + Cxx[2, 2]*Myy) / 2
+    Gyy[dd, ] <- ddet*(Cyy[1, 1]*Mxx + Cyy[1, 2]*Mxy + Cyy[2, 1]*Myx + Cyy[2, 2]*Myy) / 2
+    Gxy[dd, ] <- ddet*(Cxy[1, 1]*Mxx + Cxy[1, 2]*Mxy + Cxy[2, 1]*Myx + Cxy[2, 2]*Myy) / 2
+    Gyx[dd, ] <- ddet*(Cyx[1, 1]*Mxx + Cyx[1, 2]*Mxy + Cyx[2, 1]*Myx + Cyx[2, 2]*Myy) / 2
+  }
+  
+  G <- Matrix::sparseMatrix(i = as.vector(Gi), j = as.vector(Gj), 
+                            x = as.vector(Gz), dims = c(nV,nV))
+  Hxx <- Matrix::sparseMatrix(i = as.vector(Gi), j = as.vector(Gj), 
+                              x = as.vector(Gxx), dims = c(nV,nV))
+  Hyy <- Matrix::sparseMatrix(i = as.vector(Gi), j = as.vector(Gj), 
+                              x = as.vector(Gyy), dims = c(nV,nV))
+  Hxy <- Matrix::sparseMatrix(i = as.vector(Gi), j = as.vector(Gj), 
+                              x = as.vector(Gxy), dims = c(nV,nV))
+  Hyx <- Matrix::sparseMatrix(i = as.vector(Gi), j = as.vector(Gj), 
+                              x = as.vector(Gyx), dims = c(nV,nV))
+  Ce <- Matrix::sparseMatrix(i = as.vector(Ci), j = as.vector(Cj), 
+                             x = as.vector(Cz), dims = c(nV,nV))
+  C <- Matrix::Diagonal(n = nV, x = Matrix::colSums(Ce))
+  return(list(G = G, C = Ce, Cd = C, Hxx = Hxx, Hyy = Hyy, Hxy = Hxy, Hyx = Hyx))
+}
 #' Warnings free loading of add-on packages
 #'
 #' Turn off all warnings for require(), to allow clean completion
@@ -812,7 +896,6 @@ get_inla_mesh_dimension <- function(inla_mesh) {
   return(d)
 }
 
-
 #' @name fem_mesh_order_1d
 #' @title Get fem_mesh_matrices for 1d inla.mesh objects
 #' @description Get fem_mesh_matrices for 1d inla.mesh objects
@@ -823,11 +906,15 @@ get_inla_mesh_dimension <- function(inla_mesh) {
 
 
 fem_mesh_order_1d <- function(inla_mesh, m_order) {
-  fem_mesh <- rSPDE.fem1d(inla_mesh[["loc"]])
-  C <- fem_mesh$C
+  # fem_mesh <- rSPDE.fem1d(inla_mesh[["loc"]])
+  # mesh_1d <- fmesher::fm_mesh_1d(inla_mesh[["loc"]])
+  # fem_mesh <- fmesher::fm_fem(mesh_1d)
+  mesh_1d <- fm_mesh_1d(inla_mesh[["loc"]])
+  fem_mesh <- fm_fem(mesh_1d)
+  C <- fem_mesh$c0
   C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
-  C <- INLA::inla.as.sparse(C)
-  G <- fem_mesh$G
+  C <- as(C,"TsparseMatrix")
+  G <- fem_mesh$g1
   Gk <- list()
   Ci <- C
   Ci@x <- 1 / (C@x)
@@ -864,6 +951,7 @@ generic_fem_mesh_order <- function(fem_matrices, m_order) {
   C <- fem_matrices$C
   C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
   C <- INLA::inla.as.sparse(C)
+  # C <- as(C,"TsparseMatrix")
   G <- fem_matrices$G
   Gk <- list()
   Ci <- C
@@ -964,11 +1052,15 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
     }
   } else if (!is.null(mesh)) {
     if (integer_alpha) {
-      fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+      # fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+      # fem_mesh_matrices <- fmesher::fm_fem(mesh, order = m_alpha)
+      fem_mesh_matrices <- fm_fem(mesh, order = m_alpha)
       return(fem_mesh_matrices[[paste0("g", m_alpha)]])
     } else {
       if (dim == 2) {
-        fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+        # fem_mesh_matrices <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+        # fem_mesh_matrices <- fmesher::fm_fem(mesh, order = m_alpha + 1)
+        fem_mesh_matrices <- fm_fem(mesh, order = m_alpha + 1)
       } else {
         fem_mesh_matrices <- fem_mesh_order_1d(mesh, m_order = m_alpha + 1)
       }
@@ -1015,7 +1107,8 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
 
 build_sparse_matrix_rspde <- function(entries, graph) {
   if (!is.null(graph)) {
-    graph <- as(graph, "dgTMatrix")
+    # graph <- as(graph, "dgTMatrix")
+    graph <- as(graph,"TsparseMatrix")
     idx <- which(graph@i <= graph@j)
     Q <- Matrix::sparseMatrix(
       i = graph@i[idx], j = graph@j[idx], x = entries,
@@ -1132,7 +1225,8 @@ analyze_sparsity_rspde <- function(nu.upper.bound, dim, rspde.order,
 #' @noRd
 
 symmetric_part_matrix <- function(M) {
-  M <- as(M, "dgTMatrix")
+  # M <- as(M, "dgTMatrix")
+  M <- as(M,"TsparseMatrix")
   idx <- which(M@i <= M@j)
   sM <- cbind(M@i[idx], M@j[idx])
   colnames(sM) <- NULL
@@ -1941,9 +2035,11 @@ get_parameters_rSPDE_graph <- function (graph_obj, alpha,
         if (is.null(prior.range.nominal)) {
             if(is.null(graph_obj$geo_dist)){
               graph_obj$compute_geodist(obs=FALSE)
+            } else if(is.null(graph_obj$geo_dist[[".vertices"]])){
+              graph_obj$compute_geodist(obs=FALSE)
             }
-            finite_geodist <- is.finite(graph_obj$geo_dist[["__vertices"]])
-            finite_geodist <- graph_obj$geo_dist[["__vertices"]][finite_geodist]
+            finite_geodist <- is.finite(graph_obj$geo_dist[[".vertices"]])
+            finite_geodist <- graph_obj$geo_dist[[".vertices"]][finite_geodist]
             prior.range.nominal <- max(finite_geodist) * 0.2
         }
         if (is.null(prior.kappa)) {
@@ -2079,4 +2175,48 @@ return_same_input_type_matrix_vector <- function(v, orig_v){
     dim(v_out) <- dim(orig_v)
     return(v_out)
   }
+}
+
+
+
+#' find indices of the rows with all NA's in lists
+#' @noRd
+#'
+idx_not_all_NA <- function(data_list){
+     data_list[[".edge_number"]] <- NULL
+     data_list[[".distance_on_edge"]] <- NULL
+     data_list[[".coord_x"]] <- NULL
+     data_list[[".coord_y"]] <- NULL
+     data_list[[".group"]] <- NULL
+     data_names <- names(data_list)
+     n_data <- length(data_list[[data_names[1]]])
+     idx_non_na <- logical(n_data)
+     for(i in 1:n_data){
+        na_idx <- lapply(data_list, function(dat){
+          return(is.na(dat[i]))
+        })
+        idx_non_na[i] <- !all(unlist(na_idx))
+     }
+     return(idx_non_na)
+}
+
+#' find indices of the rows with at least one NA's in lists
+#' @noRd
+#'
+idx_not_any_NA <- function(data_list){
+     data_list[[".edge_number"]] <- NULL
+     data_list[[".distance_on_edge"]] <- NULL
+     data_list[[".coord_x"]] <- NULL
+     data_list[[".coord_y"]] <- NULL
+     data_list[[".group"]] <- NULL
+     data_names <- names(data_list)
+     n_data <- length(data_list[[data_names[1]]])
+     idx_non_na <- logical(n_data)
+     for(i in 1:n_data){
+        na_idx <- lapply(data_list, function(dat){
+          return(is.na(dat[i]))
+        })
+        idx_non_na[i] <- !any(unlist(na_idx))
+     }
+     return(idx_non_na)
 }

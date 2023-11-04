@@ -1,7 +1,7 @@
 ---
 title: "Rational approximation with the rSPDE package"
 author: "David Bolin, Alexandre B. Simas, Zhen Xiong"
-date: "`r Sys.Date()`"
+date: "Created: 2021-12-04. Last modified: `r Sys.Date()`."
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Rational approximation with the rSPDE package}
@@ -225,9 +225,8 @@ the covariance-based rational approximation. We will use functions to sample fro
 with stationary Matérn covariance function, compute the log-likelihood function, and do spatial prediction.
 
 The first step for performing the covariance-based rational SPDE approximation is to define the FEM mesh. 
-For illustration purposes, the `rSPDE` package contains a simple FEM implementation for 
-models on $\mathbb{R}$ which we will use first. We will also illustrate how spatial models 
-can be constructed if the FEM implementation of the `r inla_link()` package is used instead. 
+We will also illustrate how spatial models 
+can be constructed if the FEM implementation of the `fmesher` package is used. 
 When using the `r inla_link()` package, we also recommend the usage of our `r inla_link()` implementation
 of the rational SPDE approach. For more details, see the [R-INLA implementation of the rational SPDE approach](rspde_inla.html) vignette.
 
@@ -255,30 +254,43 @@ op_cov <- matern.operators(loc_mesh = s, nu = nu,
 )
 ```
 The object `op_cov` contains the matrices needed for evaluating the distribution of the stochastic weights $\boldsymbol{\mathrm{u}}$. If we want to evaluate $u_h(s)$ at some locations $s_1,\ldots, s_n$, we need to multiply the weights with the basis functions $\varphi_i(s)$ evaluated at the locations. For this, we can construct the observation matrix $\boldsymbol{\mathrm{A}}$, with elements $A_{ij} = \varphi_j(s_i)$, which links the FEM basis functions to the locations. 
-This matrix can be constructed using the function `rSPDE.A1d()`. However, as observed in the introduction of this vignette, we have decomposed the stochastic weights $\boldsymbol{\mathrm{u}}$ into a vector of latent variables.
+This matrix can be constructed using the function `fm_basis()` from the `fmesher` package. However, as observed in the introduction of this vignette, we have decomposed the stochastic weights $\boldsymbol{\mathrm{u}}$ into a vector of latent variables.
 Thus, the $A$ matrix for the covariance-based rational approximation, which we will denote by $\overline{A}$, is actually given by the $m+1$-fold horizontal concatenation of these $A$ matrices, where $m$ is the order
 of the rational approximation.
-
+<!-- 
 To compute the precision matrix from the covariance-based rational approximation one
 can use the `precision()` method on the `CBrSPDEobj` object (the object returned by
 the `matern.operators()` function with the default type, which is
 `type="covariance"`):
 
-```{r}
-Q <- precision(op_cov)
-```
+# ```{r}
+# Q <- precision(op_cov)
+# ``` 
 
-To evaluate the accuracy of the approximation, let us compute the covariance function between the process at $s=0.5$ and all other locations in `s` and compare with the true Matérn covariance function. The covariances can be calculated as 
+-->
+
+To evaluate the accuracy of the approximation, let us compute the covariance function between the process at $s=0.5$ and all other locations in `s` and compare with the true Matérn covariance function. The covariances can be calculated by using the `cov_function_mesh()` method.
+<!-- as 
 $$
 \overline{\boldsymbol{\mathrm{A}}} \boldsymbol{\mathrm{Q}}^{-1}\overline{\boldsymbol{\mathrm{v}}}.
 $$
 Here, $\boldsymbol{\mathrm{Q}}$ is the precision matrix obtained from the covariance-based rational approximation, $\boldsymbol{\mathrm{A}}$ is an identity matrix since we are evaluating the approximation in the nodes of the FEM mesh, $\overline{\boldsymbol{\mathrm{v}}}$ is the $(m+1)$-fold vertical concatenation of the vector $\boldsymbol{\mathrm{v}}$, where $\boldsymbol{\mathrm{v}}$ is a vector with all basis functions evaluated in $s=0.5$.
+-->
+
+<!-- 
+# ```{r}
+#library(fmesher)
+#mesh_1d <- fm_mesh_1d(s)
+#v <- t(fm_basis(x = mesh_1d, loc = 0.5))
+#v_bar <- kronecker(matrix(1, nrow = 3), v)
+#A <- Diagonal(101)
+#A_bar <- kronecker(matrix(1, ncol = 3), A)
+#c_cov.approx <- (A_bar) %*% solve(Q, v_bar)
+# ``` 
+-->
+
 ```{r}
-v <- t(rSPDE.A1d(s, 0.5))
-v_bar <- kronecker(matrix(1, nrow = 3), v)
-A <- Diagonal(101)
-A_bar <- kronecker(matrix(1, ncol = 3), A)
-c_cov.approx <- (A_bar) %*% solve(Q, v_bar)
+c_cov.approx <- op_cov$cov_function_mesh(0.5)
 ```
 
 Let us now compute the true Matérn covariance function on the interval $(0,1)$,
@@ -314,41 +326,41 @@ plot(s, c.true - c_cov.approx,
 par(opar)
 ```
 
-To improve the approximation we can increase the degree of the polynomials, by increasing $m$, and/or increase the number of basis functions used for the FEM approximation. Let us, for example, compute the approximation with $m=4$ using the same mesh, as well as the approximation when we increase the number of basis functions and use $m=2$ and $m=4$. 
+To improve the approximation we can increase the degree of the polynomials, by increasing $m$, and/or increase the number of basis functions used for the FEM approximation. Let us, for example, compute the approximation with $m=4$ using the same mesh, as well as the approximation when we increase the number of basis functions and use $m=2$ and $m=4$. We will also load the `fmesher` package to use the `fm_basis()` and `fm_mesh_1d()` functions to map between the meshes.
 
 ```{r}
+library(fmesher)
+
 op_cov2 <- matern.operators(
   range = r, sigma = sigma, nu = nu,
   loc_mesh = s, d = 1, m = 4,
   parameterization = "matern"
 )
-Q2 <- precision(op_cov2)
-v_bar2 <- kronecker(matrix(1, nrow = 5), v)
-A_bar2 <- kronecker(matrix(1, ncol = 5), A)
-c_cov.approx2 <- (A_bar2) %*% solve(Q2, v_bar2)
+
+c_cov.approx2 <- op_cov2$cov_function_mesh(0.5)
 
 s2 <- seq(from = 0, to = 1, length.out = 501)
+
 op_cov <- matern.operators(
   range = r, sigma = sigma, nu = nu,
   loc_mesh = s2, d = 1, m = 2,
   parameterization = "matern"
 )
-Q3 <- precision(op_cov)
-A2 <- rSPDE.A1d(s2, s)
-v2 <- t(rSPDE.A1d(s2, 0.5))
-v2_bar <- kronecker(matrix(1, nrow = 3), v2)
-A2_bar <- kronecker(matrix(1, ncol = 3), A2)
-c_cov.approx3 <- (A2_bar) %*% solve(Q3, v2_bar)
+
+mesh_s2 <- fm_mesh_1d(s2)
+
+# Map the mesh s2 to s
+A2 <- fm_basis(mesh_s2, s)
+
+c_cov.approx3 <- A2 %*% op_cov$cov_function_mesh(0.5)
 
 op_cov <- matern.operators(
   range = r, sigma = sigma, nu = nu,
   loc_mesh = s2, d = 1, m = 4,
   parameterization = "matern"
 )
-Q4 <- precision(op_cov)
-v2_bar2 <- kronecker(matrix(1, nrow = 5), v2)
-A2_bar2 <- kronecker(matrix(1, ncol = 5), A2)
-c_cov.approx4 <- (A2_bar2) %*% solve(Q4, v2_bar2)
+
+c_cov.approx4 <- A2 %*% op_cov$cov_function_mesh(0.5)
 ```
 
 The resulting errors are shown in the following figure. 
@@ -374,6 +386,9 @@ par(opar)
 
 Since the error induced by the rational approximation decreases exponentially in $m$, there is in general rarely a need for an approximation with a large value of $m$. This is good because the size of $\boldsymbol{\mathrm{Q}}$ increases with $m$, which makes the approximation more computationally costly to use. To illustrate this, let us compute the norm of the approximation error for different $m$.
 ```{r}
+# Mapping s2 to s
+A2 <- fm_basis(mesh_s2, s)
+
 errors <- rep(0, 4)
 for (i in 1:4) {
   op_cov <- matern.operators(
@@ -381,10 +396,7 @@ for (i in 1:4) {
     loc_mesh = s2, d = 1, m = i,
     parameterization = "matern"
   )
-  Q <- precision(op_cov)
-  v_bar <- kronecker(matrix(1, nrow = i + 1), v2)
-  A_bar <- kronecker(matrix(1, ncol = i + 1), A2)
-  c_cov.approx <- (A_bar) %*% solve(Q, v_bar)
+  c_cov.approx <- A2 %*% op_cov$cov_function_mesh(0.5)
   errors[i] <- norm(c.true - c_cov.approx)
 }
 print(errors)
@@ -421,12 +433,13 @@ set.seed(1)
 s <- seq(from = 0, to = 1, length.out = 501)
 n.obs <- 200
 obs.loc <- runif(n.obs)
-A <- rSPDE.A1d(s, obs.loc)
+mesh_s <- fm_mesh_1d(s)
+A <- fm_basis(x = mesh_s, loc = obs.loc)
 ```
 
 We now generate the observations as $Y_i = 2 - x1 + u(s_i) + \varepsilon_i$, where $\varepsilon_i \sim N(0,\sigma_e^2)$ is Gaussian measurement noise, $x1$ is a covariate giving the observation location. We will assume that the latent process has a Matérn covariance
 with $\kappa=20, \sigma=1.3$ and $\nu=0.8$:
-```{r}
+```{r, message=FALSE}
 kappa <- 20
 sigma <- 1.3
 nu <- 0.8
@@ -483,6 +496,13 @@ print(data.frame(
 print(fit$fitting_time)
 ```
 
+Let us take a glance at the fit:
+
+```{r}
+glance(fit)
+```
+
+
 We can also speed up the optimization by setting `parallel=TRUE` (which uses implicitly the `optimParallel` function):
 
 ```{r, message=FALSE, warning=FALSE}
@@ -523,7 +543,7 @@ df_pred <- data.frame(loc = s, x1 = s)
 We can now perform kriging with the `predict()` method:
 
 ```{r}
-u.krig <- predict(fit, data = df_pred, loc = "loc")
+u.krig <- predict(fit, newdata = df_pred, loc = "loc")
 ```
 
 
@@ -538,6 +558,16 @@ plot(obs.loc, Y,
 )
 lines(s, u.krig$mean, col = 2)
 par(opar)
+```
+
+We can also use the `augment()` function and pipe the results into a plot:
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+augment(fit, newdata = df_pred, loc = "loc") %>% ggplot() + aes(x = loc, y = .fitted) +
+                geom_line(col="red") + geom_point(data = df_data, aes(x = loc, y=Y))
 ```
 
 ## Fitting a model with replicates
@@ -586,6 +616,12 @@ Let us see a summary of the fit:
 summary(fit_repl)
 ```
 
+and glance:
+
+```{r}
+glance(fit_repl)
+```
+
 Let us compare with the true values:
 
 ```{r}
@@ -618,13 +654,8 @@ summary(fit_repl2)
 The functions used in the previous examples also work for spatial models. 
 We then need to construct a mesh over the domain of interest and then compute the 
 matrices needed to define the operator. These tasks can be performed, for example, 
-using the `r inla_link()` package. Let us start by defining a mesh over $[0,1]\times [0, 1]$ 
+using the `fmesher` package. Let us start by defining a mesh over $[0,1]\times [0, 1]$ 
 and compute the mass and stiffness matrices for that mesh. 
-
-It is important to mention that when using the `r inla_link()` package we recommend
-the usage of the [R-INLA implementation of the rational SPDE approach](rspde_inla.html). 
-The purpose of this section is to show that we can estimate the model without `R-INLA`
-and using a maximum likelihood approach instead. 
 
 We consider a simple Gaussian linear model with 30 independent replicates 
 of a latent spatial field $u(\mathbf{s})$, observed at the same 
@@ -644,10 +675,9 @@ with mean 0 and standard deviation 0.1.
 Let us create the FEM mesh:
 
 ```{r, message=FALSE, warning=FALSE,fig.align = "center"}
-library(INLA)
 n_loc <- 500
 loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
-mesh_2d <- inla.mesh.2d(
+mesh_2d <- fm_mesh_2d(
   loc = loc_2d_mesh,
   cutoff = 0.05,
   offset = c(0.1, 0.4),
@@ -680,15 +710,15 @@ op_cov_2d <- matern.operators(
 tau <- op_cov_2d$tau
 ```
 
-Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `r inla_link()` function `inla.spde.make.A()`.
+Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the function `fm_basis()` from the `fmesher` package.
 Recall that we will simulate the data
 with 30 replicates. 
 
 ```{r}
 n.rep <- 30
 u <- simulate(op_cov_2d, nsim = n.rep)
-A <- inla.spde.make.A(
-  mesh = mesh_2d,
+A <- fm_basis(
+  x = mesh_2d,
   loc = loc_2d_mesh
 )
 sigma.e <- 0.1
@@ -700,11 +730,11 @@ The first replicate of the simulated random field as well as the observation loc
 ```{r, fig.show='hold',fig.align = "center",echo=TRUE, warning=FALSE, message=FALSE}
 library(viridis)
 library(ggplot2)
-proj <- inla.mesh.projector(mesh_2d, dims = c(70, 70))
+proj <- fm_evaluator(mesh_2d, dims = c(70, 70))
 
 df_field <- data.frame(x = proj$lattice$loc[,1],
                         y = proj$lattice$loc[,2],
-                        field = as.vector(inla.mesh.project(proj, 
+                        field = as.vector(fm_evaluate(proj, 
                         field = as.vector(u[, 1]))),
                         type = "field")
 
@@ -749,6 +779,13 @@ Let us get a summary:
 ```{r}
 summary(fit_2d)
 ```
+
+and glance:
+
+```{r}
+glance(fit_2d)
+```
+
 Let us compare the estimated results with the true values:
 ```{r}
 print(data.frame(
@@ -760,6 +797,19 @@ print(data.frame(
 
 # Total time
 print(fit_2d$fitting_time)
+```
+
+Let us now plot the prediction for replicate 3 by using the `augment` function. We begin by creating the `data.frame` we want to do prediction:
+
+```{r}
+df_pred <- data.frame(x = proj$lattice$loc[,1],
+                        y = proj$lattice$loc[,2])
+```
+
+```{r}
+augment(fit_2d, newdata = df_pred, loc = c("x","y"), which_repl = 3) %>% ggplot() +
+              geom_raster(aes(x=x, y=y, fill = .fitted)) + xlim(0,1) + ylim(0,1) + 
+              scale_fill_viridis()
 ```
 
 ## An example with a non-stationary model
@@ -792,7 +842,7 @@ We begin by defining the domain and creating the mesh:
 ```{r fig.align = "center"}
 rec_domain <- cbind(c(0, 1, 1, 0, 0) * 10, c(0, 0, 1, 1, 0) * 5)
 
-mesh <- inla.mesh.2d(loc.domain = rec_domain, cutoff = 0.1, 
+mesh <- fm_mesh_2d(loc.domain = rec_domain, cutoff = 0.1, 
   max.edge = c(0.5, 1.5), offset = c(0.5, 1.5))
 ```
 
@@ -843,8 +893,8 @@ compute the $A$ matrix:
 m <-600
 loc_mesh <- cbind(runif(m) * 10, runif(m) * 5)
 
-A <- inla.spde.make.A(
-  mesh = mesh,
+A <- fm_basis(
+  x = mesh,
   loc = loc_mesh
 )
 ```

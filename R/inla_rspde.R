@@ -372,13 +372,17 @@ rspde.matern <- function(mesh,
         if (d == 1) {
           fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 1)
         } else {
-          fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+          # fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+          # fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha)
+          fem_mesh <- fm_fem(mesh, order = m_alpha)
         }
       } else {
         if (d == 1) {
           fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 2)
         } else {
-          fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+          # fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+          # fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha + 1)
+          fem_mesh <- fm_fem(mesh, order = m_alpha + 1)
         }
       }
     } else{
@@ -677,13 +681,17 @@ rspde.matern <- function(mesh,
         if (d == 1) {
           fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 1)
         } else {
-          fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+          # fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha)
+          # fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha)
+          fem_mesh <- fm_fem(mesh, order = m_alpha)
         }
       } else {
         if (d == 1) {
           fem_mesh <- fem_mesh_order_1d(mesh, m_order = m_alpha + 2)
         } else {
-          fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+          # fem_mesh <- INLA::inla.mesh.fem(mesh, order = m_alpha + 1)
+          # fem_mesh <- fmesher::fm_fem(mesh, order = m_alpha + 1)
+          fem_mesh <- fm_fem(mesh, order = m_alpha + 1)
         }
       }
     } else{
@@ -830,7 +838,7 @@ rspde.matern <- function(mesh,
   model$prior.nu <- prior.nu
   model$theta.prior.prec <- theta.prior.prec
   model$start.nu <- start.nu
-  model$integer.nu <- integer.nu
+  model$integer.nu <- ifelse(fixed_nu, integer_alpha, FALSE)
   model$start.theta <- start.theta
   model$stationary <- stationary
   if (integer.nu) {
@@ -855,6 +863,7 @@ rspde.matern <- function(mesh,
 
 transpose_cgeneric <- function(Cmatrix){
     Cmatrix <- INLA::inla.as.sparse(Cmatrix)
+    # Cmatrix <- as(Cmatrix, "TsparseMatrix")
     ii <- Cmatrix@i
     Cmatrix@i <- Cmatrix@j
     Cmatrix@j <- ii
@@ -880,6 +889,180 @@ restructure_matrices_less <- function(matrices_less, m_alpha){
   return(temp_vec)
 }
 
+
+#' @name spde.make.A
+#' @title Observation/prediction matrices for rSPDE models with integer smoothness.
+#' @description Constructs observation/prediction weight matrices
+#' for rSPDE models with integer smoothness based on `inla.mesh` or
+#' `inla.mesh.1d` objects.
+#' @param mesh An `inla.mesh`,
+#' an `inla.mesh.1d` object or a `metric_graph` object.
+#' @param loc Locations, needed if an INLA mesh is provided
+#' @param A The A matrix from the standard SPDE approach, such as the matrix
+#' returned by `inla.spde.make.A`. Should only be provided if
+#' `mesh` is not provided.
+#' @param index For each observation/prediction value, an index into loc. Default is seq_len(nrow(A.loc)).
+#' @param group For each observation/prediction value, an index into
+#' the group model.
+#' @param repl For each observation/prediction value, the replicate index.
+#' @param n.group The size of the group model.
+#' @param n.repl The total number of replicates.
+#' @return The \eqn{A} matrix for rSPDE models.
+#' @export
+#' @examples
+#' \donttest{ #devel version
+#' if (requireNamespace("fmesher", quietly = TRUE)){
+#' library(fmesher)
+#' 
+#' set.seed(123)
+#' loc <- matrix(runif(100 * 2) * 100, 100, 2)
+#' mesh <- fm_mesh_2d(
+#'   loc = loc,
+#'   cutoff = 50,
+#'   max.edge = c(50, 500)
+#' )
+#' A <- spde.make.A(mesh, loc = loc)
+#' }
+#' #devel.tag
+#' }
+spde.make.A <- function(mesh = NULL,
+                         loc = NULL,
+                         A = NULL,
+                         index = NULL,
+                         group = NULL,
+                         repl = 1L,
+                         n.group = NULL,
+                         n.repl = NULL) {
+  if (!is.null(mesh)) {
+    cond1 <- inherits(mesh, "inla.mesh.1d")
+    cond2 <- inherits(mesh, "inla.mesh")
+    cond3 <- inherits(mesh, "metric_graph")
+    stopifnot(cond1 || cond2 || cond3)
+    if(cond1 || cond2){
+      dim <- get_inla_mesh_dimension(mesh)  
+    } else if(cond3){
+      dim <- 1
+    }
+  } else if (is.null(dim)) {
+    stop("If mesh is not provided, then you should provide the dimension d!")
+  }
+  if (!is.null(mesh)) {
+    if (is.null(loc) && !inherits(mesh, "metric_graph")) {
+      stop("If you provided mesh, you should also provide the locations, loc.")
+    }
+  }
+
+  if (!is.null(mesh)) {
+    if(cond1 || cond2){
+      # A <- fmesher::fm_basis(
+      #   x = mesh, loc = loc, repl = repl)
+
+      A <- fm_basis(
+        x = mesh, loc = loc, repl = repl)
+
+        if(!is.null(index)){
+          A <- A[index,]
+        }
+
+        if(!is.null(n.group)){
+          A <- kronecker(Matrix::Diagonal(n.group), A)
+        } else{
+          if(is.null(group)){
+            group <- 1L
+          }
+          # blk_grp <- fmesher::fm_block(group)
+          # A <- fmesher::fm_row_kron(Matrix::t(blk_grp), A)
+          blk_grp <- fm_block(group)
+          A <- fm_row_kron(Matrix::t(blk_grp), A)
+        }
+
+        if(!is.null(n.repl)){
+          A <- kronecker(Matrix::Diagonal(n.repl), A)
+        } else{
+          # blk_rep <- fmesher::fm_block(repl)
+          # A <- fmesher::fm_row_kron(Matrix::t(blk_rep), A)
+          blk_rep <- fm_block(repl)
+          A <- fm_row_kron(Matrix::t(blk_rep), A)
+        }
+
+    } else if(cond3){
+      if(is.null(mesh$mesh)){
+        stop("The graph object should contain a mesh!")
+      }
+      if(!is.null(group) || !is.null(n.group)){
+        stop("Groups are still not implemented for metric graphs.")
+      }
+      if(!is.null(n.repl)){
+         if(is.null(loc)){
+          A <- kronecker(Matrix::Diagonal(n.repl), mesh$fem_basis(mesh$get_PtE()))
+        } else{
+          A <- kronecker(Matrix::Diagonal(n.repl), mesh$fem_basis(loc))
+        }
+      } else if(!is.null(index)){
+
+          if(min(repl)!= 1){
+            stop("The indexes of the replicates should begin at 1!")
+          }
+          if(any(!is.integer(repl))){
+            stop("The indexes of the replicates should be integers!")
+          }
+
+        if(is.null(loc)){
+          loc_PtE <- mesh$get_PtE()
+        } else{
+          loc_PtE <- loc
+        }
+
+
+        if(max(repl) == 1){
+          A <- mesh$fem_basis(loc_PtE[index,])
+        } else{
+          stopifnot(length(index) == length(repl))
+
+          if(max(abs(diff(repl)))>1){
+            stop("The indexes of the replicates should increase by steps of size 1!")
+          }
+
+          total_repl <- max(repl)
+          index_tmp <- index[repl==1]
+          A <- mesh$fem_basis(loc_PtE[index_tmp,])
+          for(i in 2:total_repl){
+            index_tmp <- index[repl==i]
+            A_tmp <- mesh$fem_basis(loc_PtE[index_tmp,])
+            A <- bdiag(A, A_tmp)
+          }
+          if(any(diff(repl)) < 0){
+            col_indexes <- 1:ncol(A)
+            new_col_indexes <- col_indexes[repl==1]
+            for(i in 2:total_repl){
+              new_col_indexes <- c(new_col_indexes, col_indexes[repl==i])
+            }
+            A <- A[,new_col_indexes]
+          }
+        }
+      } else if(length(repl)>1){
+        stop("When using replicates, you should provide index!")
+      } else{
+        if(is.null(loc)){
+          A <- mesh$fem_basis(mesh$get_PtE())
+        } else{
+          A <- mesh$fem_basis(loc)
+        }
+      }
+    }
+  } else if (is.null(A)) {
+    stop("If mesh is not provided, then you should provide the A matrix from
+         the standard SPDE approach!")
+  }
+
+
+
+  attr(A, "inla_rspde_Amatrix") <- TRUE
+  attr(A, "integer_nu") <- TRUE
+  return(A)
+}
+
+
 #' @name rspde.make.A
 #' @title Observation/prediction matrices for rSPDE models.
 #' @description Constructs observation/prediction weight matrices
@@ -896,8 +1079,7 @@ restructure_matrices_less <- function(matrices_less, m_alpha){
 #' @param rspde.order The order of the covariance-based rational SPDE approach.
 #' @param nu If `NULL`, then the model will assume that nu will
 #' be estimated. If nu is fixed, you should provide the value of nu.
-#' @param index For each observation/prediction value, an index into loc.
-#' Default is `seq_len(nrow(A.loc))`.
+#' @param index For each observation/prediction value, an index into loc. Default is seq_len(nrow(A.loc)).
 #' @param group For each observation/prediction value, an index into
 #' the group model.
 #' @param repl For each observation/prediction value, the replicate index.
@@ -952,76 +1134,67 @@ rspde.make.A <- function(mesh = NULL,
 
   if (!is.null(mesh)) {
     if(cond1 || cond2){
-      A <- INLA::inla.spde.make.A(
-        mesh = mesh, loc = loc,
-        index = index, group = group,
-        repl = repl, n.group = n.group,
-        n.repl = n.repl
-      )
+      # A <- fmesher::fm_basis(
+      #   x = mesh, loc = loc, repl = repl)
+      A <- fm_basis(
+        x = mesh, loc = loc)
+
+        if(!is.null(index)){
+          A <- A[index,]
+        }
+
+        if(!is.null(n.group)){
+          A <- kronecker(Matrix::Diagonal(n.group), A)
+        } else{
+          if(is.null(group)){
+            group <- 1L
+          }
+          # blk_grp <- fmesher::fm_block(group)
+          # A <- fmesher::fm_row_kron(Matrix::t(blk_grp), A)
+          blk_grp <- fm_block(group)
+          A <- fm_row_kron(Matrix::t(blk_grp), A)
+        }
+
+        if(!is.null(n.repl)){
+          A <- kronecker(Matrix::Diagonal(n.repl), A)
+        } else{
+          # blk_rep <- fmesher::fm_block(repl)
+          # A <- fmesher::fm_row_kron(Matrix::t(blk_rep), A)
+          blk_rep <- fm_block(repl)
+          A <- fm_row_kron(Matrix::t(blk_rep), A)
+        }
+
     } else if(cond3){
       if(is.null(mesh$mesh)){
         stop("The graph object should contain a mesh!")
       }
-      if(!is.null(group) || !is.null(n.group)){
-        stop("Groups are still not implemented for metric graphs.")
-      }
-      if(!is.null(n.repl)){
-         if(is.null(loc)){
-          A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(mesh$get_PtE()))
-        } else{
-          A <- kronecker(Matrix::Diagonal(n.repl), mesh$mesh_A(loc))
-        }
-      } else if(!is.null(index)){
-
-          if(min(repl)!= 1){
-            stop("The indexes of the replicates should begin at 1!")
-          }
-          if(any(!is.integer(repl))){
-            stop("The indexes of the replicates should be integers!")
-          }
 
         if(is.null(loc)){
-          loc_PtE <- mesh$get_PtE()
+          A <- mesh$fem_basis(mesh$get_PtE())
         } else{
-          loc_PtE <- loc
+          A <- mesh$fem_basis(loc)
         }
 
-
-        if(max(repl) == 1){
-          A <- mesh$mesh_A(loc_PtE[index,])
-        } else{
-          stopifnot(length(index) == length(repl))
-
-          if(max(abs(diff(repl)))>1){
-            stop("The indexes of the replicates should increase by steps of size 1!")
-          }
-
-          total_repl <- max(repl)
-          index_tmp <- index[repl==1]
-          A <- mesh$mesh_A(loc_PtE[index_tmp,])
-          for(i in 2:total_repl){
-            index_tmp <- index[repl==i]
-            A_tmp <- mesh$mesh_A(loc_PtE[index_tmp,])
-            A <- bdiag(A, A_tmp)
-          }
-          if(any(diff(repl)) < 0){
-            col_indexes <- 1:ncol(A)
-            new_col_indexes <- col_indexes[repl==1]
-            for(i in 2:total_repl){
-              new_col_indexes <- c(new_col_indexes, col_indexes[repl==i])
-            }
-            A <- A[,new_col_indexes]
-          }
+        if(!is.null(index)){
+          A <- A[index,]
         }
-      } else if(length(repl)>1){
-        stop("When using replicates, you should provide index!")
-      } else{
-        if(is.null(loc)){
-          A <- mesh$mesh_A(mesh$get_PtE())
+
+        if(!is.null(n.group)){
+          A <- kronecker(Matrix::Diagonal(n.group), A)
         } else{
-          A <- mesh$mesh_A(loc)
+          if(is.null(group)){
+            group <- 1L
+          }
+          blk_grp <- fm_block(group)
+          A <- fm_row_kron(Matrix::t(blk_grp), A)
         }
-      }
+
+        if(!is.null(n.repl)){
+          A <- kronecker(Matrix::Diagonal(n.repl), A)
+        } else{
+          blk_rep <- fm_block(repl)
+          A <- fm_row_kron(Matrix::t(blk_rep), A)
+        }        
     }
   } else if (is.null(A)) {
     stop("If mesh is not provided, then you should provide the A matrix from
@@ -1225,6 +1398,238 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
   attr(out, "n.group") <- n.group
   attr(out, "n.repl") <- n.repl
   return(out)
+}
+
+
+
+#' Data extraction from metric graphs for 'rSPDE' models
+#'
+#' Extracts data from metric graphs to be used by 'INLA' and 'inlabru'.
+#'
+#' @param graph_rspde An `inla_metric_graph_spde` object built with the
+#' `rspde.metric_graph()` function.
+#' @param name A character string with the base name of the effect.
+#' @param repl Which replicates? If there is no replicates, one
+#' can set `repl` to `NULL`. If one wants all replicates,
+#' then one sets to `repl` to `.all`.
+#' @param group Which groups? If there is no groups, one
+#' can set `group` to `NULL`. If one wants all groups,
+#' then one sets to `group` to `.all`.
+#' @param group_col Which "column" of the data contains the group variable?
+#' @param only_pred Should only return the `data.frame` to the prediction data?
+#' @param loc  Locations. If not given, they will be chosen as the available locations on the metric graph internal dataset.
+#' @param loc_name Character with the name of the location variable to be used in
+#' 'inlabru' prediction.
+#' @param tibble Should the data be returned as a `tidyr::tibble`?
+#' @param drop_na Should the rows with at least one NA for one of the columns be removed? DEFAULT is `FALSE`. This option is turned to `FALSE` if `only_pred` is `TRUE`.
+#' @param drop_all_na Should the rows with all variables being NA be removed? DEFAULT is `TRUE`. This option is turned to `FALSE` if `only_pred` is `TRUE`.
+#' @return An 'INLA' and 'inlabru' friendly list with the data.
+#' @export
+
+graph_data_rspde <- function (graph_rspde, name = "field", repl = NULL, group = NULL, 
+                                group_col = NULL,
+                                only_pred = FALSE,
+                                loc = NULL,
+                                loc_name = NULL,
+                                tibble = FALSE,
+                                drop_na = FALSE, drop_all_na = TRUE){
+
+  ret <- list()
+
+  rspde.order <- graph_rspde$rspde.order
+
+  nu <- graph_rspde$nu
+
+  graph_tmp <- graph_rspde$mesh$clone()
+  if(is.null((graph_tmp$.__enclos_env__$private$data))){
+    stop("The graph has no data!")
+  }
+  if(only_pred){
+    idx_anyNA <- !idx_not_any_NA(graph_tmp$.__enclos_env__$private$data)
+    graph_tmp$.__enclos_env__$private$data <- lapply(graph_tmp$.__enclos_env__$private$data, function(dat){return(dat[idx_anyNA])})
+    drop_na <- FALSE
+    drop_all_na <- FALSE
+  }
+
+  if(is.null(repl)){
+    groups <- graph_tmp$.__enclos_env__$private$data[[".group"]]
+    repl <- groups[1]
+  } else if(repl[1] == ".all") {
+    groups <- graph_tmp$.__enclos_env__$private$data[[".group"]]
+    repl <- unique(groups)
+  } 
+
+   ret[["data"]] <- select_repl_group(graph_tmp$.__enclos_env__$private$data, repl = repl, group = group, group_col = group_col)   
+
+   repl_vec <- ret[["data"]][[".group"]]
+   if(!is.null(group_col)){
+    group_vec <- ret[["data"]][[group_col]]
+    group <- unique(group_vec)
+   } else{
+    group_vec <- rep(1, length(ret[["data"]][[".group"]]))
+    group <- 1
+   }
+
+
+  n.repl <- length(unique(repl))
+
+  if(is.null(group)){
+    n.group <- 1
+  } else if (group[1] == ".all"){
+    n.group <- length(unique(graph_tmp$.__enclos_env__$private$data[[group_col]]))
+  } else{
+    n.group <- length(unique(group))
+  }
+
+  if(tibble){
+    ret[["data"]] <-tidyr::as_tibble(ret[["data"]])
+  }
+
+  if(drop_all_na){
+    is_tbl <- inherits(ret, "tbl_df")
+      idx_temp <- idx_not_all_NA(ret[["data"]])
+      ret[["data"]] <- lapply(ret[["data"]], function(dat){dat[idx_temp]}) 
+      if(is_tbl){
+        ret[["data"]] <- tidyr::as_tibble(ret[["data"]])
+      }
+  }    
+  if(drop_na){
+    if(!inherits(ret[["data"]], "tbl_df")){
+      idx_temp <- idx_not_any_NA(ret[["data"]])
+      ret[["data"]] <- lapply(ret[["data"]], function(dat){dat[idx_temp]})
+    } else{
+      ret[["data"]] <- tidyr::drop_na(ret[["data"]])
+    }
+  }
+  
+  if(!is.null(loc_name)){
+      ret[["data"]][[loc_name]] <- cbind(ret[["data"]][[".edge_number"]],
+                          ret[["data"]][[".distance_on_edge"]])
+  }
+
+
+  if(!inherits(ret[["data"]], "metric_graph_data")){
+    class(ret[["data"]]) <- c("metric_graph_data", class(ret))
+  }
+
+
+
+  ret[["index"]] <- rspde.make.index(mesh = graph_tmp, n.group = n.group, n.repl = n.repl, nu = nu, dim = 1, rspde.order = rspde.order, name = name)
+
+  ret[["repl"]] <- ret[["data"]][[".group"]]
+
+   if(!is.null(group_col)){
+    group_vec <- ret[["data"]][[group_col]]
+    group <- unique(group_vec)
+   } else{
+    group_vec <- rep(1, length(ret[["data"]][[".group"]]))
+    group <- 1
+   }
+
+  repl_vec <- ret[["repl"]]   
+
+  n_obs <- sum(ret[["data"]][[".group"]] == ret[["data"]][[".group"]][1])
+
+  # index_basis <- rep(rep(1:n_obs, times = n.group), 
+  #           times = n.repl)
+
+  ret[["basis"]] <- Matrix::Matrix(nrow=0,ncol=0)       
+
+  loc_basis <- cbind(ret[["data"]][[".edge_number"]], ret[["data"]][[".distance_on_edge"]])     
+  
+  # We assume the data is ordered by group, then repl. This will be handled by the advanced grouping we are implementing
+
+  for(repl_ in repl){
+    idx_rep <- (repl_vec == repl_)
+    for(group_ in group){
+      idx_grp <- (group_vec == group_)
+      idx_grp_rep <- as.logical(idx_grp * idx_rep)
+      ret[["basis"]] <- Matrix::bdiag(ret[["basis"]], graph_tmp$fem_basis(loc_basis[idx_grp_rep,]))
+    }
+  }
+
+  if(!graph_rspde$integer.nu){
+    ret[["basis"]] <- kronecker(matrix(1, 1, rspde.order + 1), 
+                ret[["basis"]])
+  }
+  
+  return(ret)
+}
+
+
+
+#' Extraction of vector of replicates for 'INLA'
+#'
+#' Extracts the vector of replicates from an 'rSPDE'
+#' model object for 'INLA'
+#'
+#' @param graph_spde An `rspde_metric_graph` object built with the
+#' `rspde.metric_graph()` function from the 'rSPDE' package.
+#' @param repl Which replicates? If there is no replicates, one
+#' can set `repl` to `NULL`. If one wants all replicates,
+#' then one sets to `repl` to `.all`.
+#' @param group Which groups? If there is no groups, one
+#' can set `group` to `NULL`. If one wants all groups,
+#' then one sets to `group` to `.all`.
+#' @param group_col Which "column" of the data contains the group variable?
+#' @return The vector of replicates paired with groups.
+#' @noRd
+
+graph_repl_rspde <- function (graph_spde, repl = NULL, group = NULL, group_col = NULL){
+  # graph_tmp <- graph_spde$graph_spde$clone()
+  if(is.null(repl)){
+    # groups <- graph_tmp$data[[".group"]]
+    groups <- graph_spde$graph_spde$.__enclos_env__$private$data[[".group"]]
+    repl <- groups[1] 
+  } else if(repl[1] == ".all") {
+    # ret <- graph_tmp$data
+    groups <- graph_spde$graph_spde$.__enclos_env__$private$data[[".group"]]
+    repl <- unique(groups)
+  } 
+
+  ret <- select_repl_group(graph_spde$graph_spde$.__enclos_env__$private$data, repl = repl, group = group, group_col = group_col)    
+  return(ret[[".group"]])
+}
+
+#' Select replicate and group
+#' @noRd
+#'
+select_repl_group <- function(data_list, repl, group, group_col){
+    if(!is.null(group) && is.null(group_col)){
+      stop("If you specify group, you need to specify group_col!")
+    }
+    if(!is.null(group)){
+      grp <- data_list[[group_col]]
+      grp <- which(grp %in% group)
+      data_result <- lapply(data_list, function(dat){dat[grp]})
+      replicates <- data_result[[".group"]]
+      replicates <- which(replicates %in% repl)
+      data_result <- lapply(data_result, function(dat){dat[replicates]})
+      return(data_result)
+    } else{
+      replicates <- data_list[[".group"]]
+      replicates <- which(replicates %in% repl)
+      data_result <- lapply(data_list, function(dat){dat[replicates]})
+      return(data_result)
+    }
+}
+
+#' Creation of index vector for 'INLA'
+#'
+#' Creates the vector of indexes from an 'rSPDE'
+#' model object for 'INLA'
+#'
+#' @param graph_spde An `rspde_metric_graph` object built with the
+#' `rspde.metric_graph()` function from the 'rSPDE' package.
+#' @param n.repl The total number of replicates.
+#' @param n.group The size of the group model.
+#' @return The vector of indexes.
+#' @noRd
+
+graph_index_rspde <- function (graph_spde, n.repl = 1, n.group = 1){
+        n_obs <- nrow(graph_spde$mesh$get_PtE())
+        rep(rep(1:n_obs, times = n.group), 
+            times = n.repl)
 }
 
 
@@ -2111,7 +2516,8 @@ rspde.mesh.projector <- function(mesh,
     args_list[["projection"]] <- projection
   }
   args_list[["dims"]] <- dims
-  out <- do.call(INLA::inla.mesh.projector, args_list)
+  # out <- do.call(INLA::inla.mesh.projector, args_list)
+  out <- do.call(fmesher::fm_evaluator, args_list)
   dim <- get_inla_mesh_dimension(mesh)
 
   out$proj$A <- rspde.make.A(
@@ -2140,16 +2546,18 @@ rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
       loc = loc, rspde.order = rspde.order, nu = nu,
       ...
     )
-    return(INLA::inla.mesh.project(proj, field = field))
+    # return(INLA::inla.mesh.project(proj, field = field))
+    return(fmesher::fm_evaluate(proj, field = field))
   }
   jj <- which(rowSums(matrix(is.na(as.vector(loc)),
     nrow = nrow(loc),
     ncol = ncol(loc)
   )) == 0)
-  smorg <- (INLA::inla.fmesher.smorg(mesh$loc,
-  mesh$graph$tv, points2mesh = loc[jj, ,
-    drop = FALSE
-  ]))
+  # smorg <- (INLA::inla.fmesher.smorg(mesh$loc,
+  # mesh$graph$tv, points2mesh = loc[jj, ,
+  #   drop = FALSE
+  # ]))
+  smorg <- fmesher::fm_bary(mesh,loc=mesh$loc)
   ti <- matrix(0L, nrow(loc), 1)
   b <- matrix(0, nrow(loc), 3)
   ti[jj, 1L] <- smorg$p2m.t
@@ -2191,7 +2599,8 @@ rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
 #'
 
 rspde.mesh.project.rspde.mesh.projector <- function(projector, field, ...) {
-  return(INLA::inla.mesh.project(projector = projector, field = field, ...))
+  # return(INLA::inla.mesh.project(projector = projector, field = field, ...))
+  return(fmesher::fm_evaluate(projector = projector, field = field, ...))
 }
 
 
@@ -2207,9 +2616,11 @@ rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
   if (!missing(field) && !is.null(field)) {
     proj <- rspde.mesh.projector(mesh, loc,
     rspde.order = rspde.order, nu = nu, ...)
-    return(INLA::inla.mesh.project(proj, field))
+    # return(INLA::inla.mesh.project(proj, field))
+    return(fmesher::fm_evaluate(proj, field))
   }
-  A <- INLA::inla.mesh.1d.A(mesh, loc = loc)
+  # A <- INLA::inla.mesh.1d.A(mesh, loc = loc)
+  A <- fmesher::fm_basis(mesh, loc = loc)
   if (!is.null(nu)) {
     if (!is.numeric(nu)) {
       stop("nu must be numeric!")
@@ -2385,7 +2796,8 @@ dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
   Q <- tau^2 * Q
 
   if (!is.null(graph)) {
-    graph <- as(graph, "dgTMatrix")
+    # graph <- as(graph, "dgTMatrix")
+    graph <- as(graph,"TsparseMatrix")
     idx <- which(graph@i <= graph@j)
     Q <- Matrix::sparseMatrix(
       i = graph@i[idx], j = graph@j[idx], x = Q,
@@ -2671,7 +3083,8 @@ rspde.matern.precision.integer.opt <- function(kappa,
   Q <- tau^2 * Q
 
   if (!is.null(graph)) {
-    graph <- as(graph, "dgTMatrix")
+    # graph <- as(graph, "dgTMatrix")
+    graph <- as(graph,"TsparseMatrix")
     idx <- which(graph@i <= graph@j)
     Q <- Matrix::sparseMatrix(
       i = graph@i[idx], j = graph@j[idx], x = Q,
@@ -3001,7 +3414,7 @@ rspde.metric_graph <- function(graph_obj,
     }
 
         
-        rspde_model$mesh <- rspde_model$graph_spde <- graph_obj
+        rspde_model$mesh <- graph_obj$clone()
         # rspde_model$n.spde <- nrow(graph_obj$mesh$E)
         rspde_model$n.spde <- nrow(graph_obj$mesh$VtE)
 

@@ -206,7 +206,7 @@ Q.solve <- function(obj, v) {
     Q.int <- obj$Q.int
     Q.frac <- obj$Q.frac
     order_Q_int <- Q.int$order
-    Q.int <- as(Q.int$Q.int, "dgTMatrix")
+    Q.int <- as(Q.int$Q.int, "TsparseMatrix")
     prod_tmp <- solve(Q.int, v)
     if (order_Q_int > 1) {
       for (i in 2:order_Q_int) {
