@@ -257,29 +257,40 @@ The object `op_cov` contains the matrices needed for evaluating the distribution
 This matrix can be constructed using the function `fm_basis()` from the `fmesher` package. However, as observed in the introduction of this vignette, we have decomposed the stochastic weights $\boldsymbol{\mathrm{u}}$ into a vector of latent variables.
 Thus, the $A$ matrix for the covariance-based rational approximation, which we will denote by $\overline{A}$, is actually given by the $m+1$-fold horizontal concatenation of these $A$ matrices, where $m$ is the order
 of the rational approximation.
-
+<!-- 
 To compute the precision matrix from the covariance-based rational approximation one
 can use the `precision()` method on the `CBrSPDEobj` object (the object returned by
 the `matern.operators()` function with the default type, which is
 `type="covariance"`):
 
-```{r}
-Q <- precision(op_cov)
-```
+# ```{r}
+# Q <- precision(op_cov)
+# ``` 
 
-To evaluate the accuracy of the approximation, let us compute the covariance function between the process at $s=0.5$ and all other locations in `s` and compare with the true Matérn covariance function. The covariances can be calculated as 
+-->
+
+To evaluate the accuracy of the approximation, let us compute the covariance function between the process at $s=0.5$ and all other locations in `s` and compare with the true Matérn covariance function. The covariances can be calculated by using the `cov_function_mesh()` method.
+<!-- as 
 $$
 \overline{\boldsymbol{\mathrm{A}}} \boldsymbol{\mathrm{Q}}^{-1}\overline{\boldsymbol{\mathrm{v}}}.
 $$
 Here, $\boldsymbol{\mathrm{Q}}$ is the precision matrix obtained from the covariance-based rational approximation, $\boldsymbol{\mathrm{A}}$ is an identity matrix since we are evaluating the approximation in the nodes of the FEM mesh, $\overline{\boldsymbol{\mathrm{v}}}$ is the $(m+1)$-fold vertical concatenation of the vector $\boldsymbol{\mathrm{v}}$, where $\boldsymbol{\mathrm{v}}$ is a vector with all basis functions evaluated in $s=0.5$.
+-->
+
+<!-- 
+# ```{r}
+#library(fmesher)
+#mesh_1d <- fm_mesh_1d(s)
+#v <- t(fm_basis(x = mesh_1d, loc = 0.5))
+#v_bar <- kronecker(matrix(1, nrow = 3), v)
+#A <- Diagonal(101)
+#A_bar <- kronecker(matrix(1, ncol = 3), A)
+#c_cov.approx <- (A_bar) %*% solve(Q, v_bar)
+# ``` 
+-->
+
 ```{r}
-library(fmesher)
-mesh_1d <- fm_mesh_1d(s)
-v <- t(fm_basis(x = mesh_1d, loc = 0.5))
-v_bar <- kronecker(matrix(1, nrow = 3), v)
-A <- Diagonal(101)
-A_bar <- kronecker(matrix(1, ncol = 3), A)
-c_cov.approx <- (A_bar) %*% solve(Q, v_bar)
+c_cov.approx <- op_cov$cov_function_mesh(0.5)
 ```
 
 Let us now compute the true Matérn covariance function on the interval $(0,1)$,
@@ -315,18 +326,18 @@ plot(s, c.true - c_cov.approx,
 par(opar)
 ```
 
-To improve the approximation we can increase the degree of the polynomials, by increasing $m$, and/or increase the number of basis functions used for the FEM approximation. Let us, for example, compute the approximation with $m=4$ using the same mesh, as well as the approximation when we increase the number of basis functions and use $m=2$ and $m=4$. 
+To improve the approximation we can increase the degree of the polynomials, by increasing $m$, and/or increase the number of basis functions used for the FEM approximation. Let us, for example, compute the approximation with $m=4$ using the same mesh, as well as the approximation when we increase the number of basis functions and use $m=2$ and $m=4$. We will also load the `fmesher` package to use the `fm_basis()` and `fm_mesh_1d()` functions to map between the meshes.
 
 ```{r}
+library(fmesher)
+
 op_cov2 <- matern.operators(
   range = r, sigma = sigma, nu = nu,
   loc_mesh = s, d = 1, m = 4,
   parameterization = "matern"
 )
-Q2 <- precision(op_cov2)
-v_bar2 <- kronecker(matrix(1, nrow = 5), v)
-A_bar2 <- kronecker(matrix(1, ncol = 5), A)
-c_cov.approx2 <- (A_bar2) %*% solve(Q2, v_bar2)
+
+c_cov.approx2 <- op_cov2$cov_function_mesh(0.5)
 
 s2 <- seq(from = 0, to = 1, length.out = 501)
 op_cov <- matern.operators(
@@ -337,22 +348,18 @@ op_cov <- matern.operators(
 
 mesh_s2 <- fm_mesh_1d(s2)
 
-Q3 <- precision(op_cov)
+# Map the mesh s2 to s
 A2 <- fm_basis(mesh_s2, s)
-v2 <- t(fm_basis(mesh_s2, 0.5))
-v2_bar <- kronecker(matrix(1, nrow = 3), v2)
-A2_bar <- kronecker(matrix(1, ncol = 3), A2)
-c_cov.approx3 <- (A2_bar) %*% solve(Q3, v2_bar)
+
+c_cov.approx3 <- A2 %*% op_cov$cov_function_mesh(0.5)
 
 op_cov <- matern.operators(
   range = r, sigma = sigma, nu = nu,
   loc_mesh = s2, d = 1, m = 4,
   parameterization = "matern"
 )
-Q4 <- precision(op_cov)
-v2_bar2 <- kronecker(matrix(1, nrow = 5), v2)
-A2_bar2 <- kronecker(matrix(1, ncol = 5), A2)
-c_cov.approx4 <- (A2_bar2) %*% solve(Q4, v2_bar2)
+
+c_cov.approx4 <- A2 %*% op_cov$cov_function_mesh(0.5)
 ```
 
 The resulting errors are shown in the following figure. 
@@ -378,6 +385,9 @@ par(opar)
 
 Since the error induced by the rational approximation decreases exponentially in $m$, there is in general rarely a need for an approximation with a large value of $m$. This is good because the size of $\boldsymbol{\mathrm{Q}}$ increases with $m$, which makes the approximation more computationally costly to use. To illustrate this, let us compute the norm of the approximation error for different $m$.
 ```{r}
+# Mapping s2 to s
+A2 <- fm_basis(mesh_s2, s)
+v2 <- t(fm_basis(mesh_s2, 0.5))
 errors <- rep(0, 4)
 for (i in 1:4) {
   op_cov <- matern.operators(
@@ -488,6 +498,13 @@ print(data.frame(
 print(fit$fitting_time)
 ```
 
+Let us take a glance at the fit:
+
+```{r}
+glance(fit)
+```
+
+
 We can also speed up the optimization by setting `parallel=TRUE` (which uses implicitly the `optimParallel` function):
 
 ```{r, message=FALSE, warning=FALSE}
@@ -528,7 +545,7 @@ df_pred <- data.frame(loc = s, x1 = s)
 We can now perform kriging with the `predict()` method:
 
 ```{r}
-u.krig <- predict(fit, data = df_pred, loc = "loc")
+u.krig <- predict(fit, newdata = df_pred, loc = "loc")
 ```
 
 
@@ -543,6 +560,16 @@ plot(obs.loc, Y,
 )
 lines(s, u.krig$mean, col = 2)
 par(opar)
+```
+
+We can also use the `augment()` function and pipe the results into a plot:
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+augment(fit, newdata = df_pred, loc = "loc") %>% ggplot() + aes(x = loc, y = .fitted) +
+                geom_line()
 ```
 
 ## Fitting a model with replicates

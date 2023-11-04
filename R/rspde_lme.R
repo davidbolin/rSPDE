@@ -877,20 +877,6 @@ if(parallel){
 
 }
 
-#' @name logLik.rspde_lme
-#' @title log-likelihood for \code{graph_lme} Objects
-#' @description Gives the log-likelihood for a fitted mixed effects model with a Whittle-Matern latent model.
-#' @param x object of class "rspde_lme" containing results from the fitted model.
-#' @param ... further arguments passed to or from other methods.
-#' @return log-likelihood at the fitted coefficients.
-#' @noRd
-#' @method logLik rspde_lme
-#' @export 
-
-logLik.rspde_lme <- function(object, ...){
-  return(object$loglik)
-}
-
 
 #' @name print.rspde_lme
 #' @title Print Method for \code{rspde_lme} Objects
@@ -1407,6 +1393,213 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, 
   }
 
   return(out)
+}
+
+
+
+
+#' @name logLik.rspde_lme
+#' @title Log-likelihood for \code{rspde_lme} objects
+#' @description computes the log-likelihood for a fitted mixed effects model with `rspde_lme`.
+#' @param x Object of class `rspde_lme` containing results from the fitted model.
+#' @param ... Currently not used.
+#' @return Log-likelihood value.
+#' @noRd
+#' @method logLik rspde_lme
+#' @export
+logLik.rspde_lme <- function(object, ...){
+  ll <- object$loglik
+  attr(ll, "df") <- 1 + length(object$coeff$fixed_effects) + length(object$coeff$random_effects)
+  return(ll)
+}
+
+#' @name nobs.rspde_lme
+#' @title Number of observations for \code{rspde_lme} objects
+#' @description Gets the number of observations of the fitted object.
+#' @param x Object of class `rspde_lme` containing results from the fitted model.
+#' @param ... Currently not used.
+#' @return The number of observations.
+#' @noRd
+#' @method nobs rspde_lme
+#' @export
+nobs.rspde_lme <- function(object, ...){
+  return(object$nobs)
+}
+
+
+#' @name deviance.rspde_lme
+#' @title Deviance for \code{rspde_lme} objects
+#' @description Gets the deviance for `rspde_lme` fitted object.
+#' @param x Object of class `rspde_lme` containing results from the fitted model.
+#' @param ... Currently not used.
+#' @return Deviance
+#' @noRd
+#' @method deviance rspde_lme
+#' @export
+deviance.rspde_lme <- function(object, ...){
+  if(length(object$coeff$random_effects) > 0){
+    return(-2*object$loglik)
+  } else{
+    df_temp <- as.data.frame(object$model_matrix)
+    colnames(df_temp)[1] <- as.character(object$response_var)
+
+    fit_lm <- stats::lm(object$formula, data = df_temp)
+    return(stats::deviance(fit_lm))
+  }
+}
+
+
+#' @name glance.rspde_lme
+#' @title Glance at an \code{rspde_lme} object
+#' @aliases glance glance.rspde_lme
+#' @description Glance accepts a \code{rspde_lme} object and returns a
+#' [tidyr::tibble()] with exactly one row of model summaries.
+#' The summaries are the square root of the estimated variance of the measurement error, residual
+#' degrees of freedom, AIC, BIC, log-likelihood,
+#' the type of latent model used in the fit and the total number of observations.
+#' @param x An \code{rspde_lme} object.
+#' @param ... Currently not used.
+#' @return A [tidyr::tibble()] with exactly one row and columns:
+#' \itemize{
+#'   \item `nobs` Number of observations used.
+#'   \item `sigma` the square root of the estimated residual variance
+#'   \item `logLik` The log-likelihood of the model.
+#'   \item `AIC` Akaike's Information Criterion for the model.
+#'   \item `BIC` Bayesian Information Criterion for the model.
+#'   \item `deviance` Deviance of the model.
+#'   \item `df.residual` Residual degrees of freedom.
+#'   \item `model.type` Type of latent model fitted.
+#'   }
+#' @seealso [augment.rspde_lme]
+#' @method glance rspde_lme
+#' @export
+
+glance.rspde_lme <- function(x, ...){
+  alpha <- NULL
+  if(x$latent_model$type == "Covariance-Based Matern SPDE Approximation"){
+    alpha <- x$coeff$random_effects[[1]]
+  } else if(!is.null(x$latent_model$alpha)){
+    alpha <- x$latent_model$alpha
+  }
+  tidyr::tibble(nobs = stats::nobs(x), 
+                  sigma = as.numeric(x$coeff$measurement_error[[1]]), 
+                   logLik = as.numeric(stats::logLik(x)), AIC = stats::AIC(x),
+                   BIC = stats::BIC(x), deviance = stats::deviance(x), 
+                   df.residual = stats::df.residual(x),
+                   model = x$latent_model$type,
+                   alpha = alpha,
+                   cov_function = x$latent_model$cov_function_name)
+}
+
+
+#' @name augment.rspde_lme
+#' @title Augment data with information from a `rspde_lme` object
+#' @aliases augment augment.rspde_lme
+#' @description Augment accepts a model object and a dataset and adds information about each observation in the dataset. It includes
+#' predicted values in the `.fitted` column, residuals in the `.resid` column, and standard errors for the fitted values in a `.se.fit` column. 
+#' It also contains the New columns always begin with a . prefix to avoid overwriting columns in the original dataset.
+#' @param x A `rspde_lme` object.
+#' @param newdata A `data.frame` or a `list` containing the covariates, the edge
+#' number and the distance on edge for the locations to obtain the prediction. If `NULL`, the fitted values will be given for the original locations where the model was fitted.
+#' @param loc Prediction locations. Can either be a `data.frame`, a `matrix` or a character vector, that contains the names of the columns of the coordinates of the locations. For models using `metric_graph` objects, plase use `edge_number` and `distance_on_edge` instead.
+#' @param mesh Obtain predictions for mesh nodes? The graph must have a mesh, and either `only_latent` is set to TRUE or the model does not have covariates.
+# @param repl Which replicates to obtain the prediction. If `NULL` predictions will be obtained for all replicates. Default is `NULL`.
+#' @param which_repl  Which replicates to obtain the prediction. If `NULL` predictions
+#' will be obtained for all replicates. Default is `NULL`.
+#' @param se_fit Logical indicating whether or not a .se.fit column should be added to the augmented output. If TRUE, it only returns a non-NA value if type of prediction is 'link'.
+#' @param conf_int Logical indicating whether or not confidence intervals for the fitted variable should be built. 
+#' @param pred_int Logical indicating whether or not prediction intervals for future observations should be built.
+#' @param level Level of confidence and prediction intervals if they are constructed.
+#' @param n_samples Number of samples when computing prediction intervals.
+#' @param edge_number Name of the variable that contains the edge number, the default is `edge_number`.
+#' @param distance_on_edge Name of the variable that contains the distance on edge, the default is `distance_on_edge`.
+#' @param normalized Are the distances on edges normalized?
+#' @param ... Additional arguments. 
+#'
+#' @return A [tidyr::tibble()] with columns:
+#' \itemize{
+#'   \item `.fitted` Fitted or predicted value.
+#'   \item `.fittedlwrconf` Lower bound of the confidence interval, if conf_int = TRUE
+#'   \item `.fitteduprconf` Upper bound of the confidence interval, if conf_int = TRUE
+#'   \item `.fittedlwrpred` Lower bound of the prediction interval, if pred_int = TRUE
+#'   \item `.fitteduprpred` Upper bound of the prediction interval, if pred_int = TRUE
+#'   \item `.fixed` Prediction of the fixed effects.
+#'   \item `.random` Prediction of the random effects.
+#'   \item `.resid` The ordinary residuals, that is, the difference between observed and fitted values.
+#'   \item `.se_fit` Standard errors of fitted values, if se_fit = TRUE.
+#'   }
+#'
+#' @seealso [glance.rspde_lme]
+#' @method augment rspde_lme
+#' @export
+augment.rspde_lme <- function(x, newdata = NULL, loc = NULL, mesh = FALSE, which_repl = NULL, se_fit = FALSE, conf_int = FALSE, pred_int = FALSE, level = 0.95, n_samples = 100, edge_number = "edge_number",
+                               distance_on_edge = "distance_on_edge", normalized = FALSE,...) {
+  
+  .resid <- FALSE
+  if(is.null(newdata)){
+    .resid <-  TRUE
+  } 
+    
+
+  level <- level[[1]]
+  if(!is.numeric(level)){
+    stop("'level' must be numeric!")
+  }
+  if(level > 1 || level < 0){
+    stop("'level' must be between 0 and 1!")
+  }
+
+  if(pred_int){
+    pred <- stats::predict(x, newdata = newdata, loc = loc, mesh = mesh, which_repl = which_repl, compute_variances = TRUE,
+                  posterior_samples = TRUE, n_samples = n_samples, edge_number = edge_number,
+                  distance_on_edge = distance_on_edge, normalized = normalized, return_original_order = FALSE, return_as_list = FALSE)
+  } else if(conf_int || se_fit){
+    pred <- stats::predict(x, newdata = newdata, loc = loc, mesh = mesh, which_repl = which_repl, compute_variances = TRUE,
+                  posterior_samples = FALSE, edge_number = ".edge_number",
+                  distance_on_edge = ".distance_on_edge", normalized = TRUE, return_original_order = FALSE, return_as_list = FALSE)
+  } else{
+      pred <- stats::predict(x, newdata = newdata, loc = loc, mesh = mesh, which_repl = which_repl, compute_variances = FALSE, posterior_samples = FALSE, edge_number = ".edge_number",
+                  distance_on_edge = ".distance_on_edge", normalized = TRUE, return_original_order = FALSE, return_as_list = FALSE)
+  }
+
+  if(se_fit || pred_int || conf_int){
+    newdata[[".fitted"]] <- pred$mean
+    newdata[[".se_fit"]] <- sqrt(pred$variance)
+    newdata[[".fixed"]] <- pred$fe_mean
+    newdata[[".random"]] <- pred$re_mean
+    if(.resid){
+      newdata[[".resid"]] <- pred$mean - newdata[[as.character(x$response_var)]]
+    }
+  } else{
+    newdata[[".fitted"]] <- pred$mean
+    newdata[[".fixed"]] <- pred$fe_mean
+    newdata[[".random"]] <- pred$re_mean
+    if(.resid){
+      newdata[[".resid"]] <- pred$mean - newdata[[as.character(x$response_var)]]
+    }
+  }
+
+
+  if(conf_int){
+    newdata$.fittedlwrconf <- newdata[[".fitted"]] + stats::qnorm( (1-level)/2 )*newdata[[".se_fit"]]
+    newdata$.fitteduprconf <- newdata[[".fitted"]] + stats::qnorm( (1+level)/2 )*newdata[[".se_fit"]]
+  }
+
+  if(pred_int){
+   list_pred_int <- lapply(1:nrow(pred$samples), function(i){
+      y_sim <- pred$samples[i,]
+      y_sim <- sort(y_sim)
+      idx_lwr <- max(1, round(n_samples * (1 - level) / 2))
+      idx_upr <- round(n_samples * (1 + level) / 2)
+      c(y_sim[idx_lwr], y_sim[idx_upr])})
+    list_pred_int <- unlist(list_pred_int)
+    list_pred_int <- t(matrix(list_pred_int, nrow = 2))
+    newdata$.fittedlwrpred <- list_pred_int[,1]
+    newdata$.fitteduprpred <- list_pred_int[,2]
+  }
+
+
+  newdata
 }
 
 
