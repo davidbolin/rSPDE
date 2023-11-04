@@ -432,10 +432,10 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">##    silent = silent, ", " inla.mode = inla.mode, safe = FALSE, debug = </span></span>
 <span><span class="co">##    debug, .parent.frame = .parent.frame)" ) </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.396, Running = 117, Post = 0.106, Total = 118 </span></span>
+<span><span class="co">##     Pre = 0.581, Running = 222, Post = 0.131, Total = 223 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.945 0.059      1.829    1.945       2.06 1.945   0</span></span>
+<span><span class="co">## Intercept 1.944 0.058      1.831    1.944      2.058 1.944   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -444,19 +444,19 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                                     mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.848 9.61e-01     11.994</span></span>
-<span><span class="co">## Precision for seaDist                          21297.723 2.90e+04   4342.912</span></span>
-<span><span class="co">## Theta1 for field                                   0.616 3.75e-01     -0.026</span></span>
-<span><span class="co">## Theta2 for field                                  -0.049 7.26e-01     -1.728</span></span>
-<span><span class="co">## Theta3 for field                                  -2.900 7.63e-01     -4.529</span></span>
-<span><span class="co">##                                                 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.834      15.77   13.853</span></span>
-<span><span class="co">## Precision for seaDist                          12908.429   93877.47 6326.424</span></span>
-<span><span class="co">## Theta1 for field                                   0.590       1.43    0.457</span></span>
-<span><span class="co">## Theta2 for field                                   0.038       1.04    0.512</span></span>
-<span><span class="co">## Theta3 for field                                  -2.857      -1.54   -2.649</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.922     1.01     12.065</span></span>
+<span><span class="co">## Precision for seaDist                          19570.001 35251.73   1629.454</span></span>
+<span><span class="co">## Theta1 for field                                   0.963     1.08     -0.903</span></span>
+<span><span class="co">## Theta2 for field                                  -0.206     1.73     -3.953</span></span>
+<span><span class="co">## Theta3 for field                                  -3.588     2.06     -8.040</span></span>
+<span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.88   1.60e+01   13.784</span></span>
+<span><span class="co">## Precision for seaDist                           9867.30   9.98e+04 3771.715</span></span>
+<span><span class="co">## Theta1 for field                                   0.89   3.31e+00    0.526</span></span>
+<span><span class="co">## Theta2 for field                                  -0.09   2.79e+00    0.484</span></span>
+<span><span class="co">## Theta3 for field                                  -3.46   1.60e-02   -2.808</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1258.46 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1257.34 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -487,10 +487,10 @@ scale by using the function <code><a href="../reference/rspde.result.html">rspde
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##           mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## tau   1.990140 0.829283  0.9774120 1.786050    4.15091 1.450990</span></span>
-<span><span class="co">## kappa 1.191840 0.721966  0.1822890 1.069700    2.81829 0.569102</span></span>
-<span><span class="co">## nu    0.259131 0.173535  0.0434314 0.220297    0.69922 0.125822</span></span></code></pre>
+<pre><code><span><span class="co">##           mean       sd 0.025quant 0.5quant 0.975quant        mode</span></span>
+<span><span class="co">## tau   5.025810 8.731620 0.40946300 2.374150   26.69500 0.904266000</span></span>
+<span><span class="co">## kappa 2.664220 5.255280 0.02002570 0.951935   16.04010 0.014790300</span></span>
+<span><span class="co">## nu    0.349397 0.527884 0.00137741 0.127804    1.99278 0.000427643</span></span></code></pre>
 <p>To create plots of the posterior marginal densities, we can use the
 <code><a href="../reference/gg_df.html">gg_df()</a></code> function, which creates
 <code>ggplot2</code>-friendly data frames. The following figure shows
@@ -512,10 +512,10 @@ to <code>matern</code>:</p>
 <code class="sourceCode R"><span><span class="va">result_fit_matern</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, </span>
 <span>                      <span class="va">rspde_model</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_matern</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##             mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## std.dev 0.243584  0.253048  0.0835349 0.208747    0.61715 0.204187</span></span>
-<span><span class="co">## range   4.616900 10.058800  0.0819027 2.032600   25.37880 1.038670</span></span>
-<span><span class="co">## nu      0.259131  0.173535  0.0434314 0.220297    0.69922 0.125822</span></span></code></pre>
+<pre><code><span><span class="co">##             mean        sd  0.025quant 0.5quant 0.975quant        mode</span></span>
+<span><span class="co">## std.dev 0.131802 0.0906614 -0.00106433 0.124871   0.308918 0.041373300</span></span>
+<span><span class="co">## range   2.010400 2.5572800  0.06484460 1.228910   8.717960 0.617510000</span></span>
+<span><span class="co">## nu      0.349397 0.5278840  0.00137741 0.127804   1.992780 0.000427643</span></span></code></pre>
 <p>In a similar manner, we can obtain posterior plots on the
 <code>matern</code> parameterization:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
@@ -829,24 +829,24 @@ some meaningless model.</p>
 <span><span class="co">##    silent = silent, ", " inla.mode = inla.mode, safe = FALSE, debug = </span></span>
 <span><span class="co">##    debug, .parent.frame = .parent.frame)" ) </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.174, Running = 460, Post = 2.15, Total = 463 </span></span>
+<span><span class="co">##     Pre = 0.272, Running = 955, Post = 3.59, Total = 959 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                          mean    sd 0.025quant 0.5quant</span></span>
-<span><span class="co">## Precision for the Gaussian observations 89.11 4.559      80.22    89.08</span></span>
-<span><span class="co">## Theta1 for field                        -2.91 0.059      -3.00    -2.92</span></span>
-<span><span class="co">## Theta2 for field                         3.03 0.038       2.96     3.03</span></span>
-<span><span class="co">## Theta3 for field                        -1.65 0.027      -1.71    -1.65</span></span>
+<span><span class="co">## Precision for the Gaussian observations 89.25 4.379      80.95    89.14</span></span>
+<span><span class="co">## Theta1 for field                        -2.92 0.054      -3.00    -2.93</span></span>
+<span><span class="co">## Theta2 for field                         3.03 0.036       2.96     3.03</span></span>
+<span><span class="co">## Theta3 for field                        -1.65 0.026      -1.71    -1.64</span></span>
 <span><span class="co">##                                         0.975quant  mode</span></span>
-<span><span class="co">## Precision for the Gaussian observations      98.16 89.21</span></span>
-<span><span class="co">## Theta1 for field                             -2.77 -2.96</span></span>
+<span><span class="co">## Precision for the Gaussian observations      98.19 88.92</span></span>
+<span><span class="co">## Theta1 for field                             -2.80 -2.96</span></span>
 <span><span class="co">## Theta2 for field                              3.10  3.03</span></span>
 <span><span class="co">## Theta3 for field                             -1.60 -1.63</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -4480.44 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -4480.59 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -855,9 +855,9 @@ some meaningless model.</p>
 <code class="sourceCode R"><span><span class="va">result_fit_rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span>, <span class="st">"field"</span>, <span class="va">rspde_model.rep</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_rep</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##             mean         sd 0.025quant   0.5quant 0.975quant       mode</span></span>
-<span><span class="co">## tau    0.0544966 0.00326779  0.0498048  0.0539205  0.0622143  0.0519086</span></span>
-<span><span class="co">## kappa 20.6846000 0.77460700 19.2159000 20.6655000 22.2577000 20.6216000</span></span>
-<span><span class="co">## nu     0.6457050 0.01450340  0.6136310  0.6474010  0.6693220  0.6541930</span></span></code></pre>
+<span><span class="co">## tau    0.0540276 0.00296535  0.0497053  0.0535384  0.0610092  0.0518141</span></span>
+<span><span class="co">## kappa 20.7167000 0.73426000 19.3190000 20.7007000 22.2021000 20.6645000</span></span>
+<span><span class="co">## nu     0.6466610 0.01418680  0.6153610  0.6482830  0.6698920  0.6547550</span></span></code></pre>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
@@ -875,9 +875,9 @@ some meaningless model.</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   parameter        true        mean        mode</span></span>
-<span><span class="co">## 1       tau  0.08920621  0.05449659  0.05190859</span></span>
-<span><span class="co">## 2     kappa 20.00000000 20.68461864 20.62155081</span></span>
-<span><span class="co">## 3        nu  0.50000000  0.64570527  0.65419291</span></span></code></pre>
+<span><span class="co">## 1       tau  0.08920621  0.05402756  0.05181406</span></span>
+<span><span class="co">## 2     kappa 20.00000000 20.71666096 20.66450774</span></span>
+<span><span class="co">## 3        nu  0.50000000  0.64666053  0.65475483</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -967,10 +967,10 @@ fit the model:</p>
 <span><span class="co">##    silent = silent, ", " inla.mode = inla.mode, safe = FALSE, debug = </span></span>
 <span><span class="co">##    debug, .parent.frame = .parent.frame)" ) </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.193, Running = 19.1, Post = 0.0462, Total = 19.3 </span></span>
+<span><span class="co">##     Pre = 0.242, Running = 24.4, Post = 0.066, Total = 24.7 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.943 0.046      1.854    1.943      2.032 1.943   0</span></span>
+<span><span class="co">## Intercept 1.943 0.045      1.855    1.943      2.031 1.943   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -978,20 +978,20 @@ fit the model:</p>
 <span><span class="co">##    field CGeneric</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
-<span><span class="co">##                                                   mean      sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.92    1.01      12.04</span></span>
-<span><span class="co">## Precision for seaDist                          7890.01 4743.30    2289.43</span></span>
-<span><span class="co">## Theta1 for field                                 -3.00    3.97     -11.77</span></span>
-<span><span class="co">## Theta2 for field                                  1.96    1.32      -0.25</span></span>
-<span><span class="co">## Theta3 for field                                  1.55    3.46      -4.22</span></span>
+<span><span class="co">##                                                    mean       sd 0.025quant</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.936    1.002     12.054</span></span>
+<span><span class="co">## Precision for seaDist                          7778.692 4659.744   2339.700</span></span>
+<span><span class="co">## Theta1 for field                                 -0.925    0.420     -1.723</span></span>
+<span><span class="co">## Theta2 for field                                  1.316    0.282      0.755</span></span>
+<span><span class="co">## Theta3 for field                                 -0.260    0.401     -1.070</span></span>
 <span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.89      16.01   13.818</span></span>
-<span><span class="co">## Precision for seaDist                           6756.51   20204.22 4970.281</span></span>
-<span><span class="co">## Theta1 for field                                  -2.66       3.60   -0.982</span></span>
-<span><span class="co">## Theta2 for field                                   1.85       4.86    1.324</span></span>
-<span><span class="co">## Theta3 for field                                   1.25       9.20   -0.205</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.905     15.996   13.854</span></span>
+<span><span class="co">## Precision for seaDist                          6651.607  19932.736 4917.886</span></span>
+<span><span class="co">## Theta1 for field                                 -0.935     -0.068   -0.978</span></span>
+<span><span class="co">## Theta2 for field                                  1.318      1.866    1.327</span></span>
+<span><span class="co">## Theta3 for field                                 -0.253      0.507   -0.221</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1258.32 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1260.61 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -1001,12 +1001,12 @@ value of <code>nu.upper.bound</code> of 4:</p>
 <code class="sourceCode R"><span><span class="co"># nu.upper.bound = 4</span></span>
 <span><span class="va">rspde_fit</span><span class="op">$</span><span class="va">cpu.used</span></span></code></pre></div>
 <pre><code><span><span class="co">##         Pre     Running        Post       Total </span></span>
-<span><span class="co">##   0.3963206 117.3511982   0.1062903 117.8538091</span></span></code></pre>
+<span><span class="co">##   0.5812771 221.8417935   0.1313758 222.5544465</span></span></code></pre>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># nu.upper.bound = 2</span></span>
 <span><span class="va">rspde_fit_2</span><span class="op">$</span><span class="va">cpu.used</span></span></code></pre></div>
-<pre><code><span><span class="co">##        Pre    Running       Post      Total </span></span>
-<span><span class="co">##  0.1934421 19.0976131  0.0461967 19.3372519</span></span></code></pre>
+<pre><code><span><span class="co">##         Pre     Running        Post       Total </span></span>
+<span><span class="co">##  0.24168539 24.36480832  0.06595182 24.67244554</span></span></code></pre>
 <p>We can see that the fit for <code>nu.upper.bound</code> equal to 2
 was considerably faster.</p>
 <p>Finally, let us get the result results for the field and see the
@@ -1014,10 +1014,10 @@ estimate of <span class="math inline">\(\nu\)</span>:</p>
 <div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit_2</span>, <span class="st">"field"</span>, <span class="va">rspde_model_2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_2</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##           mean        sd  0.025quant  0.5quant 0.975quant        mode</span></span>
-<span><span class="co">## tau    4.97927 34.611700 9.63735e-09 0.0779847   36.13510 9.63735e-09</span></span>
-<span><span class="co">## kappa 19.52890 50.737700 7.85557e-01 6.1615700  124.88800 1.70978e+00</span></span>
-<span><span class="co">## nu     1.25987  0.719995 2.95838e-02 1.5228400    1.99976 1.99999e+00</span></span></code></pre>
+<pre><code><span><span class="co">##           mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## tau   0.433224 0.193617   0.179622 0.391627   0.925888 0.322439</span></span>
+<span><span class="co">## kappa 3.878740 1.101880   2.137480 3.738490   6.435760 3.474250</span></span>
+<span><span class="co">## nu    0.875817 0.188885   0.513828 0.875319   1.245510 0.880085</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="changing-the-order-of-the-rational-approximation">Changing the order of the rational approximation<a class="anchor" aria-label="anchor" href="#changing-the-order-of-the-rational-approximation"></a>
@@ -1107,10 +1107,10 @@ we proceed as follows:</p>
 <span><span class="co">##    silent = silent, ", " inla.mode = inla.mode, safe = FALSE, debug = </span></span>
 <span><span class="co">##    debug, .parent.frame = .parent.frame)" ) </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.185, Running = 31.8, Post = 0.058, Total = 32 </span></span>
+<span><span class="co">##     Pre = 0.243, Running = 57.4, Post = 0.0812, Total = 57.7 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.943 0.044      1.858    1.943      2.029 1.943   0</span></span>
+<span><span class="co">## Intercept 1.943 0.044      1.856    1.943      2.029 1.943   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -1119,19 +1119,19 @@ we proceed as follows:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                                    mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.957    1.011     12.066</span></span>
-<span><span class="co">## Precision for seaDist                          8193.356 5376.940   2399.778</span></span>
-<span><span class="co">## Theta1 for field                                 -0.825    0.453     -1.611</span></span>
-<span><span class="co">## Theta2 for field                                  1.307    0.290      0.709</span></span>
-<span><span class="co">## Theta3 for field                                 -0.315    0.407     -1.169</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.946    1.004     12.068</span></span>
+<span><span class="co">## Precision for seaDist                          7727.504 4476.338   2239.345</span></span>
+<span><span class="co">## Theta1 for field                                 -1.356    0.460     -2.379</span></span>
+<span><span class="co">## Theta2 for field                                  1.379    0.272      0.848</span></span>
+<span><span class="co">## Theta3 for field                                  0.072    0.420     -0.639</span></span>
 <span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.922   1.60e+01   13.859</span></span>
-<span><span class="co">## Precision for seaDist                          6799.537   2.24e+04 4839.652</span></span>
-<span><span class="co">## Theta1 for field                                 -0.855   1.55e-01   -1.003</span></span>
-<span><span class="co">## Theta2 for field                                  1.316   1.85e+00    1.357</span></span>
-<span><span class="co">## Theta3 for field                                 -0.298   4.31e-01   -0.217</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.91     16.017   13.851</span></span>
+<span><span class="co">## Precision for seaDist                           6705.02  19214.202 4999.234</span></span>
+<span><span class="co">## Theta1 for field                                  -1.31     -0.597   -1.110</span></span>
+<span><span class="co">## Theta2 for field                                   1.38      1.919    1.370</span></span>
+<span><span class="co">## Theta3 for field                                   0.04      0.995   -0.123</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1260.53 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1260.67 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -1144,12 +1144,12 @@ cost of having <code>rspde.order=2</code> and
 <code class="sourceCode R"><span><span class="co"># nu.upper.bound = 4</span></span>
 <span><span class="va">rspde_fit</span><span class="op">$</span><span class="va">cpu.used</span></span></code></pre></div>
 <pre><code><span><span class="co">##         Pre     Running        Post       Total </span></span>
-<span><span class="co">##   0.3963206 117.3511982   0.1062903 117.8538091</span></span></code></pre>
+<span><span class="co">##   0.5812771 221.8417935   0.1313758 222.5544465</span></span></code></pre>
 <div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># nu.upper.bound = 2</span></span>
 <span><span class="va">rspde_fit_order_3</span><span class="op">$</span><span class="va">cpu.used</span></span></code></pre></div>
 <pre><code><span><span class="co">##         Pre     Running        Post       Total </span></span>
-<span><span class="co">##  0.18455887 31.78866887  0.05800557 32.03123331</span></span></code></pre>
+<span><span class="co">##  0.24347520 57.37743235  0.08115339 57.70206094</span></span></code></pre>
 <p>One can check the order of the rational approximation by using the
 <code><a href="../reference/rational.order.html">rational.order()</a></code> function. It also allows another way to
 change the order of the rational order, by using the corresponding
@@ -1233,10 +1233,10 @@ be 1:</p>
 <span><span class="co">##    silent = silent, ", " inla.mode = inla.mode, safe = FALSE, debug = </span></span>
 <span><span class="co">##    debug, .parent.frame = .parent.frame)" ) </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.16, Running = 101, Post = 0.0579, Total = 101 </span></span>
+<span><span class="co">##     Pre = 0.24, Running = 79.1, Post = 0.0535, Total = 79.4 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.922 0.211      1.508    1.922      2.336 1.922   0</span></span>
+<span><span class="co">## Intercept 1.943 0.046      1.854    1.943      2.033 1.943   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -1244,20 +1244,20 @@ be 1:</p>
 <span><span class="co">##    field CGeneric</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
-<span><span class="co">##                                                     mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.990 9.61e-01     12.112</span></span>
-<span><span class="co">## Precision for seaDist                          23315.425 1.47e+04   4793.721</span></span>
-<span><span class="co">## Theta1 for field                                   0.879 1.56e-01      0.596</span></span>
-<span><span class="co">## Theta2 for field                                  -1.738 7.93e-01     -3.581</span></span>
-<span><span class="co">## Theta3 for field                                  -3.339 1.30e+00     -5.816</span></span>
-<span><span class="co">##                                                 0.5quant 0.975quant      mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.984     15.889    14.041</span></span>
-<span><span class="co">## Precision for seaDist                          19848.055  60150.851 13149.389</span></span>
-<span><span class="co">## Theta1 for field                                   0.872      1.209     0.836</span></span>
-<span><span class="co">## Theta2 for field                                  -1.641     -0.566    -1.106</span></span>
-<span><span class="co">## Theta3 for field                                  -3.369     -0.680    -3.503</span></span>
+<span><span class="co">##                                                    mean       sd 0.025quant</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.960    1.004     12.076</span></span>
+<span><span class="co">## Precision for seaDist                          8177.467 5092.840   2557.663</span></span>
+<span><span class="co">## Theta1 for field                                  0.205    1.836     -3.169</span></span>
+<span><span class="co">## Theta2 for field                                  0.935    0.841     -0.815</span></span>
+<span><span class="co">## Theta3 for field                                 -2.279    1.768     -5.970</span></span>
+<span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.928   1.60e+01   13.872</span></span>
+<span><span class="co">## Precision for seaDist                          6883.131   2.16e+04 5017.754</span></span>
+<span><span class="co">## Theta1 for field                                  0.131   4.04e+00   -0.217</span></span>
+<span><span class="co">## Theta2 for field                                  0.968   2.49e+00    1.117</span></span>
+<span><span class="co">## Theta3 for field                                 -2.208   9.74e-01   -1.878</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1255.93 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1258.84 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -1349,10 +1349,10 @@ index of the first fitted model, which is also of order 2.</p>
 <span><span class="co">##    silent = silent, ", " inla.mode = inla.mode, safe = FALSE, debug = </span></span>
 <span><span class="co">##    debug, .parent.frame = .parent.frame)" ) </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.157, Running = 11.6, Post = 0.042, Total = 11.8 </span></span>
+<span><span class="co">##     Pre = 0.24, Running = 17, Post = 0.0636, Total = 17.3 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.943 0.043      1.858    1.943      2.028 1.943   0</span></span>
+<span><span class="co">## Intercept 1.943 0.043      1.858    1.943      2.027 1.943   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -1361,17 +1361,17 @@ index of the first fitted model, which is also of order 2.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                                   mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.90    1.008     12.009</span></span>
-<span><span class="co">## Precision for seaDist                          7722.45 4686.002   2314.881</span></span>
-<span><span class="co">## Theta1 for field                                 -1.72    0.371     -2.452</span></span>
-<span><span class="co">## Theta2 for field                                  1.49    0.292      0.916</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.90    1.012     12.007</span></span>
+<span><span class="co">## Precision for seaDist                          7848.30 4906.842   2266.717</span></span>
+<span><span class="co">## Theta1 for field                                 -1.72    0.381     -2.465</span></span>
+<span><span class="co">## Theta2 for field                                  1.49    0.299      0.898</span></span>
 <span><span class="co">##                                                0.5quant 0.975quant    mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.87      15.98   13.81</span></span>
-<span><span class="co">## Precision for seaDist                           6575.62   19979.43 4836.59</span></span>
-<span><span class="co">## Theta1 for field                                  -1.72      -0.99   -1.71</span></span>
-<span><span class="co">## Theta2 for field                                   1.49       2.07    1.49</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.87     15.990   13.80</span></span>
+<span><span class="co">## Precision for seaDist                           6629.91  20713.499 4804.13</span></span>
+<span><span class="co">## Theta1 for field                                  -1.72     -0.967   -1.72</span></span>
+<span><span class="co">## Theta2 for field                                   1.49      2.077    1.49</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1260.29 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1260.24 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -1380,8 +1380,8 @@ index of the first fitted model, which is also of order 2.</p>
 <code class="sourceCode R"><span><span class="va">result_fix</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fix</span>, <span class="st">"field"</span>, <span class="va">rspde_model_fix</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fix</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##           mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## tau   0.191895 0.0728573  0.0866439  0.17947   0.369322 0.156816</span></span>
-<span><span class="co">## kappa 4.630990 1.3727700  2.5110200  4.43730   7.863320 4.067150</span></span></code></pre>
+<span><span class="co">## tau   0.192721 0.0754303  0.0855268 0.179271   0.377921 0.155388</span></span>
+<span><span class="co">## kappa 4.635930 1.4038900  2.4669100 4.439960   7.938770 4.066550</span></span></code></pre>
 </div>
 <div class="section level4">
 <h4 id="estimating-models-with-fixed-smoothness-and-integer-alpha">Estimating models with fixed smoothness and integer <span class="math inline">\(\alpha\)</span><a class="anchor" aria-label="anchor" href="#estimating-models-with-fixed-smoothness-and-integer-alpha"></a>
@@ -1459,7 +1459,7 @@ for the first fit. Therefore, let us fit the model with <span class="math inline
 <span><span class="co">##    silent = silent, ", " inla.mode = inla.mode, safe = FALSE, debug = </span></span>
 <span><span class="co">##    debug, .parent.frame = .parent.frame)" ) </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.195, Running = 1.16, Post = 0.0253, Total = 1.38 </span></span>
+<span><span class="co">##     Pre = 0.232, Running = 1.53, Post = 0.0364, Total = 1.8 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.943 0.044      1.857    1.943      2.029 1.943   0</span></span>
@@ -1471,17 +1471,17 @@ for the first fit. Therefore, let us fit the model with <span class="math inline
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                                   mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.91    1.001     12.044</span></span>
-<span><span class="co">## Precision for seaDist                          7912.25 4939.156   2426.845</span></span>
-<span><span class="co">## Theta1 for field                                 -1.22    0.325     -1.864</span></span>
-<span><span class="co">## Theta2 for field                                  1.39    0.304      0.785</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.92    1.002     12.032</span></span>
+<span><span class="co">## Precision for seaDist                          7766.31 4558.797   2509.717</span></span>
+<span><span class="co">## Theta1 for field                                 -1.22    0.328     -1.867</span></span>
+<span><span class="co">## Theta2 for field                                  1.38    0.306      0.778</span></span>
 <span><span class="co">##                                                0.5quant 0.975quant    mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.88     15.984   13.81</span></span>
-<span><span class="co">## Precision for seaDist                           6662.33  20939.824 4851.81</span></span>
-<span><span class="co">## Theta1 for field                                  -1.22     -0.583   -1.22</span></span>
-<span><span class="co">## Theta2 for field                                   1.39      1.980    1.39</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.89     15.976   13.84</span></span>
+<span><span class="co">## Precision for seaDist                           6651.89  19712.783 4975.80</span></span>
+<span><span class="co">## Theta1 for field                                  -1.22     -0.574   -1.22</span></span>
+<span><span class="co">## Theta2 for field                                   1.38      1.984    1.39</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1260.14 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1260.17 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -1490,8 +1490,8 @@ for the first fit. Therefore, let us fit the model with <span class="math inline
 <code class="sourceCode R"><span><span class="va">rspde_result_int</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fix_int_1</span>, <span class="st">"field"</span>, <span class="va">rspde_model_fix_int1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_result_int</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##           mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## tau   0.309913 0.102583   0.155977 0.294113   0.555177 0.263822</span></span>
-<span><span class="co">## kappa 4.179960 1.284630   2.204390 3.997570   7.210370 3.648480</span></span></code></pre>
+<span><span class="co">## tau   0.311149 0.103988    0.15548 0.295014    0.56005 0.264252</span></span>
+<span><span class="co">## kappa 4.175150 1.295990    2.18875 3.988920    7.23803 3.631870</span></span></code></pre>
 </div>
 </div>
 <div class="section level3">
@@ -1703,10 +1703,10 @@ model:</p>
 <span><span class="co">##    silent = silent, ", " inla.mode = inla.mode, safe = FALSE, debug = </span></span>
 <span><span class="co">##    debug, .parent.frame = .parent.frame)" ) </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.176, Running = 62.6, Post = 0.0435, Total = 62.9 </span></span>
+<span><span class="co">##     Pre = 0.236, Running = 99.5, Post = 0.0634, Total = 99.8 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.943 0.045      1.854    1.943      2.032 1.943   0</span></span>
+<span><span class="co">## Intercept 1.943 0.045      1.855    1.943      2.032 1.943   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -1715,19 +1715,19 @@ model:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                                   mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.85    1.007     11.974</span></span>
-<span><span class="co">## Precision for seaDist                          7983.61 5550.135   1972.509</span></span>
-<span><span class="co">## Theta1 for field                                 -1.06    1.919     -4.721</span></span>
-<span><span class="co">## Theta2 for field                                  1.32    0.524      0.266</span></span>
-<span><span class="co">## Theta3 for field                                 -1.16    1.055     -3.295</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.87    1.002     12.000</span></span>
+<span><span class="co">## Precision for seaDist                          7989.24 4885.584   2451.783</span></span>
+<span><span class="co">## Theta1 for field                                 -1.22    0.914     -3.005</span></span>
+<span><span class="co">## Theta2 for field                                  1.36    0.347      0.674</span></span>
+<span><span class="co">## Theta3 for field                                 -1.08    0.520     -2.107</span></span>
 <span><span class="co">##                                                0.5quant 0.975quant    mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.81   1.59e+01   13.74</span></span>
-<span><span class="co">## Precision for seaDist                           6542.79   2.26e+04 4451.11</span></span>
-<span><span class="co">## Theta1 for field                                  -1.10   2.83e+00   -1.26</span></span>
-<span><span class="co">## Theta2 for field                                   1.33   2.33e+00    1.36</span></span>
-<span><span class="co">## Theta3 for field                                  -1.14   8.58e-01   -1.04</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.84     15.945   13.77</span></span>
+<span><span class="co">## Precision for seaDist                           6773.95  20826.656 4975.52</span></span>
+<span><span class="co">## Theta1 for field                                  -1.22      0.593   -1.24</span></span>
+<span><span class="co">## Theta2 for field                                   1.36      2.041    1.36</span></span>
+<span><span class="co">## Theta3 for field                                  -1.08     -0.059   -1.07</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1260.54 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1261.30 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -1735,10 +1735,10 @@ model:</p>
 <div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit_beta</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit_beta</span>, <span class="st">"field"</span>, <span class="va">rspde_model_beta</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_beta</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##          mean       sd 0.025quant 0.5quant 0.975quant      mode</span></span>
-<span><span class="co">## tau   2.22032 8.959480 0.00916273 0.330360   16.37450 0.0119182</span></span>
-<span><span class="co">## kappa 4.27925 2.318160 1.31801000 3.777770   10.19720 2.8718500</span></span>
-<span><span class="co">## nu    1.11922 0.720762 0.14594400 0.976801    2.79587 0.4724310</span></span></code></pre>
+<pre><code><span><span class="co">##          mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## tau   0.44730 0.491262  0.0502644  0.29462    1.78233 0.129110</span></span>
+<span><span class="co">## kappa 4.13313 1.462170  1.9729200  3.89811    7.65531 3.456440</span></span>
+<span><span class="co">## nu    1.06205 0.387977  0.4370240  1.01768    1.93258 0.915069</span></span></code></pre>
 <p>and the plot of the posterior marginal densities</p>
 <div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">posterior_df_fit_beta</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gg_df.html">gg_df</a></span><span class="op">(</span><span class="va">result_fit_beta</span><span class="op">)</span></span>
@@ -1814,10 +1814,10 @@ is to update the formula and fit:</p>
 <span><span class="co">##    silent = silent, ", " inla.mode = inla.mode, safe = FALSE, debug = </span></span>
 <span><span class="co">##    debug, .parent.frame = .parent.frame)" ) </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.157, Running = 54.5, Post = 0.0544, Total = 54.7 </span></span>
+<span><span class="co">##     Pre = 0.234, Running = 124, Post = 0.0776, Total = 124 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.921 0.222      1.486    1.921      2.356 1.921   0</span></span>
+<span><span class="co">## Intercept 1.919 0.831      0.289    1.919      3.548 1.919   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -1826,19 +1826,19 @@ is to update the formula and fit:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                                     mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.878 9.64e-01     12.044</span></span>
-<span><span class="co">## Precision for seaDist                          31300.211 2.52e+04   5916.942</span></span>
-<span><span class="co">## Theta1 for field                                   0.829 2.00e-01      0.479</span></span>
-<span><span class="co">## Theta2 for field                                  -1.832 1.17e+00     -4.479</span></span>
-<span><span class="co">## Theta3 for field                                  -2.995 8.59e-01     -4.868</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.937 9.75e-01     12.091</span></span>
+<span><span class="co">## Precision for seaDist                          32759.941 3.34e+04   4121.198</span></span>
+<span><span class="co">## Theta1 for field                                   0.807 1.59e-01      0.495</span></span>
+<span><span class="co">## Theta2 for field                                  -2.018 8.90e-01     -3.641</span></span>
+<span><span class="co">## Theta3 for field                                  -2.791 8.13e-01     -4.409</span></span>
 <span><span class="co">##                                                 0.5quant 0.975quant      mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.856     15.839    13.836</span></span>
-<span><span class="co">## Precision for seaDist                          24389.048  98111.859 14657.588</span></span>
-<span><span class="co">## Theta1 for field                                   0.817      1.262     0.753</span></span>
-<span><span class="co">## Theta2 for field                                  -1.700      0.001    -1.067</span></span>
-<span><span class="co">## Theta3 for field                                  -2.940     -1.518    -2.635</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.912   1.59e+01    13.881</span></span>
+<span><span class="co">## Precision for seaDist                          22912.286   1.21e+05 10872.596</span></span>
+<span><span class="co">## Theta1 for field                                   0.807   1.12e+00     0.807</span></span>
+<span><span class="co">## Theta2 for field                                  -2.057  -1.49e-01    -2.244</span></span>
+<span><span class="co">## Theta3 for field                                  -2.785  -1.21e+00    -2.759</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1256.89 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1256.38 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -1894,10 +1894,10 @@ approximation being 1:</p>
 <span><span class="co">##    silent = silent, ", " inla.mode = inla.mode, safe = FALSE, debug = </span></span>
 <span><span class="co">##    debug, .parent.frame = .parent.frame)" ) </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.158, Running = 99.8, Post = 0.0444, Total = 100 </span></span>
+<span><span class="co">##     Pre = 0.237, Running = 307, Post = 0.0608, Total = 308 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.943 0.052      1.841    1.943      2.046 1.943   0</span></span>
+<span><span class="co">## Intercept 1.921 0.294      1.346    1.921      2.496 1.921   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -1906,19 +1906,19 @@ approximation being 1:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                                     mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations    13.958    0.992      12.09</span></span>
-<span><span class="co">## Precision for seaDist                          11190.877 9309.131    2628.73</span></span>
-<span><span class="co">## Theta1 for field                                   0.802    1.289      -1.44</span></span>
-<span><span class="co">## Theta2 for field                                   0.291    1.206      -2.31</span></span>
-<span><span class="co">## Theta3 for field                                  -3.113    1.822      -7.04</span></span>
-<span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.929   1.60e+01   13.888</span></span>
-<span><span class="co">## Precision for seaDist                          8562.157   3.60e+04 5424.832</span></span>
-<span><span class="co">## Theta1 for field                                  0.717   3.59e+00    0.295</span></span>
-<span><span class="co">## Theta2 for field                                  0.368   2.40e+00    0.748</span></span>
-<span><span class="co">## Theta3 for field                                 -2.998   7.40e-02   -2.427</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.922 9.73e-01     12.112</span></span>
+<span><span class="co">## Precision for seaDist                          29798.512 2.50e+04   5103.707</span></span>
+<span><span class="co">## Theta1 for field                                   0.925 1.90e-01      0.611</span></span>
+<span><span class="co">## Theta2 for field                                  -3.491 2.31e+00     -8.876</span></span>
+<span><span class="co">## Theta3 for field                                  -4.327 1.06e+00     -6.713</span></span>
+<span><span class="co">##                                                 0.5quant 0.975quant      mode</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.886     15.940    13.810</span></span>
+<span><span class="co">## Precision for seaDist                          22838.802  96061.417 13037.062</span></span>
+<span><span class="co">## Theta1 for field                                   0.909      1.348     0.824</span></span>
+<span><span class="co">## Theta2 for field                                  -3.172     -0.155    -1.539</span></span>
+<span><span class="co">## Theta3 for field                                  -4.224     -2.624    -3.688</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1257.98 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1255.61 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -1968,10 +1968,10 @@ with rational approximation of order 3:</p>
 <span><span class="co">##    silent = silent, ", " inla.mode = inla.mode, safe = FALSE, debug = </span></span>
 <span><span class="co">##    debug, .parent.frame = .parent.frame)" ) </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.16, Running = 31, Post = 0.0561, Total = 31.3 </span></span>
+<span><span class="co">##     Pre = 0.258, Running = 59.7, Post = 0.12, Total = 60.1 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.943 0.044      1.857    1.943      2.029 1.943   0</span></span>
+<span><span class="co">## Intercept 1.943 0.043      1.859    1.943      2.028 1.943   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -1979,20 +1979,20 @@ with rational approximation of order 3:</p>
 <span><span class="co">##    field CGeneric</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
-<span><span class="co">##                                                    mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.943    1.009     12.052</span></span>
-<span><span class="co">## Precision for seaDist                          7843.139 4797.663   2371.227</span></span>
-<span><span class="co">## Theta1 for field                                 -2.085    1.699     -5.886</span></span>
-<span><span class="co">## Theta2 for field                                  1.590    0.511      0.711</span></span>
-<span><span class="co">## Theta3 for field                                  0.687    1.435     -1.653</span></span>
+<span><span class="co">##                                                   mean       sd 0.025quant</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations   13.95    1.001      12.05</span></span>
+<span><span class="co">## Precision for seaDist                          7794.82 4702.568    2617.57</span></span>
+<span><span class="co">## Theta1 for field                                 -3.50    2.835     -10.03</span></span>
+<span><span class="co">## Theta2 for field                                  1.86    0.661       0.81</span></span>
+<span><span class="co">## Theta3 for field                                  1.89    2.417      -1.77</span></span>
 <span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## Precision parameter for the Gamma observations   13.911   1.60e+01   13.854</span></span>
-<span><span class="co">## Precision for seaDist                          6656.056   2.04e+04 4883.942</span></span>
-<span><span class="co">## Theta1 for field                                 -1.921   6.77e-01   -1.111</span></span>
-<span><span class="co">## Theta2 for field                                  1.555   2.70e+00    1.377</span></span>
-<span><span class="co">## Theta3 for field                                  0.551   3.89e+00   -0.123</span></span>
+<span><span class="co">## Precision parameter for the Gamma observations    13.92   1.60e+01   13.899</span></span>
+<span><span class="co">## Precision for seaDist                           6601.49   2.02e+04 4862.253</span></span>
+<span><span class="co">## Theta1 for field                                  -3.13   7.88e-01   -1.304</span></span>
+<span><span class="co">## Theta2 for field                                   1.79   3.36e+00    1.439</span></span>
+<span><span class="co">## Theta3 for field                                   1.58   7.45e+00    0.026</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1259.35 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1259.12 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
