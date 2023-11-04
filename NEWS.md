@@ -1,4 +1,4 @@
-# rSPDE (development version)
+# rSPDE 2.3.3
 * Bugfix on rspde_lme when fitting with fixed smoothness.
 * Added a 2d fem interface.
 * Moved from using INLA's mesh functions to fmesher's mesh functions.
