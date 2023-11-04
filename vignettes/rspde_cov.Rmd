@@ -340,6 +340,7 @@ op_cov2 <- matern.operators(
 c_cov.approx2 <- op_cov2$cov_function_mesh(0.5)
 
 s2 <- seq(from = 0, to = 1, length.out = 501)
+
 op_cov <- matern.operators(
   range = r, sigma = sigma, nu = nu,
   loc_mesh = s2, d = 1, m = 2,
@@ -387,7 +388,7 @@ Since the error induced by the rational approximation decreases exponentially in
 ```{r}
 # Mapping s2 to s
 A2 <- fm_basis(mesh_s2, s)
-v2 <- t(fm_basis(mesh_s2, 0.5))
+
 errors <- rep(0, 4)
 for (i in 1:4) {
   op_cov <- matern.operators(
@@ -395,10 +396,7 @@ for (i in 1:4) {
     loc_mesh = s2, d = 1, m = i,
     parameterization = "matern"
   )
-  Q <- precision(op_cov)
-  v_bar <- kronecker(matrix(1, nrow = i + 1), v2)
-  A_bar <- kronecker(matrix(1, ncol = i + 1), A2)
-  c_cov.approx <- (A_bar) %*% solve(Q, v_bar)
+  c_cov.approx <- A2 %*% op_cov$cov_function_mesh(0.5)
   errors[i] <- norm(c.true - c_cov.approx)
 }
 print(errors)
@@ -621,7 +619,7 @@ summary(fit_repl)
 and glance:
 
 ```{r}
-glance(fir_repl)
+glance(fit_repl)
 ```
 
 Let us compare with the true values:

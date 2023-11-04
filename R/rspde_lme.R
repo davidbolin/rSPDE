@@ -63,6 +63,7 @@ rspde_lme <- function(formula, loc, data,
    }
 
    estimate_nu <- TRUE
+   estimated_alpha <- NULL
 
    if(!is.null(nu)){
     estimate_nu <- FALSE
@@ -654,11 +655,15 @@ if(parallel){
 
   if(model$stationary){
     coeff <- exp(c(res$par[1:n_coeff_nonfixed]))
+    if(estimate_nu){
+      estimated_alpha <- coeff[2] + model$d/2
+    }
   } else{
     coeff <- res$par[1:n_coeff_nonfixed]
     coeff[1] <- exp(coeff[1])
     if(estimate_nu){
       coeff[2] <- exp(coeff[2])
+      estimated_alpha <- coeff[2] + model$d/2
     }
   }
   coeff <- c(coeff, res$par[-c(1:n_coeff_nonfixed)])
@@ -856,6 +861,7 @@ if(parallel){
   object$stationary <- model$stationary
   object$nu <- nu
   object$alpha <- alpha
+  object$estimated_alpha <- estimated_alpha
   object$df.residual <- object$nobs -(1 + length(object$coeff$fixed_effects) + length(object$coeff$random_effects))
   object$lik_fun <- likelihood_new
   object$par_lik_fun <- new_likelihood
@@ -1476,10 +1482,10 @@ deviance.rspde_lme <- function(object, ...){
 
 glance.rspde_lme <- function(x, ...){
   alpha <- NULL
-  if(x$latent_model$type == "Covariance-Based Matern SPDE Approximation"){
-    alpha <- x$coeff$random_effects[[1]]
-  } else if(!is.null(x$latent_model$alpha)){
-    alpha <- x$latent_model$alpha
+  if(!is.null(x$alpha)){
+    alpha <- x$alpha
+  } else {
+    alpha <- x$estimated_alpha
   }
   tidyr::tibble(nobs = stats::nobs(x), 
                   sigma = as.numeric(x$coeff$measurement_error[[1]]), 

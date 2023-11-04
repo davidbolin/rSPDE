@@ -630,12 +630,19 @@ matern.operators <- function(kappa = NULL,
     output$range_mesh <- range_mesh
     output$graph <- graph
     output$loc_mesh <- loc_mesh
-    output$cov_function_mesh <- function(p){
+    output$cov_function_mesh <- function(p, direct = FALSE){
+      if(is.null(output$make_A)){
+        stop("Please, create the object using the mesh.")
+      }
       v <- output$make_A(loc = p)
-      return(output$Pr %*% solve(output$Q, output$Pr %*% v))
+      if(direct){
+        return(output$Pr %*% solve(output$Q, output$Pr %*% t(v)))
+      } else{
+        return(Sigma.mult(output, t(v)))
+      } 
     }
     output$covariance_mesh <- function(){
-      return(output$Pr %*% solve(output$Q, t(output$Pr)))
+      return(output$Pr %*% solve(output$Q, output$Pr))
   }    
     return(output)
   } else {
@@ -662,6 +669,9 @@ matern.operators <- function(kappa = NULL,
     out$graph <- graph
     out$loc_mesh <- loc_mesh    
     out$cov_function_mesh <- function(p){
+      if(is.null(out$make_A)){
+        stop("Please, create the object using the mesh.")
+      }
       v <- t(out$make_A(loc = p))
       A <- Matrix::Diagonal(dim(C)[1])
       v_bar <- kronecker(matrix(1, nrow = m + 1), v)
@@ -1435,9 +1445,16 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
       output$B.sigma <- B.sigma
       output$B.range <- B.range
       output$parameterization <- parameterization
-      output$cov_function_mesh <- function(p){
+    output$cov_function_mesh <- function(p, direct = FALSE){
+      if(is.null(output$make_A)){
+        stop("Please, create the object using the mesh.")
+      }
       v <- output$make_A(loc = p)
-      return(output$Pr %*% solve(output$Q, output$Pr %*% v))
+      if(direct){
+        return(output$Pr %*% solve(output$Q, output$Pr %*% t(v)))
+      } else{
+        return(Sigma.mult(output, t(v)))
+      } 
     }
     output$covariance_mesh <- function(){
       return(output$Pr %*% solve(output$Q, output$Pr))
@@ -1548,7 +1565,10 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
   output$B.range <- B.range
   output$parameterization <- parameterization  
   output$cov_function_mesh <- function(p){
-      v <- t(out$make_A(loc = p))
+      if(is.null(output$make_A)){
+        stop("Please, create the object using the mesh.")
+      }
+      v <- t(output$make_A(loc = p))
       A <- Matrix::Diagonal(dim(C)[1])
       v_bar <- kronecker(matrix(1, nrow = m + 1), v)
       A_bar <- kronecker(matrix(1, ncol = m+1), A)
