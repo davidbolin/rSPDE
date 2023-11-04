@@ -37,7 +37,7 @@
 #' @aliases rSPDE-package
 #' @import Matrix
 #' @importFrom stats rnorm approx quantile
-#' @importFrom stats dnorm pnorm dbeta
+#' @importFrom stats dnorm pnorm dbeta nobs deviance logLik
 #' @importFrom methods as
 #' @importFrom stats simulate lm logLik na.omit optim sd terms
 #' @importFrom fmesher fm_mesh_2d fm_basis fm_block fm_row_kron fm_mesh_1d fm_fem
