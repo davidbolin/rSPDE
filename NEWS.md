@@ -1,3 +1,14 @@
+# rSPDE 2.3.3
+* Bugfix on rspde_lme when fitting with fixed smoothness.
+* Added a 2d fem interface.
+* Moved from using INLA's mesh functions to fmesher's mesh functions.
+* Removing rgdal from suggests.
+* The `data` argument in `predict.rspde_lme` has been changed to `newdata`.
+* Adding `covariance_mesh` and `cov_function_mesh` methods as functions in the list returned by objects obtained from `matern.operators()` and `spde.matern.operators()`.
+* Updated the internal structure to match the updates from the `MetricGraph` package.
+* Updated the `cross_validation` function to match the updates in `inlabru`.
+* Added `glance` and `augment` methods for `rspde_lme` objects.
+
 # rSPDE 2.3.2
 * Small improvement on speed for rspde_lme.
 * Bugfix on Q for small values of nu in dimension 1.

@@ -50,7 +50,7 @@ of interest. Does not need to be given if either \code{mesh} or \code{graph} is 
 \item{d}{The dimension of the domain. Does not need to be given if either
 \code{mesh} or \code{graph} is provided.}
 
-\item{mesh}{An optional inla mesh. Replaces \code{d}, \code{C} and \code{G}.}
+\item{mesh}{An optional fmesher mesh. Replaces \code{d}, \code{C} and \code{G}.}
 
 \item{graph}{An optional \code{metric_graph} object. Replaces \code{d}, \code{C} and \code{G}.}
 

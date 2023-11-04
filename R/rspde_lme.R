@@ -63,6 +63,7 @@ rspde_lme <- function(formula, loc, data,
    }
 
    estimate_nu <- TRUE
+   estimated_alpha <- NULL
 
    if(!is.null(nu)){
     estimate_nu <- FALSE
@@ -106,6 +107,9 @@ rspde_lme <- function(formula, loc, data,
 
   call_rspde_lme <- match.call()
 
+  likelihood_new <- NULL
+  new_likelihood <- NULL
+
   if(null_model){
     model <- list(has_graph = FALSE,
                   stationary = FALSE)
@@ -117,16 +121,16 @@ rspde_lme <- function(formula, loc, data,
     data <- environment(formula)
   } else if(model$has_graph){
     if(use_data_from_graph){
-      if(is.null(model$graph$data)){
+      if(is.null(model$graph$.__enclos_env__$private$data)){
         stop("The graph has no data! Either add data to the graph, or add the data manually and set 'use_data_from_graph' to FALSE.")
       }
-          data <- model$graph$data
-          repl <- model$graph$data[["__group"]]
+          data <- model$graph$.__enclos_env__$private$data
+          repl <- model$graph$.__enclos_env__$private$data[[".group"]]
           if(missing(loc)){
               # Don't do anything, we will replace loc anyway
           }
-          loc <- cbind(model$graph$data[["__edge_number"]],
-                  model$graph$data[["__distance_on_edge"]])
+          loc <- cbind(model$graph$.__enclos_env__$private$data[[".edge_number"]],
+                  model$graph$.__enclos_env__$private$data[[".distance_on_edge"]])
           }
 
   }
@@ -291,7 +295,13 @@ rspde_lme <- function(formula, loc, data,
             # }
 
         if(inherits(model, "CBrSPDEobj")){
+          if(!is.null(alpha)){
+            if(alpha %% 1 != 0){
                   A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
+              }
+          } else{
+                  A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
+          }
         }  
         }
     } else{
@@ -324,7 +334,9 @@ rspde_lme <- function(formula, loc, data,
                 if(model_tmp$stationary){
                     # if(model_tmp$parameterization == "spde"){
                         alpha <- nu + model$d/2
-                        alpha <- max(1e-5 + model$d/2, alpha)                        
+                        if(estimate_nu){
+                          alpha <- max(1e-5 + model$d/2, alpha)           
+                        }
                         tau <- exp(theta[2+gap])
                         kappa <- exp(theta[3+gap])
                         model_tmp <- update.CBrSPDEobj(model_tmp,
@@ -341,7 +353,9 @@ rspde_lme <- function(formula, loc, data,
                 } else{
                     theta_model <- theta[(2+gap):(n_initial)]
                     alpha <- nu + model$d/2
-                    alpha <- max(1e-5 + model$d/2, alpha)
+                    if(estimate_nu){
+                      alpha <- max(1e-5 + model$d/2, alpha)
+                    }
                     model_tmp <- update.CBrSPDEobj(model_tmp,
                             user_theta = theta_model,
                             user_alpha = alpha,
@@ -378,7 +392,9 @@ rspde_lme <- function(formula, loc, data,
                 if(model$stationary){
                     # if(model_tmp$parameterization == "spde"){
                         alpha <- nu + model$d/2
-                        alpha <- max(1e-5 + model$d/2, alpha)
+                        if(estimate_nu){
+                          alpha <- max(1e-5 + model$d/2, alpha)
+                        }
                         tau <- exp(theta[2+gap])
                         kappa <- exp(theta[3+gap])
                         model_tmp <- update.rSPDEobj(model_tmp,
@@ -395,7 +411,9 @@ rspde_lme <- function(formula, loc, data,
                 } else{
                     theta_model <- theta[(2+gap):(n_initial)]
                     alpha <- nu + model$d/2
-                    alpha <- max(1e-5 + model$d/2, alpha)
+                    if(estimate_nu){
+                      alpha <- max(1e-5 + model$d/2, alpha)
+                    }
                     model_tmp <- update.rSPDEobj(model_tmp,
                             user_theta = theta_model,
                             user_alpha = alpha, parameterization = "spde")
@@ -436,6 +454,15 @@ if(improve_hessian){
 
 time_par <- NULL
 
+likelihood_new <- function(theta){
+        l_tmp <- tryCatch(likelihood(theta), 
+                            error = function(e){return(NULL)})
+          if(is.null(l_tmp)){
+              return(10^100)
+          }
+          return(l_tmp)
+        }
+
 if(parallel){
   start_par <- Sys.time()
   n_cores_lim <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
@@ -460,7 +487,7 @@ if(parallel){
 
     start_fit <- Sys.time()
     res <- optimParallel::optimParallel(start_values, 
-                  likelihood, method = optim_method,
+                  likelihood_new, method = optim_method,
                   control = optim_controls,
                   hessian = hessian,
                   parallel = list(forward = FALSE, cl = cl,
@@ -468,47 +495,175 @@ if(parallel){
   end_fit <- Sys.time()
   time_fit <- end_fit-start_fit
   parallel::stopCluster(cl)
+
+        time_hessian <- NULL
+
+        if(!is.na(res[1])){
+          if(!improve_hessian){
+            observed_fisher <- res$hessian
+          } else{
+            if(!is.list(hessian_args)){
+              stop("hessian_controls must be a list")
+            }
+
+            start_hessian <- Sys.time()
+            observed_fisher <- numDeriv::hessian(likelihood_new, res$par,
+                                                 method.args = hessian_args)
+            end_hessian <- Sys.time()
+            time_hessian <- end_hessian-start_hessian
+          }
+          eig_hes <- eigen(observed_fisher)$value
+          cond_pos_hes <- (min(eig_hes) > 1e-15)
+        } else{
+          stop("Could not fit the model. Please, try another method with 'parallel' set to FALSE.")
+        }
+        if(min(eig_hes) < 1e-15){
+          warning("The optimization failed to provide a numerically positive-definite Hessian. You can try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which allows other optimization methods to be used.")        
+        }
 } else{
-  possible_methods <- c("CG", "BFGS", "L-BFGS-B", "Nelder-Mead")
+  possible_methods <- c("Nelder-Mead", "L-BFGS-B", "BFGS", "CG")
 
   start_fit <- Sys.time()
-      res <- tryCatch(optim(start_values, 
-                  likelihood, method = optim_method,
+      res <- withCallingHandlers(tryCatch(optim(start_values, 
+                  likelihood_new, method = optim_method,
                   control = optim_controls,
-                  hessian = hessian), error = function(e){return(NA)})
+                  hessian = hessian), error = function(e){return(NA)}), 
+                  warning = function(w){invokeRestart("muffleWarning")})
   end_fit <- Sys.time()
   time_fit <- end_fit-start_fit
-  if(is.na(res[1])){
-    tmp_method <- optim_method
-    while(length(possible_methods)>1){
-      possible_methods <- setdiff(possible_methods, tmp_method)
-      new_method <- possible_methods[1]
-      warning(paste("optim method",tmp_method,"failed. Another optimization method was used."))
-      start_fit <- Sys.time()
-        res <- tryCatch(optim(start_values, 
-                  likelihood, method = new_method,
-                  control = optim_controls,
-                  hessian = hessian), error = function(e){return(NA)})
-      end_fit <- Sys.time()
-      time_fit <- end_fit-start_fit
-      tmp_method <- new_method
-      if(!is.na(res[1])){
-        optim_method <- new_method
-        break
-      }
-    }
-    if(length(possible_methods) == 1){
-      stop("All optimization methods failed.")
-    }
-  }
+ 
+       cond_pos_hes <- FALSE
+        time_hessian <- NULL
+
+        if(!is.na(res[1])){
+          if(!improve_hessian){
+            observed_fisher <- res$hessian
+          } else{
+            if(!is.list(hessian_args)){
+              stop("hessian_controls must be a list")
+            }
+
+            start_hessian <- Sys.time()
+            observed_fisher <- numDeriv::hessian(likelihood_new, res$par,
+                                                 method.args = hessian_args)
+            end_hessian <- Sys.time()
+            time_hessian <- end_hessian-start_hessian
+          }
+          eig_hes <- eigen(observed_fisher)$value
+          cond_pos_hes <- (min(eig_hes) > 1e-15)
+        }
+
+
+
+        problem_optim <- list()
+
+        if(is.na(res[1]) || !cond_pos_hes){
+          problem_optim[[optim_method]] <- list()
+          if(is.na(res[1])){
+            problem_optim[[optim_method]][["lik"]] <- NA
+            problem_optim[[optim_method]][["res"]] <- res
+            problem_optim[[optim_method]][["hess"]] <- NA
+            problem_optim[[optim_method]][["time_hessian"]] <- NA
+            problem_optim[[optim_method]][["time_fit"]] <- NA
+          } else{
+            problem_optim[[optim_method]][["lik"]] <- -res$value
+            problem_optim[[optim_method]][["res"]] <- res
+            problem_optim[[optim_method]][["hess"]] <- observed_fisher
+            problem_optim[[optim_method]][["time_hessian"]] <- time_hessian
+            problem_optim[[optim_method]][["time_fit"]] <- time_fit
+          }
+        }
+
+        ok_optim <- FALSE
+        orig_optim_method <- optim_method
+        test_other_optim <- (is.na(res[1]) || !cond_pos_hes)
+
+         if(test_other_optim){
+              tmp_method <- optim_method
+              while(length(possible_methods)>1){
+                possible_methods <- setdiff(possible_methods, tmp_method)
+                new_method <- possible_methods[1]
+                time_fit <- NULL
+                start_fit <- Sys.time()
+                  res <- withCallingHandlers(tryCatch(optim(start_values, 
+                            likelihood_new, method = new_method,
+                            control = optim_controls,
+                            hessian = hessian), error = function(e){return(NA)}), 
+                            warning = function(w){invokeRestart("muffleWarning")})
+                end_fit <- Sys.time()
+                time_fit <- end_fit-start_fit
+                tmp_method <- new_method
+                cond_pos_hes <- FALSE
+                if(is.na(res[1])){
+                  problem_optim[[tmp_method]][["lik"]] <- NA
+                  problem_optim[[tmp_method]][["res"]] <- res
+                  problem_optim[[tmp_method]][["hess"]] <- NA
+                  problem_optim[[tmp_method]][["time_hessian"]] <- NA
+                  problem_optim[[tmp_method]][["time_fit"]] <- NA
+
+                } else{
+                  if(!improve_hessian){
+                    observed_fisher <- res$hessian
+                  } else{
+                    if(!is.list(hessian_args)){
+                      stop("hessian_controls must be a list")
+                    }
+
+                    start_hessian <- Sys.time()
+                    observed_fisher <- numDeriv::hessian(likelihood_new, res$par,
+                                                         method.args = hessian_args)
+                    end_hessian <- Sys.time()
+                    time_hessian <- end_hessian-start_hessian
+                  }
+                  eig_hes <- eigen(observed_fisher)$value
+                  cond_pos_hes <- (min(eig_hes) > 1e-15)
+
+                  problem_optim[[tmp_method]][["lik"]] <- -res$value
+                  problem_optim[[tmp_method]][["res"]] <- res
+                  problem_optim[[tmp_method]][["hess"]] <- observed_fisher
+                  problem_optim[[tmp_method]][["time_hessian"]] <- time_hessian
+                  problem_optim[[tmp_method]][["time_fit"]] <- time_fit
+                }
+
+                cond_ok <- ((!is.na(res[1])) && cond_pos_hes)
+                if(cond_ok){
+                  optim_method <- new_method
+                  ok_optim <- TRUE
+                  break
+                }
+              }
+          }
+
+          if(test_other_optim){
+              lik_val <- lapply(problem_optim, function(dat){dat[["lik"]]})
+                if(all(is.na(lik_val))){
+                  stop("The model could not be fitted. All optimizations method failed.")
+                } else if(ok_optim){
+                  warning(paste("optim method",orig_optim_method,"failed to provide a positive-definite Hessian. Another optimization method was used."))
+                  rm(problem_optim)
+                } else{
+                  max_method <- which.max(lik_val)
+                  res <- problem_optim[[max_method]][["res"]]
+                  observed_fisher <- problem_optim[[max_method]][["hess"]]
+                  time_hessian <- problem_optim[[max_method]][["time_hessian"]]
+                  time_fit <- problem_optim[[max_method]][["time_fit"]]
+                  warning("All optimization methods failed to provide a numerically positive-definite Hessian. The optimization method with largest likelihood was chosen. You can try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE.")                  
+                }
+          } 
+
 }
 
   if(model$stationary){
     coeff <- exp(c(res$par[1:n_coeff_nonfixed]))
+    if(estimate_nu){
+      estimated_alpha <- coeff[2] + model$d/2
+    }
   } else{
     coeff <- res$par[1:n_coeff_nonfixed]
+    coeff[1] <- exp(coeff[1])
     if(estimate_nu){
       coeff[2] <- exp(coeff[2])
+      estimated_alpha <- coeff[2] + model$d/2
     }
   }
   coeff <- c(coeff, res$par[-c(1:n_coeff_nonfixed)])
@@ -517,21 +672,6 @@ if(parallel){
 
   n_fixed <- ncol(X_cov)
   n_random <- length(coeff) - n_fixed - 1  
-
-  time_hessian <- NULL
-
-  if(!improve_hessian){
-    observed_fisher <- res$hessian
-  } else{
-    if(!is.list(hessian_args)){
-      stop("hessian_controls must be a list")
-    }
-
-    start_hessian <- Sys.time()
-    observed_fisher <- numDeriv::hessian(likelihood, res$par, method.args = hessian_args)
-    end_hessian <- Sys.time()
-    time_hessian <- end_hessian-start_hessian
-  }
 
   if(model$stationary){
     par_change <- diag(c(exp(-c(res$par[1:n_coeff_nonfixed])), rep(1,n_fixed)))
@@ -578,6 +718,9 @@ if(parallel){
   } else{
     std_fixed <- NULL
   }
+
+  new_likelihood <- NULL
+
   if(model$stationary){
 
     time_matern_par_start <- Sys.time()
@@ -598,17 +741,37 @@ if(parallel){
       coeff_random_nonnu <- coeff_random
       new_observed_fisher <- observed_fisher[2:3,2:3]
     }
-    change_par <- change_parameterization_lme(new_likelihood, model$d, coeff_random[1], coeff_random_nonnu,
+
+    if(estimate_nu){
+            change_par <- change_parameterization_lme(new_likelihood, model$d, coeff_random[1], coeff_random_nonnu,
                                             hessian = new_observed_fisher #,
                                             # improve_gradient = improve_gradient,
                                             # gradient_args = gradient_args
                                             )
+    } else{
+            change_par <- change_parameterization_lme(new_likelihood, model$d, nu, coeff_random_nonnu,
+                                            hessian = new_observed_fisher #,
+                                            # improve_gradient = improve_gradient,
+                                            # gradient_args = gradient_args
+                                            )
+    }
+
     matern_coeff <- list()
     matern_coeff$random_effects <- coeff_random
-    names(matern_coeff$random_effects) <- c("nu", "sigma", "range")
-    matern_coeff$random_effects[2:3] <- change_par$coeff
+    if(estimate_nu){
+          names(matern_coeff$random_effects) <- c("nu", "sigma", "range")
+          matern_coeff$random_effects[2:3] <- change_par$coeff
+    } else{
+      matern_coeff$random_effects <- change_par$coeff
+      names(matern_coeff$random_effects) <- c("sigma", "range")
+    }
+
     matern_coeff$std_random <- std_random
-    matern_coeff$std_random[2:3] <- change_par$std_random
+    if(estimate_nu){
+      matern_coeff$std_random[2:3] <- change_par$std_random
+    } else{
+      matern_coeff$std_random <- change_par$std_random
+    }
     time_matern_par_end <- Sys.time()
     time_matern_par <- time_matern_par_end - time_matern_par_start
   } else{
@@ -666,19 +829,21 @@ if(parallel){
         std_fixed = std_fixed, std_random = std_random) 
   object$call <- call_rspde_lme
   object$terms <- list(fixed_effects = X_cov)
-  object$response <- list(y = y_resp)
+  object$response_data <- list(y = y_resp)
   object$formula <- formula
   object$matern_coeff <- matern_coeff
   object$estimation_method <- optim_method
   object$parameterization_latent <- model$parameterization
   object$repl <- repl
+  object$idx_repl <- idx_repl
   object$optim_controls <- optim_controls
   object$latent_model <- model
+  object$nobs <- sum(idx_repl)
   object$null_model <- null_model
   object$start_values <- start_values
   object$loglik <- loglik
   object$niter <- res$counts
-  object$response <- y_term
+  object$response_var <- y_term
   object$covariates <- cov_term
   object$fitting_time <- time_fit
   object$rspde_order <- rspde_order
@@ -694,6 +859,17 @@ if(parallel){
   object$has_graph <- model$has_graph
   object$which_repl <- which_repl
   object$stationary <- model$stationary
+  object$nu <- nu
+  object$alpha <- alpha
+  object$estimated_alpha <- estimated_alpha
+  object$df.residual <- object$nobs -(1 + length(object$coeff$fixed_effects) + length(object$coeff$random_effects))
+  object$lik_fun <- likelihood_new
+  object$par_lik_fun <- new_likelihood
+  object$mle_par_orig <- res$par
+
+  # object$lik_fun <- likelihood
+  # object$start_val <- start_values
+
   # if(model_matrix){
     if(ncol(X_cov)>0){
       object$model_matrix <- cbind(y_resp, X_cov)
@@ -705,20 +881,6 @@ if(parallel){
   class(object) <- "rspde_lme"
   return(object)
 
-}
-
-#' @name logLik.rspde_lme
-#' @title log-likelihood for \code{graph_lme} Objects
-#' @description Gives the log-likelihood for a fitted mixed effects model with a Whittle-Matern latent model.
-#' @param x object of class "rspde_lme" containing results from the fitted model.
-#' @param ... further arguments passed to or from other methods.
-#' @return log-likelihood at the fitted coefficients.
-#' @noRd
-#' @method logLik rspde_lme
-#' @export 
-
-logLik.rspde_lme <- function(object, ...){
-  return(object$loglik)
 }
 
 
@@ -749,6 +911,9 @@ print.rspde_lme <- function(x, ...) {
   
   cat("\n")
   cat(call_name)
+  if(!x$estimate_nu && !is.null(x$latent_model)){
+      cat(" with fixed smoothness")
+  }
   cat("\n\n")
   cat("Call:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
       "\n\n", sep = "")
@@ -759,6 +924,13 @@ print.rspde_lme <- function(x, ...) {
     message("No fixed effects")
   }
   cat("\n")
+  if(!x$estimate_nu){
+    cat("Smoothness parameter:\n")
+    smooth <- c(x$alpha, x$nu)
+    names(smooth) <- c("alpha", "nu")
+    print(smooth)
+    cat("\n")
+  }
   cat(paste0("Random effects:", "\n"))
   if(!is.null(coeff_random)){
     print(coeff_random)
@@ -848,6 +1020,12 @@ summary.rspde_lme <- function(object, all_times = FALSE,...) {
 
   ans$niter <- object$niter
 
+  ans$estimate_nu <- object$estimate_nu
+
+  ans$nu <- object[["nu"]]
+
+  ans$alpha <- object$alpha
+
   ans$all_times <- all_times
 
   ans$fitting_time <- object$fitting_time
@@ -891,6 +1069,10 @@ print.summary_rspde_lme <- function(x,...) {
   cat("\n")
   cat(call_name)
 
+  if(!x$estimate_nu){
+    cat(" with fixed smoothness")
+  }
+
   cat("\n\n")
   cat("Call:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
       "\n", sep = "")
@@ -907,6 +1089,11 @@ print.summary_rspde_lme <- function(x,...) {
         message("\nNo fixed effects. \n")
       }
       #
+      if(!x$estimate_nu){
+        cat("\nSmoothness parameter: \n")
+        cat("\t alpha =",x$alpha,"\n")
+        cat("\t nu =", x$nu, "(Matern parameterization)\n")
+      }
       if (NROW(tab$random_effects)) {
         cat(paste0("\nRandom effects:\n"))
         stats::printCoefmat(tab[["random_effects"]][,1:3], digits = digits, signif.legend = FALSE)
@@ -963,7 +1150,7 @@ print.summary_rspde_lme <- function(x,...) {
 #' @name predict.rspde_lme
 #' @title Prediction of a mixed effects regression model on a metric graph.
 #' @param object The fitted object with the `rspde_lme()` function 
-#' @param data A `data.frame` or a `list` containing the covariates, the edge number and the distance on edge
+#' @param newdata A `data.frame` or a `list` containing the covariates, the edge number and the distance on edge
 #' for the locations to obtain the prediction.
 #' @param loc Prediction locations. Can either be a `data.frame`, a `matrix` or a character vector, that contains the names of the columns of the coordinates of the locations. For models using `metric_graph` objects, plase use `edge_number` and `distance_on_edge` instead.
 #' @param mesh Obtain predictions for mesh nodes? The graph must have a mesh, and either `only_latent` is set to TRUE or the model does not have covariates.
@@ -972,20 +1159,43 @@ print.summary_rspde_lme <- function(x,...) {
 #' @param compute_variances Set to also TRUE to compute the kriging variances.
 #' @param posterior_samples If `TRUE`, posterior samples will be returned.
 #' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
-#' @param only_latent Should the posterior samples and predictions be only given to the latent model?
 #' @param edge_number Name of the variable that contains the edge number, the default is `edge_number`.
 #' @param distance_on_edge Name of the variable that contains the distance on edge, the default is `distance_on_edge`.
 #' @param normalized Are the distances on edges normalized?
+#' @param sample_latent Do posterior samples only for the random effects?
 #' @param return_as_list Should the means of the predictions and the posterior samples be returned as a list, with each replicate being an element?
 #' @param return_original_order Should the results be return in the original (input) order or in the order inside the graph?
 #' @param ... Not used.
+#' @param data `r lifecycle::badge("deprecated")` Use `newdata` instead.
+#' @return A list with elements `mean`, which contains the means of the
+#' predictions, `fe_mean`, which is the prediction for the fixed effects, `re_mean`, which is the prediction for the random effects, `variance` (if `compute_variance` is `TRUE`), which contains the
+#' variances of the predictions, `samples` (if `posterior_samples` is `TRUE`),
+#' which contains the posterior samples.
 #' @export
 #' @method predict rspde_lme
 
-predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, which_repl = NULL, compute_variances = FALSE, posterior_samples = FALSE,
-                               n_samples = 100, only_latent = FALSE, edge_number = "edge_number",
+predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, which_repl = NULL, compute_variances = FALSE, posterior_samples = FALSE,
+                               n_samples = 100, sample_latent = FALSE, edge_number = "edge_number",
                                distance_on_edge = "distance_on_edge", normalized = FALSE, return_as_list = FALSE, return_original_order = TRUE,
-                               ...) {
+                               ...,
+                               data = deprecated()) {
+
+    
+  if (lifecycle::is_present(data)) {
+    if (is.null(newdata)) {
+      lifecycle::deprecate_warn("2.3.3", "predict(data)", "predict(newdata)",
+        details = c("`data` was provided but not `newdata`. Setting `newdata <- data`.")
+      )
+      newdata <- data
+    } else {
+      lifecycle::deprecate_warn("2.3.3", "predict(data)", "predict(newdata)",
+        details = c("Both `newdata` and `data` were provided. Only `newdata` will be considered.")
+      )
+    }
+    data <- NULL
+  }
+
+  data <- newdata
 
   if(is.null(data)){
     if(!mesh){
@@ -1130,17 +1340,27 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
 
     mu_krig <- Aprd %*% mu_krig
 
-    if(!only_latent){
-      mu_krig <- mu_prd + mu_krig
-    }
+    mu_re <- mu_krig
+
+    mu_fe <- mu_prd
+
+    mu_krig <- mu_prd + mu_krig
 
     mean_tmp <- as.vector(mu_krig)
+
+    mean_fe_tmp <- as.vector(mu_fe)
+
+    mean_re_tmp <- as.vector(mu_re)
         
     if(!return_as_list){
       out$mean <- c(out$mean, mean_tmp)
       out$repl <- c(out$repl, rep(repl_y,n_prd))
+      out$fe_mean <- c(out$fe_mean, mean_fe_tmp)
+      out$re_mean <- c(out$re_mean, mean_re_tmp)
     } else{
       out$mean[[repl_y]] <- mean_tmp
+      out$fe_mean[[repl_y]] <- mean_fe_tmp
+      out$re_mean[[repl_y]] <- mean_re_tmp
     }
 
     if (compute_variances) {
@@ -1161,10 +1381,10 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
       post_cov <- Aprd%*%solve(Q_xgiveny, t(Aprd))
       Z <- rnorm(dim(post_cov)[1] * n_samples)
       dim(Z) <- c(dim(post_cov)[1], n_samples)
-      LQ <- chol(forceSymmetric(post_cov))
+      LQ <- tryCatch(chol(post_cov), error =  function(e){chol(post_cov + 1e-8*Matrix::Diagonal(nrow(post_cov)))})
       X <- LQ %*% Z
       X <- X + mean_tmp
-      if(!only_latent){
+      if(!sample_latent){
         X <- X + matrix(rnorm(n_samples * length(mean_tmp), sd = sigma.e), nrow = length(mean_tmp))
       } else{
         X <- X - as.vector(mu_prd)
@@ -1179,6 +1399,213 @@ predict.rspde_lme <- function(object, data = NULL, loc = NULL, mesh = FALSE, whi
   }
 
   return(out)
+}
+
+
+
+
+#' @name logLik.rspde_lme
+#' @title Log-likelihood for \code{rspde_lme} objects
+#' @description computes the log-likelihood for a fitted mixed effects model with `rspde_lme`.
+#' @param x Object of class `rspde_lme` containing results from the fitted model.
+#' @param ... Currently not used.
+#' @return Log-likelihood value.
+#' @noRd
+#' @method logLik rspde_lme
+#' @export
+logLik.rspde_lme <- function(object, ...){
+  ll <- object$loglik
+  attr(ll, "df") <- 1 + length(object$coeff$fixed_effects) + length(object$coeff$random_effects)
+  return(ll)
+}
+
+#' @name nobs.rspde_lme
+#' @title Number of observations for \code{rspde_lme} objects
+#' @description Gets the number of observations of the fitted object.
+#' @param x Object of class `rspde_lme` containing results from the fitted model.
+#' @param ... Currently not used.
+#' @return The number of observations.
+#' @noRd
+#' @method nobs rspde_lme
+#' @export
+nobs.rspde_lme <- function(object, ...){
+  return(object$nobs)
+}
+
+
+#' @name deviance.rspde_lme
+#' @title Deviance for \code{rspde_lme} objects
+#' @description Gets the deviance for `rspde_lme` fitted object.
+#' @param x Object of class `rspde_lme` containing results from the fitted model.
+#' @param ... Currently not used.
+#' @return Deviance
+#' @noRd
+#' @method deviance rspde_lme
+#' @export
+deviance.rspde_lme <- function(object, ...){
+  if(length(object$coeff$random_effects) > 0){
+    return(-2*object$loglik)
+  } else{
+    df_temp <- as.data.frame(object$model_matrix)
+    colnames(df_temp)[1] <- as.character(object$response_var)
+
+    fit_lm <- stats::lm(object$formula, data = df_temp)
+    return(stats::deviance(fit_lm))
+  }
+}
+
+
+#' @name glance.rspde_lme
+#' @title Glance at an \code{rspde_lme} object
+#' @aliases glance glance.rspde_lme
+#' @description Glance accepts a \code{rspde_lme} object and returns a
+#' [tidyr::tibble()] with exactly one row of model summaries.
+#' The summaries are the square root of the estimated variance of the measurement error, residual
+#' degrees of freedom, AIC, BIC, log-likelihood,
+#' the type of latent model used in the fit and the total number of observations.
+#' @param x An \code{rspde_lme} object.
+#' @param ... Currently not used.
+#' @return A [tidyr::tibble()] with exactly one row and columns:
+#' \itemize{
+#'   \item `nobs` Number of observations used.
+#'   \item `sigma` the square root of the estimated residual variance
+#'   \item `logLik` The log-likelihood of the model.
+#'   \item `AIC` Akaike's Information Criterion for the model.
+#'   \item `BIC` Bayesian Information Criterion for the model.
+#'   \item `deviance` Deviance of the model.
+#'   \item `df.residual` Residual degrees of freedom.
+#'   \item `model.type` Type of latent model fitted.
+#'   }
+#' @seealso [augment.rspde_lme]
+#' @method glance rspde_lme
+#' @export
+
+glance.rspde_lme <- function(x, ...){
+  alpha <- NULL
+  if(!is.null(x$alpha)){
+    alpha <- x$alpha
+  } else {
+    alpha <- x$estimated_alpha
+  }
+  tidyr::tibble(nobs = stats::nobs(x), 
+                  sigma = as.numeric(x$coeff$measurement_error[[1]]), 
+                   logLik = as.numeric(stats::logLik(x)), AIC = stats::AIC(x),
+                   BIC = stats::BIC(x), deviance = stats::deviance(x), 
+                   df.residual = stats::df.residual(x),
+                   model = x$latent_model$type,
+                   alpha = alpha,
+                   cov_function = x$latent_model$cov_function_name)
+}
+
+
+#' @name augment.rspde_lme
+#' @title Augment data with information from a `rspde_lme` object
+#' @aliases augment augment.rspde_lme
+#' @description Augment accepts a model object and a dataset and adds information about each observation in the dataset. It includes
+#' predicted values in the `.fitted` column, residuals in the `.resid` column, and standard errors for the fitted values in a `.se.fit` column. 
+#' It also contains the New columns always begin with a . prefix to avoid overwriting columns in the original dataset.
+#' @param x A `rspde_lme` object.
+#' @param newdata A `data.frame` or a `list` containing the covariates, the edge
+#' number and the distance on edge for the locations to obtain the prediction. If `NULL`, the fitted values will be given for the original locations where the model was fitted.
+#' @param loc Prediction locations. Can either be a `data.frame`, a `matrix` or a character vector, that contains the names of the columns of the coordinates of the locations. For models using `metric_graph` objects, plase use `edge_number` and `distance_on_edge` instead.
+#' @param mesh Obtain predictions for mesh nodes? The graph must have a mesh, and either `only_latent` is set to TRUE or the model does not have covariates.
+# @param repl Which replicates to obtain the prediction. If `NULL` predictions will be obtained for all replicates. Default is `NULL`.
+#' @param which_repl  Which replicates to obtain the prediction. If `NULL` predictions
+#' will be obtained for all replicates. Default is `NULL`.
+#' @param se_fit Logical indicating whether or not a .se.fit column should be added to the augmented output. If TRUE, it only returns a non-NA value if type of prediction is 'link'.
+#' @param conf_int Logical indicating whether or not confidence intervals for the fitted variable should be built. 
+#' @param pred_int Logical indicating whether or not prediction intervals for future observations should be built.
+#' @param level Level of confidence and prediction intervals if they are constructed.
+#' @param n_samples Number of samples when computing prediction intervals.
+#' @param edge_number Name of the variable that contains the edge number, the default is `edge_number`.
+#' @param distance_on_edge Name of the variable that contains the distance on edge, the default is `distance_on_edge`.
+#' @param normalized Are the distances on edges normalized?
+#' @param ... Additional arguments. 
+#'
+#' @return A [tidyr::tibble()] with columns:
+#' \itemize{
+#'   \item `.fitted` Fitted or predicted value.
+#'   \item `.fittedlwrconf` Lower bound of the confidence interval, if conf_int = TRUE
+#'   \item `.fitteduprconf` Upper bound of the confidence interval, if conf_int = TRUE
+#'   \item `.fittedlwrpred` Lower bound of the prediction interval, if pred_int = TRUE
+#'   \item `.fitteduprpred` Upper bound of the prediction interval, if pred_int = TRUE
+#'   \item `.fixed` Prediction of the fixed effects.
+#'   \item `.random` Prediction of the random effects.
+#'   \item `.resid` The ordinary residuals, that is, the difference between observed and fitted values.
+#'   \item `.se_fit` Standard errors of fitted values, if se_fit = TRUE.
+#'   }
+#'
+#' @seealso [glance.rspde_lme]
+#' @method augment rspde_lme
+#' @export
+augment.rspde_lme <- function(x, newdata = NULL, loc = NULL, mesh = FALSE, which_repl = NULL, se_fit = FALSE, conf_int = FALSE, pred_int = FALSE, level = 0.95, n_samples = 100, edge_number = "edge_number",
+                               distance_on_edge = "distance_on_edge", normalized = FALSE,...) {
+  
+  .resid <- FALSE
+  if(is.null(newdata)){
+    .resid <-  TRUE
+  } 
+    
+
+  level <- level[[1]]
+  if(!is.numeric(level)){
+    stop("'level' must be numeric!")
+  }
+  if(level > 1 || level < 0){
+    stop("'level' must be between 0 and 1!")
+  }
+
+  if(pred_int){
+    pred <- stats::predict(x, newdata = newdata, loc = loc, mesh = mesh, which_repl = which_repl, compute_variances = TRUE,
+                  posterior_samples = TRUE, n_samples = n_samples, edge_number = edge_number,
+                  distance_on_edge = distance_on_edge, normalized = normalized, return_original_order = FALSE, return_as_list = FALSE)
+  } else if(conf_int || se_fit){
+    pred <- stats::predict(x, newdata = newdata, loc = loc, mesh = mesh, which_repl = which_repl, compute_variances = TRUE,
+                  posterior_samples = FALSE, edge_number = ".edge_number",
+                  distance_on_edge = ".distance_on_edge", normalized = TRUE, return_original_order = FALSE, return_as_list = FALSE)
+  } else{
+      pred <- stats::predict(x, newdata = newdata, loc = loc, mesh = mesh, which_repl = which_repl, compute_variances = FALSE, posterior_samples = FALSE, edge_number = ".edge_number",
+                  distance_on_edge = ".distance_on_edge", normalized = TRUE, return_original_order = FALSE, return_as_list = FALSE)
+  }
+
+  if(se_fit || pred_int || conf_int){
+    newdata[[".fitted"]] <- pred$mean
+    newdata[[".se_fit"]] <- sqrt(pred$variance)
+    newdata[[".fixed"]] <- pred$fe_mean
+    newdata[[".random"]] <- pred$re_mean
+    if(.resid){
+      newdata[[".resid"]] <- pred$mean - newdata[[as.character(x$response_var)]]
+    }
+  } else{
+    newdata[[".fitted"]] <- pred$mean
+    newdata[[".fixed"]] <- pred$fe_mean
+    newdata[[".random"]] <- pred$re_mean
+    if(.resid){
+      newdata[[".resid"]] <- pred$mean - newdata[[as.character(x$response_var)]]
+    }
+  }
+
+
+  if(conf_int){
+    newdata$.fittedlwrconf <- newdata[[".fitted"]] + stats::qnorm( (1-level)/2 )*newdata[[".se_fit"]]
+    newdata$.fitteduprconf <- newdata[[".fitted"]] + stats::qnorm( (1+level)/2 )*newdata[[".se_fit"]]
+  }
+
+  if(pred_int){
+   list_pred_int <- lapply(1:nrow(pred$samples), function(i){
+      y_sim <- pred$samples[i,]
+      y_sim <- sort(y_sim)
+      idx_lwr <- max(1, round(n_samples * (1 - level) / 2))
+      idx_upr <- round(n_samples * (1 + level) / 2)
+      c(y_sim[idx_lwr], y_sim[idx_upr])})
+    list_pred_int <- unlist(list_pred_int)
+    list_pred_int <- t(matrix(list_pred_int, nrow = 2))
+    newdata$.fittedlwrpred <- list_pred_int[,1]
+    newdata$.fitteduprpred <- list_pred_int[,2]
+  }
+
+
+  newdata
 }
 
 

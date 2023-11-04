@@ -1,7 +1,7 @@
 ---
 title: "Operator-based rational approximation"
 author: "David Bolin and Alexandre B. Simas"
-date: "`r Sys.Date()`"
+date: "Created: 2019-08-07. Last modified: `r Sys.Date()`."
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Operator-based rational approximation}
@@ -172,10 +172,9 @@ which is the folded Matérn covariance, see Theorem 1 in [An explicit link betwe
 $$
 \boldsymbol{\mathrm{A}} \boldsymbol{\mathrm{P}}_r \boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T\boldsymbol{\mathrm{v}}.
 $$
-Here $\boldsymbol{\mathrm{A}}$ is an identity matrix since we are evaluating the approximation in the nodes of the FEM mesh and $\boldsymbol{\mathrm{v}}$ is a vector with all basis functions evaluated in $s=0.5$.
+Here $\boldsymbol{\mathrm{A}}$ is an identity matrix since we are evaluating the approximation in the nodes of the FEM mesh and $\boldsymbol{\mathrm{v}}$ is a vector with all basis functions evaluated in $s=0.5$. This way of computing the covariance is obtained by setting `direct = TRUE` in the `cov_function_mesh()` function inside the `op` object:
 ```{r}
-v <- t(rSPDE.A1d(s, 0.5))
-c.approx <- op$Pr %*% solve(op$Q, op$Pr %*% v)
+c.approx <- op$cov_function_mesh(0.5, direct = TRUE)
 c.true <- folded.matern.covariance.1d(rep(0.5, length(s)),
 abs(s), kappa, nu, sigma)
 ```
@@ -206,16 +205,18 @@ plot(s, c.true - c.approx,
 par(opar)
 ```
 
-To improve the approximation we can increase the degree of the polynomials, by increasing $m$, and/or increase the number of basis functions used for the FEM approximation. Let us, as an example, compute the approximation with $m=2$ using the same mesh, as well as the approximation when we increase the number of basis functions and use $m=1$ and $m=2$. 
+To improve the approximation we can increase the degree of the polynomials, by increasing $m$, and/or increase the number of basis functions used for the FEM approximation. Let us, as an example, compute the approximation with $m=2$ using the same mesh, as well as the approximation when we increase the number of basis functions and use $m=1$ and $m=2$. We will also load the `fmesher` package to use the `fm_basis()` and `fm_mesh_1d()` functions to map between the meshes.
 
 ```{r}
+library(fmesher)
+
 op2 <- matern.operators(
   range = r, sigma = sigma, nu = nu,
   loc_mesh = s, d = 1, m = 2,
   type = "operator",
   parameterization = "matern"
 )
-c.approx2 <- op2$Pr %*% solve(op2$Q, op2$Pr %*% v)
+c.approx2 <- op2$cov_function_mesh(0.5, direct = TRUE)
 
 s2 <- seq(from = 0, to = 1, length.out = 501)
 fem2 <- rSPDE.fem1d(s2)
@@ -225,16 +226,19 @@ op <- matern.operators(
   type = "operator",
   parameterization = "matern"
 )
-A <- rSPDE.A1d(s2, s)
-v <- t(rSPDE.A1d(s2, 0.5))
-c.approx3 <- A %*% op$Pr %*% solve(op$Q, op$Pr %*% v)
+
+mesh_s2 <- fm_mesh_1d(s2)
+
+A  <- fm_basis(mesh_s2, s)
+c.approx3 <- A %*% op$cov_function_mesh(0.5, direct = TRUE)
+
 op <- matern.operators(
   range = r, sigma = sigma, nu = nu,
   loc_mesh = s2, d = 1, m = 2,
   type = "operator",
   parameterization = "matern"
 )
-c.approx4 <- A %*% op$Pr %*% solve(op$Q, op$Pr %*% v)
+c.approx4 <- A %*% op$cov_function_mesh(0.5, direct = TRUE)
 ```
 
 The resulting errors are shown in the following figure. 
@@ -261,6 +265,9 @@ par(opar)
 
 Since the error induced by the rational approximation decreases exponentially in $m$, there is rarely a need for an approximation with a large value of $m$. This is good because the number of non-zero elements in $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increases with $m$, which makes the approximation more computationally costly to use. Further, the condition numbers of $\boldsymbol{\mathrm{P}}_r$ and $\boldsymbol{\mathrm{Q}}$ increase with $m$, which can cause numerical problems when working with these matrices. To illustrate this, let us compute the norm of the approximation error for different $m$.
 ```{r}
+# Mapping s2 to s
+A <- fm_basis(mesh_s2, s)
+
 errors <- rep(0, 4)
 for (i in 1:4) {
   op <- matern.operators(
@@ -269,17 +276,17 @@ for (i in 1:4) {
     type = "operator",
   parameterization = "matern"
   )
-  c.app <- A %*% op$Pr %*% solve(op$Q, op$Pr %*% v)
+  c.app <- A %*% op$cov_function_mesh(0.5, direct = TRUE)
   errors[i] <- norm(c.true - c.app)
 }
 print(errors)
 ```
-We see that the error decreases when increasing $m$ from $1$ to $2$, but is very large for $m=3$ and $m=4$. The reason for this is not that the approximation is bad, but that the numerical accuracy of the product $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ is low due to the large condition numbers of the matrices. 
+We see that, when we used the direct method to compute the covariance function, as described above, the error decreases when increasing $m$ from $1$ to $2$, but is very large for $m=3$ and $m=4$. The reason for this is not that the approximation is bad, but that the numerical accuracy of the product $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ is low due to the large condition numbers of the matrices. 
 
 It is important to note that the alternative covariance-based rational approximation is more numerically stable. The main reason for this is that it relies on a decomposition of the field $u$ into a sum of random fields, which removes the need of computing higher order finite element matrices for large values of $m$. See the [Rational approximation with the rSPDE package](rspde_cov.html) vignette
 for further details.
 
-To handle this issue for the operator-based rational approximation, the package contains functions for performing operations such as $\boldsymbol{\mathrm{P}}_rv$ or $\boldsymbol{\mathrm{P}}_r^{-1}v$ that takes advantage of the structure of $\boldsymbol{\mathrm{P}}_r$ to avoid numerical instabilities. A complete list of these function can be seen by typing `?operator.operations`. One of these functions is `Sigma.mult()`, which performs the multiplication $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ in a more numerically stable way. Let us use this function to compute the errors of the approximations again to see that we indeed get better approximations as $m$ increases. 
+To handle this issue for the operator-based rational approximation, the package contains functions for performing operations such as $\boldsymbol{\mathrm{P}}_rv$ or $\boldsymbol{\mathrm{P}}_r^{-1}v$ that takes advantage of the structure of $\boldsymbol{\mathrm{P}}_r$ to avoid numerical instabilities. A complete list of these function can be seen by typing `?operator.operations`. One of these functions is `Sigma.mult()`, which performs the multiplication $\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv$ in a more numerically stable way. Let us use this function to compute the errors of the approximations again to see that we indeed get better approximations as $m$ increases. This is obtained by setting the `direct` argument in `cov_function_mesh()` to `FALSE`:
 ```{r}
 errors2 <- rep(0, 4)
 for (i in 1:4) {
@@ -289,7 +296,7 @@ for (i in 1:4) {
     type = "operator",
   parameterization = "matern"
   )
-  c.app <- A %*% Sigma.mult(op, v)
+  c.app <- A %*% op$cov_function_mesh(0.5, direct = FALSE)
   errors2[i] <- norm(c.true - c.app)
 }
 print(errors2)
@@ -299,19 +306,20 @@ print(errors2)
 Let us now examine a non-stationary model $(\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W}$ with $\kappa(s) = 10(1+2s^2)$ and $\tau(s) = 0.1(1 - 0.7s^2)$. We can then use `spde.matern.operators()` to create the rational approximation with $m=1$ as follows.
 ```{r}
 s <- seq(from = 0, to = 1, length.out = 501)
-fem <- rSPDE.fem1d(s)
+s_mesh <- fm_mesh_1d(s)
+
 kappa <- 10 * (1 + 2 * s^2)
 tau <- 0.1 * (1 - 0.7 * s^2)
 op <- spde.matern.operators(
   kappa = kappa, tau = tau, nu = nu,
-  G = fem$G, C = fem$C, d = 1, m = 1,
+  d = 1, m = 1, mesh = s_mesh,
   type = "operator",
   parameterization = "matern"
 )
 ```
 Let us compute the covariance function $C(s,s_i)$ of the non-stationary model for the locations $s_1=0.1, s_2 = 0.5,$ and $s_3 = 0.9$. 
 ```{r}
-v <- t(rSPDE.A1d(s, c(0.1, 0.5, 0.9)))
+v <- t(op$make_A(c(0.1, 0.5, 0.9)))
 covs <- Sigma.mult(op, v)
 ```
 The three covariances are shown in the following figure.
@@ -329,13 +337,17 @@ par(opar)
 We see that this choice of $\kappa(s)$ and $\tau(s)$ results in a model with longer range for small values of $s$ and smaller variance in the middle of the domain. 
 We can also apply the general function `fractional.operators()` to construct the approximation. This function requires that the user supplies a discretization of the non-fractional operator $L$, as well as a scaling factor $c>0$ which is a lower bound for the smallest eigenvalue of $L$. In our case we have $L = \kappa(s)^2 - \Delta$, and the eigenvalues of this operator is bounded from below by $c = \min_s \kappa(s)^2$. We compute this constant and the discrete operator. 
 ```{r}
+fem <- fm_fem(s_mesh)
+C <- fem$c0
+G <- fem$g1 
+
 c <- min(kappa)^2
-L <- fem$G + fem$C %*% Diagonal(501, kappa^2)
+L <- G + C %*% Diagonal(501, kappa^2)
 ```
 Another difference between `fractional.operators()` and the previous functions for constructing the approximation, is that it requires specifying $\beta$ instead of the smoothness parameter $\nu$ for the Matérn covariance. These two parameters are related as $2\beta = \nu + d/2$. 
 ```{r}
 op <- fractional.operators(
-  L = L, beta = (nu + 1 / 2) / 2, C = fem$C,
+  L = L, beta = (nu + 1 / 2) / 2, C = C,
   scale.factor = c, tau = tau, m = 1
 )
 ```
@@ -358,7 +370,7 @@ There is also built-in support for kriging prediction. To illustrate this, we us
 ```{r}
 n.obs <- 20
 obs.loc <- runif(n = n.obs, min = 0, max = 1)
-A <- rSPDE.A1d(s, obs.loc)
+A <- fm_basis(s_mesh, obs.loc)
 ```
 
 We now generate the observations as $Y_i = u(s_i) + \varepsilon_i$, where $\varepsilon_i \sim N(0,\sigma_e^2)$ is Gaussian measurement noise. 
@@ -369,7 +381,7 @@ Y <- as.vector(A %*% u + sigma.e * rnorm(n.obs))
 
 Finally, we compute the kriging prediction of the process $u$ at the locations in `s` based on these observations. To specify which locations that should be predicted, the argument `Aprd` is used. This argument should be an observation matrix that links the mesh locations to the prediction locations.  
 ```{r, fig.show='hold',fig.align = "center"}
-A.krig <- rSPDE.A1d(s, s)
+A.krig <- fm_basis(s_mesh, s)
 u.krig <- predict(op, A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e)
 ```
 The process simulation, the observed data, and the kriging prediction are shown in the following figure.
@@ -388,13 +400,13 @@ par(opar)
 
 ## Spatial data and parameter estimation
 
-The functions used in the previous examples also work for spatial models. We then need to construct a mesh over the domain of interest and then compute the matrices needed to define the operator. These tasks can be performed, for example, using the `r inla_link()` package. Let us start by defining a mesh over $[0,1]\times [0, 1]$ and compute the mass and stiffness matrices for that mesh. 
+The functions used in the previous examples also work for spatial models. We then need to construct a mesh over the domain of interest and then compute the matrices needed to define the operator. These tasks can be performed, for example, using the `fmesher` package. Let us start by defining a mesh over $[0,1]\times [0, 1]$ and compute the mass and stiffness matrices for that mesh. 
 ```{r fig.align = "center", message=FALSE}
-library(INLA)
+library(fmesher)
 m <- 200
 loc_2d_mesh <- matrix(runif(m * 2), m, 2)
-mesh_2d <- inla.mesh.create.helper(
-  points = loc_2d_mesh,
+mesh_2d <- fm_mesh_2d(
+  loc = loc_2d_mesh,
   cutoff = 0.05,
   offset = c(0.1, 0.4),
   max.edge = c(0.05, 0.5)
@@ -412,12 +424,12 @@ op <- matern.operators(range = range, sigma = sigma,
 nu = nu, m = 2, mesh = mesh_2d,
   parameterization = "matern")
 ```
-Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `r inla_link()` function `inla.spde.make.A()`. We sample 30 replicates of the latent field.
+Now let us simulate some noisy data that we will use to estimate the parameters of the model. To construct the observation matrix, we use the `fmesher` function `fm_basis()`. We sample 30 replicates of the latent field.
 ```{r}
 n.rep <- 30
 u <- simulate(op, nsim = n.rep)
-A <- inla.spde.make.A(
-  mesh = mesh_2d,
+A <- fm_basis(
+  x = mesh_2d,
   loc = loc_2d_mesh
 )
 sigma.e <- 0.1
@@ -427,11 +439,11 @@ The first replicate of the simulated random field as well as the observation loc
 ```{r, fig.show='hold', fig.align = "center",echo=TRUE,warning=FALSE,message=FALSE}
 library(viridis)
 library(ggplot2)
-proj <- inla.mesh.projector(mesh_2d, dims = c(70, 70))
+proj <- fm_evaluator(mesh_2d, dims = c(70, 70))
 
 df_field <- data.frame(x = proj$lattice$loc[,1],
                         y = proj$lattice$loc[,2],
-                        field = as.vector(inla.mesh.project(proj, 
+                        field = as.vector(fm_evaluate(proj, 
                         field = as.vector(u[, 1]))),
                         type = "field")
 
@@ -481,6 +493,12 @@ Let us see a summary of the fitted model:
 
 ```{r}
 summary(fit_2d)
+```
+
+and glance:
+
+```{r}
+glance(fit_2d)
 ```
 
 Let us compare the estimated results with the true values:
