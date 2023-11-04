@@ -1,0 +1,139 @@
+---
+title: "rSPDE Package"
+author: "David Bolin and Alexandre B. Simas"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{rSPDE Package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+references:
+- id: bolin19
+  title: "The rational SPDE approach for Gaussian random fields with general smoothness"
+  author:
+  - family: Bolin
+    given: David
+  - family: Kirchner
+    given: Kristin
+  container-title: Journal of Computational and Graphical Statistics
+  volume: 29
+  issue: 2
+  page: 274-285
+  type: article-journal
+  issued:
+    year: 2020
+- id: lindgren11
+  title: "An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach"
+  author:
+  - family: Lindgren
+    given: Finn
+  - family: Rue
+    given: Håvard
+  - family: Lindström
+    given: Johan
+  container-title: Journal of the Royal Statistical Society. Series B. Statistical Methodology
+  volume: 73
+  issue: 4
+  page: 423--498
+  type: article-journal
+  issued:
+    year: 2011
+- id: bolin13
+  title: "Spatial Matérn Fields Driven by Non-Gaussian Noise"
+  author:
+    - family: Bolin
+      given: David
+  container-title: Scandinavian Journal of Statistics
+  volume: 41
+  issue: 3
+  page: 557-579
+  type: article-journal
+  issued:
+    year: 2013
+- id: wallin15
+  title: "Geostatistical Modelling Using Non-Gaussian Matérn Fields"
+  author:
+    - family: Wallin
+      given: Jonas
+    - family: Bolin
+      given: David
+  container-title: Scandinavian Journal of Statistics
+  volume: 42
+  issue: 3
+  page: 872-890
+  type: article-journal
+  issued:
+    year: 2015
+- id: asar20
+  title: "Linear mixed effects models for non‐Gaussian repeated measurement data"
+  author:
+    - family: Asar
+      given: Özgür
+    - family: Bolin
+      given: David
+    - family: Diggle
+      given: Peter
+    - family: Wallin
+      given: Jonas
+  container-title: Journal of the Royal Statistical Society. Series C. Applied Statistics
+  volume: 69
+  issue: 5
+  page: 1015-1065
+  type: article-journal
+  issued:
+    year: 2020 
+- id: xiong22
+  title: "Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference"
+  author: 
+  - family: Bolin
+    given: David
+  - family: Simas
+    given: Alexandre B.
+  - family: Xiong
+    given: Zhen    
+  container-title: Journal of Computational and Graphical Statistics
+  type: article-journal
+  issued:
+    year: 2023   
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+set.seed(1)
+```
+
+```{r inla_link, include = FALSE}
+inla_link <- function() {
+  sprintf("[%s](%s)", "`R-INLA`", "https://www.r-inla.org")
+}
+```
+
+# Package Home Page
+
+For more details on the package, along with a brief introduction, function references and several vignettes, go to the [`rSPDE` home page](https://davidbolin.github.io/rSPDE/).
+
+For the source codes, reporting issues, etc., please go the the [`rSPDE` GitHub page](https://github.com/davidbolin/rSPDE).
+
+# Vignettes
+
+We have the following vignettes for the `rSPDE` package:
+
+* [An introduction to the rSPDE package](https://davidbolin.github.io/rSPDE/articles/rSPDE.html)
+
+* [R-INLA implementation of the rational SPDE approach](https://davidbolin.github.io/rSPDE/articles/rspde_inla.html)
+
+* [inlabru implementation of the rational SPDE approach](https://davidbolin.github.io/rSPDE/articles/rspde_inlabru.html)
+
+* [Rational approximation with the rSPDE package](https://davidbolin.github.io/rSPDE/articles/rspde_cov.html)
+
+* [Operator-based rational approximation](https://davidbolin.github.io/rSPDE/articles/rspde_base.html)
+
+* [Building the rSPDE package from source on Mac and Linux](https://davidbolin.github.io/rSPDE/articles/build_source.html)
+
+# Function Manuals
+
+Detailed references for functions including several examples can be found in the [Function References](https://davidbolin.github.io/rSPDE/reference/index.html).
