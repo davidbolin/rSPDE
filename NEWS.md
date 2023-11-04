@@ -3,6 +3,7 @@
 * Added a 2d fem interface.
 * Moved from using INLA's mesh functions to fmesher's mesh functions.
 * Removing rgdal from suggests.
+* The `data` argument in `predict.rspde_lme` has been changed to `newdata`.
 * Adding `covariance_mesh` and `cov_function_mesh` methods as functions in the list returned by objects obtained from `matern.operators()` and `spde.matern.operators()`.
 * Updated the internal structure to match the updates from the `MetricGraph` package.
 * Updated the `cross_validation` function to match the updates in `inlabru`.
