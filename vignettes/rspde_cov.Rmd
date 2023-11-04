@@ -569,7 +569,7 @@ library(ggplot2)
 library(dplyr)
 
 augment(fit, newdata = df_pred, loc = "loc") %>% ggplot() + aes(x = loc, y = .fitted) +
-                geom_line()
+                geom_line(col="red") + geom_point(data = df_data, aes(x = loc, y=Y))
 ```
 
 ## Fitting a model with replicates
@@ -616,6 +616,12 @@ Let us see a summary of the fit:
 
 ```{r}
 summary(fit_repl)
+```
+
+and glance:
+
+```{r}
+glance(fir_repl)
 ```
 
 Let us compare with the true values:
@@ -775,6 +781,13 @@ Let us get a summary:
 ```{r}
 summary(fit_2d)
 ```
+
+and glance:
+
+```{r}
+glance(fit_2d)
+```
+
 Let us compare the estimated results with the true values:
 ```{r}
 print(data.frame(
@@ -786,6 +799,19 @@ print(data.frame(
 
 # Total time
 print(fit_2d$fitting_time)
+```
+
+Let us now plot the prediction for replicate 3 by using the `augment` function. We begin by creating the `data.frame` we want to do prediction:
+
+```{r}
+df_pred <- data.frame(x = proj$lattice$loc[,1],
+                        y = proj$lattice$loc[,2])
+```
+
+```{r}
+augment(fit_2d, newdata = df_pred, loc = c("x","y"), which_repl = 3) %>% ggplot() +
+              geom_raster(aes(x=x, y=y, fill = .fitted)) + xlim(0,1) + ylim(0,1) + 
+              scale_fill_viridis()
 ```
 
 ## An example with a non-stationary model
