@@ -79,11 +79,12 @@ to a folding scheme.</p>
 <span>  scores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mse"</span>, <span class="st">"crps"</span>, <span class="st">"scrps"</span>, <span class="st">"dss"</span><span class="op">)</span>,</span>
 <span>  cv_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"k-fold"</span>, <span class="st">"loo"</span>, <span class="st">"lpo"</span><span class="op">)</span>,</span>
 <span>  k <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  percentage <span class="op">=</span> <span class="fl">30</span>,</span>
+<span>  percentage <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  number_folds <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  n_samples <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  return_scores_folds <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  orientation_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"negative"</span>, <span class="st">"positive"</span><span class="op">)</span>,</span>
+<span>  include_best <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  train_test_indexes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  return_train_test <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  parallelize_RP <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -102,7 +103,7 @@ to a folding scheme.</p>
 
 
 <dt>model_names</dt>
-<dd><p>A vector containing the names of the models to appear in the returned <code>data.frame</code>. If <code>NULL</code>, the names will be of the form <code>Model 1</code>, <code>Model 2</code>, and so on.</p></dd>
+<dd><p>A vector containing the names of the models to appear in the returned <code>data.frame</code>. If <code>NULL</code>, the names will be of the form <code>Model 1</code>, <code>Model 2</code>, and so on. By default, it will try to obtain the name from the models list.</p></dd>
 
 
 <dt>scores</dt>
@@ -137,6 +138,10 @@ with the number of folds to be done. The default is <code>k-fold</code>.</p></dd
 
 <dt>orientation_results</dt>
 <dd><p>character vector. The options are "negative" and "positive". If "negative", the smaller the scores the better. If "positive", the larger the scores the better.</p></dd>
+
+
+<dt>include_best</dt>
+<dd><p>Should a row indicating which model was the best for each score be included?</p></dd>
 
 
 <dt>train_test_indexes</dt>
