@@ -1183,12 +1183,12 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, 
     
   if (lifecycle::is_present(data)) {
     if (is.null(newdata)) {
-      lifecycle::deprecate_warn("2.3.2.9000", "predict(data)", "predict(newdata)",
+      lifecycle::deprecate_warn("2.3.3", "predict(data)", "predict(newdata)",
         details = c("`data` was provided but not `newdata`. Setting `newdata <- data`.")
       )
       newdata <- data
     } else {
-      lifecycle::deprecate_warn("2.3.2.9000", "predict(data)", "predict(newdata)",
+      lifecycle::deprecate_warn("2.3.3", "predict(data)", "predict(newdata)",
         details = c("Both `newdata` and `data` were provided. Only `newdata` will be considered.")
       )
     }
