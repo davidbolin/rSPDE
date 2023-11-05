@@ -82,7 +82,6 @@ jobs:
           ' R/inlabru_rspde.R
           sed -i .bak 's/#stable\.tag/#stable\.tryCatch/' R/inlabru_rspde.R
           Rscript -e "devtools::document()"            
-          git rm -rf pkgdown/
           git add man
           git add .Rbuildignore
           git add DESCRIPTION
