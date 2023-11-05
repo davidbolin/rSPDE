@@ -259,28 +259,48 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
           graph <- new_object$graph
         }
 
-        new_object <- matern.operators(
-          kappa = new_object$kappa,
-          sigma = new_object$sigma,
-          range = new_object$range,
-          tau = new_object$tau,
-          nu = new_object$nu,
-          alpha = new_object$alpha,
-          G = new_object$G,
-          C = new_object$C,
-          d = new_object$d,
-          m = new_object$m,
-          mesh = mesh,
-          loc_mesh = loc_mesh,
-          range_mesh = range_mesh,
-          graph = graph,
-          parameterization = parameterization,
-          type = "covariance",
-          return_block_list = return_block_list,
-          type_rational_approximation = type_rational_approximation,
-          fem_mesh_matrices = new_object$fem_mesh_matrices,
-          compute_logdet = new_object$compute_logdet
-        )
+        if(parameterization == "spde"){
+            new_object <- matern.operators(
+              kappa = new_object$kappa,
+              tau = new_object$tau,
+              alpha = new_object$alpha,
+              G = new_object$G,
+              C = new_object$C,
+              d = new_object$d,
+              m = new_object$m,
+              mesh = mesh,
+              loc_mesh = loc_mesh,
+              range_mesh = range_mesh,
+              graph = graph,
+              parameterization = parameterization,
+              type = "covariance",
+              return_block_list = return_block_list,
+              type_rational_approximation = type_rational_approximation,
+              fem_mesh_matrices = new_object$fem_mesh_matrices,
+              compute_logdet = new_object$compute_logdet
+            )
+        } else{
+            new_object <- matern.operators(
+              sigma = new_object$sigma,
+              range = new_object$range,
+              nu = new_object$nu,
+              G = new_object$G,
+              C = new_object$C,
+              d = new_object$d,
+              m = new_object$m,
+              mesh = mesh,
+              loc_mesh = loc_mesh,
+              range_mesh = range_mesh,
+              graph = graph,
+              parameterization = parameterization,
+              type = "covariance",
+              return_block_list = return_block_list,
+              type_rational_approximation = type_rational_approximation,
+              fem_mesh_matrices = new_object$fem_mesh_matrices,
+              compute_logdet = new_object$compute_logdet
+            )
+        }
+
   } else{
   ## get parameters
 
@@ -340,15 +360,32 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
           alpha <- new_object$nu + d / 2
           new_object$alpha <- alpha
         } 
-
+        if(parameterization == "spde"){
+          new_object <- spde.matern.operators(
+            kappa = new_object$kappa,
+            tau = new_object$tau,
+            theta = new_object$theta,
+            alpha = new_object$alpha,
+            B.tau = new_object$B.tau,
+            B.kappa = new_object$B.kappa,
+            G = new_object$G,
+            C = new_object$C,
+            d = new_object$d,
+            m = new_object$m,
+            mesh = mesh,
+            loc_mesh = loc_mesh,
+            range_mesh = range_mesh,
+            graph = graph,            
+            parameterization = parameterization,
+            type = "covariance",
+            type_rational_approximation = new_object$type_rational_approximation
+          )
+        } else{
           new_object <- spde.matern.operators(
             kappa = new_object$kappa,
             tau = new_object$tau,
             theta = new_object$theta,
             nu = new_object$nu,
-            alpha = new_object$alpha,
-            B.tau = new_object$B.tau,
-            B.kappa = new_object$B.kappa,
             G = new_object$G,
             C = new_object$C,
             d = new_object$d,
@@ -363,6 +400,8 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
             type = "covariance",
             type_rational_approximation = new_object$type_rational_approximation
           )
+        }
+
   }
   return(new_object)
 }
@@ -513,24 +552,40 @@ update.rSPDEobj <- function(object, user_nu = NULL,
           graph <- new_object$graph
         }
 
-  new_object <- matern.operators(
-    kappa = new_object$kappa,
-    sigma = new_object$sigma,
-    range = new_object$range,
-    tau = new_object$tau,
-    nu = new_object$nu,
-    alpha = new_object$alpha,
-    G = new_object$G,
-    C = new_object$C,
-    d = new_object$d,
-    m = new_object$m,
-    mesh = mesh,
-    loc_mesh = loc_mesh,
-    range_mesh = range_mesh,
-    graph = graph,
-    parameterization = parameterization,    
-    type = "operator"
-  )
+        if(parameterization == "spde"){
+            new_object <- matern.operators(
+              kappa = new_object$kappa,
+              tau = new_object$tau,
+              alpha = new_object$alpha,
+              G = new_object$G,
+              C = new_object$C,
+              d = new_object$d,
+              m = new_object$m,
+              mesh = mesh,
+              loc_mesh = loc_mesh,
+              range_mesh = range_mesh,
+              graph = graph,
+              parameterization = parameterization,    
+              type = "operator"
+            )
+        } else{
+            new_object <- matern.operators(
+              sigma = new_object$sigma,
+              range = new_object$range,
+              nu = new_object$nu,
+              G = new_object$G,
+              C = new_object$C,
+              d = new_object$d,
+              m = new_object$m,
+              mesh = mesh,
+              loc_mesh = loc_mesh,
+              range_mesh = range_mesh,
+              graph = graph,
+              parameterization = parameterization,    
+              type = "operator"
+            )
+        }
+
  } else{
           if (!is.null(user_tau)) {
             new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
@@ -590,12 +645,12 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 
         }         
 
-  
+    if(parameterization == "spde"){
           new_object <- spde.matern.operators(
             kappa = new_object$kappa,
             tau = new_object$tau,
             theta = new_object$theta,
-            nu = new_object$nu,
+            alpha = new_object$alpha,
             B.tau = new_object$B.tau,
             B.kappa = new_object$B.kappa,
             G = new_object$G,
@@ -609,6 +664,26 @@ update.rSPDEobj <- function(object, user_nu = NULL,
             graph = graph,            
             type = "operator"
           )  
+    } else{
+        new_object <- spde.matern.operators(
+            kappa = new_object$kappa,
+            tau = new_object$tau,
+            theta = new_object$theta,
+            nu = new_object$nu,
+            B.range = new_object$B.range,
+            B.sigma = new_object$B.sigma,
+            G = new_object$G,
+            C = new_object$C,
+            d = new_object$d,
+            m = new_object$m,
+            mesh = mesh,
+            loc_mesh = loc_mesh,
+            range_mesh = range_mesh,
+            parameterization = parameterization,
+            graph = graph,            
+            type = "operator"
+          )  
+    }
  }
 
 
@@ -712,13 +787,17 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
     sizeL <- dim(L)[1]
 
 
-    Q <- rspde.matern.precision.integer(
-      kappa = kappa, nu = nu, tau = tau,
-      dim = d,
-      fem_mesh_matrices = fem_mesh_matrices
-    )
+    # Q <- rspde.matern.precision.integer(
+    #   kappa = kappa, nu = nu, tau = tau,
+    #   dim = d,
+    #   fem_mesh_matrices = fem_mesh_matrices
+    # )
+
+    Q <- object$Q
+
     Z <- rnorm(sizeL * nsim)
     dim(Z) <- c(sizeL, nsim)
+
 
     # LQ <- Matrix::Cholesky(forceSymmetric(Q), LDL = FALSE)
     # X <- solve(LQ, Z, system = "Lt")
@@ -963,7 +1042,7 @@ predict.rSPDEobj <- function(object,
 #' op <- matern.operators(
 #'   range = range, sigma = sigma, nu = nu,
 #'   loc_mesh = x, d = 1,
-#'   type = "operator"
+#'   type = "operator", parameterization = "matern"
 #' )
 #'
 #' # Sample the model

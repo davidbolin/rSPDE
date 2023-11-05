@@ -174,7 +174,7 @@ stopifnot(inherits(result, "bru"))
   original_timings <- result[["bru_timings"]]
 
   lhoods_tmp <- info[["lhoods"]]
-  lhoods_tmp[[1]]$response_data <- lhoods_tmp[[1]]$response_data[idx_data,]
+  lhoods_tmp[[1]]$response_data$BRU_response <- lhoods_tmp[[1]]$response_data$BRU_response[idx_data]
   lhoods_tmp[[1]]$data <- lhoods_tmp[[1]]$data[idx_data,]
   if(length(lhoods_tmp[[1]]$E)>1){
     lhoods_tmp[[1]]$E <- lhoods_tmp[[1]]$E[idx_data]
@@ -208,26 +208,27 @@ stopifnot(inherits(result, "bru"))
     if(!is.null(name_input_group)){
       name_input_group <- as.character(name_input_group)
       comp_group_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
-      if(is.null(total_length)){
+      if(is.null(total_length) && !is.null(comp_group_tmp)){
         total_length <- length(comp_group_tmp)
-      }
-      if(length(comp_group_tmp) == total_length){
-        backup_list[[comp]][["group_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
-        comp_group_tmp <- comp_group_tmp[idx_data]
-        assign(name_input_group, comp_group_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+
+        if(length(comp_group_tmp) == total_length){
+          backup_list[[comp]][["group_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
+          comp_group_tmp <- comp_group_tmp[idx_data]
+          assign(name_input_group, comp_group_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+        }
       }
     }
     name_input_repl <- info[["model"]][["effects"]][[comp]][["replicate"]][["input"]][["input"]]
     if(!is.null(name_input_repl)){
       name_input_repl <- as.character(name_input_repl)
       comp_repl_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
-      if(is.null(total_length)){
+      if(is.null(total_length) && !is.null(comp_repl_tmp)){
         total_length <- length(comp_repl_tmp)
-      }
-      if(length(comp_repl_tmp) == total_length){
-        backup_list[[comp]][["repl_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
-        comp_repl_tmp <- comp_repl_tmp[idx_data]
-        assign(name_input_repl, comp_repl_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+        if(length(comp_repl_tmp) == total_length){
+          backup_list[[comp]][["repl_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
+          comp_repl_tmp <- comp_repl_tmp[idx_data]
+          assign(name_input_repl, comp_repl_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+        }
       }
     }
   }
@@ -342,7 +343,7 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @description Obtain several scores for a list of fitted models according 
 #' to a folding scheme.
 #' @param models A fitted model obtained from calling the `bru()` function or a list of models fitted with the `bru()` function.
-#' @param model_names A vector containing the names of the models to appear in the returned `data.frame`. If `NULL`, the names will be of the form `Model 1`, `Model 2`, and so on.
+#' @param model_names A vector containing the names of the models to appear in the returned `data.frame`. If `NULL`, the names will be of the form `Model 1`, `Model 2`, and so on. By default, it will try to obtain the name from the models list.
 #' @param scores A vector containing the scores to be computed. The options are "mse", "crps", "scrps" and "dss". By default, all scores are computed.
 #' @param cv_type The type of the folding to be carried out. The options are `k-fold` for `k`-fold cross-validation, in which case the parameter `k` should be provided, 
 #' `loo`, for leave-one-out and `lpo` for leave-percentage-out, in this case, the parameter `percentage` should be given, and also the `number_folds` 
@@ -353,6 +354,7 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @param n_samples Number of samples to compute the posterior statistics to be used to compute the scores.
 #' @param return_scores_folds If `TRUE`, the scores for each fold will also be returned.
 #' @param orientation_results character vector. The options are "negative" and "positive". If "negative", the smaller the scores the better. If "positive", the larger the scores the better.
+#' @param include_best Should a row indicating which model was the best for each score be included?
 #' @param train_test_indexes A list containing two entries `train`, which is a list whose elements are vectors of indexes of the training data, and `test`, which is a list whose elements are vectors of indexes of the test data.
 #' Typically this will be returned list obtained by setting the argument `return_train_test` to `TRUE`.
 #' @param return_train_test Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list.
@@ -367,9 +369,10 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 
 cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps", "scrps", "dss"),
                               cv_type = c("k-fold", "loo", "lpo"),
-                              k = 5, percentage = 30, number_folds = 10,
+                              k = 5, percentage = 20, number_folds = 10,
                               n_samples = 1000, return_scores_folds = FALSE,
                               orientation_results = c("negative", "positive"),
+                              include_best = TRUE,
                               train_test_indexes = NULL,
                               return_train_test = FALSE,
                               parallelize_RP = FALSE, n_cores_RP = parallel::detectCores()-1,
@@ -447,6 +450,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                   }
                                 }
 
+                                if(is.null(model_names) && is.list(models)){
+                                  model_names <- names(models)
+                                }
+
                                 if(!is.null(model_names)){
                                   if(!is.character(model_names)){
                                     stop("model_names must be a vector of strings!")
@@ -464,33 +471,41 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                 # Getting the data if NULL
                                 data <- models[[1]]$bru_info$lhoods[[1]]$data
 
+                                if(is.vector(data)){
+                                  data <- as.data.frame(data)
+                                }
+
                                 # Creating lists of train and test datasets
 
                                 if(is.null(train_test_indexes)){
+                                  idx <- seq_len(nrow(data[1]))
+                                  data_nonNA <- !is.na(data)
+                                  idx_nonNA <- sapply(1:nrow(data), function(i){all(data_nonNA[i,])})
+                                  idx <- idx[idx_nonNA]
                                   if(cv_type == "k-fold"){
                                         # split idx into k
-                                            idx <- seq_len(nrow(data[1]))
                                             folds <- cut(sample(idx), breaks = k, label = FALSE)
-                                            test_list <- lapply(1:k, function(i) {which(folds == i, arr.ind = TRUE)})
+                                            test_list_idx <- lapply(1:k, function(i) {which(folds == i, arr.ind = TRUE)})
+                                            test_list <- lapply(test_list_idx, function(idx_test){idx[idx_test]})
                                             train_list <- lapply(1:k, function(i){
-                                              idx[-test_list[[i]]]
+                                              idx[-test_list_idx[[i]]]
                                             })
                                 } else if (cv_type == "loo"){
-                                          idx <- seq_len(nrow(data[1]))
                                           train_list <- lapply(1:length(idx), function(i){
                                             idx[-i]
                                           })
-                                          test_list <- lapply(1:length(data[1]), function(i){i})
+                                          # test_list <- lapply(1:length(idx), function(i){idx[i]})
+                                          test_list <- as.list(idx)
                                 } else if (cv_type == "lpo"){
-                                            test_list <- list()
-                                            n_Y <- length(data[1])
+                                            test_list_idx <- list()
+                                            n_Y <- length(idx)
                                             for (i in number_folds:1) {
-                                              test_list[[i]] <- sample(1:n_Y, size = (1-percentage/100) * n_Y)
+                                              test_list_idx[[i]] <- sample(1:length(idx), size = (1-percentage/100) * n_Y)
                                             }
-                                            idx <- seq_len(nrow(data[1]))
                                             train_list <- lapply(1:number_folds, function(i){
-                                              idx[-test_list[[i]]]
+                                              idx[-test_list_idx[[i]]]
                                             })
+                                            test_list <- lapply(test_list_idx, function(idx_test){idx[idx_test]})                                            
                                 }
                                 } else{
                                   if(!is.list(train_test_indexes)){
@@ -556,7 +571,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
 
-                                        new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV, fit_verbose = fit_verbose)
+                                        new_model <- rSPDE:::bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV, fit_verbose = fit_verbose)
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
@@ -569,9 +584,9 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
-                                            posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
+                                            posterior_samples <- inlabru::generate(new_model, newdata = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
                                         } else {
-                                          posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
+                                          posterior_samples <- inlabru::generate(new_model, newdata = df_pred, formula = formula_tmp, n.samples = n_samples)
                                         }
                                         
                                         if(print){ 
@@ -714,16 +729,16 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
-                                            posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
+                                            posterior_samples <- inlabru::generate(new_model, newdata = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
                                         } else {
-                                          posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
+                                          posterior_samples <- inlabru::generate(new_model, newdata = df_pred, formula = formula_tmp, n.samples = n_samples)
                                         }
 
                                         if(print){ 
                                           cat("Samples generated!\n")
                                         }
 
-                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
+                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data$BRU_response[test_list[[fold]]]
 
                                         if(nrow(posterior_samples) == 1){
                                           posterior_samples <- matrix(rep(posterior_samples, length(test_data)),ncol=ncol(posterior_samples), byrow = TRUE)
@@ -852,16 +867,16 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
-                                            posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
+                                            posterior_samples <- inlabru::generate(new_model, newdata = df_pred, formula = formula_tmp, n.samples = 2 * n_samples)
                                         } else {
-                                          posterior_samples <- inlabru::generate(new_model, data = df_pred, formula = formula_tmp, n.samples = n_samples)
+                                          posterior_samples <- inlabru::generate(new_model, newdata = df_pred, formula = formula_tmp, n.samples = n_samples)
                                         }
 
                                         if(print){
                                             cat("Samples generated!\n")
                                         }
 
-                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data[test_list[[fold]],"BRU_response"]
+                                        test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data$BRU_response[test_list[[fold]]]
 
                                         if(nrow(posterior_samples) == 1){
                                           posterior_samples <- matrix(rep(posterior_samples, length(test_data)),ncol=ncol(posterior_samples), byrow = TRUE)
@@ -986,6 +1001,22 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
             settings_list[["percentage"]] <- percentage
             settings_list[["number_folds"]] <- number_folds
           }
+        }
+
+        if(include_best){
+          n_fit_scores <- ncol(result_df)-1
+          final_row <- c("Best")
+          for(j in 2:ncol(result_df)){
+            if(orientation_results == "negative"){
+              best_tmp <- which.min(result_df[,j])
+              final_row <- c(final_row, model_names[best_tmp])
+            } else{
+              best_tmp <- which.max(result_df[,j])
+              final_row <- c(final_row, model_names[best_tmp])
+            }
+          }
+          result_df <- rbind(result_df, final_row)
+          row.names(result_df)[nrow(result_df)] <- ""
         }
 
 
