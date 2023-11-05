@@ -2220,3 +2220,22 @@ idx_not_any_NA <- function(data_list){
      }
      return(idx_non_na)
 }
+
+
+#' @noRd 
+#' 
+
+select_indexes <- function(data, idx){
+    if(inherits(data,"SpatialPointsDataFrame")){
+      data <- data[idx,]
+  } else{
+      data <- lapply(data, function(dat){
+        if(is.null(nrow(dat))){
+          return(dat[idx])
+        } else{
+          return(dat[idx,])
+        }
+        })
+  }
+  return(data)
+}

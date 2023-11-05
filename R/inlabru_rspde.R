@@ -13,8 +13,7 @@
 #' }
 #' 
 #' @examples
-#' \donttest{ #tryCatch version
-#' tryCatch({
+#' \donttest{ #devel version
 #' if (requireNamespace("INLA", quietly = TRUE) && 
 #'      requireNamespace("inlabru", quietly = TRUE)){
 #' library(INLA)
@@ -61,8 +60,7 @@
 #' rspde_fit <- bru(cmp, data = data_df)
 #' summary(rspde_fit)
 #' }
-#' #stable.tryCatch
-#' }, error = function(e){print("Could not run the example")})
+#' #devel.tag
 #' }
 bru_get_mapper.inla_rspde <- function(model,...) {
   mapper <- list(model = model)
@@ -175,7 +173,11 @@ stopifnot(inherits(result, "bru"))
 
   lhoods_tmp <- info[["lhoods"]]
   lhoods_tmp[[1]]$response_data$BRU_response <- lhoods_tmp[[1]]$response_data$BRU_response[idx_data]
-  lhoods_tmp[[1]]$data <- lhoods_tmp[[1]]$data[idx_data,]
+  
+    # lhoods_tmp[[1]]$data <- lhoods_tmp[[1]]$data[idx_data,]
+
+    lhoods_tmp[[1]]$data <- select_indexes(lhoods_tmp[[1]]$data, idx_data)
+
   if(length(lhoods_tmp[[1]]$E)>1){
     lhoods_tmp[[1]]$E <- lhoods_tmp[[1]]$E[idx_data]
   }
@@ -363,7 +365,7 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' @param true_CV Should a `TRUE` cross-validation be performed? If `TRUE` the models will be fitted on the training dataset. If `FALSE`, the parameters will be kept fixed at the ones obtained in the result object.
 #' @param save_settings Logical. If `TRUE`, the settings used in the cross-validation will also be returned.
 #' @param print Should partial results be printed throughout the computation?
-#' @param fit_verbose Should INLA's run during cross-validation be verbose? Default is FALSE
+#' @param fit_verbose Should INLA's run during cross-validation be verbose?
 #' @return A data.frame with the fitted models and the corresponding scores.
 #' @export
 
@@ -478,9 +480,20 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                 # Creating lists of train and test datasets
 
                                 if(is.null(train_test_indexes)){
-                                  idx <- seq_len(nrow(data[1]))
-                                  data_nonNA <- !is.na(data)
-                                  idx_nonNA <- sapply(1:nrow(data), function(i){all(data_nonNA[i,])})
+                                  if(inherits(data, "metric_graph_data")){
+                                    idx <- seq_len(nrow(as.data.frame(data))) 
+                                  } else{
+                                    idx <- seq_len(nrow(data))
+                                  }
+                                  if(inherits(data, "SpatialPointsDataFrame")){
+                                    data_tmp <- data@data
+                                    data_nonNA <- !is.na(data_tmp)
+                                  } else if(inherits(data, "metric_graph_data")){
+                                    data_nonNA <- !is.na(as.data.frame(data))
+                                  } else {
+                                    data_nonNA <- !is.na(data)
+                                  }
+                                  idx_nonNA <- sapply(1:length(idx), function(i){all(data_nonNA[i,])})
                                   idx <- idx[idx_nonNA]
                                   if(cv_type == "k-fold"){
                                         # split idx into k
@@ -558,6 +571,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         stop("There was a problem with INLA's fit. Please, check your model specifications carefully and re-fit the model.")
                                       }
 
+
+                                      df_train <- select_indexes(data, train_list[[fold]])
+                                      df_pred <- select_indexes(data, test_list[[fold]])
+
                                       if(models[[model_number]]$.args$family == "gaussian"){
                                         link_name <- models[[model_number]]$.args$control.family[[1]]$link
                                         if(link_name == "default"){
@@ -566,8 +583,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           linkfuninv <- process_link(link_name)
                                         } 
 
-                                        df_train <- data[train_list[[fold]],]
-                                        df_pred <- data[test_list[[fold]],]
 
                                         df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
 
@@ -715,9 +730,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         env_tmp <- environment(formula_tmp)
                                         assign("linkfuninv", linkfuninv, envir = env_tmp)
 
-                                        df_train <- data[train_list[[fold]],]
-                                        df_pred <- data[test_list[[fold]],]
-
                                         df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
 
                                         new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV, fit_verbose = fit_verbose)
@@ -852,9 +864,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         formula_tmp <- formula_list[[model_number]]
                                         env_tmp <- environment(formula_tmp)
                                         assign("linkfuninv", linkfuninv, envir = env_tmp)
-
-                                        df_train <- data[train_list[[fold]],]
-                                        df_pred <- data[test_list[[fold]],]
 
                                         df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
 
