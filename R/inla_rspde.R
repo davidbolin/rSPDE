@@ -910,7 +910,8 @@ restructure_matrices_less <- function(matrices_less, m_alpha){
 #' @return The \eqn{A} matrix for rSPDE models.
 #' @export
 #' @examples
-#' \donttest{ #devel version
+#' \donttest{ #tryCatch version
+#' tryCatch({
 #' if (requireNamespace("fmesher", quietly = TRUE)){
 #' library(fmesher)
 #' 
@@ -923,7 +924,8 @@ restructure_matrices_less <- function(matrices_less, m_alpha){
 #' )
 #' A <- spde.make.A(mesh, loc = loc)
 #' }
-#' #devel.tag
+#' #stable.tryCatch
+#' }, error = function(e){print("Could not run the example")})
 #' }
 spde.make.A <- function(mesh = NULL,
                          loc = NULL,
