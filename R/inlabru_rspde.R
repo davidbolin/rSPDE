@@ -173,7 +173,11 @@ stopifnot(inherits(result, "bru"))
 
   lhoods_tmp <- info[["lhoods"]]
   lhoods_tmp[[1]]$response_data$BRU_response <- lhoods_tmp[[1]]$response_data$BRU_response[idx_data]
-  lhoods_tmp[[1]]$data <- lhoods_tmp[[1]]$data[idx_data,]
+  
+    # lhoods_tmp[[1]]$data <- lhoods_tmp[[1]]$data[idx_data,]
+
+    lhoods_tmp[[1]]$data <- select_indexes(lhoods_tmp[[1]]$data, idx_data)
+
   if(length(lhoods_tmp[[1]]$E)>1){
     lhoods_tmp[[1]]$E <- lhoods_tmp[[1]]$E[idx_data]
   }
@@ -469,21 +473,27 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                 # Getting the data if NULL
                                 data <- models[[1]]$bru_info$lhoods[[1]]$data
 
-                                if(is.vector(data) || is.list(data)){
+                                if(is.vector(data)){
                                   data <- as.data.frame(data)
                                 }
 
                                 # Creating lists of train and test datasets
 
                                 if(is.null(train_test_indexes)){
-                                  idx <- seq_len(nrow(data))
+                                  if(inherits(data, "metric_graph_data")){
+                                    idx <- seq_len(nrow(as.data.frame(data))) 
+                                  } else{
+                                    idx <- seq_len(nrow(data))
+                                  }
                                   if(inherits(data, "SpatialPointsDataFrame")){
                                     data_tmp <- data@data
                                     data_nonNA <- !is.na(data_tmp)
-                                  } else{
+                                  } else if(inherits(data, "metric_graph_data")){
+                                    data_nonNA <- !is.na(as.data.frame(data))
+                                  } else {
                                     data_nonNA <- !is.na(data)
                                   }
-                                  idx_nonNA <- sapply(1:nrow(data), function(i){all(data_nonNA[i,])})
+                                  idx_nonNA <- sapply(1:length(idx), function(i){all(data_nonNA[i,])})
                                   idx <- idx[idx_nonNA]
                                   if(cv_type == "k-fold"){
                                         # split idx into k
@@ -561,6 +571,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         stop("There was a problem with INLA's fit. Please, check your model specifications carefully and re-fit the model.")
                                       }
 
+
+                                      df_train <- select_indexes(data, train_list[[fold]])
+                                      df_pred <- select_indexes(data, test_list[[fold]])
+
                                       if(models[[model_number]]$.args$family == "gaussian"){
                                         link_name <- models[[model_number]]$.args$control.family[[1]]$link
                                         if(link_name == "default"){
@@ -569,8 +583,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           linkfuninv <- process_link(link_name)
                                         } 
 
-                                        df_train <- data[train_list[[fold]], , drop = FALSE]
-                                        df_pred <- data[test_list[[fold]], , drop = FALSE]
 
                                         df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
 
@@ -718,9 +730,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         env_tmp <- environment(formula_tmp)
                                         assign("linkfuninv", linkfuninv, envir = env_tmp)
 
-                                        df_train <- data[train_list[[fold]],]
-                                        df_pred <- data[test_list[[fold]],]
-
                                         df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
 
                                         new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV, fit_verbose = fit_verbose)
@@ -855,9 +864,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         formula_tmp <- formula_list[[model_number]]
                                         env_tmp <- environment(formula_tmp)
                                         assign("linkfuninv", linkfuninv, envir = env_tmp)
-
-                                        df_train <- data[train_list[[fold]],]
-                                        df_pred <- data[test_list[[fold]],]
 
                                         df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
 
