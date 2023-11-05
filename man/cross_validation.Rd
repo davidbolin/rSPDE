@@ -66,7 +66,7 @@ Typically this will be returned list obtained by setting the argument \code{retu
 
 \item{print}{Should partial results be printed throughout the computation?}
 
-\item{fit_verbose}{Should INLA's run during cross-validation be verbose? Default is FALSE}
+\item{fit_verbose}{Should INLA's run during cross-validation be verbose?}
 }
 \value{
 A data.frame with the fitted models and the corresponding scores.
