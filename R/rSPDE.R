@@ -10,14 +10,14 @@
 #' inference and simulation.
 #'
 #' The main functions for computing rational approximation objects are:
-#' \itemize{
+#' \describe{
 #' \item{[fractional.operators()]}{works for general
 #' rational operators}
 #' \item{[matern.operators()]}{ works for random fields with
 #' stationary Matern covariance functions}
 #' \item{[spde.matern.operators()]}{ works for random fields with
 #' defined as solutions to a possibly non-stationary Matern-type SPDE model.}
-#' \item{[rspde.matern()]} {R-INLA implementation of the
+#' \item{[rspde.matern()]}{R-INLA implementation of the
 #' covariance-based rational approximation for random fields with
 #' stationary Matern covariance functions}
 #' }
