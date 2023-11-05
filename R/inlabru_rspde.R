@@ -469,15 +469,20 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                 # Getting the data if NULL
                                 data <- models[[1]]$bru_info$lhoods[[1]]$data
 
-                                if(is.vector(data)){
+                                if(is.vector(data) || is.list(data)){
                                   data <- as.data.frame(data)
                                 }
 
                                 # Creating lists of train and test datasets
 
                                 if(is.null(train_test_indexes)){
-                                  idx <- seq_len(nrow(data[1]))
-                                  data_nonNA <- !is.na(data)
+                                  idx <- seq_len(nrow(data))
+                                  if(inherits(data, "SpatialPointsDataFrame")){
+                                    data_tmp <- data@data
+                                    data_nonNA <- !is.na(data_tmp)
+                                  } else{
+                                    data_nonNA <- !is.na(data)
+                                  }
                                   idx_nonNA <- sapply(1:nrow(data), function(i){all(data_nonNA[i,])})
                                   idx <- idx[idx_nonNA]
                                   if(cv_type == "k-fold"){
@@ -564,12 +569,12 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           linkfuninv <- process_link(link_name)
                                         } 
 
-                                        df_train <- data[train_list[[fold]],]
-                                        df_pred <- data[test_list[[fold]],]
+                                        df_train <- data[train_list[[fold]], , drop = FALSE]
+                                        df_pred <- data[test_list[[fold]], , drop = FALSE]
 
                                         df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
 
-                                        new_model <- rSPDE:::bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV, fit_verbose = fit_verbose)
+                                        new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = true_CV, fit_verbose = fit_verbose)
 
                                         resp_var <- as.character(models[[model_number]]$bru_info$lhoods[[1]]$formula[2])
 
