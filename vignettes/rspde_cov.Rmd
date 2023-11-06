@@ -562,12 +562,14 @@ par(opar)
 
 We can also use the `augment()` function and pipe the results into a plot:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(ggplot2)
 library(dplyr)
 
-augment(fit, newdata = df_pred, loc = "loc") %>% ggplot() + aes(x = loc, y = .fitted) +
-                geom_line(col="red") + geom_point(data = df_data, aes(x = loc, y=Y))
+augment(fit, newdata = df_pred, loc = "loc") %>% ggplot() + 
+                aes(x = loc, y = .fitted) +
+                geom_line(col="red") + 
+                geom_point(data = df_data, aes(x = loc, y=Y))
 ```
 
 ## Fitting a model with replicates
