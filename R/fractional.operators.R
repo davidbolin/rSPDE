@@ -674,15 +674,23 @@ matern.operators <- function(kappa = NULL,
       }
       v <- t(out$make_A(loc = p))
       A <- Matrix::Diagonal(dim(C)[1])
-      v_bar <- kronecker(matrix(1, nrow = m + 1), v)
-      A_bar <- kronecker(matrix(1, ncol = m+1), A)
-      return((A_bar) %*% solve(out$Q, v_bar))
+      if(out$alpha %% 1 == 0){
+        return((A) %*% solve(out$Q, v))
+      } else{
+        v_bar <- kronecker(matrix(1, nrow = m + 1), v)
+        A_bar <- kronecker(matrix(1, ncol = m+1), A)
+        return((A_bar) %*% solve(out$Q, v_bar))
+      }
     }
 
   out$covariance_mesh <- function(){
       A <- Matrix::Diagonal(dim(C)[1])
-      A_bar <- kronecker(matrix(1, ncol = m+1), A)
-      return((A_bar) %*% solve(out$Q, t(A_bar)))
+        if(out$alpha %% 1 == 0){
+        return((A) %*% solve(out$Q, t(A)))
+      } else{
+        A_bar <- kronecker(matrix(1, ncol = m+1), A)
+        return((A_bar) %*% solve(out$Q, t(A_bar)))
+      }
   }    
     return(out)
   }
@@ -1570,17 +1578,25 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
       }
       v <- t(output$make_A(loc = p))
       A <- Matrix::Diagonal(dim(C)[1])
-      v_bar <- kronecker(matrix(1, nrow = m + 1), v)
-      A_bar <- kronecker(matrix(1, ncol = m+1), A)
-      return((A_bar) %*% solve(output$Q, v_bar))
+      if(out$alpha %% 1 == 0){
+        return((A) %*% solve(output$Q, v))
+      } else{
+        v_bar <- kronecker(matrix(1, nrow = m + 1), v)
+        A_bar <- kronecker(matrix(1, ncol = m+1), A)
+        return((A_bar) %*% solve(output$Q, v_bar))
+      }      
     }
   class(output) <- "CBrSPDEobj"
   }
 
   output$covariance_mesh <- function(){
       A <- Matrix::Diagonal(dim(C)[1])
-      A_bar <- kronecker(matrix(1, ncol = m+1), A)
-      return((A_bar) %*% solve(output$Q, t(A_bar)))
+      if(output$alpha %% 1 == 0){
+        return((A) %*% solve(output$Q, t(A)))
+      } else{
+        A_bar <- kronecker(matrix(1, ncol = m+1), A)
+        return((A_bar) %*% solve(output$Q, t(A_bar)))
+      }
   }
 
   return(output)
