@@ -1578,7 +1578,7 @@ if (is.null(d) && is.null(mesh) && is.null(graph)) {
       }
       v <- t(output$make_A(loc = p))
       A <- Matrix::Diagonal(dim(C)[1])
-      if(out$alpha %% 1 == 0){
+      if(output$alpha %% 1 == 0){
         return((A) %*% solve(output$Q, v))
       } else{
         v_bar <- kronecker(matrix(1, nrow = m + 1), v)
