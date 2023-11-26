@@ -14,8 +14,8 @@
 <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.7/font.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.7/font.css" rel="stylesheet">
 <!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Operator-based rational approximation">
@@ -97,7 +97,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2019-08-07. Last
-modified: 2023-11-06.</h4>
+modified: 2023-11-26.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_base.Rmd" class="external-link"><code>vignettes/rspde_base.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_base.Rmd</code></div>
@@ -670,8 +670,8 @@ we fit the model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 57</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  3.85413 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 2.78839 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  1.06025 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 2.41288 secs</span></span></code></pre></div>
 <p>and glance:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">)</span></span>
@@ -693,7 +693,7 @@ we fit the model:</p>
 <span></span>
 <span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 3.854137 mins</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 1.060259 mins</span></span></code></pre></div>
 <p>Finally, we observe that we can use the <code><a href="../reference/rational.order.html">rational.order()</a></code>
 function, to check the order of the rational approximation of the
 <code>rSPDE</code> object, as well as to use the
@@ -743,8 +743,8 @@ function, to check the order of the rational approximation of the
 <span><span class="co">#&gt; Number of function calls by 'optim' = 70</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  8.82198 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 2.76565 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  2.45614 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 2.36601 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -759,7 +759,7 @@ function, to check the order of the rational approximation of the
 <span></span>
 <span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 8.821981 mins</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 2.456144 mins</span></span></code></pre></div>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
