@@ -216,7 +216,9 @@ stopifnot(inherits(result, "bru"))
         if(length(comp_group_tmp) == total_length){
           backup_list[[comp]][["group_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
           comp_group_tmp <- comp_group_tmp[idx_data]
-          assign(name_input_group, comp_group_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+          if(!is.null(comp_group_tmp)){
+            assign(name_input_group, comp_group_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+          }
         }
       }
     }
@@ -229,7 +231,9 @@ stopifnot(inherits(result, "bru"))
         if(length(comp_repl_tmp) == total_length){
           backup_list[[comp]][["repl_val"]] <- info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
           comp_repl_tmp <- comp_repl_tmp[idx_data]
-          assign(name_input_repl, comp_repl_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+          if(!is.null(comp_repl_tmp)){
+            assign(name_input_repl, comp_repl_tmp, envir = info[["model"]][["effects"]][[comp]][["env"]])
+          }
         }
       }
     }
@@ -319,21 +323,30 @@ get_post_var <- function(density_df){
 prepare_df_pred <- function(df_pred, result, idx_test){
   info <- result[["bru_info"]]
   list_of_components <- names(info[["model"]][["effects"]])
+  lhoods_tmp <- info[["lhoods"]]
 
   for(comp in list_of_components){
     name_input_group <- info[["model"]][["effects"]][[comp]][["group"]][["input"]][["input"]]
     if(!is.null(name_input_group)){
       name_input_group <- as.character(name_input_group)
       comp_group_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
-      comp_group_tmp <- comp_group_tmp[idx_test]
+      if(!is.null(comp_group_tmp)){
+        comp_group_tmp <- comp_group_tmp[idx_test]
+      } else{
+        comp_group_tmp <- lhoods_tmp[[1]]$data[[name_input_group]][idx_test]
+      }
       df_pred[[name_input_group]] <- comp_group_tmp
     }
     name_input_repl <- info[["model"]][["effects"]][[comp]][["replicate"]][["input"]][["input"]]
     if(!is.null(name_input_repl)){
       name_input_repl <- as.character(name_input_repl)
       comp_repl_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
-      comp_repl_tmp <- comp_repl_tmp[idx_test]
-      df_pred[[name_input_repl]] <- comp_repl_tmp
+      if(!is.null(comp_repl_tmp)){
+        comp_repl_tmp <- comp_repl_tmp[idx_test]
+      } else{
+        comp_repl_tmp <- lhoods_tmp[[1]]$data[[name_input_repl]][idx_test]
+      }
+        df_pred[[name_input_repl]] <- comp_repl_tmp
     }
   }
   return(df_pred)
