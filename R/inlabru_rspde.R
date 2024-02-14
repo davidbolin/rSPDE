@@ -706,7 +706,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                               crps_temp <- unlist(crps_temp)
                                               crps[fold, model_number] <- mean(crps_temp)  
                                               if(orientation_results == "negative"){
-                                                crps[fold, model_number] <- crps[fold, model_number]
+                                                crps[fold, model_number] <- - crps[fold, model_number]
                                               }    
 
                                             if(print){
