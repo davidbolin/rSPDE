@@ -331,9 +331,17 @@ prepare_df_pred <- function(df_pred, result, idx_test){
       name_input_group <- as.character(name_input_group)
       comp_group_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_group]]
       if(!is.null(comp_group_tmp)){
-        comp_group_tmp <- comp_group_tmp[idx_test]
+        if(!is.null(dim(comp_group_tmp))){
+          comp_group_tmp <- comp_group_tmp[idx_test, , drop=FALSE]
+        } else{
+          comp_group_tmp <- comp_group_tmp[idx_test]
+        }
       } else{
-        comp_group_tmp <- lhoods_tmp[[1]]$data[[name_input_group]][idx_test]
+        if(!is.null(dim(lhoods_tmp[[1]]$data[[name_input_group]]))){
+          comp_group_tmp <- lhoods_tmp[[1]]$data[[name_input_group]][idx_test, , drop=FALSE]
+        } else{
+          comp_group_tmp <- lhoods_tmp[[1]]$data[[name_input_group]][idx_test]
+        }
       }
       df_pred[[name_input_group]] <- comp_group_tmp
     }
@@ -342,9 +350,17 @@ prepare_df_pred <- function(df_pred, result, idx_test){
       name_input_repl <- as.character(name_input_repl)
       comp_repl_tmp <-  info[["model"]][["effects"]][[comp]][["env"]][[name_input_repl]]
       if(!is.null(comp_repl_tmp)){
-        comp_repl_tmp <- comp_repl_tmp[idx_test]
+        if(!is.null(dim(comp_repl_tmp))){
+          comp_repl_tmp <- comp_repl_tmp[idx_test, ,drop=FALSE]
+        } else{
+          comp_repl_tmp <- comp_repl_tmp[idx_test]
+        }
       } else{
-        comp_repl_tmp <- lhoods_tmp[[1]]$data[[name_input_repl]][idx_test]
+        if(!is.null(dim(lhoods_tmp[[1]]$data[[name_input_repl]]))){
+          comp_repl_tmp <- lhoods_tmp[[1]]$data[[name_input_repl]][idx_test, , drop=FALSE]
+        } else{
+          comp_repl_tmp <- lhoods_tmp[[1]]$data[[name_input_repl]][idx_test]
+        }
       }
         df_pred[[name_input_repl]] <- comp_repl_tmp
     }
@@ -595,7 +611,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         } else {
                                           linkfuninv <- process_link(link_name)
                                         } 
-
 
                                         df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
 
