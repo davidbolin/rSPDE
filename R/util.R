@@ -2227,13 +2227,13 @@ idx_not_any_NA <- function(data_list){
 
 select_indexes <- function(data, idx){
     if(inherits(data,"SpatialPointsDataFrame")){
-      data <- data[idx,]
+      data <- data[idx,, drop=FALSE]
   } else{
       data <- lapply(data, function(dat){
-        if(is.null(nrow(dat))){
+        if(is.null(dim(dat))){
           return(dat[idx])
         } else{
-          return(dat[idx,])
+          return(dat[idx, , drop=FALSE])
         }
         })
   }
