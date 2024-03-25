@@ -46,3 +46,11 @@
 #' @export augment glance
 #'
 NULL
+
+.onAttach <- function(libname, pkgname) {
+  version <- utils::packageVersion("rSPDE")
+   packageStartupMessage(
+    "This is rSPDE ", version, "\n",
+    "- See https://davidbolin.github.io/rSPDE for vignettes and manuals."
+  )
+}
