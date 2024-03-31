@@ -888,9 +888,13 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                         new_n_samples <- tmp_n_samples
 
-                                          phi_sample_1 <- as.vector(hyper_samples_1[,"Offset precision for stochvol"][1:n_samples])
-
-                                          phi_sample_2 <- as.vector(hyper_samples_1[,"Offset precision for stochvol"][(n_samples+1):(2*n_samples)])
+                                          if("Offset precision for stochvol" %in% colnames(hyper_samples_1)){
+                                            phi_sample_1 <- as.vector(hyper_samples_1[,"Offset precision for stochvol"][1:n_samples])
+                                            phi_sample_2 <- as.vector(hyper_samples_1[,"Offset precision for stochvol"][(n_samples+1):(2*n_samples)])                                            
+                                          } else{
+                                            phi_sample_1 <- Inf
+                                            phi_sample_2 <- Inf                                  
+                                          }
 
                                           if(parallelize_RP){
                                             Y1_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
