@@ -59,7 +59,7 @@ Typically this will be returned list obtained by setting the argument \code{retu
 
 \item{return_post_samples}{If \code{TRUE} the posterior samples will be included in the returned list.}
 
-\item{parallelize_RP}{Logical. Should the computation of CRPS and SCRPS be parallelized?}
+\item{parallelize_RP}{Logical. Should the computation of CRPS and SCRPS (and for some cases, DSS) be parallelized?}
 
 \item{n_cores_RP}{Number of cores to be used if \code{parallelize_rp} is \code{TRUE}.}
 
