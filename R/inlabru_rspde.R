@@ -451,6 +451,16 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                   stop("number_folds must be positive!")
                                 }
 
+                                if(inherits(models, "bru")){
+                                  models <- list(models)
+                                } else{
+                                  for(i in 1:length(models)){
+                                    if(!inherits(models[[i]],"bru")){
+                                      stop("models must be either a result from a bru call or a list of results from bru() calls!")
+                                    }
+                                  }
+                                }                                
+
 
                                 if(!is.numeric(n_samples)){
                                   stop("n_samples must be numeric!")
@@ -537,10 +547,16 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                     test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data$BRU_response[test_list[[fold]]]
 
-                                      if(models[[model_number]]$.args$family == "gaussian"){
-                                        link_name <- models[[model_number]]$.args$control.family[[1]]$link
+                                    link_name <- models[[model_number]]$.args$control.family[[1]]$link
+
                                         if(link_name == "default"){
-                                          linkfuninv <- function(x){x}
+                                          if(models[[model_number]]$.args$family == "gaussian"){     
+                                            linkfuninv <- function(x){x}
+                                          } else if(models[[model_number]]$.args$family == "gamma"){
+                                            linkfuninv <- function(x){exp(x)}
+                                          } else if (models[[model_number]]$.args$family == "poisson"){
+                                            linkfuninv <- function(x){exp(x)}
+                                          }
                                         } else {
                                           linkfuninv <- process_link(link_name)
                                         } 
@@ -566,8 +582,22 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           post_samples[[model_names[[model_number]]]][[fold]] <- posterior_samples
                                           hyper_samples[[model_names[[model_number]]]][[1]][[fold]] <- hyper_samples_1
                                           hyper_samples[[model_names[[model_number]]]][[2]][[fold]] <- hyper_samples_2
-                                        } 
-                                        
+                                        }                           
+
+
+                                        if("mse" %in% scores){
+                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)          
+                                          if(orientation_results == "positive"){
+                                            mse[fold, model_number] <- - mse[fold, model_number] 
+                                          }               
+                                         if(print){
+                                            cat(paste("MSE:",mse[fold, model_number],"\n"))
+                                          }                                                        
+                                        }
+
+
+
+                                      if(models[[model_number]]$.args$family == "gaussian"){                                        
                                         if("dss" %in% scores){
                                           density_df <- hyper_marginals$`Precision for the Gaussian observations`
                                           Expect_post_var <- tryCatch(get_post_var(density_df), error = function(e) NA)
@@ -585,16 +615,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           if(print){
                                             cat(paste("DSS:", dss[fold, model_number],"\n"))
                                           }
-                                        }
-
-                                        if("mse" %in% scores){
-                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)          
-                                          if(orientation_results == "positive"){
-                                            mse[fold, model_number] <- - mse[fold, model_number] 
-                                          }               
-                                         if(print){
-                                            cat(paste("MSE:",mse[fold, model_number],"\n"))
-                                          }                                                        
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
@@ -667,38 +687,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                       } else if (models[[model_number]]$.args$family == "gamma"){
-
-                                      link_name <- models[[model_number]]$.args$control.family[[1]]$link
-                                        if(link_name == "default"){
-                                          linkfuninv <- function(x){exp(x)}
-                                        } else {
-                                          linkfuninv <- process_link(link_name)
-                                        } 
-
-                                        formula_tmp <- formula_list[[model_number]]
-                                        env_tmp <- environment(formula_tmp)
-                                        assign("linkfuninv", linkfuninv, envir = env_tmp)
-
-                                        post_predict <- group_predict(models = models[[model_number]], model_names = model_names[[model_number]],
-                                                              formula = formula_tmp, train_indices = train_list[[fold]],
-                                                              test_indices = test_list[[fold]], n_samples = new_n_samples,
-                                                              pseudo_predict = !true_CV, return_samples = TRUE, return_hyper_samples = TRUE,
-                                                              n_hyper_samples = 2, compute_posterior_means = TRUE, print = print, fit_verbose = fit_verbose)
-
-                                        hyper_marginals <- post_predict[["hyper_marginals"]][[model_names[[model_number]]]][[1]]
-                                        hyper_summary <- post_predict[["hyper_summary"]][[model_names[[model_number]]]][[1]]
-                                        hyper_samples_1 <- post_predict[["hyper_samples"]][[model_names[[model_number]]]][[1]][[1]]
-                                        hyper_samples_2 <- post_predict[["hyper_samples"]][[model_names[[model_number]]]][[2]][[1]]
-                                        posterior_samples <- post_predict[["post_samples"]][[model_names[[model_number]]]][[1]]
-                                        posterior_mean <- post_predict[["post_means"]][[model_names[[model_number]]]][[1]]
-
-                                        if(return_post_samples){
-                                          post_samples[[model_names[[model_number]]]][[fold]] <- posterior_samples
-                                          hyper_samples[[model_names[[model_number]]]][[1]][[fold]] <- hyper_samples_1
-                                          hyper_samples[[model_names[[model_number]]]][[2]][[fold]] <- hyper_samples_2
-                                        } 
-
-
                                         if("dss" %in% scores){
                                           Expected_post_var <- hyper_marginals["Precision parameter for the Gamma observations","mean"]/(posterior_mean^2)
                                           posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
@@ -711,16 +699,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           if(print){
                                             cat(paste("DSS:", dss[fold, model_number],"\n"))
                                           }
-                                        }
-
-                                        if("mse" %in% scores){
-                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)       
-                                          if(orientation_results == "positive"){
-                                            mse[fold, model_number] <- - mse[fold, model_number] 
-                                          }                                                             
-                                         if(print){
-                                            cat(paste("MSE:",mse[fold, model_number],"\n"))
-                                          }                                                           
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
@@ -789,39 +767,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
                                         }
                                      } else if (models[[model_number]]$.args$family == "poisson"){
-
-                                        link_name <- models[[model_number]]$.args$control.family[[1]]$link
-                                        if(link_name == "default"){
-                                          linkfuninv <- function(x){exp(x)}
-                                        } else {
-                                          linkfuninv <- process_link(link_name)
-                                        } 
-
-                                        formula_tmp <- formula_list[[model_number]]
-                                        env_tmp <- environment(formula_tmp)
-                                        assign("linkfuninv", linkfuninv, envir = env_tmp)
-
-
-                                        post_predict <- group_predict(models = models[[model_number]], model_names = model_names[[model_number]],
-                                                              formula = formula_tmp, train_indices = train_list[[fold]],
-                                                              test_indices = test_list[[fold]], n_samples = new_n_samples,
-                                                              pseudo_predict = !true_CV, return_samples = TRUE, return_hyper_samples = TRUE,
-                                                              n_hyper_samples = 2, compute_posterior_means = TRUE, print = print, fit_verbose = fit_verbose)
-
-                                        hyper_marginals <- post_predict[["hyper_marginals"]][[model_names[[model_number]]]][[1]]
-                                        hyper_summary <- post_predict[["hyper_summary"]][[model_names[[model_number]]]][[1]]
-                                        hyper_samples_1 <- post_predict[["hyper_samples"]][[model_names[[model_number]]]][[1]][[1]]
-                                        hyper_samples_2 <- post_predict[["hyper_samples"]][[model_names[[model_number]]]][[2]][[1]]
-                                        posterior_samples <- post_predict[["post_samples"]][[model_names[[model_number]]]][[1]]
-                                        posterior_mean <- post_predict[["post_means"]][[model_names[[model_number]]]][[1]]
-
-                                        if(return_post_samples){
-                                          post_samples[[model_names[[model_number]]]][[fold]] <- posterior_samples
-                                          hyper_samples[[model_names[[model_number]]]][[1]][[fold]] <- hyper_samples_1
-                                          hyper_samples[[model_names[[model_number]]]][[2]][[fold]] <- hyper_samples_2
-                                        } 
-
-
+                                      
                                         if("dss" %in% scores){
                                           posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
                                           post_var <- posterior_mean + posterior_variance_of_mean
@@ -833,16 +779,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           if(print){
                                             cat(paste("DSS:", dss[fold, model_number],"\n"))
                                           }
-                                        }
-
-                                        if("mse" %in% scores){
-                                          mse[fold, model_number] <- mean((test_data - posterior_mean)^2)       
-                                          if(orientation_results == "positive"){
-                                            mse[fold, model_number] <- - mse[fold, model_number] 
-                                          }                                                             
-                                         if(print){
-                                            cat(paste("MSE:",mse[fold, model_number],"\n"))
-                                          }                                                           
                                         }
 
                                      if(("crps" %in% scores) || ("scrps" %in% scores)){
