@@ -33,8 +33,6 @@
 #' For a more detailed introduction to the package, see the rSPDE Vignettes.
 #'
 "_PACKAGE"
-#' @name rSPDE
-#' @aliases rSPDE-package
 #' @import Matrix
 #' @importFrom stats rnorm approx quantile var
 #' @importFrom stats dnorm pnorm dbeta nobs deviance logLik
@@ -49,7 +47,7 @@ NULL
 
 .onAttach <- function(libname, pkgname) {
   version <- utils::packageVersion("rSPDE")
-   packageStartupMessage(
+  packageStartupMessage(
     "This is rSPDE ", version, "\n",
     "- See https://davidbolin.github.io/rSPDE for vignettes and manuals."
   )

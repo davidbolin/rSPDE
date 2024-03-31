@@ -66,14 +66,14 @@ Pr.mult <- function(obj, v, transpose = FALSE) {
   if (!transpose) {
     v <- obj$Pr.factors$Phi %*% v
   }
-  return(return_same_input_type_matrix_vector(v,orig_v))
+  return(return_same_input_type_matrix_vector(v, orig_v))
 }
 
 
 #' @rdname operator.operations
 #' @export
 Pr.solve <- function(obj, v, transpose = FALSE) {
-  orig_v <- v  
+  orig_v <- v
   if (!inherits(obj, "rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
@@ -92,13 +92,13 @@ Pr.solve <- function(obj, v, transpose = FALSE) {
   if (transpose) {
     v <- solve(obj$Pr.factors$Phi, v)
   }
-  return(return_same_input_type_matrix_vector(v,orig_v))
+  return(return_same_input_type_matrix_vector(v, orig_v))
 }
 
 #' @rdname operator.operations
 #' @export
 Pl.mult <- function(obj, v, transpose = FALSE) {
-  orig_v <- v  
+  orig_v <- v
   if (!inherits(obj, "rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
@@ -128,13 +128,13 @@ Pl.mult <- function(obj, v, transpose = FALSE) {
     v <- obj$C %*% v
   }
   v <- obj$Pl.factors$scaling * v
-  return(return_same_input_type_matrix_vector(v,orig_v))
+  return(return_same_input_type_matrix_vector(v, orig_v))
 }
 
 #' @rdname operator.operations
 #' @export
 Pl.solve <- function(obj, v, transpose = FALSE) {
-  orig_v <- v  
+  orig_v <- v
   if (!inherits(obj, "rSPDEobj")) {
     stop("obj is not of class rSPDE.obj")
   }
@@ -164,18 +164,18 @@ Pl.solve <- function(obj, v, transpose = FALSE) {
     v <- obj$Ci %*% v
   }
   v <- v / obj$Pl.factors$scaling
-  return(return_same_input_type_matrix_vector(v,orig_v))
+  return(return_same_input_type_matrix_vector(v, orig_v))
 }
 
 #' @rdname operator.operations
 #' @export
 Q.mult <- function(obj, v) {
-  orig_v <- v  
+  orig_v <- v
   if (inherits(obj, "rSPDEobj")) {
     v <- Pl.mult(obj, v)
     v <- obj$Ci %*% v
     v <- Pl.mult(obj, v, transpose = TRUE)
-  return(return_same_input_type_matrix_vector(v,orig_v))
+    return(return_same_input_type_matrix_vector(v, orig_v))
   } else if (inherits(obj, "CBrSPDEobj")) {
     Q.int <- obj$Q.int
     order_Q_int <- Q.int$order
@@ -187,7 +187,7 @@ Q.mult <- function(obj, v) {
         v <- Q.int %*% v
       }
     }
-  return(return_same_input_type_matrix_vector(v,orig_v))
+    return(return_same_input_type_matrix_vector(v, orig_v))
   } else {
     stop("obj is not of class rSPDEobj")
   }
@@ -196,12 +196,12 @@ Q.mult <- function(obj, v) {
 #' @rdname operator.operations
 #' @export
 Q.solve <- function(obj, v) {
-  orig_v <- v  
+  orig_v <- v
   if (inherits(obj, "rSPDEobj")) {
     v <- Pl.solve(obj, v, transpose = TRUE)
     v <- obj$C %*% v
     v <- Pl.solve(obj, v)
-    return(return_same_input_type_matrix_vector(v,orig_v))
+    return(return_same_input_type_matrix_vector(v, orig_v))
   } else if (inherits(obj, "CBrSPDEobj")) {
     Q.int <- obj$Q.int
     Q.frac <- obj$Q.frac
@@ -214,7 +214,7 @@ Q.solve <- function(obj, v) {
       }
     }
     v <- solve(Q.frac, prod_tmp)
-    return(return_same_input_type_matrix_vector(v,orig_v))
+    return(return_same_input_type_matrix_vector(v, orig_v))
   } else {
     stop("obj is not of class rSPDEobj nor CBrSPDEobj")
   }
@@ -234,7 +234,7 @@ Qsqrt.mult <- function(obj, v, transpose = FALSE) {
     v <- Pl.mult(obj, v)
     v <- sqrt(obj$Ci) %*% v
   }
-  return(return_same_input_type_matrix_vector(v,orig_v))
+  return(return_same_input_type_matrix_vector(v, orig_v))
 }
 
 #' @rdname operator.operations
@@ -251,7 +251,7 @@ Qsqrt.solve <- function(obj, v, transpose = FALSE) {
     v <- sqrt(obj$C) %*% v
     v <- Pl.solve(obj, v)
   }
-  return(return_same_input_type_matrix_vector(v,orig_v))
+  return(return_same_input_type_matrix_vector(v, orig_v))
 }
 
 #' @rdname operator.operations
@@ -264,7 +264,7 @@ Sigma.mult <- function(obj, v) {
   v <- Pr.mult(obj, v, transpose = TRUE)
   v <- Q.solve(obj, v)
   v <- Pr.mult(obj, v)
-  return(return_same_input_type_matrix_vector(v,orig_v))
+  return(return_same_input_type_matrix_vector(v, orig_v))
 }
 
 #' @rdname operator.operations
@@ -277,5 +277,5 @@ Sigma.solve <- function(obj, v) {
   v <- Pr.solve(obj, v)
   v <- Q.mult(obj, v)
   v <- Pr.solve(obj, v, transpose = TRUE)
-  return(return_same_input_type_matrix_vector(v,orig_v))
+  return(return_same_input_type_matrix_vector(v, orig_v))
 }

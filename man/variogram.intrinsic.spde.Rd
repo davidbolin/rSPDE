@@ -49,23 +49,26 @@ The variogram is computed based on a Karhunen-Loeve expansion of the
 covariance function.
 }
 \examples{
-if (requireNamespace("RSpectra", quietly = TRUE)){
- x <- seq(from = 0, to = 10, length.out = 201)
- beta <- 1
- alpha <- 1
- kappa <- 1
- op <- intrinsic.matern.operators(kappa = kappa, tau = 1, alpha = alpha, 
-                                 beta = beta, loc_mesh = x, d=1) 
- # Compute and plot the variogram of the model
- Sigma <- op$A \%*\% solve(op$Q,t(op$A))
- One <- rep(1, times = ncol(Sigma))
- D <- diag(Sigma)
- Gamma <- 0.5*(One \%*\% t(D) + D \%*\% t(One) - 2 * Sigma)
- k <- 100
- plot(x, Gamma[k, ], type = "l")
- lines(x, 
-      variogram.intrinsic.spde(x[k], x, kappa, alpha, beta, L = 10, d = 1),
-      col=2, lty = 2)
+if (requireNamespace("RSpectra", quietly = TRUE)) {
+  x <- seq(from = 0, to = 10, length.out = 201)
+  beta <- 1
+  alpha <- 1
+  kappa <- 1
+  op <- intrinsic.matern.operators(
+    kappa = kappa, tau = 1, alpha = alpha,
+    beta = beta, loc_mesh = x, d = 1
+  )
+  # Compute and plot the variogram of the model
+  Sigma <- op$A \%*\% solve(op$Q, t(op$A))
+  One <- rep(1, times = ncol(Sigma))
+  D <- diag(Sigma)
+  Gamma <- 0.5 * (One \%*\% t(D) + D \%*\% t(One) - 2 * Sigma)
+  k <- 100
+  plot(x, Gamma[k, ], type = "l")
+  lines(x,
+    variogram.intrinsic.spde(x[k], x, kappa, alpha, beta, L = 10, d = 1),
+    col = 2, lty = 2
+  )
 }
 }
 \seealso{

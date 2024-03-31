@@ -26,9 +26,9 @@ This function computes mass and stiffness matrices for a mesh in 2D, assuming
 Neumann boundary conditions.
 }
 \examples{
-P <- rbind(c(0,0), c(1,0), c(1,1), c(0,1))
-FV <- rbind(c(1,2,3), c(2,3,4))
-fem <- rSPDE.fem2d(FV,P)
+P <- rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1))
+FV <- rbind(c(1, 2, 3), c(2, 3, 4))
+fem <- rSPDE.fem2d(FV, P)
 }
 \seealso{
 \code{\link[=rSPDE.fem1d]{rSPDE.fem1d()}}

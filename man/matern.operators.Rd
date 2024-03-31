@@ -160,7 +160,7 @@ the matrices, since these methods are more numerically stable.
 kappa <- 10
 sigma <- 1
 nu <- 0.8
-range <- sqrt(8*nu)/kappa
+range <- sqrt(8 * nu) / kappa
 
 # create mass and stiffness matrices for a FEM discretization
 nobs <- 101
@@ -185,8 +185,10 @@ Abar <- cbind(A, A, A)
 w <- rbind(v, v, v)
 # The approximate covariance function:
 c_cov.approx <- (Abar) \%*\% solve(Q, w)
-c.true <- folded.matern.covariance.1d(rep(0.5, length(x)),
-   abs(x), kappa, nu, sigma)
+c.true <- folded.matern.covariance.1d(
+  rep(0.5, length(x)),
+  abs(x), kappa, nu, sigma
+)
 
 # plot the result and compare with the true Matern covariance
 plot(x, c.true,
@@ -201,7 +203,7 @@ lines(x, c_cov.approx, col = 2)
 kappa <- 10
 sigma <- 1
 nu <- 0.8
-range <- sqrt(8*nu)/kappa
+range <- sqrt(8 * nu) / kappa
 
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
@@ -217,8 +219,10 @@ op <- matern.operators(
 
 v <- t(rSPDE.A1d(x, 0.5))
 c.approx <- Sigma.mult(op, v)
-c.true <- folded.matern.covariance.1d(rep(0.5, length(x)),
-  abs(x), kappa, nu, sigma)
+c.true <- folded.matern.covariance.1d(
+  rep(0.5, length(x)),
+  abs(x), kappa, nu, sigma
+)
 
 # plot the result and compare with the true Matern covariance
 plot(x, c.true,
