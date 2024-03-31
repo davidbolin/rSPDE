@@ -510,9 +510,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                 for(model_number in 1:length(models)){
                                     post_samples[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_list))
                                     hyper_samples[[model_names[[model_number]]]] <- vector(mode = "list", length = 2)                                    
-                                  for(j in 1:n_hyper_samples){
-                                      hyper_samples[[model_names[[model_number]]]][[j]] <- vector(mode = "list", length = length(train_list))
-                                  }
+                                    hyper_samples[[model_names[[model_number]]]][[1]] <- vector(mode = "list", length = length(train_list))
+                                    hyper_samples[[model_names[[model_number]]]][[2]] <- vector(mode = "list", length = length(train_list))
                                 }
                                 # Perform the cross-validation
                                 
@@ -536,6 +535,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                 for(fold in 1:length(train_list)){                                 
                                   for(model_number in 1:length(models)){
 
+                                    test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data$BRU_response[test_list[[fold]]]
+
                                       if(models[[model_number]]$.args$family == "gaussian"){
                                         link_name <- models[[model_number]]$.args$control.family[[1]]$link
                                         if(link_name == "default"){
@@ -548,9 +549,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         env_tmp <- environment(formula_tmp)
                                         assign("linkfuninv", linkfuninv, envir = env_tmp)
 
-
                                         post_predict <- group_predict(models = models[[model_number]], model_names = model_names[[model_number]],
-                                                              formula = formula_tmp, train_indices = trains_list[[fold]],
+                                                              formula = formula_tmp, train_indices = train_list[[fold]],
                                                               test_indices = test_list[[fold]], n_samples = new_n_samples,
                                                               pseudo_predict = !true_CV, return_samples = TRUE, return_hyper_samples = TRUE,
                                                               n_hyper_samples = 2, compute_posterior_means = TRUE, print = print, fit_verbose = fit_verbose)
@@ -680,7 +680,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         assign("linkfuninv", linkfuninv, envir = env_tmp)
 
                                         post_predict <- group_predict(models = models[[model_number]], model_names = model_names[[model_number]],
-                                                              formula = formula_tmp, train_indices = trains_list[[fold]],
+                                                              formula = formula_tmp, train_indices = train_list[[fold]],
                                                               test_indices = test_list[[fold]], n_samples = new_n_samples,
                                                               pseudo_predict = !true_CV, return_samples = TRUE, return_hyper_samples = TRUE,
                                                               n_hyper_samples = 2, compute_posterior_means = TRUE, print = print, fit_verbose = fit_verbose)
@@ -803,7 +803,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
 
                                         post_predict <- group_predict(models = models[[model_number]], model_names = model_names[[model_number]],
-                                                              formula = formula_tmp, train_indices = trains_list[[fold]],
+                                                              formula = formula_tmp, train_indices = train_list[[fold]],
                                                               test_indices = test_list[[fold]], n_samples = new_n_samples,
                                                               pseudo_predict = !true_CV, return_samples = TRUE, return_hyper_samples = TRUE,
                                                               n_hyper_samples = 2, compute_posterior_means = TRUE, print = print, fit_verbose = fit_verbose)
@@ -1012,6 +1012,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 #' @param return_samples Should the posterior samples be returned?
 #' @param return_hyper_samples Should samples for the hyperparameters be obtained?
 #' @param n_hyper_samples Number of independent samples of the hyper parameters of size `n_samples`.
+#' @param compute_posterior_means Should the posterior means be computed from the posterior samples?
 #' @param print Should partial results be printed throughout the computation?
 #' @param fit_verbose Should INLA's run during the prediction be verbose?
 #' @return A data.frame with the fitted models and the corresponding scores.

@@ -18,6 +18,7 @@ cross_validation(
   include_best = TRUE,
   train_test_indexes = NULL,
   return_train_test = FALSE,
+  return_post_samples = FALSE,
   parallelize_RP = FALSE,
   n_cores_RP = parallel::detectCores() - 1,
   true_CV = FALSE,
@@ -55,6 +56,8 @@ with the number of folds to be done. The default is \code{k-fold}.}
 Typically this will be returned list obtained by setting the argument \code{return_train_test} to \code{TRUE}.}
 
 \item{return_train_test}{Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list.}
+
+\item{return_post_samples}{If \code{TRUE} the posterior samples will be included in the returned list.}
 
 \item{parallelize_RP}{Logical. Should the computation of CRPS and SCRPS be parallelized?}
 
