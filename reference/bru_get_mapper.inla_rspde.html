@@ -70,17 +70,13 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for inla_rspde</span></span>
-<span><span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru_get_mapper.html" class="external-link">bru_get_mapper</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">bru_get_mapper.inla_rspde</span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for bru_mapper_inla_rspde</span></span>
-<span><span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru_mapper_generics.html" class="external-link">ibm_n</a></span><span class="op">(</span><span class="va">mapper</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">ibm_n.bru_mapper_inla_rspde</span><span class="op">(</span><span class="va">mapper</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for bru_mapper_inla_rspde</span></span>
-<span><span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru_mapper_generics.html" class="external-link">ibm_values</a></span><span class="op">(</span><span class="va">mapper</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">ibm_values.bru_mapper_inla_rspde</span><span class="op">(</span><span class="va">mapper</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for bru_mapper_inla_rspde</span></span>
-<span><span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru_mapper_generics.html" class="external-link">ibm_jacobian</a></span><span class="op">(</span><span class="va">mapper</span>, <span class="va">input</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">ibm_jacobian.bru_mapper_inla_rspde</span><span class="op">(</span><span class="va">mapper</span>, <span class="va">input</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -167,10 +163,10 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Data class: 'SpatialPointsDataFrame'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Predictor: y ~ .</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Time used:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 0.407, Running = 6.72, Post = 0.845, Total = 7.97 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 0.401, Running = 6.37, Post = 0.827, Total = 7.6 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.286 0.181     -0.073    0.286       0.65 0.286   0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            mean   sd 0.025quant 0.5quant 0.975quant  mode kld</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.286 0.18     -0.072    0.286      0.648 0.286   0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name	  Model</span>
@@ -178,22 +174,22 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Model hyperparameters:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                           mean     sd 0.025quant 0.5quant</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 168.34 87.275      49.95   151.16</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                         -3.32  0.465      -4.24    -3.32</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                          2.81  0.246       2.35     2.81</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                         -1.37  0.194      -1.75    -1.37</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 169.24 87.806      50.46   151.89</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                         -3.28  0.465      -4.19    -3.29</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                          2.81  0.246       2.34     2.81</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                         -1.38  0.194      -1.77    -1.38</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                         0.975quant   mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations    383.710 118.06</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                            -2.411  -3.31</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                             3.315   2.79</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                            -0.986  -1.37</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations     386.26 118.67</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                             -2.36  -3.31</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                              3.31   2.79</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                             -1.00  -1.37</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC) ...............: -121.99</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC, saturated) ....: 199.50</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .....................: 96.75</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC) ...............: -123.57</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC, saturated) ....: 198.79</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .....................: 96.02</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Watanabe-Akaike information criterion (WAIC) ...: -144.14</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .................: 55.83</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Watanabe-Akaike information criterion (WAIC) ...: -145.32</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .................: 55.46</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Marginal log-Likelihood:  -109.91 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  is computed </span>
