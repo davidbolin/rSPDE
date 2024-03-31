@@ -87,6 +87,7 @@ to a folding scheme.</p>
 <span>  include_best <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  train_test_indexes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  return_train_test <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  return_post_samples <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  parallelize_RP <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_cores_RP <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span>,</span>
 <span>  true_CV <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -151,6 +152,10 @@ Typically this will be returned list obtained by setting the argument <code>retu
 
 <dt>return_train_test</dt>
 <dd><p>Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list.</p></dd>
+
+
+<dt>return_post_samples</dt>
+<dd><p>If <code>TRUE</code> the posterior samples will be included in the returned list.</p></dd>
 
 
 <dt>parallelize_RP</dt>
