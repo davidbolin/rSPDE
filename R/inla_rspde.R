@@ -433,15 +433,22 @@ rspde.matern <- function(mesh,
 
     # if (integer_alpha) {
     if(rspde.order > 0 || integer_alpha){  
-    n_tmp <- length(
+
+    if(m_alpha>0){
+      n_tmp <- length(
         fem_mesh[[paste0("g", m_alpha)]]@x[idx_matrices[[m_alpha + 1]]]
         )
+      tmp <-
+      rep(0, n_tmp)
+      tmp[positions_matrices_less[[1]]] <-
+      fem_mesh$c0@x[idx_matrices[[1]]]
+      matrices_less <- tmp        
+    } else{
+      matrices_less <- fem_mesh$c0@x
+    }
 
-    tmp <-
-    rep(0, n_tmp)
-    tmp[positions_matrices_less[[1]]] <-
-    fem_mesh$c0@x[idx_matrices[[1]]]
-    matrices_less <- tmp
+
+
 
     if(m_alpha > 1){
       tmp <-
@@ -463,9 +470,10 @@ rspde.matern <- function(mesh,
     }
     }
 
-    tmp <- fem_mesh[[paste0("g", m_alpha)]]@x[idx_matrices[[m_alpha + 1]]]
-
-    matrices_less <- c(matrices_less, tmp)
+    if(m_alpha > 0){
+      tmp <- fem_mesh[[paste0("g", m_alpha)]]@x[idx_matrices[[m_alpha + 1]]]
+      matrices_less <- c(matrices_less, tmp)
+    } 
     }
     # }
 

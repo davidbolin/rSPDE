@@ -36,7 +36,7 @@
 #' @name rSPDE
 #' @aliases rSPDE-package
 #' @import Matrix
-#' @importFrom stats rnorm approx quantile
+#' @importFrom stats rnorm approx quantile var
 #' @importFrom stats dnorm pnorm dbeta nobs deviance logLik
 #' @importFrom methods as
 #' @importFrom stats simulate lm logLik na.omit optim sd terms
