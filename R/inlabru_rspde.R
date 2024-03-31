@@ -1095,21 +1095,21 @@ group_predict <- function(models, model_names = NULL, formula = NULL,
                             hyper_summary <- list()
                             
                             for(model_number in 1:length(models)){
-                                  post_samples[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_list))
-                                  post_means[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_list))                                  
+                                  post_samples[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_indices))
+                                  post_means[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_indices))                                  
                                   hyper_samples[[model_names[[model_number]]]] <- vector(mode = "list", length = n_hyper_samples)
-                                  hyper_marginals[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_list))
-                                  hyper_summary[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_list))
+                                  hyper_marginals[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_indices))
+                                  hyper_summary[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_indices))
                                   for(j in 1:n_hyper_samples){
-                                      hyper_samples[[model_names[[model_number]]]][[j]] <- vector(mode = "list", length = length(train_list))
+                                      hyper_samples[[model_names[[model_number]]]][[j]] <- vector(mode = "list", length = length(train_indices))
                                   }
                             }
 
                                 
-                            for(fold in 1:length(train_list)){                                 
+                            for(fold in 1:length(train_indices)){                                 
                                   for(model_number in 1:length(models)){
                                         if(print){
-                                            cat(paste("Fold:",fold,"/",length(train_list),"\n"))
+                                            cat(paste("Fold:",fold,"/",length(train_indices),"\n"))
                                             if(!is.null(model_names)){
                                               cat(paste("Model:",model_names[[model_number]],"\n"))                                                                                          
                                             } else{
@@ -1123,11 +1123,11 @@ group_predict <- function(models, model_names = NULL, formula = NULL,
                                       }
 
 
-                                      df_train <- select_indexes(data, train_list[[fold]])
-                                      df_pred <- select_indexes(data, test_list[[fold]])
+                                      df_train <- select_indexes(data, train_indices[[fold]])
+                                      df_pred <- select_indexes(data, test_indices[[fold]])
 
-                                      df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_list[[fold]])
-                                      new_model <- bru_rerun_with_data(models[[model_number]], train_list[[fold]], true_CV = !pseudo_predict, fit_verbose = fit_verbose)
+                                      df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_indices[[fold]])
+                                      new_model <- bru_rerun_with_data(models[[model_number]], train_indices[[fold]], true_CV = !pseudo_predict, fit_verbose = fit_verbose)
 
                                       if(print){
                                           cat("Generating samples...\n")
@@ -1140,7 +1140,7 @@ group_predict <- function(models, model_names = NULL, formula = NULL,
                                         }
 
                                         if(nrow(post_samples[[model_names[[model_number]]]][[fold]]) == 1){
-                                          post_samples[[model_names[[model_number]]]][[fold]] <- matrix(rep(post_samples[[model_names[[model_number]]]][[fold]], length(test_data)),ncol=ncol(post_samples[[model_names[[model_number]]]][[fold]]), byrow = TRUE)
+                                          post_samples[[model_names[[model_number]]]][[fold]] <- matrix(rep(post_samples[[model_names[[model_number]]]][[fold]], length(test_indices[[fold]])),ncol=ncol(post_samples[[model_names[[model_number]]]][[fold]]), byrow = TRUE)
                                         }                                        
 
                                         if(compute_posterior_means){

@@ -32,7 +32,7 @@
 #'
 #' For a more detailed introduction to the package, see the rSPDE Vignettes.
 #'
-#' @docType package
+"_PACKAGE"
 #' @name rSPDE
 #' @aliases rSPDE-package
 #' @import Matrix
