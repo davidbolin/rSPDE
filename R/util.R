@@ -2239,3 +2239,64 @@ select_indexes <- function(data, idx){
   }
   return(data)
 }
+
+
+
+#' Create train and test splits to be used in the `cross_validation` function
+#'
+#' Train and test splits
+#'
+#' @param data A `list`, `data.frame`, `SpatialPointsDataFrame` or `metric_graph_data` objects.
+#' @param cv_type The type of the folding to be carried out. The options are `k-fold` for `k`-fold cross-validation, in which case the parameter `k` should be provided, 
+#' `loo`, for leave-one-out and `lpo` for leave-percentage-out, in this case, the parameter `percentage` should be given, and also the `number_folds` 
+#' with the number of folds to be done. The default is `k-fold`.
+#' @param k The number of folds to be used in `k`-fold cross-validation. Will only be used if `cv_type` is `k-fold`.
+#' @param percentage The percentage (from 1 to 99) of the data to be used to train the model. Will only be used if `cv_type` is `lpo`.
+#' @param number_folds Number of folds to be done if `cv_type` is `lpo`.
+#' @return A list with two elements, `train` containing the training indices and `test` containing indices.
+#' @export
+
+create_train_test_indices <- function(data, cv_type = c("k-fold", "loo", "lpo"),
+                              k = 5, percentage = 20, number_folds = 10){
+                                  if(inherits(data, "metric_graph_data")){
+                                    idx <- seq_len(nrow(as.data.frame(data))) 
+                                  } else{
+                                    idx <- seq_len(nrow(data))
+                                  }
+                                  if(inherits(data, "SpatialPointsDataFrame")){
+                                    data_tmp <- data@data
+                                    data_nonNA <- !is.na(data_tmp)
+                                  } else if(inherits(data, "metric_graph_data")){
+                                    data_nonNA <- !is.na(as.data.frame(data))
+                                  } else {
+                                    data_nonNA <- !is.na(data)
+                                  }
+                                  idx_nonNA <- sapply(1:length(idx), function(i){all(data_nonNA[i,])})
+                                  idx <- idx[idx_nonNA]
+                                  if(cv_type == "k-fold"){
+                                        # split idx into k
+                                            folds <- cut(sample(idx), breaks = k, label = FALSE)
+                                            test_list_idx <- lapply(1:k, function(i) {which(folds == i, arr.ind = TRUE)})
+                                            test_list <- lapply(test_list_idx, function(idx_test){idx[idx_test]})
+                                            train_list <- lapply(1:k, function(i){
+                                              idx[-test_list_idx[[i]]]
+                                            })
+                                } else if (cv_type == "loo"){
+                                          train_list <- lapply(1:length(idx), function(i){
+                                            idx[-i]
+                                          })
+                                          # test_list <- lapply(1:length(idx), function(i){idx[i]})
+                                          test_list <- as.list(idx)
+                                } else if (cv_type == "lpo"){
+                                            test_list_idx <- list()
+                                            n_Y <- length(idx)
+                                            for (i in number_folds:1) {
+                                              test_list_idx[[i]] <- sample(1:length(idx), size = (1-percentage/100) * n_Y)
+                                            }
+                                            train_list <- lapply(1:number_folds, function(i){
+                                              idx[-test_list_idx[[i]]]
+                                            })
+                                            test_list <- lapply(test_list_idx, function(idx_test){idx[idx_test]})                                            
+                                }
+                                return(list(train = train_list, test = test_list))
+                        }
