@@ -553,7 +553,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                 formula_list <- lapply(models, function(model){process_formula(model)})
 
-                                if(("crps" %in% scores) || ("scrps" %in% scores)){
+                                if(("crps" %in% scores) || ("scrps" %in% scores) || ("dss" %in% scores)){
                                   new_n_samples <- 2 * n_samples
                                 } else{
                                   new_n_samples <- n_samples
@@ -640,10 +640,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                             Expect_post_var <- 1/hyper_summary["Precision for the Gaussian observations","mean"]
                                           }    
 
-                                          posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
+                                          posterior_variance_of_mean <- rowMeans(posterior_samples[,1:n_samples]^2) - (rowMeans(posterior_samples[,1:n_samples]))^2
                                           post_var <- Expect_post_var + posterior_variance_of_mean                                          
 
-                                          dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
+                                          dss[fold, model_number] <- mean((test_data - rowMeans(posterior_samples[,(n_samples+1):(2*n_samples)]))^2/post_var + log(post_var))
                                           if(orientation_results == "positive"){
                                             dss[fold, model_number] <- - dss[fold, model_number]
                                           }
@@ -723,11 +723,12 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                       } else if (models[[model_number]]$.args$family == "gamma"){
                                         if("dss" %in% scores){
-                                          Expected_post_var <- hyper_marginals["Precision parameter for the Gamma observations","mean"]/(posterior_mean^2)
-                                          posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
+                                          post_mean_tmp <- rowMeans(posterior_samples[,1:n_samples])
+                                          Expected_post_var <- hyper_marginals["Precision parameter for the Gamma observations","mean"]/(post_mean_tmp^2)
+                                          posterior_variance_of_mean <- rowMeans(posterior_samples[,1:n_samples]^2) - post_mean_tmp^2
 
                                           post_var <- Expected_post_var + posterior_variance_of_mean                                          
-                                          dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
+                                          dss[fold, model_number] <- mean((test_data - (rowMeans(posterior_samples[,(n_samples+1):(2*n_samples)])))^2/post_var + log(post_var))
                                           if(orientation_results == "positive"){
                                             dss[fold, model_number] <- - dss[fold, model_number]
                                           }                                          
@@ -804,10 +805,11 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                      } else if (models[[model_number]]$.args$family == "poisson"){
                                       
                                         if("dss" %in% scores){
-                                          posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
-                                          post_var <- posterior_mean + posterior_variance_of_mean
+                                          post_mean_tmp <- rowMeans(posterior_samples[,1:n_samples])
+                                          posterior_variance_of_mean <- rowMeans(posterior_samples[,1:n_samples]^2) - post_mean_tmp^2
+                                          post_var <- post_mean_tmp + posterior_variance_of_mean
 
-                                          dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
+                                          dss[fold, model_number] <- mean((test_data - rowMeans(posterior_samples[,(n_samples+1):(2*n_samples)]))^2/post_var + log(post_var))
                                           if(orientation_results == "positive"){
                                             dss[fold, model_number] <- - dss[fold, model_number]
                                           }                                                 
