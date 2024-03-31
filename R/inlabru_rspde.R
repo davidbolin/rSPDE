@@ -461,6 +461,23 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                   }
                                 }                                
 
+                                if(is.null(model_names) && is.list(models)){
+                                  model_names <- names(models)
+                                }
+
+                                if(!is.null(model_names)){
+                                  if(!is.character(model_names)){
+                                    stop("model_names must be a vector of strings!")
+                                  }
+                                  if(length(models)!= length(model_names)){
+                                    stop("model_names must contain one name for each model!")
+                                  }
+                                } else{
+                                  model_names <- vector(mode = "character", length(models))
+                                  for(i in 1:length(models)){
+                                    model_names[i] <- paste("Model",i)
+                                  }
+                                }
 
                                 if(!is.numeric(n_samples)){
                                   stop("n_samples must be numeric!")
@@ -515,7 +532,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                 }
 
                                 post_samples <- list()
-                                hyper_samples <- list()                                
+                                hyper_samples <- list()                           
 
                                 for(model_number in 1:length(models)){
                                     post_samples[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_list))
@@ -545,6 +562,15 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                 for(fold in 1:length(train_list)){                                 
                                   for(model_number in 1:length(models)){
 
+                                    if(print){
+                                            cat(paste("Fold:",fold,"/",length(train_list),"\n"))
+                                            if(!is.null(model_names)){
+                                              cat(paste("Model:",model_names[[model_number]],"\n"))                                                                                          
+                                            } else{
+                                              cat(paste("Model:", model_number,"\n"))
+                                            }
+                                    }
+
                                     test_data <- models[[model_number]]$bru_info$lhoods[[1]]$response_data$BRU_response[test_list[[fold]]]
 
                                     link_name <- models[[model_number]]$.args$control.family[[1]]$link
@@ -565,11 +591,20 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         env_tmp <- environment(formula_tmp)
                                         assign("linkfuninv", linkfuninv, envir = env_tmp)
 
+
+                                      if(print){
+                                          cat("Generating samples...\n")
+                                      }                                        
+
                                         post_predict <- group_predict(models = models[[model_number]], model_names = model_names[[model_number]],
                                                               formula = formula_tmp, train_indices = train_list[[fold]],
                                                               test_indices = test_list[[fold]], n_samples = new_n_samples,
                                                               pseudo_predict = !true_CV, return_samples = TRUE, return_hyper_samples = TRUE,
-                                                              n_hyper_samples = 2, compute_posterior_means = TRUE, print = print, fit_verbose = fit_verbose)
+                                                              n_hyper_samples = 2, compute_posterior_means = TRUE, print = FALSE, fit_verbose = fit_verbose)
+
+                                        if(print){ 
+                                          cat("Samples generated!\n")
+                                        }                                                              
 
                                         hyper_marginals <- post_predict[["hyper_marginals"]][[model_names[[model_number]]]][[1]]
                                         hyper_summary <- post_predict[["hyper_summary"]][[model_names[[model_number]]]][[1]]
@@ -896,6 +931,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
         if(parallelize_RP){
               parallel::stopCluster(cluster_tmp)
         }
+
+        if(return_post_samples){
+          return_scores_folds <- TRUE
+        }
         
         if(!return_scores_folds){
             if(save_settings){
@@ -922,12 +961,14 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
           if(return_train_test){
             out[["train_test"]] <- list(train = train_list, test = test_list)
           }
+
+          if(return_post_samples){
+              out[["post_samples"]] <- post_samples
+              out[["hyper_samples"]] <- hyper_samples
+          }          
         }
 
-   if(return_post_samples){
-    out[["post_samples"]] <- post_samples
-    out[["hyper_samples"]] <- hyper_samples
-   }
+
 
   return(out)
 }
