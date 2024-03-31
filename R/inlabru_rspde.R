@@ -1070,6 +1070,7 @@ group_predict <- function(models, model_names = NULL, formula = NULL,
                             hyper_samples <- list()
                             hyper_marginals <- list()
                             hyper_summary <- list()
+                            test_data <- vector(mode = "list", length = length(train_indices))
                             
                             for(model_number in 1:length(models)){
                                   post_samples[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_indices))
@@ -1112,6 +1113,8 @@ group_predict <- function(models, model_names = NULL, formula = NULL,
 
                                       post_samples[[model_names[[model_number]]]][[fold]] <- inlabru::generate(new_model, newdata = df_pred, formula = formula, n.samples = n_samples)
 
+                                      test_data[[fold]] <- models[[model_number]]$bru_info$lhoods[[1]]$response_data$BRU_response[test_list[[fold]]]
+
                                         if(print){ 
                                           cat("Samples generated!\n")
                                         }
@@ -1148,6 +1151,8 @@ group_predict <- function(models, model_names = NULL, formula = NULL,
 
               out[["hyper_marginals"]] <- hyper_marginals
               out[["hyper_summary"]] <- hyper_summary
+
+              out[["test_data"]] <- test_data
               if(compute_posterior_means){
                 out[["post_means"]] <- post_means
               }
