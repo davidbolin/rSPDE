@@ -65,8 +65,9 @@ and
 \examples{
 x <- seq(from = 0, to = 1, length.out = 101)
 plot(x, folded.matern.covariance.1d(rep(0.5, length(x)), x,
-kappa = 10, nu = 1 / 5, sigma = 1),
-  type = "l", ylab = "C(h)", xlab = "h"
+  kappa = 10, nu = 1 / 5, sigma = 1
+),
+type = "l", ylab = "C(h)", xlab = "h"
 )
 
 }

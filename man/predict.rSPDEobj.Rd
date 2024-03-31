@@ -66,7 +66,7 @@ kappa <- 10
 sigma <- 1
 nu <- 0.8
 sigma.e <- 0.3
-range <- sqrt(8*nu)/kappa
+range <- sqrt(8 * nu) / kappa
 
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)

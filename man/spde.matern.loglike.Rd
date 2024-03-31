@@ -72,7 +72,7 @@ x <- seq(from = 0, to = 1, length.out = n.x)
 fem <- rSPDE.fem1d(x)
 tau <- rep(0.5, n.x)
 nu <- 0.8
-alpha <- nu + 1/2
+alpha <- nu + 1 / 2
 kappa <- rep(1, n.x)
 # compute rational approximation
 op <- spde.matern.operators(
@@ -90,10 +90,12 @@ dim(noise) <- c(n.obs, n.rep)
 Y <- as.matrix(A \%*\% u + sigma.e * noise)
 # define negative likelihood function for optimization using matern.loglike
 mlik <- function(theta) {
-  return(-spde.matern.loglike(op, Y, A, sigma.e = exp(theta[4]),
-                                 user_nu = exp(theta[3]),
-                                 user_kappa = exp(theta[2]),
-                                 user_tau = exp(theta[1])))
+  return(-spde.matern.loglike(op, Y, A,
+    sigma.e = exp(theta[4]),
+    user_nu = exp(theta[3]),
+    user_kappa = exp(theta[2]),
+    user_tau = exp(theta[1])
+  ))
 }
 #' #The parameters can now be estimated by minimizing mlik with optim
 \donttest{

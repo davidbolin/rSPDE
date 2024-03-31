@@ -56,19 +56,20 @@ for rSPDE models based on \code{inla.mesh} or
 \code{inla.mesh.1d} objects.
 }
 \examples{
-\donttest{ #devel version
-if (requireNamespace("INLA", quietly = TRUE)){
-library(INLA)
+\donttest{
+# devel version
+if (requireNamespace("INLA", quietly = TRUE)) {
+  library(INLA)
 
-set.seed(123)
-loc <- matrix(runif(100 * 2) * 100, 100, 2)
-mesh <- inla.mesh.2d(
-  loc = loc,
-  cutoff = 50,
-  max.edge = c(50, 500)
-)
-A <- rspde.make.A(mesh, loc = loc, rspde.order = 3)
+  set.seed(123)
+  loc <- matrix(runif(100 * 2) * 100, 100, 2)
+  mesh <- inla.mesh.2d(
+    loc = loc,
+    cutoff = 50,
+    max.edge = c(50, 500)
+  )
+  A <- rspde.make.A(mesh, loc = loc, rspde.order = 3)
 }
-#devel.tag
+# devel.tag
 }
 }

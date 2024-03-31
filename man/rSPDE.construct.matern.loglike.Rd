@@ -88,7 +88,7 @@ x <- seq(from = 0, to = 1, length.out = n.x)
 op_cov <- matern.operators(
   loc_mesh = x, nu = nu,
   range = range, sigma = sigma, d = 1, m = 2,
- parameterization = "matern"
+  parameterization = "matern"
 )
 # Sample the model
 u <- simulate(op_cov, n.rep)
@@ -102,13 +102,15 @@ Y <- as.matrix(A \%*\% u + sigma.e * noise)
 # Define the negative likelihood function for optimization
 # using CBrSPDE.matern.loglike
 # Matern parameterization
-loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A, parameterization = "matern") 
+loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A, parameterization = "matern")
 
 # The parameters can now be estimated by minimizing mlik with optim
 
 # Choose some reasonable starting values depending on the size of the domain
-theta0 <- c(get.initial.values.rSPDE(mesh.range = 1, dim = 1), 
-                                 log(0.1*sd(as.vector(Y))))
+theta0 <- c(
+  get.initial.values.rSPDE(mesh.range = 1, dim = 1),
+  log(0.1 * sd(as.vector(Y)))
+)
 # run estimation and display the results
 theta <- optim(theta0, loglike,
   method = "L-BFGS-B"
@@ -118,7 +120,6 @@ print(data.frame(
   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
   row.names = c("Truth", "Estimates")
 ))
-
 }
 }
 \seealso{
