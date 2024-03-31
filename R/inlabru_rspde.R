@@ -390,7 +390,7 @@ prepare_df_pred <- function(df_pred, result, idx_test){
 #' Typically this will be returned list obtained by setting the argument `return_train_test` to `TRUE`.
 #' @param return_train_test Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list.
 #' @param return_post_samples If `TRUE` the posterior samples will be included in the returned list.
-#' @param parallelize_RP Logical. Should the computation of CRPS and SCRPS be parallelized?
+#' @param parallelize_RP Logical. Should the computation of CRPS and SCRPS (and for some cases, DSS) be parallelized?
 #' @param n_cores_RP Number of cores to be used if `parallelize_rp` is `TRUE`.
 #' @param true_CV Should a `TRUE` cross-validation be performed? If `TRUE` the models will be fitted on the training dataset. If `FALSE`, the parameters will be kept fixed at the ones obtained in the result object.
 #' @param save_settings Logical. If `TRUE`, the settings used in the cross-validation will also be returned.
@@ -553,7 +553,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                 formula_list <- lapply(models, function(model){process_formula(model)})
 
-                                if(("crps" %in% scores) || ("scrps" %in% scores)){
+                                if(("crps" %in% scores) || ("scrps" %in% scores) || ("dss" %in% scores)){
                                   new_n_samples <- 2 * n_samples
                                 } else{
                                   new_n_samples <- n_samples
@@ -582,6 +582,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                             linkfuninv <- function(x){exp(x)}
                                           } else if (models[[model_number]]$.args$family == "poisson"){
                                             linkfuninv <- function(x){exp(x)}
+                                          } else if (models[[model_number]]$.args$family == "stochvol"){
+                                            linkfuninv <- function(x){exp(x)}
                                           }
                                         } else {
                                           linkfuninv <- process_link(link_name)
@@ -590,6 +592,11 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         formula_tmp <- formula_list[[model_number]]
                                         env_tmp <- environment(formula_tmp)
                                         assign("linkfuninv", linkfuninv, envir = env_tmp)
+
+                                        if(models[[model_number]]$.args$family == "stochvol"){
+                                          tmp_n_samples <- new_n_samples
+                                          new_n_samples <- 2 * n_samples                                          
+                                        }
 
 
                                       if(print){
@@ -600,7 +607,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                                               formula = formula_tmp, train_indices = train_list[[fold]],
                                                               test_indices = test_list[[fold]], n_samples = new_n_samples,
                                                               pseudo_predict = !true_CV, return_samples = TRUE, return_hyper_samples = TRUE,
-                                                              n_hyper_samples = 2, compute_posterior_means = TRUE, print = FALSE, fit_verbose = fit_verbose)
+                                                              n_hyper_samples = 1, compute_posterior_means = TRUE, print = FALSE, fit_verbose = fit_verbose)
 
                                         if(print){ 
                                           cat("Samples generated!\n")
@@ -609,17 +616,16 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         hyper_marginals <- post_predict[["hyper_marginals"]][[model_names[[model_number]]]][[1]]
                                         hyper_summary <- post_predict[["hyper_summary"]][[model_names[[model_number]]]][[1]]
                                         hyper_samples_1 <- post_predict[["hyper_samples"]][[model_names[[model_number]]]][[1]][[1]]
-                                        hyper_samples_2 <- post_predict[["hyper_samples"]][[model_names[[model_number]]]][[2]][[1]]
                                         posterior_samples <- post_predict[["post_samples"]][[model_names[[model_number]]]][[1]]
                                         posterior_mean <- post_predict[["post_means"]][[model_names[[model_number]]]][[1]]
 
                                         if(return_post_samples){
                                           post_samples[[model_names[[model_number]]]][[fold]] <- posterior_samples
                                           hyper_samples[[model_names[[model_number]]]][[1]][[fold]] <- hyper_samples_1
-                                          hyper_samples[[model_names[[model_number]]]][[2]][[fold]] <- hyper_samples_2
                                         }                           
 
 
+                                  if(models[[model_number]]$.args$family != "stochvol"){    
                                         if("mse" %in% scores){
                                           mse[fold, model_number] <- mean((test_data - posterior_mean)^2)          
                                           if(orientation_results == "positive"){
@@ -629,6 +635,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                             cat(paste("MSE:",mse[fold, model_number],"\n"))
                                           }                                                        
                                         }
+                                  }
 
 
 
@@ -640,10 +647,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                             Expect_post_var <- 1/hyper_summary["Precision for the Gaussian observations","mean"]
                                           }    
 
-                                          posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
+                                          posterior_variance_of_mean <- rowMeans(posterior_samples[,1:n_samples]^2) - (rowMeans(posterior_samples[,1:n_samples]))^2
                                           post_var <- Expect_post_var + posterior_variance_of_mean                                          
 
-                                          dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
+                                          dss[fold, model_number] <- mean((test_data - rowMeans(posterior_samples[,(n_samples+1):(2*n_samples)]))^2/post_var + log(post_var))
                                           if(orientation_results == "positive"){
                                             dss[fold, model_number] <- - dss[fold, model_number]
                                           }
@@ -653,10 +660,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
-                                          phi_sample_1 <- as.vector(hyper_samples_1[,"Precision for the Gaussian observations"])
+                                          phi_sample_1 <- as.vector(hyper_samples_1[,"Precision for the Gaussian observations"][1:n_samples])
                                           sd_sample_1 <- 1/sqrt(phi_sample_1)  
 
-                                          phi_sample_2 <- as.vector(hyper_samples_2[,"Precision for the Gaussian observations"])
+                                          phi_sample_2 <- as.vector(hyper_samples_1[,"Precision for the Gaussian observations"][(n_samples+1):(2*n_samples)])
                                           sd_sample_2 <- 1/sqrt(phi_sample_2)  
 
                                           if(parallelize_RP){
@@ -723,11 +730,12 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
                                       } else if (models[[model_number]]$.args$family == "gamma"){
                                         if("dss" %in% scores){
-                                          Expected_post_var <- hyper_marginals["Precision parameter for the Gamma observations","mean"]/(posterior_mean^2)
-                                          posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
+                                          post_mean_tmp <- rowMeans(posterior_samples[,1:n_samples])
+                                          Expected_post_var <- hyper_marginals["Precision parameter for the Gamma observations","mean"]/(post_mean_tmp^2)
+                                          posterior_variance_of_mean <- rowMeans(posterior_samples[,1:n_samples]^2) - post_mean_tmp^2
 
                                           post_var <- Expected_post_var + posterior_variance_of_mean                                          
-                                          dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
+                                          dss[fold, model_number] <- mean((test_data - (rowMeans(posterior_samples[,(n_samples+1):(2*n_samples)])))^2/post_var + log(post_var))
                                           if(orientation_results == "positive"){
                                             dss[fold, model_number] <- - dss[fold, model_number]
                                           }                                          
@@ -737,9 +745,9 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                         }
 
                                         if(("crps" %in% scores) || ("scrps" %in% scores)){
-                                          phi_sample_1 <- as.vector(hyper_samples_1[,"Precision parameter for the Gamma observations"])
+                                          phi_sample_1 <- as.vector(hyper_samples_1[,"Precision parameter for the Gamma observations"][1:n_samples])
 
-                                          phi_sample_2 <- as.vector(hyper_samples_2[,"Precision parameter for the Gamma observations"])
+                                          phi_sample_2 <- as.vector(hyper_samples_1[,"Precision parameter for the Gamma observations"][(n_samples+1):(2*n_samples)])
 
                                           if(parallelize_RP){
                                             Y1_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
@@ -804,10 +812,11 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                      } else if (models[[model_number]]$.args$family == "poisson"){
                                       
                                         if("dss" %in% scores){
-                                          posterior_variance_of_mean <- rowMeans(posterior_samples^2) - posterior_mean^2
-                                          post_var <- posterior_mean + posterior_variance_of_mean
+                                          post_mean_tmp <- rowMeans(posterior_samples[,1:n_samples])
+                                          posterior_variance_of_mean <- rowMeans(posterior_samples[,1:n_samples]^2) - post_mean_tmp^2
+                                          post_var <- post_mean_tmp + posterior_variance_of_mean
 
-                                          dss[fold, model_number] <- mean((test_data - posterior_mean)^2/post_var + log(post_var))
+                                          dss[fold, model_number] <- mean((test_data - rowMeans(posterior_samples[,(n_samples+1):(2*n_samples)]))^2/post_var + log(post_var))
                                           if(orientation_results == "positive"){
                                             dss[fold, model_number] <- - dss[fold, model_number]
                                           }                                                 
@@ -875,9 +884,107 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                                           }   
 
                                         }
-                                     }
+                                     } else if (models[[model_number]]$.args$family == "stochvol"){
 
-                                  } 
+                                        new_n_samples <- tmp_n_samples
+
+                                          phi_sample_1 <- as.vector(hyper_samples_1[,"Offset precision for stochvol"][1:n_samples])
+
+                                          phi_sample_2 <- as.vector(hyper_samples_1[,"Offset precision for stochvol"][(n_samples+1):(2*n_samples)])
+
+                                          if(parallelize_RP){
+                                            Y1_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            sqrt(posterior_samples[i,1:n_samples] + 1/phi_sample_1) * rnorm(n_samples)
+                                                          })
+                                            Y2_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            sqrt(posterior_samples[i,(n_samples+1):(2*n_samples)] + 1/phi_sample_2) * rnorm(n_samples)
+                                                          })
+                                            E1_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            mean(abs(Y1_sample[[i]]-test_data[i]))
+                                                          })
+                                            E2_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+                                                            mean(abs(Y1_sample[[i]]-Y2_sample[[i]]))
+                                                          })
+                                            
+                                          } else{
+                                            Y1_sample <- lapply(1:length(test_data), function(i){
+                                                      sqrt(posterior_samples[i,1:n_samples] + 1/phi_sample_1) * rnorm(n_samples)
+                                                    })
+                                            Y2_sample <- lapply(1:length(test_data), function(i){
+                                                      sqrt(posterior_samples[i,(n_samples+1):(2*n_samples)] + 1/phi_sample_2) * rnorm(n_samples)
+                                                    })
+                                            E1_tmp <- lapply(1:length(test_data), function(i){
+                                                      mean(abs(Y1_sample[[i]]-test_data[i]))
+                                                    })
+                                            E2_tmp <- lapply(1:length(test_data), function(i){
+                                                      mean(abs(Y1_sample[[i]]-Y2_sample[[i]]))
+                                                    })              
+                                          }
+
+                                        if("mse" %in% scores){
+                                          Y_mean <- lapply(Y1_sample, mean)
+                                          Y_mean <- unlist(Y_mean)
+                                          mse[fold, model_number] <- mean((test_data - Y_mean)^2)          
+                                          if(orientation_results == "positive"){
+                                            mse[fold, model_number] <- - mse[fold, model_number] 
+                                          }               
+                                         if(print){
+                                            cat(paste("MSE:",mse[fold, model_number],"\n"))
+                                          }                                                        
+                                        }                                          
+
+                                          if("dss" %in% scores){
+                                              Y_var <- lapply(Y2_sample, var)
+                                              Y_mean <- lapply(Y1_sample, mean)
+                                              Y_var <- unlist(Y_var)
+                                              Y_mean <- unlist(Y_mean)
+
+                                              post_var <- Y_var                                   
+
+                                              dss[fold, model_number] <- mean((test_data - Y_mean)^2/post_var + log(post_var))
+                                              if(orientation_results == "positive"){
+                                                dss[fold, model_number] <- - dss[fold, model_number]
+                                              }
+                                              if(print){
+                                                cat(paste("DSS:", dss[fold, model_number],"\n"))
+                                              }
+                                          }
+                                    
+                                          if("crps" %in% scores){
+                                              
+                                              crps_temp <- lapply(1:length(test_data), function(i){
+                                                return(E1_tmp[[i]] - 0.5*E2_tmp[[i]])
+                                              })
+
+                                              crps_temp <- unlist(crps_temp)
+                                              crps[fold, model_number] <- mean(crps_temp)  
+                                              if(orientation_results == "negative"){
+                                                crps[fold, model_number] <- - crps[fold, model_number]
+                                              }    
+
+                                            if(print){
+                                              cat(paste("CRPS:",crps[fold, model_number],"\n"))
+                                            }      
+                                          }
+                                          if("scrps" %in% scores){
+                                              scrps_temp <- lapply(1:length(test_data), function(i){
+                                                return(-E1_tmp[[i]]/E2_tmp[[i]] - 0.5*log(E2_tmp[[i]]))
+                                              })
+                                              scrps_temp <- unlist(scrps_temp)
+                                              scrps[fold, model_number] <- mean(scrps_temp)  
+                                              if(orientation_results == "negative"){
+                                                scrps[fold, model_number] <- - scrps[fold, model_number]
+                                              }   
+
+                                            if(print){
+                                              cat(paste("SCRPS:",scrps[fold, model_number],"\n"))
+                                            }                                                  
+                                          }
+
+                                        }
+
+
+                                     } 
 
                                 }
                                 
