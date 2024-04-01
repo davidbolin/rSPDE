@@ -628,6 +628,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
           linkfuninv <- function(x) {
             exp(x)
           }
+        } else if (models[[model_number]]$.args$family == "stochvolln") {
+          linkfuninv <- function(x) {
+            exp(x)
+          }
         }
       } else {
         linkfuninv <- process_link(link_name)
@@ -637,7 +641,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
       env_tmp <- environment(formula_tmp)
       assign("linkfuninv", linkfuninv, envir = env_tmp)
 
-      if (models[[model_number]]$.args$family == "stochvol") {
+      if (models[[model_number]]$.args$family %in% c("stochvol", "stochvolln")) {
         tmp_n_samples <- new_n_samples
         new_n_samples <- 2 * n_samples
       }
@@ -671,7 +675,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
       }
 
 
-      if (models[[model_number]]$.args$family != "stochvol") {
+      if (!(models[[model_number]]$.args$family %in% c("stochvol", "stochvolln"))) {
         if ("mse" %in% scores) {
           mse[fold, model_number] <- mean((test_data - posterior_mean)^2)
           if (orientation_results == "positive") {
@@ -919,7 +923,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
             }
           }
         }
-      } else if (models[[model_number]]$.args$family == "stochvol") {
+      } else if (models[[model_number]]$.args$family  == "stochvol") {
         new_n_samples <- tmp_n_samples
 
         if ("Offset precision for stochvol" %in% colnames(hyper_samples_1)) {
@@ -949,6 +953,112 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
           })
           Y2_sample <- lapply(1:length(test_data), function(i) {
             sqrt(posterior_samples[i, (n_samples + 1):(2 * n_samples)] + 1 / phi_sample_2) * rnorm(n_samples)
+          })
+          E1_tmp <- lapply(1:length(test_data), function(i) {
+            mean(abs(Y1_sample[[i]] - test_data[i]))
+          })
+          E2_tmp <- lapply(1:length(test_data), function(i) {
+            mean(abs(Y1_sample[[i]] - Y2_sample[[i]]))
+          })
+        }
+
+        if ("mse" %in% scores) {
+          Y_mean <- lapply(Y1_sample, mean)
+          Y_mean <- unlist(Y_mean)
+          mse[fold, model_number] <- mean((test_data - Y_mean)^2)
+          if (orientation_results == "positive") {
+            mse[fold, model_number] <- -mse[fold, model_number]
+          }
+          if (print) {
+            cat(paste("MSE:", mse[fold, model_number], "\n"))
+          }
+        }
+
+        if ("dss" %in% scores) {
+          Y_var <- lapply(Y2_sample, var)
+          Y_mean <- lapply(Y1_sample, mean)
+          Y_var <- unlist(Y_var)
+          Y_mean <- unlist(Y_mean)
+
+          post_var <- Y_var
+
+          dss[fold, model_number] <- mean((test_data - Y_mean)^2 / post_var + log(post_var))
+          if (orientation_results == "positive") {
+            dss[fold, model_number] <- -dss[fold, model_number]
+          }
+          if (print) {
+            cat(paste("DSS:", dss[fold, model_number], "\n"))
+          }
+        }
+
+        if ("crps" %in% scores) {
+          crps_temp <- lapply(1:length(test_data), function(i) {
+            return(E1_tmp[[i]] - 0.5 * E2_tmp[[i]])
+          })
+
+          crps_temp <- unlist(crps_temp)
+          crps[fold, model_number] <- mean(crps_temp)
+          if (orientation_results == "negative") {
+            crps[fold, model_number] <- -crps[fold, model_number]
+          }
+
+          if (print) {
+            cat(paste("CRPS:", crps[fold, model_number], "\n"))
+          }
+        }
+        if ("scrps" %in% scores) {
+          scrps_temp <- lapply(1:length(test_data), function(i) {
+            return(-E1_tmp[[i]] / E2_tmp[[i]] - 0.5 * log(E2_tmp[[i]]))
+          })
+          scrps_temp <- unlist(scrps_temp)
+          scrps[fold, model_number] <- mean(scrps_temp)
+          if (orientation_results == "negative") {
+            scrps[fold, model_number] <- -scrps[fold, model_number]
+          }
+
+          if (print) {
+            cat(paste("SCRPS:", scrps[fold, model_number], "\n"))
+          }
+        }
+      } else if (models[[model_number]]$.args$family == "stochvolln") {
+        new_n_samples <- tmp_n_samples
+
+        if ("Offset precision for stochvolln" %in% colnames(hyper_samples_1)) {
+          phi_sample_1 <- as.vector(hyper_samples_1[, "Offset precision for stochvolln"][1:n_samples])
+          phi_sample_2 <- as.vector(hyper_samples_1[, "Offset precision for stochvolln"][(n_samples + 1):(2 * n_samples)])
+        } else {
+          phi_sample_1 <- Inf
+          phi_sample_2 <- Inf
+        }
+
+        mu_sample_1 <- as.vector(hyper_samples_1[, "Mean offset for stochvolln"][1:n_samples])
+        mu_sample_2 <- as.vector(hyper_samples_1[, "Mean offset for stochvolln"][(n_samples + 1):(2 * n_samples)])
+
+        var_1 <- posterior_samples[i, 1:n_samples] + 1 / phi_sample_1
+        var_2 <- posterior_samples[i, (n_samples + 1):(2 * n_samples)] + 1 / phi_sample_2
+
+        mean_1 <- mu_sample_1 - 0.5 * var_1
+        mean_2 <- mu_sample_2 - 0.5 * var_2
+
+        if (parallelize_RP) {
+          Y1_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+            mean_1 + sqrt(var_1) * rnorm(n_samples)
+          })
+          Y2_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+            mean_2 + sqrt(var_2) * rnorm(n_samples)
+          })
+          E1_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+            mean(abs(Y1_sample[[i]] - test_data[i]))
+          })
+          E2_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+            mean(abs(Y1_sample[[i]] - Y2_sample[[i]]))
+          })
+        } else {
+          Y1_sample <- lapply(1:length(test_data), function(i) {
+           mean_1 + sqrt(var_1) * rnorm(n_samples)
+          })
+          Y2_sample <- lapply(1:length(test_data), function(i) {
+           mean_2 + sqrt(var_2) * rnorm(n_samples)
           })
           E1_tmp <- lapply(1:length(test_data), function(i) {
             mean(abs(Y1_sample[[i]] - test_data[i]))
