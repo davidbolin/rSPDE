@@ -204,7 +204,7 @@ are given in the order sigma, kappa, nu, sigma.e, whenever they are available.</
 <span class="r-in"><span><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="matern.operators.html">matern.operators</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  loc_mesh <span class="op">=</span> <span class="va">x</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span></span>
 <span class="r-in"><span>  range <span class="op">=</span> <span class="va">range</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, d <span class="op">=</span> <span class="fl">1</span>, m <span class="op">=</span> <span class="fl">2</span>,</span></span>
-<span class="r-in"><span> parameterization <span class="op">=</span> <span class="st">"matern"</span></span></span>
+<span class="r-in"><span>  parameterization <span class="op">=</span> <span class="st">"matern"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Sample the model</span></span></span>
 <span class="r-in"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op_cov</span>, <span class="va">n.rep</span><span class="op">)</span></span></span>
@@ -218,13 +218,15 @@ are given in the order sigma, kappa, nu, sigma.e, whenever they are available.</
 <span class="r-in"><span><span class="co"># Define the negative likelihood function for optimization</span></span></span>
 <span class="r-in"><span><span class="co"># using CBrSPDE.matern.loglike</span></span></span>
 <span class="r-in"><span><span class="co"># Matern parameterization</span></span></span>
-<span class="r-in"><span><span class="va">loglike</span> <span class="op">&lt;-</span> <span class="fu">rSPDE.construct.matern.loglike</span><span class="op">(</span><span class="va">op_cov</span>, <span class="va">Y</span>, <span class="va">A</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span> </span></span>
+<span class="r-in"><span><span class="va">loglike</span> <span class="op">&lt;-</span> <span class="fu">rSPDE.construct.matern.loglike</span><span class="op">(</span><span class="va">op_cov</span>, <span class="va">Y</span>, <span class="va">A</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># The parameters can now be estimated by minimizing mlik with optim</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Choose some reasonable starting values depending on the size of the domain</span></span></span>
-<span class="r-in"><span><span class="va">theta0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="get.initial.values.rSPDE.html">get.initial.values.rSPDE</a></span><span class="op">(</span>mesh.range <span class="op">=</span> <span class="fl">1</span>, dim <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, </span></span>
-<span class="r-in"><span>                                 <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">theta0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="get.initial.values.rSPDE.html">get.initial.values.rSPDE</a></span><span class="op">(</span>mesh.range <span class="op">=</span> <span class="fl">1</span>, dim <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># run estimation and display the results</span></span></span>
 <span class="r-in"><span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim</a></span><span class="op">(</span><span class="va">theta0</span>, <span class="va">loglike</span>,</span></span>
 <span class="r-in"><span>  method <span class="op">=</span> <span class="st">"L-BFGS-B"</span></span></span>
@@ -237,7 +239,6 @@ are given in the order sigma, kappa, nu, sigma.e, whenever they are available.</
 <span class="r-out co"><span class="r-pr">#&gt;</span>               sigma     range        nu  sigma.e</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Truth     1.0000000 0.2000000 0.8000000 0.100000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Estimates 0.9974914 0.1800131 0.9778594 0.100258</span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
