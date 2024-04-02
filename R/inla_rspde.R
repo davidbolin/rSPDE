@@ -5,7 +5,7 @@
 #' @param mesh The mesh to build the model. It can be an `inla.mesh` or
 #' an `inla.mesh.1d` object. Otherwise, should be a list containing elements d, the dimension, C, the mass matrix,
 #' and G, the stiffness matrix.
-#' @param nu.upper.bound Upper bound for the smoothness parameter.
+#' @param nu.upper.bound Upper bound for the smoothness parameter. If `NULL`, it will be set to 2 in dimension 1 and to 4 in dimension 2.
 #' @param rspde.order The order of the covariance-based rational SPDE approach.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
 #' be estimated. If nu is `NULL`, it will be estimated.
@@ -63,7 +63,7 @@
 #' @export
 
 rspde.matern <- function(mesh,
-                         nu.upper.bound = 4, rspde.order = 2,
+                         nu.upper.bound = NULL, rspde.order = 2,
                          nu = NULL,
                          B.sigma = matrix(c(0, 1, 0), 1, 3),
                          B.range = matrix(c(0, 0, 1), 1, 3),
@@ -182,6 +182,14 @@ rspde.matern <- function(mesh,
     d <- mesh$d
   } else {
     stop("The mesh object should either be an INLA mesh object or contain d, the dimension!")
+  }
+
+  if(is.null(nu.upper.bound)){
+    if(d == 1){
+      nu.upper.bound <- 2
+    } else{
+      nu.upper.bound <- 4
+    }
   }
 
   if (nu.upper.bound - floor(nu.upper.bound) == 0) {
