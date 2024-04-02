@@ -37,7 +37,7 @@
 #' @importFrom stats rnorm approx quantile var
 #' @importFrom stats dnorm pnorm dbeta nobs deviance logLik
 #' @importFrom methods as
-#' @importFrom stats simulate lm logLik na.omit optim sd terms
+#' @importFrom stats simulate lm logLik na.omit optim sd terms rt
 #' @importFrom fmesher fm_mesh_2d fm_basis fm_block fm_row_kron fm_mesh_1d fm_fem
 #' @importFrom lifecycle deprecated
 #' @importFrom broom augment glance
