@@ -636,6 +636,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
           linkfuninv <- function(x) {
             exp(x)
           }
+        } else{
+        stop(paste("The family", models[[model_number]]$.args$family, "is not supported yet, please, raise an issue in https://github.com/davidbolin/rSPDE/issues requesting the support."))
         }
       } else {
         linkfuninv <- process_link(link_name)
