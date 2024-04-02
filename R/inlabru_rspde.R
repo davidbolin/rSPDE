@@ -636,6 +636,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
           linkfuninv <- function(x) {
             exp(x)
           }
+        } else if (models[[model_number]]$.args$family == "stochvolt") {
+          linkfuninv <- function(x) {
+            exp(x)
+          }
         } else{
         stop(paste("The family", models[[model_number]]$.args$family, "is not supported yet, please, raise an issue in https://github.com/davidbolin/rSPDE/issues requesting the support."))
         }
@@ -647,7 +651,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
       env_tmp <- environment(formula_tmp)
       assign("linkfuninv", linkfuninv, envir = env_tmp)
 
-      if (models[[model_number]]$.args$family %in% c("stochvol", "stochvolln", "stochvolnig")) {
+      if (models[[model_number]]$.args$family %in% c("stochvol", "stochvolln", "stochvolnig", "stochvolt")) {
         tmp_n_samples <- new_n_samples
         new_n_samples <- 2 * n_samples
       }
@@ -681,7 +685,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
       }
 
 
-      if (!(models[[model_number]]$.args$family %in% c("stochvol", "stochvolln", "stochvolnig"))) {
+      if (!(models[[model_number]]$.args$family %in% c("stochvol", "stochvolln", "stochvolnig", "stochvolt"))) {
         if ("mse" %in% scores) {
           mse[fold, model_number] <- mean((test_data - posterior_mean)^2)
           if (orientation_results == "positive") {
@@ -1163,6 +1167,98 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
           })
           Y2_sample <- lapply(1:length(test_data), function(i) {
             sqrt(posterior_samples[i, (n_samples + 1):(2 * n_samples)]) * ngme2::rnig(n_samples, delta = -skewness_2/gamma_2, mu = skewness_2, nu = shape_2^2, sigma = 1/sqrt(gamma_2))
+          })
+          E1_tmp <- lapply(1:length(test_data), function(i) {
+            mean(abs(Y1_sample[[i]] - test_data[i]))
+          })
+          E2_tmp <- lapply(1:length(test_data), function(i) {
+            mean(abs(Y1_sample[[i]] - Y2_sample[[i]]))
+          })
+        }
+
+        if ("mse" %in% scores) {
+          Y_mean <- lapply(Y1_sample, mean)
+          Y_mean <- unlist(Y_mean)
+          mse[fold, model_number] <- mean((test_data - Y_mean)^2)
+          if (orientation_results == "positive") {
+            mse[fold, model_number] <- -mse[fold, model_number]
+          }
+          if (print) {
+            cat(paste("MSE:", mse[fold, model_number], "\n"))
+          }
+        }
+
+        if ("dss" %in% scores) {
+          Y_var <- lapply(Y2_sample, var)
+          Y_mean <- lapply(Y1_sample, mean)
+          Y_var <- unlist(Y_var)
+          Y_mean <- unlist(Y_mean)
+
+          post_var <- Y_var
+
+          dss[fold, model_number] <- mean((test_data - Y_mean)^2 / post_var + log(post_var))
+          if (orientation_results == "positive") {
+            dss[fold, model_number] <- -dss[fold, model_number]
+          }
+          if (print) {
+            cat(paste("DSS:", dss[fold, model_number], "\n"))
+          }
+        }
+
+        if ("crps" %in% scores) {
+          crps_temp <- lapply(1:length(test_data), function(i) {
+            return(E1_tmp[[i]] - 0.5 * E2_tmp[[i]])
+          })
+
+          crps_temp <- unlist(crps_temp)
+          crps[fold, model_number] <- mean(crps_temp)
+          if (orientation_results == "negative") {
+            crps[fold, model_number] <- -crps[fold, model_number]
+          }
+
+          if (print) {
+            cat(paste("CRPS:", crps[fold, model_number], "\n"))
+          }
+        }
+        if ("scrps" %in% scores) {
+          scrps_temp <- lapply(1:length(test_data), function(i) {
+            return(-E1_tmp[[i]] / E2_tmp[[i]] - 0.5 * log(E2_tmp[[i]]))
+          })
+          scrps_temp <- unlist(scrps_temp)
+          scrps[fold, model_number] <- mean(scrps_temp)
+          if (orientation_results == "negative") {
+            scrps[fold, model_number] <- -scrps[fold, model_number]
+          }
+
+          if (print) {
+            cat(paste("SCRPS:", scrps[fold, model_number], "\n"))
+          }
+        }
+      } else if (models[[model_number]]$.args$family  == "stochvolt") {
+        new_n_samples <- tmp_n_samples
+
+        degree_1 <- as.vector(hyper_samples_1[, "degrees of freedom for stochvol student-t"][1:n_samples])
+        degree_2 <- as.vector(hyper_samples_1[, "degrees of freedom for stochvol student-t"][(n_samples + 1):(2 * n_samples)])
+
+        if (parallelize_RP) {
+          Y1_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+            sqrt(posterior_samples[i, 1:n_samples]) * rt(n_samples, degree_1)
+          })
+          Y2_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+            sqrt(posterior_samples[i, (n_samples + 1):(2 * n_samples)]) * rt(n_samples, degree_2)
+          })
+          E1_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+            mean(abs(Y1_sample[[i]] - test_data[i]))
+          })
+          E2_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+            mean(abs(Y1_sample[[i]] - Y2_sample[[i]]))
+          })
+        } else {
+          Y1_sample <- lapply(1:length(test_data), function(i) {
+            sqrt(posterior_samples[i, 1:n_samples]) * rt(n_samples, degree_1)
+          })
+          Y2_sample <- lapply(1:length(test_data), function(i) {
+            sqrt(posterior_samples[i, (n_samples + 1):(2 * n_samples)]) * rt(n_samples, degree_2)
           })
           E1_tmp <- lapply(1:length(test_data), function(i) {
             mean(abs(Y1_sample[[i]] - test_data[i]))
