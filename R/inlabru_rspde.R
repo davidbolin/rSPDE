@@ -753,36 +753,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
               mean(abs(Y1_sample[[i]] - Y2_sample[[i]]))
             })
           }
-
-          if ("crps" %in% scores) {
-            crps_temp <- lapply(1:length(test_data), function(i) {
-              return(E1_tmp[[i]] - 0.5 * E2_tmp[[i]])
-            })
-
-            crps_temp <- unlist(crps_temp)
-            crps[fold, model_number] <- mean(crps_temp)
-            if (orientation_results == "negative") {
-              crps[fold, model_number] <- -crps[fold, model_number]
-            }
-
-            if (print) {
-              cat(paste("CRPS:", crps[fold, model_number], "\n"))
-            }
-          }
-          if ("scrps" %in% scores) {
-            scrps_temp <- lapply(1:length(test_data), function(i) {
-              return(-E1_tmp[[i]] / E2_tmp[[i]] - 0.5 * log(E2_tmp[[i]]))
-            })
-            scrps_temp <- unlist(scrps_temp)
-            scrps[fold, model_number] <- mean(scrps_temp)
-            if (orientation_results == "negative") {
-              scrps[fold, model_number] <- -scrps[fold, model_number]
-            }
-
-            if (print) {
-              cat(paste("SCRPS:", scrps[fold, model_number], "\n"))
-            }
-          }
         }
       } else if (models[[model_number]]$.args$family == "gamma") {
         if ("dss" %in% scores) {
@@ -836,32 +806,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
               mean(abs(Y1_sample[[i]] - Y2_sample[[i]]))
             })
           }
-
-          if ("crps" %in% scores) {
-            crps_temp <- lapply(1:length(test_data), function(i) {
-              return(E1_tmp[[i]] - 0.5 * E2_tmp[[i]])
-            })
-
-            crps_temp <- unlist(crps_temp)
-            crps[fold, model_number] <- mean(crps_temp)
-            if (orientation_results == "negative") {
-              crps[fold, model_number] <- crps[fold, model_number]
-            }
-
-            if (print) {
-              cat(paste("CRPS:", crps[fold, model_number], "\n"))
-            }
-          }
-          if ("scrps" %in% scores) {
-            scrps_temp <- lapply(1:length(test_data), function(i) {
-              return(-E1_tmp[[i]] / E2_tmp[[i]] - 0.5 * log(E2_tmp[[i]]))
-            })
-            scrps_temp <- unlist(scrps_temp)
-            scrps[fold, model_number] <- mean(scrps_temp)
-            if (orientation_results == "negative") {
-              scrps[fold, model_number] <- -scrps[fold, model_number]
-            }
-          }
         }
       } else if (models[[model_number]]$.args$family == "poisson") {
         if ("dss" %in% scores) {
@@ -905,32 +849,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
             E2_tmp <- lapply(1:length(test_data), function(i) {
               mean(abs(Y1_sample[[i]] - Y2_sample[[i]]))
             })
-          }
-
-          if ("crps" %in% scores) {
-            crps_temp <- lapply(1:length(test_data), function(i) {
-              return(E1_tmp[[i]] - 0.5 * E2_tmp[[i]])
-            })
-
-            crps_temp <- unlist(crps_temp)
-            crps[fold, model_number] <- mean(crps_temp)
-            if (orientation_results == "negative") {
-              crps[fold, model_number] <- crps[fold, model_number]
-            }
-
-            if (print) {
-              cat(paste("CRPS:", crps[fold, model_number], "\n"))
-            }
-          }
-          if ("scrps" %in% scores) {
-            scrps_temp <- lapply(1:length(test_data), function(i) {
-              return(-E1_tmp[[i]] / E2_tmp[[i]] - 0.5 * log(E2_tmp[[i]]))
-            })
-            scrps_temp <- unlist(scrps_temp)
-            scrps[fold, model_number] <- mean(scrps_temp)
-            if (orientation_results == "negative") {
-              scrps[fold, model_number] <- -scrps[fold, model_number]
-            }
           }
         }
       } else if (models[[model_number]]$.args$family  == "stochvol") {
@@ -998,36 +916,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
           }
           if (print) {
             cat(paste("DSS:", dss[fold, model_number], "\n"))
-          }
-        }
-
-        if ("crps" %in% scores) {
-          crps_temp <- lapply(1:length(test_data), function(i) {
-            return(E1_tmp[[i]] - 0.5 * E2_tmp[[i]])
-          })
-
-          crps_temp <- unlist(crps_temp)
-          crps[fold, model_number] <- mean(crps_temp)
-          if (orientation_results == "negative") {
-            crps[fold, model_number] <- -crps[fold, model_number]
-          }
-
-          if (print) {
-            cat(paste("CRPS:", crps[fold, model_number], "\n"))
-          }
-        }
-        if ("scrps" %in% scores) {
-          scrps_temp <- lapply(1:length(test_data), function(i) {
-            return(-E1_tmp[[i]] / E2_tmp[[i]] - 0.5 * log(E2_tmp[[i]]))
-          })
-          scrps_temp <- unlist(scrps_temp)
-          scrps[fold, model_number] <- mean(scrps_temp)
-          if (orientation_results == "negative") {
-            scrps[fold, model_number] <- -scrps[fold, model_number]
-          }
-
-          if (print) {
-            cat(paste("SCRPS:", scrps[fold, model_number], "\n"))
           }
         }
       } else if (models[[model_number]]$.args$family == "stochvolln") {
@@ -1106,36 +994,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
             cat(paste("DSS:", dss[fold, model_number], "\n"))
           }
         }
-
-        if ("crps" %in% scores) {
-          crps_temp <- lapply(1:length(test_data), function(i) {
-            return(E1_tmp[[i]] - 0.5 * E2_tmp[[i]])
-          })
-
-          crps_temp <- unlist(crps_temp)
-          crps[fold, model_number] <- mean(crps_temp)
-          if (orientation_results == "negative") {
-            crps[fold, model_number] <- -crps[fold, model_number]
-          }
-
-          if (print) {
-            cat(paste("CRPS:", crps[fold, model_number], "\n"))
-          }
-        }
-        if ("scrps" %in% scores) {
-          scrps_temp <- lapply(1:length(test_data), function(i) {
-            return(-E1_tmp[[i]] / E2_tmp[[i]] - 0.5 * log(E2_tmp[[i]]))
-          })
-          scrps_temp <- unlist(scrps_temp)
-          scrps[fold, model_number] <- mean(scrps_temp)
-          if (orientation_results == "negative") {
-            scrps[fold, model_number] <- -scrps[fold, model_number]
-          }
-
-          if (print) {
-            cat(paste("SCRPS:", scrps[fold, model_number], "\n"))
-          }
-        }
       } else if (models[[model_number]]$.args$family  == "stochvolnig") {
         new_n_samples <- tmp_n_samples
 
@@ -1204,36 +1062,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
             cat(paste("DSS:", dss[fold, model_number], "\n"))
           }
         }
-
-        if ("crps" %in% scores) {
-          crps_temp <- lapply(1:length(test_data), function(i) {
-            return(E1_tmp[[i]] - 0.5 * E2_tmp[[i]])
-          })
-
-          crps_temp <- unlist(crps_temp)
-          crps[fold, model_number] <- mean(crps_temp)
-          if (orientation_results == "negative") {
-            crps[fold, model_number] <- -crps[fold, model_number]
-          }
-
-          if (print) {
-            cat(paste("CRPS:", crps[fold, model_number], "\n"))
-          }
-        }
-        if ("scrps" %in% scores) {
-          scrps_temp <- lapply(1:length(test_data), function(i) {
-            return(-E1_tmp[[i]] / E2_tmp[[i]] - 0.5 * log(E2_tmp[[i]]))
-          })
-          scrps_temp <- unlist(scrps_temp)
-          scrps[fold, model_number] <- mean(scrps_temp)
-          if (orientation_results == "negative") {
-            scrps[fold, model_number] <- -scrps[fold, model_number]
-          }
-
-          if (print) {
-            cat(paste("SCRPS:", scrps[fold, model_number], "\n"))
-          }
-        }
       } else if (models[[model_number]]$.args$family  == "stochvolt") {
         new_n_samples <- tmp_n_samples
 
@@ -1296,26 +1124,30 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
             cat(paste("DSS:", dss[fold, model_number], "\n"))
           }
         }
+      } else {
+        stop(paste("The family", models[[model_number]]$.args$family, "is not supported yet, please, raise an issue in https://github.com/davidbolin/rSPDE/issues requesting the support."))
+      }
 
         if ("crps" %in% scores) {
-          crps_temp <- lapply(1:length(test_data), function(i) {
-            return(E1_tmp[[i]] - 0.5 * E2_tmp[[i]])
-          })
+            crps_temp <- lapply(1:length(test_data), function(i) {
+              return(-E1_tmp[[i]] + 0.5 * E2_tmp[[i]])
+            })
 
-          crps_temp <- unlist(crps_temp)
-          crps[fold, model_number] <- mean(crps_temp)
-          if (orientation_results == "negative") {
-            crps[fold, model_number] <- -crps[fold, model_number]
+            crps_temp <- unlist(crps_temp)
+            crps[fold, model_number] <- mean(crps_temp)
+            if (orientation_results == "negative") {
+              crps[fold, model_number] <- -crps[fold, model_number]
+            }
+
+            if (print) {
+              cat(paste("CRPS:", crps[fold, model_number], "\n"))
+            }
           }
 
-          if (print) {
-            cat(paste("CRPS:", crps[fold, model_number], "\n"))
-          }
-        }
-        if ("scrps" %in% scores) {
-          scrps_temp <- lapply(1:length(test_data), function(i) {
-            return(-E1_tmp[[i]] / E2_tmp[[i]] - 0.5 * log(E2_tmp[[i]]))
-          })
+          if ("scrps" %in% scores) {
+            scrps_temp <- lapply(1:length(test_data), function(i) {
+              return(-E1_tmp[[i]] / E2_tmp[[i]] - 0.5 * log(E2_tmp[[i]]))
+            })
           scrps_temp <- unlist(scrps_temp)
           scrps[fold, model_number] <- mean(scrps_temp)
           if (orientation_results == "negative") {
@@ -1326,9 +1158,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
             cat(paste("SCRPS:", scrps[fold, model_number], "\n"))
           }
         }
-      } else {
-        stop(paste("The family", models[[model_number]]$.args$family, "is not supported yet, please, raise an issue in https://github.com/davidbolin/rSPDE/issues requesting the support."))
-      }
     }
   }
 
