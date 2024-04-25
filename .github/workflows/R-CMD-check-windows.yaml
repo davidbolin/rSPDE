@@ -43,7 +43,7 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           rtools-version: ${{ matrix.config.rtools-version }}
-          extra-repositories: "https://inla.r-inla-download.org/R/testing"
+          extra-repositories: "https://inla.r-inla-download.org/R/testing", "https://mugglejinx.github.io/drat/"
           use-public-rspm: true
 
       - uses: r-lib/actions/setup-pandoc@v2
