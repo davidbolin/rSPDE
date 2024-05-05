@@ -39,3 +39,25 @@ the FEM implementation in the \code{R-INLA} package is recommended.
 
 For a more detailed introduction to the package, see the rSPDE Vignettes.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://davidbolin.github.io/rSPDE/}
+  \item Report bugs at \url{https://github.com/davidbolin/rSPDE/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: David Bolin \email{davidbolin@gmail.com}
+
+Authors:
+\itemize{
+  \item Alexandre Simas \email{alexandre.impa@gmail.com}
+}
+
+Other contributors:
+\itemize{
+  \item Finn Lindgren \email{finn.lindgren@ed.ac.uk} [contributor]
+}
+
+}

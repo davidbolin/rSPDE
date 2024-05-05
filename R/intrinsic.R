@@ -612,15 +612,13 @@ intrinsic.matern.operators <- function(kappa,
         }
       }
     }
-    h <- rep(rowSums(op1$C), m1 * m2)
-    if (!return_block_list) {
-      Q <- rbind(cbind(Q, h), c(h, 0))
-    }
+    #h <- rep(rowSums(op1$C), m1 * m2)
+    #if (!return_block_list) {
+    #  Q <- rbind(cbind(Q, h), c(h, 0))
+    #}
     n <- dim(op1$C)[1]
-    A <- cbind(
-      kronecker(matrix(rep(1, m1 * m2), 1, m1 * m2), Diagonal(n)),
-      Matrix(0, ncol = 1, nrow = n)
-    )
+    A <- kronecker(matrix(rep(1, m1 * m2), 1, m1 * m2), Diagonal(n))
+    
   } else if (alpha > 0 && kappa > 0) {
     op1 <- CBrSPDE.matern.operators(
       C = C, G = G, mesh = mesh, nu = alpha - d / 2, kappa = kappa, tau = tau,
@@ -646,15 +644,12 @@ intrinsic.matern.operators <- function(kappa,
     } else {
       Q <- Q.list1
     }
-    h <- rep(rowSums(op1$C), m1)
-    if (!return_block_list) {
-      Q <- rbind(cbind(Q, h), c(h, 0))
-    }
+    #h <- rep(rowSums(op1$C), m1)
+    #if (!return_block_list) {
+    #  Q <- rbind(cbind(Q, h), c(h, 0))
+    #}
     n <- dim(op1$C)[1]
-    A <- cbind(
-      kronecker(matrix(rep(1, m1), 1, m1), Diagonal(n)),
-      Matrix(0, ncol = 1, nrow = n)
-    )
+    A <- kronecker(matrix(rep(1, m1), 1, m1), Diagonal(n))
   } else if (beta > 0) {
     if (kappa == 0) {
       alpha_beta <- alpha + beta
@@ -684,15 +679,9 @@ intrinsic.matern.operators <- function(kappa,
     } else {
       Q <- Q.list1
     }
-    h <- rep(rowSums(op1$C), m1)
-    if (!return_block_list) {
-      Q <- rbind(cbind(Q, h), c(h, 0))
-    }
+    
     n <- dim(op1$C)[1]
-    A <- cbind(
-      kronecker(matrix(rep(1, m1), 1, m1), Diagonal(n)),
-      Matrix(0, ncol = 1, nrow = n)
-    )
+    A <- cbind(kronecker(matrix(rep(1, m1), 1, m1), Diagonal(n)))
   }
 
   out <- list(
@@ -717,6 +706,62 @@ intrinsic.matern.operators <- function(kappa,
   return(out)
 }
 
+
+#' @name simulate.intrinsicCBrSPDEobj
+#' @title Simulation of a fractional intrinsic SPDE using the
+#' covariance-based rational SPDE approximation
+#' @description The function samples a Gaussian random field based using the
+#' covariance-based rational SPDE approximation.
+#' @param object The covariance-based rational SPDE approximation,
+#' computed using [intrinsic.matern.operators()]
+#' @param nsim The number of simulations.
+#' @param seed An object specifying if and how the random number generator should be initialized (‘seeded’).
+#' @return A matrix with the `nsim` samples as columns.
+#' @method simulate intrinsicCBrSPDEobj
+#' @export
+simulate.intrinsicCBrSPDEobj <- function(object, nsim = 1, seed = NULL,
+                                         integral.constraint = TRUE) {
+    
+    if (!is.null(seed)) {
+        set.seed(seed)
+    }
+    
+    if (object$return_block_list) {
+        n <- dim(object$Q[[1]])[1]
+        m <- length(object$Q)
+        
+        X <- matrix(0,n,nsim)
+        for(i in 1:m){
+            Q <- object$Q[[i]][-1,-1]
+            Z <- rnorm((n - 1) * nsim)
+            dim(Z) <- c(n-1, nsim)
+            LQ <- chol(forceSymmetric(Q))
+            X[-1,] <- X[-1,] + as.matrix(solve(LQ, Z))
+        }
+    } else {
+      n <- object$mesh$n
+      m <- dim(object$Q)[1] / n
+      
+      X <- matrix(0,n,nsim)
+      for(i in 1:m){
+          ind <- (2+n*(i-1)) : n*i
+          Q <- object$Q[ind,ind]
+          Z <- rnorm((n - 1) * nsim)
+          dim(Z) <- c(n-1, nsim)
+          LQ <- chol(forceSymmetric(Q))
+          X[-1,] <- X[-1,] + as.matrix(solve(LQ, Z))
+      }
+    }
+    #Add zero integral constraint
+    if(integral.constraint){
+        h <- diag(object$C)
+        for(i in 1:nsim){
+            X[,i] <- X[,i] - sum(h*X[,i])/sum(h)
+        }    
+    }
+    
+    return(X)
+}
 
 #' @name variogram.intrinsic.spde
 #' @title Variogram of intrinsic SPDE model
