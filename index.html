@@ -56,6 +56,7 @@
     <a class="dropdown-item" href="articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a>
     <a class="dropdown-item" href="articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="articles/rspde_base.html">Operator-based rational approximation</a>
+    <a class="dropdown-item" href="articles/intrinsic.html">Intrinsic models</a>
     <a class="dropdown-item" href="articles/build_source.html">Building the rSPDE package from source on Mac and Linux</a>
   </div>
 </li>
@@ -116,11 +117,11 @@
 </h1>
 <p>The latest CRAN release of the package can be installed directly from CRAN with <code>install.packages("rSPDE")</code>. The latest stable version (which is sometimes slightly more recent than the CRAN version), can be installed by using the command</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"davidbolin/rspde"</span>, ref <span class="op">=</span> <span class="st">"stable"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"davidbolin/rspde"</span>, ref <span class="op">=</span> <span class="st">"stable"</span><span class="op">)</span></span></code></pre></div>
 <p>in R. The development version can be installed using the command</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"davidbolin/rspde"</span>, ref <span class="op">=</span> <span class="st">"devel"</span><span class="op">)</span></span></code></pre></div>
-<p>If you want to install the package using the <code>remotes::install_github</code>-method on Windows, you first need to install <code>Rtools</code> and add the paths to <code>Rtools</code> and <code>gcc</code> to the Windows <code>PATH</code> environment variable. This can be done for the current R session only using the commands</p>
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"davidbolin/rspde"</span>, ref <span class="op">=</span> <span class="st">"devel"</span><span class="op">)</span></span></code></pre></div>
+<p>If you want to install the package using the <code><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">remotes::install_github</a></code>-method on Windows, you first need to install <code>Rtools</code> and add the paths to <code>Rtools</code> and <code>gcc</code> to the Windows <code>PATH</code> environment variable. This can be done for the current R session only using the commands</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rtools</span> <span class="op">=</span> <span class="st">"C:\\Rtools\\bin"</span></span>
 <span><span class="va">gcc</span> <span class="op">=</span> <span class="st">"C:\\Rtools\\gcc-4.6.3\\bin"</span></span>
@@ -144,7 +145,7 @@
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">PRborder</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#Get the precipitation in January</span></span>
-<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="va">PRprec</span><span class="op">[</span>, <span class="fl">3</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="fl">31</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="va">PRprec</span><span class="op">[</span>, <span class="fl">3</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="fl">31</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#Treat the data and plot</span></span>
 <span><span class="va">ind</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span></span>
@@ -336,7 +337,7 @@
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">PRborder</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#Get the precipitation in January</span></span>
-<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="va">PRprec</span><span class="op">[</span>, <span class="fl">3</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="fl">31</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="va">PRprec</span><span class="op">[</span>, <span class="fl">3</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="fl">31</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#Treat the data and plot</span></span>
 <span><span class="va">ind</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span></span>

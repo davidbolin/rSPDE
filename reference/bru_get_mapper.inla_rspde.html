@@ -31,6 +31,7 @@
     <a class="dropdown-item" href="../articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a>
     <a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a>
     <a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a>
+    <a class="dropdown-item" href="../articles/intrinsic.html">Intrinsic models</a>
     <a class="dropdown-item" href="../articles/build_source.html">Building the rSPDE package from source on Mac and Linux</a>
   </div>
 </li>
@@ -151,13 +152,13 @@
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: sp</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> This is INLA_24.04.25-1 built 2024-04-25 17:05:50 UTC.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> This is INLA_24.05.01-1 built 2024-05-01 18:49:50 UTC.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - See www.r-inla.org/contact-us for how to get help.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - List available models/likelihoods/etc with inla.list.models()</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Use inla.doc(&lt;NAME&gt;) to access documentation</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: fmesher</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> inlabru version: 2.10.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> INLA version: 24.04.25-1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> INLA version: 24.05.01-1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Components:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Intercept: main = linear(1), group = exchangeable(1L), replicate = iid(1L)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> field: main = cgeneric(coordinates), group = exchangeable(1L), replicate = iid(1L)</span>
@@ -166,10 +167,10 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Data class: 'SpatialPointsDataFrame'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Predictor: y ~ .</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Time used:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 0.437, Running = 7.08, Post = 0.669, Total = 8.18 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 0.398, Running = 6.55, Post = 0.86, Total = 7.81 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            mean   sd 0.025quant 0.5quant 0.975quant  mode kld</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.286 0.18     -0.072    0.286      0.648 0.286   0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.286 0.181     -0.073    0.286      0.649 0.286   0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name	  Model</span>
@@ -177,22 +178,22 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Model hyperparameters:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                           mean     sd 0.025quant 0.5quant</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 168.95 87.633      50.30   151.65</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                         -3.29  0.465      -4.20    -3.29</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 168.39 87.307      49.98   151.20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                         -3.31  0.465      -4.23    -3.31</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                          2.81  0.246       2.34     2.81</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                         -1.38  0.194      -1.76    -1.38</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                         -1.37  0.194      -1.75    -1.37</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                         0.975quant   mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations     385.43 118.47</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                             -2.37  -3.31</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                              3.31   2.79</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                             -1.00  -1.37</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations    383.858 118.09</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                            -2.402  -3.31</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                             3.314   2.79</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                            -0.989  -1.37</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC) ...............: -123.05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC, saturated) ....: 199.02</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .....................: 96.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC) ...............: -122.18</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC, saturated) ....: 199.41</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .....................: 96.66</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Watanabe-Akaike information criterion (WAIC) ...: -144.90</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .................: 55.61</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Watanabe-Akaike information criterion (WAIC) ...: -144.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .................: 55.82</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Marginal log-Likelihood:  -109.91 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  is computed </span>
