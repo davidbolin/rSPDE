@@ -48,7 +48,7 @@ remotes::install_github("davidbolin/rspde", ref = "devel")
 
 *The following is intended for expert use only:* 
 
-In case you want to build the source, the `stable-src` and `devel-src` branches require compilation, which is not the case for the `cran`, `stable` and `devel` branches. 
+In case you want to build the source, the `stable-src` and `devel-src` branches require compilation, which is not the case for the `cran`, `stable` and `devel` branches. Observe that it is possible that some features will only be available (for a while) for those using the `devel-src` branch. But within a month or so, after such feature was implemented, it will also be available for those using the `devel` branch.
 
 For Windows operating systems, we recommend the user to install from either of the `cran`, `stable` or `devel` branches, which require no compilation. 
 
