@@ -11,10 +11,10 @@ jobs:
       env:
         GITHUB_PAT: ${{ secrets.ACTIONS_SECRET }}
       steps:
-        - uses: actions/checkout@v2      
-        
-        - name: Merge with devel-src and accept all incoming changes
-          run: |
+        - uses: actions/checkout@v2    
+          with:
+            ssh-key: "${{secrets.ACTIONS_SECRET}}"
+        - run: |
             git config --local user.email "actions@github.com"
             git config --local user.name "GitHub Actions"     
             git config pull.rebase true                    
