@@ -98,7 +98,7 @@
 Alexandre B. Simas, Zhen Xiong</h4>
             
             <h4 data-toc-skip class="date">Created: 2021-12-04. Last
-modified: 2024-05-06.</h4>
+modified: 2024-05-08.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_cov.Rmd" class="external-link"><code>vignettes/rspde_cov.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_cov.Rmd</code></div>
@@ -513,32 +513,32 @@ method:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
-<span><span class="co">## (Intercept)   1.2741    1.1894   1.071    0.284</span></span>
-<span><span class="co">## x1           -0.5165    2.0453  -0.253    0.801</span></span>
+<span><span class="co">## (Intercept)    1.281     1.200   1.068    0.285</span></span>
+<span><span class="co">## x1            -0.522     2.062  -0.253    0.800</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.35010   0.18991   7.109</span></span>
-<span><span class="co">## tau    0.03687   0.03558   1.036</span></span>
-<span><span class="co">## kappa 16.69842   8.78458   1.901</span></span>
+<span><span class="co">## alpha  1.33999   0.18169   7.375</span></span>
+<span><span class="co">## tau    0.03869   0.03592   1.077</span></span>
+<span><span class="co">## kappa 16.34041   8.56276   1.908</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (Matern parameterization):</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu     0.85010   0.18991   4.476</span></span>
-<span><span class="co">## sigma  1.47008   0.31734   4.632</span></span>
-<span><span class="co">## range  0.15617   0.04824   3.237</span></span>
+<span><span class="co">## nu     0.83999   0.18169   4.623</span></span>
+<span><span class="co">## sigma  1.47333   0.32082   4.592</span></span>
+<span><span class="co">## range  0.15864   0.04984   3.183</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev   0.3310    0.0241   13.74</span></span>
+<span><span class="co">## std. dev  0.33047   0.02404   13.74</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -145.9043 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 76</span></span>
+<span><span class="co">## Log-Likelihood:  -145.9036 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 109</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  15.6944 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  21.98501 secs</span></span></code></pre>
 <p>Let us compare the parameters of the latent model:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -547,20 +547,20 @@ method:</p>
 <span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="va">fit</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##             sigma     range        nu</span></span>
-<span><span class="co">## Truth     1.30000 0.1264911 0.8000000</span></span>
-<span><span class="co">## Estimates 1.47008 0.1561726 0.8501003</span></span></code></pre>
+<pre><code><span><span class="co">##              sigma     range        nu</span></span>
+<span><span class="co">## Truth     1.300000 0.1264911 0.8000000</span></span>
+<span><span class="co">## Estimates 1.473326 0.1586424 0.8399909</span></span></code></pre>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 15.69441 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 21.98502 secs</span></span></code></pre>
 <p>Let us take a glance at the fit:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 9</span></span></span>
 <span><span class="co">##    nobs sigma logLik   AIC   BIC deviance df.residual model                alpha</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span>   200 0.331  -<span style="color: #BB0000;">146.</span>  304.  324.     292.         194 Covariance-Based Ma…  1.35</span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>   200 0.330  -<span style="color: #BB0000;">146.</span>  304.  324.     292.         194 Covariance-Based Ma…  1.34</span></span></code></pre>
 <p>We can also speed up the optimization by setting
 <code>parallel=TRUE</code> (which uses implicitly the
 <code>optimParallel</code> function):</p>
@@ -579,33 +579,33 @@ method:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
-<span><span class="co">## (Intercept)   1.2741    1.1894   1.071    0.284</span></span>
-<span><span class="co">## x1           -0.5165    2.0453  -0.253    0.801</span></span>
+<span><span class="co">## (Intercept)    1.281     1.200   1.068    0.285</span></span>
+<span><span class="co">## x1            -0.522     2.062  -0.253    0.800</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.35010   0.18991   7.109</span></span>
-<span><span class="co">## tau    0.03687   0.03558   1.036</span></span>
-<span><span class="co">## kappa 16.69842   8.78458   1.901</span></span>
+<span><span class="co">## alpha  1.33999   0.18169   7.375</span></span>
+<span><span class="co">## tau    0.03869   0.03592   1.077</span></span>
+<span><span class="co">## kappa 16.34041   8.56276   1.908</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (Matern parameterization):</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu     0.85010   0.18991   4.476</span></span>
-<span><span class="co">## sigma  1.47008   0.31734   4.632</span></span>
-<span><span class="co">## range  0.15617   0.04824   3.237</span></span>
+<span><span class="co">## nu     0.83999   0.18169   4.623</span></span>
+<span><span class="co">## sigma  1.47333   0.32082   4.592</span></span>
+<span><span class="co">## range  0.15864   0.04984   3.183</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev   0.3310    0.0241   13.74</span></span>
+<span><span class="co">## std. dev  0.33047   0.02404   13.74</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -145.9043 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 76</span></span>
+<span><span class="co">## Log-Likelihood:  -145.9036 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 109</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  11.25103 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.80525 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  15.98684 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.96529 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -613,14 +613,14 @@ method:</p>
 <span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="va">fit_par</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##             sigma     range        nu</span></span>
-<span><span class="co">## Truth     1.30000 0.1264911 0.8000000</span></span>
-<span><span class="co">## Estimates 1.47008 0.1561726 0.8501003</span></span></code></pre>
+<pre><code><span><span class="co">##              sigma     range        nu</span></span>
+<span><span class="co">## Truth     1.300000 0.1264911 0.8000000</span></span>
+<span><span class="co">## Estimates 1.473326 0.1586424 0.8399909</span></span></code></pre>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 14.0563 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 18.95215 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -713,35 +713,35 @@ columns, each column containing one replicate. We need to turn
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha   1.2190       NaN     NaN</span></span>
-<span><span class="co">## tau     0.0626       NaN     NaN</span></span>
-<span><span class="co">## kappa  17.5450    1.1527   15.22</span></span>
+<span><span class="co">## alpha  1.28321       NaN     NaN</span></span>
+<span><span class="co">## tau    0.04583       NaN     NaN</span></span>
+<span><span class="co">## kappa 20.01372       NaN     NaN</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (Matern parameterization):</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu    0.719034       NaN     NaN</span></span>
-<span><span class="co">## sigma 1.274727  0.053342   23.90</span></span>
-<span><span class="co">## range 0.136699  0.009292   14.71</span></span>
+<span><span class="co">## nu    0.783210       NaN     NaN</span></span>
+<span><span class="co">## sigma 1.271322  0.052039   24.43</span></span>
+<span><span class="co">## range 0.125071  0.007832   15.97</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev 0.299449  0.004881   61.35</span></span>
+<span><span class="co">## std. dev  0.30268   0.00442   68.48</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -2757.289 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 60</span></span>
+<span><span class="co">## Log-Likelihood:  -2758.186 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 34</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  21.92704 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.8241 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  14.1689 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.93178 secs</span></span></code></pre>
 <p>and glance:</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 9</span></span></span>
 <span><span class="co">##    nobs sigma logLik   AIC   BIC deviance df.residual model                alpha</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span>  <span style="text-decoration: underline;">4</span>000 0.299 -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">757.</span> <span style="text-decoration: underline;">5</span>523. <span style="text-decoration: underline;">5</span>548.    <span style="text-decoration: underline;">5</span>515.        <span style="text-decoration: underline;">3</span>996 Covariance-Based Ma…  1.22</span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>  <span style="text-decoration: underline;">4</span>000 0.303 -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">758.</span> <span style="text-decoration: underline;">5</span>524. <span style="text-decoration: underline;">5</span>550.    <span style="text-decoration: underline;">5</span>516.        <span style="text-decoration: underline;">3</span>996 Covariance-Based Ma…  1.28</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -752,11 +752,11 @@ columns, each column containing one replicate. We need to turn
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##              sigma     range        nu</span></span>
 <span><span class="co">## Truth     1.300000 0.1264911 0.8000000</span></span>
-<span><span class="co">## Estimates 1.274727 0.1366991 0.7190341</span></span></code></pre>
+<span><span class="co">## Estimates 1.271322 0.1250709 0.7832096</span></span></code></pre>
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 21.92704 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 14.1689 secs</span></span></code></pre>
 <p>We can obtain better estimates of the Hessian by setting
 <code>improve_hessian</code> to <code>TRUE</code>, however this might
 make the process take longer:</p>
@@ -777,30 +777,30 @@ make the process take longer:</p>
 <span><span class="co">## No fixed effects.</span></span></code></pre>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
-<span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.21903   0.04483  27.195</span></span>
-<span><span class="co">## tau    0.06260   0.01365   4.587</span></span>
-<span><span class="co">## kappa 17.54503   2.03418   8.625</span></span>
+<span><span class="co">##        Estimate Std.error z-value</span></span>
+<span><span class="co">## alpha  1.283210  0.013652   94.00</span></span>
+<span><span class="co">## tau    0.045833  0.003325   13.78</span></span>
+<span><span class="co">## kappa 20.013720  1.369711   14.61</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (Matern parameterization):</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu    0.719034  0.044826   16.04</span></span>
-<span><span class="co">## sigma 1.274727  0.053342   23.90</span></span>
-<span><span class="co">## range 0.136699  0.009292   14.71</span></span>
+<span><span class="co">## nu    0.783210  0.013652   57.37</span></span>
+<span><span class="co">## sigma 1.271322  0.052039   24.43</span></span>
+<span><span class="co">## range 0.125071  0.007832   15.97</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev 0.299449  0.005532   54.13</span></span>
+<span><span class="co">## std. dev 0.302676  0.004949   61.16</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -2757.289 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 60</span></span>
+<span><span class="co">## Log-Likelihood:  -2758.186 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 34</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  19.51533 secs </span></span>
-<span><span class="co">##   compute the Hessian = 6.37103 secs </span></span>
-<span><span class="co">##   set up the parallelization = 3.93998 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  11.53517 secs </span></span>
+<span><span class="co">##   compute the Hessian = 6.44645 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.92626 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -949,8 +949,8 @@ observation, and then we fit the model:</p>
 <span><span class="co">## Number of function calls by 'optim' = 39</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  1.54267 mins </span></span>
-<span><span class="co">##   set up the parallelization = 5.56066 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.54346 mins </span></span>
+<span><span class="co">##   set up the parallelization = 5.80377 secs</span></span></code></pre>
 <p>and glance:</p>
 <div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">)</span></span></code></pre></div>
@@ -972,7 +972,7 @@ observation, and then we fit the model:</p>
 <div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 1.542673 mins</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 1.543461 mins</span></span></code></pre>
 <p>Let us now plot the prediction for replicate 3 by using the
 <code>augment</code> function. We begin by creating the
 <code>data.frame</code> we want to do prediction:</p>
@@ -1104,23 +1104,23 @@ data and the locations:</p>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##         Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha    1.89615   0.06397  29.640</span></span>
-<span><span class="co">## Theta 1 -0.29690   0.15591  -1.904</span></span>
-<span><span class="co">## Theta 2  0.90852   0.23368   3.888</span></span>
-<span><span class="co">## Theta 3  1.90250   0.40187   4.734</span></span>
+<span><span class="co">## alpha     1.9031    0.0566  33.627</span></span>
+<span><span class="co">## Theta 1  -0.3001    0.1495  -2.007</span></span>
+<span><span class="co">## Theta 2   0.9088    0.2364   3.845</span></span>
+<span><span class="co">## Theta 3   1.9558    0.4062   4.815</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev  0.10191   0.05287   1.927</span></span>
+<span><span class="co">## std. dev  0.10241   0.05306    1.93</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -89.47834 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 83</span></span>
+<span><span class="co">## Log-Likelihood:  -89.50171 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 98</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  9.09462 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.81376 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  11.2678 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.91786 secs</span></span></code></pre>
 <p>Let us now compare with the true values:</p>
 <div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1132,7 +1132,7 @@ data and the locations:</p>
 <span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##               theta1    theta2   theta3    alpha</span></span>
 <span><span class="co">## Truth      0.0000000 1.0000000 1.000000 1.800000</span></span>
-<span><span class="co">## Estimates -0.2968971 0.9085188 1.902502 1.896153</span></span></code></pre>
+<span><span class="co">## Estimates -0.3000696 0.9087709 1.955783 1.903134</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -1203,8 +1203,8 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <span><span class="co">## Number of function calls by 'optim' = 30</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  32.0856 secs </span></span>
-<span><span class="co">##   set up the parallelization = 5.80378 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  32.69841 secs </span></span>
+<span><span class="co">##   set up the parallelization = 5.75617 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1266,11 +1266,11 @@ with <code>brasil</code> rational approximation:</p>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Log-Likelihood:  -5658.827 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 43</span></span>
+<span><span class="co">## Number of function calls by 'optim' = 45</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  42.61223 secs </span></span>
-<span><span class="co">##   set up the parallelization = 5.60711 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  44.17575 secs </span></span>
+<span><span class="co">##   set up the parallelization = 5.94644 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
