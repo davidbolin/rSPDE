@@ -98,7 +98,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2022-09-13. Last
-modified: 2024-05-08.</h4>
+modified: 2024-05-11.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/rspde_inlabru.Rmd" class="external-link"><code>vignettes/rspde_inlabru.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_inlabru.Rmd</code></div>
@@ -327,7 +327,7 @@ of the RW1, and the parameters of the spatial field):</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## inlabru version: 2.10.1</span></span>
-<span><span class="co">## INLA version: 24.05.01-1</span></span>
+<span><span class="co">## INLA version: 24.05.10</span></span>
 <span><span class="co">## Components:</span></span>
 <span><span class="co">## Intercept: main = linear(1), group = exchangeable(1L), replicate = iid(1L)</span></span>
 <span><span class="co">## distSea: main = rw1(seaDist), group = exchangeable(1L), replicate = iid(1L)</span></span>
@@ -337,10 +337,10 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.39, Running = 21.8, Post = 0.124, Total = 22.3 </span></span>
+<span><span class="co">##     Pre = 0.385, Running = 21.1, Post = 0.118, Total = 21.6 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span><span class="co">## Intercept 1.945 0.055      1.837    1.945      2.053 1.945   0</span></span>
+<span><span class="co">## Intercept 1.944 0.049      1.847    1.944       2.04 1.944   0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
@@ -348,27 +348,27 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">##    field CGeneric</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
-<span><span class="co">##                                                     mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision-parameter for the Gamma observations    13.949    0.998     12.062</span></span>
-<span><span class="co">## Precision for distSea                          10956.056 9529.944   2738.319</span></span>
-<span><span class="co">## Theta1 for field                                   0.904    0.781     -0.358</span></span>
-<span><span class="co">## Theta2 for field                                   0.157    0.905     -1.841</span></span>
-<span><span class="co">## Theta3 for field                                  -3.394    1.339     -6.380</span></span>
+<span><span class="co">##                                                    mean       sd 0.025quant</span></span>
+<span><span class="co">## Precision-parameter for the Gamma observations   13.981    1.002     12.096</span></span>
+<span><span class="co">## Precision for distSea                          8829.228 6247.226   2203.812</span></span>
+<span><span class="co">## Theta1 for field                                  0.187    0.423     -0.546</span></span>
+<span><span class="co">## Theta2 for field                                  0.846    0.418     -0.029</span></span>
+<span><span class="co">## Theta3 for field                                 -2.212    0.487     -3.242</span></span>
 <span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## Precision-parameter for the Gamma observations   13.922      15.99   13.887</span></span>
-<span><span class="co">## Precision for distSea                          8219.499   36398.11 5140.815</span></span>
-<span><span class="co">## Theta1 for field                                  0.827       2.66    0.445</span></span>
-<span><span class="co">## Theta2 for field                                  0.231       1.67    0.607</span></span>
-<span><span class="co">## Theta3 for field                                 -3.271      -1.20   -2.654</span></span>
+<span><span class="co">## Precision-parameter for the Gamma observations   13.951      16.04   13.902</span></span>
+<span><span class="co">## Precision for distSea                          7182.924   25367.74 4870.623</span></span>
+<span><span class="co">## Theta1 for field                                  0.159       1.10    0.018</span></span>
+<span><span class="co">## Theta2 for field                                  0.864       1.61    0.948</span></span>
+<span><span class="co">## Theta3 for field                                 -2.189      -1.33   -2.075</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2486.48</span></span>
-<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 714.53</span></span>
-<span><span class="co">## Effective number of parameters .....................: 100.48</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2486.09</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 714.69</span></span>
+<span><span class="co">## Effective number of parameters .....................: 101.99</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2491.64</span></span>
-<span><span class="co">## Effective number of parameters .................: 91.61</span></span>
+<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2491.12</span></span>
+<span><span class="co">## Effective number of parameters .................: 92.64</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1258.23 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1259.65 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -399,10 +399,10 @@ scale by using the function <code><a href="../reference/rspde.result.html">rspde
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, </span>
 <span>                <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##           mean       sd 0.025quant 0.5quant 0.975quant      mode</span></span>
-<span><span class="co">## tau   3.485030 3.905100  0.7027990 2.236920  13.969200 1.2347600</span></span>
-<span><span class="co">## kappa 1.664040 1.383150  0.1625580 1.293280   5.275630 0.4655900</span></span>
-<span><span class="co">## nu    0.235638 0.249091  0.0070184 0.151866   0.919147 0.0118293</span></span></code></pre>
+<pre><code><span><span class="co">##           mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## tau   1.322020 0.630195   0.581771 1.160030   2.981200 0.914141</span></span>
+<span><span class="co">## kappa 2.533950 1.034830   0.979905 2.386690   4.974480 2.054480</span></span>
+<span><span class="co">## nu    0.427325 0.176482   0.152119 0.406102   0.830313 0.352736</span></span></code></pre>
 <p>We can also plot the posterior densities. To this end we will use the
 <code><a href="../reference/gg_df.html">gg_df()</a></code> function, which creates <code>ggplot2</code>
 user-friendly data frames:</p>
@@ -419,10 +419,10 @@ setting the <code>parameterization</code> argument on the
 <code class="sourceCode R"><span><span class="va">result_fit_matern</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, </span>
 <span>                <span class="va">rspde_model</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_matern</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##             mean        sd 0.025quant 0.5quant 0.975quant      mode</span></span>
-<span><span class="co">## std.dev 0.159692 0.0815946  0.0212756 0.162945   0.308586 0.2141970</span></span>
-<span><span class="co">## range   1.246450 0.8742170  0.2881490 1.026250   3.568290 0.7106280</span></span>
-<span><span class="co">## nu      0.235638 0.2490910  0.0070184 0.151866   0.919147 0.0118293</span></span></code></pre>
+<pre><code><span><span class="co">##             mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## std.dev 0.234550 0.0553095   0.118130 0.238102   0.337314 0.245043</span></span>
+<span><span class="co">## range   0.869183 0.4033000   0.329474 0.788434   1.856410 0.634083</span></span>
+<span><span class="co">## nu      0.427325 0.1764820   0.152119 0.406102   0.830313 0.352736</span></span></code></pre>
 <p>In a similar manner, we can obtain posterior plots on the
 <code>matern</code> parameterization:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
@@ -644,7 +644,7 @@ some meaningless model.</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## inlabru version: 2.10.1</span></span>
-<span><span class="co">## INLA version: 24.05.01-1</span></span>
+<span><span class="co">## INLA version: 24.05.10</span></span>
 <span><span class="co">## Components:</span></span>
 <span><span class="co">## field: main = cgeneric(coordinates), group = exchangeable(1L), replicate = iid(repl)</span></span>
 <span><span class="co">## Likelihoods:</span></span>
@@ -652,7 +652,7 @@ some meaningless model.</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.19, Running = 143, Post = 9.27, Total = 153 </span></span>
+<span><span class="co">##     Pre = 0.188, Running = 145, Post = 9.1, Total = 154 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
@@ -706,8 +706,8 @@ some meaningless model.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   parameter        true        mean        mode</span></span>
 <span><span class="co">## 1       tau  0.08920621  0.06114624  0.05554878</span></span>
-<span><span class="co">## 2     kappa 20.00000000 21.95200680 21.92073198</span></span>
-<span><span class="co">## 3        nu  0.50000000  0.59851359  0.59679419</span></span></code></pre>
+<span><span class="co">## 2     kappa 20.00000000 21.95200699 21.92073209</span></span>
+<span><span class="co">## 3        nu  0.50000000  0.59851362  0.59679421</span></span></code></pre>
 <p>Let us also obtain the summary on the <code>matern</code>
 parameterization:</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
@@ -715,7 +715,7 @@ parameterization:</p>
 <span>                          parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_rep_matern</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##              mean         sd 0.025quant  0.5quant 0.975quant      mode</span></span>
-<span><span class="co">## std.dev 1.0492400 0.03589140   0.957237 1.0576200   1.097540 1.0681800</span></span>
+<span><span class="co">## std.dev 1.0492400 0.03589130   0.957237 1.0576200   1.097540 1.0681800</span></span>
 <span><span class="co">## range   0.0997823 0.00418078   0.091812 0.0996863   0.108367 0.0995195</span></span>
 <span><span class="co">## nu      0.5985140 0.05627300   0.491691 0.5975060   0.712341 0.5967940</span></span></code></pre>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -737,7 +737,7 @@ parameterization:</p>
 <pre><code><span><span class="co">##   parameter true       mean      mode</span></span>
 <span><span class="co">## 1   std_dev  1.0 1.04923571 0.5967942</span></span>
 <span><span class="co">## 2     range  0.1 0.09978233 0.5967942</span></span>
-<span><span class="co">## 3        nu  0.5 0.59851359 0.5967942</span></span></code></pre>
+<span><span class="co">## 3        nu  0.5 0.59851362 0.5967942</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -864,7 +864,7 @@ some meaningless model.</p>
 <div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit_nonstat</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## inlabru version: 2.10.1</span></span>
-<span><span class="co">## INLA version: 24.05.01-1</span></span>
+<span><span class="co">## INLA version: 24.05.10</span></span>
 <span><span class="co">## Components:</span></span>
 <span><span class="co">## field: main = cgeneric(coordinates), group = exchangeable(1L), replicate = iid(1L)</span></span>
 <span><span class="co">## Likelihoods:</span></span>
@@ -872,33 +872,33 @@ some meaningless model.</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.174, Running = 40.1, Post = 0.361, Total = 40.7 </span></span>
+<span><span class="co">##     Pre = 0.165, Running = 60, Post = 0.323, Total = 60.5 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                            mean     sd 0.025quant 0.5quant</span></span>
-<span><span class="co">## Precision for the Gaussian observations 105.087 11.266     84.397  104.578</span></span>
-<span><span class="co">## Theta1 for field                         -0.150  0.189     -0.531   -0.146</span></span>
-<span><span class="co">## Theta2 for field                          0.789  0.186      0.431    0.786</span></span>
-<span><span class="co">## Theta3 for field                          0.935  0.981     -1.071    0.960</span></span>
-<span><span class="co">## Theta4 for field                         -1.239  0.298     -1.846   -1.232</span></span>
+<span><span class="co">## Precision for the Gaussian observations 104.739 10.619     85.054  104.319</span></span>
+<span><span class="co">## Theta1 for field                         -0.129  0.126     -0.379   -0.128</span></span>
+<span><span class="co">## Theta2 for field                          0.767  0.164      0.446    0.766</span></span>
+<span><span class="co">## Theta3 for field                          1.076  0.360      0.340    1.086</span></span>
+<span><span class="co">## Theta4 for field                         -1.189  0.174     -1.536   -1.188</span></span>
 <span><span class="co">##                                         0.975quant    mode</span></span>
-<span><span class="co">## Precision for the Gaussian observations    128.697 103.745</span></span>
-<span><span class="co">## Theta1 for field                             0.213  -0.132</span></span>
-<span><span class="co">## Theta2 for field                             1.165   0.772</span></span>
-<span><span class="co">## Theta3 for field                             2.788   1.074</span></span>
-<span><span class="co">## Theta4 for field                            -0.672  -1.202</span></span>
+<span><span class="co">## Precision for the Gaussian observations    126.814 103.722</span></span>
+<span><span class="co">## Theta1 for field                             0.117  -0.124</span></span>
+<span><span class="co">## Theta2 for field                             1.091   0.764</span></span>
+<span><span class="co">## Theta3 for field                             1.755   1.128</span></span>
+<span><span class="co">## Theta4 for field                            -0.852  -1.181</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Deviance Information Criterion (DIC) ...............: -737.92</span></span>
-<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 947.81</span></span>
-<span><span class="co">## Effective number of parameters .....................: 345.33</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC) ...............: -744.74</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 946.76</span></span>
+<span><span class="co">## Effective number of parameters .....................: 342.72</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: -770.35</span></span>
-<span><span class="co">## Effective number of parameters .................: 236.56</span></span>
+<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: -773.05</span></span>
+<span><span class="co">## Effective number of parameters .................: 237.66</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -12.83 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -13.97 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -908,10 +908,10 @@ scale by using the function <code><a href="../reference/rspde.result.html">rspde
 <code class="sourceCode R"><span><span class="va">result_fit_nonstat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit_nonstat</span>, <span class="st">"field"</span>, <span class="va">rspde_model_nonstat</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_nonstat</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                    mean       sd 0.025quant  0.5quant 0.975quant      mode</span></span>
-<span><span class="co">## Theta1.matern -0.149524 0.189068  -0.531278 -0.146299   0.213008 -0.132325</span></span>
-<span><span class="co">## Theta2.matern  0.788697 0.186323   0.431413  0.785523   1.164880  0.771789</span></span>
-<span><span class="co">## Theta3.matern  0.934803 0.980863  -1.071430  0.960301   2.787500  1.073990</span></span>
-<span><span class="co">## nu             0.915375 0.205276   0.548400  0.904804   1.348210  0.887890</span></span></code></pre>
+<span><span class="co">## Theta1.matern -0.128635 0.125902  -0.379065 -0.127760   0.116656 -0.124081</span></span>
+<span><span class="co">## Theta2.matern  0.767014 0.163728   0.446481  0.766400   1.091130  0.763841</span></span>
+<span><span class="co">## Theta3.matern  1.076200 0.359641   0.340225  1.085680   1.755090  1.127980</span></span>
+<span><span class="co">## nu             0.939210 0.123387   0.710424  0.934883   1.193740  0.927579</span></span></code></pre>
 <p>Let us compare the mean to the true values of the parameters:</p>
 <div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">summ_res_nonstat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_nonstat</span><span class="op">)</span></span>
@@ -923,10 +923,10 @@ scale by using the function <code><a href="../reference/rspde.result.html">rspde
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##       parameter true      mean      mode</span></span>
-<span><span class="co">## 1 Theta1.matern  0.0 -0.149524 -0.132325</span></span>
-<span><span class="co">## 2 Theta2.matern  1.0  0.788697  0.771789</span></span>
-<span><span class="co">## 3 Theta3.matern  1.0  0.934803  1.073990</span></span>
-<span><span class="co">## 4            nu  0.8  0.915375  0.887890</span></span></code></pre>
+<span><span class="co">## 1 Theta1.matern  0.0 -0.128635 -0.124081</span></span>
+<span><span class="co">## 2 Theta2.matern  1.0  0.767014  0.763841</span></span>
+<span><span class="co">## 3 Theta3.matern  1.0  1.076200  1.127980</span></span>
+<span><span class="co">## 4            nu  0.8  0.939210  0.927579</span></span></code></pre>
 <p>We can also plot the posterior densities. To this end we will use the
 <code><a href="../reference/gg_df.html">gg_df()</a></code> function, which creates <code>ggplot2</code>
 user-friendly data frames:</p>
@@ -989,12 +989,12 @@ the last row.</p>
 <div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cv_result</span></span></code></pre></div>
 <pre><code><span><span class="co">##           Model               dss               mse              crps</span></span>
-<span><span class="co">## 1    stationary -1.28858854272935  0.13413125900278 0.192645310315333</span></span>
-<span><span class="co">## 2 nonstationary -1.30397579329009 0.132805588458343 0.192441370352074</span></span>
+<span><span class="co">## 1    stationary -1.29088372287806 0.134071329623641 0.193217631891034</span></span>
+<span><span class="co">## 2 nonstationary -1.30052050569555 0.132975594789776 0.192349241696723</span></span>
 <span><span class="co">##            Best     nonstationary     nonstationary     nonstationary</span></span>
 <span><span class="co">##               scrps</span></span>
-<span><span class="co">## 1 0.486202817728881</span></span>
-<span><span class="co">## 2 0.484796492085534</span></span>
+<span><span class="co">## 1 0.487469860035816</span></span>
+<span><span class="co">## 2 0.484157555135236</span></span>
 <span><span class="co">##       nonstationary</span></span></code></pre>
 <p>The <code><a href="../reference/cross_validation.html">cross_validation()</a></code> function also has the following
 useful options:</p>
