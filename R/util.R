@@ -16,54 +16,6 @@
 ##   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# Internal function to get the roots of the polynomials used
-# in the rational approximation.
-get.roots <- function(m, beta) {
-  if (beta > 2) {
-    beta <- beta - floor(beta - 1)
-  }
-
-  rb <- rep(0, m + 1)
-  rc <- rep(0, m)
-  if (m == 1) {
-    rc <- approx(m1table$beta, m1table$rc, beta)$y
-    rb[1] <- approx(m1table$beta, m1table$rb.1, beta)$y
-    rb[2] <- approx(m1table$beta, m1table$rb.2, beta)$y
-    factor <- approx(m1table$beta, m1table$factor, beta)$y
-  } else if (m == 2) {
-    rc[1] <- approx(m2table$beta, m2table$rc.1, beta)$y
-    rc[2] <- approx(m2table$beta, m2table$rc.2, beta)$y
-    rb[1] <- approx(m2table$beta, m2table$rb.1, beta)$y
-    rb[2] <- approx(m2table$beta, m2table$rb.2, beta)$y
-    rb[3] <- approx(m2table$beta, m2table$rb.3, beta)$y
-    factor <- approx(m2table$beta, m2table$factor, beta)$y
-  } else if (m == 3) {
-    rc[1] <- approx(m3table$beta, m3table$rc.1, beta)$y
-    rc[2] <- approx(m3table$beta, m3table$rc.2, beta)$y
-    rc[3] <- approx(m3table$beta, m3table$rc.3, beta)$y
-    rb[1] <- approx(m3table$beta, m3table$rb.1, beta)$y
-    rb[2] <- approx(m3table$beta, m3table$rb.2, beta)$y
-    rb[3] <- approx(m3table$beta, m3table$rb.3, beta)$y
-    rb[4] <- approx(m3table$beta, m3table$rb.4, beta)$y
-    factor <- approx(m3table$beta, m3table$factor, beta)$y
-  } else if (m == 4) {
-    rc[1] <- approx(m4table$beta, m4table$rc.1, beta)$y
-    rc[2] <- approx(m4table$beta, m4table$rc.2, beta)$y
-    rc[3] <- approx(m4table$beta, m4table$rc.3, beta)$y
-    rc[4] <- approx(m4table$beta, m4table$rc.4, beta)$y
-    rb[1] <- approx(m4table$beta, m4table$rb.1, beta)$y
-    rb[2] <- approx(m4table$beta, m4table$rb.2, beta)$y
-    rb[3] <- approx(m4table$beta, m4table$rb.3, beta)$y
-    rb[4] <- approx(m4table$beta, m4table$rb.4, beta)$y
-    rb[5] <- approx(m4table$beta, m4table$rb.5, beta)$y
-    factor <- approx(m4table$beta, m4table$factor, beta)$y
-  } else {
-    stop("m must be one of the values 1,2,3,4.")
-  }
-
-  return(list(rb = rb, rc = rc, factor = factor))
-}
-
 #' The Matern covariance function
 #'
 #' `matern.covariance` evaluates the Matern covariance function
@@ -1526,14 +1478,61 @@ print.CBrSPDEobj <- function(x, ...) {
 }
 
 
-
+#' @name get.roots
+#' @title Get roots of the polynomials used in the operator based rational 
+#' approximation.
+#' @description Get list with rational coefficients
+#' @param order order of the rational approximation
+#' @param beta value of beta to get the coefficients for.
+#' @param type_interp Type of interpolation. Options are "linear" or "spline".
+#' @return A list with coefficients.
+#' @noRd
+get.roots <- function(order, beta, type_interp = "linear") {
+  if(!(order %in% c(1,2,3,4))) {
+    stop("order must be one of the values 1,2,3,4.")
+  }
+  if (beta > 2) {
+    beta <- beta - floor(beta - 1)
+  }
+  mt <- get(paste0("m", order, "table"))
+  rb <- rep(0, order + 1)
+  rc <- rep(0, order)
+  if(type_interp == "linear"){
+      if(order == 1) {
+          rc = approx(mt$beta, mt[[paste0("rc")]], beta)$y
+      } else {
+          rc = sapply(1:order, function(i) {
+              approx(mt$beta, mt[[paste0("rc.", i)]], beta)$y
+          })
+      }
+      rb = sapply(1:(order+1), function(i) {
+           approx(mt$beta, mt[[paste0("rb.", i)]], xout = beta)$y
+      })
+      factor = approx(mt$beta, mt$factor, xout = beta)$y
+  } else if(type_interp == "spline") {
+      if(order == 1) {
+          rc = spline(mt$beta, mt[[paste0("rc")]], xout = beta)$y
+      } else {
+          rc = sapply(1:order, function(i) {
+              spline(mt$beta, mt[[paste0("rc.", i)]], xout = beta)$y
+          })
+      }
+      rb = sapply(1:(order+1), function(i) {
+          spline(mt$beta, mt[[paste0("rb.", i)]], xout = beta)$y
+      })
+      factor = spline(mt$beta, mt$factor, xout = beta)$y
+  } else {
+      stop("invalid type. The options are 'linear' and 'spline'.")
+  }
+  return(list(rb = rb, rc = rc, factor = factor))
+}
+    
 #' @name get_rational_coefficients
 #' @title Get matrix with rational coefficients
 #' @description Get matrix with rational coefficients
 #' @param order order of the rational approximation
 #' @param type_rational_approx Type of the rational
-#' approximation. Options are "chebfun", "brasil"
-#' and "chebfunLB"
+#' approximation. Options are "chebfun", "brasil", "chebfunLB" and "operator"
 #' @return A matrix with rational approximations.
 #' @noRd
 
@@ -1551,7 +1550,64 @@ get_rational_coefficients <- function(order, type_rational_approx) {
 }
 
 
-
+#' @name interp_rational_coefficients
+#' @title Get list with interpolated rational coefficients
+#' @description Get list with interpolated rational coefficients for specific 
+#' value of alpha.
+#' @param order order of the rational approximation
+#' @param type_rational_approx Type of the rational
+#' approximation. Options are "chebfun", "brasil"
+#' and "chebfunLB"
+#' @param type_interp Type of interpolation. Options are "linear" 
+#' (linear interpolation), "log" (log-linear interpolation), "spline" (spline
+#' interpolation) and "logspline" (log-spline interpolation).
+#' @param alpha Value of alpha for the coefficients. 
+#' @return A list with rational approximations.
+#' @noRd
+interp_rational_coefficients <- function(order, 
+                                         type_rational_approx,
+                                         type_interp = "spline", 
+                                         alpha){
+    mt <- get_rational_coefficients(order = order, 
+                                    type_rational_approx=type_rational_approx)
+    alpha <- cut_decimals(alpha)
+    if(type_interp == "linear"){
+        r = sapply(1:order, function(i) {
+            approx(mt$alpha, mt[[paste0("r", i)]], alpha)$y
+        })
+        p = sapply(1:order, function(i) {
+            approx(mt$alpha, mt[[paste0("p", i)]], alpha)$y
+        })
+        k = approx(mt$alpha, mt$k, cut_decimals(alpha))$y    
+    } else if (type_interp == "log"){
+        r = sapply(1:order, function(i) {
+            exp(approx(mt$alpha, log(mt[[paste0("r", i)]]), alpha)$y)
+        })
+        p = sapply(1:order, function(i) {
+            -exp(approx(mt$alpha, log(-mt[[paste0("p", i)]]), alpha)$y)
+        })
+        k = exp(approx(mt$alpha, log(mt$k), alpha)$y)
+    } else if(type_interp == "spline") {
+        r = sapply(1:order, function(i) {
+            spline(mt$alpha, mt[[paste0("r", i)]], xout = alpha)$y
+        })
+        p = sapply(1:order, function(i) {
+            spline(mt$alpha, mt[[paste0("p", i)]], xout = alpha)$y
+        })
+        k = spline(mt$alpha, mt$k, xout = alpha)$y    
+    } else if(type_interp == "logspline") {
+        r = sapply(1:order, function(i) {
+            exp(spline(mt$alpha, log(mt[[paste0("r", i)]]), xout = alpha)$y)
+        })
+        p = sapply(1:order, function(i) {
+            -exp(spline(mt$alpha, log(-mt[[paste0("p", i)]]), xout = alpha)$y)
+        })
+        k = exp(spline(mt$alpha, log(mt$k), xout = alpha)$y)
+    } else {
+        stop("invalid type. The options are 'linear', 'log', 'spline' and 'logspline'.")
+    }
+    return(list(k=k, r=r, p=p))
+}
 
 #' Changing the type of the rational approximation
 #'

@@ -228,14 +228,20 @@ rspde.matern <- function(mesh,
     if (!integer_alpha) {
       if (rspde.order > 0) {
         n_m <- rspde.order
-        mt <- get_rational_coefficients(rspde.order, type.rational.approx)
-        r <- sapply(1:(n_m), function(i) {
-          approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2 * beta))$y
-        })
-        p <- sapply(1:(n_m), function(i) {
-          approx(mt$alpha, mt[[paste0("p", i)]], cut_decimals(2 * beta))$y
-        })
-        k <- approx(mt$alpha, mt$k, cut_decimals(2 * beta))$y
+        coeff <- interp_rational_coefficients(rspde.order, 
+                                              type_rational_approx = type.rational.approx,
+                                              alpha = alpha)
+        r <- coeff$r
+        p <- coeff$p
+        k <- coeff$k
+        #mt <- get_rational_coefficients(rspde.order, type.rational.approx)
+        #r <- sapply(1:(n_m), function(i) {
+        #  approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2 * beta))$y
+        #})
+        #p <- sapply(1:(n_m), function(i) {
+        #  approx(mt$alpha, mt[[paste0("p", i)]], cut_decimals(2 * beta))$y
+        #})
+        #k <- approx(mt$alpha, mt$k, cut_decimals(2 * beta))$y
       }
     }
   } else {
