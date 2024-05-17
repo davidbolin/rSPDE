@@ -17,6 +17,9 @@ rspde.intrinsic.matern(
   debug = FALSE,
   shared_lib = "detect",
   diagonal = 1e-05,
+  eigen.version = FALSE,
+  mean.correction = FALSE,
+  true.scaling = FALSE,
   ...
 )
 }
@@ -41,6 +44,12 @@ it will use the local installation (does not work if your installation is from C
 Otherwise, you can directly supply the path of the .so (or .dll) file.}
 
 \item{diagonal}{Value of diagonal correction for INLA stability}
+
+\item{eigen.version}{Use Eigen implementation? This is needed if either mean.correction or true.scaling are used.}
+
+\item{mean.correction}{Add mean correction for extreme value models?}
+
+\item{true.scaling}{Compute the true normalizing constant manually?}
 
 \item{...}{Only being used internally.}
 
