@@ -66,3 +66,11 @@ void compute_Q_integer(int size, double *entries_C, int *i_C, int *j_C,
                     double *entries_B_kappa, double *entries_B_tau,
                     int ncol_B, double *theta_entries,
                     double *Q_out, int alpha);
+
+
+void compute_Q_intrinsic(int size, 
+                         double *entries_C, int *i_C, int *j_C, int n_nonzero_C,
+                         double *entries_G, int *i_G, int *j_G, int n_nonzero_G,
+                         double *theta, double *Q_out, int alpha,
+                         int compute_Q, int compute_mean, int compute_logdet,
+                         double*ld_out, double *mean_out);

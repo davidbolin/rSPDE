@@ -1,13 +1,13 @@
 toInclude = ${R_LIBRARY_DIR}/INLA/include/
 
-obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o cgeneric_rspde_stat_frac_model.o cgeneric_rspde_nonstat_general.o cgeneric_rspde_stat_general.o cgeneric_rspde_stat_parsim_gen.o cgeneric_rspde_stat_parsim_fixed.o cgeneric_rspde_stat_int.o cgeneric_rspde_nonstat_gen_fixed.o cgeneric_rspde_nonstat_int.o cgeneric_aux_nonstat_int.o inla_cgeneric_rspde_intrinsic_int_model.o
+obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_intrinsic.o cgeneric_aux_nonstat_fixed.o cgeneric_rspde_stat_frac_model.o cgeneric_rspde_nonstat_general.o cgeneric_rspde_stat_general.o cgeneric_rspde_stat_parsim_gen.o cgeneric_rspde_stat_parsim_fixed.o cgeneric_rspde_stat_int.o cgeneric_rspde_nonstat_gen_fixed.o cgeneric_rspde_nonstat_int.o cgeneric_aux_nonstat_int.o inla_cgeneric_rspde_intrinsic_int_model.o cgeneric_rspde_intrinsic_eigen.o
 
 all : rSPDE.so
 
 CC = gcc
 CXX = g++
 
-EIGEN_MAC = /usr/local
+EIGEN_MAC = /opt/homebrew/opt/eigen/
 EIGEN_LINUX = /usr
 
 flags = -O2 -Wall -Wextra -fpic
