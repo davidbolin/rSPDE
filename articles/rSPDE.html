@@ -298,7 +298,7 @@ details.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 0.379, Running = 2.54, Post = 0.158, Total = 3.08 </span></span>
+<span><span class="co">#&gt;     Pre = 0.405, Running = 2.52, Post = 0.0811, Total = 3.01 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
@@ -326,7 +326,7 @@ following:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;            mean         sd 0.025quant  0.5quant 0.975quant     mode</span></span>
 <span><span class="co">#&gt; tau   0.0253177 0.00308018  0.0196175 0.0252343  0.0316572 0.025131</span></span>
-<span><span class="co">#&gt; kappa 8.8568800 1.24979000  6.6087000 8.7904300 11.5069000 8.678790</span></span>
+<span><span class="co">#&gt; kappa 8.8568900 1.24979000  6.6087100 8.7904300 11.5069000 8.678790</span></span>
 <span><span class="co">#&gt; nu    0.8157250 0.03785310  0.7456920 0.8140100  0.8940130 0.808801</span></span></code></pre></div>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
@@ -346,8 +346,8 @@ following:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter         true       mean       mode</span></span>
 <span><span class="co">#&gt; 1       tau  0.004452908 0.02531772 0.02513105</span></span>
-<span><span class="co">#&gt; 2     kappa 12.899612397 8.85688455 8.67879009</span></span>
-<span><span class="co">#&gt; 3        nu  1.300000000 0.81572475 0.80880093</span></span></code></pre></div>
+<span><span class="co">#&gt; 2     kappa 12.899612397 8.85688520 8.67879067</span></span>
+<span><span class="co">#&gt; 3        nu  1.300000000 0.81572474 0.80880092</span></span></code></pre></div>
 <p>We can also obtain the summary in the <code>matern</code>
 parameterization by setting the <code>parameterization</code> argument
 to <code>matern</code>:</p>
@@ -375,8 +375,8 @@ to <code>matern</code>:</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df_matern</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter true      mean      mode</span></span>
-<span><span class="co">#&gt; 1     sigma 2.00 2.6676795 2.6018637</span></span>
-<span><span class="co">#&gt; 2     range 0.25 0.2962344 0.2882183</span></span>
+<span><span class="co">#&gt; 1     sigma 2.00 2.6676794 2.6018636</span></span>
+<span><span class="co">#&gt; 2     range 0.25 0.2962344 0.2882181</span></span>
 <span><span class="co">#&gt; 3        nu 1.30 0.8157247 0.8088009</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -524,7 +524,7 @@ form the stack manually, but can simply collect the required data in a
 <span><span class="co">#&gt;     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">#&gt;     Predictor: y ~ .</span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 0.182, Running = 2.64, Post = 0.459, Total = 3.28 </span></span>
+<span><span class="co">#&gt;     Pre = 0.162, Running = 2.7, Post = 0.19, Total = 3.06 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
@@ -556,10 +556,10 @@ form the stack manually, but can simply collect the required data in a
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_bru_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;            mean         sd 0.025quant  0.5quant 0.975quant     mode</span></span>
-<span><span class="co">#&gt; tau   0.0253177 0.00308017  0.0196175 0.0252343  0.0316572 0.025131</span></span>
-<span><span class="co">#&gt; kappa 8.8568600 1.24978000  6.6086700 8.7904100 11.5068000 8.678770</span></span>
-<span><span class="co">#&gt; nu    0.8157250 0.03785300  0.7456930 0.8140110  0.8940130 0.808801</span></span></code></pre></div>
+<span><span class="co">#&gt;            mean         sd 0.025quant  0.5quant 0.975quant      mode</span></span>
+<span><span class="co">#&gt; tau   0.0253177 0.00308019  0.0196175 0.0252343  0.0316573 0.0251311</span></span>
+<span><span class="co">#&gt; kappa 8.8569100 1.24979000  6.6087300 8.7904500 11.5069000 8.6788100</span></span>
+<span><span class="co">#&gt; nu    0.8157240 0.03785320  0.7456910 0.8140100  0.8940120 0.8088010</span></span></code></pre></div>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -577,9 +577,9 @@ form the stack manually, but can simply collect the required data in a
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter         true       mean       mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.004452908 0.02531771 0.02513104</span></span>
-<span><span class="co">#&gt; 2     kappa 12.899612397 8.85685569 8.67876763</span></span>
-<span><span class="co">#&gt; 3        nu  1.300000000 0.81572527 0.80880136</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       tau  0.004452908 0.02531773 0.02513105</span></span>
+<span><span class="co">#&gt; 2     kappa 12.899612397 8.85690916 8.67880928</span></span>
+<span><span class="co">#&gt; 3        nu  1.300000000 0.81572431 0.80880056</span></span></code></pre></div>
 <p>Let us obtain a summary in the <code>matern</code> parameterization
 by setting the <code>parameterization</code> argument to
 <code>matern</code>:</p>
@@ -588,9 +588,9 @@ by setting the <code>parameterization</code> argument to
 <span>                                  parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_matern</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">#&gt; std.dev 2.668310 0.2969160   2.166860 2.640250   3.322540 2.625660</span></span>
-<span><span class="co">#&gt; range   0.296293 0.0450988   0.219147 0.292484   0.394674 0.285176</span></span>
-<span><span class="co">#&gt; nu      0.815725 0.0378530   0.745693 0.814011   0.894013 0.808801</span></span></code></pre></div>
+<span><span class="co">#&gt; std.dev 2.668300 0.2969140   2.166860 2.640250   3.322530 2.625620</span></span>
+<span><span class="co">#&gt; range   0.296292 0.0450986   0.219146 0.292483   0.394671 0.285175</span></span>
+<span><span class="co">#&gt; nu      0.815724 0.0378532   0.745691 0.814010   0.894012 0.808801</span></span></code></pre></div>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_df_matern</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sigma"</span>, <span class="st">"range"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
@@ -607,9 +607,9 @@ by setting the <code>parameterization</code> argument to
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df_matern</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter true      mean      mode</span></span>
-<span><span class="co">#&gt; 1     sigma 2.00 2.6683066 2.6256647</span></span>
-<span><span class="co">#&gt; 2     range 0.25 0.2962926 0.2851762</span></span>
-<span><span class="co">#&gt; 3        nu 1.30 0.8157253 0.8088014</span></span></code></pre></div>
+<span><span class="co">#&gt; 1     sigma 2.00 2.6682999 2.6256206</span></span>
+<span><span class="co">#&gt; 2     range 0.25 0.2962916 0.2851754</span></span>
+<span><span class="co">#&gt; 3        nu 1.30 0.8157243 0.8088006</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kriging-with-inlabru-implementation-of-the-rational-spde-approach">Kriging with <code>inlabru</code> implementation of the rational
@@ -718,8 +718,8 @@ function.</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 92</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  17.34033 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 4.16622 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  17.26163 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 4.11669 secs</span></span></code></pre></div>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -735,7 +735,7 @@ function.</p>
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Time to fit</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_rspde</span><span class="op">$</span><span class="va">fitting_tim</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 17.34033 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 17.26163 secs</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kriging-with-rspde">Kriging with <code>rSPDE</code><a class="anchor" aria-label="anchor" href="#kriging-with-rspde"></a>
