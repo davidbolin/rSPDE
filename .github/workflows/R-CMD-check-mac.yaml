@@ -55,6 +55,7 @@ jobs:
           sudo ln -s $(brew --prefix gcc@14)/bin/gcc-14 /usr/local/bin/gcc
           sudo ln -s $(brew --prefix gcc@14)/bin/g++-14 /usr/local/bin/g++
           sudo ln -s $(brew --prefix eigen)/include/eigen3 /usr/local/include/eigen3
+          sudo ln -s $(brew --prefix)/lib /usr/local/brewlib
       - name: Install system dependencies on Linux (GL)
         if: runner.os == 'Linux'
         run: |
