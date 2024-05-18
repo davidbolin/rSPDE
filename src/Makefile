@@ -10,10 +10,10 @@ obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o 
 
 all : rSPDE.so
 
-CC = gcc
-CXX = g++
+CC = /usr/local/bin/gcc
+CXX = /usr/local/bin/g++
 
-EIGEN_MAC = /opt/homebrew/opt/eigen/
+EIGEN_MAC = /usr/local
 EIGEN_LINUX = /usr
 
 flags = -O2 -Wall -Wextra -fpic -g -fopenmp
