@@ -31,6 +31,14 @@ and G, the stiffness matrix.}
 
 \item{mean.correction}{Add mean correction for extreme value models?}
 
+\item{prior.lkappa.mean}{Prior on log kappa to be used for the priors and for the starting values.}
+
+\item{prior.ltau.mean}{Prior on log tau to be used for the priors and for the starting values.}
+
+\item{prior.lkappa.prec}{Precision to be used on the prior on log kappa to be used for the priors and for the starting values.}
+
+\item{prior.ltau.prec}{Precision to be used on the prior on log tau to be used for the priors and for the starting values.}
+
 \item{start.ltau}{Starting value for log of tau.}
 
 \item{start.lkappa}{Starting value for log of kappa.}
@@ -52,16 +60,6 @@ it will use the local installation (does not work if your installation is from C
 Otherwise, you can directly supply the path of the .so (or .dll) file.}
 
 \item{...}{Only being used internally.}
-
-\item{prior.kappa}{a \code{list} containing the elements \code{meanlog} and
-\code{sdlog}, that is, the mean and standard deviation on the log scale.}
-
-\item{prior.tau}{a list containing the elements \code{meanlog} and
-\code{sdlog}, that is, the mean and standard deviation on the log scale.}
-
-\item{prior.kappa.mean}{Prior kappa to be used for the priors and for the starting values.}
-
-\item{prior.tau.mean}{Prior tau to be used for the priors and for the starting values.}
 }
 \value{
 An INLA model.
