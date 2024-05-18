@@ -56,6 +56,9 @@ jobs:
           sudo ln -s $(brew --prefix gcc@14)/bin/g++-14 /usr/local/bin/g++
           sudo ln -s $(brew --prefix eigen)/include/eigen3 /usr/local/include/eigen3
           sudo ln -s $(brew --prefix)/lib /usr/local/brewlib
+          sudo ln -s $(brew --prefix)/include /usr/local/brewinclude
+          tmpvar=$(softwareupdate --list | grep "Command" | grep --only-matching --extended-regexp 'Command.*[0-9]$')   
+          softwareupdate -i $tmpvar
       - name: Install system dependencies on Linux (GL)
         if: runner.os == 'Linux'
         run: |
