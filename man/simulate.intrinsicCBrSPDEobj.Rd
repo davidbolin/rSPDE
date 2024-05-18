@@ -5,7 +5,7 @@
 \title{Simulation of a fractional intrinsic SPDE using the
 covariance-based rational SPDE approximation}
 \usage{
-\method{simulate}{intrinsicCBrSPDEobj}(object, nsim = 1, seed = NULL, integral.constraint = TRUE)
+\method{simulate}{intrinsicCBrSPDEobj}(object, nsim = 1, seed = NULL, integral.constraint = TRUE, ...)
 }
 \arguments{
 \item{object}{The covariance-based rational SPDE approximation,
@@ -14,6 +14,10 @@ computed using \code{\link[=intrinsic.matern.operators]{intrinsic.matern.operato
 \item{nsim}{The number of simulations.}
 
 \item{seed}{An object specifying if and how the random number generator should be initialized (‘seeded’).}
+
+\item{integral.constraint}{Should the contraint on the integral be done?}
+
+\item{...}{Currently not used.}
 }
 \value{
 A matrix with the \code{nsim} samples as columns.

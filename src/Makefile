@@ -20,7 +20,7 @@ MAC_INCLUDE = /usr/local/brewinclude
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
-    flags = -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp
+    flags = -O2 -Wall -Wextra -fpic -g -fopenmp
 endif
 ifeq ($(UNAME_S),Darwin)
     flags = -Wl,-ld_classic -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp
@@ -31,10 +31,10 @@ endif
 	$(CC) $(flags) -Iinclude -I$(toInclude)  -c $^ -o $@ -L$(MAC_LIB) 
 
 %.o: %.cpp
-	$(CXX) $(flags) $(CXXFLAGS) -I$(toInclude) -I$(EIGEN_MAC)/include/eigen3/ -I$(EIGEN_LINUX)/include/eigen3/ -c $^ -o $@
+	$(CXX) $(flags) -I$(toInclude) -I$(EIGEN_MAC)/include/eigen3/ -I$(EIGEN_LINUX)/include/eigen3/ -c $^ -o $@
 
 rSPDE.so: $(obj)
-	$(CXX) $(flags) $(CXXFLAGS) -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
+	$(CXX) $(flags) -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
 
 clean :
 	rm -f *.o

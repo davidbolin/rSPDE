@@ -715,12 +715,14 @@ intrinsic.matern.operators <- function(kappa,
 #' @param object The covariance-based rational SPDE approximation,
 #' computed using [intrinsic.matern.operators()]
 #' @param nsim The number of simulations.
+#' @param integral.constraint Should the contraint on the integral be done?
 #' @param seed An object specifying if and how the random number generator should be initialized (‘seeded’).
+#' @param ... Currently not used.
 #' @return A matrix with the `nsim` samples as columns.
 #' @method simulate intrinsicCBrSPDEobj
 #' @export
 simulate.intrinsicCBrSPDEobj <- function(object, nsim = 1, seed = NULL,
-                                         integral.constraint = TRUE) {
+                                         integral.constraint = TRUE, ...) {
     
     if (!is.null(seed)) {
         set.seed(seed)
