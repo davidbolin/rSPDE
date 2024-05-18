@@ -112,71 +112,13 @@ double *inla_cgeneric_rspde_intrinsic_eigen_cache(inla_cgeneric_cmd_tp cmd, doub
                 ret[1] = M;		/* REQUIRED */
                         
                 if(cache) {
-                    printf("use cache_idx = %1d\n", cache_idx);
                     // cache exists, check if theta is the same
                     if(cache->theta[0] == theta[0] && cache->theta[1] == theta[1]) {
+                        //printf("Q: reusing Q for cache_idx = %1d\n", cache_idx);
                         // same parameters, return Q
                         memcpy(ret + 2, cache->Q, M * sizeof(double));
                     } else {
-                        // new parameters, compute the quantities
-                        if(mean_correction == 1 && true_scaling == 1) {
-                            mu_store = Calloc(n_mesh, double);
-                            const_store = Calloc(1, double);
-                            compute_Q_intrinsic(n_mesh, 
-                                                C->x, C->i, C->j, C->n,
-                                                G->x, G->i, G->j, G->n,
-                                                theta, 
-                                                &ret[k],
-                                                alpha,
-                                                1,
-                                                1,
-                                                1,
-                                                const_store, 
-                                                mu_store);    
-                            //then cache them and update theta
-                            memcpy(cache->Q, ret + 2,  M * sizeof(double));
-                            memcpy(cache->mu, mu_store,  n_mesh * sizeof(double));
-                            memcpy(cache->lconst, const_store,  sizeof(double));
-                            memcpy(cache->theta, theta,  2 * sizeof(double));
-                        } else if(mean_correction == 1 && true_scaling == 0) {
-                            mu_store = Calloc(n_mesh, double);
-                            compute_Q_intrinsic(n_mesh, 
-                                                C->x, C->i, C->j, C->n,
-                                                G->x, G->i, G->j, G->n,
-                                                theta, 
-                                                &ret[k],
-                                                alpha,
-                                                1,
-                                                1,
-                                                0,
-                                                const_store, 
-                                                mu_store);    
-                            //then cache them and update theta
-                            memcpy(cache->Q, ret + 2,  M * sizeof(double));
-                            memcpy(cache->mu, mu_store,  n_mesh * sizeof(double));
-                            memcpy(cache->theta, theta,  2 * sizeof(double));
-                        } else {
-                            compute_Q_intrinsic(n_mesh, 
-                                                C->x, C->i, C->j, C->n,
-                                                G->x, G->i, G->j, G->n,
-                                                theta, 
-                                                &ret[k],
-                                                alpha,
-                                                1,
-                                                0,
-                                                0,
-                                                const_store, 
-                                                mu_store);    
-                            //then cache them and update theta
-                            memcpy(cache->Q, ret + 2,  M * sizeof(double));
-                            memcpy(cache->theta, theta,  2 * sizeof(double));
-                        }
-                    }
-                } else {
-                    // cache empty, compute quantities
-                    if(mean_correction == 1 && true_scaling == 1) {
-                        mu_store = Calloc(n_mesh, double);
-                        const_store = Calloc(1, double);
+                        //printf("Q: Computing Q for cache_idx = %1d\n", cache_idx);
                         compute_Q_intrinsic(n_mesh, 
                                             C->x, C->i, C->j, C->n,
                                             G->x, G->i, G->j, G->n,
@@ -184,60 +126,23 @@ double *inla_cgeneric_rspde_intrinsic_eigen_cache(inla_cgeneric_cmd_tp cmd, doub
                                             &ret[k],
                                             alpha,
                                             1,
-                                            1,
-                                            1,
+                                            0,
+                                            0,
                                             const_store, 
                                             mu_store);    
-                        //then allocate memory in the cache and store it and theta
-                        ((my_cache_tp **) data->cache)[cache_idx] = cache = Calloc(1, my_cache_tp);
-                        cache->Q = Calloc(M, double);
-                        cache->mu = Calloc(n_mesh, double);
-                        cache->lconst = Calloc(1, double);
-                        cache->theta = Calloc(2, double);
-                        memcpy(cache->Q, ret + 2,  M * sizeof(double));
-                        memcpy(cache->mu, mu_store,  n_mesh * sizeof(double));
-                        memcpy(cache->lconst, const_store,  sizeof(double));
-                        memcpy(cache->theta, theta,  2 * sizeof(double));
-                    } else if (mean_correction == 1 && true_scaling == 0) {
-                        mu_store = Calloc(n_mesh, double);
-                        compute_Q_intrinsic(n_mesh, 
-                                            C->x, C->i, C->j, C->n,
-                                            G->x, G->i, G->j, G->n,
-                                            theta, 
-                                            &ret[k],
-                                            alpha,
-                                            1,
-                                            1,
-                                            0,
-                                            const_store, 
-                                            mu_store);   
-                        //then allocate memory in the cache and store it and theta
-                        ((my_cache_tp **) data->cache)[cache_idx] = cache = Calloc(1, my_cache_tp);
-                        cache->Q = Calloc(M, double);
-                        cache->mu = Calloc(n_mesh, double);
-                        cache->theta = Calloc(2, double);
-                        memcpy(cache->Q, ret + 2,  M * sizeof(double));
-                        memcpy(cache->mu, mu_store,  n_mesh * sizeof(double));
-                        memcpy(cache->theta, theta,  2 * sizeof(double));
-                    } else {
-                        compute_Q_intrinsic(n_mesh, 
-                                            C->x, C->i, C->j, C->n,
-                                            G->x, G->i, G->j, G->n,
-                                            theta, 
-                                            &ret[k],
-                                            alpha,
-                                            1,
-                                            0,
-                                            0,
-                                            const_store, 
-                                            mu_store); 
-                        //then allocate memory in the cache and store it and theta
-                        ((my_cache_tp **) data->cache)[cache_idx] = cache = Calloc(1, my_cache_tp);
-                        cache->Q = Calloc(M, double);
-                        cache->theta = Calloc(2, double);
-                        memcpy(cache->Q, ret + 2,  M * sizeof(double));
-                        memcpy(cache->theta, theta,  2 * sizeof(double));
                     }
+                } else {
+                        compute_Q_intrinsic(n_mesh, 
+                                            C->x, C->i, C->j, C->n,
+                                            G->x, G->i, G->j, G->n,
+                                            theta, 
+                                            &ret[k],
+                                            alpha,
+                                            1,
+                                            0,
+                                            0,
+                                            const_store, 
+                                            mu_store);    
                 }
                 break;
             }
@@ -252,10 +157,12 @@ double *inla_cgeneric_rspde_intrinsic_eigen_cache(inla_cgeneric_cmd_tp cmd, doub
                         if(cache) {
                             // cache exists, check if theta is the same
                             if(cache->theta[0] == theta[0] && cache->theta[1] == theta[1]) {
-                                // same parameters, return Q
+                                // same parameters, return mu
+                               //printf("mu: reusing mu for cache_idx = %1d\n", cache_idx);
                                 memcpy(ret + 1, cache->mu, n_mesh * sizeof(double));
                             } else {
                                 // new parameters, compute the quantities
+                                //printf("mu: Computing mu for cache_idx = %1d\n", cache_idx);
                                 if(true_scaling == 1) {
                                     Q_store = Calloc(M, double);
                                     const_store = Calloc(1, double);
@@ -368,10 +275,12 @@ double *inla_cgeneric_rspde_intrinsic_eigen_cache(inla_cgeneric_cmd_tp cmd, doub
                     if(cache) {
                         // cache exists, check if theta is the same
                         if(cache->theta[0] == theta[0] && cache->theta[1] == theta[1]) {
-                            // same parameters, return Q
+                            // same parameters, return const
+                            //printf("const: reusing const for cache_idx = %1d\n", cache_idx);
                             memcpy(ret, cache->lconst, sizeof(double));
                         } else {
                             // new parameters, compute the quantities
+                            //printf("const: Computing const for cache_idx = %1d\n", cache_idx);
                             if(mean_correction == 1) {
                                 Q_store = Calloc(M, double);
                                 mu_store = Calloc(n_mesh, double);

@@ -6,6 +6,7 @@
 #' an `inla.mesh.1d` object. Otherwise, should be a list containing elements d, the dimension, C, the mass matrix,
 #' and G, the stiffness matrix.
 #' @param alpha Smoothness parameter, need to be 1 or 2. 
+#' @param mean.correction Add mean correction for extreme value models?
 #' @param prior.kappa a `list` containing the elements `meanlog` and
 #' `sdlog`, that is, the mean and standard deviation on the log scale.
 #' @param prior.tau a list containing the elements `meanlog` and
@@ -14,6 +15,11 @@
 #' @param prior.kappa.mean Prior kappa to be used for the priors and for the starting values.
 #' @param prior.tau.mean Prior tau to be used for the priors and for the starting values.
 #' @param start.ltau Starting value for log of tau. 
+#' @param true.scaling Compute the true normalizing constant manually? Default `TRUE`. 
+#' The alternative is to set this to `FALSE` and set the `diagonal` argument to some small
+#' positive value. In the latter case, the model is approximated by a non-intrinsic model 
+#' with a precision matrix that has the `diagonal` value added to the diagonal. 
+#' @param diagonal Value of diagonal correction for INLA stability. Default 0.
 #' @param debug INLA debug argument
 #' @param shared_lib Which shared lib to use for the cgeneric implementation?
 #' If "detect", it will check if the shared lib exists locally, in which case it will
@@ -21,10 +27,6 @@
 #' If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
 #' it will use the local installation (does not work if your installation is from CRAN).
 #' Otherwise, you can directly supply the path of the .so (or .dll) file.
-#' @param diagonal Value of diagonal correction for INLA stability
-#' @param eigen.version Use Eigen implementation? This is needed if either mean.correction or true.scaling are used.
-#' @param mean.correction Add mean correction for extreme value models?
-#' @param true.scaling Compute the true normalizing constant manually?
 #' @param ... Only being used internally.
 #'
 #' @return An INLA model.
@@ -32,23 +34,23 @@
 
 rspde.intrinsic.matern <- function(mesh,
                                    alpha = 2,
+                                   mean.correction = FALSE,
                                    prior.lkappa.mean = NULL,
                                    prior.ltau.mean = 1,
                                    prior.lkappa.prec = 0.1,
                                    prior.ltau.prec = 0.1,
                                    start.ltau = NULL,
                                    start.lkappa = NULL,
+                                   true.scaling = TRUE,
+                                   diagonal = 0,
                                    debug = FALSE,
                                    shared_lib = "detect",
-                                   diagonal = 1e-5,
-                                   eigen.version = FALSE,
-                                   mean.correction = FALSE,
-                                   true.scaling = FALSE,
                                    ...) {
 
-    cache = FALSE
-    if(!eigen.version && (mean.correction || true.scaling)) {
-        stop("If mean correction or the true intrinsic scaling is used, eigen.version needs to be TRUE.")
+    cache <- TRUE
+    eigen.version <- FALSE
+    if(mean.correction || true.scaling) {
+        eigen.version = TRUE
     }
     if(diagonal <0){
         stop("diagonal correction needs to be non-negative.")
