@@ -13,6 +13,8 @@ all : rSPDE.so
 CC = /usr/local/bin/gcc
 CXX = /usr/local/bin/g++
 
+CXXFLAGS = -Wl,-ld_classic
+
 EIGEN_MAC = /usr/local
 EIGEN_LINUX = /usr
 MAC_LIB = /usr/local/brewlib
@@ -25,10 +27,10 @@ flags = -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp
 	$(CC) $(flags) -Iinclude -I$(toInclude)  -c $^ -o $@ -L$(MAC_LIB) 
 
 %.o: %.cpp
-	$(CXX) $(flags)  -I$(toInclude) -I$(EIGEN_MAC)/include/eigen3/ -I$(EIGEN_LINUX)/include/eigen3/ -c $^ -o $@
+	$(CXX) $(flags) $(CXXFLAGS) -I$(toInclude) -I$(EIGEN_MAC)/include/eigen3/ -I$(EIGEN_LINUX)/include/eigen3/ -c $^ -o $@
 
 rSPDE.so: $(obj)
-	$(CXX) $(flags) -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
+	$(CXX) $(flags) $(CXXFLAGS) -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
 
 clean :
 	rm -f *.o

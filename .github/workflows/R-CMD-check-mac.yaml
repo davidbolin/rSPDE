@@ -57,7 +57,6 @@ jobs:
           sudo ln -s $(brew --prefix eigen)/include/eigen3 /usr/local/include/eigen3
           sudo ln -s $(brew --prefix)/lib /usr/local/brewlib
           sudo ln -s $(brew --prefix)/include /usr/local/brewinclude
-          sudo softwareupdate -i "Command Line Tools for Xcode-15.3"
       - name: Install system dependencies on Linux (GL)
         if: runner.os == 'Linux'
         run: |
