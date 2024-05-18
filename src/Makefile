@@ -16,8 +16,9 @@ CXX = /usr/local/bin/g++
 EIGEN_MAC = /usr/local
 EIGEN_LINUX = /usr
 MAC_LIB = /usr/local/brewlib
+MAC_INCLUDE = /usr/local/brewinclude
 
-flags = -O2 -Wall -Wextra -fpic -g -fopenmp
+flags = -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp
 
 %.o: %.c
 	test -f ${R_LIBRARY_DIR}/INLA/include/cgeneric.h || test -f cgeneric.h || wget -O cgeneric.h https://raw.githubusercontent.com/hrue/r-inla/devel/inlaprog/src/cgeneric.h
