@@ -8,18 +8,17 @@
 rspde.intrinsic.matern(
   mesh,
   alpha = 2,
+  mean.correction = FALSE,
   prior.lkappa.mean = NULL,
   prior.ltau.mean = 1,
   prior.lkappa.prec = 0.1,
   prior.ltau.prec = 0.1,
   start.ltau = NULL,
   start.lkappa = NULL,
+  true.scaling = TRUE,
+  diagonal = 0,
   debug = FALSE,
   shared_lib = "detect",
-  diagonal = 1e-05,
-  eigen.version = FALSE,
-  mean.correction = FALSE,
-  true.scaling = FALSE,
   ...
 )
 }
@@ -30,9 +29,18 @@ and G, the stiffness matrix.}
 
 \item{alpha}{Smoothness parameter, need to be 1 or 2.}
 
+\item{mean.correction}{Add mean correction for extreme value models?}
+
 \item{start.ltau}{Starting value for log of tau.}
 
 \item{start.lkappa}{Starting value for log of kappa.}
+
+\item{true.scaling}{Compute the true normalizing constant manually? Default \code{TRUE}.
+The alternative is to set this to \code{FALSE} and set the \code{diagonal} argument to some small
+positive value. In the latter case, the model is approximated by a non-intrinsic model
+with a precision matrix that has the \code{diagonal} value added to the diagonal.}
+
+\item{diagonal}{Value of diagonal correction for INLA stability. Default 0.}
 
 \item{debug}{INLA debug argument}
 
@@ -42,14 +50,6 @@ use it. Otherwise it will use INLA's shared library.
 If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
 it will use the local installation (does not work if your installation is from CRAN).
 Otherwise, you can directly supply the path of the .so (or .dll) file.}
-
-\item{diagonal}{Value of diagonal correction for INLA stability}
-
-\item{eigen.version}{Use Eigen implementation? This is needed if either mean.correction or true.scaling are used.}
-
-\item{mean.correction}{Add mean correction for extreme value models?}
-
-\item{true.scaling}{Compute the true normalizing constant manually?}
 
 \item{...}{Only being used internally.}
 

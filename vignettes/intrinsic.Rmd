@@ -52,7 +52,7 @@ $$
 where $\alpha + \beta > d/2$ and $d$ is the dimension of the spatial domain. These models are handled 
 by performing two rational approximations, one for each fractional operator. 
 
-To illustrate these models, we begin by defining a mesh over $[0,1]\times [0, 1]$:
+To illustrate these models, we begin by defining a mesh over $[0,2]\times [0, 2]$:
 
 ```{r, message=FALSE, warning=FALSE, fig.align='center'}
 library(fmesher)
@@ -137,7 +137,7 @@ simulated field $u$ at the observation locations. After this we simply add the m
 
 ```{r}
 n_loc <- 2000
-loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
+loc_2d_mesh <- matrix(2*runif(n_loc * 2), n_loc, 2)
 
 A <- spde.make.A(
   mesh = mesh_2d,
@@ -231,20 +231,12 @@ proceed in the same fashion as we would in `r inla_link()`'s standard SPDE imple
 
 ```{r create_proj_grid}
 projgrid <- inla.mesh.projector(mesh_2d,
-  xlim = c(0, 1),
-  ylim = c(0, 1)
+  xlim = c(0, 2),
+  ylim = c(0, 2)
 )
 ```
 
-This lattice contains 100 × 100 locations (the default) which are shown in the following figure:
-
-
-```{r plot_prd, fig.align='center'}
-coord.prd <- projgrid$lattice$loc
-plot(coord.prd, type = "p", cex = 0.1)
-```
-
-Let us now calculate the predictions jointly with the estimation. To this end, first, 
+This lattice contains 100 × 100 locations (the default). Let us now calculate the predictions jointly with the estimation. To this end, first, 
 we begin by linking the prediction coordinates to the mesh nodes through an $A$
  matrix
 
@@ -310,4 +302,35 @@ field.pred.sd.df <- data.frame(x1 = proj$lattice$loc[,1],
                         sd = as.vector(sd.prd))
 ggplot(field.pred.sd.df, aes(x = x1, y = x2, fill = sd)) +
   geom_raster() + scale_fill_viridis()
+```
+
+## Extreme value models
+
+When used for extreme value statistics, one might want to use a particular form 
+of the mean value of the latent field $u$, which is zero at one location $k$ and is given by the diagonal of $Q_{-k,-k}^{-1}$ for the remaining locations. This option can be
+specified via the `mean.correction` argument of `rspde.intrinsic.matern`:
+
+```{r}
+rspde_model2 <- rspde.intrinsic.matern(mesh = mesh_2d, alpha = alpha,
+                                       mean.correction = TRUE)
+```
+
+We can then fit this model as before: 
+
+```{r message=FALSE, warning=FALSE}
+f <- y ~ -1 + f(field, model = rspde_model2)
+rspde_fit <- inla(f,
+                  data = inla.stack.data(st.dat),
+                  family = "gaussian",
+                  control.predictor = list(A = inla.stack.A(st.dat)))
+
+```
+
+To see the posterior distributions of the parameters we can do:
+```{r}
+result_fit <- rspde.result(rspde_fit, "field", rspde_model2)
+posterior_df_fit <- gg_df(result_fit)
+
+ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
