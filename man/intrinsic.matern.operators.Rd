@@ -117,7 +117,7 @@ if (requireNamespace("RSpectra", quietly = TRUE)) {
     beta = beta, loc_mesh = x, d = 1
   )
   # Compute and plot the variogram of the model
-  Sigma <- op$A \%*\% solve(op$Q, t(op$A))
+  Sigma <- op$A[,-1] \%*\% solve(op$Q[-1,-1], t(op$A[,-1]))
   One <- rep(1, times = ncol(Sigma))
   D <- diag(Sigma)
   Gamma <- 0.5 * (One \%*\% t(D) + D \%*\% t(One) - 2 * Sigma)
