@@ -28,7 +28,7 @@ matern.rational = function(h,
                            type_interp = "linear")
 {
     
-    if(is.matrix(loc) && min(dim(h)) > 1) {
+    if(is.matrix(h) && min(dim(h)) > 1) {
         stop("Only one dimensional locations supported.")
     }
     alpha = nu+1/2
