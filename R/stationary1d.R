@@ -164,6 +164,7 @@ matern.rational.precision <- function(loc,
 ### Utility functions below ####
 
 # Derivatives of the matern covariance
+#' @noRd
 matern.derivative = function(h, kappa, nu, sigma, deriv = 1) 
 {
     if (deriv == 1) {
@@ -187,6 +188,7 @@ matern.derivative = function(h, kappa, nu, sigma, deriv = 1)
 
 
 # Reorder matern
+#' @noRd
 compute.reordering <- function(n,m,alpha) {
     if(alpha <0 || alpha > 2) {
         stop("only 0<alpha<2 supported")
@@ -200,6 +202,7 @@ compute.reordering <- function(n,m,alpha) {
 }
 
 # Precision for exponential covariance
+#' @noRd
 exp_precision <- function(loc, kappa, boundary = "free") {
     n <- length(loc)
     l <- diff(loc)
@@ -240,7 +243,7 @@ exp_precision <- function(loc, kappa, boundary = "free") {
     return(2 * kappa * Q[])
 }
 
-
+#' @noRd
 matern.p.precision <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1){
     fa <- floor(alpha)
     n <- length(loc)
@@ -339,7 +342,7 @@ matern.p.precision <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1){
     return(Q)
 }
 
-
+#' @noRd
 #Joint covariance of process and derivative for shifted Matern
 matern.p.joint <- function(s,t,kappa,p, fa = 1){
     mat <- matrix(0, nrow = 2*fa, ncol = 2*fa)
@@ -357,7 +360,7 @@ matern.p.joint <- function(s,t,kappa,p, fa = 1){
     return(mat)
 }
 
-
+#' @noRd
 #covariance for shifted Matern for 1<alpha<2
 matern.p <- function(s,t,kappa,p,fa, deriv=0){
     h <- s-t
