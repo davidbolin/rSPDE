@@ -118,12 +118,11 @@ matern.rational.precision <- function(loc,
     }
     alpha=nu+1/2
     n <- length(loc)
-    if (nu >= 3/2) {
-        stop("Only implemented for 0 < nu < 3/2")
-    } else if(nu==1/2){
-        scaling <- gamma(nu)/(sigma^2*gamma(alpha)*sqrt(4*pi)*kappa^(2*nu))
-        Q <- exp_precision(loc,kappa)
-        A <- Diagonal(n)
+    if (alpha%%1 == 0) {
+        tmp <- matern.p.precision(loc = loc,kappa = kappa,p = 0,
+                                  equally_spaced = equally_spaced, alpha = alpha) 
+        Q <- tmp$Q
+        A <- tmp$A
     } else {
         coeff <- interp_rational_coefficients(order = order, 
                                               type_rational_approx = type_rational, 
@@ -133,24 +132,19 @@ matern.rational.precision <- function(loc,
         p <- coeff$p
         k <- coeff$k
         
-        A <- I <- Diagonal(n)
-        scaling <- kappa^(2*alpha)*gamma(nu)/(sigma^2*gamma(alpha)*sqrt(4*pi)*kappa^(2*nu))
+        ## k part
+        tmp <- matern.k.precision(loc = loc,kappa,equally_spaced = equally_spaced, 
+                                  alpha = alpha)
+        Q <- tmp$Q/(k*sigma^2)
+        A <- tmp$A
         
-        if(nu < 1/2) {
-            Q <- I/k
-            for(i in 1:length(p)){
-                Q <- bdiag(Q, exp_precision(loc,sqrt(kappa^2*(1-p[i])))/(r[i]*kappa^2))
-                A <- cbind(A, I)
-            }
-        } else {
-            Q <- exp_precision(loc,kappa)/(k*kappa^2)
-            
-            for(i in 1:length(p)){
-                Q_tmp <- matern.p.precision(loc, kappa, kappa^2*p[i],
-                                            equally_spaced = equally_spaced, alpha)/(r[i]*kappa^4)
-                Q <- bdiag(Q, Q_tmp)
-                A = cbind(A,kronecker(Diagonal(n),Matrix(c(1,0),nrow=1,ncol=2)))
-            }
+        ## p part
+        for(i in 1:length(p)){
+            tmp <- matern.p.precision(loc = loc, kappa = kappa, p =p[i],
+                                      equally_spaced = equally_spaced, 
+                                      alpha = alpha)
+            Q <- bdiag(Q, tmp$Q/(r[i]*sigma^2))
+            A = cbind(A,tmp$A)
         }
     }
     if(ordering == "location") {
@@ -158,33 +152,10 @@ matern.rational.precision <- function(loc,
         Q <- Q[reo,reo]
         A <- A[,reo]
     } 
-    return(list(Q = scaling*Q, A = A))    
+    return(list(Q = Q, A = A))    
 }
 
-### Utility functions below ####
-
-# Derivatives of the matern covariance
-matern.derivative = function(h, kappa, nu, sigma, deriv = 1) 
-{
-    if (deriv == 1) {
-        C = h * matern.covariance(h, kappa = kappa, nu = nu - 
-                                      1, sigma = sigma)
-        C[h == 0] = 0
-    }
-    else if (deriv == 2) {
-        C = matern.covariance(h, kappa = kappa, nu = nu - 1, sigma = sigma) + 
-            h * matern_derivative(h, kappa = kappa, nu = nu - 1, sigma = sigma, deriv = 1)
-    }
-    else {
-        C = (deriv - 1) * matern_derivative(h, kappa = kappa, 
-                                            nu = nu - 1, sigma = sigma, deriv = deriv - 2) + 
-            h * matern_derivative(h, kappa = kappa, nu = nu - 
-                                      1, sigma = sigma, deriv = deriv - 1)
-    }
-    return(-(kappa^2/(2 * (nu - 1))) * as.matrix(C))
-}
-
-
+### Utility below
 
 # Reorder matern
 compute.reordering <- function(n,m,alpha) {
@@ -198,6 +169,30 @@ compute.reordering <- function(n,m,alpha) {
         return(tmp + as.vector(rbind(0:(n-1), matrix(rep(1,2*m*n),2*m,n)%*%Diagonal(n,2*c(0:(n-1))))))
     }
 }
+
+# Derivatives of the matern covariance
+matern.derivative = function(h, kappa, nu, sigma, deriv = 1) 
+{
+    if(deriv == 0) {
+        C = matern.covariance(h, kappa = kappa, nu = nu, sigma = sigma)
+    } else if (deriv == 1) {
+        C = h * matern.covariance(h, kappa = kappa, nu = nu - 
+                                      1, sigma = sigma)
+        C[h == 0] = 0
+    }
+    else if (deriv == 2) {
+        C = matern.covariance(h, kappa = kappa, nu = nu - 1, sigma = sigma) + 
+            h * matern.derivative(h, kappa = kappa, nu = nu - 1, sigma = sigma, deriv = 1)
+    }
+    else {
+        C = (deriv - 1) * matern.derivative(h, kappa = kappa, 
+                                            nu = nu - 1, sigma = sigma, deriv = deriv - 2) + 
+            h * matern.derivative(h, kappa = kappa, nu = nu - 
+                                      1, sigma = sigma, deriv = deriv - 1)
+    }
+    return(-(kappa^2/(2 * (nu - 1))) * as.matrix(C))
+}
+
 
 # Precision for exponential covariance
 exp_precision <- function(loc, kappa, boundary = "free") {
@@ -241,150 +236,342 @@ exp_precision <- function(loc, kappa, boundary = "free") {
 }
 
 
-matern.p.precision <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1){
-    fa <- floor(alpha)
-    n <- length(loc)
-    #Q <- Matrix(0, nrow = (fa + 1) * n, ncol = (fa + 1) * n, sparse = TRUE)
-    # number of non-zero entries: 12(n-2) + 16 for n >= 2.
-    # N <- 12*(n-2) + 16
-    #n*4 + (n-1)*4 = 8n - 4 - n    
-    #n*((fa+1)^2) + (n-1)*(fa+1)^2 - 1 6 (n-1)+(n-2)+...+1 = (n-1)*n/2, (2fa -1)*fa
-    #N <- (4*fa^2)*n + (4*fa^2)*(n-1)- n*(2fa -1)*fa
-    N <- 6*n*fa^2 + n*fa - 4*fa^2 
-    #N <- 7*n-4
-    ii <- numeric(N)
-    jj <- numeric(N)
-    val <- numeric(N)
+
+
+
+
+
+#Joint covariance of process and derivative for shifted Matern
+matern.p.joint <- function(s,t,kappa,p, alpha = 1){
     
-    if(equally_spaced){
-        Q.1 <- solve(rbind(cbind(matern.p.joint(loc[1],loc[1],kappa,p), matern.p.joint(loc[1],loc[1+1],kappa,p,fa)),
-                           cbind(matern.p.joint(loc[1+1],loc[1],kappa,p), matern.p.joint(loc[1+1],loc[1+1],kappa,p,fa))))
-        
-        Q.i <- solve(rbind(cbind(matern.p.joint(loc[1],loc[1],kappa,p,fa), 
-                                 matern.p.joint(loc[1],loc[2],kappa,p,fa),
-                                 matern.p.joint(loc[1],loc[3],kappa,p,fa)),
-                           cbind(matern.p.joint(loc[2],loc[1],kappa,p,fa),
-                                 matern.p.joint(loc[2],loc[2],kappa,p,fa),
-                                 matern.p.joint(loc[2],loc[3],kappa,p,fa)),
-                           cbind(matern.p.joint(loc[3],loc[1],kappa,p,fa),
-                                 matern.p.joint(loc[3],loc[2],kappa,p,fa),
-                                 matern.p.joint(loc[3],loc[3],kappa,p,fa))))[-c(1:(2*fa)),-c(1:(2*fa))]
+    if(alpha%%1 == 0) {
+        fa <- alpha
+    } else {
+        fa <- floor(alpha) + 1    
+    }
+    mat <- matrix(0, nrow = fa, ncol = fa)
+    for(i in 1:fa) {
+        for(j in i:fa) {
+            if(i==j) {
+                mat[i,i] <- ((-1)^(i-1))*matern.p.deriv(s,t,kappa,p,alpha, deriv = 2*(i-1))
+            } else {
+                mat[i,j] <- (-1)^(j-1)*matern.p.deriv(s,t,kappa,p,alpha, deriv = i-1 + j - 1)
+                mat[j,i] <- (-1)^(i-1)*matern.p.deriv(s,t,kappa,p,alpha, deriv = i-1 + j - 1)
+            }
+        }
     }
     
-    
-    for(i in 1:(n-1)){
-        if(i==1){
-            if(!equally_spaced){
-                Q.i <- solve(rbind(cbind(matern.p.joint(loc[i],loc[i],kappa,p,fa),
-                                         matern.p.joint(loc[i],loc[i+1],kappa,p,fa)),
-                                   cbind(matern.p.joint(loc[i+1],loc[i],kappa,p,fa),
-                                         matern.p.joint(loc[i+1],loc[i+1],kappa,p,fa))))
-                counter <- 1
-                for(ki in 1:(2*fa)){
-                    for(kj in ki:(4*fa)){
-                        ii[counter] <- ki
-                        jj[counter] <- kj
-                        val[counter] <- Q.i[ki,kj]
-                        counter <- counter + 1
-                    }
+    return(mat)
+}
+
+
+matern.p <- function(s,t,kappa,p,alpha){
+    h <- s-t
+    if(p==0){
+        return(matern.covariance(h, kappa = kappa, nu = alpha - 1/2, sigma = 1))
+    } else {
+        ca <- gamma(alpha)/gamma(alpha-0.5)
+        fa <- floor(alpha)
+        kp <- kappa*sqrt(1-p)
+        out <- matern.covariance(h, kappa = kp, nu = 1/2, 
+                                 sigma = sqrt(ca*sqrt(pi)/sqrt(1-p)))
+        if(alpha < 1) {
+            return(out)
+        } else {
+            out <- out/p^fa
+            for(j in 1:fa) {
+                out <- out - matern.covariance(h, kappa = kappa, nu = j-1/2, 
+                                               sigma = sqrt(ca*gamma(j-0.5)/gamma(j)))/p^(fa + 1 - j)
+            }
+            return(out)    
+        }
+    }
+}
+
+matern.p.deriv <- function(s,t,kappa,p,alpha,deriv = 0){
+    h <- s-t
+    if(deriv ==0){
+        return(matern.p(s,t,kappa,p,alpha))
+    } else {
+        if(p==0){
+            return(matern.derivative(h, kappa = kappa, nu = alpha - 1/2, 
+                                     sigma = 1, deriv = deriv))
+        } else {
+            ca <- gamma(alpha)/gamma(alpha-0.5)
+            fa <- floor(alpha)
+            kp <- kappa*sqrt(1-p)
+            out <- matern.derivative(h, kappa = kp, nu =  1/2, 
+                                     sigma = sqrt(ca*sqrt(pi)/sqrt(1-p)), deriv = deriv)
+            if(alpha < 1) {
+                return(out)
+            } else {
+                out <- out/p^fa
+                for(j in 1:fa) {
+                    out <- out - matern.derivative(h, kappa = kappa, nu = j-1/2, 
+                                                   sigma = sqrt(ca*gamma(j-0.5)/gamma(j)), 
+                                                   deriv = deriv)/p^(fa + 1 - j)
                 }
-            } else{
+            }
+            return(out)
+        }    
+    }
+    
+}
+
+matern.p.precision <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
+    
+    n <- length(loc)
+    if(alpha==1) {
+        Q <- exp_precision(loc,kappa)/(2*kappa)
+        A <- Diagonal(n)
+        
+        return(list(Q=Q,A=A))
+    } else {
+        if(alpha%%1 == 0) {
+            fa <- alpha
+        } else {
+            fa <- floor(alpha) + 1    
+        }
+        
+        if(fa == 1) {
+            N <- n  + n - 1 
+        } else {
+            N <- n*fa^2 + (n-1)*fa^2 - n*fa*(fa -1)/2    
+        }
+        
+        ii <- numeric(N)
+        jj <- numeric(N)
+        val <- numeric(N)
+        
+        if(equally_spaced){
+            Q.1 <- solve(rbind(cbind(matern.p.joint(loc[1],loc[1],kappa,p,alpha), 
+                                     matern.p.joint(loc[1],loc[1+1],kappa,p,alpha)),
+                               cbind(matern.p.joint(loc[1+1],loc[1],kappa,p,alpha), 
+                                     matern.p.joint(loc[1+1],loc[1+1],kappa,p,alpha))))
+            
+            Q.i <- solve(rbind(cbind(matern.p.joint(loc[1],loc[1],kappa,p,alpha), 
+                                     matern.p.joint(loc[1],loc[2],kappa,p,alpha),
+                                     matern.p.joint(loc[1],loc[3],kappa,p,alpha)),
+                               cbind(matern.p.joint(loc[2],loc[1],kappa,p,alpha),
+                                     matern.p.joint(loc[2],loc[2],kappa,p,alpha),
+                                     matern.p.joint(loc[2],loc[3],kappa,p,alpha)),
+                               cbind(matern.p.joint(loc[3],loc[1],kappa,p,alpha),
+                                     matern.p.joint(loc[3],loc[2],kappa,p,alpha),
+                                     matern.p.joint(loc[3],loc[3],kappa,p,alpha))))[-c(1:fa),-c(1:fa)]
+        }
+        
+        
+        for(i in 1:(n-1)){
+            if(i==1){
+                if(!equally_spaced){
+                    Q.1 <- solve(rbind(cbind(matern.p.joint(loc[i],loc[i],kappa,p,alpha),
+                                             matern.p.joint(loc[i],loc[i+1],kappa,p,alpha)),
+                                       cbind(matern.p.joint(loc[i+1],loc[i],kappa,p,alpha),
+                                             matern.p.joint(loc[i+1],loc[i+1],kappa,p,alpha))))
+                    
+                } 
                 counter <- 1
-                for(ki in 1:(2*fa)) {
-                    for(kj in ki:(4*fa)) {
+                for(ki in 1:fa) {
+                    for(kj in ki:(2*fa)) {
                         ii[counter] <- ki
                         jj[counter] <- kj
                         val[counter] <- Q.1[ki,kj]
                         counter <- counter + 1
                     }
                 }
+            } else {
+                if(!equally_spaced){
+                    Q.i <- solve(rbind(cbind(matern.p.joint(loc[i-1],loc[i-1],kappa,p,alpha),
+                                             matern.p.joint(loc[i-1],loc[i],kappa,p,alpha),
+                                             matern.p.joint(loc[i-1],loc[i+1],kappa,p,alpha)),
+                                       cbind(matern.p.joint(loc[i],loc[i-1],kappa,p,alpha),
+                                             matern.p.joint(loc[i],loc[i],kappa,p,alpha),
+                                             matern.p.joint(loc[i],loc[i+1],kappa,p,alpha)),
+                                       cbind(matern.p.joint(loc[i+1],loc[i-1],kappa,p,alpha),
+                                             matern.p.joint(loc[i+1],loc[i],kappa,p,alpha),
+                                             matern.p.joint(loc[i+1],loc[i+1],kappa,p,alpha))))[-c(1:fa),-c(1:fa)]
+                } 
+                # Q[(2*n-1):(2*n), (2*n-3):(2*n)] = Q.i[3:4,]
+                for(ki in 1:fa){
+                    for(kj in ki:(2*fa)){
+                        ii[counter] <- fa*(i-1) + ki
+                        jj[counter] <- fa*(i-1) + kj
+                        val[counter] <-Q.i[ki,kj]
+                        counter <- counter + 1
+                    }
+                }     
             }
+        }
+        for(ki in 1:fa){
+            for(kj in ki:fa){
+                ii[counter] <- fa*(n-1) + ki
+                jj[counter] <- fa*(n-1) + kj
+                val[counter] <-Q.i[ki+fa,kj+fa]
+                counter <- counter + 1
+            }
+        }    
+        Q <- Matrix::sparseMatrix(i   = ii,
+                                  j    = jj,
+                                  x    = val,
+                                  dims = c(fa*n, fa*n), symmetric=TRUE)
+        
+        A <-  Matrix::sparseMatrix(i   = 1:n,
+                                   j    = seq(from=1,to=n*fa,by=fa),
+                                   x    = rep(1,n),
+                                   dims = c(n, fa*n))
+        return(list(Q=Q,A=A))    
+    }
+}
+
+matern.k.precision <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
+    
+    n <- length(loc)
+    if(alpha==1) {
+        Q <- exp_precision(loc,kappa)/(2*kappa)
+        A <- Diagonal(n)
+        return(list(Q=Q,A=A))
+    } else {
+        fa <- floor(alpha)
+        if(fa == 0) {
+            N <- n 
+        } else {
+            N <- n*fa^2 + (n-1)*fa^2 - n*fa*(fa -1)/2    
+        }
+        da <- max(fa,1)
+        ii <- numeric(N)
+        jj <- numeric(N)
+        val <- numeric(N)
+        
+        if(equally_spaced){
+            Q.1 <- solve(rbind(cbind(matern.k.joint(loc[1],loc[1],kappa,alpha), 
+                                     matern.k.joint(loc[1],loc[1+1],kappa,alpha)),
+                               cbind(matern.k.joint(loc[1+1],loc[1],kappa,alpha), 
+                                     matern.k.joint(loc[1+1],loc[1+1],kappa,alpha))))
             
+            Q.i <- solve(rbind(cbind(matern.k.joint(loc[1],loc[1],kappa,alpha), 
+                                     matern.k.joint(loc[1],loc[2],kappa,alpha),
+                                     matern.k.joint(loc[1],loc[3],kappa,alpha)),
+                               cbind(matern.k.joint(loc[2],loc[1],kappa,alpha),
+                                     matern.k.joint(loc[2],loc[2],kappa,alpha),
+                                     matern.k.joint(loc[2],loc[3],kappa,alpha)),
+                               cbind(matern.k.joint(loc[3],loc[1],kappa,alpha),
+                                     matern.k.joint(loc[3],loc[2],kappa,alpha),
+                                     matern.k.joint(loc[3],loc[3],kappa,alpha))))[-c(1:da),-c(1:da)]
+            
+        }
+    }
+    
+    for(i in 1:(n-1)){
+        if(i==1){
+            if(!equally_spaced){
+                Q.1 <- solve(rbind(cbind(matern.k.joint(loc[i],loc[i],kappa,alpha),
+                                         matern.k.joint(loc[i],loc[i+1],kappa,alpha)),
+                                   cbind(matern.k.joint(loc[i+1],loc[i],kappa,alpha),
+                                         matern.k.joint(loc[i+1],loc[i+1],kappa,alpha))))
+                
+            } 
+            counter <- 1
+            for(ki in 1:da) {
+                for(kj in ki:(2*da)) {
+                    ii[counter] <- ki
+                    jj[counter] <- kj
+                    val[counter] <- Q.1[ki,kj]
+                    counter <- counter + 1
+                }
+            }
         } else {
             if(!equally_spaced){
-                Q.i <- solve(rbind(cbind(matern.p.joint(loc[i-1],loc[i-1],kappa,p,fa),
-                                         matern.p.joint(loc[i-1],loc[i],kappa,p,fa),
-                                         matern.p.joint(loc[i-1],loc[i+1],kappa,p,fa)),
-                                   cbind(matern.p.joint(loc[i],loc[i-1],kappa,p,fa),
-                                         matern.p.joint(loc[i],loc[i],kappa,p,fa),
-                                         matern.p.joint(loc[i],loc[i+1],kappa,p,fa)),
-                                   cbind(matern.p.joint(loc[i+1],loc[i-1],kappa,p,fa),
-                                         matern.p.joint(loc[i+1],loc[i],kappa,p,fa),
-                                         matern.p.joint(loc[i+1],loc[i+1],kappa,p,fa))))[-c(1:(2*fa)),-c(1:(2*fa))]
+                Q.i <- solve(rbind(cbind(matern.k.joint(loc[i-1],loc[i-1],kappa,alpha),
+                                         matern.k.joint(loc[i-1],loc[i],kappa,alpha),
+                                         matern.k.joint(loc[i-1],loc[i+1],kappa,alpha)),
+                                   cbind(matern.k.joint(loc[i],loc[i-1],kappa,alpha),
+                                         matern.k.joint(loc[i],loc[i],kappa,alpha),
+                                         matern.k.joint(loc[i],loc[i+1],kappa,alpha)),
+                                   cbind(matern.k.joint(loc[i+1],loc[i-1],kappa,alpha),
+                                         matern.k.joint(loc[i+1],loc[i],kappa,alpha),
+                                         matern.k.joint(loc[i+1],loc[i+1],kappa,alpha))))[-c(1:da),-c(1:da)]
+                
             } 
-            
-            for(ki in 1:(2*fa)){
-                for(kj in ki:(4*fa)){
-                    ii[counter] <- 2*fa*i-1 + ki-1
-                    jj[counter] <- 2*fa*i-1 + kj-1
+            # Q[(2*n-1):(2*n), (2*n-3):(2*n)] = Q.i[3:4,]
+            for(ki in 1:da){
+                for(kj in ki:(2*da)){
+                    ii[counter] <- da*(i-1) + ki
+                    jj[counter] <- da*(i-1) + kj
                     val[counter] <-Q.i[ki,kj]
                     counter <- counter + 1
                 }
-            }         
+            }     
         }
     }
-    for(ki in 1:(2*fa)){
-        for(kj in (2+ki):(4*fa)){
-            ii[counter] <- 2*fa*n-1 + (ki-1)
-            jj[counter] <- 2*fa*n-3 + kj-1
-            val[counter] <-Q.i[ki+2,kj]
+    for(ki in 1:da){
+        for(kj in ki:da){
+            ii[counter] <- da*(n-1) + ki
+            jj[counter] <- da*(n-1) + kj
+            val[counter] <-Q.i[ki+da,kj+da]
             counter <- counter + 1
         }
     }    
-
     Q <- Matrix::sparseMatrix(i   = ii,
                               j    = jj,
                               x    = val,
-                              dims = c(2*fa*n, 2*fa*n), symmetric=TRUE)
-    return(Q)
+                              dims = c(da*n, da*n), symmetric=TRUE)
+    
+    A <-  Matrix::sparseMatrix(i   = 1:n,
+                               j    = seq(from=1,to=n*da,by=da),
+                               x    = rep(1,n),
+                               dims = c(n, da*n))
+    return(list(Q=Q,A=A))    
 }
 
-
 #Joint covariance of process and derivative for shifted Matern
-matern.p.joint <- function(s,t,kappa,p, fa = 1){
-    mat <- matrix(0, nrow = 2*fa, ncol = 2*fa)
-    for(i in 1:(2*fa)) {
-        for(j in i:(2*fa)) {
-            if(i==j) {
-                mat[i,j] <- ((-1)^(i-1))*matern.p(s,t,kappa,p,fa, deriv = 2*(i-1))
-            } else {
-                mat[i,j] <- matern.p(s,t,kappa,p,fa, deriv = i-1 + j - 1)
-                mat[j,i] <- -mat[i,j]    
+matern.k.joint <- function(s,t,kappa,alpha = 1){
+    fa <- floor(alpha)
+    if(fa == 0) {
+        mat <- matrix(0, nrow = 1, ncol = 1)
+        mat[1,1] <- matern.k(s,t,kappa,alpha)
+    } else {
+        mat <- matrix(0, nrow = fa, ncol = fa)    
+        for(i in 1:fa) {
+            for(j in i:fa) {
+                if(i==j) {
+                    mat[i,i] <- ((-1)^(i-1))*matern.k.deriv(s,t,kappa,alpha, deriv = 2*(i-1))
+                } else {
+                    mat[i,j] <- (-1)^(j-1)*matern.k.deriv(s,t,kappa,alpha, deriv = i-1 + j - 1)
+                    mat[j,i] <- (-1)^(i-1)*matern.k.deriv(s,t,kappa,alpha, deriv = i-1 + j - 1)
+                }
             }
-            
         }
     }
     return(mat)
 }
 
-
-#covariance for shifted Matern for 1<alpha<2
-matern.p <- function(s,t,kappa,p,fa, deriv=0){
+matern.k.deriv <- function(s,t,kappa,alpha, deriv = 0){
     h <- s-t
-    # print(p)
-    if(p==0){
-        if(deriv==0){
-            return(matern.covariance(h, kappa = kappa, nu = fa + 1/2, sigma = 1))
+    if(alpha<1){
+        if(deriv == 0) {
+            return((h==0)*sqrt(4*pi)*ca/kappa)    
         } else {
-            return(matern.derivative(h, kappa = kappa, nu = fa + 1/2, sigma = 1, deriv = deriv))
+            stop("Not differentiable")
         }
     } else {
-        if(fa == 1) {
-            a <- -1/(2*kappa*p)
-            b <- sqrt(kappa^2-p)
-            if(deriv==0){
-                return(a*(exp(-kappa*abs(h))-(kappa/b)*exp(-b*abs(h))))
-            } else if(deriv == 1) {
-                return(-a*kappa*sign(h)*(-exp(-kappa*abs(h)) + exp(-b*abs(h))))
-            } else if(deriv == 2) {
-                return(a*kappa*(kappa*exp(-kappa*abs(h))-b*exp(-b*abs(h))))
-            } else{
-                stop("only deriv=0,1,2 allowed")
-            }    
-        } else {
-          stop("not implemented yet")   
-        }
+        fa <- floor(alpha)
+        ca <- gamma(alpha)/gamma(alpha-0.5)
+        cfa <- gamma(fa)/gamma(fa-0.5)
+        return(matern.derivative(h, kappa = kappa, nu = fa - 1/2, 
+                                 sigma = sqrt(ca/cfa), deriv = deriv))
     }
 }
 
 
+matern.k <- function(s,t,kappa,alpha){
+    h <- s-t
+    
+    if(alpha<1){
+        return((h==0)*sqrt(4*pi)*ca/kappa)
+    } else {
+        fa <- floor(alpha)
+        ca <- gamma(alpha)/gamma(alpha-0.5)
+        cfa <- gamma(fa)/gamma(fa-0.5)
+        return(matern.covariance(h, kappa = kappa, nu = fa - 1/2, sigma = sqrt(ca/cfa)))
+    }
+}
