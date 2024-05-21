@@ -39,40 +39,47 @@ matern.rational = function(h,
     r <- coeff$r
     p <- coeff$p
     k <- coeff$k
+    n <- length(h)
     if (nu>0 && nu<0.5)
     {
         sigma_rational = 0
         for (i in 1:length(p)){
-            sigma_rational = sigma_rational+ r[i]*sigma^2*kappa^2*exp(-sqrt(kappa^2*(1-p[i]))*abs(h))/(2*sqrt(kappa^2*(1-p[i])))
+            Sigma <- matrix(0,n,1)
+            for(kk in 1:n) {
+                Sigma[kk] <- matern.p(h[1],h[kk], kappa = kappa,
+                                     p = p[i], alpha = alpha)
+            }
+            sigma_rational = sigma_rational+ r[i]*sigma^2*Sigma
         }
-        sigma_rational[h==0] = sigma_rational[h==0] + k*sigma^2
-        sigma_rational = sigma_rational*kappa^(-2*alpha)
+        Sigma <- matrix(0,n,1)
+        for(kk in 1:n) {
+            Sigma[kk] <- matern.k(h[1],h[kk], kappa = kappa, alpha = alpha)
+        }
+        sigma_rational = sigma_rational + k*sigma^2*Sigma
     }
     
     else {
-        a =floor(alpha)
-        b = gamma(a)*sqrt(4*pi)*kappa^(2*a-1)*2^(a-(3/2))
         
-        rho1 = ((k*sigma^2*kappa^(2*a))/b)*(kappa*abs(h))^(a-1/2)*besselK(kappa * abs(h), a-1/2)
-        rho1[h == 0] <- k*sigma^2*kappa^(2*a)*gamma(a-1/2)/(gamma(a)*sqrt(4*pi)*kappa^(2*a-1))
-        tmp = 0
+        #k part
+        Sigma <- matrix(0,n,1)
+        for(kk in 1:n) {
+            Sigma[kk] <- matern.k(h[1],h[kk], kappa = kappa, alpha = alpha)
+        }
+        sigma_rational <- k*sigma^2*Sigma
+        
+        # p part
         for (i in 1:length(p))
         {
-            rho2= r[i]*sigma^2*kappa^(2*a+2)*exp(-sqrt(kappa^2*(1-p[i]))*abs(h))/((2*((kappa^2*p[i])^(a)))*sqrt(kappa^2*(1-p[i])))
-            
-            sum=0
-            for (j in 1: floor(alpha))
-            {
-                rho3= (r[i]*sigma^2*kappa^(2*a+2)/((kappa^2*p[i])^(a+1-j)*gamma(j)*sqrt(4*pi)*kappa^(2*j-1)*2^(j-3/2)))*(kappa*abs(h))^(j-1/2)*besselK(kappa * abs(h), j-1/2)
-                rho3[h == 0] <- r[i]*sigma^2*kappa^(2*a+2)*gamma(j-1/2)/((kappa^2*p[i])^(a+1-j)*gamma(j)*sqrt(4*pi)*kappa^(2*j-1))
-                sum=sum+rho3
+            Sigma <- matrix(0,n,1)
+            for(kk in 1:n) {
+                Sigma[kk] <- matern.p(h[1],h[kk], kappa = kappa,
+                                      p = p[i], alpha = alpha)
             }
-            tmp=tmp+(rho2-sum)
+            sigma_rational = sigma_rational+ r[i]*sigma^2*Sigma
         }
-        sigma_rational=(rho1+tmp)*kappa^(-2*alpha)
     }
-    scaling <- ((gamma(alpha)*sqrt(4*pi)*kappa^(2*nu))/gamma(nu))
-    return(scaling*as.matrix(sigma_rational))
+    
+    return(as.matrix(sigma_rational))
 }
 
 
@@ -113,7 +120,7 @@ matern.rational.precision <- function(loc,
     if(!(ordering %in% c("field", "location"))) {
         stop("Ordering must be 'field' or 'location'.")
     }
-    if(is.matrix(loc) && min(dim(h)) > 1) {
+    if(is.matrix(loc) && min(dim(loc)) > 1) {
         stop("Only one dimensional locations supported.")
     }
     alpha=nu+1/2
@@ -133,7 +140,8 @@ matern.rational.precision <- function(loc,
         k <- coeff$k
         
         ## k part
-        tmp <- matern.k.precision(loc = loc,kappa,equally_spaced = equally_spaced, 
+        tmp <- matern.k.precision(loc = loc,kappa,
+                                  equally_spaced = equally_spaced, 
                                   alpha = alpha)
         Q <- tmp$Q/(k*sigma^2)
         A <- tmp$A
@@ -153,6 +161,92 @@ matern.rational.precision <- function(loc,
         A <- A[,reo]
     } 
     return(list(Q = Q, A = A))    
+}
+
+
+#' LDL factorization of rational approximation of Matern covariance
+#'
+#' Computes the LDL factorization for a rational approximation of the Matern covariance on intervals.
+#' @param loc Locations at which the precision is evaluated
+#' @param order Order of the rational approximation
+#' @param nu Smoothness parameter
+#' @param kappa Range parameter
+#' @param sigma Standard deviation
+#' @param type_rational Method used to compute the coefficients of the rational approximation.
+#' @param type_interp Interpolation method for the rational coefficients. 
+#' @param equally_spaced Are the locations equally spaced?
+#' @param ordering Return the matrices ordered by field or by location? 
+#' @return A list containing the precision matrix `Q` of the process and its derivatives if they exist, and
+#' a matrix `A` that extracts the elements corresponding to the process. 
+#' @export 
+#'
+#' @examples
+#' h <- seq(from = 0, to = 1, length.out = 100)
+#' cov.true <- matern.covariance(h, kappa = 10, sigma = 1, nu = 0.8)
+#' Q.approx <- matern.rational.precision(h, kappa = 10, sigma = 1, nu = 0.8, order = 2)
+#' cov.approx <- Q.approx$A%*%solve(Q.approx$Q,Q.approx$A[1,])
+#' 
+#' plot(h, cov.true)
+#' lines(h, cov.approx, col = 2)
+matern.rational.ldl <- function(loc,
+                                order,
+                                nu,
+                                kappa,
+                                sigma,
+                                type_rational = "brasil",
+                                type_interp = "spline",
+                                equally_spaced = FALSE,
+                                ordering = c("field", "location")) {
+    ordering <- ordering[[1]]
+    if(!(ordering %in% c("field", "location"))) {
+        stop("Ordering must be 'field' or 'location'.")
+    }
+    if(is.matrix(loc) && min(dim(h)) > 1) {
+        stop("Only one dimensional locations supported.")
+    }
+    alpha=nu+1/2
+    n <- length(loc)
+    if (alpha%%1 == 0) {
+        tmp <- matern.p.chol(loc = loc,kappa = kappa,p = 0,
+                             equally_spaced = equally_spaced, alpha = alpha) 
+        L <- tmp$Bs
+        D <- tmp$Fsi
+        A <- tmp$A
+    } else {
+        coeff <- interp_rational_coefficients(order = order, 
+                                              type_rational_approx = type_rational, 
+                                              type_interp = type_interp, 
+                                              alpha = alpha)
+        r <- coeff$r
+        p <- coeff$p
+        k <- coeff$k
+        
+        ## k part
+        tmp <- matern.k.chol(loc = loc,kappa,equally_spaced = equally_spaced, 
+                             alpha = alpha)
+        L <- tmp$Bs
+        D <- tmp$Fsi/(k*sigma^2)
+        A <- tmp$A
+        
+        ## p part
+        t.p <- rep(0,length(p))
+        for(i in 1:length(p)){
+            tmp <- matern.p.chol(loc = loc, kappa = kappa, p =p[i],
+                                 equally_spaced = equally_spaced, 
+                                 alpha = alpha)
+            
+            L <- bdiag(L, tmp$Bs)
+            D <- bdiag(D, tmp$Fsi/(r[i]*sigma^2))
+            A = cbind(A,tmp$A)
+        }
+    }
+    if(ordering == "location") {
+        stop("not implemented")
+        #reo <- compute.reordering(n,order,alpha)
+        #Q <- Q[reo,reo]
+        #A <- A[,reo]
+    } 
+    return(list(L = L, D=D, A = A))    
 }
 
 ### Utility below
@@ -175,22 +269,27 @@ matern.derivative = function(h, kappa, nu, sigma, deriv = 1)
 {
     if(deriv == 0) {
         C = matern.covariance(h, kappa = kappa, nu = nu, sigma = sigma)
+        return(C)
     } else if (deriv == 1) {
-        C = h * matern.covariance(h, kappa = kappa, nu = nu - 
-                                      1, sigma = sigma)
+        C = h * matern.covariance(h, kappa = kappa, nu = nu - 1, sigma = sigma)
         C[h == 0] = 0
+        return(-(kappa^2/(2 * (nu - 1))) * as.matrix(C))
     }
     else if (deriv == 2) {
         C = matern.covariance(h, kappa = kappa, nu = nu - 1, sigma = sigma) + 
-            h * matern.derivative(h, kappa = kappa, nu = nu - 1, sigma = sigma, deriv = 1)
+            h * matern.derivative(h, kappa = kappa, nu = nu - 1, 
+                                  sigma = sigma, deriv = 1)
+        return(-(kappa^2/(2 * (nu - 1))) * as.matrix(C))
     }
     else {
         C = (deriv - 1) * matern.derivative(h, kappa = kappa, 
-                                            nu = nu - 1, sigma = sigma, deriv = deriv - 2) + 
+                                            nu = nu - 1, sigma = sigma, 
+                                            deriv = deriv - 2) + 
             h * matern.derivative(h, kappa = kappa, nu = nu - 
                                       1, sigma = sigma, deriv = deriv - 1)
+        return(-(kappa^2/(2 * (nu - 1))) * as.matrix(C))
     }
-    return(-(kappa^2/(2 * (nu - 1))) * as.matrix(C))
+    
 }
 
 
@@ -423,6 +522,176 @@ matern.p.precision <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
     }
 }
 
+
+matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
+    
+    n <- length(loc)
+    
+    if(alpha%%1 == 0) {
+        fa <- alpha
+    } else {
+        fa <- floor(alpha) + 1    
+    }
+    
+    #Bs <- Fs <- Fsi <- Diagonal(fa*n)
+    if(fa == 1) {
+        N <- n  + n - 1 
+    } else {
+        N <- n*fa^2 + (n-1)*fa^2 - n*fa*(fa -1)/2    
+    }
+    
+    ii <- numeric(N)
+    jj <- numeric(N)
+    val <- numeric(N)
+    
+    Fs.d <- Fsi.d <- numeric(fa*n)
+    
+    if(equally_spaced){
+        Sigma <- rbind(cbind(matern.p.joint(loc[1],loc[1],kappa,p,alpha), 
+                             matern.p.joint(loc[1],loc[2],kappa,p,alpha)),
+                       cbind(matern.p.joint(loc[2],loc[1],kappa,p,alpha),
+                             matern.p.joint(loc[2],loc[2],kappa,p,alpha)))
+    }
+    
+    for(i in 1:n){
+        if(i==1){
+            
+            Sigma.1 <- matern.p.joint(loc[i],loc[i],kappa,p,alpha)
+            
+            Fs.d[1] <- Sigma.1[1,1]
+            Fsi.d[1] <- 1/Sigma.1[1,1]
+            val[1] <- 1
+            ii[1] <- 1
+            jj[1] <- 1
+            counter <- 2
+            counter2 <- 1
+            if(fa > 1) {
+                for(k in 2:fa) {
+                    tmp <- solve(Sigma.1[1:(k-1),1:(k-1)], Sigma.1[1:(k-1),k])
+                    
+                    val[counter2 + (1:k)] <- c(-t(tmp),1)
+                    ii[counter2 + (1:k)] <- rep(counter,k)
+                    jj[counter2 + (1:k)] <- (counter-k+1):counter
+                    Fs.d[k] <- Sigma.1[k,k] - t(Sigma.1[1:(k-1),k])%*%tmp
+                    Fsi.d[k] <- 1/Fs.d[k]
+                    counter <- counter + 1
+                    counter2 <- counter2 + k
+                }    
+            }
+        } else {
+            if(!equally_spaced){
+                Sigma <- rbind(cbind(matern.p.joint(loc[i-1],loc[i-1],kappa,p,alpha),
+                                     matern.p.joint(loc[i-1],loc[i],kappa,p,alpha)),
+                               cbind(matern.p.joint(loc[i],loc[i-1],kappa,p,alpha),
+                                     matern.p.joint(loc[i],loc[i],kappa,p,alpha)))
+            } 
+            for(k in (fa+1):(2*fa)) {
+                tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])
+                val[counter2 + (1:k)] <- c(-t(tmp),1)
+                ii[counter2 + (1:k)] <- rep(counter,k)
+                jj[counter2 + (1:k)] <- (counter-k+1):counter
+                Fs.d[counter] <- Sigma[k,k] - t(Sigma[1:(k-1),k])%*%tmp
+                Fsi.d[counter] <- 1/Fs.d[counter]
+                counter <- counter + 1
+                counter2 <- counter2 + k
+            }    
+        }
+    }
+    
+    Bs <-  Matrix::sparseMatrix(i   = ii,
+                                j    = jj,
+                                x    = val,
+                                dims = c(fa*n, fa*n))
+    Fs <-  Matrix::Diagonal(fa*n,Fs.d)
+    Fsi <-  Matrix::Diagonal(fa*n,Fsi.d)
+    A <-  Matrix::sparseMatrix(i   = 1:n,
+                               j    = seq(from=1,to=n*fa,by=fa),
+                               x    = rep(1,n),
+                               dims = c(n, fa*n))
+    return(list(Bs=Bs, Fs = Fs, Fsi = Fsi, A=A))    
+}
+
+matern.k.chol <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
+    
+    n <- length(loc)
+    
+    fa <- floor(alpha)
+    if(fa == 0) {
+        N <- n 
+    } else {
+        N <- n*fa^2 + (n-1)*fa^2 - n*fa*(fa -1)/2    
+    }
+    fa <- max(fa,1)
+    ii <- numeric(N)
+    jj <- numeric(N)
+    val <- numeric(N)
+    
+    Fs.d <- Fsi.d <- numeric(fa*n)
+    
+    if(equally_spaced){
+        Sigma <- rbind(cbind(matern.k.joint(loc[1],loc[1],kappa,alpha), 
+                             matern.k.joint(loc[1],loc[2],kappa,alpha)),
+                       cbind(matern.k.joint(loc[2],loc[1],kappa,alpha),
+                             matern.k.joint(loc[2],loc[2],kappa,alpha)))
+    }
+    
+    for(i in 1:n){
+        if(i==1){
+            
+            Sigma.1 <- matern.k.joint(loc[i],loc[i],kappa,alpha)
+            
+            Fs.d[1] <- Sigma.1[1,1]
+            Fsi.d[1] <- 1/Sigma.1[1,1]
+            val[1] <- 1
+            ii[1] <- 1
+            jj[1] <- 1
+            counter <- 2
+            counter2 <- 1
+            if(fa > 1) {
+                for(k in 2:fa) {
+                    tmp <- solve(Sigma.1[1:(k-1),1:(k-1)], Sigma.1[1:(k-1),k])
+                    
+                    val[counter2 + (1:k)] <- c(-t(tmp),1)
+                    ii[counter2 + (1:k)] <- rep(counter,k)
+                    jj[counter2 + (1:k)] <- (counter-k+1):counter
+                    Fs.d[k] <- Sigma.1[k,k] - t(Sigma.1[1:(k-1),k])%*%tmp
+                    Fsi.d[k] <- 1/Fs.d[k]
+                    counter <- counter + 1
+                    counter2 <- counter2 + k
+                }    
+            }
+        } else {
+            if(!equally_spaced){
+                Sigma <- rbind(cbind(matern.k.joint(loc[i-1],loc[i-1],kappa,alpha),
+                                     matern.k.joint(loc[i-1],loc[i],kappa,alpha)),
+                               cbind(matern.k.joint(loc[i],loc[i-1],kappa,alpha),
+                                     matern.k.joint(loc[i],loc[i],kappa,alpha)))
+            } 
+            for(k in (fa+1):(2*fa)) {
+                tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])
+                val[counter2 + (1:k)] <- c(-t(tmp),1)
+                ii[counter2 + (1:k)] <- rep(counter,k)
+                jj[counter2 + (1:k)] <- (counter-k+1):counter
+                Fs.d[counter] <- Sigma[k,k] - t(Sigma[1:(k-1),k])%*%tmp
+                Fsi.d[counter] <- 1/Fs.d[counter]
+                counter <- counter + 1
+                counter2 <- counter2 + k
+            }    
+        }
+    }
+    Bs <-  Matrix::sparseMatrix(i   = ii,
+                                j    = jj,
+                                x    = val,
+                                dims = c(fa*n, fa*n))
+    Fs <-  Matrix::Diagonal(fa*n,Fs.d)
+    Fsi <-  Matrix::Diagonal(fa*n,Fsi.d)
+    A <-  Matrix::sparseMatrix(i   = 1:n,
+                               j    = seq(from=1,to=n*fa,by=fa),
+                               x    = rep(1,n),
+                               dims = c(n, fa*n))
+    return(list(Bs=Bs, Fs = Fs, Fsi = Fsi, A=A))    
+}
+
 matern.k.precision <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
     
     n <- length(loc)
@@ -497,7 +766,7 @@ matern.k.precision <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
                 for(kj in ki:(2*da)){
                     ii[counter] <- da*(i-1) + ki
                     jj[counter] <- da*(i-1) + kj
-                    val[counter] <-Q.i[ki,kj]
+                    val[counter] <- Q.i[ki,kj]
                     counter <- counter + 1
                 }
             }     
@@ -507,7 +776,7 @@ matern.k.precision <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
         for(kj in ki:da){
             ii[counter] <- da*(n-1) + ki
             jj[counter] <- da*(n-1) + kj
-            val[counter] <-Q.i[ki+da,kj+da]
+            val[counter] <- Q.i[ki+da,kj+da]
             counter <- counter + 1
         }
     }    
@@ -547,6 +816,7 @@ matern.k.joint <- function(s,t,kappa,alpha = 1){
 
 matern.k.deriv <- function(s,t,kappa,alpha, deriv = 0){
     h <- s-t
+    ca <- gamma(alpha)/gamma(alpha-0.5)
     if(alpha<1){
         if(deriv == 0) {
             return((h==0)*sqrt(4*pi)*ca/kappa)    
@@ -555,7 +825,6 @@ matern.k.deriv <- function(s,t,kappa,alpha, deriv = 0){
         }
     } else {
         fa <- floor(alpha)
-        ca <- gamma(alpha)/gamma(alpha-0.5)
         cfa <- gamma(fa)/gamma(fa-0.5)
         return(matern.derivative(h, kappa = kappa, nu = fa - 1/2, 
                                  sigma = sqrt(ca/cfa), deriv = deriv))
@@ -565,13 +834,13 @@ matern.k.deriv <- function(s,t,kappa,alpha, deriv = 0){
 
 matern.k <- function(s,t,kappa,alpha){
     h <- s-t
-    
+    ca <- gamma(alpha)/gamma(alpha-0.5)
     if(alpha<1){
         return((h==0)*sqrt(4*pi)*ca/kappa)
     } else {
         fa <- floor(alpha)
-        ca <- gamma(alpha)/gamma(alpha-0.5)
         cfa <- gamma(fa)/gamma(fa-0.5)
-        return(matern.covariance(h, kappa = kappa, nu = fa - 1/2, sigma = sqrt(ca/cfa)))
+        return(matern.covariance(h, kappa = kappa, nu = fa - 1/2, 
+                                 sigma = sqrt(ca/cfa)))
     }
 }
