@@ -377,11 +377,12 @@ matern.p <- function(s,t,kappa,p,alpha){
         if(alpha < 1) {
             return(out)
         } else {
-            out <- out/p^fa
+            
             for(j in 1:fa) {
                 out <- out - matern.covariance(h, kappa = kappa, nu = j-1/2, 
-                                               sigma = sqrt(ca*gamma(j-0.5)/gamma(j)))/p^(fa + 1 - j)
+                                               sigma = sqrt(ca*gamma(j-0.5)/gamma(j)))/p^(1 - j)
             }
+            out <- out/p^fa
             return(out)    
         }
     }
@@ -567,7 +568,14 @@ matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
             counter2 <- 1
             if(fa > 1) {
                 for(k in 2:fa) {
-                    tmp <- solve(Sigma.1[1:(k-1),1:(k-1)], Sigma.1[1:(k-1),k])
+                    if(k > 2) {
+                        ss <- Sigma.1[1:(k-1),1:(k-1)]
+                        prec <- diag(1/sqrt(diag(ss)))
+                        tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sigma.1[1:(k-1),k])  
+                    } else {
+                        tmp <- solve(Sigma.1[1:(k-1),1:(k-1)], Sigma.1[1:(k-1),k])   
+                    }
+                    
                     
                     val[counter2 + (1:k)] <- c(-t(tmp),1)
                     ii[counter2 + (1:k)] <- rep(counter,k)
@@ -586,7 +594,14 @@ matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
                                      matern.p.joint(loc[i],loc[i],kappa,p,alpha)))
             } 
             for(k in (fa+1):(2*fa)) {
-                tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])
+                if(k > 2) {
+                    ss <- Sigma[1:(k-1),1:(k-1)]
+                    prec <- diag(1/sqrt(diag(ss)))
+                    tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sigma[1:(k-1),k])    
+                } else {
+                    tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])   
+                }
+                
                 val[counter2 + (1:k)] <- c(-t(tmp),1)
                 ii[counter2 + (1:k)] <- rep(counter,k)
                 jj[counter2 + (1:k)] <- (counter-k+1):counter
@@ -649,7 +664,14 @@ matern.k.chol <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
             counter2 <- 1
             if(fa > 1) {
                 for(k in 2:fa) {
-                    tmp <- solve(Sigma.1[1:(k-1),1:(k-1)], Sigma.1[1:(k-1),k])
+                    #tmp <- solve(Sigma.1[1:(k-1),1:(k-1)], Sigma.1[1:(k-1),k])
+                    if(k > 2) {
+                        ss <- Sigma.1[1:(k-1),1:(k-1)]
+                        prec <- diag(1/sqrt(diag(ss)))
+                        tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sigma.1[1:(k-1),k])  
+                    } else {
+                        tmp <- solve(Sigma.1[1:(k-1),1:(k-1)], Sigma.1[1:(k-1),k])   
+                    }
                     
                     val[counter2 + (1:k)] <- c(-t(tmp),1)
                     ii[counter2 + (1:k)] <- rep(counter,k)
@@ -668,7 +690,14 @@ matern.k.chol <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
                                      matern.k.joint(loc[i],loc[i],kappa,alpha)))
             } 
             for(k in (fa+1):(2*fa)) {
-                tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])
+                #tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])
+                if(k > 2) {
+                    ss <- Sigma[1:(k-1),1:(k-1)]
+                    prec <- diag(1/sqrt(diag(ss)))
+                    tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sigma[1:(k-1),k])  
+                } else {
+                    tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])   
+                }
                 val[counter2 + (1:k)] <- c(-t(tmp),1)
                 ii[counter2 + (1:k)] <- rep(counter,k)
                 jj[counter2 + (1:k)] <- (counter-k+1):counter
