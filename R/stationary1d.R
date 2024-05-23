@@ -79,7 +79,7 @@ matern.rational = function(h,
         }
     }
     
-    return(as.matrix(sigma_rational))
+    return(sigma_rational)
 }
 
 
@@ -273,13 +273,13 @@ matern.derivative = function(h, kappa, nu, sigma, deriv = 1)
     } else if (deriv == 1) {
         C = h * matern.covariance(h, kappa = kappa, nu = nu - 1, sigma = sigma)
         C[h == 0] = 0
-        return(-(kappa^2/(2 * (nu - 1))) * as.matrix(C))
+        return(-(kappa^2/(2 * (nu - 1))) * C)
     }
     else if (deriv == 2) {
         C = matern.covariance(h, kappa = kappa, nu = nu - 1, sigma = sigma) + 
             h * matern.derivative(h, kappa = kappa, nu = nu - 1, 
                                   sigma = sigma, deriv = 1)
-        return(-(kappa^2/(2 * (nu - 1))) * as.matrix(C))
+        return(-(kappa^2/(2 * (nu - 1))) * C)
     }
     else {
         C = (deriv - 1) * matern.derivative(h, kappa = kappa, 
@@ -287,7 +287,7 @@ matern.derivative = function(h, kappa, nu, sigma, deriv = 1)
                                             deriv = deriv - 2) + 
             h * matern.derivative(h, kappa = kappa, nu = nu - 
                                       1, sigma = sigma, deriv = deriv - 1)
-        return(-(kappa^2/(2 * (nu - 1))) * as.matrix(C))
+        return(-(kappa^2/(2 * (nu - 1))) * C)
     }
     
 }
@@ -354,8 +354,9 @@ matern.p.joint <- function(s,t,kappa,p, alpha = 1){
             if(i==j) {
                 mat[i,i] <- ((-1)^(i-1))*matern.p.deriv(s,t,kappa,p,alpha, deriv = 2*(i-1))
             } else {
-                mat[i,j] <- (-1)^(j-1)*matern.p.deriv(s,t,kappa,p,alpha, deriv = i-1 + j - 1)
-                mat[j,i] <- (-1)^(i-1)*matern.p.deriv(s,t,kappa,p,alpha, deriv = i-1 + j - 1)
+                tmp <- matern.p.deriv(s,t,kappa,p,alpha, deriv = i-1 + j - 1)
+                mat[i,j] <- (-1)^(j-1)*tmp
+                mat[j,i] <- (-1)^(i-1)*tmp
             }
         }
     }
@@ -544,6 +545,18 @@ matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
     ii <- numeric(N)
     jj <- numeric(N)
     val <- numeric(N)
+    Sigma <- matrix(0,nrow=2*fa, ncol = 2*fa)
+    Stransp <- outer((-1)^(0:(fa-1)),(-1)^(0:(fa-1)))
+    Sdiag <- matern.p.joint(0,0,kappa,p,alpha)
+    
+    Sod <- matern.p.joint(loc[1],loc[2],kappa,p,alpha)
+    di <- abs(loc[2]-loc[1])
+    
+    Sigma[1:fa,1:fa] <- Sdiag
+    Sigma[(fa+1):(2*fa),(fa+1):(2*fa)] <- Sdiag
+    Sigma[1:fa,(fa+1):(2*fa)] <- Sod
+    Sigma[(fa+1):(2*fa),1:fa] <- Stransp*Sod
+    
     
     Fs.d <- Fsi.d <- numeric(fa*n)
     
@@ -556,11 +569,8 @@ matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
     
     for(i in 1:n){
         if(i==1){
-            
-            Sigma.1 <- matern.p.joint(loc[i],loc[i],kappa,p,alpha)
-            
-            Fs.d[1] <- Sigma.1[1,1]
-            Fsi.d[1] <- 1/Sigma.1[1,1]
+            Fs.d[1] <- Sdiag[1,1]
+            Fsi.d[1] <- 1/Sdiag[1,1]
             val[1] <- 1
             ii[1] <- 1
             jj[1] <- 1
@@ -568,19 +578,19 @@ matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
             counter2 <- 1
             if(fa > 1) {
                 for(k in 2:fa) {
-                    if(k > 2) {
-                        ss <- Sigma.1[1:(k-1),1:(k-1)]
+                    if(0) { #k > 2
+                        ss <- Sdiag[1:(k-1),1:(k-1)]
                         prec <- diag(1/sqrt(diag(ss)))
-                        tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sigma.1[1:(k-1),k])  
+                        tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sdiag[1:(k-1),k])  
                     } else {
-                        tmp <- solve(Sigma.1[1:(k-1),1:(k-1)], Sigma.1[1:(k-1),k])   
+                        tmp <- solve(Sdiag[1:(k-1),1:(k-1)], Sdiag[1:(k-1),k])   
                     }
                     
                     
                     val[counter2 + (1:k)] <- c(-t(tmp),1)
                     ii[counter2 + (1:k)] <- rep(counter,k)
                     jj[counter2 + (1:k)] <- (counter-k+1):counter
-                    Fs.d[k] <- Sigma.1[k,k] - t(Sigma.1[1:(k-1),k])%*%tmp
+                    Fs.d[k] <- Sdiag[k,k] - t(Sdiag[1:(k-1),k])%*%tmp
                     Fsi.d[k] <- 1/Fs.d[k]
                     counter <- counter + 1
                     counter2 <- counter2 + k
@@ -588,13 +598,20 @@ matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
             }
         } else {
             if(!equally_spaced){
-                Sigma <- rbind(cbind(matern.p.joint(loc[i-1],loc[i-1],kappa,p,alpha),
-                                     matern.p.joint(loc[i-1],loc[i],kappa,p,alpha)),
-                               cbind(matern.p.joint(loc[i],loc[i-1],kappa,p,alpha),
-                                     matern.p.joint(loc[i],loc[i],kappa,p,alpha)))
+                #Sigma <- rbind(cbind(matern.p.joint(loc[i-1],loc[i-1],kappa,p,alpha),
+                #                     matern.p.joint(loc[i-1],loc[i],kappa,p,alpha)),
+                #               cbind(matern.p.joint(loc[i],loc[i-1],kappa,p,alpha),
+                #                     matern.p.joint(loc[i],loc[i],kappa,p,alpha)))
+                if(!(di==abs(loc[i]-loc[i-1]))) {
+                    di=abs(loc[i]-loc[i-1])
+                    Sod <- matern.p.joint(loc[i-1],loc[i],kappa,p,alpha)
+                    Sigma[1:fa,(fa+1):(2*fa)] <- Sod
+                    Sigma[(fa+1):(2*fa),1:fa] <- Stransp*Sod
+                }
+
             } 
             for(k in (fa+1):(2*fa)) {
-                if(k > 2) {
+                if(0) { #k > 2
                     ss <- Sigma[1:(k-1),1:(k-1)]
                     prec <- diag(1/sqrt(diag(ss)))
                     tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sigma[1:(k-1),k])    
@@ -602,10 +619,10 @@ matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
                     tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])   
                 }
                 
-                val[counter2 + (1:k)] <- c(-t(tmp),1)
+                val[counter2 + (1:k)] <- c(-tmp,1)
                 ii[counter2 + (1:k)] <- rep(counter,k)
                 jj[counter2 + (1:k)] <- (counter-k+1):counter
-                Fs.d[counter] <- Sigma[k,k] - t(Sigma[1:(k-1),k])%*%tmp
+                Fs.d[counter] <- Sigma[k,k] - sum(Sigma[1:(k-1),k]*tmp)#t(Sigma[1:(k-1),k])%*%tmp
                 Fsi.d[counter] <- 1/Fs.d[counter]
                 counter <- counter + 1
                 counter2 <- counter2 + k
@@ -640,7 +657,11 @@ matern.k.chol <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
     ii <- numeric(N)
     jj <- numeric(N)
     val <- numeric(N)
-    
+    Sigma <- matrix(0, nrow = 2*fa,ncol = 2*fa)
+    Stransp <- outer((-1)^(0:(fa-1)),(-1)^(0:(fa-1)))
+    Sdiag <- matern.k.joint(0,0,kappa,alpha)
+    Sigma[1:fa,1:fa] <- Sdiag
+    Sigma[(fa+1):(2*fa),(fa+1):(2*fa)] <- Sdiag
     Fs.d <- Fsi.d <- numeric(fa*n)
     
     if(equally_spaced){
@@ -653,10 +674,8 @@ matern.k.chol <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
     for(i in 1:n){
         if(i==1){
             
-            Sigma.1 <- matern.k.joint(loc[i],loc[i],kappa,alpha)
-            
-            Fs.d[1] <- Sigma.1[1,1]
-            Fsi.d[1] <- 1/Sigma.1[1,1]
+            Fs.d[1] <- Sdiag[1,1]
+            Fsi.d[1] <- 1/Sdiag[1,1]
             val[1] <- 1
             ii[1] <- 1
             jj[1] <- 1
@@ -665,18 +684,18 @@ matern.k.chol <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
             if(fa > 1) {
                 for(k in 2:fa) {
                     #tmp <- solve(Sigma.1[1:(k-1),1:(k-1)], Sigma.1[1:(k-1),k])
-                    if(k > 2) {
-                        ss <- Sigma.1[1:(k-1),1:(k-1)]
+                    if(0) { #k > 2
+                        ss <- Sdiag[1:(k-1),1:(k-1)]
                         prec <- diag(1/sqrt(diag(ss)))
-                        tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sigma.1[1:(k-1),k])  
+                        tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sdiag[1:(k-1),k])  
                     } else {
-                        tmp <- solve(Sigma.1[1:(k-1),1:(k-1)], Sigma.1[1:(k-1),k])   
+                        tmp <- solve(Sdiag[1:(k-1),1:(k-1)], Sdiag[1:(k-1),k])   
                     }
                     
                     val[counter2 + (1:k)] <- c(-t(tmp),1)
                     ii[counter2 + (1:k)] <- rep(counter,k)
                     jj[counter2 + (1:k)] <- (counter-k+1):counter
-                    Fs.d[k] <- Sigma.1[k,k] - t(Sigma.1[1:(k-1),k])%*%tmp
+                    Fs.d[k] <- Sdiag[k,k] - t(Sdiag[1:(k-1),k])%*%tmp
                     Fsi.d[k] <- 1/Fs.d[k]
                     counter <- counter + 1
                     counter2 <- counter2 + k
@@ -684,14 +703,18 @@ matern.k.chol <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
             }
         } else {
             if(!equally_spaced){
-                Sigma <- rbind(cbind(matern.k.joint(loc[i-1],loc[i-1],kappa,alpha),
-                                     matern.k.joint(loc[i-1],loc[i],kappa,alpha)),
-                               cbind(matern.k.joint(loc[i],loc[i-1],kappa,alpha),
-                                     matern.k.joint(loc[i],loc[i],kappa,alpha)))
+                
+                #Sigma <- rbind(cbind(matern.k.joint(loc[i-1],loc[i-1],kappa,alpha),
+                #                     matern.k.joint(loc[i-1],loc[i],kappa,alpha)),
+                #               cbind(matern.k.joint(loc[i],loc[i-1],kappa,alpha),
+                #                     matern.k.joint(loc[i],loc[i],kappa,alpha)))
+                
+                Sigma[1:fa,(fa+1):(2*fa)] <- matern.k.joint(loc[i-1],loc[i],kappa,alpha)
+                Sigma[(fa+1):(2*fa),1:fa] <- Stransp*Sigma[1:fa,(fa+1):(2*fa)]
             } 
             for(k in (fa+1):(2*fa)) {
                 #tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])
-                if(k > 2) {
+                if(0) { #k > 2
                     ss <- Sigma[1:(k-1),1:(k-1)]
                     prec <- diag(1/sqrt(diag(ss)))
                     tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sigma[1:(k-1),k])  
@@ -701,7 +724,7 @@ matern.k.chol <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
                 val[counter2 + (1:k)] <- c(-t(tmp),1)
                 ii[counter2 + (1:k)] <- rep(counter,k)
                 jj[counter2 + (1:k)] <- (counter-k+1):counter
-                Fs.d[counter] <- Sigma[k,k] - t(Sigma[1:(k-1),k])%*%tmp
+                Fs.d[counter] <- Sigma[k,k] - sum(Sigma[1:(k-1),k]*tmp)#t(Sigma[1:(k-1),k])%*%tmp
                 Fsi.d[counter] <- 1/Fs.d[counter]
                 counter <- counter + 1
                 counter2 <- counter2 + k
