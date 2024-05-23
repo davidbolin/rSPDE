@@ -45,9 +45,11 @@ matern.covariance <- function(h,
   } else {
     C <- (sigma^2 / (2^(nu - 1) * gamma(nu))) *
       ((kappa * abs(h))^nu) * besselK(kappa * abs(h), nu)
+    C[h == 0] <- sigma^2
   }
-  C[h == 0] <- sigma^2
-  return(as.matrix(C))
+  
+  #return(as.matrix(C))
+  return(C)
 }
 
 #' The 1d folded Matern covariance function
