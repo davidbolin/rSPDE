@@ -74,3 +74,7 @@ void compute_Q_intrinsic(int size,
                          double *theta, double *Q_out, int alpha,
                          int compute_Q, int compute_mean, int compute_logdet,
                          double*ld_out, double *mean_out);
+
+void compute_Q_alpha2(int *i_Tc, int *j_Tc, double *x_Tc, double kappa, double tau, int nE, double w,
+                                        int nrow_Tc, int ncol_Tc, int n_nonzero_Tc, double *edge_lengths, double *Q_out, int *lower_edges,
+                                        int *upper_edges, int lower_edges_len, int upper_edges_len);
