@@ -6,7 +6,7 @@ double *inla_cgeneric_gpgraph_alpha2_model(inla_cgeneric_cmd_tp cmd, double *the
 
   double *ret = NULL;
 
-  double lkappa, lsigma, kappa, sigma;
+  double lkappa, lsigma, kappa, sigma, tau;
 
   double l_e;
 
@@ -39,23 +39,35 @@ double *inla_cgeneric_gpgraph_alpha2_model(inla_cgeneric_cmd_tp cmd, double *the
   inla_cgeneric_vec_tp *graph_j = data->ints[3];
   assert(M == graph_j->len);
 
-  assert(!strcasecmp(data->ints[4]->name, "i_Tc"));
-  inla_cgeneric_vec_tp *i_Tc = data->ints[4];
+  assert(!strcasecmp(data->ints[4]->name, "stationary_endpoints"));
+  inla_cgeneric_vec_tp *stationary_endpoints = data->ints[4];
 
-  assert(!strcasecmp(data->ints[5]->name, "j_Tc"));
-  inla_cgeneric_vec_tp *j_Tc = data->ints[5];
+  assert(!strcasecmp(data->ints[5]->name, "upper_edges"));
+  inla_cgeneric_vec_tp *upper_edges = data->ints[5];
 
-  assert(!strcasecmp(data->ints[6]->name, "stationary_endpoints"));
-  inla_cgeneric_vec_tp *stationary_endpoints = data->ints[6];
+  assert(!strcasecmp(data->ints[6]->name, "lower_edges"));
+  inla_cgeneric_vec_tp *lower_edges = data->ints[6];
 
-  assert(!strcasecmp(data->ints[7]->name, "nrow_Tc"));  
-  int nrow_Tc = data->ints[7]->ints[0];
+  assert(!strcasecmp(data->ints[7]->name, "upper_edges_len"));
+  int lower_edges_len = data->ints[7]->ints[0];
 
-  assert(!strcasecmp(data->ints[8]->name, "ncol_Tc"));  
-  int ncol_Tc = data->ints[8]->ints[0];
+  assert(!strcasecmp(data->ints[8]->name, "upper_edges_len"));
+  int upper_edges_len = data->ints[8]->ints[0];
 
-  assert(!strcasecmp(data->doubles[0]->name, "x_Tc"));
-  inla_cgeneric_vec_tp *x_Tc = data->doubles[0];
+  assert(!strcasecmp(data->smats[0]->name, "Tc"));
+  inla_cgeneric_smat_tp *Tc = data->smats[0];
+
+  int nrow_Tc = Tc->nrow;
+
+  int ncol_Tc = Tc->ncol;
+
+  inla_cgeneric_vec_tp *x_Tc = Tc->x;
+
+  inla_cgeneric_vec_tp *i_Tc = Tc->i;
+
+  inla_cgeneric_vec_tp *j_Tc = Tc->j;
+
+  int n_nonzero_Tc = Tc->n;
 
   assert(!strcasecmp(data->doubles[1]->name, "El"));
   inla_cgeneric_vec_tp *El = data->doubles[1];  
@@ -96,6 +108,7 @@ double *inla_cgeneric_gpgraph_alpha2_model(inla_cgeneric_cmd_tp cmd, double *the
     lsigma = theta[0];
     kappa = exp(lkappa);
     sigma = exp(lsigma);
+    tau = 1.0/sigma;
   }
   else {   
     lsigma = lkappa = sigma = kappa = NAN;
@@ -130,8 +143,10 @@ double *inla_cgeneric_gpgraph_alpha2_model(inla_cgeneric_cmd_tp cmd, double *the
       ret = Calloc(k + M, double);
       ret[0] = -1;		/* REQUIRED */
       ret[1] = M;		/* REQUIRED */
-
-      // compute_Q_alpha2(i_Tc, j_Tc, x_Tc, kappa, );
+      
+      compute_Q_alpha2(&i_Tc, &j_Tc, &x_Tc, kappa, tau, nE, 0.5,
+                            nrow_Tc, ncol_Tc, n_nonzero_Tc, El->doubles, &ret[k], lower_edges->ints,
+                                        upper_edges->ints, lower_edges_len, upper_edges_len);
 
       break;
     }
