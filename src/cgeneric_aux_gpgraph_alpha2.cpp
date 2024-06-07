@@ -164,8 +164,8 @@ void compute_Q_alpha2(int *i_Tc, int *j_Tc, double *x_Tc, double kappa, double t
 
                         if(lower_edges_len > 0){
                             for(i = 0; i<lower_edges_len; i++){
-                                int ind1 = 4 * lower_edges[i];
-                                int ind2 = 4 * lower_edges[i] + 1;
+                                int ind1 = 4 * (lower_edges[i]-1);
+                                int ind2 = 4 * (lower_edges[i]-1) + 1;
                                 double x1 = w / R_00(0,0);
                                 double x2 = w/R_00(1,1);
                                 i_[count] = ind1;
@@ -180,8 +180,8 @@ void compute_Q_alpha2(int *i_Tc, int *j_Tc, double *x_Tc, double kappa, double t
 
                         if(upper_edges_len > 0){
                             for(i = 0; i<upper_edges_len; i++){
-                                int ind1 = 4 * upper_edges[i] + 2;
-                                int ind2 = 4* upper_edges[i] + 3;
+                                int ind1 = 4 * (upper_edges[i]-1) + 2;
+                                int ind2 = 4 * (upper_edges[i]-1) + 3;
                                 double x1 = (1-w) / R_00(0,0);
                                 double x2 = (1-w)/R_00(1,1);
                                 i_[count] = ind1;

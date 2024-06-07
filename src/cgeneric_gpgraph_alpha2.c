@@ -83,7 +83,6 @@ double *inla_cgeneric_gpgraph_alpha2_model(inla_cgeneric_cmd_tp cmd, double *the
     // interpretable parameters 
 
     if(!strcasecmp(parameterization, "matern")){
-      lkappa = log(2.0) - theta[1];
       lkappa =  0.5 * log(12.0) - theta[1];
     } else {
       lkappa = theta[1];
