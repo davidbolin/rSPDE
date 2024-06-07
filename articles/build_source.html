@@ -98,7 +98,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2023-01-17. Last
-modified: 2024-05-18.</h4>
+modified: 2024-06-07.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/vignettes/build_source.rmd" class="external-link"><code>vignettes/build_source.rmd</code></a></small>
       <div class="d-none name"><code>build_source.rmd</code></div>
@@ -146,6 +146,16 @@ library</a>.</p>
 <code>eigen</code> library, you can create a symbolic link to
 <code>eigen</code>’s path as:</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">sudo</span> ln <span class="at">-s</span> <span class="va">$(</span><span class="ex">brew</span> <span class="at">--prefix</span> eigen<span class="va">)</span>/include/eigen3 /usr/local/include/eigen3</span></code></pre></div>
+<p>You also need to create the following symbolic links related to
+homebrew:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">sudo</span> ln <span class="at">-s</span> <span class="va">$(</span><span class="ex">brew</span> <span class="at">--prefix</span><span class="va">)</span>/lib /usr/local/brewlib</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">sudo</span> ln <span class="at">-s</span> <span class="va">$(</span><span class="ex">brew</span> <span class="at">--prefix</span><span class="va">)</span>/include /usr/local/brewinclude</span></code></pre></div>
+<p>Finally, you need to install <code>gcc-14</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="ex">brew</span> install gcc@14</span></code></pre></div>
+<p>and also create the symbolic links associated to
+<code>gcc</code>:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">sudo</span> ln <span class="at">-s</span> <span class="va">$(</span><span class="ex">brew</span> <span class="at">--prefix</span> gcc@14<span class="va">)</span>/bin/gcc-14 /usr/local/bin/gcc</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="fu">sudo</span> ln <span class="at">-s</span> <span class="va">$(</span><span class="ex">brew</span> <span class="at">--prefix</span> gcc@14<span class="va">)</span>/bin/g++-14 /usr/local/bin/g++</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="adjusting-the-makefile">Adjusting the Makefile<a class="anchor" aria-label="anchor" href="#adjusting-the-makefile"></a>
@@ -156,43 +166,43 @@ that, you will need to have <code>rSPDE</code> source files locally on
 your computer. To such an end, you can, for instance, close the
 <code>rSPDE</code> repository by running the following command on a
 terminal:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/davidbolin/rSPDE.git</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/davidbolin/rSPDE.git</span></code></pre></div>
 <p>You can also <a href="https://github.com/davidbolin/rSPDE/archive/refs/heads/devel.zip" class="external-link">download
 the source files</a>.</p>
 <p>Now, let us discuss the <code>Makefile</code>. The
 <code>Makefile</code> has the following base form:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="ex">toInclude</span> = <span class="va">${R_LIBRARY_DIR}</span>/INLA/include/</span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a></span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="ex">obj</span> = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o <span class="dt">\</span></span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>      cgeneric_rspde_stat_frac_model.o cgeneric_rspde_nonstat_general.o <span class="dt">\</span></span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>      cgeneric_rspde_stat_general.o cgeneric_rspde_stat_parsim_gen.o <span class="dt">\</span></span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>      cgeneric_rspde_stat_parsim_fixed.o cgeneric_rspde_stat_int.o <span class="dt">\</span></span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>      cgeneric_rspde_nonstat_gen_fixed.o cgeneric_rspde_nonstat_int.o <span class="dt">\</span></span>
-<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>      cgeneric_aux_nonstat_int.o</span>
-<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a></span>
-<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="ex">all</span> : rSPDE.so</span>
-<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a></span>
-<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="ex">CC</span> = clang</span>
-<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="ex">CXX</span> = clang++</span>
-<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a></span>
-<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="ex">EIGEN_MAC</span> = /usr/local/include/eigen3/</span>
-<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="ex">EIGEN_LINUX</span> = /usr/include/eigen3/</span>
-<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a></span>
-<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="ex">flags</span> = <span class="at">-O2</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-fpic</span></span>
-<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a></span>
-<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="ex">%.o:</span> %.c</span>
-<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a>    <span class="va">$(</span><span class="ex">CC</span><span class="va">)</span> <span class="va">$(</span><span class="ex">flags</span><span class="va">)</span> <span class="at">-Iinclude</span> <span class="at">-I</span><span class="va">$(</span><span class="ex">toInclude</span><span class="va">)</span>  <span class="at">-c</span> $^ <span class="at">-o</span> <span class="va">$@</span></span>
-<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a></span>
-<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="ex">%.o:</span> %.cpp</span>
-<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a>    <span class="va">$(</span><span class="ex">CXX</span><span class="va">)</span> <span class="va">$(</span><span class="ex">flags</span><span class="va">)</span>  <span class="at">-I</span><span class="va">$(</span><span class="ex">toInclude</span><span class="va">)</span> <span class="at">-I</span><span class="va">$(</span><span class="ex">EIGEN_MAC</span><span class="va">)</span> <span class="at">-I</span><span class="va">$(</span><span class="ex">EIGEN_LINUX</span><span class="va">)</span> <span class="at">-c</span> $^ <span class="at">-o</span> <span class="va">$@</span></span>
-<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a></span>
-<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="ex">rSPDE.so:</span> <span class="va">$(</span><span class="ex">obj</span><span class="va">)</span></span>
-<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a>    <span class="va">$(</span><span class="ex">CXX</span><span class="va">)</span> <span class="at">-shared</span> <span class="pp">*</span>.o <span class="at">-o</span> ../inst/shared/rspde_cgeneric_models.so <span class="at">-lblas</span> <span class="at">-llapack</span></span>
-<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a></span>
-<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="ex">clean</span> :</span>
-<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a>    <span class="fu">rm</span> <span class="at">-f</span> <span class="pp">*</span>.o</span>
-<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a></span>
-<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a><span class="ex">.PHONY:</span> all clean</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="ex">toInclude</span> = <span class="va">${R_LIBRARY_DIR}</span>/INLA/include/</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="ex">obj</span> = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o <span class="dt">\</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>      cgeneric_rspde_stat_frac_model.o cgeneric_rspde_nonstat_general.o <span class="dt">\</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>      cgeneric_rspde_stat_general.o cgeneric_rspde_stat_parsim_gen.o <span class="dt">\</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>      cgeneric_rspde_stat_parsim_fixed.o cgeneric_rspde_stat_int.o <span class="dt">\</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>      cgeneric_rspde_nonstat_gen_fixed.o cgeneric_rspde_nonstat_int.o <span class="dt">\</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>      cgeneric_aux_nonstat_int.o</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="ex">all</span> : rSPDE.so</span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="ex">CC</span> = clang</span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="ex">CXX</span> = clang++</span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="ex">EIGEN_MAC</span> = /usr/local/include/eigen3/</span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="ex">EIGEN_LINUX</span> = /usr/include/eigen3/</span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a></span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="ex">flags</span> = <span class="at">-O2</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-fpic</span></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a></span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="ex">%.o:</span> %.c</span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a>    <span class="va">$(</span><span class="ex">CC</span><span class="va">)</span> <span class="va">$(</span><span class="ex">flags</span><span class="va">)</span> <span class="at">-Iinclude</span> <span class="at">-I</span><span class="va">$(</span><span class="ex">toInclude</span><span class="va">)</span>  <span class="at">-c</span> $^ <span class="at">-o</span> <span class="va">$@</span></span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a></span>
+<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="ex">%.o:</span> %.cpp</span>
+<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a>    <span class="va">$(</span><span class="ex">CXX</span><span class="va">)</span> <span class="va">$(</span><span class="ex">flags</span><span class="va">)</span>  <span class="at">-I</span><span class="va">$(</span><span class="ex">toInclude</span><span class="va">)</span> <span class="at">-I</span><span class="va">$(</span><span class="ex">EIGEN_MAC</span><span class="va">)</span> <span class="at">-I</span><span class="va">$(</span><span class="ex">EIGEN_LINUX</span><span class="va">)</span> <span class="at">-c</span> $^ <span class="at">-o</span> <span class="va">$@</span></span>
+<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a></span>
+<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a><span class="ex">rSPDE.so:</span> <span class="va">$(</span><span class="ex">obj</span><span class="va">)</span></span>
+<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a>    <span class="va">$(</span><span class="ex">CXX</span><span class="va">)</span> <span class="at">-shared</span> <span class="pp">*</span>.o <span class="at">-o</span> ../inst/shared/rspde_cgeneric_models.so <span class="at">-lblas</span> <span class="at">-llapack</span></span>
+<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a></span>
+<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a><span class="ex">clean</span> :</span>
+<span id="cb14-30"><a href="#cb14-30" tabindex="-1"></a>    <span class="fu">rm</span> <span class="at">-f</span> <span class="pp">*</span>.o</span>
+<span id="cb14-31"><a href="#cb14-31" tabindex="-1"></a></span>
+<span id="cb14-32"><a href="#cb14-32" tabindex="-1"></a><span class="ex">.PHONY:</span> all clean</span></code></pre></div>
 <div class="section level3">
 <h3 id="adjusts-on-linux">Adjusts on Linux<a class="anchor" aria-label="anchor" href="#adjusts-on-linux"></a>
 </h3>
@@ -200,25 +210,25 @@ the source files</a>.</p>
 <code>g++-12</code> compilers. To this end, one must install
 <code>gcc</code> and <code>g++</code>, then change the following lines
 on the <code>Makefile</code>:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="ex">CC</span> = gcc</span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="ex">CXX</span> = g++</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="ex">CC</span> = gcc</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="ex">CXX</span> = g++</span></code></pre></div>
 <p>One should also confirm the location of the Eigen library. The
 default location is <code>/usr/include/eigen3/</code> and is already set
 at the Makefile. If you have Eigen installed in a different location,
 you will need to update the <code>Makefile</code> by changing the
 <code>EIGEN_LINUX</code> variable:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="ex">EIGEN_LINUX</span> = /correct_path/</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="ex">EIGEN_LINUX</span> = /correct_path/</span></code></pre></div>
 <p>To install <code>gcc</code> and <code>g++</code> on Ubuntu, run</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">sudo</span> apt install gcc g++</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">sudo</span> apt install gcc g++</span></code></pre></div>
 <p>To install <code>gcc</code> and <code>g++</code> on Arch-Linux or
 Manjaro, run:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">sudo</span> pacman <span class="at">-S</span> gcc g++</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="fu">sudo</span> pacman <span class="at">-S</span> gcc g++</span></code></pre></div>
 <p>To install <code>gcc</code> and <code>g++</code> on Red Hat, Fedor or
 CentOS, run:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">sudo</span> yum install gcc g++</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">sudo</span> yum install gcc g++</span></code></pre></div>
 <p>To install <code>gcc</code> and <code>g++</code> on OpenSuse,
 run:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">sudo</span> zypper install gcc g++</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="fu">sudo</span> zypper install gcc g++</span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="adjusts-on-mac">Adjusts on Mac<a class="anchor" aria-label="anchor" href="#adjusts-on-mac"></a>
@@ -231,7 +241,7 @@ default location is <code>/usr/local</code> and is already set at the
 Makefile.</p>
 <p>If you installed Eigen using Homebrew, you can check the location of
 the Eigen installation by using the following command:</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="ex">brew</span> <span class="at">--prefix</span> eigen</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="ex">brew</span> <span class="at">--prefix</span> eigen</span></code></pre></div>
 <p>You can, then, update the <code>EIGEN_MAC</code> variable in the
 <code>Makefile</code> with the correct path.</p>
 </div>
