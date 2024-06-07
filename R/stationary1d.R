@@ -252,6 +252,7 @@ matern.rational.ldl <- function(loc,
 ### Utility below
 
 # Reorder matern
+#' @noRd
 compute.reordering <- function(n,m,alpha) {
     if(alpha <0 || alpha > 2) {
         stop("only 0<alpha<2 supported")
@@ -294,6 +295,7 @@ matern.derivative = function(h, kappa, nu, sigma, deriv = 1)
 
 
 # Precision for exponential covariance
+#' @noRd
 exp_precision <- function(loc, kappa, boundary = "free") {
     n <- length(loc)
     l <- diff(loc)
