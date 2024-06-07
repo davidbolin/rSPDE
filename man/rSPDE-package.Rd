@@ -2,7 +2,6 @@
 % Please edit documentation in R/rSPDE-package.R
 \docType{package}
 \name{rSPDE-package}
-\alias{rSPDE}
 \alias{rSPDE-package}
 \title{Rational approximations of fractional SPDEs.}
 \description{
