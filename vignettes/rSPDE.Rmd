@@ -583,7 +583,7 @@ ggplot(field_pred_df, aes(x = x1, y = x2, fill = sd)) +
 An alternative and very simple approach is to use the `fm_pixels()` function:
 
 ```{r plot_pred_pxl, fig.align='center', warning=FALSE}
-pxl <- fm_pixels(mesh_2d)
+pxl <- fm_pixels(mesh_2d, format="sp")
 
 field_pred <- predict(rspde_bru_fit, pxl, ~field)
 
