@@ -274,20 +274,12 @@ bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
   }
 
 
-  if (!true_CV) {
-    result <- inlabru::iinla(
-      model = info[["model"]],
-      lhoods = lhoods_tmp,
-      options = info[["options"]]
-    )
-  } else {
-    result <- inlabru::iinla(
+  result <- inlabru::iinla(
       model = info[["model"]],
       lhoods = lhoods_tmp,
       initial = result,
       options = info[["options"]]
     )
-  }
 
   # Assigning back:
 
@@ -309,11 +301,12 @@ bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
   }
 
 
-  timing_end <- Sys.time()
+  new_timings <- result[["bru_iinla"]][["timings"]]$Iteration >
+    max(original_timings$Iteration)
   result$bru_timings <-
     rbind(
-      original_timings[1, , drop = FALSE],
-      result[["bru_iinla"]][["timings"]]
+      original_timings,
+      result[["bru_iinla"]][["timings"]][new_timings, , drop = FALSE]
     )
 
   # Add bru information to the result
