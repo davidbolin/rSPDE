@@ -1205,13 +1205,10 @@ print.summary_rspde_lme <- function(x, ...) {
 #' @param compute_variances Set to also TRUE to compute the kriging variances.
 #' @param posterior_samples If `TRUE`, posterior samples will be returned.
 #' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
-#' @param edge_number Name of the variable that contains the edge number, the default is `edge_number`.
-#' @param distance_on_edge Name of the variable that contains the distance on edge, the default is `distance_on_edge`.
-#' @param normalized Are the distances on edges normalized?
 #' @param sample_latent Do posterior samples only for the random effects?
 #' @param return_as_list Should the means of the predictions and the posterior samples be returned as a list, with each replicate being an element?
 #' @param return_original_order Should the results be return in the original (input) order or in the order inside the graph?
-#' @param ... Not used.
+#' @param ... Additional arguments. Expert use only. 
 #' @param data `r lifecycle::badge("deprecated")` Use `newdata` instead.
 #' @return A list with elements `mean`, which contains the means of the
 #' predictions, `fe_mean`, which is the prediction for the fixed effects, `re_mean`, which is the prediction for the random effects, `variance` (if `compute_variance` is `TRUE`), which contains the
@@ -1221,8 +1218,7 @@ print.summary_rspde_lme <- function(x, ...) {
 #' @method predict rspde_lme
 
 predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, which_repl = NULL, compute_variances = FALSE, posterior_samples = FALSE,
-                              n_samples = 100, sample_latent = FALSE, edge_number = "edge_number",
-                              distance_on_edge = "distance_on_edge", normalized = FALSE, return_as_list = FALSE, return_original_order = TRUE,
+                              n_samples = 100, sample_latent = FALSE, return_as_list = FALSE, return_original_order = TRUE,
                               ...,
                               data = deprecated()) {
   if (lifecycle::is_present(data)) {
@@ -1245,6 +1241,22 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, 
     if (!mesh) {
       stop("If 'mesh' is false, you should supply data!")
     }
+  }
+
+  tmp_args <- as.list(substitute(list(...)))[-1L]
+
+  distance_on_edge <- tmp_args[["distance_on_edge"]]
+  edge_number <- tmp_args[["edge_number"]]
+  normalized <- tmp_args[["normalized"]]
+
+  if(is.null(distance_on_edge)){
+    distance_on_edge <- "distance_on_edge"
+  }
+  if(is.null(edge_number)){
+    edge_number <- "edge_number"
+  }
+  if(is.null(normalized)){
+    normalized <- FALSE
   }
 
   out <- list()
@@ -1566,10 +1578,7 @@ glance.rspde_lme <- function(x, ...) {
 #' @param pred_int Logical indicating whether or not prediction intervals for future observations should be built.
 #' @param level Level of confidence and prediction intervals if they are constructed.
 #' @param n_samples Number of samples when computing prediction intervals.
-#' @param edge_number Name of the variable that contains the edge number, the default is `edge_number`.
-#' @param distance_on_edge Name of the variable that contains the distance on edge, the default is `distance_on_edge`.
-#' @param normalized Are the distances on edges normalized?
-#' @param ... Additional arguments.
+#' @param ... Additional arguments. Expert use only. 
 #'
 #' @return A [tidyr::tibble()] with columns:
 #' \itemize{
@@ -1601,6 +1610,22 @@ augment.rspde_lme <- function(x, newdata = NULL, loc = NULL, mesh = FALSE, which
   }
   if (level > 1 || level < 0) {
     stop("'level' must be between 0 and 1!")
+  }
+
+  tmp_args <- as.list(substitute(list(...)))[-1L]
+
+  distance_on_edge <- tmp_args[["distance_on_edge"]]
+  edge_number <- tmp_args[["edge_number"]]
+  normalized <- tmp_args[["normalized"]]
+
+  if(is.null(distance_on_edge)){
+    distance_on_edge <- "distance_on_edge"
+  }
+  if(is.null(edge_number)){
+    edge_number <- "edge_number"
+  }
+  if(is.null(normalized)){
+    normalized <- FALSE
   }
 
   if (pred_int) {
