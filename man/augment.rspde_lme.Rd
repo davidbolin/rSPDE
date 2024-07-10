@@ -16,9 +16,6 @@
   pred_int = FALSE,
   level = 0.95,
   n_samples = 100,
-  edge_number = "edge_number",
-  distance_on_edge = "distance_on_edge",
-  normalized = FALSE,
   ...
 )
 }

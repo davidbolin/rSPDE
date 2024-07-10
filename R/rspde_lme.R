@@ -1596,8 +1596,7 @@ glance.rspde_lme <- function(x, ...) {
 #' @seealso [glance.rspde_lme]
 #' @method augment rspde_lme
 #' @export
-augment.rspde_lme <- function(x, newdata = NULL, loc = NULL, mesh = FALSE, which_repl = NULL, se_fit = FALSE, conf_int = FALSE, pred_int = FALSE, level = 0.95, n_samples = 100, edge_number = "edge_number",
-                              distance_on_edge = "distance_on_edge", normalized = FALSE, ...) {
+augment.rspde_lme <- function(x, newdata = NULL, loc = NULL, mesh = FALSE, which_repl = NULL, se_fit = FALSE, conf_int = FALSE, pred_int = FALSE, level = 0.95, n_samples = 100, ...) {
   .resid <- FALSE
   if (is.null(newdata)) {
     .resid <- TRUE
