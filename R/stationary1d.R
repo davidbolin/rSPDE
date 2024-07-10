@@ -201,7 +201,7 @@ matern.rational.ldl <- function(loc,
     if(!(ordering %in% c("field", "location"))) {
         stop("Ordering must be 'field' or 'location'.")
     }
-    if(is.matrix(loc) && min(dim(h)) > 1) {
+    if(is.matrix(loc) && min(dim(loc)) > 1) {
         stop("Only one dimensional locations supported.")
     }
     alpha=nu+1/2
