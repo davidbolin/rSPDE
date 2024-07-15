@@ -48,7 +48,6 @@ jobs:
           git config --local user.name "GitHub Actions"
           Rscript -e 'library(rmarkdown); rmarkdown::render("index.Rmd", "md_document")'     
           cp index_files/figure-markdown_strict/* man/figures/
-          sed -i .bak 's/index_files/man/' index.md
-          sed -i .bak 's/figure-markdown_strict/figures/' index.md
-          rm index.md.bak
+          sed -i 's/index_files/man/' index.md
+          sed -i 's/figure-markdown_strict/figures/' index.md
           Rscript -e 'pkgdown::deploy_to_branch(new_process = FALSE)'
