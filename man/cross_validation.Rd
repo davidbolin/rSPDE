@@ -21,7 +21,7 @@ cross_validation(
   return_post_samples = FALSE,
   parallelize_RP = FALSE,
   n_cores_RP = parallel::detectCores() - 1,
-  true_CV = FALSE,
+  true_CV = TRUE,
   save_settings = FALSE,
   print = TRUE,
   fit_verbose = FALSE

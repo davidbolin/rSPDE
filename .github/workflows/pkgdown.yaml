@@ -46,4 +46,10 @@ jobs:
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
+          Rscript -e 'library(rmarkdown); rmarkdown::render("index.Rmd", "md_document")'     
+          cp index_files/figure-markdown_mmd/* man/figures/
+          sed -i 's/index_files/man/' index.md
+          sed -i 's/figure-markdown_mmd/figures/' index.md
+          git add *
+          git commit -m "adding index.md and figures"
           Rscript -e 'pkgdown::deploy_to_branch(new_process = FALSE)'

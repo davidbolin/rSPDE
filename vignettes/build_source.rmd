@@ -83,6 +83,26 @@ Finally, if after installing `eigen` with `brew` it gives you an error that it c
 sudo ln -s $(brew --prefix eigen)/include/eigen3 /usr/local/include/eigen3
 ```
 
+You also need to create the following symbolic links related to homebrew:
+```{bash, eval=FALSE}
+sudo ln -s $(brew --prefix)/lib /usr/local/brewlib
+sudo ln -s $(brew --prefix)/include /usr/local/brewinclude
+```
+
+Finally, you need to install `gcc-14`:
+
+```{bash, eval=FALSE}
+brew install gcc@14
+```
+
+and also create the symbolic links associated to `gcc`:
+
+```{bash, eval=FALSE}
+sudo ln -s $(brew --prefix gcc@14)/bin/gcc-14 /usr/local/bin/gcc
+sudo ln -s $(brew --prefix gcc@14)/bin/g++-14 /usr/local/bin/g++
+```
+
+
 ## Adjusting the Makefile
 
 If you experience trouble while installing the `rSPDE` package, you might need to adjust the `Makefile`. Before that, you will need to have `rSPDE`

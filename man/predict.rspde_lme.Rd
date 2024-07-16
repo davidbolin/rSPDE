@@ -14,9 +14,6 @@
   posterior_samples = FALSE,
   n_samples = 100,
   sample_latent = FALSE,
-  edge_number = "edge_number",
-  distance_on_edge = "distance_on_edge",
-  normalized = FALSE,
   return_as_list = FALSE,
   return_original_order = TRUE,
   ...,
@@ -43,17 +40,11 @@ for the locations to obtain the prediction.}
 
 \item{sample_latent}{Do posterior samples only for the random effects?}
 
-\item{edge_number}{Name of the variable that contains the edge number, the default is \code{edge_number}.}
-
-\item{distance_on_edge}{Name of the variable that contains the distance on edge, the default is \code{distance_on_edge}.}
-
-\item{normalized}{Are the distances on edges normalized?}
-
 \item{return_as_list}{Should the means of the predictions and the posterior samples be returned as a list, with each replicate being an element?}
 
 \item{return_original_order}{Should the results be return in the original (input) order or in the order inside the graph?}
 
-\item{...}{Not used.}
+\item{...}{Additional arguments. Expert use only.}
 
 \item{data}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{newdata} instead.}
 }

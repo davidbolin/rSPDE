@@ -201,7 +201,7 @@ matern.rational.ldl <- function(loc,
     if(!(ordering %in% c("field", "location"))) {
         stop("Ordering must be 'field' or 'location'.")
     }
-    if(is.matrix(loc) && min(dim(h)) > 1) {
+    if(is.matrix(loc) && min(dim(loc)) > 1) {
         stop("Only one dimensional locations supported.")
     }
     alpha=nu+1/2
@@ -252,6 +252,7 @@ matern.rational.ldl <- function(loc,
 ### Utility below
 
 # Reorder matern
+#' @noRd
 compute.reordering <- function(n,m,alpha) {
     if(alpha <0 || alpha > 2) {
         stop("only 0<alpha<2 supported")
@@ -294,6 +295,7 @@ matern.derivative = function(h, kappa, nu, sigma, deriv = 1)
 
 
 # Precision for exponential covariance
+#' @noRd
 exp_precision <- function(loc, kappa, boundary = "free") {
     n <- length(loc)
     l <- diff(loc)
@@ -462,7 +464,7 @@ matern.p.precision <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
         }
         
         
-        for(i in 1:(n-1)){
+        for(i in 1:max((n-1),1)){
             if(i==1){
                 if(!equally_spaced){
                     Q.1 <- solve(rbind(cbind(matern.p.joint(loc[i],loc[i],kappa,p,alpha),
@@ -502,6 +504,9 @@ matern.p.precision <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
                     }
                 }     
             }
+        }
+        if(n<=2){
+            Q.i <- Q.1
         }
         for(ki in 1:fa){
             for(kj in ki:fa){
@@ -866,8 +871,8 @@ matern.k.precision <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
             
         }
     }
-    
-    for(i in 1:(n-1)){
+   
+    for(i in 1:max((n-1),1)){
         if(i==1){
             if(!equally_spaced){
                 Q.1 <- solve(rbind(cbind(matern.k.joint(loc[i],loc[i],kappa,alpha),
@@ -909,14 +914,18 @@ matern.k.precision <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
             }     
         }
     }
-    for(ki in 1:da){
-        for(kj in ki:da){
-            ii[counter] <- da*(n-1) + ki
-            jj[counter] <- da*(n-1) + kj
-            val[counter] <- Q.i[ki+da,kj+da]
-            counter <- counter + 1
+    if(n <= 2){
+        Q.i <- Q.1
+    }
+        for(ki in 1:da){
+            for(kj in ki:da){
+                ii[counter] <- da*(n-1) + ki
+                jj[counter] <- da*(n-1) + kj
+                val[counter] <- Q.i[ki+da,kj+da]
+                counter <- counter + 1
+            }
         }
-    }    
+
     Q <- Matrix::sparseMatrix(i   = ii,
                               j    = jj,
                               x    = val,

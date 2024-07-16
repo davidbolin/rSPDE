@@ -178,8 +178,8 @@ bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
   stopifnot(inherits(result, "bru"))
   if (!true_CV) {
     options <- list(control.mode = list(
-      restart = FALSE,
-      theta = result$mode$theta, fixed = TRUE
+      theta = result$mode$theta,
+      fixed=TRUE
     ))
   } else {
     options <- list()
@@ -230,6 +230,8 @@ bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
     })
   }
 
+  print(lhoods_tmp)
+
   # Get the components list
 
   list_of_components <- names(info[["model"]][["effects"]])
@@ -274,20 +276,12 @@ bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
   }
 
 
-  if (!true_CV) {
-    result <- inlabru::iinla(
-      model = info[["model"]],
-      lhoods = lhoods_tmp,
-      options = info[["options"]]
-    )
-  } else {
-    result <- inlabru::iinla(
+  result <- inlabru::iinla(
       model = info[["model"]],
       lhoods = lhoods_tmp,
       initial = result,
       options = info[["options"]]
     )
-  }
 
   # Assigning back:
 
@@ -309,11 +303,12 @@ bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
   }
 
 
-  timing_end <- Sys.time()
+  new_timings <- result[["bru_iinla"]][["timings"]]$Iteration >
+    max(original_timings$Iteration)
   result$bru_timings <-
     rbind(
-      original_timings[1, , drop = FALSE],
-      result[["bru_iinla"]][["timings"]]
+      original_timings,
+      result[["bru_iinla"]][["timings"]][new_timings, , drop = FALSE]
     )
 
   # Add bru information to the result
@@ -443,7 +438,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
                              return_train_test = FALSE,
                              return_post_samples = FALSE,
                              parallelize_RP = FALSE, n_cores_RP = parallel::detectCores() - 1,
-                             true_CV = FALSE, save_settings = FALSE,
+                             true_CV = TRUE, save_settings = FALSE,
                              print = TRUE,
                              fit_verbose = FALSE) {
   orientation_results <- orientation_results[[1]]
@@ -1390,7 +1385,13 @@ group_predict <- function(models, model_names = NULL, formula = NULL,
       df_pred <- select_indexes(data, test_indices[[fold]])
 
       df_pred <- prepare_df_pred(df_pred, models[[model_number]], test_indices[[fold]])
+      start_time <- Sys.time()
       new_model <- bru_rerun_with_data(models[[model_number]], train_indices[[fold]], true_CV = !pseudo_predict, fit_verbose = fit_verbose)
+      end_time <- Sys.time()
+
+      print("Time:")
+      print(end_time - start_time)
+
 
       if (print) {
         cat("Generating samples...\n")
