@@ -252,10 +252,13 @@ rspde_lme <- function(formula, loc, data,
     } else if (is.character(loc)) {
       if (!model$has_graph) {
         dim <- model$d
-        if ( (length(loc) != (dim+1) && (model$mesh$manifold == "S2")) || 
-             (length(loc) != dim && !(model$mesh$manifold == "S2"))){
-          stop("If 'loc' is a character vector, it must have the same length as the dimension (unless model comes from a metric graph).")
+        if(dim > 1) {
+            if ( (length(loc) != (dim+1) && (model$mesh$manifold == "S2")) || 
+                 (length(loc) != dim && !(model$mesh$manifold == "S2"))){
+                stop("If 'loc' is a character vector, it must have the same length as the dimension (unless model comes from a metric graph).")
+            }    
         }
+        
         if (dim == 1) {
           loc_df <- matrix(data[[loc[1]]], ncol = 1)
         } else if (dim == 2 && model$mesh$manifold == "S2" ) {
