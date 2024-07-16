@@ -744,6 +744,91 @@ matern.k.chol <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
     return(list(Bs=Bs, Fs = Fs, Fsi = Fsi, A=A))    
 }
 
+
+
+
+matern.p.chol.pred <- function(loc,loc.obs,kappa,p,equally_spaced = FALSE, alpha = 1) {
+    
+    n <- length(loc)
+    
+    if(alpha%%1 == 0) {
+        fa <- alpha
+    } else {
+        fa <- floor(alpha) + 1    
+    }
+    
+    #Bs <- Fs <- Fsi <- Diagonal(fa*n)
+    if(fa == 1) {
+        N <- 2*n
+    } else {
+        N <- 2*n*fa
+    }
+    
+    ii <- numeric(N)
+    jj <- numeric(N)
+    val <- numeric(N)
+    Sigma <- matrix(0,nrow=2*fa, ncol = 2*fa)
+    Stransp <- outer((-1)^(0:(fa-1)),(-1)^(0:(fa-1)))
+    Sdiag <- matern.p.joint(0,0,kappa,p,alpha)
+    
+    Sod <- matern.p.joint(loc[1],loc[2],kappa,p,alpha)
+    di <- abs(loc[2]-loc[1])
+    
+    Sigma[1:fa,1:fa] <- Sdiag
+    Sigma[(fa+1):(2*fa),(fa+1):(2*fa)] <- Sdiag
+    Sigma[1:fa,(fa+1):(2*fa)] <- Sod
+    Sigma[(fa+1):(2*fa),1:fa] <- Stransp*Sod
+    
+    
+    Fs.d <- Fsi.d <- numeric(fa*n)
+    
+    for(i in 1:n){
+        n1 <- which(loc.obs <  loc[i])
+        n1 <- n1[length(n1)]
+        n2 <- which(loc.obs >  loc[i])[1]
+        if(is.na(n1) || is.na(n2)) {
+            Sigma.nn <- Sdiag
+            if(is.na(n1)) {
+                Sigma.in <- matern.p.joint(loc[i],loc.obs[n2],kappa,p,alpha) 
+                nn <- n2
+            } else {
+                Sigma.in <- matern.p.joint(loc.obs[n1],loc[i],kappa,p,alpha)    
+                nn <- n1
+            }
+            tmp <- t(solve(Sigma.nn,Sigma.in))
+            for(k in 1:fa) {
+                val[counter2 + (1:fa)] <- tmp[k,]
+                ii[counter2 + (1:fa)] <- rep(counter,fa)
+                jj[counter2 + (1:fa)] <- 1+nn*(0:(fa-1))
+                counter <- counter + 1
+                counter2 <- counter2 + 2*fa
+            }
+        } else {
+            Sod <- matern.p.joint(loc.obs[n1],loc.obs[n2],kappa,p,alpha)
+            Sigma[1:fa,(fa+1):(2*fa)] <- Sod
+            Sigma[(fa+1):(2*fa),1:fa] <- Stransp*Sod
+            Sigma.nn <- Sigma
+            Sigma.in <- cbind(matern.p.joint(loc[i],loc.obs[n1],kappa,p,alpha),matern.p.joint(loc[i],loc.obs[n2],kappa,p,alpha))            
+            tmp <- t(solve(Sigma.nn,Sigma.in))
+            
+            for(k in 1:fa) {
+                val[counter2 + (1:(2*fa))] <- tmp[k,]
+                ii[counter2 + (1:(2*fa))] <- rep(counter,2*fa)
+                jj[counter2 + (1:(2*fa))] <- c(1+n1*(0:(fa-1)),1+n2*(0:(fa-1)))
+                counter <- counter + 1
+                counter2 <- counter2 + 2*fa
+            }
+        }
+    }
+    Bs <-  Matrix::sparseMatrix(i   = ii,
+                                j    = jj,
+                                x    = val,
+                                dims = c(fa*n, length(loc.obs)*fa))
+    
+    return(Bs)    
+}
+
+
 matern.k.precision <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
     
     n <- length(loc)
