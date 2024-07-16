@@ -257,6 +257,10 @@ rspde_lme <- function(formula, loc, data,
                  (length(loc) != dim && !(model$mesh$manifold == "S2"))){
                 stop("If 'loc' is a character vector, it must have the same length as the dimension (unless model comes from a metric graph).")
             }    
+        } else {
+            if ( length(loc) != dim && !(model$mesh$manifold == "S2")){
+                stop("If 'loc' is a character vector, it must have the same length as the dimension (unless model comes from a metric graph).")
+            }
         }
         
         if (dim == 1) {
