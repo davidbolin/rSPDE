@@ -1294,7 +1294,7 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, 
   }
 
   X_cov_pred <- stats::model.matrix(object$covariates, data)
-  if (nrow(X_cov_pred) != nrow(as.matrix(loc))) {
+  if (nrow(X_cov_pred) > 0 && nrow(X_cov_pred) != nrow(as.matrix(loc))) {
     stop("Covariates not found in data.")
   }
 
@@ -1361,23 +1361,38 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, 
   sigma_e <- sigma.e
 
   ## construct Q
-
-  if (object$estimate_nu) {
-    alpha_est <- coeff_random[1]
-    tau_est <- coeff_random[2]
-    kappa_est <- coeff_random[3]
+  if (object$latent_model$stationary) {
+      if (object$estimate_nu) {
+          alpha_est <- coeff_random[1]
+          tau_est <- coeff_random[2]
+          kappa_est <- coeff_random[3]
+      } else {
+          tau_est <- coeff_random[1]
+          kappa_est <- coeff_random[2]
+          alpha_est <- NULL
+      }
+      
+      new_rspde_obj <- update(object$latent_model,
+                              user_alpha = alpha_est,
+                              user_kappa = kappa_est,
+                              user_tau = tau_est,
+                              parameterization = "spde"
+      )    
   } else {
-    tau_est <- coeff_random[1]
-    kappa_est <- coeff_random[2]
-    alpha_est <- NULL
+      if (object$estimate_nu) {
+          alpha_est <- coeff_random[1]
+          theta_model <- coeff_random[-1]
+      } else {
+          theta_model <- coeff_random
+          alpha_est <- NULL
+      }
+      new_rspde_obj <- update(object$latent_model,
+                              user_alpha = alpha_est,
+                              user_theta = theta_model,
+                              parameterization = "spde"
+                              )    
   }
-
-  new_rspde_obj <- update(object$latent_model,
-    user_alpha = alpha_est,
-    user_kappa = kappa_est,
-    user_tau = tau_est,
-    parameterization = "spde"
-  )
+  
 
 
   Q <- new_rspde_obj$Q
