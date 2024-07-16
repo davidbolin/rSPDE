@@ -1,9 +1,10 @@
 ---
-title: The `rSPDE` package 
-output: md_document
+title: The `rSPDE` package
+output:
+  md_document:
+    variant: markdown_mmd
 ---
-
-# The `rSPDE` package
+# The `rSPDE` package 
 
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-last-release/rSPDE)](https://cran.r-project.org/package=rSPDE)
 [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)
@@ -18,7 +19,7 @@ Basic statistical operations such as likelihood evaluations and kriging predicti
 Several popular Gaussian random field models can be represented as solutions to stochastic partial differential equations (SPDEs) of the form 
 
 $$
-L^\beta (\tau u) = \mathcal{W}.
+L^{\beta} (\tau u) = \mathcal{W}.
 $$
 
 Here $\mathcal{W}$ is a Gaussian white noise, $L$ is a second-order differential operator, the fractional power $\beta$ determines the smoothness of $u$, and $\tau$ scales the variance of $u$. The simplest example is a model on $\mathbb{R}^d$ with $L = \kappa^2 - \Delta$, which results in a Gaussian random field $u$ with a Matérn covariance function
