@@ -50,4 +50,6 @@ jobs:
           cp index_files/figure-markdown_strict/* man/figures/
           sed -i 's/index_files/man/' index.md
           sed -i 's/figure-markdown_strict/figures/' index.md
+          git add *
+          git commit -m "adding index.md and figures"
           Rscript -e 'pkgdown::deploy_to_branch(new_process = FALSE)'
