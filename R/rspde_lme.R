@@ -207,7 +207,7 @@ rspde_lme <- function(formula, loc, data,
           stop("For stationary models, the values of starting_values_latent must be positive.")
         }
       } else {
-        if (length(starting_values_latent) != ncol(model$B.tau)) {
+        if (length(starting_values_latent) != ncol(model$B.tau)-1) {
           stop("starting_values_latent must be a vector of the same length as the number of the covariates for the latent model.")
         }
       }
@@ -252,20 +252,27 @@ rspde_lme <- function(formula, loc, data,
     } else if (is.character(loc)) {
       if (!model$has_graph) {
         dim <- model$d
-        if (length(loc) != dim) {
+        if ( (length(loc) != (dim+1) && (model$mesh$manifold == "S2")) || 
+             (length(loc) != dim && !(model$mesh$manifold == "S2"))){
           stop("If 'loc' is a character vector, it must have the same length as the dimension (unless model comes from a metric graph).")
         }
         if (dim == 1) {
           loc_df <- matrix(data[[loc[1]]], ncol = 1)
-        } else if (dim == 2) {
+        } else if (dim == 2 && model$mesh$manifold == "S2" ) {
           loc_df <- cbind(
             as.vector(data[[loc[1]]]),
-            as.vector(data[[loc[2]]])
+            as.vector(data[[loc[2]]]),
+            as.vector(data[[loc[3]]])
           )
+        } else if (dim == 2) {
+            loc_df <- cbind(
+                as.vector(data[[loc[1]]]),
+                as.vector(data[[loc[2]]])
+            )
         }
-      } else {
+    } else {
         if (length(loc) != 2) {
-          stop("For a metric graph, 'loc' must have length two.")
+            stop("For a metric graph, 'loc' must have length two.")
         }
         loc_df <- cbind(
           as.vector(data[[loc[1]]]),
