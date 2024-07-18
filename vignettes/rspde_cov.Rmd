@@ -136,28 +136,22 @@ the vignettes [R-INLA implementation of the rational SPDE approach](rspde_inla.h
 
 ## Covariance-based rational SPDE approach
 
-Let us first present the basic setup. We want to model the precipitation as 
-a two-dimensional random field $u$ within a bounded domain, where each 
-location on the domain associates with a random variable which describe 
-the local precipitation. 
-
-In the SPDE approach, introduced in [@lindgren11](https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x) we model $u$ as the solution of the following SPDE: 
-$$L^{\alpha/2}(\tau u) = \mathcal{W},$$ 
+Let us first present the idea behind the approach. In the SPDE approach, introduced in [@lindgren11](https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x) we model $u$ as the solution of the following SPDE: 
+$$
+L^{\alpha/2}(\tau u) = \mathcal{W},
+$$ 
 where 
 $L  = -\Delta +\kappa^2 I$ and $\mathcal{W}$ is the standard Gaussian white noise. 
-Here, $\alpha$, $\kappa$ and $\tau$ are three parameters we want to estimate. In
-the standard SPDE approach, we write, for a general dimension $d$, 
-$\alpha = \nu + d/2$ and assume $\nu$ to be fixed so that $\alpha$ is an integer. 
+Here, $\alpha$, $\kappa$ and $\tau$ are the parameters of the model. In
+the standard SPDE approach, $\alpha = \nu + d/2$ needs to be fixed to an integer value, where $\alpha = 2$ is the usual default value. 
 In the rational SPDE approach we can use any value of $\nu>0$ and also estimate it from data.
 
-Now let us briefly describe how covariance based rational SPDE approach works 
-in statistical inference. 
-The main idea is to perform the rational approximation directly on the
-covariance operator, which is given by $L^{-\alpha}$, instead of on the solution 
-$u$.
+The main idea of the covariance-based rational SPDE approach is to perform the rational approximation of the covariance operator $L^{-\alpha}$.
 To this end, we begin by obtaining an approximation of the random field $u$, which is the solution of the
 SPDE above, by using the finite element method (FEM): 
-$$u_h(\mathbf{s}_i)=\sum_{j=1}^{n_h} \hat{u}_j \varphi_j(\mathbf{s}_i),$$ 
+$$
+u_h(\mathbf{s}_i)=\sum_{j=1}^{n_h} \hat{u}_j \varphi_j(\mathbf{s}_i),
+$$ 
 where $\{\hat{u}_j\}_{j = 1}^{n_h}$ are stochastic weights and $\{\varphi_j(\mathbf{s}_i)\}_{j = 1}^{n_h}$ are fixed piecewise linear and continuous basis functions obtained from a triangulation of the spatial domain.
 We then obtain a FEM approximation of the operator $L$, which is given by $L_h$, and the covariance operator of $u_h$ is
 given by $L_h^{-\alpha}$. 
@@ -178,31 +172,39 @@ Based on the above operator equation, we can write the covariance matrix of the 
 as 
 $$\mathbf{\Sigma}_{\hat{\textbf{u}}} = (\textbf{L}^{-1}\textbf{C})^{\lfloor\alpha\rfloor} \sum_{i=1}^{m}r_i(\textbf{L}-p_i\textbf{C})^{-1}+\textbf{K}, $$
 where $\textbf{C} = \{C_{ij}\}_{i,j=1}^{n_h}$, $C_{ij} = (\varphi_i,\varphi_j)_{L_2(\mathcal{D})}$, is the mass matrix, $\textbf{L} = \kappa^2\textbf{C}+\textbf{G}$, $\textbf{G} = \{G_{ij}\}_{i,j=1}^{n_h}$, $G_{ij}=(\nabla\varphi_i,\nabla\varphi_j)_{L_2(\mathcal{D})}$, is the stiffness matrix, and
-$$\textbf{K}=\left\{
+$$
+\textbf{K}=\left\{
 	\begin{array}{lcl}
 		k\textbf{C}      &      & {\lfloor\alpha\rfloor=0}\\
 		k\textbf{L}^{-1}(\textbf{C}\textbf{L}^{-1})^{\lfloor\alpha\rfloor-1}    &      & {\lfloor\alpha\rfloor\geq 1}\\
-	\end{array} \right. .$$
+	\end{array} \right. .
+	$$
 	
 
 The above representation shows that we can express $\hat{\textbf{u}}$ as 
-$$\hat{\textbf{u}}=\sum_{k=1}^{m+1}\textbf{x}_k,$$
-where $\textbf{x}_k = (x_{k,1}, \ldots, x_{k,n_h})$,
+$$
+\hat{\textbf{u}}=\sum_{i=1}^{m+1}\textbf{x}_i,
+$$
+where $\textbf{x}_i = (x_{i,1}, \ldots, x_{i,n_h})$,
 $$\textbf{x}_i \sim N(\textbf{0},\textbf{Q}_i^{-1}),$$
 and $\textbf{Q}_i$ is the precision matrix of $\textbf{x}_i$, which is given by 
-$$\textbf{Q}_i=\left \{
+$$
+\textbf{Q}_i=\left \{
 	\begin{array}{lcl}
 		(\textbf{L}-p_i\textbf{C})(\textbf{C}^{-1}\textbf{L})^{\lfloor\alpha\rfloor}/r_i,      &      & {i = 1,...,m}\\
 		 \textbf{K}^{-1},   &      & {i = m+1}\\
-	\end{array}. \right.$$
+	\end{array}. \right.
+	$$
 
 We, then, replace the Matérn latent field by the latent vector given above, which
 has precision matrix given by
 $$\textbf{Q}=\begin{bmatrix}\textbf{Q}_1& &\\&\ddots&\\& &\textbf{Q}_{m+1}\end{bmatrix}.$$
-Now, assume we observe 
-$$y_i = u_h(\mathbf{s}_i) + \varepsilon_i,\quad i=1,\ldots, N,$$
-where $\varepsilon_i\sim N(0,\sigma_\varepsilon^2)$ are iid measurement noise. Then, we have that
-$$y_i = u_h(\mathbf{s}_i) + \varepsilon_i = \sum_{j=1}^{n_h} \hat{u}_j \varphi_j(\mathbf{s}_i) + \varepsilon_i = \sum_{k=1}^{m+1} \sum_{j=1}^{n_h} x_{k,j} \varphi(\mathbf{s}_i) + \varepsilon_i.$$
+We thus have a Markov approximation which can be used for computationally efficient inference. For example, assume that we observe 
+$$y_j = u_h(\mathbf{s}_j) + \varepsilon_j,\quad j=1,\ldots, N,$$
+where $\varepsilon_j\sim N(0,\sigma_\varepsilon^2)$ are iid measurement noise. Then, we have that
+$$
+y_j = u_h(\mathbf{s}_j) + \varepsilon_j = \sum_{l=1}^{n_h} \hat{u}_l \varphi_l(\mathbf{s}_j) + \varepsilon_j = \sum_{i=1}^{m+1} \sum_{l=1}^{n_h} x_{i,l} \varphi_l(\mathbf{s}_j) + \varepsilon_j.
+$$
 This can be written in a matrix form as
 $$\textbf{y} = \overline{\textbf{A}} \textbf{X} + \boldsymbol{\varepsilon},$$
 where $\textbf{y} = [y_1,\ldots,y_N]^\top, \textbf{X} = [\textbf{x}_1^\top,\ldots,\textbf{x}_{m+1}^\top]^\top$, $\boldsymbol{\varepsilon} = [\varepsilon_1,\ldots,\varepsilon_N]^\top$,
@@ -297,7 +299,8 @@ Let us now compute the true Matérn covariance function on the interval $(0,1)$,
 which is the folded Matérn, see Theorem 1 in [An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach](https://www.jstor.org/stable/41262260) for further details.
 
 ```{r}
-c.true <- folded.matern.covariance.1d(rep(0.5, length(s)), abs(s), kappa, nu, sigma)
+c.true <- folded.matern.covariance.1d(rep(0.5, length(s)), 
+                                      abs(s), kappa, nu, sigma)
 ```
 
 The covariance function and the error compared with the Matérn covariance are shown in the following figure.
@@ -376,7 +379,8 @@ lines(s, c.true - c_cov.approx3, col = 3)
 lines(s, c.true - c_cov.approx4, col = 4)
 legend("bottomright",
   bty = "n",
-  legend = c("m=2 coarse mesh", "m=4 coarse mesh", "m=2 fine mesh", "m=4 fine mesh"),
+  legend = c("m=2 coarse mesh", "m=4 coarse mesh", 
+             "m=2 fine mesh", "m=4 fine mesh"),
   col = c(1, 2, 3, 4),
   lty = rep(1, 2), ncol = 1,
   cex = 0.8
@@ -520,7 +524,8 @@ Let us compare with the true values and compare the time:
 
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_par$matern_coeff$random_effects[2]), range = c(r, fit_par$matern_coeff$random_effects[3]),
+  sigma = c(sigma, fit_par$matern_coeff$random_effects[2]), 
+  range = c(r, fit_par$matern_coeff$random_effects[3]),
   nu = c(nu, fit_par$matern_coeff$random_effects[1]),
   row.names = c("Truth", "Estimates")
 ))
