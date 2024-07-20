@@ -2,45 +2,78 @@
 % Please edit documentation in R/stationary1d.R
 \name{matern.rational}
 \alias{matern.rational}
-\title{Rational approximation of the Matern covariance}
+\title{Rational approximation of the Matern fields on intervals and metric graphs}
 \usage{
 matern.rational(
-  h,
-  order,
-  kappa,
-  nu,
-  sigma,
-  type_rational = "brasil",
-  type_interp = "linear"
+  graph = NULL,
+  loc = NULL,
+  bc = c("free", "Neumann", "Dirichlet"),
+  kappa = NULL,
+  range = NULL,
+  nu = NULL,
+  sigma = NULL,
+  tau = NULL,
+  alpha = NULL,
+  m = 2,
+  parameterization = c("matern", "spde"),
+  type_rational_approximation = "brasil",
+  type_interp = "spline"
 )
 }
 \arguments{
-\item{h}{Distances to compute the covariance for}
+\item{graph}{Metric graph object. The default is NULL, which means that a stationary
+Matern model on the line is created.}
 
-\item{order}{The order of the approximation}
+\item{loc}{Locations where to evaluate the model.}
+
+\item{bc}{Specifies the boundary conditions. The default is "free" which gives
+stationary Matern models on intervals. Other options are "Neumann" or "Dirichlet".}
 
 \item{kappa}{Range parameter}
+
+\item{range}{practical correlation range}
 
 \item{nu}{Smoothness parameter}
 
 \item{sigma}{Standard deviation}
 
-\item{type_rational}{Method used to compute the coefficients of the rational approximation.}
+\item{tau}{Precision parameter}
+
+\item{alpha}{Smoothness parameter}
+
+\item{m}{The order of the approximation}
+
+\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu
+(smoothness). \code{spde} uses kappa, tau and alpha. The default is \code{matern}.}
+
+\item{type_rational_approximation}{Method used to compute the coefficients of the rational approximation.}
 
 \item{type_interp}{Interpolation method for the rational coefficients.}
 }
 \value{
-The covariance matrix of the approximation
+A model object for the the approximation
 }
 \description{
-Computes a rational approximation of the Matern covariance function on intervals.
+The function is used for computing an approximation,
+which can be used for inference and simulation, of the fractional SPDE
+\deqn{(\kappa^2 - \Delta)^{\alpha/2} (\tau u(s)) = W}
+on intervals or metric graphs. Here \eqn{W} is Gaussian white noise,
+\eqn{\kappa} controls the range, \eqn{\alpha = \nu + 1/2} with \eqn{\nu>0}
+controls the smoothness and \eqn{\tau} is related to the marginal variances
+through
+\deqn{\sigma^2 = \frac{\Gamma(\nu)}{\tau^2\Gamma(\alpha)2\sqrt{\pi}\kappa^{2\nu}}.}
 }
 \examples{
-h <- seq(from = 0, to = 1, length.out = 100)
-cov.true <- matern.covariance(h, kappa = 10, sigma = 1, nu = 0.8)
-cov.approx <- matern.rational(h, kappa = 10, sigma = 1, nu = 0.8, order = 2)
+s <- seq(from = 0, to = 1, length.out = 101)
+kappa <- 20
+sigma <- 2
+nu <- 0.8
+r <- sqrt(8*nu)/kappa #range parameter
+op_cov <- matern.rational(loc = s, nu = nu, range = r, sigma = sigma, m = 2, 
+parameterization = "matern")
+cov.true <- matern.covariance(abs(s-s[1]), kappa = kappa, sigma = sigma, nu = nu)
+cov.approx <- op_cov$covariance(ind = 1)
 
-plot(h, cov.true)
-lines(h, cov.approx, col = 2)
- 
+plot(s, cov.true)
+lines(s, cov.approx, col = 2)
 }

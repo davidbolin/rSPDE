@@ -2510,7 +2510,6 @@ aux_lme_CBrSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma
 
 
 #' @noRd
-
 aux2_lme_rSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
   m <- object$m
   Q <- object$Q

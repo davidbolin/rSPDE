@@ -1,85 +1,533 @@
-#' Rational approximation of the Matern covariance
+#' Rational approximation of the Matern fields on intervals and metric graphs
 #' 
-#' Computes a rational approximation of the Matern covariance function on intervals. 
-#' @param h Distances to compute the covariance for
-#' @param order The order of the approximation
+#' The function is used for computing an approximation,
+#' which can be used for inference and simulation, of the fractional SPDE
+#' \deqn{(\kappa^2 - \Delta)^{\alpha/2} (\tau u(s)) = W}
+#' on intervals or metric graphs. Here \eqn{W} is Gaussian white noise, 
+#' \eqn{\kappa} controls the range, \eqn{\alpha = \nu + 1/2} with \eqn{\nu>0} 
+#' controls the smoothness and \eqn{\tau} is related to the marginal variances
+#' through 
+#' \deqn{\sigma^2 = \frac{\Gamma(\nu)}{\tau^2\Gamma(\alpha)2\sqrt{\pi}\kappa^{2\nu}}.}
+#' @param graph Metric graph object. The default is NULL, which means that a stationary
+#' Matern model on the line is created. 
+#' @param loc Locations where to evaluate the model.
+#' @param bc Specifies the boundary conditions. The default is "free" which gives
+#' stationary Matern models on intervals. Other options are "Neumann" or "Dirichlet".
+#' @param m The order of the approximation
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu 
+#' (smoothness). `spde` uses kappa, tau and alpha. The default is `matern`.
 #' @param kappa Range parameter
+#' @param range practical correlation range
 #' @param nu Smoothness parameter
 #' @param sigma Standard deviation
-#' @param type_rational Method used to compute the coefficients of the rational approximation.
+#' @param tau Precision parameter
+#' @param alpha Smoothness parameter
+#' @param type_rational_approximation Method used to compute the coefficients of the rational approximation.
 #' @param type_interp Interpolation method for the rational coefficients. 
 #'
-#' @return The covariance matrix of the approximation
+#' @return A model object for the the approximation
 #' @export
 #' @examples
-#' h <- seq(from = 0, to = 1, length.out = 100)
-#' cov.true <- matern.covariance(h, kappa = 10, sigma = 1, nu = 0.8)
-#' cov.approx <- matern.rational(h, kappa = 10, sigma = 1, nu = 0.8, order = 2)
+#' s <- seq(from = 0, to = 1, length.out = 101)
+#' kappa <- 20
+#' sigma <- 2
+#' nu <- 0.8
+#' r <- sqrt(8*nu)/kappa #range parameter
+#' op_cov <- matern.rational(loc = s, nu = nu, range = r, sigma = sigma, m = 2, 
+#' parameterization = "matern")
+#' cov.true <- matern.covariance(abs(s-s[1]), kappa = kappa, sigma = sigma, nu = nu)
+#' cov.approx <- op_cov$covariance(ind = 1)
 #' 
-#' plot(h, cov.true)
-#' lines(h, cov.approx, col = 2)
-#'  
-matern.rational = function(h, 
-                           order,
-                           kappa,
-                           nu, 
-                           sigma,
-                           type_rational = "brasil", 
-                           type_interp = "linear")
-{
-    
-    if(is.matrix(h) && min(dim(h)) > 1) {
-        stop("Only one dimensional locations supported.")
+#' plot(s, cov.true)
+#' lines(s, cov.approx, col = 2)
+matern.rational = function(graph = NULL,
+                           loc = NULL,
+                           bc = c("free", "Neumann", "Dirichlet"),
+                           kappa = NULL,
+                           range = NULL,
+                           nu = NULL, 
+                           sigma = NULL,
+                           tau = NULL,
+                           alpha = NULL,
+                           m = 2,
+                           parameterization = c("matern", "spde"),
+                           type_rational_approximation = "brasil", 
+                           type_interp = "spline") {
+    bc <- bc[[1]]
+    has_graph <- FALSE
+    if(!is.null(graph)) {
+        has_graph <- TRUE
     }
-    alpha = nu+1/2
-    coeff <- interp_rational_coefficients(order = order, 
-                                          type_rational_approx = type_rational, 
-                                          type_interp = type_interp, 
-                                          alpha = alpha)
-    r <- coeff$r
-    p <- coeff$p
-    k <- coeff$k
-    n <- length(h)
-    if (nu>0 && nu<0.5)
-    {
-        sigma_rational = 0
-        for (i in 1:length(p)){
-            Sigma <- matrix(0,n,1)
-            for(kk in 1:n) {
-                Sigma[kk] <- matern.p(h[1],h[kk], kappa = kappa,
-                                     p = p[i], alpha = alpha)
+    parameterization <- parameterization[[1]]
+    
+    if (!parameterization %in% c("matern", "spde")) {
+        stop("parameterization should be either 'matern' or 'spde'!")
+    }
+    
+    if (parameterization == "spde") {
+        if (!is.null(nu)) {
+            stop("For 'spde' parameterization, you should NOT supply 'nu'. You need to provide 'alpha'!")
+        }
+        if (!is.null(sigma)) {
+            stop("For 'spde' parameterization, you should NOT supply 'sigma'. You need to provide 'tau'!")
+        }
+        if (!is.null(range)) {
+            stop("For 'spde' parameterization, you should NOT supply 'range'. You need to provide 'kappa'!")
+        }
+    } else {
+        if (!is.null(alpha)) {
+            stop("For 'matern' parameterization, you should NOT supply 'alpha'. You need to provide 'nu'!")
+        }
+        if (!is.null(tau)) {
+            stop("For 'matern' parameterization, you should NOT supply 'tau'. You need to provide 'sigma'!")
+        }
+        if (!is.null(kappa)) {
+            stop("For 'matern' parameterization, you should NOT supply 'kappa'. You need to provide 'range'!")
+        }
+    }
+    
+    if (!is.null(graph)) {
+        if (!inherits(graph, "metric_graph")) {
+            stop("graph should be a metric_graph object!")
+        }
+    }
+    
+    if(is.null(graph) && !(bc == "free") ){
+        stop("If boundary conditions are used, the domain must be specified.")
+    }
+    
+    if (parameterization == "spde") {
+        if (is.null(kappa) || is.null(tau)) {
+            if (is.null(graph) && is.null(loc)) {
+                stop("You should either provide all the parameters, or you should provide a graph or loc")
             }
-            sigma_rational = sigma_rational+ r[i]*sigma^2*Sigma
-        }
-        Sigma <- matrix(0,n,1)
-        for(kk in 1:n) {
-            Sigma[kk] <- matern.k(h[1],h[kk], kappa = kappa, alpha = alpha)
-        }
-        sigma_rational = sigma_rational + k*sigma^2*Sigma
-    }
-    
-    else {
-        
-        #k part
-        Sigma <- matrix(0,n,1)
-        for(kk in 1:n) {
-            Sigma[kk] <- matern.k(h[1],h[kk], kappa = kappa, alpha = alpha)
-        }
-        sigma_rational <- k*sigma^2*Sigma
-        
-        # p part
-        for (i in 1:length(p))
-        {
-            Sigma <- matrix(0,n,1)
-            for(kk in 1:n) {
-                Sigma[kk] <- matern.p(h[1],h[kk], kappa = kappa,
-                                      p = p[i], alpha = alpha)
+            if (!is.null(loc)) {
+                range_mesh <- max(loc) - min(loc)
+                param <- get.initial.values.rSPDE(mesh.range = range_mesh, dim = 1, 
+                                                  parameterization = parameterization, 
+                                                  nu = nu)
+            } else if (!is.null(graph)) {
+                param <- get.initial.values.rSPDE(graph.obj = graph, 
+                                                  parameterization = parameterization, 
+                                                  nu = nu)
             }
-            sigma_rational = sigma_rational+ r[i]*sigma^2*Sigma
+        }
+        
+        if (is.null(kappa)) {
+            kappa <- exp(param[2])
+        } else {
+            kappa <- rspde_check_user_input(kappa, "kappa", 0)
+        }
+        if (is.null(tau)) {
+            tau <- exp(param[1])
+        } else {
+            tau <- rspde_check_user_input(tau, "tau", 0)
+        }
+        
+        if (is.null(alpha)) {
+            alpha <- 1 + 0.5
+        } else {
+            alpha <- rspde_check_user_input(alpha, "alpha", 0.5)
+            #alpha <- min(alpha, 10)
+        }
+        
+        nu <- alpha - 0.5
+        
+        range <- sqrt(8 * nu) / kappa
+        sigma <- sqrt(gamma(nu) / (tau^2 * kappa^(2 * nu) *
+                                       (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
+    } else if (parameterization == "matern") {
+        if (is.null(sigma) || is.null(range)) {
+            if (is.null(graph) && is.null(loc)) {
+                stop("You should either provide all parameters, or you should provide graph or loc.")
+            }
+            if (!is.null(loc)) {
+                range_mesh <- max(loc) - min(loc)
+                param <- get.initial.values.rSPDE(mesh.range = range_mesh, dim = 1, 
+                                                  parameterization = parameterization, 
+                                                  nu = nu)
+            } else if (!is.null(graph)) {
+                param <- get.initial.values.rSPDE(graph.obj = graph, 
+                                                  parameterization = parameterization, 
+                                                  nu = nu)
+            }
+        }
+        
+        if (is.null(range)) {
+            range <- exp(param[2])
+        } else {
+            range <- rspde_check_user_input(range, "range", 0)
+        }
+        if (is.null(sigma)) {
+            sigma <- exp(param[1])
+        } else {
+            sigma <- rspde_check_user_input(sigma, "sigma", 0)
+        }
+        
+        if (is.null(nu)) {
+            nu <- 1
+        } else {
+            nu <- rspde_check_user_input(nu, "nu", 0)
+        }
+        kappa <- sqrt(8 * nu) / range
+        tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+                                     (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
+        alpha <- nu + 1 / 2
+    }
+    
+    
+    output <- list(
+        graph = graph,
+        has_graph = has_graph,
+        loc = loc,
+        bc = bc,
+        range = range,
+        sigma = sigma,
+        nu = nu, 
+        kappa = kappa,
+        tau = tau,
+        alpha = alpha,
+        m = m,
+        d = 1,
+        type_rational_approximation = type_rational_approximation, 
+        type_interp = type_interp,
+        parameterization = parameterization,
+        stationary = TRUE
+    )
+    output$covariance <- function(ind = NULL) {
+        
+        if(is.null(loc)) {
+            stop("The locations where to simulate must be specified in loc")
+        }
+        
+        if(!is.null(graph)) {
+            stop("Not implemented for graphs yet.")
+        }
+        
+        if(!is.null(ind)) {
+            h <- abs(loc - loc[ind])
+        } else {
+            h <- as.matrix(dist(loc))
+        }
+        
+        Sigma <- matern.rational.cov(h = h, order = m,
+                                     kappa = kappa,
+                                     nu = nu, 
+                                     sigma = sigma,
+                                     type_rational = type_rational_approximation, 
+                                     type_interp = type_interp)
+        
+        return(Sigma)
+    }
+    class(output) <- "rSPDEobj1d"
+    return(output)
+}
+
+
+
+#' @name update.rSPDEobj1d
+#' @title Update parameters of rSPDEobj1d objects
+#' @description Function to change the parameters of a rSPDEobj1d object
+#' @param object The covariance-based rational SPDE approximation,
+#' computed using [matern.rational()]
+#' @param user_kappa If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.
+#' @param user_tau If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.
+#' @param user_sigma If non-null, update the standard deviation of
+#' the covariance function. Will be used if parameterization is 'matern'.
+#' @param user_range If non-null, update the range parameter
+#' of the covariance function. Will be used if parameterization is 'matern'.
+#' @param user_theta For non-stationary models. If non-null, update the vector of parameters.
+#' @param user_nu If non-null, update the shape parameter of the
+#' covariance function. Will be used if parameterization is 'matern'.
+#' @param user_alpha If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.
+#' @param user_m If non-null, update the order of the rational
+#' approximation, which needs to be a positive integer.
+#' @param graph An optional `metric_graph` object. 
+#' @param loc The locations of interest for evaluating the model. 
+#' @param parameterization If non-null, update the parameterization. 
+#' @param type_rational_approximation Which type of rational
+#' approximation should be used? The current types are "chebfun",
+#' "brasil" or "chebfunLB".
+#' @param ... Currently not used.
+#' @return It returns an object of class "rSPDEobj1d". This object contains the
+#' same quantities listed in the output of [matern.rational()].
+#' @method update rSPDEobj1d
+#' @seealso [simulate.rSPDEobj1d()], [matern.rational()]
+#' @export
+#' @examples
+#' 
+#' s <- seq(from = 0, to = 1, length.out = 101)
+#' kappa <- 20
+#' sigma <- 2
+#' nu <- 0.8
+#' r <- sqrt(8*nu)/kappa #range parameter
+#' op_cov <- matern.rational(loc = s, nu = nu, range = r, sigma = sigma, m = 2, 
+#' parameterization = "matern")
+#' cov1 <- op_cov$covariance(ind = 1)
+#' op_cov <- update(op_cov, user_range = 0.2)
+#' cov2 <- op_cov$covariance(ind = 1)
+#' plot(s, cov1, type = "l")
+#' lines(s, cov2, col = 2)
+update.rSPDEobj1d <- function(object, 
+                              user_nu = NULL, 
+                              user_alpha = NULL,
+                              user_kappa = NULL,
+                              user_tau = NULL,
+                              user_sigma = NULL,
+                              user_range = NULL,
+                              user_theta = NULL,
+                              user_m = NULL,
+                              loc = NULL,
+                              graph = NULL,
+                              parameterization = NULL,
+                              type_rational_approximation =
+                                  object$type_rational_approximation,
+                              ...) {
+    new_object <- object
+    d <- object$d
+    
+    if (is.null(parameterization)) {
+        parameterization <- new_object$parameterization
+    } else {
+        parameterization <- parameterization[[1]]
+        if (!parameterization %in% c("matern", "spde")) {
+            stop("parameterization should be either 'matern' or 'spde'!")
         }
     }
     
-    return(sigma_rational)
+    if (parameterization == "spde") {
+        if (!is.null(user_kappa)) {
+            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa", 0)
+            new_object$range <- NULL
+            new_object$sigma <- NULL
+        }
+        
+        if (!is.null(user_tau)) {
+            new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
+            new_object$sigma <- NULL
+        }
+        
+        if (!is.null(user_alpha)) {
+            alpha <- rspde_check_user_input(user_alpha, "alpha", d / 2)
+            user_nu <- alpha - d / 2
+            new_object$nu <- user_nu
+            new_object$alpha <- alpha
+        }
+    } else if (parameterization == "matern") {
+        if (!is.null(user_range)) {
+            new_object$range <- rspde_check_user_input(user_range, "range", 0)
+            new_object$kappa <- NULL
+            new_object$tau <- NULL
+        }
+        
+        if (!is.null(user_sigma)) {
+            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma", 0)
+            new_object$tau <- NULL
+        }
+        if (!is.null(user_nu)) {
+            new_object$nu <- rspde_check_user_input(user_nu, "nu")
+        }
+        alpha <- new_object$nu + d / 2
+        new_object$alpha <- alpha
+    }
+
+    ## get parameters
+    alpha <- new_object$alpha
+
+    if (!is.null(user_m)) {
+        new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+    }
+    
+    
+    if (is.null(loc)) {
+        loc <- new_object[["loc"]]
+    }
+    if (is.null(graph)) {
+        graph <- new_object$graph
+    }
+    
+    if (parameterization == "spde") {
+        new_object <- matern.rational(
+            kappa = new_object$kappa,
+            tau = new_object$tau,
+            alpha = new_object$alpha,
+            m = new_object$m,
+            loc = loc,
+            graph = graph,
+            parameterization = parameterization,
+            type_rational_approximation = type_rational_approximation
+        )
+    } else {
+        new_object <- matern.rational(
+            sigma = new_object$sigma,
+            range = new_object$range,
+            nu = new_object$nu,
+            m = new_object$m,
+            loc = loc,
+            graph = graph,
+            parameterization = parameterization,
+            type_rational_approximation = type_rational_approximation
+        )
+    }
+
+    return(new_object)
+}
+
+#' @title Simulation of a Matern field using a rational SPDE approximation
+#'
+#' @description The function samples a Gaussian random field based on a
+#' pre-computed rational SPDE approximation.
+#'
+#' @param object The rational SPDE approximation, computed
+#' using [matern.rational()].
+#' @param nsim The number of simulations.
+#' @param seed an object specifying if and how the random number generator should be initialized (‘seeded’).
+#' @param ... Currently not used.
+#'
+#' @return A matrix with the `n` samples as columns.
+#' @seealso [matern.rational()]
+#' @export
+#' @method simulate rSPDEobj1d
+#'
+#' @examples
+#' # Sample a Gaussian Matern process on R using a rational approximation
+#' range <- 0.2
+#' sigma <- 1
+#' nu <- 0.8
+#'
+#' # compute rational approximation
+#' x <- seq(from = 0, to = 1, length.out = 100)
+#' op <- matern.rational(
+#'   range = range, sigma = sigma,
+#'   nu = nu, loc = x
+#' )
+#'
+#' # Sample the model and plot the result
+#' Y <- simulate(op)
+#' plot(x, Y, type = "l", ylab = "u(x)", xlab = "x")
+#'
+simulate.rSPDEobj1d <- function(object,
+                              nsim = 1,
+                              seed = NULL,
+                              ...) {
+    if (!is.null(seed)) {
+        set.seed(seed)
+    }
+    
+    if (!inherits(object, "rSPDEobj1d")) {
+        stop("input object is not of class rSPDEobj1d")
+    }
+    
+    if(is.null(object$loc)) {
+        stop("The locations where to simulate must be specified in loc")
+    }
+    
+    if(!is.null(object$graph)) {
+        stop("Simulation not implemented for graphs yet.")
+    }
+    tmp <- sort(object$loc, index.return = TRUE)
+    reo <- tmp$ix
+    loc_sort <- tmp$x
+    ireo <- 1:length(loc_sort)
+    ireo[reo] <- 1:length(loc_sort)
+    
+    ldl <- matern.rational.ldl(loc = loc_sort, order = object$m,
+                               nu = object$nu, kappa = object$kappa,
+                               sigma = object$sigma,
+                               type_rational = object$type_rational,
+                               type_interp = object$type_interp)
+    m <- dim(ldl$L)[1]
+    z <- rnorm(nsim * m)
+    dim(z) <- c(m, nsim)
+    x <- solve(sqrt(ldl$D), z)
+    x <- ldl$A %*% solve(ldl$L,x)
+    return(x[ireo,])
+}
+
+
+#' @noRd
+aux2_lme_rSPDE.matern.rational.loglike <- function(object, y, X_cov, repl, 
+                                                   loc, sigma_e, beta_cov) {
+    
+    repl_val <- unique(repl)
+    l <- 0
+    
+    for (i in repl_val) {
+        ind_tmp <- (repl %in% i)
+        y_tmp <- y[ind_tmp]
+        loc_ <- loc[ind_tmp]
+        
+        if (ncol(X_cov) == 0) {
+            X_cov_tmp <- 0
+        } else {
+            X_cov_tmp <- X_cov[ind_tmp, , drop = FALSE]
+        }
+        na_obs <- is.na(y_tmp)
+        
+        y_ <- y_tmp[!na_obs]
+        loc_ <- loc_[!na_obs]
+        n.o <- length(y_)
+        
+        ls <- sort(loc_, index.return = TRUE)
+        loc_ <- ls$x
+        ## Construct prior Q
+        tmp <- matern.rational.ldl(loc = ls$x, order = object$m, nu = object$nu, 
+                                   kappa = object$kappa, sigma = object$sigma, 
+                                   type_rational = object$type_rational_approx, 
+                                   type_interp =  object$type_interp)    
+
+        prior.ld <- 0.5 * sum(log(diag(tmp$D)))
+        
+        Q.post <- t(tmp$L)%*%tmp$D%*%tmp$L + t(tmp$A) %*% tmp$A / sigma_e^2
+        
+        R.post <- tryCatch(Matrix::Cholesky(Q.post), error = function(e) {
+            return(NULL)
+        })
+        if (is.null(R.post)) {
+            return(-10^100)
+        }
+        
+        posterior.ld <- c(determinant(R.post, logarithm = TRUE, sqrt = TRUE)$modulus)
+        
+        v <- y_
+        
+        if (ncol(X_cov) != 0) {
+            X_cov_tmp <- X_cov_tmp[!na_obs, , drop = FALSE]
+            v <- v - X_cov_tmp %*% beta_cov
+        }
+        v <- v[ls$ix]
+        AtY <- t(tmp$A) %*% v / sigma_e^2
+        
+        mu.post <- solve(R.post, AtY, system = "A")
+        
+        v1 <- tmp$L %*% mu.post
+        v2 <- v - tmp$A %*% mu.post
+        l <- l + prior.ld - posterior.ld - n.o * log(sigma_e)
+        l <- l -  0.5 * (t(v1) %*% tmp$D %*% v1 + t(v2) %*% (v2) / sigma_e^2) -
+            0.5 * n.o * log(2 * pi)
+    }
+    
+    return(as.double(l))
+}
+
+#' @noRd
+aux_lme_rSPDE.matern.rational.loglike <- function(object, y, X_cov, repl, loc, sigma_e, beta_cov) {
+    
+    l_tmp <- tryCatch(
+        aux2_lme_rSPDE.matern.rational.loglike(
+            object = object,
+            y = y, X_cov = X_cov, repl = repl, loc = loc,
+            sigma_e = sigma_e, beta_cov = beta_cov
+        ),
+        error = function(e) {
+            return(NULL)
+        }
+    )
+    if (is.null(l_tmp)) {
+        return(-10^100)
+    }
+    #cat("ll =", l_tmp, "beta = ", beta_cov, ", sigma_e = ", sigma_e, ", kappa = ", object$kappa, ", tau = ", object$tau, ", nu = ", object$nu, "\n")
+    return(l_tmp)
 }
 
 
@@ -936,57 +1384,4 @@ matern.k.precision <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
                                x    = rep(1,n),
                                dims = c(n, da*n))
     return(list(Q=Q,A=A))    
-}
-
-#Joint covariance of process and derivative for shifted Matern
-matern.k.joint <- function(s,t,kappa,alpha = 1){
-    fa <- floor(alpha)
-    if(fa == 0) {
-        mat <- matrix(0, nrow = 1, ncol = 1)
-        mat[1,1] <- matern.k(s,t,kappa,alpha)
-    } else {
-        mat <- matrix(0, nrow = fa, ncol = fa)    
-        for(i in 1:fa) {
-            for(j in i:fa) {
-                if(i==j) {
-                    mat[i,i] <- ((-1)^(i-1))*matern.k.deriv(s,t,kappa,alpha, deriv = 2*(i-1))
-                } else {
-                    mat[i,j] <- (-1)^(j-1)*matern.k.deriv(s,t,kappa,alpha, deriv = i-1 + j - 1)
-                    mat[j,i] <- (-1)^(i-1)*matern.k.deriv(s,t,kappa,alpha, deriv = i-1 + j - 1)
-                }
-            }
-        }
-    }
-    return(mat)
-}
-
-matern.k.deriv <- function(s,t,kappa,alpha, deriv = 0){
-    h <- s-t
-    ca <- gamma(alpha)/gamma(alpha-0.5)
-    if(alpha<1){
-        if(deriv == 0) {
-            return((h==0)*sqrt(4*pi)*ca/kappa)    
-        } else {
-            stop("Not differentiable")
-        }
-    } else {
-        fa <- floor(alpha)
-        cfa <- gamma(fa)/gamma(fa-0.5)
-        return(matern.derivative(h, kappa = kappa, nu = fa - 1/2, 
-                                 sigma = sqrt(ca/cfa), deriv = deriv))
-    }
-}
-
-
-matern.k <- function(s,t,kappa,alpha){
-    h <- s-t
-    ca <- gamma(alpha)/gamma(alpha-0.5)
-    if(alpha<1){
-        return((h==0)*sqrt(4*pi)*ca/kappa)
-    } else {
-        fa <- floor(alpha)
-        cfa <- gamma(fa)/gamma(fa-0.5)
-        return(matern.covariance(h, kappa = kappa, nu = fa - 1/2, 
-                                 sigma = sqrt(ca/cfa)))
-    }
 }

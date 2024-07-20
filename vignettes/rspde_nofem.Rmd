@@ -1,0 +1,327 @@
+---
+title: "Rational approximations without finite element approximations"
+author: "David Bolin and Alexandre B. Simas"
+date: "Created: 2024-07-20. Last modified: `r Sys.Date()`."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Rational approximation with the rSPDE package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+references:
+- id: bolin19
+  title: "The rational SPDE approach for Gaussian random fields with general smoothness"
+  author:
+  - family: Bolin
+    given: David
+  - family: Kirchner
+    given: Kristin
+  container-title: Journal of Computational and Graphical Statistics
+  volume: 29
+  issue: 2
+  page: 274-285
+  type: article-journal
+  issued:
+    year: 2020
+- id: lindgren11
+  title: "An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach"
+  author:
+  - family: Lindgren
+    given: Finn
+  - family: Rue
+    given: Håvard
+  - family: Lindström
+    given: Johan
+  container-title: Journal of the Royal Statistical Society. Series B. Statistical Methodology
+  volume: 73
+  issue: 4
+  page: 423--498
+  type: article-journal
+  issued:
+    year: 2011
+- id: bolin13
+  title: "Spatial Matérn Fields Driven by Non-Gaussian Noise"
+  author:
+    - family: Bolin
+      given: David
+  container-title: Scandinavian Journal of Statistics
+  volume: 41
+  issue: 3
+  page: 557-579
+  type: article-journal
+  issued:
+    year: 2013
+- id: wallin15
+  title: "Geostatistical Modelling Using Non-Gaussian Matérn Fields"
+  author:
+    - family: Wallin
+      given: Jonas
+    - family: Bolin
+      given: David
+  container-title: Scandinavian Journal of Statistics
+  volume: 42
+  issue: 3
+  page: 872-890
+  type: article-journal
+  issued:
+    year: 2015
+- id: asar20
+  title: "Linear mixed effects models for non‐Gaussian repeated measurement data"
+  author:
+    - family: Asar
+      given: Özgür
+    - family: Bolin
+      given: David
+    - family: Diggle
+      given: Peter
+    - family: Wallin
+      given: Jonas
+  container-title: Journal of the Royal Statistical Society. Series C. Applied Statistics
+  volume: 69
+  issue: 5
+  page: 1015-1065
+  type: article-journal
+  issued:
+    year: 2020 
+- id: Hofreither21
+  title: "An algorithm for best rational approximation based on barycentric rational interpolation"
+  author:
+  - family: Hofreither
+    given: Clemens
+  container-title: Numerical Algorithms
+  volume: 88
+  issue: 1
+  page: 365--388
+  type: article-journal
+  issued:
+    year: 2021 
+- id: xiong22
+  title: "Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference"
+  author: 
+  - family: Bolin
+    given: David
+  - family: Simas
+    given: Alexandre B.
+  - family: Xiong
+    given: Zhen    
+  container-title: Journal of Computational and Graphical Statistics
+  type: article-journal
+  issued:
+    year: 2023   
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(1)
+```
+
+```{r inla_link, include = FALSE}
+inla_link <- function() {
+  sprintf("[%s](%s)", "`R-INLA`", "https://www.r-inla.org")
+}
+```
+
+## Introduction
+
+For models in one dimension, we can perform rational approximations without finite elements. This enables us to provide 
+computationally efficient approximations of Gaussian processes with Mat\'ern covariance functions, without having to define finite element meshes, and without having boundary effects due to the boundary conditions that are usually required. In this vignette we will introduce these methods. 
+
+We begin by loading the `rSPDE` package:
+
+```{r, message=FALSE, warning=FALSE}
+library(rSPDE)
+```
+
+Assume that we want to define a model on the interval $[0,1]$, which we want to evaluate at some locations
+```{r}
+s <- seq(from = 0, to = 1, length.out = 101)
+```
+
+We can now use `matern.rational()` to construct a rational SPDE approximation of order $m=2$ for a Gaussian random field with a Matérn covariance function on the interval. 
+
+```{r}
+kappa <- 20
+sigma <- 2
+nu <- 0.8
+r <- sqrt(8*nu)/kappa #range parameter
+op_cov <- matern.rational(loc = s, nu = nu, range = r, sigma = sigma, m = 2, parameterization = "matern")
+```
+The object `op_cov` contains the information needed for evaluating the approximation. Note, however, that the approximation is invariant to the locations `loc`, and they are only supplied to indicate where we want to evaluate it. 
+
+To evaluate the accuracy of the approximation, let us compute the covariance function between the process at $s=0$ and all other locations in `s` and compare with the true Matérn covariance function. The covariances can be calculated by using the `covariance()` method.
+
+```{r}
+c_cov.approx <- op_cov$covariance(ind = 1)
+c.true <- matern.covariance(abs(s[1] - s), kappa, nu, sigma)
+```
+
+The covariance function and the error compared with the Matérn covariance are shown in the following figure.
+```{r, fig.show='hold', fig.align = "center",echo=TRUE}
+opar <- par(
+  mfrow = c(1, 2), mgp = c(1.3, 0.5, 0),
+  mar = c(2, 2, 0.5, 0.5) + 0.1
+)
+plot(s, c.true,
+  type = "l", ylab = "C(|s-0.5|)", xlab = "s", ylim = c(0, 5),
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
+lines(s, c_cov.approx, col = 2)
+legend("topright",
+  bty = "n",
+  legend = c("Matérn", "Rational"),
+  col = c("black", "red"),
+  lty = rep(1, 2), ncol = 1,
+  cex = 0.8
+)
+
+plot(s, c.true - c_cov.approx,
+  type = "l", ylab = "Error", xlab = "s",
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
+par(opar)
+```
+
+To improve the approximation we can increase the order of the approximation, by increasing $m$. Let us, for example, compute the approximation with $m=1,\ldots,4$.
+
+```{r}
+
+errors <- rep(0, 4)
+for (i in 1:4) {
+  op_cov_i <- matern.rational(loc = s, range = r, sigma = sigma, nu = nu,
+                            m = i, parameterization = "matern")
+  errors[i] <- norm(c.true - op_cov_i$covariance(ind = 1))
+}
+print(errors)
+```
+We see that the error decreases very fast when we increase $m$ from $1$ to $4$.
+
+## Using the approximation 
+
+When we use the function `matern.rational()`, we can simulate from the model using the
+`simulate()` method. To such an end we simply apply the `simulate()` method to the
+object returned by the `matern.operators()` function:
+
+```{r}
+u <- simulate(op_cov)
+plot(s, u, type = "l")
+```
+
+If we want replicates, we simply set the argument `nsim` to the desired number 
+of replicates. For instance, to generate two replicates of the model, we
+simply do:
+
+```{r}
+u.rep <- simulate(op_cov, nsim = 2)
+```
+
+### Fitting a model
+
+There is built-in support for computing log-likelihood functions and performing kriging prediction in the `rSPDE` package. To illustrate this, we use the simulation to create some noisy observations of the process. For this, we first construct the observation matrix linking the FEM basis functions to the locations where we want to simulate. We first randomly generate some observation locations and then construct the matrix.
+```{r}
+set.seed(1)
+n.obs <- 100
+obs.loc <- sort(runif(n.obs))
+```
+
+We now generate the observations as $Y_i = 2 - x1 + u(s_i) + \varepsilon_i$, where $\varepsilon_i \sim N(0,\sigma_e^2)$ is Gaussian measurement noise, $x1$ is a covariate giving the observation location. We will assume that the latent process has a Matérn covariance
+with $\kappa=20, \sigma=1.3$ and $\nu=0.8$:
+```{r, message=FALSE}
+n.rep <- 10
+kappa <- 20
+sigma <- 1.3
+nu <- 0.8
+r <- sqrt(8*nu)/kappa
+op_cov <- matern.rational(loc = obs.loc, nu = nu, range = r, sigma = sigma, m = 2, 
+                          parameterization = "matern")
+
+u <- matrix(simulate(op_cov, n = n.rep), ncol = n.rep)
+
+sigma.e <- 0.3
+
+x1 <- obs.loc
+
+Y <- matrix(rep(2 - x1, n.rep), ncol = n.rep) + u + sigma.e * matrix(rnorm(n.obs*n.rep), ncol = n.rep)
+repl <- rep(1:n.rep, each = n.obs)
+df_data <- data.frame(y = as.vector(Y), loc = rep(obs.loc, n.rep), 
+                      x1 = rep(x1, n.rep), repl = repl)
+```
+
+Let us create a new object to fit the model:
+
+```{r}
+op_cov_est <- matern.rational(loc = obs.loc, m = 2)
+```
+
+Let us now fit the model. To this end we will use the `rspde_lme()` function:
+
+```{r, message=FALSE, warning=FALSE}
+fit <- rspde_lme(y~x1, model = op_cov_est,
+                 repl = repl, data = df_data, loc = "loc",
+                 parallel = TRUE)
+```
+
+Here is the summary:
+
+```{r}
+summary(fit)
+```
+
+Let us compare with the true values and compare the time:
+
+```{r}
+print(data.frame(
+  sigma = c(sigma, fit$matern_coeff$random_effects[2]), 
+  range = c(r, fit$matern_coeff$random_effects[3]),
+  nu = c(nu, fit$matern_coeff$random_effects[1]),
+  row.names = c("Truth", "Estimates")
+))
+
+# Total time (time to fit plus time to set up the parallelization)
+total_time <- fit$fitting_time + fit$time_par
+print(total_time)
+```
+
+### Kriging
+
+Finally, we compute the kriging prediction of the process $u$ at the locations in `s` based on these observations. 
+
+Let us create the `data.frame` with locations in which we want to obtain the predictions. Observe that we also must provide the values of the covariates.
+
+```{r}
+s <- seq(from = 0, to = 1, length.out = 100)
+df_pred <- data.frame(loc = s, x1 = s)
+```
+
+We can now perform kriging with the `predict()` method. For example, to predict at the locations for the first replicate:
+
+```{r}
+u.krig <- predict(fit, newdata = df_pred, loc = "loc", which_repl = 1)
+```
+
+
+The simulated process, the observed data, and the kriging prediction are shown in the following figure.
+
+```{r, fig.show='hold',fig.align = "center",echo=TRUE}
+opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
+plot(obs.loc, Y[,1],
+  ylab = "u(s)", xlab = "s",
+  ylim = c(min(c(min(u), min(Y))), max(c(max(u), max(Y)))),
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
+lines(s, u.krig$mean, col = 2)
+par(opar)
+```
+
+We can also use the `augment()` function and pipe the results into a plot:
+
+```{r, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+
+augment(fit, newdata = df_pred, loc = "loc", which_repl = 1) %>% ggplot() + 
+                aes(x = loc, y = .fitted) +
+                geom_line(col="red") + 
+                geom_point(data = df_data[df_data$repl==1,], aes(x = loc, y=y))
+```
+
+
+## References
