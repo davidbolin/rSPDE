@@ -54,8 +54,8 @@ rspde_lme <- function(formula, loc, data,
                       hessian_args = list()) {
   null_model <- TRUE
   if (!is.null(model)) {
-    if (!inherits(model, c("CBrSPDEobj", "rSPDEobj"))) {
-      stop("The model should be an object of class 'CBrSPDEobj' or 'rSPDEobj'.")
+    if (!inherits(model, c("CBrSPDEobj", "rSPDEobj", "rSPDEobj1d"))) {
+      stop("The model should be an object of class 'CBrSPDEobj', 'rSPDEobj' or 'rSPDEobj1d'.")
     }
     null_model <- FALSE
     model <- update(model, parameterization = "spde")
@@ -258,7 +258,7 @@ rspde_lme <- function(formula, loc, data,
                 stop("If 'loc' is a character vector, it must have the same length as the dimension (unless model comes from a metric graph).")
             }    
         } else {
-            if ( length(loc) != dim && !(model$mesh$manifold == "S2")){
+            if ( length(loc) != dim){
                 stop("If 'loc' is a character vector, it must have the same length as the dimension (unless model comes from a metric graph).")
             }
         }
@@ -306,14 +306,9 @@ rspde_lme <- function(formula, loc, data,
         ind_tmp <- (repl %in% j)
         y_tmp <- y_resp[ind_tmp]
         na_obs <- is.na(y_tmp)
-        # y_list[[as.character(j)]] <- y_tmp[!na_obs]
         A_list[[as.character(j)]] <- model$make_A(loc_df[ind_tmp, , drop = FALSE])
         A_list[[as.character(j)]] <- A_list[[as.character(j)]][!na_obs, , drop = FALSE]
-        # if(has_cov){
-        #   X_cov_list[[as.character(j)]] <- X_cov[ind_tmp, , drop = FALSE]
-        #   X_cov_list[[as.character(j)]] <- X_cov_list[[as.character(j)]][!na_obs, , drop = FALSE]
-        # }
-
+        
         if (inherits(model, "CBrSPDEobj")) {
           if (!is.null(alpha)) {
             if (alpha %% 1 != 0) {
@@ -324,17 +319,19 @@ rspde_lme <- function(formula, loc, data,
           }
         }
       }
-    } else {
+    } else if (!inherits(model, "rSPDEobj1d")){
       stop("When creating the model object using matern.operators() or spde.matern.operators(), you should either supply a graph, or a mesh, or mesh_loc (this last one only works for dimension 1).")
     }
 
     n_coeff_nonfixed <- length(start_values)
 
     model_tmp <- model
-    model_tmp$mesh <- NULL
     model_tmp$graph <- NULL
-    model_tmp$make_A <- NULL
-
+    if(!inherits(model, "rSPDEobj1d")) {
+        model_tmp$mesh <- NULL
+        model_tmp$make_A <- NULL    
+    }
+    
     if (inherits(model, "CBrSPDEobj")) {
       likelihood <- function(theta) {
         sigma_e <- exp(theta[1])
@@ -397,7 +394,48 @@ rspde_lme <- function(formula, loc, data,
 
         return(-loglik)
       }
-    } else {
+  } else if(inherits(model, "rSPDEobj1d")) {
+      likelihood <- function(theta) {
+          sigma_e <- exp(theta[1])
+          n_cov <- ncol(X_cov)
+          n_initial <- n_coeff_nonfixed
+          if (estimate_nu) {
+              nu <- exp(theta[2])
+              nu <- min(nu, nu_upper_bound)
+              gap <- 1
+          } else {
+              gap <- 0
+          }
+          if (nu == nu_upper_bound) {
+              return(-10^100)
+          }
+          alpha <- nu + model$d / 2
+          if (estimate_nu) {
+              alpha <- max(1e-5 + model$d / 2, alpha)
+          }
+          tau <- exp(theta[2 + gap])
+          kappa <- exp(theta[3 + gap])
+          model_tmp <- update.rSPDEobj1d(model_tmp,
+                                       user_alpha = alpha, user_tau = tau,
+                                       user_kappa = kappa, parameterization = "spde"
+              )
+          
+          
+          if (n_cov > 0) {
+              beta_cov <- theta[(n_initial + 1):(n_initial + n_cov)]
+          } else {
+              beta_cov <- NULL
+          }
+          
+          loglik <- aux_lme_rSPDE.matern.rational.loglike(
+              object = model_tmp, y = y_resp, X_cov = X_cov, repl = repl,
+              loc = loc_df, sigma_e = sigma_e, beta_cov = beta_cov
+          )
+          
+          return(-loglik)
+      }
+          
+  } else {
       likelihood <- function(theta) {
         sigma_e <- exp(theta[1])
         n_cov <- ncol(X_cov)
@@ -513,6 +551,9 @@ rspde_lme <- function(formula, loc, data,
       )
       parallel::clusterExport(cl, "aux_lme_rSPDE.matern.loglike",
         envir = as.environment(asNamespace("rSPDE"))
+      )
+      parallel::clusterExport(cl, "aux_lme_rSPDE.matern.rational.loglike",
+                              envir = as.environment(asNamespace("rSPDE"))
       )
 
       end_par <- Sys.time()
@@ -922,6 +963,7 @@ rspde_lme <- function(formula, loc, data,
   object$lik_fun <- likelihood_new
   object$par_lik_fun <- new_likelihood
   object$mle_par_orig <- res$par
+  object$loc <- loc_df
 
   # object$lik_fun <- likelihood
   # object$start_val <- start_values
@@ -1231,8 +1273,11 @@ print.summary_rspde_lme <- function(x, ...) {
 #' @export
 #' @method predict rspde_lme
 
-predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, which_repl = NULL, compute_variances = FALSE, posterior_samples = FALSE,
-                              n_samples = 100, sample_latent = FALSE, return_as_list = FALSE, return_original_order = TRUE,
+predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, 
+                              which_repl = NULL, compute_variances = FALSE, 
+                              posterior_samples = FALSE,
+                              n_samples = 100, sample_latent = FALSE, return_as_list = FALSE, 
+                              return_original_order = TRUE,
                               ...,
                               data = deprecated()) {
   if (lifecycle::is_present(data)) {
@@ -1318,17 +1363,20 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, 
   }
 
 
-  if (!mesh) {
-    n_prd <- length(loc[, 1])
-    # Convert data to normalized
-    if (object$has_graph && !normalized) {
-      loc[, 2] <- loc[, 2] / object$graph$edge_lengths[loc[, 1]]
-    }
-    Aprd <- object$latent_model$make_A(loc)
+  if(!inherits(object$latent_model, "rSPDEobj1d")) {
+      if (!mesh) {
+          # Convert data to normalized
+          if (object$has_graph && !normalized) {
+              loc[, 2] <- loc[, 2] / object$graph$edge_lengths[loc[, 1]]
+          }
+          Aprd <- object$latent_model$make_A(loc)
+      } else {
+          Aprd <- Matrix::Diagonal(nrow(object$latent_model$C))
+      }    
   } else {
-    Aprd <- Matrix::Diagonal(nrow(object$latent_model$C))
+      n_prd <- length(loc[, 1])
   }
-
+  
   ##
   repl_vec <- object$repl
   if (is.null(which_repl)) {
@@ -1402,11 +1450,14 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, 
   
 
 
-  Q <- new_rspde_obj$Q
 
   idx_obs_full <- as.vector(!is.na(Y))
 
-  Aprd <- kronecker(matrix(1, 1, object$rspde_order + 1), Aprd)
+  if(!inherits(fit$latent_model, "rSPDEobj1d")) {
+      Q <- new_rspde_obj$Q
+      Aprd <- kronecker(matrix(1, 1, object$rspde_order + 1), Aprd)    
+  }
+  
 
   for (repl_y in u_repl) {
     idx_repl <- repl_vec == repl_y
@@ -1415,27 +1466,43 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE, 
 
     y_repl <- Y[idx_repl]
     y_repl <- y_repl[idx_obs]
-
-    A_repl <- object$A_list[[repl_y]]
-
+    
+    if(inherits(fit$latent_model, "rSPDEobj1d")) {
+        loc_repl <- object$loc[idx_repl]
+        loc_repl <- loc_repl[idx_obs]
+        
+        loc_full <- c(loc_repl, loc)
+        tmp <- sort(loc_full, index.return = TRUE)
+        reo <- tmp$ix
+        loc_sort <- tmp$x
+        ireo <- 1:length(loc_sort)
+        ireo[reo] <- 1:length(loc_sort)
+        
+        ind.obs <- ireo[1:length(loc_repl)]
+        ind.pre <- ireo[(length(loc_repl)+1):length(loc_full)]
+        tmp <- matern.rational.ldl(loc = loc_full, 
+                                   order = new_rspde_obj$m, 
+                                   nu = new_rspde_obj$nu, 
+                                   kappa = new_rspde_obj$kappa, 
+                                   sigma = new_rspde_obj$sigma, 
+                                   type_rational = new_rspde_obj$type_rational_approx, 
+                                   type_interp =  new_rspde_obj$type_interp)    
+        A_repl <- tmp$A[ind.obs, ] 
+        Aprd <- tmp$A[ind.pre, ] 
+        Q <- t(tmp$L)%*%tmp$D%*%tmp$L
+    } else {
+        A_repl <- object$A_list[[repl_y]]
+    }
     Q_xgiveny <- t(A_repl) %*% A_repl / sigma_e^2 + Q
-
     mu_krig <- solve(Q_xgiveny, as.vector(t(A_repl) %*% y_repl / sigma_e^2))
-
-    # mu_krig <- mu_krig[(gap+1):length(mu_krig)]
-
     mu_krig <- Aprd %*% mu_krig
-
+    
     mu_re <- mu_krig
-
     mu_fe <- mu_prd
-
     mu_krig <- mu_prd + mu_krig
 
     mean_tmp <- as.vector(mu_krig)
-
     mean_fe_tmp <- as.vector(mu_fe)
-
     mean_re_tmp <- as.vector(mu_re)
 
     if (!return_as_list) {
@@ -1625,7 +1692,17 @@ glance.rspde_lme <- function(x, ...) {
 #' @seealso [glance.rspde_lme]
 #' @method augment rspde_lme
 #' @export
-augment.rspde_lme <- function(x, newdata = NULL, loc = NULL, mesh = FALSE, which_repl = NULL, se_fit = FALSE, conf_int = FALSE, pred_int = FALSE, level = 0.95, n_samples = 100, ...) {
+augment.rspde_lme <- function(x, 
+                              newdata = NULL, 
+                              loc = NULL, 
+                              mesh = FALSE, 
+                              which_repl = NULL, 
+                              se_fit = FALSE, 
+                              conf_int = FALSE, 
+                              pred_int = FALSE, 
+                              level = 0.95, 
+                              n_samples = 100, 
+                              ...) {
   .resid <- FALSE
   if (is.null(newdata)) {
     .resid <- TRUE
