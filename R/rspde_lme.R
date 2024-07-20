@@ -1302,7 +1302,7 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE,
     }
   }
 
-  tmp_args <- as.list(substitute(list(...)))[-1L]
+  tmp_args <- list(...)
 
   distance_on_edge <- tmp_args[["distance_on_edge"]]
   edge_number <- tmp_args[["edge_number"]]
@@ -1717,7 +1717,7 @@ augment.rspde_lme <- function(x,
     stop("'level' must be between 0 and 1!")
   }
 
-  tmp_args <- as.list(substitute(list(...)))[-1L]
+  tmp_args <- list(...)
 
   distance_on_edge <- tmp_args[["distance_on_edge"]]
   edge_number <- tmp_args[["edge_number"]]
