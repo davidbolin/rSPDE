@@ -4,7 +4,7 @@ author: "David Bolin and Alexandre B. Simas"
 date: "Created: 2024-07-20. Last modified: `r Sys.Date()`."
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Rational approximation with the rSPDE package}
+  %\VignetteIndexEntry{Rational approximations without finite element approximations}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 references:
@@ -194,9 +194,9 @@ print(errors)
 ```
 We see that the error decreases very fast when we increase $m$ from $1$ to $4$.
 
-## Using the approximation 
+## Simulation
 
-When we use the function `matern.rational()`, we can simulate from the model using the
+We can simulate from the constructed model using the
 `simulate()` method. To such an end we simply apply the `simulate()` method to the
 object returned by the `matern.operators()` function:
 
@@ -213,7 +213,7 @@ simply do:
 u.rep <- simulate(op_cov, nsim = 2)
 ```
 
-### Fitting a model
+### Inference
 
 There is built-in support for computing log-likelihood functions and performing kriging prediction in the `rSPDE` package. To illustrate this, we use the simulation to create some noisy observations of the process. For this, we first construct the observation matrix linking the FEM basis functions to the locations where we want to simulate. We first randomly generate some observation locations and then construct the matrix.
 ```{r}
