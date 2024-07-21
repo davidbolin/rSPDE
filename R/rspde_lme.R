@@ -1365,6 +1365,7 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE,
 
   if(!inherits(object$latent_model, "rSPDEobj1d")) {
       if (!mesh) {
+          n_prd <- length(loc[, 1])
           # Convert data to normalized
           if (object$has_graph && !normalized) {
               loc[, 2] <- loc[, 2] / object$graph$edge_lengths[loc[, 1]]
@@ -1453,7 +1454,7 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE,
 
   idx_obs_full <- as.vector(!is.na(Y))
 
-  if(!inherits(fit$latent_model, "rSPDEobj1d")) {
+  if(!inherits(object$latent_model, "rSPDEobj1d")) {
       Q <- new_rspde_obj$Q
       Aprd <- kronecker(matrix(1, 1, object$rspde_order + 1), Aprd)    
   }
@@ -1467,7 +1468,7 @@ predict.rspde_lme <- function(object, newdata = NULL, loc = NULL, mesh = FALSE,
     y_repl <- Y[idx_repl]
     y_repl <- y_repl[idx_obs]
     
-    if(inherits(fit$latent_model, "rSPDEobj1d")) {
+    if(inherits(object$latent_model, "rSPDEobj1d")) {
         loc_repl <- object$loc[idx_repl]
         loc_repl <- loc_repl[idx_obs]
         

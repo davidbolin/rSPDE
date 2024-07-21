@@ -176,6 +176,13 @@ matern.rational = function(graph = NULL,
     }
     
     
+    equally_spaced = FALSE
+    if(!is.null(loc)) {
+        lu <- unique(diff(sort(loc)))
+        if(sqrt(var(unique(diff(lu)))) < 1e-10) {
+            equally_spaced = TRUE
+        }
+    }
     output <- list(
         graph = graph,
         has_graph = has_graph,
@@ -192,7 +199,8 @@ matern.rational = function(graph = NULL,
         type_rational_approximation = type_rational_approximation, 
         type_interp = type_interp,
         parameterization = parameterization,
-        stationary = TRUE
+        stationary = TRUE,
+        equally_spaced = equally_spaced
     )
     output$covariance <- function(ind = NULL) {
         
@@ -530,7 +538,115 @@ aux_lme_rSPDE.matern.rational.loglike <- function(object, y, X_cov, repl, loc, s
     return(l_tmp)
 }
 
-
+#' @name precision.rSPDEobj1d
+#' @title Get the precision matrix of rSPDEobj1d objects
+#' @description Function to get the precision matrix of a rSPDEobj1d object
+#' @param object The covariance-based rational SPDE approximation,
+#' computed using [matern.rational()]
+#' @param user_loc If non-null, update the locations where to evaluate the model.
+#' @param user_kappa If non-null, update the range parameter of
+#' the covariance function.
+#' @param user_tau If non-null, update the parameter tau.
+#' @param user_sigma If non-null, update the standard deviation of
+#' the covariance function.
+#' @param user_range If non-null, update the range parameter
+#' of the covariance function.
+#' @param user_nu If non-null, update the shape parameter of the
+#' covariance function.
+#' @param user_m If non-null, update the order of the rational approximation,
+#' which needs to be a positive integer.
+#' @param ... Currently not used.
+#' @param ordering Return the matrices ordered by field or by location?
+#' @param ldl Directly build the LDL factorization of the precision matrix?
+#' @param ... Currently not used.
+#' @return A list containing the precision matrix `Q` of the process and its derivatives if they exist, and
+#' a matrix `A` that extracts the elements corresponding to the process. If `ldl=TRUE`, the LDL factorization
+#' is returned instead of `Q`. If the locations are not ordered, the precision matrix is given for the ordered locations, 
+#' but the `A` matrix returns to the original order. 
+#' @method precision rSPDEobj1d
+#' @seealso [simulate.rSPDEobj1d()], [matern.rational()]
+#' @export
+#' @examples
+#' # Compute the covariance-based rational approximation of a
+#' # Gaussian process with a Matern covariance function on R
+#' sigma <- 1
+#' nu <- 0.8
+#' range <- 0.2
+#'
+#' # create mass and stiffness matrices for a FEM discretization
+#' x <- seq(from = 0, to = 1, length.out = 101)
+#'
+#' op_cov <- matern.rational(
+#'   loc = x, nu = nu,
+#'   range = range, sigma = sigma, m = 2,
+#'   parameterization = "matern"
+#' )
+#'
+#' # Get the precision matrix:
+#' prec_matrix <- precision(op_cov)
+#'
+precision.rSPDEobj1d <- function(object,
+                                 user_loc = NULL,
+                                 user_nu = NULL,
+                                 user_kappa = NULL,
+                                 user_sigma = NULL,
+                                 user_range = NULL,
+                                 user_tau = NULL,
+                                 user_m = NULL,
+                                 ordering = c("field", "location"),
+                                 ldl = FALSE,
+                                 ...) {
+    ordering <- ordering[1]
+    object <- update.rSPDEobj1d(
+        object = object,
+        user_loc = user_loc,
+        user_nu = user_nu,
+        user_kappa = user_kappa,
+        user_sigma = user_sigma,
+        user_range = user_range,
+        user_tau = user_tau,
+        user_m = user_m
+    )
+    
+    if(is.null(object$loc)) {
+        stop("Must supply locations where to evaluate the precision.")
+    }
+    
+    loc <- object$loc 
+    unsorted <- is.unsorted(loc)
+    if(unsorted) {
+        tmp <- sort(loc, index.return = TRUE)
+        loc <- tmp$x
+        reo <- tmp$ix
+    }
+    
+    if(ldl){
+        Q <- matern.rational.ldl(loc = loc,
+                                 order = object$m,
+                                 nu = object$nu,
+                                 kappa = object$kappa,
+                                 sigma = object$sigma,
+                                 type_rational = object$type_rational_approx,
+                                 type_interp = object$type_interp,
+                                 equally_spaced = object$equally_spaced,
+                                 ordering = ordering)
+    } else {
+        Q <- matern.rational.precision(loc = loc,
+                                       order = object$m,
+                                       nu = object$nu,
+                                       kappa = object$kappa,
+                                       sigma = object$sigma,
+                                       type_rational = object$type_rational_approx,
+                                       type_interp = object$type_interp,
+                                       ordering = ordering, 
+                                       equally_spaced = object$equally_spaced)
+    }
+    
+    if(unsorted) {
+        Q$A[reo,] <- Q$A
+    }
+    return(Q)
+}
 #' Precision matrix of rational approximation of Matern covariance
 #'
 #' Computes the precision matrix for a rational approximation of the Matern covariance on intervals.
@@ -545,16 +661,7 @@ aux_lme_rSPDE.matern.rational.loglike <- function(object, y, X_cov, repl, loc, s
 #' @param ordering Return the matrices ordered by field or by location? 
 #' @return A list containing the precision matrix `Q` of the process and its derivatives if they exist, and
 #' a matrix `A` that extracts the elements corresponding to the process. 
-#' @export 
-#'
-#' @examples
-#' h <- seq(from = 0, to = 1, length.out = 100)
-#' cov.true <- matern.covariance(h, kappa = 10, sigma = 1, nu = 0.8)
-#' Q.approx <- matern.rational.precision(h, kappa = 10, sigma = 1, nu = 0.8, order = 2)
-#' cov.approx <- Q.approx$A%*%solve(Q.approx$Q,Q.approx$A[1,])
-#' 
-#' plot(h, cov.true)
-#' lines(h, cov.approx, col = 2)
+#' @noRd
 matern.rational.precision <- function(loc,
                                       order,
                                       nu,
@@ -626,16 +733,7 @@ matern.rational.precision <- function(loc,
 #' @param ordering Return the matrices ordered by field or by location? 
 #' @return A list containing the precision matrix `Q` of the process and its derivatives if they exist, and
 #' a matrix `A` that extracts the elements corresponding to the process. 
-#' @export 
-#'
-#' @examples
-#' h <- seq(from = 0, to = 1, length.out = 100)
-#' cov.true <- matern.covariance(h, kappa = 10, sigma = 1, nu = 0.8)
-#' Q.approx <- matern.rational.precision(h, kappa = 10, sigma = 1, nu = 0.8, order = 2)
-#' cov.approx <- Q.approx$A%*%solve(Q.approx$Q,Q.approx$A[1,])
-#' 
-#' plot(h, cov.true)
-#' lines(h, cov.approx, col = 2)
+#' @noRd
 matern.rational.ldl <- function(loc,
                                 order,
                                 nu,
@@ -689,15 +787,13 @@ matern.rational.ldl <- function(loc,
         }
     }
     if(ordering == "location") {
-        stop("not implemented")
+        stop("location ordering not implemented for LDL factorization")
         #reo <- compute.reordering(n,order,alpha)
         #Q <- Q[reo,reo]
         #A <- A[,reo]
     } 
     return(list(L = L, D=D, A = A))    
 }
-
-### Utility below
 
 # Reorder matern
 #' @noRd
