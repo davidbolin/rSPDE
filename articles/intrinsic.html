@@ -251,22 +251,22 @@ to make the required elements.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 0.454, Running = 27.7, Post = 0.205, Total = 28.4 </span></span>
+<span><span class="co">#&gt;     Pre = 0.506, Running = 29.1, Post = 0.234, Total = 29.8 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model hyperparameters:</span></span>
 <span><span class="co">#&gt;                                          mean    sd 0.025quant 0.5quant</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations 96.21 3.473      89.53    96.15</span></span>
-<span><span class="co">#&gt; Theta1 for field                        -4.52 0.090      -4.70    -4.52</span></span>
-<span><span class="co">#&gt; Theta2 for field                         2.14 0.125       1.89     2.14</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations 96.20 3.476      89.53    96.14</span></span>
+<span><span class="co">#&gt; Theta1 for field                        -4.52 0.089      -4.70    -4.52</span></span>
+<span><span class="co">#&gt; Theta2 for field                         2.14 0.124       1.89     2.14</span></span>
 <span><span class="co">#&gt;                                         0.975quant  mode</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations     103.20 96.06</span></span>
-<span><span class="co">#&gt; Theta1 for field                             -4.34 -4.53</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations     103.22 96.03</span></span>
+<span><span class="co">#&gt; Theta1 for field                             -4.35 -4.53</span></span>
 <span><span class="co">#&gt; Theta2 for field                              2.38  2.14</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Marginal log-Likelihood:  1333.96 </span></span>
+<span><span class="co">#&gt; Marginal log-Likelihood:  1333.95 </span></span>
 <span><span class="co">#&gt;  is computed </span></span>
 <span><span class="co">#&gt; Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">#&gt; (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre></div>
@@ -276,8 +276,8 @@ following:</p>
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;            mean          sd 0.025quant  0.5quant 0.975quant      mode</span></span>
-<span><span class="co">#&gt; tau   0.0108945 0.000973164 0.00911235 0.0108265  0.0129326 0.0107397</span></span>
-<span><span class="co">#&gt; kappa 8.5455700 1.064230000 6.62234000 8.4902900 10.7959000 8.3862900</span></span>
+<span><span class="co">#&gt; tau   0.0108974 0.000965647  0.0091224 0.0108295  0.0129061 0.0107441</span></span>
+<span><span class="co">#&gt; kappa 8.5471400 1.055120000  6.6414000 8.4917300 10.7795000 8.3848200</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span><span class="op">)</span>,</span>
@@ -287,8 +287,8 @@ following:</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter  true       mean       mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.01 0.01089449 0.01073971</span></span>
-<span><span class="co">#&gt; 2     kappa 10.00 8.54557150 8.38629050</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       tau  0.01 0.01089736 0.01074415</span></span>
+<span><span class="co">#&gt; 2     kappa 10.00 8.54714469 8.38481946</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="kriging-with-r-inla-implementation">Kriging with <code>R-INLA</code> implementation<a class="anchor" aria-label="anchor" href="#kriging-with-r-inla-implementation"></a>
