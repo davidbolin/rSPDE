@@ -74,7 +74,7 @@
 Alexandre B. Simas, Zhen Xiong</h4>
             
             <h4 data-toc-skip class="date">Created: 2021-12-04. Last
-modified: 2024-07-16.</h4>
+modified: 2024-07-22.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rspde_cov.Rmd" class="external-link"><code>vignettes/rspde_cov.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_cov.Rmd</code></div>
@@ -103,48 +103,39 @@ the rational SPDE approach</a> respectively.</p>
 <div class="section level2">
 <h2 id="covariance-based-rational-spde-approach">Covariance-based rational SPDE approach<a class="anchor" aria-label="anchor" href="#covariance-based-rational-spde-approach"></a>
 </h2>
-<p>Let us first present the basic setup. We want to model the
-precipitation as a two-dimensional random field
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
-within a bounded domain, where each location on the domain associates
-with a random variable which describe the local precipitation.</p>
-<p>In the SPDE approach, introduced in <a href="https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x" class="external-link"><span class="citation">Lindgren, Rue, and Lindström (2011)</span></a> we model
+<p>Let us first present the idea behind the approach. In the SPDE
+approach, introduced in <a href="https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x" class="external-link"><span class="citation">Lindgren, Rue, and Lindström (2011)</span></a> we model
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
 as the solution of the following SPDE:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>L</mi><mrow><mi>α</mi><mi>/</mi><mn>2</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mi>u</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>𝒲</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">L^{\alpha/2}(\tau u) = \mathcal{W},</annotation></semantics></math>
-where
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>L</mi><mrow><mi>α</mi><mi>/</mi><mn>2</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mi>u</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>W</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+L^{\alpha/2}(\tau u) = W,
+</annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mo>−</mo><mi>Δ</mi><mo>+</mo><msup><mi>κ</mi><mn>2</mn></msup><mi>I</mi></mrow><annotation encoding="application/x-tex">L  = -\Delta +\kappa^2 I</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒲</mi><annotation encoding="application/x-tex">\mathcal{W}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
 is the standard Gaussian white noise. Here,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
-are three parameters we want to estimate. In the standard SPDE approach,
-we write, for a general dimension
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>,
+are the parameters of the model. In the standard SPDE approach,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mi>ν</mi><mo>+</mo><mi>d</mi><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">\alpha = \nu + d/2</annotation></semantics></math>
-and assume
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ν</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math>
-to be fixed so that
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
-is an integer. In the rational SPDE approach we can use any value of
+needs to be fixed to an integer value, where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\alpha = 2</annotation></semantics></math>
+is the usual default value. In the rational SPDE approach we can use any
+value of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\nu&gt;0</annotation></semantics></math>
 and also estimate it from data.</p>
-<p>Now let us briefly describe how covariance based rational SPDE
-approach works in statistical inference. The main idea is to perform the
-rational approximation directly on the covariance operator, which is
-given by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>L</mi><mrow><mo>−</mo><mi>α</mi></mrow></msup><annotation encoding="application/x-tex">L^{-\alpha}</annotation></semantics></math>,
-instead of on the solution
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>.
+<p>The main idea of the covariance-based rational SPDE approach is to
+perform the rational approximation of the covariance operator
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>L</mi><mrow><mo>−</mo><mi>α</mi></mrow></msup><annotation encoding="application/x-tex">L^{-\alpha}</annotation></semantics></math>.
 To this end, we begin by obtaining an approximation of the random field
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>,
 which is the solution of the SPDE above, by using the finite element
 method (FEM):
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>h</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>h</mi></msub></munderover><msub><mover><mi>u</mi><mo accent="true">̂</mo></mover><mi>j</mi></msub><msub><mi>φ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">u_h(\mathbf{s}_i)=\sum_{j=1}^{n_h} \hat{u}_j \varphi_j(\mathbf{s}_i),</annotation></semantics></math>
-where
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>h</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>h</mi></msub></munderover><msub><mover><mi>u</mi><mo accent="true">̂</mo></mover><mi>j</mi></msub><msub><mi>φ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+u_h(\mathbf{s}_i)=\sum_{j=1}^{n_h} \hat{u}_j \varphi_j(\mathbf{s}_i),
+</annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><msub><mover><mi>u</mi><mo accent="true">̂</mo></mover><mi>j</mi></msub><msubsup><mo stretchy="false" form="postfix">}</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>h</mi></msub></msubsup></mrow><annotation encoding="application/x-tex">\{\hat{u}_j\}_{j = 1}^{n_h}</annotation></semantics></math>
 are stochastic weights and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><msub><mi>φ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><msubsup><mo stretchy="false" form="postfix">}</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>h</mi></msub></msubsup></mrow><annotation encoding="application/x-tex">\{\varphi_j(\mathbf{s}_i)\}_{j = 1}^{n_h}</annotation></semantics></math>
@@ -200,38 +191,45 @@ is the mass matrix,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="bold">𝐆</mtext><mo>=</mo><mo stretchy="false" form="prefix">{</mo><msub><mi>G</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msubsup><mo stretchy="false" form="postfix">}</mo><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>h</mi></msub></msubsup></mrow><annotation encoding="application/x-tex">\textbf{G} = \{G_{ij}\}_{i,j=1}^{n_h}</annotation></semantics></math>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>G</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>∇</mi><msub><mi>φ</mi><mi>i</mi></msub><mo>,</mo><mi>∇</mi><msub><mi>φ</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><msub><mi>L</mi><mn>2</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msub></mrow><annotation encoding="application/x-tex">G_{ij}=(\nabla\varphi_i,\nabla\varphi_j)_{L_2(\mathcal{D})}</annotation></semantics></math>,
 is the stiffness matrix, and
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="bold">𝐊</mtext><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>k</mi><mtext mathvariant="bold">𝐂</mtext></mtd><mtd columnalign="center" style="text-align: center"></mtd><mtd columnalign="left" style="text-align: left"><mo stretchy="false" form="prefix">⌊</mo><mi>α</mi><mo stretchy="false" form="postfix">⌋</mo><mo>=</mo><mn>0</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>k</mi><msup><mtext mathvariant="bold">𝐋</mtext><mrow><mo>−</mo><mn>1</mn></mrow></msup><msup><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="bold">𝐂</mtext><msup><mtext mathvariant="bold">𝐋</mtext><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="false" form="prefix">⌊</mo><mi>α</mi><mo stretchy="false" form="postfix">⌋</mo><mo>−</mo><mn>1</mn></mrow></msup></mtd><mtd columnalign="center" style="text-align: center"></mtd><mtd columnalign="left" style="text-align: left"><mo stretchy="false" form="prefix">⌊</mo><mi>α</mi><mo stretchy="false" form="postfix">⌋</mo><mo>≥</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"></mtd></mtr></mtable></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">\textbf{K}=\left\{
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="bold">𝐊</mtext><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>k</mi><mtext mathvariant="bold">𝐂</mtext></mtd><mtd columnalign="center" style="text-align: center"></mtd><mtd columnalign="left" style="text-align: left"><mo stretchy="false" form="prefix">⌊</mo><mi>α</mi><mo stretchy="false" form="postfix">⌋</mo><mo>=</mo><mn>0</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>k</mi><msup><mtext mathvariant="bold">𝐋</mtext><mrow><mo>−</mo><mn>1</mn></mrow></msup><msup><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="bold">𝐂</mtext><msup><mtext mathvariant="bold">𝐋</mtext><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="false" form="prefix">⌊</mo><mi>α</mi><mo stretchy="false" form="postfix">⌋</mo><mo>−</mo><mn>1</mn></mrow></msup></mtd><mtd columnalign="center" style="text-align: center"></mtd><mtd columnalign="left" style="text-align: left"><mo stretchy="false" form="prefix">⌊</mo><mi>α</mi><mo stretchy="false" form="postfix">⌋</mo><mo>≥</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"></mtd></mtr></mtable></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\textbf{K}=\left\{
     \begin{array}{lcl}
         k\textbf{C}      &amp;      &amp; {\lfloor\alpha\rfloor=0}\\
         k\textbf{L}^{-1}(\textbf{C}\textbf{L}^{-1})^{\lfloor\alpha\rfloor-1}    &amp;      &amp; {\lfloor\alpha\rfloor\geq 1}\\
-    \end{array} \right. .</annotation></semantics></math></p>
+    \end{array} \right. .
+    </annotation></semantics></math></p>
 <p>The above representation shows that we can express
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mtext mathvariant="bold">𝐮</mtext><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\textbf{u}}</annotation></semantics></math>
 as
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mtext mathvariant="bold">𝐮</mtext><mo accent="true">̂</mo></mover><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mrow><mi>m</mi><mo>+</mo><mn>1</mn></mrow></munderover><msub><mtext mathvariant="bold">𝐱</mtext><mi>k</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\hat{\textbf{u}}=\sum_{k=1}^{m+1}\textbf{x}_k,</annotation></semantics></math>
-where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="bold">𝐱</mtext><mi>k</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mrow><mi>k</mi><mo>,</mo><mn>1</mn></mrow></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>x</mi><mrow><mi>k</mi><mo>,</mo><msub><mi>n</mi><mi>h</mi></msub></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\textbf{x}_k = (x_{k,1}, \ldots, x_{k,n_h})</annotation></semantics></math>,
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mtext mathvariant="bold">𝐮</mtext><mo accent="true">̂</mo></mover><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mrow><mi>m</mi><mo>+</mo><mn>1</mn></mrow></munderover><msub><mtext mathvariant="bold">𝐱</mtext><mi>i</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\hat{\textbf{u}}=\sum_{i=1}^{m+1}\textbf{x}_i,
+</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="bold">𝐱</mtext><mi>i</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mrow><mi>i</mi><mo>,</mo><mn>1</mn></mrow></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>x</mi><mrow><mi>i</mi><mo>,</mo><msub><mi>n</mi><mi>h</mi></msub></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\textbf{x}_i = (x_{i,1}, \ldots, x_{i,n_h})</annotation></semantics></math>,
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="bold">𝐱</mtext><mi>i</mi></msub><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="bold">𝟎</mtext><mo>,</mo><msubsup><mtext mathvariant="bold">𝐐</mtext><mi>i</mi><mrow><mo>−</mo><mn>1</mn></mrow></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\textbf{x}_i \sim N(\textbf{0},\textbf{Q}_i^{-1}),</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mtext mathvariant="bold">𝐐</mtext><mi>i</mi></msub><annotation encoding="application/x-tex">\textbf{Q}_i</annotation></semantics></math>
 is the precision matrix of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mtext mathvariant="bold">𝐱</mtext><mi>i</mi></msub><annotation encoding="application/x-tex">\textbf{x}_i</annotation></semantics></math>,
 which is given by
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="bold">𝐐</mtext><mi>i</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="bold">𝐋</mtext><mo>−</mo><msub><mi>p</mi><mi>i</mi></msub><mtext mathvariant="bold">𝐂</mtext><mo stretchy="true" form="postfix">)</mo></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mtext mathvariant="bold">𝐂</mtext><mrow><mo>−</mo><mn>1</mn></mrow></msup><mtext mathvariant="bold">𝐋</mtext><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="false" form="prefix">⌊</mo><mi>α</mi><mo stretchy="false" form="postfix">⌋</mo></mrow></msup><mi>/</mi><msub><mi>r</mi><mi>i</mi></msub><mo>,</mo></mtd><mtd columnalign="center" style="text-align: center"></mtd><mtd columnalign="left" style="text-align: left"><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>m</mi></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><msup><mtext mathvariant="bold">𝐊</mtext><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>,</mo></mtd><mtd columnalign="center" style="text-align: center"></mtd><mtd columnalign="left" style="text-align: left"><mi>i</mi><mo>=</mo><mi>m</mi><mo>+</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"></mtd></mtr></mtable><mi>.</mi></mrow></mrow><annotation encoding="application/x-tex">\textbf{Q}_i=\left \{
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="bold">𝐐</mtext><mi>i</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="bold">𝐋</mtext><mo>−</mo><msub><mi>p</mi><mi>i</mi></msub><mtext mathvariant="bold">𝐂</mtext><mo stretchy="true" form="postfix">)</mo></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mtext mathvariant="bold">𝐂</mtext><mrow><mo>−</mo><mn>1</mn></mrow></msup><mtext mathvariant="bold">𝐋</mtext><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="false" form="prefix">⌊</mo><mi>α</mi><mo stretchy="false" form="postfix">⌋</mo></mrow></msup><mi>/</mi><msub><mi>r</mi><mi>i</mi></msub><mo>,</mo></mtd><mtd columnalign="center" style="text-align: center"></mtd><mtd columnalign="left" style="text-align: left"><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>m</mi></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><msup><mtext mathvariant="bold">𝐊</mtext><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>,</mo></mtd><mtd columnalign="center" style="text-align: center"></mtd><mtd columnalign="left" style="text-align: left"><mi>i</mi><mo>=</mo><mi>m</mi><mo>+</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"></mtd></mtr></mtable><mi>.</mi></mrow></mrow><annotation encoding="application/x-tex">
+\textbf{Q}_i=\left \{
     \begin{array}{lcl}
         (\textbf{L}-p_i\textbf{C})(\textbf{C}^{-1}\textbf{L})^{\lfloor\alpha\rfloor}/r_i,      &amp;      &amp; {i = 1,...,m}\\
          \textbf{K}^{-1},   &amp;      &amp; {i = m+1}\\
-    \end{array}. \right.</annotation></semantics></math></p>
+    \end{array}. \right.
+    </annotation></semantics></math></p>
 <p>We, then, replace the Matérn latent field by the latent vector given
 above, which has precision matrix given by
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="bold">𝐐</mtext><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mtext mathvariant="bold">𝐐</mtext><mn>1</mn></msub></mtd><mtd columnalign="center" style="text-align: center"></mtd><mtd columnalign="center" style="text-align: center"></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"></mtd><mtd columnalign="center" style="text-align: center"><mo>⋱</mo></mtd><mtd columnalign="center" style="text-align: center"></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"></mtd><mtd columnalign="center" style="text-align: center"></mtd><mtd columnalign="center" style="text-align: center"><msub><mtext mathvariant="bold">𝐐</mtext><mrow><mi>m</mi><mo>+</mo><mn>1</mn></mrow></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">\textbf{Q}=\begin{bmatrix}\textbf{Q}_1&amp; &amp;\\&amp;\ddots&amp;\\&amp; &amp;\textbf{Q}_{m+1}\end{bmatrix}.</annotation></semantics></math>
-Now, assume we observe
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><msub><mi>u</mi><mi>h</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub><mo>,</mo><mspace width="1.0em"></mspace><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>N</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">y_i = u_h(\mathbf{s}_i) + \varepsilon_i,\quad i=1,\ldots, N,</annotation></semantics></math>
+We thus have a Markov approximation which can be used for
+computationally efficient inference. For example, assume that we observe
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>j</mi></msub><mo>=</mo><msub><mi>u</mi><mi>h</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>j</mi></msub><mo>,</mo><mspace width="1.0em"></mspace><mi>j</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>N</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">y_j = u_h(\mathbf{s}_j) + \varepsilon_j,\quad j=1,\ldots, N,</annotation></semantics></math>
 where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mi>i</mi></msub><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>ε</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\varepsilon_i\sim N(0,\sigma_\varepsilon^2)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mi>j</mi></msub><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>ε</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\varepsilon_j\sim N(0,\sigma_\varepsilon^2)</annotation></semantics></math>
 are iid measurement noise. Then, we have that
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><msub><mi>u</mi><mi>h</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>h</mi></msub></munderover><msub><mover><mi>u</mi><mo accent="true">̂</mo></mover><mi>j</mi></msub><msub><mi>φ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mrow><mi>m</mi><mo>+</mo><mn>1</mn></mrow></munderover><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>h</mi></msub></munderover><msub><mi>x</mi><mrow><mi>k</mi><mo>,</mo><mi>j</mi></mrow></msub><mi>φ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">y_i = u_h(\mathbf{s}_i) + \varepsilon_i = \sum_{j=1}^{n_h} \hat{u}_j \varphi_j(\mathbf{s}_i) + \varepsilon_i = \sum_{k=1}^{m+1} \sum_{j=1}^{n_h} x_{k,j} \varphi(\mathbf{s}_i) + \varepsilon_i.</annotation></semantics></math>
-This can be written in a matrix form as
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>j</mi></msub><mo>=</mo><msub><mi>u</mi><mi>h</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>j</mi></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>h</mi></msub></munderover><msub><mover><mi>u</mi><mo accent="true">̂</mo></mover><mi>l</mi></msub><msub><mi>φ</mi><mi>l</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>j</mi></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mrow><mi>m</mi><mo>+</mo><mn>1</mn></mrow></munderover><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>h</mi></msub></munderover><msub><mi>x</mi><mrow><mi>i</mi><mo>,</mo><mi>l</mi></mrow></msub><msub><mi>φ</mi><mi>l</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>j</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+y_j = u_h(\mathbf{s}_j) + \varepsilon_j = \sum_{l=1}^{n_h} \hat{u}_l \varphi_l(\mathbf{s}_j) + \varepsilon_j = \sum_{i=1}^{m+1} \sum_{l=1}^{n_h} x_{i,l} \varphi_l(\mathbf{s}_j) + \varepsilon_j.
+</annotation></semantics></math> This can be written in a matrix form as
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="bold">𝐲</mtext><mo>=</mo><mover><mtext mathvariant="bold">𝐀</mtext><mo accent="true">¯</mo></mover><mtext mathvariant="bold">𝐗</mtext><mo>+</mo><mi>𝛆</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">\textbf{y} = \overline{\textbf{A}} \textbf{X} + \boldsymbol{\varepsilon},</annotation></semantics></math>
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="bold">𝐲</mtext><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>y</mi><mi>N</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup><mo>,</mo><mtext mathvariant="bold">𝐗</mtext><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><msubsup><mtext mathvariant="bold">𝐱</mtext><mn>1</mn><mi>⊤</mi></msubsup><mo>,</mo><mi>…</mi><mo>,</mo><msubsup><mtext mathvariant="bold">𝐱</mtext><mrow><mi>m</mi><mo>+</mo><mn>1</mn></mrow><mi>⊤</mi></msubsup><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">\textbf{y} = [y_1,\ldots,y_N]^\top, \textbf{X} = [\textbf{x}_1^\top,\ldots,\textbf{x}_{m+1}^\top]^\top</annotation></semantics></math>,
@@ -361,7 +359,8 @@ which is the folded Matérn, see Theorem 1 in <a href="https://www.jstor.org/sta
 Gaussian fields and Gaussian Markov random fields: the stochastic
 partial differential equation approach</a> for further details.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">c.true</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/folded.matern.covariance.1d.html">folded.matern.covariance.1d</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span>, <span class="va">kappa</span>, <span class="va">nu</span>, <span class="va">sigma</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">c.true</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/folded.matern.covariance.1d.html">folded.matern.covariance.1d</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span><span class="op">)</span>, </span>
+<span>                                      <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span>, <span class="va">kappa</span>, <span class="va">nu</span>, <span class="va">sigma</span><span class="op">)</span></span></code></pre></div>
 <p>The covariance function and the error compared with the Matérn
 covariance are shown in the following figure.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -447,7 +446,8 @@ between the meshes.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">s</span>, <span class="va">c.true</span> <span class="op">-</span> <span class="va">c_cov.approx4</span>, col <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"bottomright"</span>,</span>
 <span>  bty <span class="op">=</span> <span class="st">"n"</span>,</span>
-<span>  legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"m=2 coarse mesh"</span>, <span class="st">"m=4 coarse mesh"</span>, <span class="st">"m=2 fine mesh"</span>, <span class="st">"m=4 fine mesh"</span><span class="op">)</span>,</span>
+<span>  legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"m=2 coarse mesh"</span>, <span class="st">"m=4 coarse mesh"</span>, </span>
+<span>             <span class="st">"m=2 fine mesh"</span>, <span class="st">"m=4 fine mesh"</span><span class="op">)</span>,</span>
 <span>  col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span>,</span>
 <span>  lty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  cex <span class="op">=</span> <span class="fl">0.8</span></span>
@@ -605,7 +605,7 @@ method:</p>
 <span><span class="co">## Number of function calls by 'optim' = 109</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  22.01076 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  21.59188 secs</span></span></code></pre>
 <p>Let us compare the parameters of the latent model:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -620,7 +620,7 @@ method:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 22.01077 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 21.59188 secs</span></span></code></pre>
 <p>Let us take a glance at the fit:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
@@ -671,12 +671,13 @@ method:</p>
 <span><span class="co">## Number of function calls by 'optim' = 109</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  15.83497 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.92749 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  15.90466 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.92781 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">fit_par</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">r</span>, <span class="va">fit_par</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">fit_par</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, </span>
+<span>  range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">r</span>, <span class="va">fit_par</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="va">fit_par</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -687,7 +688,7 @@ method:</p>
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 18.76246 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 18.83248 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -803,8 +804,8 @@ need to turn <code>y</code> into a vector and create an auxiliary vector
 <span><span class="co">## Number of function calls by 'optim' = 34</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  14.22727 secs </span></span>
-<span><span class="co">##   set up the parallelization = 3.02959 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  13.99608 secs </span></span>
+<span><span class="co">##   set up the parallelization = 3.00317 secs</span></span></code></pre>
 <p>and glance:</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">)</span></span></code></pre></div>
@@ -826,7 +827,7 @@ need to turn <code>y</code> into a vector and create an auxiliary vector
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 14.22727 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 13.99609 secs</span></span></code></pre>
 <p>We can obtain better estimates of the Hessian by setting
 <code>improve_hessian</code> to <code>TRUE</code>, however this might
 make the process take longer:</p>
@@ -868,9 +869,9 @@ make the process take longer:</p>
 <span><span class="co">## Number of function calls by 'optim' = 34</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  11.54908 secs </span></span>
-<span><span class="co">##   compute the Hessian = 6.49387 secs </span></span>
-<span><span class="co">##   set up the parallelization = 3.0555 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  11.46758 secs </span></span>
+<span><span class="co">##   compute the Hessian = 6.48261 secs </span></span>
+<span><span class="co">##   set up the parallelization = 3.09209 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -1034,8 +1035,8 @@ observation, and then we fit the model:</p>
 <span><span class="co">## Number of function calls by 'optim' = 39</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  1.54781 mins </span></span>
-<span><span class="co">##   set up the parallelization = 5.77654 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.56544 mins </span></span>
+<span><span class="co">##   set up the parallelization = 5.80193 secs</span></span></code></pre>
 <p>and glance:</p>
 <div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">)</span></span></code></pre></div>
@@ -1057,7 +1058,7 @@ observation, and then we fit the model:</p>
 <div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 1.54781 mins</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 1.565444 mins</span></span></code></pre>
 <p>Let us now plot the prediction for replicate 3 by using the
 <code>augment</code> function. We begin by creating the
 <code>data.frame</code> we want to do prediction:</p>
@@ -1223,8 +1224,8 @@ data and the locations:</p>
 <span><span class="co">## Number of function calls by 'optim' = 98</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  11.17825 secs </span></span>
-<span><span class="co">##   set up the parallelization = 3.00283 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  11.34935 secs </span></span>
+<span><span class="co">##   set up the parallelization = 3.0484 secs</span></span></code></pre>
 <p>Let us now compare with the true values:</p>
 <div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1307,8 +1308,8 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <span><span class="co">## Number of function calls by 'optim' = 30</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  32.30048 secs </span></span>
-<span><span class="co">##   set up the parallelization = 5.8586 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  32.60435 secs </span></span>
+<span><span class="co">##   set up the parallelization = 5.94181 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1373,8 +1374,8 @@ with <code>brasil</code> rational approximation:</p>
 <span><span class="co">## Number of function calls by 'optim' = 45</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  44.15235 secs </span></span>
-<span><span class="co">##   set up the parallelization = 5.95896 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  44.76817 secs </span></span>
+<span><span class="co">##   set up the parallelization = 6.18201 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
