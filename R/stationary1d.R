@@ -1489,10 +1489,6 @@ change.of.variables <- function(alpha,n, m, A) {
                    cbind(-B1, I2))    
     } else {
         M1 <- rbind(-B1, Matrix(0,k*(m-1)*n,k1*n))
-        m1 <- sparseMatrix(x = c(rep(1,m-1),rep(-1,m-2)),
-                           i = c(1:(m-1), 2:(m-1)),
-                           j = c(1:(m-1), 1:(m-2)),
-                           dims = c(m-1,m-1))
         m1 <- sparseMatrix(x = c(rep(1,m),rep(-1,m-1)),
                            i = c(1:m, 2:m),
                            j = c(1:m, 1:(m-1)),
