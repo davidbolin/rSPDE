@@ -658,6 +658,7 @@ precision.rSPDEobj1d <- function(object,
 #' @param type_rational Method used to compute the coefficients of the rational approximation.
 #' @param type_interp Interpolation method for the rational coefficients. 
 #' @param equally_spaced Are the locations equally spaced?
+#' @param cumsum If true, the precision is constructed for the cumulative sums of the latent fields. Default is FALSE.
 #' @param ordering Return the matrices ordered by field or by location? 
 #' @return A list containing the precision matrix `Q` of the process and its derivatives if they exist, and
 #' a matrix `A` that extracts the elements corresponding to the process. 
@@ -670,6 +671,7 @@ matern.rational.precision <- function(loc,
                                       type_rational = "brasil",
                                       type_interp = "spline",
                                       equally_spaced = FALSE,
+                                      cumsum = FALSE,
                                       ordering = c("field", "location")) {
     ordering <- ordering[[1]]
     if(!(ordering %in% c("field", "location"))) {
@@ -680,36 +682,19 @@ matern.rational.precision <- function(loc,
     }
     alpha=nu+1/2
     n <- length(loc)
-    if (alpha%%1 == 0) {
-        tmp <- matern.p.precision(loc = loc,kappa = kappa,p = 0,
-                                  equally_spaced = equally_spaced, alpha = alpha) 
-        Q <- tmp$Q
+    tmp <- matern.rational.ldl(loc = loc, order = order, nu = nu, kappa = kappa, 
+                               sigma = sigma, type_rational = type_rational, 
+                               type_interp =  type_interp, equally_spaced = equally_spaced)
+    
+    Q <- t(tmp$L)%*%tmp$D%*%tmp$L
+    A <- tmp$A
+    
+    if(cumsum) {
+        tmp <- change.of.variables(alpha,n,order,A)
         A <- tmp$A
-    } else {
-        coeff <- interp_rational_coefficients(order = order, 
-                                              type_rational_approx = type_rational, 
-                                              type_interp = type_interp, 
-                                              alpha = alpha)
-        r <- coeff$r
-        p <- coeff$p
-        k <- coeff$k
-        
-        ## k part
-        tmp <- matern.k.precision(loc = loc,kappa,
-                                  equally_spaced = equally_spaced, 
-                                  alpha = alpha)
-        Q <- tmp$Q/(k*sigma^2)
-        A <- tmp$A
-        
-        ## p part
-        for(i in 1:length(p)){
-            tmp <- matern.p.precision(loc = loc, kappa = kappa, p =p[i],
-                                      equally_spaced = equally_spaced, 
-                                      alpha = alpha)
-            Q <- bdiag(Q, tmp$Q/(r[i]*sigma^2))
-            A = cbind(A,tmp$A)
-        }
+        Q <- t(tmp$B)%*%Q%*%tmp$B
     }
+    
     if(ordering == "location") {
         reo <- compute.reordering(n,order,alpha)
         Q <- Q[reo,reo]
@@ -1480,4 +1465,43 @@ matern.k.precision <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
                                x    = rep(1,n),
                                dims = c(n, da*n))
     return(list(Q=Q,A=A))    
+}
+
+# Change of variables from the fields u0,u1,...um to
+# u0, Bu0+u1, Bu0+u1+u2,...,  Bu0+u1+...+um where B
+#
+change.of.variables <- function(alpha,n, m, A) {
+    k1 = 1+max(c(floor(alpha)-1,0)) #number of process and derivatives for u0
+    k = floor(alpha)+1 #number of process and derivatives for ui
+    
+    if(alpha < 1) { 
+        B1 <- Diagonal(n)
+    } else {
+        B1 <- sparseMatrix(x=rep(1,k1*n),
+                           i=(1:(k*n))[-seq(from=0,to=k*n,by=k)[-1]],
+                           j=1:(k1*n),dims=c(k*n,k1*n)) #not sure if correct, map u0 to u1
+    }
+    
+    I1 = Diagonal(k1*n)
+    I2 = Diagonal(k*n)
+    if(m==1) {
+        B <- rbind(cbind(I1, Matrix(0,k1*n,k*n)),
+                   cbind(-B1, I2))    
+    } else {
+        M1 <- rbind(-B1, Matrix(0,k*(m-1)*n,k1*n))
+        m1 <- sparseMatrix(x = c(rep(1,m-1),rep(-1,m-2)),
+                           i = c(1:(m-1), 2:(m-1)),
+                           j = c(1:(m-1), 1:(m-2)),
+                           dims = c(m-1,m-1))
+        m1 <- sparseMatrix(x = c(rep(1,m),rep(-1,m-1)),
+                           i = c(1:m, 2:m),
+                           j = c(1:m, 1:(m-1)),
+                           dims = c(m,m))
+        M2 <- kronecker(m1,I2)
+        B <- rbind(cbind(I1, Matrix(0,k1*n,k*n*m)),
+                   cbind(M1,M2))
+    }
+    A = cbind(Matrix(0, n.obs,k1*n + k*(m-1)*n), 
+              A[,(k1*n+k*(m-1)*n+1):(k1*n+k*m*n)])
+    return(list(B = B, A = A))
 }
