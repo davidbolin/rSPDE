@@ -792,7 +792,7 @@ compute.reordering <- function(n,m,alpha) {
     } else {
         k <- floor(alpha)+1
         tmp <- rep(c(1:(k-1), c(t(kronecker(n*(k-2)+matrix(n*seq(from=1,to=k*m,by=k),m,1),
-                                            matrix(rep(1,k),1,k))))+rep(1:k,k-1)),n) 
+                                            matrix(rep(1,k),1,k))))+rep(1:k,m)),n) 
         return(tmp + as.vector(rbind(t(matrix(rep((k-1)*(0:(n-1)),k-1),n,k-1)),
                                      matrix(rep(1,k*m*n),k*m,n)%*%Diagonal(n,k*c(0:(n-1))))))
     }
