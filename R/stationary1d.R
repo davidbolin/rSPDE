@@ -783,16 +783,21 @@ matern.rational.ldl <- function(loc,
 # Reorder matern
 #' @noRd
 compute.reordering <- function(n,m,alpha) {
-    if(alpha <0 || alpha > 2) {
-        stop("only 0<alpha<2 supported")
-    }
     if(alpha < 1) {
         return(as.vector(rep(seq(from=1,to=(m+1)*n,by=n),n) + kronecker(0:(n-1),rep(1,m+1))))
-    } else {
-        tmp <- rep(c(1,c(rbind(1+n*seq(from=1,to=2*m,by=2), 2+n*seq(from=1,to=2*m,by=2)))),n) 
+    } else if(alpha <2) {
+        tmp <- rep(c(1,c(rbind(1+n*seq(from=1,to=2*m,by=2), 
+                               2+n*seq(from=1,to=2*m,by=2)))),n) 
         return(tmp + as.vector(rbind(0:(n-1), matrix(rep(1,2*m*n),2*m,n)%*%Diagonal(n,2*c(0:(n-1))))))
+    } else {
+        k <- floor(alpha)+1
+        tmp <- rep(c(1:(k-1), c(t(kronecker(n*(k-2)+matrix(n*seq(from=1,to=k*m,by=k),m,1),
+                                            matrix(rep(1,k),1,k))))+rep(1:k,k-1)),n) 
+        return(tmp + as.vector(rbind(t(matrix(rep((k-1)*(0:(n-1)),k-1),n,k-1)),
+                                     matrix(rep(1,k*m*n),k*m,n)%*%Diagonal(n,k*c(0:(n-1))))))
     }
 }
+
 
 # Derivatives of the matern covariance
 matern.derivative = function(h, kappa, nu, sigma, deriv = 1) 
@@ -1497,6 +1502,7 @@ change.of.variables <- function(alpha,n, m, A) {
         B <- rbind(cbind(I1, Matrix(0,k1*n,k*n*m)),
                    cbind(M1,M2))
     }
+    n.obs <- dim(A)[1]
     A = cbind(Matrix(0, n.obs,k1*n + k*(m-1)*n), 
               A[,(k1*n+k*(m-1)*n+1):(k1*n+k*m*n)])
     return(list(B = B, A = A))
