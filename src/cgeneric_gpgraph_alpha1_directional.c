@@ -73,7 +73,7 @@ double *inla_cgeneric_gpgraph_alpha1_directional_model(inla_cgeneric_cmd_tp cmd,
     // interpretable parameters 
 
     if(!strcasecmp(parameterization, "matern")){
-      lkappa =  0.5 * log(12.0) - theta[1];
+      lkappa = log(2.0) - theta[1];
     } else {
       lkappa = theta[1];
     }
@@ -116,7 +116,7 @@ double *inla_cgeneric_gpgraph_alpha1_directional_model(inla_cgeneric_cmd_tp cmd,
       ret[0] = -1;		/* REQUIRED */
       ret[1] = M;		/* REQUIRED */
       
-      compute_Q_alpha1_directional(Tc->i, Tc->j, Tc->x, kappa, tau, nE, 0.5,
+      compute_Q_alpha1_directional(Tc->i, Tc->j, Tc->x, kappa, tau, nE, 0,
                             Tc->nrow, Tc->ncol, Tc->n, El->doubles, &ret[k], stat_ind_len, stat_indices->ints, BC);
 
       break;

@@ -51,19 +51,19 @@ void compute_Q_alpha1_directional(int *i_Tc, int *j_Tc, double *x_Tc, double kap
 
                             i_[count] = 2 * i;
                             j_[count] = 2 * i;
-                            x_[count] = factor * c_1_upper;
+                            x_[count] = c_1_upper;
 
                             i_[count + 1] = 2 * i + 1;
                             j_[count + 1] = 2 * i + 1;
-                            x_[count + 1] = factor * c_1_lower;
+                            x_[count + 1] = c_1_lower;
 
                             i_[count + 2] = 2 * i;
                             j_[count + 2] = 2 * i + 1;
-                            x_[count + 2] = factor * c_2;
+                            x_[count + 2] = c_2;
 
                             i_[count + 3] = 2 * i + 1;
                             j_[count + 3] = 2 * i;
-                            x_[count + 3] = factor * c_2;
+                            x_[count + 3] = c_2;
 
                             count += 4;
                         }
@@ -73,7 +73,7 @@ void compute_Q_alpha1_directional(int *i_Tc, int *j_Tc, double *x_Tc, double kap
                                 int ind = stat_ind[ii];
                                 i_[count] = ind;
                                 j_[count] = ind;
-                                x_[count] = factor * (1-w); 
+                                x_[count] = (1-w); 
                                 count = count + 1;
                             }
                         }   
@@ -87,7 +87,8 @@ void compute_Q_alpha1_directional(int *i_Tc, int *j_Tc, double *x_Tc, double kap
                                 trp_Q.push_back(Trip(i_[k],j_[k],x_[k]));
                         }
 
-                        Q.setFromTriplets(trp_Q.begin(), trp_Q.end());        
+                        Q.setFromTriplets(trp_Q.begin(), trp_Q.end());     
+                        Q = Q * factor;   
 
                         Eigen::SparseMatrix<double> Q_tilde = Tc * Q * Tc.transpose();
                         
