@@ -78,3 +78,6 @@ void compute_Q_intrinsic(int size,
 void compute_Q_alpha2(int *i_Tc, int *j_Tc, double *x_Tc, double kappa, double tau, int nE, double w,
                                         int nrow_Tc, int ncol_Tc, int n_nonzero_Tc, double *edge_lengths, double *Q_out, int *lower_edges,
                                         int *upper_edges, int lower_edges_len, int upper_edges_len);
+
+void compute_Q_alpha1_directional(int *i_Tc, int *j_Tc, double *x_Tc, double kappa, double tau, int nE, double w,
+                                        int nrow_Tc, int ncol_Tc, int n_nonzero_Tc, double *edge_lengths, double *Q_out, int stat_ind_len, int *stat_ind, int BC);

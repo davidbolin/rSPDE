@@ -5,10 +5,11 @@ obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o 
       cgeneric_rspde_stat_general.o cgeneric_rspde_stat_parsim_gen.o \
       cgeneric_rspde_stat_parsim_fixed.o cgeneric_rspde_stat_int.o \
       cgeneric_rspde_nonstat_gen_fixed.o cgeneric_rspde_nonstat_int.o \
-      cgeneric_aux_nonstat_int.o inla_cgeneric_rspde_intrinsic_int_model.o \
-      cgeneric_aux_intrinsic.o cgeneric_rspde_intrinsic_eigen_cache.o \
+      cgeneric_aux_nonstat_int.o \
 	  cgeneric_gpgraph_alpha1.o cgeneric_gpgraph_alpha2.o \
-	  cgeneric_aux_gpgraph_alpha2.o
+	  cgeneric_aux_gpgraph_alpha2.o cgeneric_gpgraph_alpha1_directional.o cgeneric_aux_gpgraph_alpha1_directional.o \
+	  inla_cgeneric_rspde_intrinsic_int_model.o \
+      cgeneric_aux_intrinsic.o cgeneric_rspde_intrinsic_eigen_cache.o
 
 all : rSPDE.so
 
