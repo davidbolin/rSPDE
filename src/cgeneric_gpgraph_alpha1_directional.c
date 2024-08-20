@@ -83,7 +83,7 @@ double *inla_cgeneric_gpgraph_alpha1_directional_model(inla_cgeneric_cmd_tp cmd,
     tau = 1.0/sigma;
   }
   else {   
-    lsigma = lkappa = sigma = kappa = NAN;
+    lsigma = lkappa = sigma = kappa = tau = NAN;
   }
   
   switch (cmd) {
