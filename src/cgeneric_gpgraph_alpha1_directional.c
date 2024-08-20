@@ -2,7 +2,7 @@
 #include "stdio.h"
 
 // This version uses 'padded' matrices with zeroes
-double *inla_cgeneric_gpgraph_alpha2_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data) {
+double *inla_cgeneric_gpgraph_alpha1_directional_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data) {
 
   double *ret = NULL;
 
@@ -11,12 +11,6 @@ double *inla_cgeneric_gpgraph_alpha2_model(inla_cgeneric_cmd_tp cmd, double *the
   int N, M, k, i;
 
   char *parameterization;
-  
-  // the size of the model
-  assert(data->n_ints == 8);
-
-  // the number of doubles
-  assert(data->n_doubles == 7);
 
   assert(!strcasecmp(data->ints[0]->name, "n"));       // this will always be the case
   N = data->ints[0]->ints[0];			       // this will always be the case
@@ -37,17 +31,13 @@ double *inla_cgeneric_gpgraph_alpha2_model(inla_cgeneric_cmd_tp cmd, double *the
   inla_cgeneric_vec_tp *graph_j = data->ints[3];
   assert(M == graph_j->len);
 
-  assert(!strcasecmp(data->ints[4]->name, "upper_edges"));
-  inla_cgeneric_vec_tp *upper_edges = data->ints[4];
+  assert(!strcasecmp(data->ints[4]->name, "BC"));
+  int BC = data->ints[4]->ints[0];
 
-  assert(!strcasecmp(data->ints[5]->name, "lower_edges"));
-  inla_cgeneric_vec_tp *lower_edges = data->ints[5];
+  assert(!strcasecmp(data->ints[5]->name, "ind_stat_indices"));
+  inla_cgeneric_vec_tp *stat_indices = data->ints[5];
 
-  assert(!strcasecmp(data->ints[6]->name, "upper_edges_len"));
-  int upper_edges_len = data->ints[6]->ints[0];
-
-  assert(!strcasecmp(data->ints[7]->name, "lower_edges_len"));
-  int lower_edges_len = data->ints[7]->ints[0];
+  int stat_ind_len = stat_indices->len;
 
   assert(!strcasecmp(data->smats[0]->name, "Tc"));
   inla_cgeneric_smat_tp *Tc = data->smats[0];
@@ -83,7 +73,7 @@ double *inla_cgeneric_gpgraph_alpha2_model(inla_cgeneric_cmd_tp cmd, double *the
     // interpretable parameters 
 
     if(!strcasecmp(parameterization, "matern")){
-      lkappa =  0.5 * log(12.0) - theta[1];
+      lkappa = log(2.0) - theta[1];
     } else {
       lkappa = theta[1];
     }
@@ -126,9 +116,8 @@ double *inla_cgeneric_gpgraph_alpha2_model(inla_cgeneric_cmd_tp cmd, double *the
       ret[0] = -1;		/* REQUIRED */
       ret[1] = M;		/* REQUIRED */
       
-      compute_Q_alpha2(Tc->i, Tc->j, Tc->x, kappa, tau, nE, 0.5,
-                            Tc->nrow, Tc->ncol, Tc->n, El->doubles, &ret[k], lower_edges->ints,
-                                        upper_edges->ints, lower_edges_len, upper_edges_len);
+      compute_Q_alpha1_directional(Tc->i, Tc->j, Tc->x, kappa, tau, nE, 0,
+                            Tc->nrow, Tc->ncol, Tc->n, El->doubles, &ret[k], stat_ind_len, stat_indices->ints, BC);
 
       break;
     }
