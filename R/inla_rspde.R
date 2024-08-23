@@ -2249,8 +2249,8 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE, parameteriza
   }
 
   if (!is.null(result$summary.nu)) {
-      if(nu.upper.bound - result$summary.nu$mean < 0.1){
-        warning("nu is very close to nu.upper.bound, please consider increasing nu.upper.bound, and refitting the model.")
+      if(nu.upper.bound - result$summary.nu$mean < 0.1 || nu.upper.bound - result$summary.nu$mode < 0.1){
+        warning("the mean or mode of nu is very close to nu.upper.bound, please consider increasing nu.upper.bound, and refitting the model.")
       }
   }
 
