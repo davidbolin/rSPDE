@@ -261,8 +261,8 @@ the `rSPDE`-`INLA` implementation. However, there is also an option to fix
 the smoothness parameter $\nu$ to some predefined value and only estimate $\tau$ and $\kappa$. This will be discussed later. 
 
 In this first example we will assume we want a rational approximation of order
-2. To this end we can use the `rspde.make.A()` function. Since we will assume order
-2 and that we want to estimate smoothness, which are the default options in this
+1. To this end we can use the `rspde.make.A()` function. Since we will assume order
+1 and that we want to estimate smoothness, which are the default options in this
 function, the required parameters are simply 
 the mesh and the locations:
 
@@ -385,8 +385,8 @@ $$(\kappa^2 I - \Delta)^{\alpha/2}(\tau u) = \mathcal{W},$$
 where $\alpha = \nu + d/2$, we have that
 $$\tau = \exp(\theta_1),\quad \kappa = \exp(\theta_2), $$
 and by default
-$$\nu = 4\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
-The number 4 comes from the upper bound for $\nu$, which will be discussed later in this vignette. 
+$$\nu = 2\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
+The number 2 comes from the upper bound for $\nu$, which will be discussed later in this vignette. 
 
 In general, we have
 $$\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big),$$
@@ -404,6 +404,8 @@ using the function `rspde.result()`:
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
 ```
+
+As mentioned above, when we create the model object with `rspde.matern()`, we must choose an upper bound for `nu` by using the argument `nu.upper.bound`. If such an argument is not passed, the default value of `2` will be used. However, if the mean or mode of `nu` is too close to `nu.upper.bound`, a warning will be given suggesting the user to increase `nu.upper.bound` and refit the data.
 
 To create plots of the posterior marginal densities, we can use the `gg_df()` function, which creates `ggplot2`-friendly data frames.
 The following figure shows the posterior marginal densities of the three parameters using the `gg_df()` function.
@@ -801,7 +803,7 @@ as small as possible.
 
 To change the value of the upper bound for the smoothness parameter, we must
 change the argument `nu.upper.bound`. The default value for `nu.upper.bound` is
-4. Other common choices for `nu.upper.bound` are 2 and 1.
+2. Other common choices for `nu.upper.bound` are 1, 3 and 4.
 
 It is clear from the discussion above that the smaller the value of `nu.upper.bound`
 the faster the estimation procedure will be. 
@@ -813,13 +815,13 @@ and estimate again, which, obviously will increase the computational cost as we 
 to do more than one estimation.
 
 Let us illustrate by considering the same model we considered above for the precipitation
-in Paraná region in Brazil and consider `nu.upper.bound` equal to 2, which is generally
+in Paraná region in Brazil and consider `nu.upper.bound` equal to 4, which is generally
 a good choice for `nu.upper.bound`.
 
-We simply use the function `rspde.matern()` with the argument `nu.upper.bound` set to 2:
+We simply use the function `rspde.matern()` with the argument `nu.upper.bound` set to 4:
 
 ```{r create_model_ub}
-rspde_model_2 <- rspde.matern(mesh = prmesh, nu.upper.bound = 2)
+rspde_model_2 <- rspde.matern(mesh = prmesh, nu.upper.bound = 4)
 ```
 
 Since we are considering the default `rspde.order`, the $A$ matrix and the
@@ -845,12 +847,12 @@ summary(rspde_fit_2)
 ```
 
 Let us compare with the cost from the previous fit, with the default value
-of `nu.upper.bound` of 4:
+of `nu.upper.bound` of 2:
 
 ```{r}
-# nu.upper.bound = 4
-rspde_fit$cpu.used
 # nu.upper.bound = 2
+rspde_fit$cpu.used
+# nu.upper.bound = 4
 rspde_fit_2$cpu.used
 ```
 
@@ -872,7 +874,7 @@ possibilities are `1,2,3`,..., up to `8`.
 The higher the order of the rational approximation, the more accurate the results
 will be, however, the higher the computational cost will be.
 
-The default `rspde.order` of 2 is generally a good choice and reasonably
+The default `rspde.order` of 1 is generally a good choice, fast, and reasonably
 accurate. See the vignette [Rational approximation with the rSPDE package](rspde_cov.html)
 for further details on the order of the rational approximation and some comparison
 with the Matérn covariance.
@@ -885,8 +887,7 @@ matrix and the mesh index. Therefore, we proceed as follows:
 * We build a new model:
 ```{r model_order_3, message=FALSE}
 rspde_model_order_3 <- rspde.matern(mesh = prmesh, 
-  rspde.order = 3,
-  nu.upper.bound = 2
+  rspde.order = 3
 )
 ```
 
@@ -938,13 +939,12 @@ summary(rspde_fit_order_3)
 ```
 
 We can see in the above summary that the computational cost significantly increased.
-Let us compare the cost of having `rspde.order=3` and 
-`nu.upper.bound=2` with the cost of having `rspde.order=2` and `nu.upper.bound=4`:
+Let us compare the cost of having `rspde.order=3` with the cost of having `rspde.order=1`:
 
 ```{r}
-# nu.upper.bound = 4
+# order = 1
 rspde_fit$cpu.used
-# nu.upper.bound = 2
+# order = 3
 rspde_fit_order_3$cpu.used
 ```
 
@@ -971,21 +971,21 @@ rational.order(mesh.index)
 rational.order(mesh.index.3)
 ```
 
-Let us now change the order of the `rspde_model` object to be 1:
+Let us now change the order of the `rspde_model` object to be 2:
 
 ```{r}
-rational.order(rspde_model) <- 1
-rational.order(Abar) <- 1
-rational.order(mesh.index) <- 1
+rational.order(rspde_model) <- 2
+rational.order(Abar) <- 2
+rational.order(mesh.index) <- 2
 ```
 
 Let us fit this new model:
 
 ```{r fit_model_order_1, message=FALSE, warning=FALSE}
- f.s.1 <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
+ f.s.2 <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model)
 
-stk.dat.1 <- inla.stack(
+stk.dat.2 <- inla.stack(
   data = list(y = Y), A = list(Abar, 1), tag = "est",
   effects = list(
     c(
@@ -1000,18 +1000,18 @@ stk.dat.1 <- inla.stack(
   )
 )
 
-rspde_fit_order_1 <- inla(f.s.1,
-  family = "Gamma", data = inla.stack.data(stk.dat.1),
+rspde_fit_order_2 <- inla(f.s.2,
+  family = "Gamma", data = inla.stack.data(stk.dat.2),
   verbose = FALSE,
   control.inla = list(int.strategy = "eb"),
-  control.predictor = list(A = inla.stack.A(stk.dat.1), compute = TRUE)
+  control.predictor = list(A = inla.stack.A(stk.dat.2), compute = TRUE)
 )
 ```
 
 Here is the summary:
 
 ```{r}
-summary(rspde_fit_order_1)
+summary(rspde_fit_order_2)
 ```
 
 
@@ -1046,7 +1046,7 @@ We will now provide illustrations for both scenarios.
 It is also noteworthy that just as for the case in which we estimate $\nu$, we can also change
 the order of the rational approximation by changing the value of `rspde.order`. 
 For both illustrations with fixed $\nu$ below, we will only consider the order of the rational approximation
-of 2, that is, the default order.
+of 1, that is, the default order.
 
 #### Estimating models with fixed smoothness and non-integer $\alpha$
 
@@ -1064,9 +1064,7 @@ Therefore, all we have to do is build a new model in which we set
  `nu` to `1.21`:
 
 ```{r message=FALSE}
-rspde_model_fix <- rspde.matern(mesh = prmesh, rspde.order = 2,
-  nu = 1.21
-)
+rspde_model_fix <- rspde.matern(mesh = prmesh, nu = 1.21)
 ```
 
 Let us now fit the model:
@@ -1378,7 +1376,7 @@ One can change the initial value of one or more parameters.
 
 For instance, let us consider the example with precipitation data, `rspde.order=3`, but
 change the initial values to the ones close to the fitted value when considering the
-default `rspde.order` (which is 2):
+default `rspde.order` (which is 1):
 
 ```{r}
 rspde_model_order_3_start <- rspde.matern(mesh = prmesh, rspde.order = 3,
