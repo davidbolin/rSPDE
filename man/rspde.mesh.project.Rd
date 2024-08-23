@@ -14,7 +14,7 @@ rspde.mesh.project(...)
 rspde.mesh.projector(
   mesh,
   nu = NULL,
-  rspde.order = 2,
+  rspde.order = 1,
   loc = NULL,
   lattice = NULL,
   xlim = NULL,
@@ -28,14 +28,14 @@ rspde.mesh.projector(
   mesh,
   loc = NULL,
   field = NULL,
-  rspde.order = 2,
+  rspde.order = 1,
   nu = NULL,
   ...
 )
 
 \method{rspde.mesh.project}{rspde.mesh.projector}(projector, field, ...)
 
-\method{rspde.mesh.project}{inla.mesh.1d}(mesh, loc, field = NULL, rspde.order = 2, nu = NULL, ...)
+\method{rspde.mesh.project}{inla.mesh.1d}(mesh, loc, field = NULL, rspde.order = 1, nu = NULL, ...)
 }
 \arguments{
 \item{...}{Additional parameters.}

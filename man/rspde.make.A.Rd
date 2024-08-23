@@ -9,7 +9,7 @@ rspde.make.A(
   loc = NULL,
   A = NULL,
   dim = NULL,
-  rspde.order = 2,
+  rspde.order = 1,
   nu = NULL,
   index = NULL,
   group = NULL,

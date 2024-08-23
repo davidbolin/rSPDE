@@ -7,7 +7,7 @@
 rspde.matern(
   mesh,
   nu.upper.bound = NULL,
-  rspde.order = 2,
+  rspde.order = 1,
   nu = NULL,
   B.sigma = matrix(c(0, 1, 0), 1, 3),
   B.range = matrix(c(0, 0, 1), 1, 3),
@@ -41,9 +41,9 @@ rspde.matern(
 an \code{inla.mesh.1d} object. Otherwise, should be a list containing elements d, the dimension, C, the mass matrix,
 and G, the stiffness matrix.}
 
-\item{nu.upper.bound}{Upper bound for the smoothness parameter. If \code{NULL}, it will be set to 2 in dimension 1 and to 4 in dimension 2.}
+\item{nu.upper.bound}{Upper bound for the smoothness parameter. If \code{NULL}, it will be set to 2.}
 
-\item{rspde.order}{The order of the covariance-based rational SPDE approach.}
+\item{rspde.order}{The order of the covariance-based rational SPDE approach. The default order is 1.}
 
 \item{nu}{If nu is set to a parameter, nu will be kept fixed and will not
 be estimated. If nu is \code{NULL}, it will be estimated.}
