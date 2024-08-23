@@ -1,10 +1,12 @@
 ---
-title: The `rSPDE` package  <a href="https://davidbolin.github.io/rSPDE/"><img src="./man/figures/logo.png" align="right" height="138" /></a>
-output: md_document
+title: The `rSPDE` package
+output:
+  md_document:
+    variant: markdown_mmd
 ---
+# The `rSPDE` package 
 
-
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-last-release/rSPDE)](https://cran.r-project.org/package=rSPDE)
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version-last-release/rSPDE)](https://cran.r-project.org/package=rSPDE)
 [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)
 [![R-CMD-check](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml/badge.svg?branch=devel-src)](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml)
 
@@ -23,22 +25,22 @@ $$
 Here $\mathcal{W}$ is a Gaussian white noise, $L$ is a second-order differential operator, the fractional power $\beta$ determines the smoothness of $u$, and $\tau$ scales the variance of $u$. The simplest example is a model on $\mathbb{R}^d$ with $L = \kappa^2 - \Delta$, which results in a Gaussian random field $u$ with a Matérn covariance function
 
 $$
-C(h) = \dfrac{ \sigma^2 }{ 2 ^ {\nu-1} \Gamma (\nu)} (\kappa h) ^ {\nu} K_{\nu} (\kappa h).
+C(h) = \dfrac{ \sigma^2 }{ 2 ^ {\nu-1} \Gamma (\nu)} (\kappa h)^{\nu} K_{\nu} (\kappa h).
 $$
 
 If $2 \beta$ is an integer and if the domain $\mathcal{D}$ where the model is defined is bounded, then $u$ can be approximated by a Gaussian Markov random field (GMRF) $\mathbf { \mathrm{u} }$ via a finite element method (FEM) for the SPDE. Specifically, the approximation can be written as
 
 $$
-u_h (s) = \sum _ { i=1 } ^ n u_i \varphi_i (s).
+u_h(s) = \sum_{i=1}^n u_i \varphi_i (s).
 $$
 
-Here $\{\varphi_i\}$ are piecewise linear basis functions defined by some triangulation of $\mathcal{D}$ and the vector of weights $ \mathbf { \mathrm { u } } = (u_1,\ldots,u_n)^\top $ is normally distributed, $N(\mathbf { \mathrm{u} }, \tilde{ \mathbf { \mathrm{Q} } }^{-1})$, where $\tilde{ \mathbf{ \mathrm{Q} } }$ is sparse. See [An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach][ref8] for further details. 
+Here $\{\varphi_i\}$ are piecewise linear basis functions defined by some triangulation of $\mathcal{D}$ and the vector of weights $\mathbf{\mathrm{u}} = (u_1,\ldots,u_n)^\top$ is normally distributed, $N(\mathbf{\mathrm{u}}, \tilde{\mathbf{\mathrm{Q}}}^{-1})$, where $\tilde{ \mathbf{ \mathrm{Q} } }$ is sparse. See [An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach][ref8] for further details. 
 
 The `rSPDE` package provides corresponding computationally efficient approximations for the case when $\beta$ is a general fractional power. The main idea is to combine the FEM approximation with a rational approximation of the fractional operator.
 As a result, one can easily do inference and prediction using fractional SPDE models such as 
 
 $$
-( \kappa^2-\Delta )^\beta u = \mathcal{ W }.
+(\kappa^2-\Delta)^\beta u = \mathcal{W}.
 $$
 
 In particular, it allows for bayesian inference of all model parameters, including the fractional parameter $\beta$.
