@@ -10,7 +10,7 @@ rspde.make.index(
   n.group = 1,
   n.repl = 1,
   mesh = NULL,
-  rspde.order = 2,
+  rspde.order = 1,
   nu = NULL,
   dim = NULL
 )

@@ -8,7 +8,7 @@ rspde.metric_graph(
   graph_obj,
   h = NULL,
   nu.upper.bound = 2,
-  rspde.order = 2,
+  rspde.order = 1,
   nu = NULL,
   debug = FALSE,
   B.sigma = matrix(c(0, 1, 0), 1, 3),
