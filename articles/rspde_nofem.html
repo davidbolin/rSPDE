@@ -74,7 +74,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-07-20. Last
-modified: 2024-08-20.</h4>
+modified: 2024-08-23.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rspde_nofem.Rmd" class="external-link"><code>vignettes/rspde_nofem.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_nofem.Rmd</code></div>
@@ -251,33 +251,33 @@ and
 <span><span class="co">## </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##             Estimate Std.error z-value Pr(&gt;|z|)    </span></span>
-<span><span class="co">## (Intercept)   2.0150    0.2957   6.813 9.54e-12 ***</span></span>
-<span><span class="co">## x1           -1.1973    0.4970  -2.409    0.016 *  </span></span>
+<span><span class="co">## (Intercept)   2.0160    0.2958   6.816 9.35e-12 ***</span></span>
+<span><span class="co">## x1           -1.1963    0.4971  -2.407   0.0161 *  </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.41401   0.10854  13.028</span></span>
-<span><span class="co">## tau    0.02483   0.01254   1.980</span></span>
-<span><span class="co">## kappa 21.51620   3.80859   5.649</span></span>
+<span><span class="co">## alpha  1.41388   0.10875  13.001</span></span>
+<span><span class="co">## tau    0.02484   0.01257   1.977</span></span>
+<span><span class="co">## kappa 21.51542   3.81397   5.641</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (Matern parameterization):</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu     0.91401   0.10854   8.421</span></span>
-<span><span class="co">## sigma  1.41349   0.08745  16.163</span></span>
-<span><span class="co">## range  0.12568   0.01120  11.218</span></span>
+<span><span class="co">## nu     0.91388   0.10875   8.403</span></span>
+<span><span class="co">## sigma  1.41365   0.08747  16.162</span></span>
+<span><span class="co">## range  0.12567   0.01120  11.218</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev  0.29205   0.01446    20.2</span></span>
+<span><span class="co">## std. dev  0.29192   0.01447   20.18</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -876.9438 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 65</span></span>
+<span><span class="co">## Log-Likelihood:  -876.9439 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 56</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.99566 mins </span></span>
-<span><span class="co">##   set up the parallelization = 2.49443 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.58847 mins </span></span>
+<span><span class="co">##   set up the parallelization = 2.40977 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -288,12 +288,12 @@ and
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##              sigma     range        nu</span></span>
 <span><span class="co">## Truth     1.300000 0.1264911 0.8000000</span></span>
-<span><span class="co">## Estimates 1.413495 0.1256767 0.9140092</span></span></code></pre>
+<span><span class="co">## Estimates 1.413649 0.1256721 0.9138763</span></span></code></pre>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 182.2346 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 157.7184 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
