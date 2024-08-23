@@ -1143,7 +1143,7 @@ rspde.make.A <- function(mesh = NULL,
                          loc = NULL,
                          A = NULL,
                          dim = NULL,
-                         rspde.order = 2, nu = NULL,
+                         rspde.order = 1, nu = NULL,
                          index = NULL,
                          group = NULL,
                          repl = 1L,
@@ -1355,7 +1355,7 @@ rspde.make.A <- function(mesh = NULL,
 #' }
 rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
                              n.repl = 1, mesh = NULL,
-                             rspde.order = 2, nu = NULL, dim = NULL) {
+                             rspde.order = 1, nu = NULL, dim = NULL) {
   if (is.null(n.spde) && is.null(mesh)) {
     stop("You should provide either n.spde or mesh!")
   }
@@ -2574,7 +2574,7 @@ rspde.mesh.project <- function(...) {
 
 rspde.mesh.projector <- function(mesh,
                                  nu = NULL,
-                                 rspde.order = 2,
+                                 rspde.order = 1,
                                  loc = NULL,
                                  lattice = NULL,
                                  xlim = NULL,
@@ -2619,7 +2619,7 @@ rspde.mesh.projector <- function(mesh,
 #' @export
 
 rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
-                                         field = NULL, rspde.order = 2,
+                                         field = NULL, rspde.order = 1,
                                          nu = NULL, ...) {
   cond1 <- inherits(mesh, "inla.mesh.1d")
   cond2 <- inherits(mesh, "inla.mesh")
@@ -2695,7 +2695,7 @@ rspde.mesh.project.rspde.mesh.projector <- function(projector, field, ...) {
 #'
 
 rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
-                                            rspde.order = 2, nu = NULL, ...) {
+                                            rspde.order = 1, nu = NULL, ...) {
   stopifnot(inherits(mesh, "inla.mesh.1d"))
   if (!missing(field) && !is.null(field)) {
     proj <- rspde.mesh.projector(mesh, loc,
@@ -3332,7 +3332,7 @@ rspde.matern.precision.integer <- function(
 
 rspde.metric_graph <- function(graph_obj,
                                h = NULL,
-                               nu.upper.bound = 2, rspde.order = 2,
+                               nu.upper.bound = 2, rspde.order = 1,
                                nu = NULL,
                                debug = FALSE,
                                B.sigma = matrix(c(0, 1, 0), 1, 3),
