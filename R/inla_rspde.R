@@ -3316,7 +3316,7 @@ rspde.matern.precision.integer <- function(
 #' @param start.lkappa Starting value for log of kappa. Will be only used in the stationary case and if `parameterization = 'spde'`.
 #' @param prior.theta.param Should the lognormal prior be on `theta` or on the SPDE parameters (`tau` and `kappa` on the stationary case)?
 #' @param prior.nu.dist The distribution of the smoothness parameter.
-#' The current options are "beta" or "lognormal". The default is "lognormal".
+#' The current options are "beta" or "lognormal". The default is "beta".
 #' @param nu.prec.inc Amount to increase the precision in the beta prior
 #' distribution. Check details below.
 #' @param type.rational.approx Which type of rational approximation
