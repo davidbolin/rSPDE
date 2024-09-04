@@ -126,6 +126,8 @@ rSPDE.fem1d <- function(x) {
 #' \item{Hyy }{Matrix with elements \eqn{(\partial_y \phi_i, \partial_y \phi_j)}.}
 #' \item{Hxy }{Matrix with elements \eqn{(\partial_x \phi_i, \partial_y \phi_j)}.}
 #' \item{Hyx }{Matrix with elements \eqn{(\partial_y \phi_i, \partial_x \phi_j)}.}
+#' \item{Bx }{Matrix with elements \eqn{(\partial_x \phi_i, \phi_j)}.}
+#' \item{By }{Matrix with elements \eqn{(\partial_y \phi_i, \phi_j)}.}
 #' @export
 #' @author David Bolin \email{davidbolin@@gmail.com}
 #' @seealso [rSPDE.fem1d()]
@@ -148,7 +150,7 @@ rSPDE.fem2d <- function(FV, P) {
   nV <- nrow(P)
   nF <- nrow(FV)
   Gi <- matrix(0, nrow = nF * 3, ncol = 3)
-  Gj <- Gz <- Ci <- Cj <- Cz <- Gxx <- Gxy <- Gyx <- Gyy <- Gi
+  Gj <- Gz <- Ci <- Cj <- Cz <- Gxx <- Gxy <- Gyx <- Gyy <- Bxz <- Byz <- Gi
 
   Mxx <- matrix(c(1, -1, 0, -1, 1, 0, 0, 0, 0), 3, 3)
   Myy <- matrix(c(1, 0, -1, 0, 0, 0, -1, 0, 1), 3, 3)
@@ -184,6 +186,17 @@ rSPDE.fem2d <- function(FV, P) {
     Gyy[dd, ] <- ddet * (Cyy[1, 1] * Mxx + Cyy[1, 2] * Mxy + Cyy[2, 1] * Myx + Cyy[2, 2] * Myy) / 2
     Gxy[dd, ] <- ddet * (Cxy[1, 1] * Mxx + Cxy[1, 2] * Mxy + Cxy[2, 1] * Myx + Cxy[2, 2] * Myy) / 2
     Gyx[dd, ] <- ddet * (Cyx[1, 1] * Mxx + Cyx[1, 2] * Mxy + Cyx[2, 1] * Myx + Cyx[2, 2] * Myy) / 2
+    
+    ab1 <- solve(matrix(c(xy[1,2]-xy[1,1], xy[1,3]-xy[1,1], 
+                          xy[2,2]-xy[2,1], xy[2,3]-xy[2,1]),2,2),rep(1,2))
+    ab2 <- solve(matrix(c(xy[1,1]-xy[1,2], xy[1,3]-xy[1,2], 
+                          xy[2,1]-xy[2,2], xy[2,3]-xy[2,2]),2,2),rep(1,2))
+    ab3 <- solve(matrix(c(xy[1,1]-xy[1,3], xy[1,2]-xy[1,3], 
+                          xy[2,1]-xy[2,3], xy[2,2]-xy[2,3]),2,2),rep(1,2))
+    
+    Bxz[dd, ] <-  -c(ab1[1], ab2[1], ab3[1]) * ddet/6
+    Byz[dd, ] <-  -c(ab1[2], ab2[2], ab3[2]) * ddet/6
+    
   }
 
   G <- Matrix::sparseMatrix(
@@ -206,12 +219,25 @@ rSPDE.fem2d <- function(FV, P) {
     i = as.vector(Gi), j = as.vector(Gj),
     x = as.vector(Gyx), dims = c(nV, nV)
   )
+  
+  Bx <- Matrix::sparseMatrix(
+      i = as.vector(Gi), j = as.vector(Gj),
+      x = as.vector(Bxz), dims = c(nV, nV)
+  )
+  
+  By <- Matrix::sparseMatrix(
+      i = as.vector(Gi), j = as.vector(Gj),
+      x = as.vector(Byz), dims = c(nV, nV)
+  )
+  
   Ce <- Matrix::sparseMatrix(
     i = as.vector(Ci), j = as.vector(Cj),
     x = as.vector(Cz), dims = c(nV, nV)
   )
   C <- Matrix::Diagonal(n = nV, x = Matrix::colSums(Ce))
-  return(list(G = G, C = Ce, Cd = C, Hxx = Hxx, Hyy = Hyy, Hxy = Hxy, Hyx = Hyx))
+  return(list(G = G, C = Ce, Cd = C, 
+              Hxx = Hxx, Hyy = Hyy, Hxy = Hxy, Hyx = Hyx,
+              Bx = Bx, By = By))
 }
 #' Warnings free loading of add-on packages
 #'

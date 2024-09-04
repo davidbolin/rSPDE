@@ -20,6 +20,8 @@ The function returns a list with the following elements
 \item{Hyy }{Matrix with elements \eqn{(\partial_y \phi_i, \partial_y \phi_j)}.}
 \item{Hxy }{Matrix with elements \eqn{(\partial_x \phi_i, \partial_y \phi_j)}.}
 \item{Hyx }{Matrix with elements \eqn{(\partial_y \phi_i, \partial_x \phi_j)}.}
+\item{Bx }{Matrix with elements \eqn{(\partial_x \phi_i, \phi_j)}.}
+\item{By }{Matrix with elements \eqn{(\partial_y \phi_i, \phi_j)}.}
 }
 \description{
 This function computes mass and stiffness matrices for a mesh in 2D, assuming
