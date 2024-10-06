@@ -123,7 +123,7 @@ fractional.operators <- function(L,
     Pr <- I
     Pl <- L
     if (beta > 1) {
-      for (i in 1:beta) {
+      for (i in 1:(beta - 1)) {
         Pl <- Pl %*% CiL
       }
     }
