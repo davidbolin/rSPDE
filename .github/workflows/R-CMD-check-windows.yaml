@@ -70,7 +70,7 @@ jobs:
           args: 'c("--no-manual", "--ignore-vignettes", "--as-cran")'
   retry-on-failure:
     if: failure() && fromJSON(github.run_attempt) < 3
-    needs: [R-CMD-check]
+    needs: [R-CMD-check-windows]
     runs-on: ${{ matrix.config.os }}
     steps:
       - env:
