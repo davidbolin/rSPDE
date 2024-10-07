@@ -79,3 +79,12 @@ jobs:
         with:
           args: 'c("--no-manual", "--as-cran")'
           error-on: '"error"'
+  retry-on-failure:
+    if: failure() && fromJSON(github.run_attempt) < 3
+    needs: [R-CMD-check]
+    runs-on: ${{ matrix.config.os }}
+    steps:
+      - env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run retry-workflow.yml -F run_id=${{ github.run_id }}
