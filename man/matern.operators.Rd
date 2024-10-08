@@ -24,7 +24,6 @@ matern.operators(
   compute_higher_order = FALSE,
   return_block_list = FALSE,
   type_rational_approximation = c("chebfun", "brasil", "chebfunLB"),
-  fem_mesh_matrices = NULL,
   compute_logdet = FALSE
 )
 }
@@ -76,9 +75,6 @@ separately as a list?}
 \item{type_rational_approximation}{Which type of rational
 approximation should be used? The current types are
 "chebfun", "brasil" or "chebfunLB".}
-
-\item{fem_mesh_matrices}{A list containing FEM-related matrices.
-The list should contain elements c0, g1, g2, g3, etc.}
 
 \item{compute_logdet}{Should log determinants be computed while building the model? (For covariance-based models)}
 }
