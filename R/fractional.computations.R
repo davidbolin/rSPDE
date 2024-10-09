@@ -274,7 +274,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
         type = "covariance",
         return_block_list = return_block_list,
         type_rational_approximation = type_rational_approximation,
-        fem_mesh_matrices = new_object$fem_mesh_matrices,
+        # fem_mesh_matrices = new_object$fem_mesh_matrices,
         compute_logdet = new_object$compute_logdet
       )
     } else {
@@ -294,7 +294,7 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
         type = "covariance",
         return_block_list = return_block_list,
         type_rational_approximation = type_rational_approximation,
-        fem_mesh_matrices = new_object$fem_mesh_matrices,
+        # fem_mesh_matrices = new_object$fem_mesh_matrices,
         compute_logdet = new_object$compute_logdet
       )
     }
