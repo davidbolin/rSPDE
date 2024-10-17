@@ -3510,7 +3510,7 @@ rspde.metric_graph <- function(graph_obj,
   }
 
 
-  rspde_model$mesh <- graph_obj$clone()
+  rspde_model$mesh <- graph_obj
   # rspde_model$n.spde <- nrow(graph_obj$mesh$E)
   rspde_model$n.spde <- nrow(graph_obj$mesh$VtE)
 
