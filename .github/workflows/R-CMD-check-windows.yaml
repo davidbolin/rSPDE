@@ -68,3 +68,12 @@ jobs:
         with:
           build_args: 'c("--no-manual", "--no-build-vignettes")'
           args: 'c("--no-manual", "--ignore-vignettes", "--as-cran")'
+  retry-on-failure:
+    if: failure() && fromJSON(github.run_attempt) < 3
+    needs: [R-CMD-check-windows]
+    runs-on: ${{ matrix.config.os }}
+    steps:
+      - env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run retry-workflow.yml -F run_id=${{ github.run_id }}

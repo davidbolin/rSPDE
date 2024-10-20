@@ -123,7 +123,7 @@ fractional.operators <- function(L,
     Pr <- I
     Pl <- L
     if (beta > 1) {
-      for (i in 1:beta) {
+      for (i in 1:(beta - 1)) {
         Pl <- Pl %*% CiL
       }
     }
@@ -233,8 +233,6 @@ fractional.operators <- function(L,
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
 #' "chebfun", "brasil" or "chebfunLB".
-#' @param fem_mesh_matrices A list containing FEM-related matrices.
-#' The list should contain elements c0, g1, g2, g3, etc.
 #' @param compute_logdet Should log determinants be computed while building the model? (For covariance-based models)
 #' @return If `type` is "covariance", then `matern.operators`
 #' returns an object of class "CBrSPDEobj".
@@ -400,7 +398,6 @@ matern.operators <- function(kappa = NULL,
                                "chebfun",
                                "brasil", "chebfunLB"
                              ),
-                             fem_mesh_matrices = NULL,
                              compute_logdet = FALSE) {
   type <- type[[1]]
 
