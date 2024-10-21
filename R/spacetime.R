@@ -18,15 +18,29 @@
 #' @param alpha Integer smoothness parameter alpha.
 #' @param beta Integer smoothness parameter beta.
 #'
-#' @return
+#' @return An object of type spacetimeobj. 
 #' @export
 #'
 #' @examples
+#'s <- seq(from = 0, to = 20, length.out = 101)
+#'mesh <- fm_mesh_1d(s)
+#'
+#'t <- seq(from = 0, to = 20, length.out = 31)
+#'
+#'op_cov <- spacetime.operators(mesh = mesh, time = t,
+#'                              kappa = 5, sigma = 10, alpha = 1,
+#'                              beta = 2, rho = 1, gamma = 0.05)
+#'Q <- op_cov$Q
+#'v <- rep(0,dim(Q)[1])
+#'v[1565] <- 1
+#'Sigma <- solve(Q,v)
+#'
+#'image(matrix(Sigma, nrow=length(s), ncol = length(t))
 spacetime.operators <- function(mesh = NULL,
                                 time = NULL,
                                 graph = NULL,
                                 kappa = NULL,
-                                tau = NULL,
+                                sigma = NULL,
                                 gamma = NULL,
                                 rho = NULL,
                                 alpha = NULL,
@@ -87,6 +101,7 @@ spacetime.operators <- function(mesh = NULL,
         }
         graph$compute_fem()
         C <- graph$mesh$C
+        Ci <- Diagonal(1/rowSums(C),n=dim(C)[1])
         G <- graph$mesh$G
         B <- graph$mesh$B
         has_graph <- TRUE
@@ -99,12 +114,14 @@ spacetime.operators <- function(mesh = NULL,
             FV <- mesh$graph$tv
             fem <- rSPDE.fem2d(FV, P)
             C <- fem$Cd
+            Ci <- Diagonal(1/rowSums(C),n=dim(C)[1])
             G <- fem$G
             Bx <- fem$Bx
             By <- fem$By
         } else if(d==1){
             fem <- rSPDE.fem1d(mesh$loc)
             C <- fem$Cd
+            Ci <- Diagonal(1/rowSums(C),n=dim(C)[1])
             G <- fem$G
             B <- fem$B
         } else {
@@ -144,7 +161,12 @@ spacetime.operators <- function(mesh = NULL,
         if(has_graph) {
             rho <- rspde_check_user_input(rho, "rho", dim = 1) 
         } else {
-            rho <- rspde_check_user_input(rho, "rho", dim = 2) 
+            if(d==1){
+                rho <- rspde_check_user_input(rho, "rho", dim = 1)     
+            } else {
+                rho <- rspde_check_user_input(rho, "rho", dim = 2) 
+            }
+            
         }
     }
     
@@ -155,60 +177,71 @@ spacetime.operators <- function(mesh = NULL,
     }
     
     Glist <- make.Glist(beta+2*alpha, C, G)
+    Ctlist <- kron.Glist(Ct,Glist, left = TRUE)
     Gtlist <- kron.Glist(Gt,Glist, left = TRUE)
     B0list <- kron.Glist(B0,Glist, left = TRUE)
     M1list <- list()
     M2list <- list()
     M2list2 <- list()
     for(k in 0:alpha) {
-        M1list.tmp <- mult.Glist(Ci%*%make.G(k,Cd,G), Glist, left = FALSE)
-        M1list[[k]] <- kron.Glist(Ct, M1list.tmp)
+        M1list.tmp <- mult.Glist(Ci%*%Glist[[k+1]], Glist, left = FALSE)
+        M1list[[k+1]] <- kron.Glist(Ct, M1list.tmp)
         
         if(d==2){
-            M2list.tmp <- mult.Glist(Ci%*%make.G(floor(k/2),Cd,G)%*%Ci%*%Bx, Glist, left = FALSE)
-            M2list[[k]] <- kron.Glist(t(Bt), M2list.tmp)
-            M2list.tmp <- mult.Glist(Ci%*%make.G(floor(k/2),Cd,G)%*%Ci%*%By, Glist, left = FALSE)
-            M2list2[[k]] <- kron.Glist(t(Bt), M2list.tmp)
+            M2list.tmp <- mult.Glist(Ci%*%Glist[[floor(k/2)+1]]%*%Ci%*%Bx, Glist, left = FALSE)
+            M2list[[k+1]] <- kron.Glist(t(Bt), M2list.tmp)
+            M2list.tmp <- mult.Glist(Ci%*%Glist[[floor(k/2)+1]]%*%Ci%*%By, Glist, left = FALSE)
+            M2list2[[k+1]] <- kron.Glist(t(Bt), M2list.tmp)
         } else {
-            M2list.tmp <- mult.Glist(Ci%*%make.G(floor(k/2),Cd,G)%*%Ci%*%B, Glist, left = FALSE)
-            M2list[[k]] <- kron.Glist(t(Bt), M2list.tmp)
+            M2list.tmp <- mult.Glist(Ci%*%Glist[[floor(k/2)+1]]%*%Ci%*%B, Glist, left = FALSE)
+            M2list[[k+1]] <- kron.Glist(t(Bt), M2list.tmp)
         }
     }
-    
-    Q <- make.L(beta,kappa,Gtlist) + 2*gamma*make.L(beta+alpha,B0list)
-    
-    for(k in 0:alpha) {
-        Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa, M1list[[k]])
-        if(d==2){
-            M2x <- make.L(beta+alpha-k,kappa,M2list)
-            M2y <- make.L(beta+alpha-k,kappa,M2list2)
-            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[1]^(k)*(M2x + t(M2x))
-            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[2]^(k)*(M2y + t(M2y))
-        } else {
-            M2 <- make.L(beta+alpha-k,kappa,M2list)
-            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho^(k)*(M2 + t(M2))    
+    if(alpha == 0) {
+        Q <- make.L(beta,kappa,Gtlist) + gamma^2*make.L(beta,kappa, Ctlist)
+    } else if (alpha==1) {
+        Q <- make.L(beta,kappa,Gtlist) + 2*gamma*make.L(beta+alpha,kappa, B0list)
+        Q <- Q + gamma^2*make.L(beta+2*alpha, kappa, Ctlist) - gamma^2*rho^2*Ctlist[[3]]
+        Q <- Q + 6*gamma^2*rho^2*make.L(beta+2,kappa,M1list[[2]])
+        M2 <- make.L(beta+1,kappa,M2list[[1]])
+        Q <- Q - 2*rho*gamma*(M2 + t(M2))
+    } else {
+        Q <- make.L(beta,kappa,Gtlist) + 2*gamma*make.L(beta+alpha,kappa, B0list)
+        
+        for(k in 0:alpha) {
+            Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa, M1list[[k+1]])
+            if(d==2){
+                M2x <- make.L(beta+alpha-k,kappa,M2list[[k+1]])
+                M2y <- make.L(beta+alpha-k,kappa,M2list2[[k+1]])
+                Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[1]^(k)*(M2x + t(M2x))
+                Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[2]^(k)*(M2y + t(M2y))
+            } else {
+                M2 <- make.L(beta+alpha-k,kappa,M2list[[k+1]])
+                Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho^(k)*(M2 + t(M2))    
+            }
         }
     }
     
     out <- list()
     out$Q <- Q/sigma^2
     out$Gtlist <- Gtlist
+    out$Ctlist <- Ctlist
     out$B0list <- B0list
     out$M1list <- M1list
     out$M2list <- M2list
     out$M2list2 <- M2list2
     out$kappa <- kappa
-    out$tau <- tau
+    out$sigma <- sigma
     out$alpha <- alpha
     out$beta <- beta
     out$gamma <- gamma
     out$rho <- rho
     out$has_mesh <- has_mesh
     out$has_graph <- has_graph
-    out$mesh_time <- mesh_time
-    out$mesh_space <- mesh_space
+    out$time <- time
+    out$mesh <- mesh
     out$graph <- graph
-    class(output) <- "spacetimeobj"
+    class(out) <- "spacetimeobj"
     return(out)
 
 }
@@ -223,10 +256,20 @@ spacetime.operators <- function(mesh = NULL,
 #' @param user_gamma gamma value to be updated.
 #' @param user_rho rho value to be updated.
 #'
-#' @return
+#' @return An object of type spacetimeobj with updated parameters.
 #' @export
 #'
 #' @examples
+#'s <- seq(from = 0, to = 20, length.out = 101)
+#'mesh <- fm_mesh_1d(s)
+#'
+#'t <- seq(from = 0, to = 20, length.out = 31)
+#'
+#'op_cov <- spacetime.operators(mesh = mesh, time = t,
+#'                              kappa = 5, sigma = 10, alpha = 1,
+#'                              beta = 2, rho = 1, gamma = 0.05)
+#'op_cov <- update.spacetimeobj(op_cov, user_kappa = 4, 
+#'                              user_sigma = 2, user_gamma = 0.1)                              
 update.spacetimeobj <- function(object, 
                                 user_kappa = NULL,
                                 user_sigma = NULL,
@@ -235,41 +278,67 @@ update.spacetimeobj <- function(object,
     new_object <- object
     
     if (!is.null(user_kappa)) {
-        kappa <- rspde_check_user_input(kappa, "kappa", 0, 1)
-    } 
+        kappa <- rspde_check_user_input(user_kappa, "kappa", 0, 1)
+    } else {
+        kappa <- object$kappa
+    }
     
-    if (!is.null(sigma)) {
-        sigma <- rspde_check_user_input(sigma, "sigma", 0, 1)
+    if (!is.null(user_sigma)) {
+        sigma <- rspde_check_user_input(user_sigma, "sigma", 0, 1)
+    } else {
+        sigma <- object$sigma
     }
     
     if(!is.null(user_rho)){
         if(object$has_graph) {
-            rho <- rspde_check_user_input(rho, "rho", dim = 1) 
+            rho <- rspde_check_user_input(user_rho, "rho", dim = 1) 
         } else {
-            rho <- rspde_check_user_input(rho, "rho", dim = 2) 
+            d <- get_inla_mesh_dimension(inla_mesh = mesh)
+            rho <- rspde_check_user_input(user_rho, "rho", dim = d) 
         }
+    } else {
+        rho <- object$rho
     }
     
-    if (!is.null(gamma)) {
-        gamma <- rspde_check_user_input(gamma, "gamma", 0, 1)
+    if (!is.null(user_gamma)) {
+        gamma <- rspde_check_user_input(user_gamma, "gamma", 0, 1)
+    } else {
+        gamma <- object$gamma
     }
     
-    Q <- make.L(beta,kappa,Gtlist) + 2*gamma*make.L(beta+alpha,B0list)
+    alpha <- object$alpha
+    beta <- object$beta 
     
-    for(k in 0:alpha) {
-        Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa, M1list[[k]])
-        if(d==2){
-            M2x <- make.L(beta+alpha-k,kappa,M2list)
-            M2y <- make.L(beta+alpha-k,kappa,M2list2)
-            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[1]^(k)*(M2x + t(M2x))
-            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[2]^(k)*(M2y + t(M2y))
-        } else {
-            M2 <- make.L(beta+alpha-k,kappa,M2list)
-            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho^(k)*(M2 + t(M2))    
+    if(alpha == 0) {
+        Q <- make.L(beta,kappa,object$Gtlist) + gamma^2*make.L(beta,kappa, object$Ctlist)
+    } else if (alpha==1) {
+        Q <- make.L(beta,kappa,object$Gtlist) + 2*gamma*make.L(beta+alpha,kappa, object$B0list)
+        Q <- Q + gamma^2*make.L(beta+2*alpha, kappa, object$Ctlist) - gamma^2*rho^2*object$Ctlist[[3]]
+        Q <- Q + 6*gamma^2*rho^2*make.L(beta+2,kappa,object$M1list[[2]])
+        M2 <- make.L(beta+1,kappa,object$M2list[[1]])
+        Q <- Q - 2*rho*gamma*(M2 + t(M2))
+    } else {
+        Q <- make.L(beta,kappa,object$Gtlist) + 2*gamma*make.L(beta+alpha,kappa, object$B0list)
+        
+        for(k in 0:alpha) {
+            Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa, object$M1list[[k+1]])
+            if(d==2){
+                M2x <- make.L(beta+alpha-k,kappa,object$M2list[[k+1]])
+                M2y <- make.L(beta+alpha-k,kappa,object$M2list2[[k+1]])
+                Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[1]^(k)*(M2x + t(M2x))
+                Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[2]^(k)*(M2y + t(M2y))
+            } else {
+                M2 <- make.L(beta+alpha-k,kappa,object$M2list[[k+1]])
+                Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho^(k)*(M2 + t(M2))    
+            }
         }
     }
     
     new_object$Q <- Q/sigma^2
+    new_object$kappa <- kappa
+    new_object$sigma <- sigma
+    new_object$gamma <- gamma
+    new_object$rho <- rho
     return(new_object)
 }
 
@@ -284,11 +353,20 @@ update.spacetimeobj <- function(object,
 #' @param user_rho rho parameter if it should be updated
 #' @param ... Currently not used.
 #'
-#' @return
+#' @return A matrix with the simulations as columns.
 #' @export
 #'
 #' @examples
-
+#'s <- seq(from = 0, to = 20, length.out = 101)
+#'mesh <- fm_mesh_1d(s)
+#'
+#'t <- seq(from = 0, to = 20, length.out = 31)
+#'
+#'op_cov <- spacetime.operators(mesh = mesh, time = t,
+#'                              kappa = 5, sigma = 10, alpha = 1,
+#'                              beta = 2, rho = 1, gamma = 0.05)
+#'x <- simulate(op_cov, nsim = 1) 
+#'image(matrix(x, nrow = length(s), ncol = length(t)))                              
 simulate.spacetimeobj <- function(object, nsim = 1,
                                 seed = NULL,
                                 user_kappa = NULL,
@@ -320,6 +398,9 @@ simulate.spacetimeobj <- function(object, nsim = 1,
 # Build the operator (kappa^2 C + G)^n from a Glist
 #' @noRd
 make.L <- function(n,kappa,Glist){
+    if(n > length(Glist)){
+        stop("Glist too short.")
+    }
     L <- 0
     for(k in 0:n){
         L <- L + choose(n,k)*kappa^(2*(n-k))*Glist[[k+1]]

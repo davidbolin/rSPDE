@@ -23,6 +23,21 @@ update.spacetimeobj(
 
 \item{user_rho}{rho value to be updated.}
 }
+\value{
+An object of type spacetimeobj with updated parameters.
+}
 \description{
 Update space-time operator object with new parameters
+}
+\examples{
+s <- seq(from = 0, to = 20, length.out = 101)
+mesh <- fm_mesh_1d(s)
+
+t <- seq(from = 0, to = 20, length.out = 31)
+
+op_cov <- spacetime.operators(mesh = mesh, time = t,
+                             kappa = 5, sigma = 10, alpha = 1,
+                             beta = 2, rho = 1, gamma = 0.05)
+op_cov <- update.spacetimeobj(op_cov, user_kappa = 4, 
+                             user_sigma = 2, user_gamma = 0.1)                              
 }

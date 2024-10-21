@@ -9,7 +9,7 @@ spacetime.operators(
   time = NULL,
   graph = NULL,
   kappa = NULL,
-  tau = NULL,
+  sigma = NULL,
   gamma = NULL,
   rho = NULL,
   alpha = NULL,
@@ -26,6 +26,8 @@ metric graphs.}
 
 \item{kappa}{Positive spatial range parameter}
 
+\item{sigma}{Positive variance parameter}
+
 \item{gamma}{Temporal range parameter.}
 
 \item{rho}{Drift parameter. Real number on metric graphs and
@@ -34,8 +36,9 @@ one-dimensional spatial domains, a vector with two number on 2d domains.}
 \item{alpha}{Integer smoothness parameter alpha.}
 
 \item{beta}{Integer smoothness parameter beta.}
-
-\item{sigma}{Positive variance parameter}
+}
+\value{
+An object of type spacetimeobj.
 }
 \description{
 \code{spacetime.operators} is used for computing a FEM approximation of a Gaussian
@@ -43,4 +46,20 @@ random field defined as a solution to the SPDE
 \deqn{d u + \gamma(\kappa^2 + \rho\cdot\Nabla - \Delta)^\alpha u = \sigma dW_C.}
 where C is a Whittle-Matern covariance operator with smoothness parameter
 \eqn{\beta} and range parameter \eqn{\kappa}
+}
+\examples{
+s <- seq(from = 0, to = 20, length.out = 101)
+mesh <- fm_mesh_1d(s)
+
+t <- seq(from = 0, to = 20, length.out = 31)
+
+op_cov <- spacetime.operators(mesh = mesh, time = t,
+                             kappa = 5, sigma = 10, alpha = 1,
+                             beta = 2, rho = 1, gamma = 0.05)
+Q <- op_cov$Q
+v <- rep(0,dim(Q)[1])
+v[1565] <- 1
+Sigma <- solve(Q,v)
+
+image(matrix(Sigma, nrow=length(s), ncol = length(t))
 }
