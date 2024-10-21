@@ -61,5 +61,5 @@ v <- rep(0,dim(Q)[1])
 v[1565] <- 1
 Sigma <- solve(Q,v)
 
-image(matrix(Sigma, nrow=length(s), ncol = length(t))
+image(matrix(Sigma, nrow=length(s), ncol = length(t)))
 }
