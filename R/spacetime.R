@@ -35,7 +35,7 @@
 #'v[1565] <- 1
 #'Sigma <- solve(Q,v)
 #'
-#'image(matrix(Sigma, nrow=length(s), ncol = length(t))
+#'image(matrix(Sigma, nrow=length(s), ncol = length(t)))
 spacetime.operators <- function(mesh = NULL,
                                 time = NULL,
                                 graph = NULL,
