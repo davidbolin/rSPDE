@@ -83,8 +83,10 @@ rSPDE.A1d <- function(x, loc) {
 #' @param x Locations of the nodes in the FEM approximation.
 #'
 #' @return The function returns a list with the following elements
-#' \item{G }{The stiffness matrix.}
-#' \item{C }{The mass matrix.}
+#' \item{G }{The stiffness matrix with elements \eqn{(\nabla \phi_i, \nabla \phi_j)}.}
+#' \item{C }{The mass matrix with elements \eqn{(\phi_i, \phi_j)}.}
+#' \item{Cd }{Mass lumped mass matrix.}
+#' \item{B }{Matrix with elements \eqn{(\nabla \phi_i, \phi_j)}.}
 #' @export
 #' @author David Bolin \email{davidbolin@@gmail.com}
 #' @seealso [rSPDE.A1d()]
@@ -106,8 +108,13 @@ rSPDE.fem1d <- function(x) {
   )
   C[1, 1:2] <- c(d[2], d[2] / 2) / 3
   C[n, (n - 1):n] <- c(d[n] / 2, d[n]) / 3
+    
+  Cd <- Diagonal(rowSums(C),n=n)
+  
+  B <- bandSparse(n = n, m = n, k = c(-1, 0, 1),
+                  diagonals = cbind(rep(0.5,n), rep(0,n), rep(-0.5,n)))
 
-  return(list(G = G, C = C))
+  return(list(G = G, C = C, Cd = Cd, B = B))
 }
 
 #' Finite element calculations for problems in 2D
@@ -1242,13 +1249,15 @@ rational.order <- function(object) {
 #' @noRd
 #'
 
-rspde_check_user_input <- function(param, label, lower_bound = NULL) {
+rspde_check_user_input <- function(param, label, lower_bound = NULL, dim = 1) {
   if (is.null(lower_bound)) {
     if (!is.numeric(param)) {
       stop(paste(param, "should be a number!"))
     }
-    if (length(param) > 1) {
+    if (length(param) > 1 && dim == 1) {
       stop(paste(param, "should be a number!"))
+    } else if (length(param) != dim) {
+        stop(paste(param, "has the wrong size!"))
     }
     return(param)
   } else {
