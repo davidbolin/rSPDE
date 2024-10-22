@@ -70,7 +70,7 @@ sigma.e <- 0.01
 n.obs <- 500
 obs.loc <- data.frame(x = max(s)*runif(n.obs), 
                      t = max(t)*runif(n.obs))
-A <- rSPDE.Ast(mesh, time = t, obs.s = obs.loc$x, obs.t = obs.loc$t)
+A <- rSPDE.Ast(space_loc = s, time_loc = t, obs.s = obs.loc$x, obs.t = obs.loc$t)
 Y <- A\%*\%x + sigma.e*rnorm(n.obs)
 u.krig <- predict(object, A, Aprd, Y, sigma.e)
 }

@@ -15,15 +15,19 @@ rSPDE.Ast(
 )
 }
 \arguments{
+\item{mesh_space}{mesh object for models on 1d or 2d domains}
+
+\item{space_loc}{mesh locations for models on 1d domains}
+
+\item{mesh_time}{mesh object for time discretization}
+
+\item{time_loc}{mesh locations for time discretization}
+
 \item{graph}{MetricGraph object for models on metric graphs}
 
 \item{obs.s}{spatial locations of observations}
 
 \item{obs.t}{time points for observations}
-
-\item{mesh}{mesh object for models on 1d or 2d domains}
-
-\item{time}{time locations for the temporal mesh}
 }
 \value{
 Observation matrix linking observation locations to mesh nodes
