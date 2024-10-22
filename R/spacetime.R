@@ -197,17 +197,15 @@ spacetime.operators <- function(mesh_space = NULL,
         gamma <- rspde_check_user_input(gamma, "gamma", 0, 1)
     }
     
-    Glist <- make.Glist(beta+2*alpha, C, G)
-    Ctlist <- kron.Glist(Ct,Glist, left = TRUE)
-    Gtlist <- kron.Glist(Gt,Glist, left = TRUE)
-    B0list <- kron.Glist(B0,Glist, left = TRUE)
-    M1list <- list()
+    Glist <- make.Glist(beta+3*alpha, C, G)
+    
+    Ctlist <- kron.Glist(Ct,make.Glist(beta+3*alpha, C, G), left = TRUE)
+    Gtlist <- kron.Glist(Gt,make.Glist(1+beta, C, G), left = TRUE)
+    B0list <- kron.Glist(B0,make.Glist(beta+alpha, C, G), left = TRUE)
     M2list <- list()
     M2list2 <- list()
     for(k in 0:alpha) {
-        M1list.tmp <- mult.Glist(Ci%*%Glist[[k+1]], Glist, left = FALSE)
-        M1list[[k+1]] <- kron.Glist(Ct, M1list.tmp)
-        
+        Glist <- make.Glist(1+beta+alpha-k, C, G)
         if(d==2){
             M2list.tmp <- mult.Glist(Ci%*%Glist[[floor(k/2)+1]]%*%Ci%*%Bx, Glist, left = FALSE)
             M2list[[k+1]] <- kron.Glist(t(Bt), M2list.tmp)
@@ -223,14 +221,16 @@ spacetime.operators <- function(mesh_space = NULL,
     } else if (alpha==1) {
         Q <- make.L(beta,kappa,Gtlist) + 2*gamma*make.L(beta+alpha,kappa, B0list)
         Q <- Q + gamma^2*make.L(beta+2*alpha, kappa, Ctlist) - gamma^2*rho^2*Ctlist[[3]]
-        Q <- Q + 6*gamma^2*rho^2*make.L(beta+2,kappa,M1list[[2]])
+        Q <- Q + 6*gamma^2*rho^2*make.L(beta+2,kappa,Ctlist[2:length(Ctlist)])
+        #cat(all.equal(make.L(beta+2,kappa,M1list[[2]]), make.L(beta+2,kappa,Ctlist[2:length(Ctlist)])))
         M2 <- make.L(beta+1,kappa,M2list[[1]])
         Q <- Q - 2*rho*gamma*(M2 + t(M2))
     } else {
         Q <- make.L(beta,kappa,Gtlist) + 2*gamma*make.L(beta+alpha,kappa, B0list)
         
         for(k in 0:alpha) {
-            Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa, M1list[[k+1]])
+            Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa,Ctlist[(k+1):length(Ctlist)])
+            #cat(all.equal(make.L(beta+2*(alpha-k),kappa, M1list[[k+1]]), make.L(beta+2*(alpha-k),kappa,Ctlist[(k+1):length(Ctlist)])),"\n")
             if(d==2){
                 M2x <- make.L(beta+alpha-k,kappa,M2list[[k+1]])
                 M2y <- make.L(beta+alpha-k,kappa,M2list2[[k+1]])
@@ -248,7 +248,6 @@ spacetime.operators <- function(mesh_space = NULL,
     out$Gtlist <- Gtlist
     out$Ctlist <- Ctlist
     out$B0list <- B0list
-    out$M1list <- M1list
     out$M2list <- M2list
     out$M2list2 <- M2list2
     out$kappa <- kappa
@@ -333,14 +332,15 @@ update.spacetimeobj <- function(object,
     } else if (alpha==1) {
         Q <- make.L(beta,kappa,object$Gtlist) + 2*gamma*make.L(beta+alpha,kappa, object$B0list)
         Q <- Q + gamma^2*make.L(beta+2*alpha, kappa, object$Ctlist) - gamma^2*rho^2*object$Ctlist[[3]]
-        Q <- Q + 6*gamma^2*rho^2*make.L(beta+2,kappa,object$M1list[[2]])
+        Q <- Q + 6*gamma^2*rho^2*make.L(beta+2,kappa,object$Ctlist[2:length(object$Ctlist)])
         M2 <- make.L(beta+1,kappa,object$M2list[[1]])
         Q <- Q - 2*rho*gamma*(M2 + t(M2))
     } else {
         Q <- make.L(beta,kappa,object$Gtlist) + 2*gamma*make.L(beta+alpha,kappa, object$B0list)
         
         for(k in 0:alpha) {
-            Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa, object$M1list[[k+1]])
+            Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa,
+                                                              object$Ctlist[(k+1):length(object$Ctlist)])
             if(d==2){
                 M2x <- make.L(beta+alpha-k,kappa,object$M2list[[k+1]])
                 M2y <- make.L(beta+alpha-k,kappa,object$M2list2[[k+1]])
@@ -499,8 +499,10 @@ precision.spacetimeobj <- function(object,
 #'obs.loc <- data.frame(x = max(s)*runif(n.obs), 
 #'                      t = max(t)*runif(n.obs))
 #'A <- rSPDE.Ast(space_loc = s, time_loc = t, obs.s = obs.loc$x, obs.t = obs.loc$t)
+#'Aprd <- Diagonal(dim(A)[2])
+#'x <- simulate(op_cov, nsim = 1) 
 #'Y <- A%*%x + sigma.e*rnorm(n.obs)
-#'u.krig <- predict(object, A, Aprd, Y, sigma.e)
+#'u.krig <- predict(op_cov, A, Aprd, Y, sigma.e)
 predict.spacetimeobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
                                  compute.variances = FALSE, posterior_samples = FALSE,
                                  n_samples = 100, only_latent = FALSE,
@@ -768,6 +770,11 @@ rSPDE.Ast <- function(mesh_space = NULL,
     } else {
         time <- time_loc
     }
+    
+    if(is.null(obs.s) || is.null(obs.t)) {
+        stop("obs.s and obs.t must be provided")
+    } 
+    
     
     At <- rSPDE.A1d(time, obs.t)
     if(!is.null(graph)) {
