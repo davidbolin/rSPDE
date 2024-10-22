@@ -39,7 +39,7 @@ Observation matrix for space-time models
 s <- seq(from = 0, to = 20, length.out = 11)
 t <- seq(from = 0, to = 20, length.out = 5)
 n.obs <- 10
-obs.loc <- data.frame(x = max(x)*runif(n.obs), 
+obs.loc <- data.frame(x = max(s)*runif(n.obs), 
 t = max(t)*runif(n.obs))
 A <- rSPDE.Ast(space_loc = s,time_loc = t, 
                obs.s = obs.loc$x, obs.t = obs.loc$t)
