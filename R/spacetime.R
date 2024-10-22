@@ -53,7 +53,7 @@ spacetime.operators <- function(mesh_space = NULL,
         stop("You should provide either mesh_space, space_loc or graph.")
     }
     
-    if (!is.null(mesh) && !is.null(graph) && !.is.null(space_loc)) {
+    if (!is.null(mesh_space) && !is.null(graph) && !.is.null(space_loc)) {
         stop("You should provide mesh_space, space_loc or graph.")
     }
     
@@ -74,13 +74,14 @@ spacetime.operators <- function(mesh_space = NULL,
     } 
     
     if(!is.null(mesh_time)){
-        d_time <- get_inla_mesh_dimension(inla_mesh = mesh)
+        d_time <- get_inla_mesh_dimension(inla_mesh = mesh_time)
         if(d_time != 1) {
             stop("mesh_time should be a 1d mesh")
         }
         time <- mesh_time$loc
     } else {
         time <- time_loc
+        mesh_time <- mesh <- fm_mesh_1d(time)
     }
     nt <- length(time)
     d <- c(Inf, diff(time))
@@ -157,7 +158,7 @@ spacetime.operators <- function(mesh_space = NULL,
     if (is.null(kappa) || is.null(sigma)) {
         if (has_mesh) {
             param <- get.initial.values.rSPDE(dim = d, parameterization = "SPDE", 
-                                              mesh = mesh, nu = alpha + beta - d/2)
+                                              mesh = mesh_space, nu = alpha + beta - d/2)
         } else if (has_graph) {
             param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = "SPDE", 
                                               nu = alpha + beta - d/2)
@@ -258,8 +259,8 @@ spacetime.operators <- function(mesh_space = NULL,
     out$rho <- rho
     out$has_mesh <- has_mesh
     out$has_graph <- has_graph
-    out$time <- time
-    out$mesh <- mesh
+    out$mesh_time <- mesh_time
+    out$mesh_space <- mesh_space
     out$graph <- graph
     out$d <- d
     class(out) <- "spacetimeobj"
@@ -497,7 +498,7 @@ precision.spacetimeobj <- function(object,
 #'n.obs <- 500
 #'obs.loc <- data.frame(x = max(s)*runif(n.obs), 
 #'                      t = max(t)*runif(n.obs))
-#'A <- rSPDE.Ast(mesh, time = t, obs.s = obs.loc$x, obs.t = obs.loc$t)
+#'A <- rSPDE.Ast(space_loc = s, time_loc = t, obs.s = obs.loc$x, obs.t = obs.loc$t)
 #'Y <- A%*%x + sigma.e*rnorm(n.obs)
 #'u.krig <- predict(object, A, Aprd, Y, sigma.e)
 predict.spacetimeobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
@@ -623,7 +624,7 @@ predict.spacetimeobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
 #'n.obs <- 500
 #'obs.loc <- data.frame(x = max(s)*runif(n.obs), 
 #'                      t = max(t)*runif(n.obs))
-#'A <- rSPDE.Ast(mesh, time = t, obs.s = obs.loc$x, obs.t = obs.loc$t)
+#'A <- rSPDE.Ast(space_loc = s, time_loc = t, obs.s = obs.loc$x, obs.t = obs.loc$t)
 #'Y <- A%*%x + sigma.e*rnorm(n.obs)
 #'spacetime.loglike(object, Y, A, sigma.e)
 spacetime.loglike <- function(object, Y, A, sigma.e, mu = 0,
@@ -719,9 +720,11 @@ spacetime.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
 #' Observation matrix for space-time models
 #'
-#' @param mesh mesh object for models on 1d or 2d domains
+#' @param mesh_space mesh object for models on 1d or 2d domains
+#' @param space_loc mesh locations for models on 1d domains
+#' @param mesh_time mesh object for time discretization
+#' @param time_loc mesh locations for time discretization
 #' @param graph MetricGraph object for models on metric graphs
-#' @param time time locations for the temporal mesh
 #' @param obs.s spatial locations of observations
 #' @param obs.t time points for observations
 #'
@@ -748,7 +751,7 @@ rSPDE.Ast <- function(mesh_space = NULL,
         stop("You should provide mesh_space, space_loc or graph.")
     }
     
-    if (!is.null(mesh) && !is.null(graph) && !.is.null(space_loc)) {
+    if (!is.null(mesh_space) && !is.null(graph) && !.is.null(space_loc)) {
         stop("You should provide mesh_space, space_loc or graph.")
     }
     
@@ -757,7 +760,7 @@ rSPDE.Ast <- function(mesh_space = NULL,
     }
     
     if(!is.null(mesh_time)){
-        d_time <- get_inla_mesh_dimension(inla_mesh = mesh)
+        d_time <- get_inla_mesh_dimension(inla_mesh = mesh_time)
         if(d_time != 1) {
             stop("mesh_time should be a 1d mesh")
         }
