@@ -297,3 +297,57 @@ create_summary_from_density <- function(density_df, name) {
     )
     return(out)
 }
+
+
+#' Summarise spacetime objects
+#'
+#' Summary method for class "spacetimeobj"
+#'
+#' @param object an object of class "spacetimeobj", usually, a result of a call
+#'   to [spacetime.operators()].
+#' @param ... further arguments passed to or from other methods.
+#' @export
+#' @method summary spacetimeobj
+summary.spacetimeobj <- function(object, ...) {
+    out <- list()
+    class(out) <- "summary.spacetimeobj"
+    
+    out$kappa <- object$kappa
+    out$sigma <- object$sigma
+    out$gamma <- object$gamma
+    out$alpha <- object$alpha
+    out$beta <- object$beta
+    out$rho <- object$rho
+    if(object$has_graph) {
+        out$domain <- "graph"
+    } else {
+        if(object$d == 1) {
+            out$domain <- "interval"
+        } else {
+            out$domain <- "2d region"
+        }
+    }
+    return(out)
+}
+
+#' @param x an object of class "summary.spacetimeobj", usually, a result of a call
+#'   to [summary.spacetimeobj()].
+#' @export
+#' @method print summary.spacetimeobj
+#' @rdname summary.spacetimeobj
+print.summary.spacetimeobj <- function(x, ...) {
+    
+    
+    cat("Model parameters: kappa = ", x$kappa, ", sigma = ", x$sigma, 
+        ", gamma = ", x$gamma, ", rho = ", x$rho, ", alpha = ", x$alpha, 
+        ", beta = ", x$beta,"\n")
+        
+    cat("Type of spatial domain: ", x$domain, "\n")
+}
+
+#' @export
+#' @method print spacetimeobj
+#' @rdname summary.spacetimeobj
+print.spacetimeobj <- function(x, ...) {
+    print.summary.spacetimeobj(summary(x))
+}
