@@ -6,8 +6,10 @@
 #' \deqn{d u + \gamma(\kappa^2 + \rho\cdot\Nabla - \Delta)^\alpha u = \sigma dW_C.}
 #'where C is a Whittle-Matern covariance operator with smoothness parameter 
 #'\eqn{\beta} and range parameter \eqn{\kappa}
-#' @param mesh Spatial mesh for FEM approximation
-#' @param time Time points for the temporal discretization
+#' @param mesh_space Spatial mesh for FEM approximation
+#' @param mesh_time Temporal mesh for FEM approximation
+#' @param space_loc Locations of mesh nodes for spatial mesh for 1d models.
+#' @param time_loc Locations of temporal mesh nodes.
 #' @param graph An optional `metric_graph` object. Replaces `mesh` for models on 
 #' metric graphs.
 #' @param kappa Positive spatial range parameter
@@ -23,11 +25,9 @@
 #'
 #' @examples
 #'s <- seq(from = 0, to = 20, length.out = 101)
-#'mesh <- fm_mesh_1d(s)
-#'
 #'t <- seq(from = 0, to = 20, length.out = 31)
 #'
-#'op_cov <- spacetime.operators(mesh = mesh, time = t,
+#'op_cov <- spacetime.operators(space_loc = s, time_loc = t,
 #'                              kappa = 5, sigma = 10, alpha = 1,
 #'                              beta = 2, rho = 1, gamma = 0.05)
 #'Q <- op_cov$Q
@@ -36,8 +36,10 @@
 #'Sigma <- solve(Q,v)
 #'
 #'image(matrix(Sigma, nrow=length(s), ncol = length(t)))
-spacetime.operators <- function(mesh = NULL,
-                                time = NULL,
+spacetime.operators <- function(mesh_space = NULL,
+                                mesh_time = NULL,
+                                space_loc = NULL,
+                                time_loc = NULL,
                                 graph = NULL,
                                 kappa = NULL,
                                 sigma = NULL,
@@ -46,16 +48,17 @@ spacetime.operators <- function(mesh = NULL,
                                 alpha = NULL,
                                 beta = NULL) {
     
-    if (is.null(mesh) && is.null(graph)) {
-        stop("You should provide mesh_space or graph.")
+    
+    if (!is.null(mesh_space) + !is.null(graph) + !is.null(space_loc) > 1) {
+        stop("You should provide either mesh_space, space_loc or graph.")
     }
     
-    if (!is.null(mesh) && !is.null(graph)) {
-        stop("You should provide either mesh_space or graph.")
+    if (!is.null(mesh) && !is.null(graph) && !.is.null(space_loc)) {
+        stop("You should provide mesh_space, space_loc or graph.")
     }
     
-    if (is.null(time)) {
-        stop("You should provide time.")
+    if (is.null(mesh_time) && is.null(time_loc)) {
+        stop("You should provide mesh_time or time_loc.")
     }
     
     if (is.null(alpha)) {
@@ -70,7 +73,15 @@ spacetime.operators <- function(mesh = NULL,
         stop("beta must be integer")
     } 
     
-    
+    if(!is.null(mesh_time)){
+        d_time <- get_inla_mesh_dimension(inla_mesh = mesh)
+        if(d_time != 1) {
+            stop("mesh_time should be a 1d mesh")
+        }
+        time <- mesh_time$loc
+    } else {
+        time <- time_loc
+    }
     nt <- length(time)
     d <- c(Inf, diff(time))
     dm1 <- c(d[2:nt], Inf)
@@ -105,9 +116,8 @@ spacetime.operators <- function(mesh = NULL,
         G <- graph$mesh$G
         B <- graph$mesh$B
         has_graph <- TRUE
-    }
-    
-    if (!is.null(mesh)) {
+    } else if (!is.null(mesh_space)) {
+        mesh <- mesh_space
         d <- get_inla_mesh_dimension(inla_mesh = mesh)
         if(d==2){
             P <- mesh$loc[,1:2]
@@ -127,9 +137,19 @@ spacetime.operators <- function(mesh = NULL,
         } else {
             stop("Only supported for 1d and 2d meshes.")
         }
-        
         has_mesh <- TRUE
-    } 
+    } else {
+        space_loc <- as.matrix(space_loc)
+        if(min(dim(space_loc))>1) {
+            stop("For 2d domains, please provide mesh_space instead of space_loc")
+        }
+        fem <- rSPDE.fem1d(space_loc)
+        C <- fem$Cd
+        Ci <- Diagonal(1/rowSums(C),n=dim(C)[1])
+        G <- fem$G
+        B <- fem$B
+        d <- 1
+    }
     if(alpha+beta<d/2){
         stop("You must have alpha+beta >= d, where d is the dimension of the spatial domain")
     }
@@ -241,6 +261,7 @@ spacetime.operators <- function(mesh = NULL,
     out$time <- time
     out$mesh <- mesh
     out$graph <- graph
+    out$d <- d
     class(out) <- "spacetimeobj"
     return(out)
 
@@ -261,11 +282,9 @@ spacetime.operators <- function(mesh = NULL,
 #'
 #' @examples
 #'s <- seq(from = 0, to = 20, length.out = 101)
-#'mesh <- fm_mesh_1d(s)
-#'
 #'t <- seq(from = 0, to = 20, length.out = 31)
 #'
-#'op_cov <- spacetime.operators(mesh = mesh, time = t,
+#'op_cov <- spacetime.operators(space_loc = s, time_loc = t,
 #'                              kappa = 5, sigma = 10, alpha = 1,
 #'                              beta = 2, rho = 1, gamma = 0.05)
 #'op_cov <- update.spacetimeobj(op_cov, user_kappa = 4, 
@@ -293,8 +312,7 @@ update.spacetimeobj <- function(object,
         if(object$has_graph) {
             rho <- rspde_check_user_input(user_rho, "rho", dim = 1) 
         } else {
-            d <- get_inla_mesh_dimension(inla_mesh = mesh)
-            rho <- rspde_check_user_input(user_rho, "rho", dim = d) 
+            rho <- rspde_check_user_input(user_rho, "rho", dim = object$d) 
         }
     } else {
         rho <- object$rho
@@ -358,11 +376,9 @@ update.spacetimeobj <- function(object,
 #'
 #' @examples
 #'s <- seq(from = 0, to = 20, length.out = 101)
-#'mesh <- fm_mesh_1d(s)
-#'
 #'t <- seq(from = 0, to = 20, length.out = 31)
 #'
-#'op_cov <- spacetime.operators(mesh = mesh, time = t,
+#'op_cov <- spacetime.operators(space_loc = s, time_loc = t,
 #'                              kappa = 5, sigma = 10, alpha = 1,
 #'                              beta = 2, rho = 1, gamma = 0.05)
 #'x <- simulate(op_cov, nsim = 1) 
@@ -391,6 +407,382 @@ simulate.spacetimeobj <- function(object, nsim = 1,
     X <- solve(LQ, Z)
     
     return(X)
+}
+
+
+
+
+
+#' @name precision.spacetimeobj
+#' @title Get the precision matrix of spacetimeobj objects
+#' @description Function to get the precision matrix of a spacetimeobj object
+#' @param object The model object computed using [spacetime.operators()]
+#' @param user_kappa If non-null, update the range parameter of
+#' the covariance function.
+#' @param user_sigma If non-null, update the standard deviation of
+#' the covariance function.
+#' @param user_gamma If non-null, update the temporal range parameter
+#' of the covariance function.
+#' @param user_rho If non-null, update the drift parameter of the
+#' covariance function.
+#' @param ... Currently not used.
+#' @return The precision matrix.
+#' @method precision spacetimeobj
+#' @seealso [simulate.spacetimeobj()], [spacetime.operators()]
+#' @export
+#' @examples
+#'s <- seq(from = 0, to = 20, length.out = 101)
+#'t <- seq(from = 0, to = 20, length.out = 31)
+#'
+#'op_cov <- spacetime.operators(space_loc = s, time_loc = t,
+#'                              kappa = 5, sigma = 10, alpha = 1,
+#'                              beta = 2, rho = 1, gamma = 0.05)
+#' prec_matrix <- precision(op_cov)
+precision.spacetimeobj <- function(object,
+                                   user_kappa = NULL,
+                                   user_sigma = NULL,
+                                   user_gamma = NULL,
+                                   user_rho = NULL,
+                                   ...) {
+    object <- update.spacetimeobj(
+        object = object,
+        user_kappa = user_kappa,
+        user_sigma = user_sigma,
+        user_gamma = user_gamma,
+        user_rho = user_rho
+    )
+    
+    Q <- object$Q
+    return(Q)
+}
+
+
+#' @name predict.spacetimeobj
+#' @title Prediction of a space-time SPDE
+#' @description The function is used for computing kriging predictions based
+#' on data \eqn{Y_i = u(s_i,t_i) + \epsilon_i}, where \eqn{\epsilon}{\epsilon}
+#' is mean-zero Gaussian measurement noise and \eqn{u(s,t)}{u(s,t)} is defined by
+#' a spatio-temporal SPDE as described in [spacetime.operators()].
+#' @param object The covariance-based rational SPDE approximation,
+#' computed using [spacetime.operators()]
+#' @param A A matrix linking the measurement locations to the basis of the FEM
+#' approximation of the latent model.
+#' @param Aprd A matrix linking the prediction locations to the basis of the
+#' FEM approximation of the latent model.
+#' @param Y A vector with the observed data, can also be a matrix where the
+#' columns are observations
+#' of independent replicates of \eqn{u}.
+#' @param sigma.e The standard deviation of the Gaussian measurement noise.
+#' Put to zero if the model does not have measurement noise.
+#' @param mu Expectation vector of the latent field (default = 0).
+#' @param compute.variances Set to also TRUE to compute the kriging variances.
+#' @param posterior_samples If `TRUE`, posterior samples will be returned.
+#' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
+#' @param only_latent Should the posterior samples be only given to the laten model?
+#' @param ... further arguments passed to or from other methods.
+#' @return A list with elements
+#' \item{mean }{The kriging predictor (the posterior mean of u|Y).}
+#' \item{variance }{The posterior variances (if computed).}
+#' @export
+#' @method predict spacetimeobj
+#' @examples
+#'s <- seq(from = 0, to = 20, length.out = 101)
+#'t <- seq(from = 0, to = 20, length.out = 31)
+#'
+#'op_cov <- spacetime.operators(space_loc = s, time_loc = t,
+#'                              kappa = 5, sigma = 10, alpha = 1,
+#'                              beta = 2, rho = 1, gamma = 0.05)
+#'# generate data
+#'sigma.e <- 0.01
+#'n.obs <- 500
+#'obs.loc <- data.frame(x = max(s)*runif(n.obs), 
+#'                      t = max(t)*runif(n.obs))
+#'A <- rSPDE.Ast(mesh, time = t, obs.s = obs.loc$x, obs.t = obs.loc$t)
+#'Y <- A%*%x + sigma.e*rnorm(n.obs)
+#'u.krig <- predict(object, A, Aprd, Y, sigma.e)
+predict.spacetimeobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
+                                 compute.variances = FALSE, posterior_samples = FALSE,
+                                 n_samples = 100, only_latent = FALSE,
+                                 ...) {
+    Y <- as.matrix(Y)
+    if (dim(Y)[1] != dim(A)[1]) {
+        stop("the dimensions of A does not match the number of observations")
+    }
+    
+    n <- dim(Y)[1]
+    out <- list()
+    
+    no_nugget <- FALSE
+    
+    if (length(sigma.e) == 1) {
+        if (sigma.e == 0) {
+            no_nugget <- TRUE
+        } else {
+            Q.e <- Diagonal(n) / sigma.e^2
+        }
+    } else {
+        if (length(sigma.e) != n) {
+            stop("the length of sigma.e does not match the number of observations")
+        }
+        Q.e <- Diagonal(length(sigma.e), 1 / sigma.e^2)
+    }
+    
+   
+    if (!no_nugget) {
+        ## construct Q
+        Q <- object$Q
+        ## compute Q_x|y
+        Q_xgiveny <- (t(A) %*% Q.e %*% A) + Q
+        ## construct mu_x|y
+        mu_xgiveny <- t(A) %*% Q.e %*% Y
+            
+        R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
+        mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
+            
+        mu_xgiveny <- mu + mu_xgiveny
+        out$mean <- Aprd %*% mu_xgiveny
+            
+        if (compute.variances) {
+            out$variance <- diag(Aprd %*% solve(Q_xgiveny, t(Aprd)))
+        }
+    } else {
+        Q <- object$Q
+        
+        QiAt <- solve(Q, t(A))
+        AQiA <- A %*% QiAt
+        xhat <- solve(Q, t(A) %*% solve(AQiA, Y))
+        
+        out$mean <- as.vector(Aprd %*% xhat)
+        if (compute.variances) {
+            M <- Q - QiAt %*% solve(AQiA, t(QiAt))
+            out$variance <- diag(Aprd %*% M %*% t(Aprd))
+        }
+    }
+    
+    
+    if (posterior_samples) {
+        if (!no_nugget) {
+            post_cov <- Aprd %*% solve(Q_xgiveny, t(Aprd))
+        } else {
+            M <- Q - QiAt %*% solve(AQiA, t(QiAt))
+            post_cov <- Aprd %*% M %*% t(Aprd)
+        }
+        Y_tmp <- as.matrix(Y)
+        mean_tmp <- as.matrix(out$mean)
+        out$samples <- lapply(1:ncol(Y_tmp), function(i) {
+            Z <- rnorm(dim(post_cov)[1] * n_samples)
+            dim(Z) <- c(dim(post_cov)[1], n_samples)
+            LQ <- chol(forceSymmetric(post_cov))
+            X <- LQ %*% Z
+            X <- X + mean_tmp[, i]
+            if (!only_latent) {
+                X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
+            }
+            return(X)
+        })
+    }
+    return(out)
+}
+
+
+#' @name spacetime.loglike
+#' @title Object-based log-likelihood function for latent spatio-temporal
+#' SPDE model 
+#' @description This function evaluates the log-likelihood function for a
+#' Gaussian process with a space-time SPDE covariance function, that is observed under
+#' Gaussian measurement noise:
+#' \eqn{Y_i = u(s_i,t_i) + \epsilon_i}{Y_i = u(s_i,t_i) + \epsilon_i}, where
+#' \eqn{\epsilon_i}{\epsilon_i} are iid mean-zero Gaussian variables.
+#' @param object The model object computed using [spacetime.operators()]
+#' @param Y The observations, either a vector or a matrix where
+#' the columns correspond to independent replicates of observations.
+#' @param A An observation matrix that links the measurement location
+#' to the finite element basis.
+#' @param sigma.e The standard deviation of the measurement noise.
+#' @param mu Expectation vector of the latent field (default = 0).
+#' @param user_kappa If non-null, update the range parameter of the
+#' covariance function.
+#' @param user_sigma If non-null, update the standard deviation of
+#' the covariance function.
+#' @param user_gamma If non-null, update the temporal range parameter
+#' of the covariance function.
+#' @param user_rho If non-null, update the drift parameter of the
+#' covariance function.
+#' @return The log-likelihood value.
+#' @noRd
+#' @seealso [spacetime.operators()], [predict.spacetimeobj()]
+#' @examples
+#'s <- seq(from = 0, to = 20, length.out = 101)
+#'t <- seq(from = 0, to = 20, length.out = 31)
+#'
+#'op_cov <- spacetime.operators(space_loc = s, time_loc = t,
+#'                              kappa = 5, sigma = 10, alpha = 1,
+#'                              beta = 2, rho = 1, gamma = 0.05)
+#'# generate data
+#'sigma.e <- 0.01
+#'n.obs <- 500
+#'obs.loc <- data.frame(x = max(s)*runif(n.obs), 
+#'                      t = max(t)*runif(n.obs))
+#'A <- rSPDE.Ast(mesh, time = t, obs.s = obs.loc$x, obs.t = obs.loc$t)
+#'Y <- A%*%x + sigma.e*rnorm(n.obs)
+#'spacetime.loglike(object, Y, A, sigma.e)
+spacetime.loglike <- function(object, Y, A, sigma.e, mu = 0,
+                              user_kappa = NULL,
+                              user_sigma = NULL,
+                              user_gamma = NULL,
+                              user_rho = NULL) {
+    Y <- as.matrix(Y)
+    if (length(dim(Y)) == 2) {
+        n.rep <- dim(Y)[2]
+        n <- dim(Y)[1]
+    } else {
+        n.rep <- 1
+        if (length(dim(Y)) == 1) {
+            n <- dim(Y)[1]
+        } else {
+            n <- length(Y)
+        }
+    }
+    
+    ## get relevant parameters
+    
+    object <- update.spacetimeobj(
+        object = object,
+        user_kappa = user_kappa,
+        user_sigma = user_sigma,
+        user_gamma = user_gamma,
+        user_rho = user_rho)
+    
+    
+    if (length(sigma.e) == 1) {
+        Q.e <- Diagonal(n) / sigma.e^2
+        nugget <- rep(sigma.e^2, n)
+    } else {
+        if (length(sigma.e) != n) {
+            stop("the length of sigma.e does not match the number of observations")
+        }
+        Q.e <- Diagonal(length(sigma.e), 1 / sigma.e^2)
+        nugget <- sigma.e^2
+    }
+    
+    Q <- object$Q
+    Q.R <- Matrix::Cholesky(Q)
+        
+    logQ <- 2 * c(determinant(Q.R, logarithm = TRUE, sqrt = TRUE)$modulus)
+    
+    ## compute Q_x|y
+    Q <- object$Q
+    
+    Q_xgiveny <- t(A) %*% Q.e %*% A + Q
+    ## construct mu_x|y
+    
+    mu_xgiveny <- t(A) %*% Q.e %*% Y
+    # upper triangle with reordering
+    
+    
+    R <- Matrix::Cholesky(Q_xgiveny)
+    
+    mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
+    
+    mu_xgiveny <- mu + mu_xgiveny
+    
+    ## compute log|Q_xgiveny|
+    log_Q_xgiveny <- 2 * determinant(R, logarithm = TRUE, sqrt = TRUE)$modulus
+    ## compute mu_x|y*Q*mu_x|y
+    if (n.rep > 1) {
+        mu_part <- sum(colSums((mu_xgiveny - mu) * (Q %*% (mu_xgiveny - mu))))
+    } else {
+        mu_part <- t(mu_xgiveny - mu) %*% Q %*% (mu_xgiveny - mu)
+    }
+    ## compute central part
+    if (n.rep > 1) {
+        central_part <- sum(colSums((Y - A %*% mu_xgiveny) * (Q.e %*% (Y - A %*% mu_xgiveny))))
+    } else {
+        central_part <- t(Y - A %*% mu_xgiveny) %*% Q.e %*% (Y - A %*% mu_xgiveny)
+    }
+    ## compute log|Q_epsilon|
+    log_Q_epsilon <- -sum(log(nugget))
+    ## wrap up
+    log_likelihood <- n.rep * (logQ + log_Q_epsilon - log_Q_xgiveny) -
+        mu_part - central_part
+    if (n.rep > 1) {
+        log_likelihood <- log_likelihood - dim(A)[1] * n.rep * log(2 * pi)
+    } else {
+        log_likelihood <- log_likelihood - length(Y) * log(2 * pi)
+    }
+    log_likelihood <- log_likelihood / 2
+    
+    return(as.double(log_likelihood))
+}
+
+
+
+#' Observation matrix for space-time models
+#'
+#' @param mesh mesh object for models on 1d or 2d domains
+#' @param graph MetricGraph object for models on metric graphs
+#' @param time time locations for the temporal mesh
+#' @param obs.s spatial locations of observations
+#' @param obs.t time points for observations
+#'
+#' @return Observation matrix linking observation locations to mesh nodes
+#' @export
+#'
+#' @examples
+#' s <- seq(from = 0, to = 20, length.out = 11)
+#' t <- seq(from = 0, to = 20, length.out = 5)
+#' n.obs <- 10
+#' obs.loc <- data.frame(x = max(x)*runif(n.obs), 
+#' t = max(t)*runif(n.obs))
+#' A <- rSPDE.Ast(space_loc = s,time_loc = t, 
+#'                obs.s = obs.loc$x, obs.t = obs.loc$t)
+rSPDE.Ast <- function(mesh_space = NULL,
+                      space_loc = NULL,
+                      mesh_time = NULL,
+                      time_loc = NULL,
+                      graph = NULL,
+                      obs.s = NULL, 
+                      obs.t = NULL) {
+    
+    if (!is.null(mesh_space) + !is.null(graph) + !is.null(space_loc) > 1) {
+        stop("You should provide mesh_space, space_loc or graph.")
+    }
+    
+    if (!is.null(mesh) && !is.null(graph) && !.is.null(space_loc)) {
+        stop("You should provide mesh_space, space_loc or graph.")
+    }
+    
+    if (is.null(mesh_time) && is.null(time_loc)) {
+        stop("You should provide mesh_time or time_loc.")
+    }
+    
+    if(!is.null(mesh_time)){
+        d_time <- get_inla_mesh_dimension(inla_mesh = mesh)
+        if(d_time != 1) {
+            stop("mesh_time should be a 1d mesh")
+        }
+        time <- mesh_time$loc
+    } else {
+        time <- time_loc
+    }
+    
+    At <- rSPDE.A1d(time, obs.t)
+    if(!is.null(graph)) {
+        As <- graph$fem_basis(obs.s)
+    } else if (!is.null(mesh_space)){
+        As <- fm_basis(mesh_space, obs.s)    
+    } else {
+        space_loc <- as.matrix(space_loc)
+        if(min(dim(space_loc))>1) {
+            stop("For 2d domains, please provide mesh_space instead of space_loc")
+        }
+        mesh_space <- fm_mesh_1d(s)
+        As <- fm_basis(mesh_space, obs.s)    
+    }
+    
+    As.bar <- kronecker(matrix(1,nrow=1, ncol=length(time)),As)
+    At.bar <- kronecker(At,matrix(1,nrow=1, ncol=dim(As)[2]))
+    return(As.bar*At.bar)
 }
 
 ## Util functions below 

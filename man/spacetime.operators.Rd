@@ -5,8 +5,10 @@
 \title{Space-time random fields}
 \usage{
 spacetime.operators(
-  mesh = NULL,
-  time = NULL,
+  mesh_space = NULL,
+  mesh_time = NULL,
+  space_loc = NULL,
+  time_loc = NULL,
   graph = NULL,
   kappa = NULL,
   sigma = NULL,
@@ -17,9 +19,13 @@ spacetime.operators(
 )
 }
 \arguments{
-\item{mesh}{Spatial mesh for FEM approximation}
+\item{mesh_space}{Spatial mesh for FEM approximation}
 
-\item{time}{Time points for the temporal discretization}
+\item{mesh_time}{Temporal mesh for FEM approximation}
+
+\item{space_loc}{Locations of mesh nodes for spatial mesh for 1d models.}
+
+\item{time_loc}{Locations of temporal mesh nodes.}
 
 \item{graph}{An optional \code{metric_graph} object. Replaces \code{mesh} for models on
 metric graphs.}
@@ -49,11 +55,9 @@ where C is a Whittle-Matern covariance operator with smoothness parameter
 }
 \examples{
 s <- seq(from = 0, to = 20, length.out = 101)
-mesh <- fm_mesh_1d(s)
-
 t <- seq(from = 0, to = 20, length.out = 31)
 
-op_cov <- spacetime.operators(mesh = mesh, time = t,
+op_cov <- spacetime.operators(space_loc = s, time_loc = t,
                              kappa = 5, sigma = 10, alpha = 1,
                              beta = 2, rho = 1, gamma = 0.05)
 Q <- op_cov$Q
