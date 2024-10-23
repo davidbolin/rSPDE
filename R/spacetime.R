@@ -150,6 +150,7 @@ spacetime.operators <- function(mesh_space = NULL,
         G <- fem$G
         B <- fem$B
         d <- 1
+        mesh_space <- fm_mesh_1d(space_loc)
     }
     if(alpha+beta<d/2){
         stop("You must have alpha+beta >= d, where d is the dimension of the spatial domain")
@@ -157,19 +158,23 @@ spacetime.operators <- function(mesh_space = NULL,
     
     if (is.null(kappa) || is.null(sigma)) {
         if (has_mesh) {
-            param <- get.initial.values.rSPDE(dim = d, parameterization = "SPDE", 
+            param <- get.initial.values.rSPDE(dim = d, parameterization = "spde", 
                                               mesh = mesh_space, nu = alpha + beta - d/2)
         } else if (has_graph) {
-            param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = "SPDE", 
+            param <- get.initial.values.rSPDE(graph.obj = graph, parameterization = "spde", 
+                                              nu = alpha + beta - d/2)
+        } else {
+            param <- get.initial.values.rSPDE(dim = 1, parameterization = "spde", 
+                                              mesh.range = diff(range(space_loc)), 
                                               nu = alpha + beta - d/2)
         }
     }
-        
     if (is.null(kappa)) {
         kappa <- exp(param[2])
     } else {
         kappa <- rspde_check_user_input(kappa, "kappa", 0, 1)
     }
+    
     if (is.null(sigma)) {
         sigma <- exp(-param[1])
     } else {
@@ -192,7 +197,7 @@ spacetime.operators <- function(mesh_space = NULL,
     }
     
     if (is.null(gamma)) {
-        gamma <- 2/range(time)
+        gamma <- 2/diff(range(time))
     } else {
         gamma <- rspde_check_user_input(gamma, "gamma", 0, 1)
     }
@@ -243,6 +248,18 @@ spacetime.operators <- function(mesh_space = NULL,
         }
     }
     
+    if (!is.null(graph)) {
+        make_A <- function(loc, time) {
+            return(rSPDE.Ast(graph = graph, mesh_time = mesh_time, 
+                             obs.s = loc, obs.t = time))
+        }
+    } else {
+        make_A <- function(loc, time) {
+            return(rSPDE.Ast(mesh_space = mesh_space, mesh_time = mesh_time, 
+                             obs.s = loc, obs.t = time))
+        }
+    }
+    
     out <- list()
     out$Q <- Q/sigma^2
     out$Gtlist <- Gtlist
@@ -262,6 +279,8 @@ spacetime.operators <- function(mesh_space = NULL,
     out$mesh_space <- mesh_space
     out$graph <- graph
     out$d <- d
+    out$make_A <- make_A
+    out$stationary <- TRUE
     class(out) <- "spacetimeobj"
     return(out)
 
@@ -407,7 +426,7 @@ simulate.spacetimeobj <- function(object, nsim = 1,
     LQ <- chol(forceSymmetric(object$Q))
     X <- solve(LQ, Z)
     
-    return(X)
+    return(as.matrix(X))
 }
 
 
@@ -718,6 +737,79 @@ spacetime.loglike <- function(object, Y, A, sigma.e, mu = 0,
     return(as.double(log_likelihood))
 }
 
+#' @noRd
+aux_lme_spacetime.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
+    l_tmp <- tryCatch(
+        aux2_lme_spacetime.loglike(
+            object = object,
+            y = y, X_cov = X_cov, repl = repl, A_list = A_list,
+            sigma_e = sigma_e, beta_cov = beta_cov
+        ),
+        error = function(e) {
+            return(NULL)
+        }
+    )
+    if (is.null(l_tmp)) {
+        return(-10^100)
+    }
+    return(l_tmp)
+}
+
+#' @noRd
+aux2_lme_spacetime.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, beta_cov) {
+    
+    Q <- object$Q
+    
+    R <- Matrix::Cholesky(Q)
+    
+    prior.ld <- c(determinant(R, logarithm = TRUE, sqrt = TRUE)$modulus)
+    
+    repl_val <- unique(repl)
+    
+    l <- 0
+    
+    for (i in repl_val) {
+        ind_tmp <- (repl %in% i)
+        y_tmp <- y[ind_tmp]
+        
+        if (ncol(X_cov) == 0) {
+            X_cov_tmp <- 0
+        } else {
+            X_cov_tmp <- X_cov[ind_tmp, , drop = FALSE]
+        }
+        
+        na_obs <- is.na(y_tmp)
+        
+        y_ <- y_tmp[!na_obs]
+        
+        n.o <- length(y_)
+        A_tmp <- A_list[[as.character(i)]]
+        Q.p <- Q + t(A_tmp) %*% A_tmp / sigma_e^2
+        R.p <- Matrix::Cholesky(Q.p)
+        
+        posterior.ld <- c(determinant(R.p, logarithm = TRUE, sqrt = TRUE)$modulus)
+ 
+        l <- l + prior.ld - posterior.ld - n.o * log(sigma_e)
+        
+        v <- y_
+        
+        if (ncol(X_cov) > 0) {
+            X_cov_tmp <- X_cov_tmp[!na_obs, , drop = FALSE]
+            # X_cov_tmp <- X_cov_list[[as.character(i)]]
+            v <- v - X_cov_tmp %*% beta_cov
+        }
+        
+        mu.p <- solve(R.p, as.vector(t(A_tmp) %*% v / sigma_e^2), system = "A")
+        
+        v <- v - A_tmp %*% mu.p
+        
+        l <- l - 0.5 * (t(mu.p) %*% Q %*% mu.p + t(v) %*% v / sigma_e^2) -
+            0.5 * n.o * log(2 * pi)
+    }
+    
+    return(as.double(l))
+}
+
 
 
 #' Observation matrix for space-time models
@@ -749,12 +841,12 @@ rSPDE.Ast <- function(mesh_space = NULL,
                       obs.s = NULL, 
                       obs.t = NULL) {
     
-    if (!is.null(mesh_space) + !is.null(graph) + !is.null(space_loc) > 1) {
-        stop("You should provide mesh_space, space_loc or graph.")
+    if ((!is.null(mesh_space) && !is.null(graph)) || (!is.null(mesh_space) && !is.null(space_loc)) || (!is.null(graph) && !is.null(space_loc))){
+        stop("You should provide only one of mesh_space, space_loc or graph.")
     }
     
-    if (!is.null(mesh_space) && !is.null(graph) && !.is.null(space_loc)) {
-        stop("You should provide mesh_space, space_loc or graph.")
+    if (is.null(mesh_space) && is.null(graph) && is.null(space_loc)) {
+        stop("You must provide one of mesh_space, space_loc or graph.")
     }
     
     if (is.null(mesh_time) && is.null(time_loc)) {
