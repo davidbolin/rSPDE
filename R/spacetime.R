@@ -49,11 +49,11 @@ spacetime.operators <- function(mesh_space = NULL,
                                 beta = NULL) {
     
     
-    if (!is.null(mesh_space) + !is.null(graph) + !is.null(space_loc) > 1) {
-        stop("You should provide either mesh_space, space_loc or graph.")
+    if ((!is.null(mesh_space) && !is.null(graph)) || (!is.null(mesh_space) && !is.null(space_loc)) || (!is.null(graph) && !is.null(space_loc))){
+        stop("You should provide only one of mesh_space, space_loc or graph.")
     }
     
-    if (!is.null(mesh_space) && !is.null(graph) && !.is.null(space_loc)) {
+    if (!is.null(mesh_space) && !is.null(graph) && !is.null(space_loc)) {
         stop("You should provide mesh_space, space_loc or graph.")
     }
     

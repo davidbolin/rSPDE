@@ -1,0 +1,159 @@
+---
+title: "Operator-based rational approximation"
+author: "David Bolin and Alexandre B. Simas"
+date: "Created: 2019-08-07. Last modified: `r Sys.Date()`."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Operator-based rational approximation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+references:
+- id: lindgren24
+  title: "A diffusion-based spatio-temporal extension of Gaussian Matérn fields"
+  author:
+  - family: Lindgren
+    given: Finn
+  - family: Bakka
+    given: Haakon  
+  - family: Bolin
+    given: David
+  - family: Krainski
+    given: Elias
+  - family: Rue
+    given: Håvard
+  container-title: SORT statistics and operations research transactions
+  volume: 48
+  issue: 1
+  page: 3-66
+  type: article-journal
+  issued:
+    year: 2024
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(rSPDE)
+set.seed(123)
+```
+
+```{r inla_link, include = FALSE}
+inla_link <- function() {
+  sprintf("[%s](%s)", "`R-INLA`", "https://www.r-inla.org")
+}
+```
+
+## Introduction
+
+The `rSPDE` package implements the following spatio-temporal model 
+$$
+d u + \gamma(\kappa^2 + \rho\cdot \nabla - \Delta)^{\alpha} u = dW_Q, \quad \text{on } T\times D
+$$
+where $T$ is a temporal interval and $D$ is a spatial domain which can be an interval, a bounded subset of $\mathbb{R}^2$ or a metric graph. Here $\kappa>0$ is a spatial range parameter, $\rho$ is a drift parameter which is in $\mathbb{R}$ for spatial domains that are intervals or metric graphs, and in $\mathbb{R}^2$ for spatial domains which are bounded subsets of $\mathbb{R}^2$. Further, $W_Q$ is a $Q$-Wiener process with spatial covariance operator $\sigma^2(\kappa^2 - \Delta)^{-\beta}$, where $\sigma^2$ is a variance parameter. Thus, the model has two smoothness parameters $\alpha$ and $\beta$ which are assumed to be integers. The model is therefore a generalization of the spatio-temporal models introduced in 
+[@lindgren24](https://www.raco.cat/index.php/SORT/article/view/428665), where the generalization is to allow for drift and to allow for metric graphs as spatial domains. The model is implemented using a finite element discretization of the corresponding precision operator 
+$$
+\sigma^{-2}(d + \gamma(\kappa^2 + \rho\cdot \nabla - \Delta)^{\alpha})((d + \gamma(\kappa^2 - \rho\cdot \nabla - \Delta)^{\alpha}))(\kappa^2 - \rho\cdot \nabla - \Delta)^{\beta})
+$$
+in both space and time, similarly to the discretization introduced in [@lindgren24](https://www.raco.cat/index.php/SORT/article/view/428665). 
+
+
+## Implementation details 
+
+The function `spacetime.operators()` can be used to define the model. The function requires specifying the two smoothness parameters, and the discretization points for the spatial and temporal discretizations. The spatial discretization can be specified through a mesh object from the `fmesher` package, as a graph from the `MetricGraph` package, or as the mesh nodes for models on intervals. The temporal discretization can be specified either by specifying the mesh nodes or by providing a mesh object. 
+
+Assume that we want to define a model on the spatial interval $[0,20]$ and the temporal domain $[0,10]$. We can then simply specify the mesh nodes as  
+```{r}
+s <- seq(from = 0, to = 20, length.out = 101)
+t <- seq(from = 0, to = 10, length.out = 31)
+```
+We can now use `spacetime.operators()` to construct the model
+```{r}
+kappa <- 5
+sigma <- 10
+gamma <- 1/20
+rho <- 1
+alpha <- 1
+beta <- 1
+
+op <- spacetime.operators(space_loc = s, time_loc = t,
+                          kappa = kappa, sigma = sigma, alpha = alpha,
+                          beta = beta, rho = rho, gamma = gamma)
+```
+The object `op` contains the matrices needed for evaluating the model, and we have here initialized it by providing values for all parameters. 
+
+We can simulate from the model using `simulate()`: 
+
+```{r}
+u <- simulate(op)
+```
+
+There is also built-in support for kriging prediction. To illustrate this, we use the simulation to create some noisy observations of the process. For this, we first construct the observation matrix linking the FEM basis functions to the locations where we want to simulate. We first randomly generate some observation locations and then construct the matrix.
+```{r}
+n.obs <- 500
+
+obs.loc <- data.frame(x = max(s)*runif(n.obs), t = max(t)*runif(n.obs))
+A <- op$make_A(obs.loc$x, obs.loc$t)
+```
+
+We now generate the observations as $Y_i = u(s_i) + \varepsilon_i$, where $\varepsilon_i \sim N(0,\sigma_e^2)$ is Gaussian measurement noise. 
+```{r}
+x <- simulate(op, nsim = 1) 
+sigma.e <- 0.01
+Y <- as.vector(A%*%x + sigma.e*rnorm(n.obs))
+```
+
+Finally, we compute the kriging prediction of the process $u$ at the locations in `s` based on these observations. To specify which locations that should be predicted, the argument `Aprd` is used. This argument should be an observation matrix that links the mesh locations to the prediction locations.  
+```{r, fig.show='hold',fig.align = "center"}
+Aprd <- op$make_A(rep(s, length(t)), rep(t, each = length(s)))
+u.krig <- predict(op, A = A, Aprd = Aprd, Y = Y, sigma.e = sigma.e)
+```
+The process simulation,  and the kriging prediction are shown in the following figure.
+
+```{r, fig.show='hold', fig.align = "center",echo=TRUE}
+opar <- par(mfrow=c(1,2))
+image(s,t, matrix(as.vector(x), nrow = length(s), ncol = length(t)))
+points(obs.loc$x, obs.loc$t)
+image(s,t, matrix(u.krig$mean, nrow = length(s), ncol = length(t)))
+par(opar)
+```
+
+## Parameter estimation
+To estimate the model parameters based on this data, we can use the `rspde_lme` function. For this, we collect the data in a data frame, that also contanis the spatial locations, and we fit the model:
+
+```{r}
+df <- data.frame(y = as.matrix(Y), x = obs.loc$x, t = obs.loc$t)
+res <- rspde_lme(y ~ 1, loc = "x", loc_time = "t", data = df, model = op)
+
+```
+
+In the call, `y~1` indicates that we also want to estimate a mean value of the model, and the arguments `loc` and `loc_time` provides the names of the spatial and temporal coordinates in the data frame. 
+Let us see a summary of the fitted model:
+
+```{r}
+res
+```
+
+Let us compare the estimated results with the true values:
+```{r}
+results <- data.frame(kappa = c(kappa, res$coeff$random_effects[1]), 
+                      sigma = c(sigma, res$coeff$random_effects[2]),
+                      gamma = c(gamma, res$coeff$random_effects[3]), 
+                      rho = c(rho, res$coeff$random_effects[4]),
+                      sigma.e = c(sigma.e, res$coeff$measurement_error),
+                      intercept = c(0, res$coeff$fixed_effects),
+                      row.names = c("True", "Estimate"))
+                      
+print(results)
+```
+Finally, we can also do prediction based on the fitted model as 
+```{r}
+pred.data <- data.frame(x = rep(s,length(t)), t = rep(t,each=length(s)))
+pred <- predict(res, newdata = pred.data, loc = "x", time = "t")
+image(matrix(pred$mean, nrow = length(s), ncol = length(t)))
+
+```
+
+## References
+
