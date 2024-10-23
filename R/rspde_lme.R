@@ -1089,7 +1089,10 @@ rspde_lme <- function(formula,
   object$mle_par_orig <- res$par
   object$loc <- loc_df
   object$spacetime <- spacetime
-  object$time <- time_df
+  if(spacetime) { 
+      object$time <- time_df
+  }
+  
 
   if (ncol(X_cov) > 0) {
     object$model_matrix <- cbind(y_resp, X_cov)
