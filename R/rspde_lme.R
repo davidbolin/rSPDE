@@ -1189,9 +1189,9 @@ summary.rspde_lme <- function(object, all_times = FALSE, ...) {
   nrandom <- length(object$coeff$random_effects)
   model_type <- !object$null_model
   if (model_type) {
-    if (object$latent_model$stationary) {
+    if (object$latent_model$stationary && !object$spacetime) {
       call_name <- "Latent model - Whittle-Matern"
-    } else if(x$spacetime) {
+    } else if(object$spacetime) {
         call_name <- "Latent model - Spatio-temporal"
     } else {
       call_name <- "Latent model - Generalized Whittle-Matern"
@@ -1208,7 +1208,7 @@ summary.rspde_lme <- function(object, all_times = FALSE, ...) {
   SEr_random <- object$std_errors$std_random
   SEr_meas <- object$std_errors$std_meas
 
-  if (object$stationary) {
+  if (object$stationary && !object$spacetime) {
     coeff <- c(coeff_fixed, coeff_random, object$matern_coeff$random_effects, coeff_meas)
     SEr <- c(SEr_fixed, SEr_random, object$matern_coeff$std_random, SEr_meas)
   } else {
@@ -1220,7 +1220,7 @@ summary.rspde_lme <- function(object, all_times = FALSE, ...) {
     tab <- cbind(coeff, SEr, coeff / SEr, 2 * stats::pnorm(-abs(coeff / SEr)))
     colnames(tab) <- c("Estimate", "Std.error", "z-value", "Pr(>|z|)")
     rownames(tab) <- names(coeff)
-    if (object$stationary) {
+    if (object$stationary && !object$spacetime) {
       tab <- list(
         fixed_effects = tab[seq.int(length.out = nfixed), , drop = FALSE], 
         random_effects = tab[seq.int(length.out = nrandom) + nfixed, , drop = FALSE],
