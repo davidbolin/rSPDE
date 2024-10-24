@@ -221,33 +221,23 @@ spacetime.operators <- function(mesh_space = NULL,
             M2list[[k+1]] <- kron.Glist(t(Bt), M2list.tmp)
         }
     }
-    if(alpha == 0) {
-        Q <- make.L(beta,kappa,Gtlist) + gamma^2*make.L(beta,kappa, Ctlist)
-    } else if (alpha==1) {
-        Q <- make.L(beta,kappa,Gtlist) + 2*gamma*make.L(beta+alpha,kappa, B0list)
-        Q <- Q + gamma^2*make.L(beta+2*alpha, kappa, Ctlist) - gamma^2*rho^2*Ctlist[[3]]
-        Q <- Q + 6*gamma^2*rho^2*make.L(beta+2,kappa,Ctlist[2:length(Ctlist)])
-        #cat(all.equal(make.L(beta+2,kappa,M1list[[2]]), make.L(beta+2,kappa,Ctlist[2:length(Ctlist)])))
-        M2 <- make.L(beta+1,kappa,M2list[[1]])
-        Q <- Q - 2*rho*gamma*(M2 + t(M2))
-    } else {
-        Q <- make.L(beta,kappa,Gtlist) + 2*gamma*make.L(beta+alpha,kappa, B0list)
+    
+    Q <- make.L(beta,kappa,Gtlist) + 2*gamma*make.L(beta+alpha,kappa, B0list)
         
-        for(k in 0:alpha) {
-            Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa,Ctlist[(k+1):length(Ctlist)])
-            #cat(all.equal(make.L(beta+2*(alpha-k),kappa, M1list[[k+1]]), make.L(beta+2*(alpha-k),kappa,Ctlist[(k+1):length(Ctlist)])),"\n")
-            if(d==2){
-                M2x <- make.L(beta+alpha-k,kappa,M2list[[k+1]])
-                M2y <- make.L(beta+alpha-k,kappa,M2list2[[k+1]])
-                Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[1]^(k)*(M2x + t(M2x))
-                Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[2]^(k)*(M2y + t(M2y))
-            } else {
-                M2 <- make.L(beta+alpha-k,kappa,M2list[[k+1]])
-                Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho^(k)*(M2 + t(M2))    
-            }
+    for(k in 0:alpha) {
+        Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa,Ctlist[(k+1):length(Ctlist)])
+
+        if(d==2){
+            M2x <- make.L(beta+alpha-k,kappa,M2list[[k+1]])
+            M2y <- make.L(beta+alpha-k,kappa,M2list2[[k+1]])
+            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[1]^(k)*(M2x + t(M2x))
+            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[2]^(k)*(M2y + t(M2y))
+        } else {
+            M2 <- make.L(beta+alpha-k,kappa,M2list[[k+1]])
+            Q <- Q - 0.5*(-1)^(floor(k/2))*gamma*choose(alpha,k)*(1-(-1)^k)*rho^(k)*(M2 + t(M2))    
         }
     }
-    
+
     if (!is.null(graph)) {
         make_A <- function(loc, time) {
             return(rSPDE.Ast(graph = graph, mesh_time = mesh_time, 
