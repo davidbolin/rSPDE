@@ -267,7 +267,12 @@ rspde_lme <- function(formula,
       } else if (model$stationary && !spacetime){
         starting_values_latent <- log(c(model$tau, model$kappa))
       } else {
-          starting_values_latent <- c(log(model$kappa), log(model$sigma), log(model$gamma), model$rho)
+          if(model$alpha == 0) {
+              starting_values_latent <- c(log(model$kappa), log(model$sigma), log(model$gamma))    
+          } else {
+              starting_values_latent <- c(log(model$kappa), log(model$sigma), log(model$gamma), model$rho)
+          }
+          
       }
     } else {
       if (model$stationary && !spacetime) {
@@ -328,10 +333,18 @@ rspde_lme <- function(formula,
       if (!model$has_graph) {
         dim <- model$d
         if(dim > 1) {
-            if ( (length(loc) != (dim+1) && (model$mesh$manifold == "S2")) || 
-                 (length(loc) != dim && !(model$mesh$manifold == "S2"))){
-                stop("If 'loc' is a character vector, it must have the same length as the dimension (unless model comes from a metric graph).")
-            }    
+            if(spacetime) {
+                if ( (length(loc) != (dim+1) && (model$mesh_space$manifold == "S2")) || 
+                     (length(loc) != dim && !(model$mesh_space$manifold == "S2"))){
+                    stop("If 'loc' is a character vector, it must have the same length as the dimension (unless model comes from a metric graph).")
+                }    
+            } else {
+                if ( (length(loc) != (dim+1) && (model$mesh$manifold == "S2")) || 
+                     (length(loc) != dim && !(model$mesh$manifold == "S2"))){
+                    stop("If 'loc' is a character vector, it must have the same length as the dimension (unless model comes from a metric graph).")
+                }        
+            }
+            
         } else {
             if ( length(loc) != dim){
                 stop("If 'loc' is a character vector, it must have the same length as the dimension (unless model comes from a metric graph).")
@@ -340,18 +353,35 @@ rspde_lme <- function(formula,
         
         if (dim == 1) {
           loc_df <- matrix(data[[loc[1]]], ncol = 1)
-        } else if (dim == 2 && model$mesh$manifold == "S2" ) {
-          loc_df <- cbind(
-            as.vector(data[[loc[1]]]),
-            as.vector(data[[loc[2]]]),
-            as.vector(data[[loc[3]]])
-          )
-        } else if (dim == 2) {
-            loc_df <- cbind(
-                as.vector(data[[loc[1]]]),
-                as.vector(data[[loc[2]]])
-            )
-        }
+        } else {
+            if(spacetime) {
+                if(model$mesh_space$manifold == "S2"){
+                    loc_df <- cbind(
+                        as.vector(data[[loc[1]]]),
+                        as.vector(data[[loc[2]]]),
+                        as.vector(data[[loc[3]]])
+                    )          
+                } else {
+                    loc_df <- cbind(
+                        as.vector(data[[loc[1]]]),
+                        as.vector(data[[loc[2]]])
+                    )
+                }
+            } else {
+                if(model$mesh$manifold == "S2"){
+                    loc_df <- cbind(
+                        as.vector(data[[loc[1]]]),
+                        as.vector(data[[loc[2]]]),
+                        as.vector(data[[loc[3]]])
+                    )          
+                } else {
+                    loc_df <- cbind(
+                        as.vector(data[[loc[1]]]),
+                        as.vector(data[[loc[2]]])
+                    )        
+                }
+            }
+        } 
     } else {
         if (length(loc) != 2) {
             stop("For a metric graph, 'loc' must have length two.")
@@ -486,7 +516,6 @@ rspde_lme <- function(formula,
       }
   } else if (inherits(model, "spacetimeobj")) { 
       likelihood <- function(theta) {
-          
           n_cov <- ncol(X_cov)
           n_initial <- n_coeff_nonfixed
           
@@ -494,7 +523,12 @@ rspde_lme <- function(formula,
           kappa <- exp(theta[2])
           sigma <- exp(theta[3])
           gamma <- exp(theta[4])
-          rho <- theta[5]
+          if(model_tmp$alpha >0) {
+              rho <- theta[5:(5+model_tmp$d-1)]    
+          } else {
+              rho <- rep(0,model_tmp$d)
+          }
+          
           model_tmp <- update.spacetimeobj(model_tmp,
                                          user_kappa = kappa, user_sigma = sigma,
                                          user_gamma = gamma, user_rho = rho)
@@ -505,11 +539,10 @@ rspde_lme <- function(formula,
               beta_cov <- NULL
           }
           
-          loglik <- aux_lme_spacetime.loglike(
+          loglik <- rSPDE:::aux_lme_spacetime.loglike(
               object = model_tmp, y = y_resp, X_cov = X_cov, repl = repl,
               A_list = A_list, sigma_e = sigma_e, beta_cov = beta_cov
           )
-          
           return(-loglik)
       }
       
@@ -913,7 +946,12 @@ rspde_lme <- function(formula,
       par_names <- c("tau", "kappa")
     
     } else if(spacetime) {
-        par_names <- c("kappa", "sigma", "gamma", "rho")
+        if(model$alpha == 0){
+            par_names <- c("kappa", "sigma", "gamma")
+        } else {
+            par_names <- c("kappa", "sigma", "gamma", "rho")    
+        }
+        
     } else {
       par_names <- c("Theta 1")
       if (ncol(model$B.tau) > 2) {
@@ -1118,7 +1156,7 @@ rspde_lme <- function(formula,
 print.rspde_lme <- function(x, ...) {
   #
   if (!is.null(x$latent_model)) {
-    if (x$latent_model$stationary) {
+    if (x$latent_model$stationary && !x$spacetime) {
       call_name <- "Latent model - Whittle-Matern"
     } else if (x$spacetime) { 
         call_name <- "Latent model - Spatio-temporal"
@@ -1134,8 +1172,11 @@ print.rspde_lme <- function(x, ...) {
 
   cat("\n")
   cat(call_name)
-  if (!x$estimate_nu && !is.null(x$latent_model)) {
+  if (!x$estimate_nu && !is.null(x$latent_model) && !x$spacetime) {
     cat(" with fixed smoothness")
+  }
+  if(x$spacetime) {
+      cat(" with alpha = ", x$latent_model$alpha, ", beta = ", x$latent_model$beta)
   }
   cat("\n\n")
   cat("Call:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
@@ -1257,6 +1298,13 @@ summary.rspde_lme <- function(object, all_times = FALSE, ...) {
   ans$nu <- object[["nu"]]
 
   ans$alpha <- object$alpha
+  
+  if(object$spacetime) {
+      ans$alpha <- object$latent_model$alpha
+      ans$beta <- object$latent_model$beta
+  }
+  
+  ans$spacetime <- object$spacetime
 
   ans$all_times <- all_times
 
@@ -1301,10 +1349,14 @@ print.summary_rspde_lme <- function(x, ...) {
   cat("\n")
   cat(call_name)
 
-  if (!x$estimate_nu) {
+  if (!x$estimate_nu && !x$spacetime) {
     cat(" with fixed smoothness")
   }
-
+  
+  if(x$spacetime) { 
+      cat(" with alpha = ", x$alpha, ", beta = ", x$beta)
+  }
+  
   cat("\n\n")
   cat("Call:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
     "\n",
