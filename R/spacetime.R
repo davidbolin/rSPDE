@@ -127,8 +127,6 @@ spacetime.operators <- function(mesh_space = NULL,
             C <- fem$Cd
             Ci <- Diagonal(1/rowSums(C),n=dim(C)[1])
             G <- fem$G
-            Bx <- fem$Bx
-            By <- fem$By
         } else if(d==1){
             fem <- rSPDE.fem1d(mesh$loc)
             C <- fem$Cd
@@ -208,35 +206,53 @@ spacetime.operators <- function(mesh_space = NULL,
     Gtlist <- kron.Glist(Gt,make.Glist(1+beta, C, G), left = TRUE)
     B0list <- kron.Glist(B0,make.Glist(beta+alpha, C, G), left = TRUE)
     M2list <- list()
-    M2list2 <- list()
-    for(k in 0:alpha) {
-        Glist <- make.Glist(1+beta+alpha-k, C, G)
-        if(d==2){
-            M2list.tmp <- mult.Glist(Ci%*%Glist[[floor(k/2)+1]]%*%Ci%*%Bx, Glist, left = FALSE)
-            M2list[[k+1]] <- kron.Glist(t(Bt), M2list.tmp)
-            M2list.tmp <- mult.Glist(Ci%*%Glist[[floor(k/2)+1]]%*%Ci%*%By, Glist, left = FALSE)
-            M2list2[[k+1]] <- kron.Glist(t(Bt), M2list.tmp)
-        } else {
+    if(d==1) {
+        for(k in 0:alpha) {
+            Glist <- make.Glist(1+beta+alpha-k, C, G)
             M2list.tmp <- mult.Glist(Ci%*%Glist[[floor(k/2)+1]]%*%Ci%*%B, Glist, left = FALSE)
             M2list[[k+1]] <- kron.Glist(t(Bt), M2list.tmp)
+        }    
+    } else {
+        if(alpha == 0){
+            #no M2list needed
+        } else if(alpha == 1) {
+            Glist <- make.Glist(beta, C, G)
+            #dx^2
+            M2list[[1]] <- kron.Glist(Ct,mult.Glist(Ci%*%fem$Hxx, Glist, left = FALSE))
+            #dy^2
+            M2list[[2]] <- kron.Glist(Ct,mult.Glist(Ci%*%fem$Hyy, Glist, left = FALSE))
+            #dxdy
+            M2list[[3]] <- kron.Glist(Ct,mult.Glist(Ci%*%fem$Hxy, Glist, left = FALSE))
+            #dx
+            M2list[[4]] <- kron.Glist(t(Bt),mult.Glist(Ci%*%fem$Bx, Glist, left = FALSE))
+            #dy
+            M2list[[5]] <- kron.Glist(t(Bt),mult.Glist(Ci%*%fem$By, Glist, left = FALSE))
+        } else {
+            stop("For d=2, only alpha = 0 and alpha = 1 implemented.")
         }
     }
     
+    
     Q <- make.L(beta,kappa,Gtlist) + 2*gamma*make.L(beta+alpha,kappa, B0list)
-        
-    for(k in 0:alpha) {
-        Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa,Ctlist[(k+1):length(Ctlist)])
-
-        if(d==2){
-            M2x <- make.L(beta+alpha-k,kappa,M2list[[k+1]])
-            M2y <- make.L(beta+alpha-k,kappa,M2list2[[k+1]])
-            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[1]^(k)*(M2x + t(M2x))
-            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[2]^(k)*(M2y + t(M2y))
-        } else {
+    
+    if(d==2) {
+        if(alpha == 1){
+            Q <- Q + gamma^2**make.L(beta+2,kappa,Ctlist)
+            tmp <- rho[1]^2*make.L(beta,kappa,M2list[[1]]) + rho[2]^2*make.L(beta,kappa,M2list[[2]]) + 2*rho[1]*rho[2]*make.L(beta,kappa,M2list[[3]])
+            Q <- Q + 0.5*gamma^2*(tmp + t(tmp))
+            M2 <- rho[1]*make.L(beta,kappa,M2list[[4]]) + rho[2]*make.L(beta,kappa,M2list[[5]])
+            Q <- Q - gamma*(M2 + t(M2))
+        }
+    } else {
+        for(k in 0:alpha) {
+            Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),
+                                                              kappa,
+                                                              Ctlist[(k+1):length(Ctlist)])
             M2 <- make.L(beta+alpha-k,kappa,M2list[[k+1]])
             Q <- Q - 0.5*(-1)^(floor(k/2))*gamma*choose(alpha,k)*(1-(-1)^k)*rho^(k)*(M2 + t(M2))    
-        }
+        }    
     }
+    
 
     if (!is.null(graph)) {
         make_A <- function(loc, time) {
@@ -329,7 +345,6 @@ spacetime.operators <- function(mesh_space = NULL,
     out$Ctlist <- Ctlist
     out$B0list <- B0list
     out$M2list <- M2list
-    out$M2list2 <- M2list2
     out$kappa <- kappa
     out$sigma <- sigma
     out$alpha <- alpha
@@ -414,19 +429,23 @@ update.spacetimeobj <- function(object,
     Q <- make.L(beta,kappa,object$Gtlist) + 2*gamma*make.L(beta+alpha,kappa, 
                                                            object$B0list)
     
-    for(k in 0:alpha) {
-        Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa,
-                                                          object$Ctlist[(k+1):length(object$Ctlist)])
-        
-        if(object$d==2){
-            M2x <- make.L(beta+alpha-k,kappa,object$M2list[[k+1]])
-            M2y <- make.L(beta+alpha-k,kappa,object$M2list2[[k+1]])
-            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[1]^(k)*(M2x + t(M2x))
-            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[2]^(k)*(M2y + t(M2y))
-        } else {
+    if(object$d==2) {
+        if(alpha == 1){
+            Q <- Q + gamma^2**make.L(beta+2,kappa,object$Ctlist)
+            tmp <- rho[1]^2*make.L(beta,kappa,object$M2list[[1]]) + rho[2]^2*make.L(beta,kappa,object$M2list[[2]]) + 2*rho[1]*rho[2]*make.L(beta,kappa,object$M2list[[3]])
+            Q <- Q + gamma^2*(tmp + t(tmp))
+            
+            M2 <- rho[1]*make.L(beta,kappa,object$M2list[[4]]) + rho[2]*make.L(beta,kappa,object$M2list[[5]])
+            Q <- Q - gamma*(M2 + t(M2))
+        }
+    } else {
+        for(k in 0:alpha) {
+            Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),
+                                                              kappa,
+                                                              object$Ctlist[(k+1):length(object$Ctlist)])
             M2 <- make.L(beta+alpha-k,kappa,object$M2list[[k+1]])
             Q <- Q - 0.5*(-1)^(floor(k/2))*gamma*choose(alpha,k)*(1-(-1)^k)*rho^(k)*(M2 + t(M2))    
-        }
+        }    
     }
     
     new_object$Q <- Q/sigma^2
@@ -528,9 +547,7 @@ precision.spacetimeobj <- function(object,
         user_gamma = user_gamma,
         user_rho = user_rho
     )
-    
-    Q <- object$Q
-    return(Q)
+    return(object$Q)
 }
 
 

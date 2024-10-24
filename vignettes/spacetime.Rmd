@@ -132,7 +132,7 @@ In the call, `y~1` indicates that we also want to estimate a mean value of the m
 Let us see a summary of the fitted model:
 
 ```{r}
-res
+summary(res)
 ```
 
 Let us compare the estimated results with the true values:
@@ -155,42 +155,88 @@ image(matrix(pred$mean, nrow = length(s), ncol = length(t)))
 
 ```
 
-## Example on a graph 
- 
-Let us now test the same model on a metric graph.  
-To build the model, we first define graph, construct a mesh on the graph and then 
-define the model using the graph input to `spacetime.operators`. 
 
+## A spatial example
+Let us now illustrate how to implement a spatial version. We start by creating a 
+region of interest and a spatial mesh using the `fmesher` package:
 ```{r}
-library(MetricGraph)
-t.loc <- seq(from = 0, to = 10, length.out = 11)
-graph <- metric_graph$new()
-graph$plot()
-graph$build_mesh(h = 0.1)
-graph$compute_fem()
+library(fmesher)
+n_loc <- 2000
+loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
+mesh_2d <- fm_mesh_2d(
+  loc = loc_2d_mesh,
+  cutoff = 0.05,
+  max.edge = c(0.1, 0.5)
+)
+plot(mesh_2d, main = "")
+```
+We now proceed as previously by defining a temporal region and the model
+```{r}
+t <- seq(from = 0, to = 10, length.out = 11)
+kappa <- 30
+sigma <- 10
+gamma <- 1
+rho <- c(0.1,0.1)
+alpha <- 0
+beta <- 2
 
-op <- spacetime.operators(graph = graph, time_loc = t.loc, kappa = 3, sigma = 10, 
-                          alpha = 1, beta = 0, rho = 0, gamma = 0.1)
-
-op$plot_covariances(t.ind = c(5,7), s.ind = 100)
+op <- spacetime.operators(mesh_space = mesh_2d, time_loc = t,
+                          kappa = kappa, sigma = sigma, alpha = alpha,
+                          beta = beta, rho = rho, gamma = gamma)
 ```
 
-Let us now simulate some data and estimate the model parameters 
 
+We can simulate from the model using `simulate()`: 
 
 ```{r}
-n.obs <- 500
 u <- simulate(op)
-obs.loc <- data.frame(x = max(s)*runif(n.obs), t = max(t)*runif(n.obs))
-A <- op$make_A(obs.loc$x, obs.loc$t)
+```
+Let us plot the simulation for a few time points
+
+```{r}
+library(ggplot2)
+library(viridis)
+proj <- fm_evaluator(mesh_2d, dims = c(100, 100))
+U <- matrix(u, nrow = mesh_2d$n, ncol = length(t))
+field1 <- fm_evaluate(proj, field = as.vector(U[,2]))
+field2 <- fm_evaluate(proj, field = as.vector(U[,3]))
+field3 <- fm_evaluate(proj, field = as.vector(U[,4]))
+
+field1.df <- data.frame(x1 = proj$lattice$loc[,1], x2 = proj$lattice$loc[,2], 
+                       u = as.vector(field1), type = "u1")
+field2.df <- data.frame(x1 = proj$lattice$loc[,1], x2 = proj$lattice$loc[,2], 
+                       u = as.vector(field2), type = "u2")
+field3.df <- data.frame(x1 = proj$lattice$loc[,1], x2 = proj$lattice$loc[,2], 
+                       u = as.vector(field3), type = "u3")
+field.df <- rbind(field1.df, field2.df, field3.df)
+ggplot(field.df) + aes(x = x1, y = x2, fill = u) + facet_wrap(~type) + geom_raster() + xlim(0,1) + ylim(0,1) + scale_fill_viridis()
+
+
 ```
 
 We now generate the observations as $Y_i = u(s_i) + \varepsilon_i$, where $\varepsilon_i \sim N(0,\sigma_e^2)$ is Gaussian measurement noise. 
 ```{r}
-x <- simulate(op, nsim = 1) 
+n.obs <- 500
+obs.loc <- data.frame(x = runif(n.obs),y = runif(n.obs), t = max(t)*runif(n.obs))
+A <- op$make_A(cbind(obs.loc$x,obs.loc$y), obs.loc$t)
 sigma.e <- 0.01
-Y <- as.vector(A%*%x + sigma.e*rnorm(n.obs))
+Y <- as.vector(A%*%u + sigma.e*rnorm(n.obs))
 ```
- 
+
+To estimate the model parameters based on this data, we can use the `rspde_lme` function. For this, we collect the data in a data frame, that also contanis the spatial locations, and we fit the model:
+
+```{r}
+df <- data.frame(Y = as.matrix(Y), x = obs.loc$x, y = obs.loc$y, t = obs.loc$t)
+res <- rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df, model = op, parallel = TRUE)
+
+```
+
+Let us see a summary of the fitted model:
+
+```{r}
+summary(res)
+```
+
+
 ## References
 
