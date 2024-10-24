@@ -155,5 +155,25 @@ image(matrix(pred$mean, nrow = length(s), ncol = length(t)))
 
 ```
 
+## Example on a graph 
+ 
+Let us now test the same model on a metric graph.  
+To build the model, we first define graph, construct a mesh on the graph and then 
+define the model using the graph input to `spacetime.operators`. 
+
+```{r}
+library(MetricGraph)
+t.loc <- seq(from = 0, to = 10, length.out = 11)
+graph <- metric_graph$new()
+graph$plot()
+graph$build_mesh(h = 0.1)
+graph$compute_fem()
+
+op <- spacetime.operators(graph = graph, time_loc = t.loc, kappa = 3, sigma = 10, 
+                          alpha = 1, beta = 0, rho = 0, gamma = 0.1)
+
+op$plot_covariances(t.ind = c(5,7), s.ind = 100)
+ ```
+ 
 ## References
 

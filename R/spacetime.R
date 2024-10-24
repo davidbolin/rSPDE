@@ -260,6 +260,79 @@ spacetime.operators <- function(mesh_space = NULL,
         }
     }
     
+    if(has_graph) { 
+        plot_covariances <- function(t.ind, s.ind, t.shift=0, show.temporal = TRUE) {
+            
+            N <- dim(Q)[1]
+        
+            n <- N/length(mesh_time$loc)
+            
+            T <- N/n
+            if(length(t.ind)>4)
+                stop("max 4 curves allowed")
+            if(s.ind > n)
+                stop("too large space index")
+            if(max(t.ind)>length(mesh_time$loc))
+                stop("too large time index")
+            
+            cols <- c("green", "cyan","blue","red")[(4-length(t.ind)+1):4]
+            
+            time.index <- n*(0:(T-1)) + s.ind
+            ct <- matrix(0,nrow = length(t.ind),ncol = T)
+            for(i in 1:length(t.ind)) {
+                v <- rep(0,N)
+                v[(t.ind[i]-1)*n+s.ind] <- 1
+                
+                tmp <- solve(Q,v)
+        
+                ct[i,] <- tmp[time.index]
+                for(j in 1:length(t.shift)) {
+                    ind <- ((t.ind[i]-t.shift[j]-1)*n+1):((t.ind[i]-t.shift[j])*n)
+                    c <- tmp[ind]
+                    if(length(t.shift)>1) {
+                        col <- cols[j]
+                    } else {
+                        col <- cols[i]
+                    }
+                    if(i == 1) {
+                        p <- graph$plot_function(as.vector(c), 
+                                                 plotly = TRUE, 
+                                                 support_width = 0, 
+                                                 line_color = col)
+                    } else {
+                        p <- graph$plot_function(as.vector(c), 
+                                                 plotly = TRUE, 
+                                                 p = p, 
+                                                 support_width = 0, 
+                                                 line_color = col)
+                    }
+                    
+                }
+            }
+            if(show.temporal){
+                df <- data.frame(t=rep(mesh_time$loc,length(t.ind)),
+                                 y=c(t(ct)), 
+                                 i=rep(1:length(t.ind), each=length(mesh_time$loc)))
+                pt <- plotly::plot_ly(df, x = ~t, y = ~y, split = ~i, 
+                                      type = 'scatter', mode = 'lines')
+                fig <- plotly::layout(plotly::subplot(p,pt), 
+                                      title = "Marginal covariances",
+                                      scene = list(domain=list(x=c(0,0.5),
+                                                               y=c(0,1))),
+                                      scene2 = list(domain=list(x=c(0.5,1),
+                                                                y=c(0,1))))
+                fig$x$layout <- fig$x$layout[grep('NA', names(fig$x$layout), 
+                                                  invert = TRUE)]
+            } else {
+                fig <- p
+            }
+            
+            print(fig)
+            return(fig)
+        }
+    } else {
+        plot_covariances <- NULL
+    }
     out <- list()
     out$Q <- Q/sigma^2
     out$Gtlist <- Gtlist
@@ -280,7 +353,9 @@ spacetime.operators <- function(mesh_space = NULL,
     out$graph <- graph
     out$d <- d
     out$make_A <- make_A
+    out$plot_covariances <- plot_covariances
     out$stationary <- TRUE
+    
     class(out) <- "spacetimeobj"
     return(out)
 
