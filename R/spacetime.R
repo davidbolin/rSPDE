@@ -411,29 +411,21 @@ update.spacetimeobj <- function(object,
     alpha <- object$alpha
     beta <- object$beta 
     
-    if(alpha == 0) {
-        Q <- make.L(beta,kappa,object$Gtlist) + gamma^2*make.L(beta,kappa, object$Ctlist)
-    } else if (alpha==1) {
-        Q <- make.L(beta,kappa,object$Gtlist) + 2*gamma*make.L(beta+alpha,kappa, object$B0list)
-        Q <- Q + gamma^2*make.L(beta+2*alpha, kappa, object$Ctlist) - gamma^2*rho^2*object$Ctlist[[3]]
-        Q <- Q + 6*gamma^2*rho^2*make.L(beta+2,kappa,object$Ctlist[2:length(object$Ctlist)])
-        M2 <- make.L(beta+1,kappa,object$M2list[[1]])
-        Q <- Q - 2*rho*gamma*(M2 + t(M2))
-    } else {
-        Q <- make.L(beta,kappa,object$Gtlist) + 2*gamma*make.L(beta+alpha,kappa, object$B0list)
+    Q <- make.L(beta,kappa,object$Gtlist) + 2*gamma*make.L(beta+alpha,kappa, 
+                                                           object$B0list)
+    
+    for(k in 0:alpha) {
+        Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa,
+                                                          object$Ctlist[(k+1):length(object$Ctlist)])
         
-        for(k in 0:alpha) {
-            Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),kappa,
-                                                              object$Ctlist[(k+1):length(object$Ctlist)])
-            if(d==2){
-                M2x <- make.L(beta+alpha-k,kappa,object$M2list[[k+1]])
-                M2y <- make.L(beta+alpha-k,kappa,object$M2list2[[k+1]])
-                Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[1]^(k)*(M2x + t(M2x))
-                Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[2]^(k)*(M2y + t(M2y))
-            } else {
-                M2 <- make.L(beta+alpha-k,kappa,object$M2list[[k+1]])
-                Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho^(k)*(M2 + t(M2))    
-            }
+        if(object$d==2){
+            M2x <- make.L(beta+alpha-k,kappa,object$M2list[[k+1]])
+            M2y <- make.L(beta+alpha-k,kappa,object$M2list2[[k+1]])
+            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[1]^(k)*(M2x + t(M2x))
+            Q <- Q - 0.5*gamma*choose(alpha,k)*(1-(-1)^k)*rho[2]^(k)*(M2y + t(M2y))
+        } else {
+            M2 <- make.L(beta+alpha-k,kappa,object$M2list[[k+1]])
+            Q <- Q - 0.5*(-1)^(floor(k/2))*gamma*choose(alpha,k)*(1-(-1)^k)*rho^(k)*(M2 + t(M2))    
         }
     }
     
