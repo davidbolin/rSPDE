@@ -233,10 +233,13 @@ frame, that also contanis the spatial locations, and we fit the
 model:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, x <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">x</span>, t <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">t</span><span class="op">)</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="st">"x"</span>, loc_time <span class="op">=</span> <span class="st">"t"</span>, data <span class="op">=</span> <span class="va">df</span>, model <span class="op">=</span> <span class="va">op</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in rspde_lme(y ~ 1, loc = "x", loc_time = "t", data = df, model = op):</span></span>
-<span><span class="co">#&gt; optim method L-BFGS-B failed to provide a positive-definite Hessian. Another</span></span>
-<span><span class="co">#&gt; optimization method was used.</span></span></code></pre></div>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="st">"x"</span>, loc_time <span class="op">=</span> <span class="st">"t"</span>, data <span class="op">=</span> <span class="va">df</span>, model <span class="op">=</span> <span class="va">op</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in rspde_lme(y ~ 1, loc = "x", loc_time = "t", data = df, model = op, :</span></span>
+<span><span class="co">#&gt; The optimization failed to provide a numerically positive-definite Hessian. You</span></span>
+<span><span class="co">#&gt; can try to obtain a positive-definite Hessian by setting 'improve_hessian' to</span></span>
+<span><span class="co">#&gt; TRUE or by setting 'parallel' to FALSE, which allows other optimization methods</span></span>
+<span><span class="co">#&gt; to be used.</span></span>
+<span><span class="co">#&gt; Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre></div>
 <p>In the call, <code>y~1</code> indicates that we also want to estimate
 a mean value of the model, and the arguments <code>loc</code> and
 <code>loc_time</code> provides the names of the spatial and temporal
@@ -249,30 +252,31 @@ model:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; rspde_lme(formula = y ~ 1, loc = "x", loc_time = "t", data = df, </span></span>
-<span><span class="co">#&gt;     model = op)</span></span>
+<span><span class="co">#&gt;     model = op, parallel = TRUE)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Fixed effects:</span></span>
 <span><span class="co">#&gt;             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
-<span><span class="co">#&gt; (Intercept)  -0.0304    0.1126   -0.27    0.787</span></span>
+<span><span class="co">#&gt; (Intercept) -0.01548   0.10693  -0.145    0.885</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;       Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; kappa 4.693513  0.391423  11.991</span></span>
-<span><span class="co">#&gt; sigma 9.305321  0.823632  11.298</span></span>
-<span><span class="co">#&gt; gamma 0.056854  0.009589   5.929</span></span>
-<span><span class="co">#&gt; rho   0.394927  2.775596   0.142</span></span>
+<span><span class="co">#&gt; kappa 4.902904       NaN     NaN</span></span>
+<span><span class="co">#&gt; sigma 9.613799  0.309921   31.02</span></span>
+<span><span class="co">#&gt; gamma 0.054744  0.004906   11.16</span></span>
+<span><span class="co">#&gt; rho   0.207058       NaN     NaN</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Measurement error:</span></span>
-<span><span class="co">#&gt;          Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; std. dev  0.02298   0.02327   0.987</span></span>
+<span><span class="co">#&gt;           Estimate Std.error z-value</span></span>
+<span><span class="co">#&gt; std. dev 1.918e-06       NaN     NaN</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Log-Likelihood:  -630.8169 </span></span>
-<span><span class="co">#&gt; Number of function calls by 'optim' = 501</span></span>
-<span><span class="co">#&gt; Optimization method used in 'optim' = Nelder-Mead</span></span>
+<span><span class="co">#&gt; Log-Likelihood:  -630.5747 </span></span>
+<span><span class="co">#&gt; Number of function calls by 'optim' = 36</span></span>
+<span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  47.13664 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  23.56998 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 4.99661 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
@@ -284,9 +288,9 @@ model:</p>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa     sigma     gamma       rho    sigma.e   intercept</span></span>
-<span><span class="co">#&gt; True     5.000000 10.000000 0.0500000 1.0000000 0.01000000  0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 4.693513  9.305321 0.0568536 0.3949275 0.02297501 -0.03039585</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa     sigma      gamma       rho      sigma.e   intercept</span></span>
+<span><span class="co">#&gt; True     5.000000 10.000000 0.05000000 1.0000000 1.000000e-02  0.00000000</span></span>
+<span><span class="co">#&gt; Estimate 4.902904  9.613799 0.05474378 0.2070578 1.918334e-06 -0.01548373</span></span></code></pre></div>
 <p>Finally, we can also do prediction based on the fitted model as</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred.data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">s</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">t</span><span class="op">)</span><span class="op">)</span>, t <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">t</span>,each<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -436,8 +440,128 @@ model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 34</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  7.40896 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 7.83917 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  7.52106 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 7.94036 secs</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="an-example-on-a-metric-graph">An example on a metric graph<a class="anchor" aria-label="anchor" href="#an-example-on-a-metric-graph"></a>
+</h2>
+<p>Finally, let us show an example on a metric graph. We use the
+following simple graph as an illustration.</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/edzer/sp/" class="external-link">sp</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://davidbolin.github.io/MetricGraph/" class="external-link">MetricGraph</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'MetricGraph'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     filter</span></span>
+<span><span class="va">line1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://edzer.github.io/sp/reference/Line.html" class="external-link">Line</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">line2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://edzer.github.io/sp/reference/Line.html" class="external-link">Line</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">line3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://edzer.github.io/sp/reference/Line.html" class="external-link">Line</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">line4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://edzer.github.io/sp/reference/Line.html" class="external-link">Line</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">lines</span> <span class="op">=</span> <span class="fu">sp</span><span class="fu">::</span><span class="fu"><a href="https://edzer.github.io/sp/reference/SpatialLines.html" class="external-link">SpatialLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://edzer.github.io/sp/reference/Line.html" class="external-link">Lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">line1</span><span class="op">)</span>,ID<span class="op">=</span><span class="st">"1"</span><span class="op">)</span>,</span>
+<span>                              <span class="fu"><a href="https://edzer.github.io/sp/reference/Line.html" class="external-link">Lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">line2</span><span class="op">)</span>,ID<span class="op">=</span><span class="st">"2"</span><span class="op">)</span>,</span>
+<span>                              <span class="fu"><a href="https://edzer.github.io/sp/reference/Line.html" class="external-link">Lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">line3</span><span class="op">)</span>,ID<span class="op">=</span><span class="st">"3"</span><span class="op">)</span>,</span>
+<span>                              <span class="fu"><a href="https://edzer.github.io/sp/reference/Line.html" class="external-link">Lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">line4</span><span class="op">)</span>,ID<span class="op">=</span><span class="st">"4"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">graph</span> <span class="op">&lt;-</span> <span class="va"><a href="https://davidbolin.github.io/MetricGraph/reference/metric_graph.html" class="external-link">metric_graph</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>edges <span class="op">=</span> <span class="va">lines</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Starting graph creation...</span></span>
+<span><span class="co">#&gt; LongLat is set to FALSE</span></span>
+<span><span class="co">#&gt; The current tolerances are:</span></span>
+<span><span class="co">#&gt;   Vertex-Vertex 0.001</span></span>
+<span><span class="co">#&gt;   Vertex-Edge 0.001</span></span>
+<span><span class="co">#&gt;   Edge-Edge 0</span></span>
+<span><span class="co">#&gt; Setup edges and merge close vertices</span></span>
+<span><span class="co">#&gt; Snap vertices to close edges</span></span>
+<span><span class="co">#&gt; Total construction time: 0.73 secs</span></span>
+<span><span class="va">graph</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span>direction <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="spacetime_files/figure-html/unnamed-chunk-20-1.png" width="700">
+We now create a finite element mesh on the graph and comptue the
+required finite element matrices.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">h</span> <span class="op">=</span> <span class="fl">0.01</span></span>
+<span><span class="va">graph</span><span class="op">$</span><span class="fu">build_mesh</span><span class="op">(</span>h <span class="op">=</span> <span class="va">h</span><span class="op">)</span></span>
+<span><span class="va">graph</span><span class="op">$</span><span class="fu">compute_fem</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>We are now ready to construct the model as before.</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">10</span>, length.out <span class="op">=</span> <span class="fl">31</span><span class="op">)</span></span>
+<span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">5</span></span>
+<span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
+<span><span class="va">gamma</span> <span class="op">&lt;-</span> <span class="fl">0.1</span></span>
+<span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">beta</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span></span>
+<span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spacetime.operators.html">spacetime.operators</a></span><span class="op">(</span>graph <span class="op">=</span> <span class="va">graph</span>, time <span class="op">=</span> <span class="va">t</span>,</span>
+<span>                              kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, alpha <span class="op">=</span> <span class="va">alpha</span>,</span>
+<span>                              beta <span class="op">=</span> <span class="va">beta</span>, rho <span class="op">=</span> <span class="va">rho</span>, gamma <span class="op">=</span> <span class="va">gamma</span><span class="op">)</span></span>
+<span><span class="va">op</span><span class="op">$</span><span class="fu">plot_covariances</span><span class="op">(</span>t.ind <span class="op">=</span> <span class="fl">15</span>, s.ind <span class="op">=</span> <span class="fl">50</span>, t.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in viridisLite::viridis(n, alpha, begin, end, direction, option):</span></span>
+<span><span class="co">#&gt; Option 'd' does not exist. Defaulting to 'viridis'.</span></span>
+<span><span class="co">#&gt; Warning in viridisLite::viridis(n, alpha, begin, end, direction, option):</span></span>
+<span><span class="co">#&gt; Option 'd' does not exist. Defaulting to 'viridis'.</span></span>
+<span><span class="co">#&gt; Warning in viridisLite::viridis(n, alpha, begin, end, direction, option):</span></span>
+<span><span class="co">#&gt; Option 'd' does not exist. Defaulting to 'viridis'.</span></span></code></pre></div>
+<p><img src="spacetime_files/figure-html/unnamed-chunk-22-1.png" width="700"></p>
+<pre><code><span><span class="co">#&gt; TableGrob (2 x 1) "arrange": 2 grobs</span></span>
+<span><span class="co">#&gt;   z     cells    name            grob</span></span>
+<span><span class="co">#&gt; 1 1 (1-1,1-1) arrange gtable[arrange]</span></span>
+<span><span class="co">#&gt; 2 2 (2-2,1-1) arrange  gtable[layout]</span></span>
+<span><span class="co">#&gt; TableGrob (2 x 1) "arrange": 2 grobs</span></span>
+<span><span class="co">#&gt;   z     cells    name            grob</span></span>
+<span><span class="co">#&gt; 1 1 (1-1,1-1) arrange gtable[arrange]</span></span>
+<span><span class="co">#&gt; 2 2 (2-2,1-1) arrange  gtable[layout]</span></span></code></pre>
+<p>Let us now simulate some data and estimate the parameters:</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op</span>, nsim <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> </span>
+<span></span>
+<span><span class="va">n.obs</span> <span class="op">&lt;-</span> <span class="fl">500</span></span>
+<span></span>
+<span><span class="va">PtE</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">graph</span><span class="op">$</span><span class="va">nE</span>,size<span class="op">=</span><span class="va">n.obs</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n.obs</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">t.obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">t</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n.obs</span><span class="op">)</span></span>
+<span><span class="va">A</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="fu">make_A</span><span class="op">(</span><span class="va">PtE</span>, <span class="va">t.obs</span><span class="op">)</span></span>
+<span><span class="va">sigma.e</span> <span class="op">&lt;-</span> <span class="fl">0.01</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">A</span><span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span><span class="va">x</span> <span class="op">+</span> <span class="va">sigma.e</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n.obs</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>We can now estimate the parameters as before. The only difference
+here is that we set <code>use_data_from_graph = FALSE</code> as we are
+supplying the data manually.</p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, edge <span class="op">=</span> <span class="va">PtE</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, pos <span class="op">=</span> <span class="va">PtE</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>, t <span class="op">=</span> <span class="va">t.obs</span><span class="op">)</span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"edge"</span>, <span class="st">"pos"</span><span class="op">)</span>, loc_time <span class="op">=</span> <span class="st">"t"</span>, data <span class="op">=</span> <span class="va">df</span>,</span>
+<span>                 model <span class="op">=</span> <span class="va">op</span>, use_data_from_graph <span class="op">=</span> <span class="cn">FALSE</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Latent model - Spatio-temporal with alpha =  1 , beta =  1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; rspde_lme(formula = y ~ 1, loc = c("edge", "pos"), loc_time = "t", </span></span>
+<span><span class="co">#&gt;     data = df, model = op, use_data_from_graph = FALSE, parallel = TRUE)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Fixed effects:</span></span>
+<span><span class="co">#&gt;             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
+<span><span class="co">#&gt; (Intercept)  -0.1054    0.1273  -0.828    0.408</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Random effects:</span></span>
+<span><span class="co">#&gt;       Estimate Std.error z-value</span></span>
+<span><span class="co">#&gt; kappa 4.836593  0.282532  17.119</span></span>
+<span><span class="co">#&gt; sigma 8.764293  0.814490  10.760</span></span>
+<span><span class="co">#&gt; gamma 0.088147  0.009582   9.199</span></span>
+<span><span class="co">#&gt; rho   1.131116  2.939958   0.385</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Measurement error:</span></span>
+<span><span class="co">#&gt;          Estimate Std.error z-value</span></span>
+<span><span class="co">#&gt; std. dev 0.006877  0.004466    1.54</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Log-Likelihood:  -101.5556 </span></span>
+<span><span class="co">#&gt; Number of function calls by 'optim' = 87</span></span>
+<span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Time used to:     fit the model =  4.84466 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 8.00831 secs</span></span></code></pre></div>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
