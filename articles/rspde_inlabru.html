@@ -74,7 +74,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2022-09-13. Last
-modified: 2024-10-24.</h4>
+modified: 2024-10-25.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rspde_inlabru.Rmd" class="external-link"><code>vignettes/rspde_inlabru.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_inlabru.Rmd</code></div>
@@ -325,7 +325,7 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.414, Running = 3.56, Post = 0.128, Total = 4.11 </span></span>
+<span><span class="co">##     Pre = 0.405, Running = 3.67, Post = 0.121, Total = 4.2 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean   sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.941 0.04      1.863    1.941      2.019 1.941   0</span></span>
@@ -337,26 +337,26 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                                   mean       sd 0.025quant</span></span>
-<span><span class="co">## Precision-parameter for the Gamma observations   14.70    1.046      12.73</span></span>
-<span><span class="co">## Precision for distSea                          7813.70 4587.415    2572.97</span></span>
-<span><span class="co">## Theta1 for field                                 -2.75    2.011      -7.39</span></span>
-<span><span class="co">## Theta2 for field                                  1.78    0.426       1.07</span></span>
-<span><span class="co">## Theta3 for field                                  1.05    1.740      -1.59</span></span>
+<span><span class="co">## Precision-parameter for the Gamma observations   14.69    1.051      12.73</span></span>
+<span><span class="co">## Precision for distSea                          7751.26 4427.209    2439.74</span></span>
+<span><span class="co">## Theta1 for field                                 -4.14    2.971     -11.13</span></span>
+<span><span class="co">## Theta2 for field                                  1.97    0.535       1.15</span></span>
+<span><span class="co">## Theta3 for field                                  2.21    2.516      -1.31</span></span>
 <span><span class="co">##                                                0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## Precision-parameter for the Gamma observations   14.671   1.69e+01   14.619</span></span>
-<span><span class="co">## Precision for distSea                          6683.417   1.99e+04 4997.395</span></span>
-<span><span class="co">## Theta1 for field                                 -2.495   2.83e-01   -1.196</span></span>
-<span><span class="co">## Theta2 for field                                  1.741   2.72e+00    1.556</span></span>
-<span><span class="co">## Theta3 for field                                  0.824   5.05e+00   -0.294</span></span>
+<span><span class="co">## Precision-parameter for the Gamma observations    14.66     16.864   14.592</span></span>
+<span><span class="co">## Precision for distSea                           6712.92  19225.072 5074.003</span></span>
+<span><span class="co">## Theta1 for field                                  -3.70     -0.001   -1.677</span></span>
+<span><span class="co">## Theta2 for field                                   1.90      3.199    1.566</span></span>
+<span><span class="co">## Theta3 for field                                   1.83      8.118    0.126</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2465.90</span></span>
-<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 725.19</span></span>
-<span><span class="co">## Effective number of parameters .....................: 112.19</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC) ...............: 2466.00</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 724.10</span></span>
+<span><span class="co">## Effective number of parameters .....................: 111.42</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2467.14</span></span>
-<span><span class="co">## Effective number of parameters .................: 97.74</span></span>
+<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: 2467.20</span></span>
+<span><span class="co">## Effective number of parameters .................: 97.11</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Marginal log-Likelihood:  -1254.03 </span></span>
+<span><span class="co">## Marginal log-Likelihood:  -1253.80 </span></span>
 <span><span class="co">##  is computed </span></span>
 <span><span class="co">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre>
@@ -402,9 +402,9 @@ scale by using the function <code><a href="../reference/rspde.result.html">rspde
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##           mean       sd  0.025quant  0.5quant 0.975quant        mode</span></span>
-<span><span class="co">## tau   0.237249 0.382069 0.000655052 0.0875058    1.30174 5.97326e-05</span></span>
-<span><span class="co">## kappa 6.492440 3.197440 2.922440000 5.6236000   15.01650 4.31456e+00</span></span>
-<span><span class="co">## nu    1.300560 0.515685 0.344475000 1.3684800    1.98663 1.99407e+00</span></span></code></pre>
+<span><span class="co">## tau   0.155047 0.306570 4.84040e-08 0.0274516    1.02566 4.84040e-08</span></span>
+<span><span class="co">## kappa 8.357190 5.738900 3.17477e+00 6.5731100   24.07790 4.37973e+00</span></span>
+<span><span class="co">## nu    1.501730 0.507986 4.17364e-01 1.7022600    1.99935 1.99999e+00</span></span></code></pre>
 <p>We can also plot the posterior densities. To this end we will use the
 <code><a href="../reference/gg_df.html">gg_df()</a></code> function, which creates <code>ggplot2</code>
 user-friendly data frames:</p>
@@ -425,10 +425,10 @@ setting the <code>parameterization</code> argument on the
 <span><span class="co">## consider increasing nu.upper.bound, and refitting the model.</span></span></code></pre>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_matern</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##             mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## std.dev 0.462349 0.708485   0.186937 0.334654   1.660910 0.318565</span></span>
-<span><span class="co">## range   0.501547 0.185897   0.183533 0.482525   0.925715 0.454475</span></span>
-<span><span class="co">## nu      1.300560 0.515685   0.344475 1.368480   1.986630 1.994070</span></span></code></pre>
+<pre><code><span><span class="co">##             mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## std.dev 2.465040 15.605100 -0.0873031 0.599706   15.69520 0.338031</span></span>
+<span><span class="co">## range   0.430473  0.208535  0.0800807 0.420072    0.88166 0.426683</span></span>
+<span><span class="co">## nu      1.501730  0.507986  0.4173640 1.702260    1.99935 1.999990</span></span></code></pre>
 <p>In a similar manner, we can obtain posterior plots on the
 <code>matern</code> parameterization:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
@@ -684,29 +684,29 @@ some meaningless model.</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.254, Running = 34.4, Post = 4.81, Total = 39.4 </span></span>
+<span><span class="co">##     Pre = 0.252, Running = 34, Post = 4.43, Total = 38.7 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                           mean    sd 0.025quant 0.5quant</span></span>
-<span><span class="co">## Precision for the Gaussian observations 94.199 4.747     85.328   94.036</span></span>
-<span><span class="co">## Theta1 for field                        -3.116 0.054     -3.239   -3.109</span></span>
-<span><span class="co">## Theta2 for field                         3.147 0.032      3.085    3.147</span></span>
-<span><span class="co">## Theta3 for field                        -0.701 0.030     -0.749   -0.703</span></span>
+<span><span class="co">## Precision for the Gaussian observations 94.295 4.694     85.397   94.177</span></span>
+<span><span class="co">## Theta1 for field                        -3.158 0.049     -3.266   -3.153</span></span>
+<span><span class="co">## Theta2 for field                         3.154 0.033      3.091    3.154</span></span>
+<span><span class="co">## Theta3 for field                        -0.675 0.029     -0.724   -0.677</span></span>
 <span><span class="co">##                                         0.975quant   mode</span></span>
-<span><span class="co">## Precision for the Gaussian observations    104.015 93.616</span></span>
-<span><span class="co">## Theta1 for field                            -3.032 -3.075</span></span>
-<span><span class="co">## Theta2 for field                             3.213  3.145</span></span>
-<span><span class="co">## Theta3 for field                            -0.634 -0.718</span></span>
+<span><span class="co">## Precision for the Gaussian observations    103.874 93.938</span></span>
+<span><span class="co">## Theta1 for field                            -3.078 -3.131</span></span>
+<span><span class="co">## Theta2 for field                             3.220  3.152</span></span>
+<span><span class="co">## Theta3 for field                            -0.611 -0.687</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Deviance Information Criterion (DIC) ...............: -5183.53</span></span>
-<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 10955.19</span></span>
-<span><span class="co">## Effective number of parameters .....................: 4953.86</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC) ...............: -5185.00</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 10965.28</span></span>
+<span><span class="co">## Effective number of parameters .....................: 4962.49</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: -6350.10</span></span>
-<span><span class="co">## Effective number of parameters .................: 2770.09</span></span>
+<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: -6358.85</span></span>
+<span><span class="co">## Effective number of parameters .................: 2771.11</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Marginal log-Likelihood:  -4780.06 </span></span>
 <span><span class="co">##  is computed </span></span>
@@ -717,9 +717,9 @@ some meaningless model.</p>
 <code class="sourceCode R"><span><span class="va">result_fit_rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span>, <span class="st">"field"</span>, <span class="va">rspde_model.rep</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_rep</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##             mean         sd 0.025quant   0.5quant 0.975quant       mode</span></span>
-<span><span class="co">## tau    0.0444306 0.00234796  0.0392529  0.0447167  0.0481423  0.0460488</span></span>
-<span><span class="co">## kappa 23.2830000 0.75262300 21.8731000 23.2568000 24.8274000 23.1829000</span></span>
-<span><span class="co">## nu     0.6633540 0.01318380  0.6421710  0.6616780  0.6929320  0.6556070</span></span></code></pre>
+<span><span class="co">## tau    0.0425868 0.00203484  0.0382315  0.0427865  0.0460358  0.0435758</span></span>
+<span><span class="co">## kappa 23.4503000 0.76123700 22.0188000 23.4260000 25.0073000 23.3633000</span></span>
+<span><span class="co">## nu     0.6749150 0.01291190  0.6531040  0.6736020  0.7031560  0.6691930</span></span></code></pre>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
@@ -737,19 +737,19 @@ some meaningless model.</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   parameter        true        mean        mode</span></span>
-<span><span class="co">## 1       tau  0.08920621  0.04443059  0.04604885</span></span>
-<span><span class="co">## 2     kappa 20.00000000 23.28301875 23.18291404</span></span>
-<span><span class="co">## 3        nu  0.50000000  0.66335404  0.65560663</span></span></code></pre>
+<span><span class="co">## 1       tau  0.08920621  0.04258676  0.04357577</span></span>
+<span><span class="co">## 2     kappa 20.00000000 23.45028021 23.36334431</span></span>
+<span><span class="co">## 3        nu  0.50000000  0.67491475  0.66919264</span></span></code></pre>
 <p>Let us also obtain the summary on the <code>matern</code>
 parameterization:</p>
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit_rep_matern</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span>, <span class="st">"field"</span>, <span class="va">rspde_model.rep</span>, </span>
 <span>                          parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_rep_matern</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##              mean         sd 0.025quant  0.5quant 0.975quant      mode</span></span>
-<span><span class="co">## std.dev 1.0953000 0.01223010  1.0716400 1.0951400   1.119670 1.0956500</span></span>
-<span><span class="co">## range   0.0987474 0.00362372  0.0917929 0.0987135   0.105943 0.0986132</span></span>
-<span><span class="co">## nu      0.6633540 0.01318380  0.6421710 0.6616780   0.692932 0.6556070</span></span></code></pre>
+<pre><code><span><span class="co">##              mean         sd 0.025quant 0.5quant 0.975quant      mode</span></span>
+<span><span class="co">## std.dev 1.1004000 0.01178740  1.0773100 1.100420   1.123480 1.1020000</span></span>
+<span><span class="co">## range   0.0989943 0.00363124  0.0920457 0.098958   0.106243 0.0988537</span></span>
+<span><span class="co">## nu      0.6749150 0.01291190  0.6531040 0.673602   0.703156 0.6691930</span></span></code></pre>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_df_matern</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"std_dev"</span>, <span class="st">"range"</span>, <span class="st">"nu"</span><span class="op">)</span>,</span>
@@ -767,9 +767,9 @@ parameterization:</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df_matern</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   parameter true       mean      mode</span></span>
-<span><span class="co">## 1   std_dev  1.0 1.09529819 0.6556066</span></span>
-<span><span class="co">## 2     range  0.1 0.09874738 0.6556066</span></span>
-<span><span class="co">## 3        nu  0.5 0.66335404 0.6556066</span></span></code></pre>
+<span><span class="co">## 1   std_dev  1.0 1.10039603 0.6691926</span></span>
+<span><span class="co">## 2     range  0.1 0.09899431 0.6691926</span></span>
+<span><span class="co">## 3        nu  0.5 0.67491475 0.6691926</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -922,31 +922,31 @@ some meaningless model.</p>
 <span><span class="co">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.232, Running = 6.88, Post = 0.196, Total = 7.31 </span></span>
+<span><span class="co">##     Pre = 0.228, Running = 6.67, Post = 0.189, Total = 7.09 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model hyperparameters:</span></span>
 <span><span class="co">##                                            mean     sd 0.025quant 0.5quant</span></span>
-<span><span class="co">## Precision for the Gaussian observations 104.673 11.517     82.458  104.507</span></span>
-<span><span class="co">## Theta1 for field                         -0.095  0.137     -0.344   -0.101</span></span>
-<span><span class="co">## Theta2 for field                          0.697  0.151      0.395    0.698</span></span>
-<span><span class="co">## Theta3 for field                          1.059  0.142      0.785    1.057</span></span>
-<span><span class="co">## Theta4 for field                          0.013  0.151     -0.266    0.008</span></span>
+<span><span class="co">## Precision for the Gaussian observations 105.189 11.540     83.148  104.951</span></span>
+<span><span class="co">## Theta1 for field                         -0.120  0.135     -0.379   -0.123</span></span>
+<span><span class="co">## Theta2 for field                          0.702  0.152      0.402    0.702</span></span>
+<span><span class="co">## Theta3 for field                          1.047  0.144      0.763    1.048</span></span>
+<span><span class="co">## Theta4 for field                         -0.003  0.150     -0.289   -0.006</span></span>
 <span><span class="co">##                                         0.975quant    mode</span></span>
-<span><span class="co">## Precision for the Gaussian observations    127.619 105.353</span></span>
-<span><span class="co">## Theta1 for field                             0.195  -0.131</span></span>
-<span><span class="co">## Theta2 for field                             0.992   0.702</span></span>
-<span><span class="co">## Theta3 for field                             1.343   1.050</span></span>
-<span><span class="co">## Theta4 for field                             0.325  -0.016</span></span>
+<span><span class="co">## Precision for the Gaussian observations    128.446 105.421</span></span>
+<span><span class="co">## Theta1 for field                             0.154  -0.133</span></span>
+<span><span class="co">## Theta2 for field                             1.001   0.703</span></span>
+<span><span class="co">## Theta3 for field                             1.330   1.049</span></span>
+<span><span class="co">## Theta4 for field                             0.301  -0.018</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Deviance Information Criterion (DIC) ...............: -730.23</span></span>
-<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 954.20</span></span>
-<span><span class="co">## Effective number of parameters .....................: 353.42</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC) ...............: -733.57</span></span>
+<span><span class="co">## Deviance Information Criterion (DIC, saturated) ....: 953.58</span></span>
+<span><span class="co">## Effective number of parameters .....................: 352.01</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: -772.21</span></span>
-<span><span class="co">## Effective number of parameters .................: 235.44</span></span>
+<span><span class="co">## Watanabe-Akaike information criterion (WAIC) ...: -773.42</span></span>
+<span><span class="co">## Effective number of parameters .................: 235.98</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Marginal log-Likelihood:  -15.08 </span></span>
 <span><span class="co">##  is computed </span></span>
@@ -957,11 +957,11 @@ scale by using the function <code><a href="../reference/rspde.result.html">rspde
 <div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit_nonstat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit_nonstat</span>, <span class="st">"field"</span>, <span class="va">rspde_model_nonstat</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_nonstat</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##                     mean        sd 0.025quant  0.5quant 0.975quant      mode</span></span>
-<span><span class="co">## Theta1.matern -0.0945986 0.1372720  -0.343974 -0.100939   0.194570 -0.131222</span></span>
-<span><span class="co">## Theta2.matern  0.6966670 0.1514150   0.395472  0.697724   0.991656  0.702180</span></span>
-<span><span class="co">## Theta3.matern  1.0589000 0.1418070   0.784758  1.057190   1.343150  1.049860</span></span>
-<span><span class="co">## nu             1.0064500 0.0744126   0.868645  1.003120   1.159630  0.991515</span></span></code></pre>
+<pre><code><span><span class="co">##                    mean       sd 0.025quant  0.5quant 0.975quant      mode</span></span>
+<span><span class="co">## Theta1.matern -0.120233 0.135349  -0.379288 -0.122693   0.153505 -0.133391</span></span>
+<span><span class="co">## Theta2.matern  0.701855 0.152316   0.401551  0.702007   1.001280  0.702637</span></span>
+<span><span class="co">## Theta3.matern  1.047220 0.143931   0.762949  1.047530   1.329670  1.048830</span></span>
+<span><span class="co">## nu             0.998586 0.074138   0.857358  0.996862   1.147790  0.991250</span></span></code></pre>
 <p>Let us compare the mean to the true values of the parameters:</p>
 <div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">summ_res_nonstat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit_nonstat</span><span class="op">)</span></span>
@@ -972,11 +972,11 @@ scale by using the function <code><a href="../reference/rspde.result.html">rspde
 <span>  mode <span class="op">=</span> <span class="va">summ_res_nonstat</span><span class="op">[</span>,<span class="fl">6</span><span class="op">]</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##       parameter true       mean      mode</span></span>
-<span><span class="co">## 1 Theta1.matern  0.0 -0.0945986 -0.131222</span></span>
-<span><span class="co">## 2 Theta2.matern  1.0  0.6966670  0.702180</span></span>
-<span><span class="co">## 3 Theta3.matern  1.0  1.0589000  1.049860</span></span>
-<span><span class="co">## 4            nu  0.8  1.0064500  0.991515</span></span></code></pre>
+<pre><code><span><span class="co">##       parameter true      mean      mode</span></span>
+<span><span class="co">## 1 Theta1.matern  0.0 -0.120233 -0.133391</span></span>
+<span><span class="co">## 2 Theta2.matern  1.0  0.701855  0.702637</span></span>
+<span><span class="co">## 3 Theta3.matern  1.0  1.047220  1.048830</span></span>
+<span><span class="co">## 4            nu  0.8  0.998586  0.991250</span></span></code></pre>
 <p>We can also plot the posterior densities. To this end we will use the
 <code><a href="../reference/gg_df.html">gg_df()</a></code> function, which creates <code>ggplot2</code>
 user-friendly data frames:</p>
@@ -1039,7 +1039,7 @@ perform the prediction.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0e3d1538&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e2083c8f50&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -1252,14 +1252,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 5.920216 secs</span></span>
+<span><span class="co">## Time difference of 5.847102 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0020f130&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e22367a3f0&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -1472,14 +1472,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 12.98999 secs</span></span>
+<span><span class="co">## Time difference of 12.20566 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0e3d1538&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e2083c8f50&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -1692,14 +1692,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 7.397142 secs</span></span>
+<span><span class="co">## Time difference of 7.320829 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0020f130&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e22367a3f0&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -1912,14 +1912,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 11.98449 secs</span></span>
+<span><span class="co">## Time difference of 11.27832 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0e3d1538&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e2083c8f50&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -2128,14 +2128,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 7.248183 secs</span></span>
+<span><span class="co">## Time difference of 4.644021 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0020f130&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e22367a3f0&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -2344,14 +2344,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 12.00958 secs</span></span>
+<span><span class="co">## Time difference of 12.64306 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0e3d1538&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e2083c8f50&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -2564,14 +2564,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 5.97815 secs</span></span>
+<span><span class="co">## Time difference of 5.537305 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0020f130&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e22367a3f0&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -2784,14 +2784,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 10.31101 secs</span></span>
+<span><span class="co">## Time difference of 11.10332 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0e3d1538&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e2083c8f50&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -3004,14 +3004,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 4.446951 secs</span></span>
+<span><span class="co">## Time difference of 4.358792 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0020f130&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e22367a3f0&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -3224,14 +3224,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 8.999137 secs</span></span>
+<span><span class="co">## Time difference of 9.076187 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0e3d1538&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e2083c8f50&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -3444,14 +3444,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 15.01233 secs</span></span>
+<span><span class="co">## Time difference of 14.72117 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0020f130&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e22367a3f0&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -3664,14 +3664,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 31.698 secs</span></span>
+<span><span class="co">## Time difference of 21.89205 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0e3d1538&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e2083c8f50&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -3884,14 +3884,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 6.085813 secs</span></span>
+<span><span class="co">## Time difference of 5.240344 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0020f130&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e22367a3f0&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -4104,14 +4104,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 9.999809 secs</span></span>
+<span><span class="co">## Time difference of 13.21353 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0e3d1538&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e2083c8f50&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -4320,14 +4320,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 5.595627 secs</span></span>
+<span><span class="co">## Time difference of 5.239099 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0020f130&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e22367a3f0&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -4536,14 +4536,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 18.5856 secs</span></span>
+<span><span class="co">## Time difference of 11.28858 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0e3d1538&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e2083c8f50&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -4752,14 +4752,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 8.190525 secs</span></span>
+<span><span class="co">## Time difference of 9.330532 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0020f130&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e22367a3f0&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -4968,14 +4968,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 12.98256 secs</span></span>
+<span><span class="co">## Time difference of 28.36488 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0e3d1538&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e2083c8f50&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -5188,14 +5188,14 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 20.07834 secs</span></span>
+<span><span class="co">## Time difference of 19.67008 secs</span></span>
 <span><span class="co">## [[1]]</span></span>
 <span><span class="co">## $family</span></span>
 <span><span class="co">## [1] "gaussian"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $formula</span></span>
 <span><span class="co">## y ~ .</span></span>
-<span><span class="co">## &lt;environment: 0x564a0020f130&gt;</span></span>
+<span><span class="co">## &lt;environment: 0x55e22367a3f0&gt;</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $response_data</span></span>
 <span><span class="co">## $response_data$BRU_response</span></span>
@@ -5408,20 +5408,20 @@ perform the prediction.</p>
 <span><span class="co">## attr(,"class")</span></span>
 <span><span class="co">## [1] "bru_like_list" "list"         </span></span>
 <span><span class="co">## [1] "Time:"</span></span>
-<span><span class="co">## Time difference of 18.50692 secs</span></span></code></pre>
+<span><span class="co">## Time difference of 17.7709 secs</span></span></code></pre>
 <p>We can now look at the results by printing <code>cv_result</code>.
 Observe that the best model with respect to each score is displayed in
 the last row.</p>
 <div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cv_result</span></span></code></pre></div>
 <pre><code><span><span class="co">##           Model               dss               mse              crps</span></span>
-<span><span class="co">## 1    stationary -1.11880704667759 0.135084907886886  0.19497659675628</span></span>
-<span><span class="co">## 2 nonstationary -1.14997749860397 0.134405389834639 0.196158169230179</span></span>
-<span><span class="co">##            Best     nonstationary     nonstationary        stationary</span></span>
+<span><span class="co">## 1    stationary  -1.0819297455604 0.135590401456647 0.195347484865541</span></span>
+<span><span class="co">## 2 nonstationary -1.15267322103535 0.134681856777931 0.194022531181966</span></span>
+<span><span class="co">##            Best     nonstationary     nonstationary     nonstationary</span></span>
 <span><span class="co">##               scrps</span></span>
-<span><span class="co">## 1 0.514840058241006</span></span>
-<span><span class="co">## 2 0.518054170670058</span></span>
-<span><span class="co">##          stationary</span></span></code></pre>
+<span><span class="co">## 1 0.517423110106126</span></span>
+<span><span class="co">## 2 0.505780249694544</span></span>
+<span><span class="co">##       nonstationary</span></span></code></pre>
 <p>The <code><a href="../reference/cross_validation.html">cross_validation()</a></code> function also has the following
 useful options:</p>
 <ul>
