@@ -46,6 +46,8 @@
     <li><a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a></li>
     <li><a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a></li>
     <li><a class="dropdown-item" href="../articles/intrinsic.html">Intrinsic models</a></li>
+    <li><a class="dropdown-item" href="../articles/spacetime.html">Spatio-temporal models</a></li>
+    <li><a class="dropdown-item" href="../articles/rspde_nofem.html">Rational approximations without finite element approximations</a></li>
     <li><a class="dropdown-item" href="../articles/build_source.html">Building the rSPDE package from source on Mac and Linux</a></li>
   </ul>
 </li>
@@ -74,7 +76,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2019-08-07. Last
-modified: 2024-10-25.</h4>
+modified: 2024-10-28.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rspde_base.Rmd" class="external-link"><code>vignettes/rspde_base.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_base.Rmd</code></div>
@@ -787,8 +789,8 @@ we fit the model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 57</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  1.06047 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 2.40637 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  1.07896 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 2.45932 secs</span></span></code></pre></div>
 <p>and glance:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">)</span></span>
@@ -810,7 +812,7 @@ we fit the model:</p>
 <span></span>
 <span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 1.060477 mins</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 1.078969 mins</span></span></code></pre></div>
 <p>Finally, we observe that we can use the <code><a href="../reference/rational.order.html">rational.order()</a></code>
 function, to check the order of the rational approximation of the
 <code>rSPDE</code> object, as well as to use the
@@ -860,8 +862,8 @@ function, to check the order of the rational approximation of the
 <span><span class="co">#&gt; Number of function calls by 'optim' = 93</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  2.95383 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 2.34389 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  2.97101 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 2.39121 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -876,7 +878,7 @@ function, to check the order of the rational approximation of the
 <span></span>
 <span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 2.953834 mins</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 2.971019 mins</span></span></code></pre></div>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

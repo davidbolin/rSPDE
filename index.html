@@ -49,6 +49,8 @@
     <li><a class="dropdown-item" href="articles/rspde_cov.html">Rational approximation with the rSPDE package</a></li>
     <li><a class="dropdown-item" href="articles/rspde_base.html">Operator-based rational approximation</a></li>
     <li><a class="dropdown-item" href="articles/intrinsic.html">Intrinsic models</a></li>
+    <li><a class="dropdown-item" href="articles/spacetime.html">Spatio-temporal models</a></li>
+    <li><a class="dropdown-item" href="articles/rspde_nofem.html">Rational approximations without finite element approximations</a></li>
     <li><a class="dropdown-item" href="articles/build_source.html">Building the rSPDE package from source on Mac and Linux</a></li>
   </ul>
 </li>
@@ -198,10 +200,10 @@ u_h(s) = \sum_{i=1}^n u_i \varphi_i (s).
 <span>            </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">## Time used:</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="do">##     Pre = 0.43, Running = 3.84, Post = 0.0532, Total = 4.33 </span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="do">##     Pre = 0.432, Running = 3.54, Post = 0.0519, Total = 4.02 </span></span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="do">## Fixed effects:</span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="do">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="do">## Intercept 1.941 0.041      1.861    1.941      2.021 1.941   0</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="do">##            mean   sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="do">## Intercept 1.941 0.04      1.863    1.941      2.019 1.941   0</span></span>
 <span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="do">## </span></span>
 <span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="do">## Random effects:</span></span>
 <span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="do">##   Name     Model</span></span>
@@ -209,20 +211,20 @@ u_h(s) = \sum_{i=1}^n u_i \varphi_i (s).
 <span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="do">##    field CGeneric</span></span>
 <span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="do">## </span></span>
 <span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="do">## Model hyperparameters:</span></span>
-<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="do">##                                                   mean      sd 0.025quant</span></span>
-<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations   14.67    1.05      12.70</span></span>
-<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="do">## Precision for seaDist                          7541.68 4168.01    2421.35</span></span>
-<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="do">## Theta1 for field                                 -3.70    2.71     -10.04</span></span>
-<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="do">## Theta2 for field                                  1.92    0.54       1.08</span></span>
-<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="do">## Theta3 for field                                  1.89    2.34      -1.45</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="do">##                                                   mean       sd 0.025quant</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations   14.70    1.050      12.74</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="do">## Precision for seaDist                          7874.19 4668.924    2488.03</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="do">## Theta1 for field                                 -4.00    2.963     -10.96</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="do">## Theta2 for field                                  1.93    0.523       1.12</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="do">## Theta3 for field                                  2.20    2.628      -1.48</span></span>
 <span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="do">##                                                0.5quant 0.975quant     mode</span></span>
-<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations    14.64   1.68e+01   14.582</span></span>
-<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="do">## Precision for seaDist                           6592.57   1.83e+04 5054.246</span></span>
-<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="do">## Theta1 for field                                  -3.31   1.54e-01   -1.283</span></span>
-<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="do">## Theta2 for field                                   1.86   3.16e+00    1.534</span></span>
-<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="do">## Theta3 for field                                   1.55   7.37e+00   -0.169</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations    14.66      16.87   14.585</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="do">## Precision for seaDist                           6732.57   20102.82 5013.187</span></span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="do">## Theta1 for field                                  -3.56       0.14   -1.551</span></span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="do">## Theta2 for field                                   1.86       3.12    1.545</span></span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="do">## Theta3 for field                                   1.81       8.37   -0.568</span></span>
 <span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="do">## Marginal log-Likelihood:  -1253.80 </span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="do">## Marginal log-Likelihood:  -1253.74 </span></span>
 <span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="do">##  is computed </span></span>
 <span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="do">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="do">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre></div>
@@ -234,9 +236,9 @@ u_h(s) = \sum_{i=1}^n u_i \varphi_i (s).
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb11"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="do">##           mean       sd  0.025quant  0.5quant 0.975quant        mode</span></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="do">## tau   0.185421 0.353669 6.65308e-05 0.0401431    1.18139 2.52693e-07</span></span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="do">## kappa 7.999130 5.522340 2.97721e+00 6.2886700   23.11940 4.20703e+00</span></span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="do">## nu    1.450620 0.522924 3.76034e-01 1.6270000    1.99864 1.99998e+00</span></span></code></pre></div>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="do">## tau   0.178091 0.353974 5.84733e-08 0.0315043    1.18161 5.84733e-08</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="do">## kappa 7.954090 5.270230 3.08764e+00 6.3302600   22.37410 4.28794e+00</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="do">## nu    1.482370 0.530920 3.64266e-01 1.6959700    1.99949 1.99999e+00</span></span></code></pre></div>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#Plot the posterior densities</span></span>
 <span><span class="va">posterior_df_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/gg_df.html">gg_df</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
@@ -394,10 +396,10 @@ u_h(s) = \sum_{i=1}^n u_i \varphi_i (s).
 <span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="do">##     Data class: 'SpatialPointsDataFrame'</span></span>
 <span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a><span class="do">##     Predictor: y ~ .</span></span>
 <span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a><span class="do">## Time used:</span></span>
-<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="do">##     Pre = 0.244, Running = 3.85, Post = 0.0642, Total = 4.16 </span></span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="do">##     Pre = 0.241, Running = 4.1, Post = 0.0632, Total = 4.4 </span></span>
 <span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a><span class="do">## Fixed effects:</span></span>
-<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a><span class="do">##            mean   sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a><span class="do">## Intercept 1.941 0.04      1.863    1.941      2.019 1.941   0</span></span>
+<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a><span class="do">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
+<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a><span class="do">## Intercept 1.941 0.041      1.861    1.941      2.021 1.941   0</span></span>
 <span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a><span class="do">## </span></span>
 <span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a><span class="do">## Random effects:</span></span>
 <span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a><span class="do">##   Name     Model</span></span>
@@ -406,26 +408,26 @@ u_h(s) = \sum_{i=1}^n u_i \varphi_i (s).
 <span id="cb18-21"><a href="#cb18-21" tabindex="-1"></a><span class="do">## </span></span>
 <span id="cb18-22"><a href="#cb18-22" tabindex="-1"></a><span class="do">## Model hyperparameters:</span></span>
 <span id="cb18-23"><a href="#cb18-23" tabindex="-1"></a><span class="do">##                                                   mean       sd 0.025quant</span></span>
-<span id="cb18-24"><a href="#cb18-24" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations   14.70    1.047      12.72</span></span>
-<span id="cb18-25"><a href="#cb18-25" tabindex="-1"></a><span class="do">## Precision for distSea                          7832.79 4612.646    2538.55</span></span>
-<span id="cb18-26"><a href="#cb18-26" tabindex="-1"></a><span class="do">## Theta1 for field                                 -2.83    2.143      -7.75</span></span>
-<span id="cb18-27"><a href="#cb18-27" tabindex="-1"></a><span class="do">## Theta2 for field                                  1.81    0.474       1.03</span></span>
-<span id="cb18-28"><a href="#cb18-28" tabindex="-1"></a><span class="do">## Theta3 for field                                  1.09    1.834      -1.71</span></span>
-<span id="cb18-29"><a href="#cb18-29" tabindex="-1"></a><span class="do">##                                                0.5quant 0.975quant    mode</span></span>
-<span id="cb18-30"><a href="#cb18-30" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations   14.672   1.68e+01   14.63</span></span>
-<span id="cb18-31"><a href="#cb18-31" tabindex="-1"></a><span class="do">## Precision for distSea                          6700.535   1.99e+04 5005.18</span></span>
-<span id="cb18-32"><a href="#cb18-32" tabindex="-1"></a><span class="do">## Theta1 for field                                 -2.554   4.34e-01   -1.19</span></span>
-<span id="cb18-33"><a href="#cb18-33" tabindex="-1"></a><span class="do">## Theta2 for field                                  1.772   2.87e+00    1.56</span></span>
-<span id="cb18-34"><a href="#cb18-34" tabindex="-1"></a><span class="do">## Theta3 for field                                  0.858   5.30e+00   -0.31</span></span>
+<span id="cb18-24"><a href="#cb18-24" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations   14.66    1.048      12.70</span></span>
+<span id="cb18-25"><a href="#cb18-25" tabindex="-1"></a><span class="do">## Precision for distSea                          7410.63 4139.027    2359.71</span></span>
+<span id="cb18-26"><a href="#cb18-26" tabindex="-1"></a><span class="do">## Theta1 for field                                 -4.88    3.775     -13.75</span></span>
+<span id="cb18-27"><a href="#cb18-27" tabindex="-1"></a><span class="do">## Theta2 for field                                  2.19    0.775       1.05</span></span>
+<span id="cb18-28"><a href="#cb18-28" tabindex="-1"></a><span class="do">## Theta3 for field                                  2.88    3.234      -1.65</span></span>
+<span id="cb18-29"><a href="#cb18-29" tabindex="-1"></a><span class="do">##                                                0.5quant 0.975quant     mode</span></span>
+<span id="cb18-30"><a href="#cb18-30" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations    14.63   1.68e+01   14.560</span></span>
+<span id="cb18-31"><a href="#cb18-31" tabindex="-1"></a><span class="do">## Precision for distSea                           6460.06   1.81e+04 4929.628</span></span>
+<span id="cb18-32"><a href="#cb18-32" tabindex="-1"></a><span class="do">## Theta1 for field                                  -4.31   3.93e-01   -1.752</span></span>
+<span id="cb18-33"><a href="#cb18-33" tabindex="-1"></a><span class="do">## Theta2 for field                                   2.09   3.99e+00    1.557</span></span>
+<span id="cb18-34"><a href="#cb18-34" tabindex="-1"></a><span class="do">## Theta3 for field                                   2.40   1.05e+01    0.209</span></span>
 <span id="cb18-35"><a href="#cb18-35" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb18-36"><a href="#cb18-36" tabindex="-1"></a><span class="do">## Deviance Information Criterion (DIC) ...............: 2465.72</span></span>
-<span id="cb18-37"><a href="#cb18-37" tabindex="-1"></a><span class="do">## Deviance Information Criterion (DIC, saturated) ....: 725.66</span></span>
-<span id="cb18-38"><a href="#cb18-38" tabindex="-1"></a><span class="do">## Effective number of parameters .....................: 112.56</span></span>
+<span id="cb18-36"><a href="#cb18-36" tabindex="-1"></a><span class="do">## Deviance Information Criterion (DIC) ...............: 2466.41</span></span>
+<span id="cb18-37"><a href="#cb18-37" tabindex="-1"></a><span class="do">## Deviance Information Criterion (DIC, saturated) ....: 723.14</span></span>
+<span id="cb18-38"><a href="#cb18-38" tabindex="-1"></a><span class="do">## Effective number of parameters .....................: 111.10</span></span>
 <span id="cb18-39"><a href="#cb18-39" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb18-40"><a href="#cb18-40" tabindex="-1"></a><span class="do">## Watanabe-Akaike information criterion (WAIC) ...: 2466.97</span></span>
-<span id="cb18-41"><a href="#cb18-41" tabindex="-1"></a><span class="do">## Effective number of parameters .................: 98.03</span></span>
+<span id="cb18-40"><a href="#cb18-40" tabindex="-1"></a><span class="do">## Watanabe-Akaike information criterion (WAIC) ...: 2467.52</span></span>
+<span id="cb18-41"><a href="#cb18-41" tabindex="-1"></a><span class="do">## Effective number of parameters .................: 96.78</span></span>
 <span id="cb18-42"><a href="#cb18-42" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb18-43"><a href="#cb18-43" tabindex="-1"></a><span class="do">## Marginal log-Likelihood:  -1253.94 </span></span>
+<span id="cb18-43"><a href="#cb18-43" tabindex="-1"></a><span class="do">## Marginal log-Likelihood:  -1253.51 </span></span>
 <span id="cb18-44"><a href="#cb18-44" tabindex="-1"></a><span class="do">##  is computed </span></span>
 <span id="cb18-45"><a href="#cb18-45" tabindex="-1"></a><span class="do">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span id="cb18-46"><a href="#cb18-46" tabindex="-1"></a><span class="do">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre></div>
@@ -437,10 +439,10 @@ u_h(s) = \sum_{i=1}^n u_i \varphi_i (s).
 <span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="do">## and refitting the model.</span></span></code></pre></div>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="do">##           mean       sd  0.025quant  0.5quant 0.975quant        mode</span></span>
-<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="do">## tau   0.257674 0.454722 0.000457537 0.0827461    1.51154 2.23132e-05</span></span>
-<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="do">## kappa 6.897220 3.882940 2.812460000 5.7903900   17.36790 4.25508e+00</span></span>
-<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="do">## nu    1.302000 0.531022 0.311821000 1.3821400    1.98954 1.99687e+00</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="do">##            mean        sd  0.025quant  0.5quant 0.975quant        mode</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="do">## tau    0.196326  0.506961 7.53058e-10 0.0151854    1.53385 7.53058e-10</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="do">## kappa 12.700000 15.146200 2.86413e+00 7.8443400   52.78720 4.09233e+00</span></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="do">## nu     1.539040  0.542686 3.16192e-01 1.8154800    1.99988 1.99999e+00</span></span></code></pre></div>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#Plot the posterior densities</span></span>
 <span><span class="va">posterior_df_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/gg_df.html">gg_df</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
