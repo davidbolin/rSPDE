@@ -42,7 +42,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>rSPDE inlabru mapper</h1>
-      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/R/inlabru_rspde.R" class="external-link"><code>R/inlabru_rspde.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/R/inlabru_rspde.R" class="external-link"><code>R/inlabru_rspde.R</code></a></small>
       <div class="d-none name"><code>bru_get_mapper.inla_rspde.Rd</code></div>
     </div>
 
@@ -121,64 +121,62 @@
 <span class="r-in"><span>    y <span class="op">=</span> <span class="va">y</span>, x1 <span class="op">=</span> <span class="va">loc_2d_mesh</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>,</span></span>
 <span class="r-in"><span>    x2 <span class="op">=</span> <span class="va">loc_2d_mesh</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://edzer.github.io/sp/reference/coordinates.html" class="external-link">coordinates</a></span><span class="op">(</span><span class="va">data_df</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">rspde_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde.matern.html">rspde.matern</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span></span>
 <span class="r-in"><span>    nu_upper_bound <span class="op">=</span> <span class="fl">2</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="va">cmp</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="fu">Intercept</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>    <span class="fu">field</span><span class="op">(</span><span class="va">coordinates</span>, model <span class="op">=</span> <span class="va">rspde_model</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="fu">field</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">x1</span>,<span class="va">x2</span><span class="op">)</span>, model <span class="op">=</span> <span class="va">rspde_model</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="va">rspde_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru</a></span><span class="op">(</span><span class="va">cmp</span>, data <span class="op">=</span> <span class="va">data_df</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: sp</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> This is INLA_24.10.02 built 2024-10-02 18:19:47 UTC.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> This is INLA_24.11.07-4 built 2024-11-07 10:48:18 UTC.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - See www.r-inla.org/contact-us for how to get help.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - List available models/likelihoods/etc with inla.list.models()</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Use inla.doc(&lt;NAME&gt;) to access documentation</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: fmesher</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> inlabru version: 2.11.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> INLA version: 24.10.02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> INLA version: 24.11.07-4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Components:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Intercept: main = linear(1), group = exchangeable(1L), replicate = iid(1L)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> field: main = cgeneric(coordinates), group = exchangeable(1L), replicate = iid(1L)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> field: main = cgeneric(cbind(x1, x2)), group = exchangeable(1L), replicate = iid(1L)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Likelihoods:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Family: 'gaussian'</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Data class: 'SpatialPointsDataFrame'</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Data class: 'data.frame'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Predictor: y ~ .</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Time used:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 0.57, Running = 0.752, Post = 0.334, Total = 1.66 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 0.4, Running = 1.78, Post = 0.373, Total = 2.55 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.286 0.174     -0.058    0.286      0.633 0.286   0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.286 0.175     -0.061    0.286      0.637 0.286   0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name	  Model</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     field CGeneric</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Model hyperparameters:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                           mean     sd 0.025quant 0.5quant</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 166.32 82.655     53.418   150.34</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                         -8.48  4.370    -18.861    -7.74</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                          3.23  0.405      2.640     3.18</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                          2.41  2.378     -0.791     2.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                            mean      sd 0.025quant 0.5quant</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 179.606 115.119     44.138  151.886</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                         -3.579   0.528     -4.631   -3.575</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                          2.860   0.215      2.439    2.860</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                         -0.242   0.308     -0.839   -0.245</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                         0.975quant   mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations     370.34 120.40</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                             -2.60  -3.95</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                              4.17   2.89</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                              8.06  -0.05</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations    477.330 105.78</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                            -2.554  -3.56</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                             3.284   2.86</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                             0.375  -0.26</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC) ...............: -123.65</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC, saturated) ....: 197.15</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .....................: 94.51</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC) ...............: -118.47</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Information Criterion (DIC, saturated) ....: 198.37</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .....................: 96.17</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Watanabe-Akaike information criterion (WAIC) ...: -143.79</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .................: 55.61</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Watanabe-Akaike information criterion (WAIC) ...: -141.81</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Effective number of parameters .................: 54.21</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Marginal log-Likelihood:  -107.96 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Marginal log-Likelihood:  -109.25 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  is computed </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Posterior summaries for the linear predictor and the fitted values are computed</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span>

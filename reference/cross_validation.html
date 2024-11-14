@@ -44,7 +44,7 @@ to a folding scheme."><meta property="og:image" content="https://davidbolin.gith
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Perform cross-validation on a list of fitted models.</h1>
-      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/HEAD/R/inlabru_rspde.R" class="external-link"><code>R/inlabru_rspde.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/R/inlabru_rspde.R" class="external-link"><code>R/inlabru_rspde.R</code></a></small>
       <div class="d-none name"><code>cross_validation.Rd</code></div>
     </div>
 
@@ -70,6 +70,7 @@ to a folding scheme.</p>
 <span>  train_test_indexes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  return_train_test <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_post_samples <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  return_true_test_values <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  parallelize_RP <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_cores_RP <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span>,</span>
 <span>  true_CV <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -140,6 +141,10 @@ Typically this will be returned list obtained by setting the argument <code>retu
 
 <dt id="arg-return-post-samples">return_post_samples<a class="anchor" aria-label="anchor" href="#arg-return-post-samples"></a></dt>
 <dd><p>If <code>TRUE</code> the posterior samples will be included in the returned list.</p></dd>
+
+
+<dt id="arg-return-true-test-values">return_true_test_values<a class="anchor" aria-label="anchor" href="#arg-return-true-test-values"></a></dt>
+<dd><p>If <code>TRUE</code> the true test values will be included in the returned list.</p></dd>
 
 
 <dt id="arg-parallelize-rp">parallelize_RP<a class="anchor" aria-label="anchor" href="#arg-parallelize-rp"></a></dt>
