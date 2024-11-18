@@ -89,6 +89,7 @@ export(rSPDE.matern.loglike)
 export(rational.order)
 export(rational.type)
 export(require.nowarnings)
+export(rspde.anistropic2d)
 export(rspde.intrinsic.matern)
 export(rspde.make.A)
 export(rspde.make.index)
@@ -115,7 +116,9 @@ if (getRversion() >= "3.6.0") {
   S3method(inlabru::ibm_values, bru_mapper_inla_rspde)
   S3method(inlabru::ibm_jacobian, bru_mapper_inla_rspde)
 }
-
+if (getRversion() >= "3.6.0") {
+  S3method(inlabru::bru_get_mapper, inla_rspde_anisotropic2d)
+}
 if (getRversion() >= "3.6.0") {
   S3method(inlabru::bru_get_mapper, inla_rspde_spacetime)
   S3method(inlabru::bru_mapper, metric_graph)
@@ -123,7 +126,6 @@ if (getRversion() >= "3.6.0") {
   S3method(inlabru::ibm_values, bru_mapper_metric_graph)
   S3method(inlabru::ibm_jacobian, bru_mapper_metric_graph)
 }
-
 import(Matrix)
 importFrom(broom,augment)
 importFrom(broom,glance)
