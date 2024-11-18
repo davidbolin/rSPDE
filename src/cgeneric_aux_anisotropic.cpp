@@ -61,7 +61,7 @@ Eigen::SparseMatrix<double> anisotropic_precision(
 
     // Compute the fractional part of the precision matrix
     for (int k = 0; k < rspde_order; ++k) {
-        Eigen::SparseMatrix<double> Q_tmp = (L - p(k) * C) * M / r(k);
+        Eigen::SparseMatrix<double> Q_tmp = (L - rat_p(k) * C) * M / rat_r(k);
         
         // Insert Q_tmp into the appropriate block of Q
         for (int m = 0; m < Q_tmp.outerSize(); ++m) {
