@@ -1642,6 +1642,7 @@ spde.matern.operators <- function(kappa = NULL,
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
 #' "chebfun", "brasil" or "chebfunLB".
+#' @param return_fem_matrices Should the FEM matrices be returned?
 #' @return An object of type `CBrSPDEobj2d`
 #'
 #' @export
@@ -1666,7 +1667,8 @@ matern2d.operators <- function(hx = NULL,
                              type_rational_approximation = c(
                                  "chebfun",
                                  "brasil", "chebfunLB"
-                             )) {
+                             ),
+                             return_fem_matrices = FALSE) {
 
     if (is.null(mesh)) {
         stop("No mesh provided!")
@@ -1752,6 +1754,7 @@ matern2d.operators <- function(hx = NULL,
         stop("m > 0 required")
     }
 
+
     ## output
     out <- list(hx = hx,
                 hy = hy,
@@ -1768,6 +1771,14 @@ matern2d.operators <- function(hx = NULL,
                 fem = fem,
                 d = 2,
                 has_graph = FALSE)
+
+    if(return_fem_matrices) {
+        out$C <- C
+        out$Ci <- Ci
+        out$Hxx <- fem$Hxx
+        out$Hyy <- fem$Hyy
+        out$Hxy <- fem$Hxy
+    }
 
     out$make_A <- function(loc) {
         A <- fm_basis(x = mesh, loc = loc)

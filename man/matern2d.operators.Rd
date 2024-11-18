@@ -13,7 +13,8 @@ matern2d.operators(
   mesh = NULL,
   fem = NULL,
   m = 1,
-  type_rational_approximation = c("chebfun", "brasil", "chebfunLB")
+  type_rational_approximation = c("chebfun", "brasil", "chebfunLB"),
+  return_fem_matrices = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ positive integer. The default value is 1.}
 \item{type_rational_approximation}{Which type of rational
 approximation should be used? The current types are
 "chebfun", "brasil" or "chebfunLB".}
+
+\item{return_fem_matrices}{Should the FEM matrices be returned?}
 }
 \value{
 An object of type \code{CBrSPDEobj2d}

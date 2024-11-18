@@ -1987,3 +1987,106 @@ get_shared_library <- function(shared_lib) {
   }
   stop("'shared_lib' must be 'INLA', 'rSPDE', or 'detect'")
 }
+
+#' @noRd
+set_prior <- function(prior, default_mean, default_precision, p = 1) {
+  # Validate default parameters
+  if (!is.numeric(default_mean) || length(default_mean) != p) {
+    stop(paste("default_mean must be a numeric vector of length equal to",p,"."))
+  }
+  if (!is.numeric(default_precision) || length(default_precision) != p || any(default_precision <= 0)) {
+    stop(paste("default_precision must be a positive numeric vector of length equal to",p,"."))
+  }
+
+  # Return default prior if none is provided
+  if (is.null(prior)) {
+    return(list(mean = default_mean, precision = default_precision))
+  }
+
+  # Ensure prior only contains allowed elements
+  allowed_elements <- c("mean", "precision")
+  invalid_elements <- setdiff(names(prior), allowed_elements)
+  if (length(invalid_elements) > 0) {
+    warning(sprintf("Invalid elements in prior: %s. Only 'mean' and 'precision' are allowed.",
+                    paste(invalid_elements, collapse = ", ")))
+  }
+
+  # Validate and set 'mean'
+  if (!is.null(prior$mean)) {
+    if (!is.numeric(prior$mean) || length(prior$mean) != p) {
+      stop(sprintf("'mean' must be a numeric vector of length %d.", p))
+    }
+  } else {
+    prior$mean <- default_mean  # Use default mean if not provided
+  }
+
+  # Validate and set 'precision'
+  if (!is.null(prior$precision)) {
+    if (!is.numeric(prior$precision) || length(prior$precision) != p || any(prior$precision <= 0)) {
+      stop(sprintf("'precision' must be a positive numeric vector of length %d.", p))
+    }
+  } else {
+    prior$precision <- default_precision  # Use default precision if not provided
+  }
+
+  return(prior)
+}
+
+handle_prior_nu <- function(prior.nu, nu.upper.bound, nu.prec.inc = 0.01, prior.nu.dist = "lognormal") {
+  if (is.null(prior.nu)) {
+    prior.nu <- list()
+  }
+  
+  # Check and set loglocation
+  if (is.null(prior.nu$loglocation)) {
+    prior.nu$loglocation <- log(min(1, nu.upper.bound / 2))
+  } else if (length(prior.nu$loglocation) != 1) {
+    warning("'prior.nu$loglocation' has length > 1. Only the first element will be used.")
+    prior.nu$loglocation <- prior.nu$loglocation[1]
+  }
+  
+  # Check and set mean
+  if (is.null(prior.nu[["mean"]])) {
+    prior.nu[["mean"]] <- min(1, nu.upper.bound / 2)
+  } else if (length(prior.nu[["mean"]]) != 1) {
+    warning("'prior.nu$mean' has length > 1. Only the first element will be used.")
+    prior.nu[["mean"]] <- prior.nu[["mean"]][1]
+  }
+  
+  # Check and set prec
+  if (is.null(prior.nu$prec)) {
+    mu_temp <- prior.nu[["mean"]] / nu.upper.bound
+    prior.nu$prec <- max(1 / mu_temp, 1 / (1 - mu_temp)) + nu.prec.inc
+  } else if (length(prior.nu$prec) != 1) {
+    warning("'prior.nu$prec' has length > 1. Only the first element will be used.")
+    prior.nu$prec <- prior.nu$prec[1]
+  }
+  
+  # Check and set logscale
+  if (is.null(prior.nu[["logscale"]])) {
+    prior.nu[["logscale"]] <- 1
+  } else if (length(prior.nu[["logscale"]]) != 1) {
+    warning("'prior.nu$logscale' has length > 1. Only the first element will be used.")
+    prior.nu[["logscale"]] <- prior.nu[["logscale"]][1]
+  }
+  
+  # Determine starting value for nu
+  if (prior.nu.dist == "beta") {
+    start.nu <- prior.nu[["mean"]]
+  } else if (prior.nu.dist == "lognormal") {
+    start.nu <- exp(prior.nu[["loglocation"]])
+  } else {
+    stop("prior.nu.dist should be either 'beta' or 'lognormal'.")
+  }
+  
+  # Validate start.nu range
+  if (start.nu > nu.upper.bound || start.nu < 0) {
+    if (prior.nu.dist == "beta") {
+      stop("The 'mean' element of 'prior.nu' should be a number between 0 and nu.upper.bound!")
+    } else {
+      stop("The 'loglocation' element of 'prior.nu' should be a number less than log(nu.upper.bound)!")
+    }
+  }
+  
+  return(list(prior.nu = prior.nu, start.nu = start.nu))
+}

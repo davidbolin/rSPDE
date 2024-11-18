@@ -1,49 +1,3 @@
-#' @noRd
-#' @noRd
-set_prior <- function(prior, default_mean, default_precision, p = 1) {
-  # Validate default parameters
-  if (!is.numeric(default_mean) || length(default_mean) != p) {
-    stop(paste("default_mean must be a numeric vector of length equal to",p,"."))
-  }
-  if (!is.numeric(default_precision) || length(default_precision) != p || any(default_precision <= 0)) {
-    stop(paste("default_precision must be a positive numeric vector of length equal to",p,"."))
-  }
-
-  # Return default prior if none is provided
-  if (is.null(prior)) {
-    return(list(mean = default_mean, precision = default_precision))
-  }
-
-  # Ensure prior only contains allowed elements
-  allowed_elements <- c("mean", "precision")
-  invalid_elements <- setdiff(names(prior), allowed_elements)
-  if (length(invalid_elements) > 0) {
-    warning(sprintf("Invalid elements in prior: %s. Only 'mean' and 'precision' are allowed.",
-                    paste(invalid_elements, collapse = ", ")))
-  }
-
-  # Validate and set 'mean'
-  if (!is.null(prior$mean)) {
-    if (!is.numeric(prior$mean) || length(prior$mean) != p) {
-      stop(sprintf("'mean' must be a numeric vector of length %d.", p))
-    }
-  } else {
-    prior$mean <- default_mean  # Use default mean if not provided
-  }
-
-  # Validate and set 'precision'
-  if (!is.null(prior$precision)) {
-    if (!is.numeric(prior$precision) || length(prior$precision) != p || any(prior$precision <= 0)) {
-      stop(sprintf("'precision' must be a positive numeric vector of length %d.", p))
-    }
-  } else {
-    prior$precision <- default_precision  # Use default precision if not provided
-  }
-
-  return(prior)
-}
-
-
 #' Space-Time Random Fields via SPDE Approximation
 #'
 #' `rspde.spacetime` computes a Finite Element Method (FEM) approximation of a
@@ -69,20 +23,20 @@ set_prior <- function(prior, default_mean, default_precision, p = 1) {
 #' @param prior.kappa A list specifying the prior for the range parameter \eqn{\kappa}.
 #' This list may contain two elements: `mean` and/or `precision`, both of which must
 #' be numeric scalars (numeric vectors of length 1). The precision refers to the prior
-#' on \eqn{\log(\kappa)}. If `NULL`, default values will be used.
+#' on \eqn{\log(\kappa)}. If `NULL`, default values will be used. The `mean` value is also used as starting value for kappa.
 #' @param prior.sigma A list specifying the prior for the variance parameter \eqn{\sigma}.
 #' This list may contain two elements: `mean` and/or `precision`, both of which must
 #' be numeric scalars. The precision refers to the prior on \eqn{\log(\sigma)}. If `NULL`,
-#' default values will be used.
+#' default values will be used. The `mean` value is also used as starting value for sigma.
 #' @param prior.rho A list specifying the prior for the drift coefficient \eqn{\rho}.
 #' This list may contain two elements: `mean` and/or `precision`, both of which must
 #' be numeric scalars if dimension is one, and numeric vectors of length 2 if dimension is 2.
 #' The precision applies directly to \eqn{\rho} without log transformation.
-#' If `NULL`, default values will be used. Will not be used if `drift = FALSE`.
+#' If `NULL`, default values will be used. Will not be used if `drift = FALSE`. The `mean` value is also used as starting value for rho.
 #' @param prior.gamma A list specifying the prior for the weight \eqn{\gamma} in the SPDE
 #' operator. This list may contain two elements: `mean` and/or `precision`, both of which
 #' must be numeric scalars. The precision refers to the prior on \eqn{\log(\gamma)}. If `NULL`,
-#' default values will be used.
+#' default values will be used. The `mean` value is also used as starting value for gamma.
 #' @param prior.precision A precision matrix for \eqn{\log(\kappa), \log(\sigma), \log(\gamma), \rho}. This matrix replaces the precision
 #' element from `prior.kappa`, `prior.sigma`, `prior.gamma`, and `prior.rho` respectively. For dimension 1 `prior.precision` must be a 4x4 matrix. For dimension 2, \eqn{\rho} is a vector of length 2, so in this case `prior.precision` must be a 5x5 matrix. If `NULL`, a diagonal precision matrix with default values will be used.
 #' @param shared_lib String specifying which shared library to use for the Cgeneric
