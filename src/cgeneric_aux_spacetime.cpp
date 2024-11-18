@@ -1,5 +1,6 @@
 #include <Eigen/Sparse>
 #include "cgeneric_defs.h"
+#include "cgeneric_cpp.h"
 
 extern "C" {
 
@@ -97,9 +98,6 @@ void compute_Q_dim1(
 
     // Extract the values from Q into the result array, using only lower triangular part
     Eigen::SparseMatrix<double, Eigen::ColMajor> Q_triang = Q.triangularView<Eigen::Lower>();
-
-    int max_rows = std::min(20, static_cast<int>(Q.rows()));
-    int max_cols = std::min(20, static_cast<int>(Q.cols()));
 
     int count = 0;
     for (int k = 0; k < Q_triang.outerSize(); ++k) {

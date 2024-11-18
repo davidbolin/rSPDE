@@ -11,8 +11,6 @@
 
 // https://stackoverflow.com/questions/9330915/number-of-combinations-n-choose-r-in-c
 
-double cut_decimals(double nu);
-
 void daxpy_(int* N, double* DA, double* DX, int* INCX, double* DY, int* INCY);
 
 void dscal_(int* N, double* DA, double* DX,int* INCX);
@@ -86,6 +84,8 @@ void compute_Q_alpha1_directional(int *i_Tc, int *j_Tc, double *x_Tc, double kap
 extern "C" {
 #endif
 
+double cut_decimals(double nu);
+
 double nChoosek(int n, int k);
 
 void compute_Q_dim1(
@@ -104,6 +104,15 @@ void compute_Q_dim2(
     inla_cgeneric_smat_tp** B0list, 
     inla_cgeneric_smat_tp*** M2list);
 
+void compute_Q_anisotropic(
+    double hx, double hy, double hxy, double sigma, double nu,
+    const inla_cgeneric_smat_tp *C,
+    const inla_cgeneric_smat_tp *Ci,
+    const inla_cgeneric_smat_tp *Hxx,
+    const inla_cgeneric_smat_tp *Hyy,
+    const inla_cgeneric_smat_tp *Hxy,
+    double *ret, int rspde_order,
+    const inla_cgeneric_mat_tp *rational_table);
 #ifdef __cplusplus
 }
 #endif

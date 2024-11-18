@@ -44,23 +44,23 @@ If \code{FALSE}, the drift coefficient \eqn{\rho} is set to zero.}
 \item{prior.kappa}{A list specifying the prior for the range parameter \eqn{\kappa}.
 This list may contain two elements: \code{mean} and/or \code{precision}, both of which must
 be numeric scalars (numeric vectors of length 1). The precision refers to the prior
-on \eqn{\log(\kappa)}. If \code{NULL}, default values will be used.}
+on \eqn{\log(\kappa)}. If \code{NULL}, default values will be used. The \code{mean} value is also used as starting value for kappa.}
 
 \item{prior.sigma}{A list specifying the prior for the variance parameter \eqn{\sigma}.
 This list may contain two elements: \code{mean} and/or \code{precision}, both of which must
 be numeric scalars. The precision refers to the prior on \eqn{\log(\sigma)}. If \code{NULL},
-default values will be used.}
+default values will be used. The \code{mean} value is also used as starting value for sigma.}
 
 \item{prior.rho}{A list specifying the prior for the drift coefficient \eqn{\rho}.
 This list may contain two elements: \code{mean} and/or \code{precision}, both of which must
 be numeric scalars if dimension is one, and numeric vectors of length 2 if dimension is 2.
 The precision applies directly to \eqn{\rho} without log transformation.
-If \code{NULL}, default values will be used. Will not be used if \code{drift = FALSE}.}
+If \code{NULL}, default values will be used. Will not be used if \code{drift = FALSE}. The \code{mean} value is also used as starting value for rho.}
 
 \item{prior.gamma}{A list specifying the prior for the weight \eqn{\gamma} in the SPDE
 operator. This list may contain two elements: \code{mean} and/or \code{precision}, both of which
 must be numeric scalars. The precision refers to the prior on \eqn{\log(\gamma)}. If \code{NULL},
-default values will be used.}
+default values will be used. The \code{mean} value is also used as starting value for gamma.}
 
 \item{prior.precision}{A precision matrix for \eqn{\log(\kappa), \log(\sigma), \log(\gamma), \rho}. This matrix replaces the precision
 element from \code{prior.kappa}, \code{prior.sigma}, \code{prior.gamma}, and \code{prior.rho} respectively. For dimension 1 \code{prior.precision} must be a 4x4 matrix. For dimension 2, \eqn{\rho} is a vector of length 2, so in this case \code{prior.precision} must be a 5x5 matrix. If \code{NULL}, a diagonal precision matrix with default values will be used.}
