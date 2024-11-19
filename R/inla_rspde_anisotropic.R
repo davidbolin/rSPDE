@@ -185,6 +185,8 @@ rspde.anistropic2d <- function(mesh,
   model$mesh <- mesh
   model$rspde_order <- rspde.order
   model$type_rational_approximation <- type.rational.approx
+  model$est_nu <- est_nu
+  model$nu <- nu
 
   class(model) <- c("inla_rspde_anisotropic2d", class(model))
 
@@ -205,5 +207,9 @@ rspde.anistropic2d <- function(mesh,
 
 bru_get_mapper.inla_rspde_anisotropic2d <- function(model, ...) {
   stopifnot(requireNamespace("inlabru"))
-  inlabru::bru_mapper(model[["mesh"]])
+    n_rep <- model[["rspde_order"]] + 1
+    if((model[["est_nu"]] == 0L) && (model[["nu"]] %% 1 == 0)){
+        n_rep <- 1
+    }
+  inlabru::bru_mapper_repeat(inlabru::bru_mapper(model[["mesh"]]), n_rep = n_rep)
 }

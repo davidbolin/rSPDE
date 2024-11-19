@@ -103,6 +103,7 @@ extern "C" {
     const inla_cgeneric_smat_tp *Hxx,
     const inla_cgeneric_smat_tp *Hyy,
     const inla_cgeneric_smat_tp *Hxy,
+    const inla_cgeneric_smat_tp *Q_graph,    
     double *ret, int rspde_order,
     const inla_cgeneric_mat_tp *rational_table);
 }
@@ -135,7 +136,7 @@ void compute_Q_anisotropic(double hx, double hy, double hxy, double sigma, doubl
 
         int m_alpha = static_cast<int>(std::floor(alpha));
         
-        Q_graph = Q_graph + Eigen::SparseMatrix<double>(Q_graph.transpose());
+        Q_graph_eigen = Q_graph_eigen + Eigen::SparseMatrix<double>(Q_graph_eigen.transpose());
         
         SparseMatrixColMajor Hxy_transpose = Hxy_eigen.transpose();
         SparseMatrixColMajor L = C_eigen + (hx * hx) * Hxx_eigen + (hy * hy) * Hyy_eigen +

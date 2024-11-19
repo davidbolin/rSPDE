@@ -172,7 +172,7 @@ double *inla_cgeneric_rspde_anisotropic2d_model(inla_cgeneric_cmd_tp cmd, double
             ret[0] = -1;  // Required value
             ret[1] = M;   
 
-            compute_Q_anisotropic(hx, hy, hxy, sigma, nu, C, Ci, Hxx, Hyy, Hxy, &ret[k], rspde_order, rational_table);
+            compute_Q_anisotropic(hx, hy, hxy, sigma, nu, C, Ci, Hxx, Hyy, Hxy, Q, &ret[k], rspde_order, rational_table);
 
             break;
 
