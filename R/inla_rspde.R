@@ -868,6 +868,7 @@ rspde.matern <- function(mesh,
   model$mesh <- mesh
   model$fem_mesh <- fem_mesh_orig
   model$parameterization <- parameterization
+  model$rspde_version <- as.character(packageVersion("rSPDE"))
   return(model)
 }
 

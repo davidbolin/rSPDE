@@ -188,6 +188,7 @@ rspde.anistropic2d <- function(mesh,
   model$est_nu <- est_nu
   model$nu <- nu
   model$nu_upper_bound <- nu.upper.bound
+  model$rspde_version <- as.character(packageVersion("rSPDE"))
 
   class(model) <- c("inla_rspde_anisotropic2d", class(model))
 
