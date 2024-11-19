@@ -188,8 +188,32 @@ library(inlabru)
 model_aniso <- rspde.anistropic2d(mesh = mesh_2d)
 ```
 
-Then we create the component and fit the model using the `inlabru` package:
+Then we create the component and fit the model using the `inlabru` package. Observe that we can use the same data frame as in the `rspde_lme` example.
 ```{r}
 cmp <- Y ~ Intercept(1) - 1 + field(cbind(x,y), model = model_aniso)
-fit <- bru(cmp, data = df, options = list(verbose = TRUE))
+bru_fit_field <- bru(cmp, data = df, options = list(verbose = TRUE))
+```
+
+Let us now compare the estimated results (the means of the parameters) with the true values. Observe that we are using the helper function `transform_parameters_anisotropic()`
+to change the scale of the estimated parameters back to the original scale.
+
+```{r}
+results <- data.frame(
+  rbind(
+    # True values
+    c(hx = hx, hy = hy, hxy = hxy, sigma = sigma, nu = nu),
+    # Estimated values transformed using transform_parameters_anisotropic
+    transform_parameters_anisotropic(
+      bru_fit_field$summary.hyperpar$mean[2:6],
+      model_aniso[["nu_upper_bound"]]
+    )
+  ),
+  # Add sigma.e values
+  sigma.e = c(sigma.e, sqrt(1 / bru_fit_field$summary.hyperpar$mean[1])),
+  # Add intercept values
+  intercept = c(0, bru_fit_field$summary.fixed$mean),
+  row.names = c("True", "Estimate")
+)
+
+print(results)
 ```

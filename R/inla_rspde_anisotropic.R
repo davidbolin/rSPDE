@@ -187,6 +187,7 @@ rspde.anistropic2d <- function(mesh,
   model$type_rational_approximation <- type.rational.approx
   model$est_nu <- est_nu
   model$nu <- nu
+  model$nu_upper_bound <- nu.upper.bound
 
   class(model) <- c("inla_rspde_anisotropic2d", class(model))
 
