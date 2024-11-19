@@ -176,3 +176,20 @@ ggplot(df_plot) + aes(x = x, y = y, fill = field) +
         scale_fill_viridis() + scale_colour_viridis()
 
 ```
+
+## Inlabru Implementation
+
+We will now fit the model using the `inlabru` package. 
+First, we load the package, and create the anisotropic model object:
+
+```{r}
+library(inlabru)
+
+model_aniso <- rspde.anistropic2d(mesh = mesh_2d)
+```
+
+Then we create the component and fit the model using the `inlabru` package:
+```{r}
+cmp <- Y ~ Intercept(1) - 1 + field(cbind(x,y), model = model_aniso)
+fit <- bru(cmp, data = df, options = list(verbose = TRUE))
+```

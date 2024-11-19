@@ -78,13 +78,21 @@ rspde.anistropic2d <- function(mesh,
     stop("'mesh' must be a valid spatial mesh of class 'fm_mesh_2d'.")
   }
 
+  if (nu.upper.bound - floor(nu.upper.bound) == 0) {
+    nu.upper.bound <- nu.upper.bound - 1e-5
+  }
+  
+  if(!is.null(nu)){
+    nu.upper.bound <- nu
+  }
+
   op <- matern2d.operators(
     hx = prior.hx$mean,
     hy = prior.hy$mean,
     hxy = prior.hxy$mean,
     sigma = prior.sigma$mean,
     mesh = mesh,
-    nu = nu,
+    nu = nu.upper.bound,
     m = rspde.order,
     type_rational_approximation = type.rational.approx,
     return_fem_matrices = TRUE
@@ -101,7 +109,7 @@ rspde.anistropic2d <- function(mesh,
 
   if(is.null(nu)){
     est_nu <- 1L
-    nu <- -1
+    nu <- -1L
   }
 
   result_nu <- handle_prior_nu(prior.nu, nu.upper.bound = nu.upper.bound, nu.prec.inc = nu.prec.inc, prior.nu.dist = prior.nu.dist)
