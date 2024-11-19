@@ -4,6 +4,9 @@
 #include "cgeneric_defs.h"
 #include "cgeneric_cpp.h"
 
+#include <iostream> // For printing debug messages
+
+
 /**
  * Convert an inla_cgeneric_mat_tp to Eigen::MatrixXd.
  * @param mat The input matrix in the inla_cgeneric_mat_tp format.
@@ -44,7 +47,7 @@ Eigen::SparseMatrix<double> anisotropic_precision(
     Eigen::SparseMatrix<double> Q(total_size, total_size); // Resulting matrix
     Eigen::SparseMatrix<double> Q_tmp(size, size); // Temporary matrix for each block
 
-    int row_nu = static_cast<int>(std::round(1000 * cut_decimals(alpha)));
+    int row_nu = static_cast<int>(std::round(1000 * cut_decimals(alpha))) - 1;
     Eigen::VectorXd rat_r = rational_table.row(row_nu).segment(1, rspde_order);
     Eigen::VectorXd rat_p = rational_table.row(row_nu).segment(1 + rspde_order, rspde_order);
     double k_rat = rational_table(row_nu, 1 + 2 * rspde_order);
