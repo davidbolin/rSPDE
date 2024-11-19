@@ -109,7 +109,7 @@ rspde.anistropic2d <- function(mesh,
 
   if(is.null(nu)){
     est_nu <- 1L
-    nu <- -1L
+    nu <- -1.0
   }
 
   result_nu <- handle_prior_nu(prior.nu, nu.upper.bound = nu.upper.bound, nu.prec.inc = nu.prec.inc, prior.nu.dist = prior.nu.dist)

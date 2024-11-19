@@ -171,8 +171,9 @@ double *inla_cgeneric_rspde_anisotropic2d_model(inla_cgeneric_cmd_tp cmd, double
             ret = Calloc(k + M, double);  // Adjust based on Q matrix size
             ret[0] = -1;  // Required value
             ret[1] = M;   
-
+            printf("\n\n\n HERE!!!!\n\n\n\n");
             compute_Q_anisotropic(hx, hy, hxy, sigma, nu, C, Ci, Hxx, Hyy, Hxy, Q, &ret[k], rspde_order, rational_table);
+            printf("\n\n\n HERE 2 2 2 !!!!\n\n\n\n");
 
             break;
 

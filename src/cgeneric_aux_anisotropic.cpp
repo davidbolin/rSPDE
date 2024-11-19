@@ -130,13 +130,10 @@ void compute_Q_anisotropic(double hx, double hy, double hxy, double sigma, doubl
         SparseMatrixColMajor Hxx_eigen = convertInlaToEigen(Hxx);
         SparseMatrixColMajor Hyy_eigen = convertInlaToEigen(Hyy);
         SparseMatrixColMajor Hxy_eigen = convertInlaToEigen(Hxy);
-        SparseMatrixColMajor Q_graph_eigen = convertInlaToEigen(Q_graph);
         // Assembling the rational table
         Eigen::MatrixXd rational_table_eigen = inlaToEigenMatrix(rational_table);
 
         int m_alpha = static_cast<int>(std::floor(alpha));
-        
-        Q_graph_eigen = Q_graph_eigen + Eigen::SparseMatrix<double>(Q_graph_eigen.transpose());
         
         SparseMatrixColMajor Hxy_transpose = Hxy_eigen.transpose();
         SparseMatrixColMajor L = C_eigen + (hx * hx) * Hxx_eigen + (hy * hy) * Hyy_eigen +
@@ -153,12 +150,14 @@ void compute_Q_anisotropic(double hx, double hy, double hxy, double sigma, doubl
                 }
             Q *= tau * tau;
         } else if (rspde_order > 0) {
+            SparseMatrixColMajor Q_graph_eigen = convertInlaToEigen(Q_graph);           
+            SparseMatrixColMajor Q_graph_transpose = Q_graph_eigen.transpose(); 
+            Q_graph_eigen = Q_graph_eigen + Q_graph_transpose;
             Q = anisotropic_precision(L, tau, C_eigen, Ci_eigen, CiL, alpha, m_alpha, rspde_order, 1.0, rational_table_eigen);
+            Q = Q + 0 * Q_graph_eigen;
         } else {
             throw std::invalid_argument("rspde_order > 0 required");
         }
-
-        Q = Q + 0 * Q_graph_eigen;
 
         // Extract the values from Q into the result array, using only lower triangular part
         Eigen::SparseMatrix<double, Eigen::ColMajor> Q_triang = Q.triangularView<Eigen::Lower>();
