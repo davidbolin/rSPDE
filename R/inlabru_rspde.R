@@ -64,8 +64,18 @@
 #' # devel.tag
 #' }
 bru_get_mapper.inla_rspde <- function(model, ...) {
-  mapper <- list(model = model)
-  inlabru::bru_mapper_define(mapper, new_class = "bru_mapper_inla_rspde")
+  stopifnot(requireNamespace("inlabru"))
+  inlabru_version <- as.character(packageVersion("inlabru"))
+  if(inlabru_version >= "2.11.1.9022"){
+      n_rep <- model[["rspde.order"]] + 1
+      if((model[["est_nu"]] == 0L) && (model[["nu"]] %% 1 == 0)){
+          n_rep <- 1
+      }
+    inlabru::bru_mapper_repeat(inlabru::bru_mapper(model[["mesh"]]), n_rep = n_rep)
+  } else{
+    mapper <- list(model = model)
+    inlabru::bru_mapper_define(mapper, new_class = "bru_mapper_inla_rspde")
+  }
 }
 
 #' @param mapper A `bru_mapper_inla_rspde` object

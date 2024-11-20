@@ -78,13 +78,21 @@ rspde.anistropic2d <- function(mesh,
     stop("'mesh' must be a valid spatial mesh of class 'fm_mesh_2d'.")
   }
 
+  if (nu.upper.bound - floor(nu.upper.bound) == 0) {
+    nu.upper.bound <- nu.upper.bound - 1e-5
+  }
+  
+  if(!is.null(nu)){
+    nu.upper.bound <- nu
+  }
+
   op <- matern2d.operators(
     hx = prior.hx$mean,
     hy = prior.hy$mean,
     hxy = prior.hxy$mean,
     sigma = prior.sigma$mean,
     mesh = mesh,
-    nu = nu,
+    nu = nu.upper.bound,
     m = rspde.order,
     type_rational_approximation = type.rational.approx,
     return_fem_matrices = TRUE
@@ -101,7 +109,7 @@ rspde.anistropic2d <- function(mesh,
 
   if(is.null(nu)){
     est_nu <- 1L
-    nu <- -1
+    nu <- -1.0
   }
 
   result_nu <- handle_prior_nu(prior.nu, nu.upper.bound = nu.upper.bound, nu.prec.inc = nu.prec.inc, prior.nu.dist = prior.nu.dist)
@@ -175,8 +183,21 @@ rspde.anistropic2d <- function(mesh,
   model$prior.hxy <- prior.hxy
   model$prior.precision <- prior.precision
   model$mesh <- mesh
-  model$rspde_order <- rspde.order
+  model$rspde.order <- rspde.order
   model$type_rational_approximation <- type.rational.approx
+  model$est_nu <- est_nu
+  model$nu <- nu
+  model$nu_upper_bound <- nu.upper.bound
+  model$rspde_version <- as.character(packageVersion("rSPDE"))
+
+  ### The following objects are provided for backward compatibility
+  if(!est_nu){
+    model$integer.nu <- (nu %% 1) == 0
+  } else{
+    model$integer.nu <- FALSE
+  }
+  model$n.spde <- mesh$n
+  ### 
 
   class(model) <- c("inla_rspde_anisotropic2d", class(model))
 
@@ -197,5 +218,15 @@ rspde.anistropic2d <- function(mesh,
 
 bru_get_mapper.inla_rspde_anisotropic2d <- function(model, ...) {
   stopifnot(requireNamespace("inlabru"))
-  inlabru::bru_mapper(model[["mesh"]])
+  inlabru_version <- as.character(packageVersion("inlabru"))
+  if(inlabru_version >= "2.11.1.9022"){
+      n_rep <- model[["rspde.order"]] + 1
+      if((model[["est_nu"]] == 0L) && (model[["nu"]] %% 1 == 0)){
+          n_rep <- 1
+      }
+    inlabru::bru_mapper_repeat(inlabru::bru_mapper(model[["mesh"]]), n_rep = n_rep)
+  } else{
+    mapper <- list(model = model)
+    inlabru::bru_mapper_define(mapper, new_class = "bru_mapper_inla_rspde")
+  }
 }

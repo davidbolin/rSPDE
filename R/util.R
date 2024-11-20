@@ -2090,3 +2090,81 @@ handle_prior_nu <- function(prior.nu, nu.upper.bound, nu.prec.inc = 0.01, prior.
   
   return(list(prior.nu = prior.nu, start.nu = start.nu))
 }
+
+#' Transform Anisotropic SPDE Model Parameters to Original Scale
+#'
+#' @description
+#' This function takes a vector of transformed parameters and applies the appropriate
+#' transformations to return them in the original scale for use in anisotropic SPDE models.
+#'
+#' @param theta A numeric vector of length 4 or 5, containing the transformed parameters in this order:
+#' \describe{
+#'   \item{lhx}{The logarithmic representation of hx.}
+#'   \item{lhy}{The logarithmic representation of hy.}
+#'   \item{logit_hxy}{The logit-transformed representation of hxy.}
+#'   \item{lsigma}{The logarithmic representation of sigma.}
+#'   \item{lnu (optional)}{The logarithmic representation of nu. If not provided, nu is not returned.}
+#' }
+#' @param nu_upper_bound (optional) A numeric value representing the upper bound for the smoothness parameter nu.
+#' This is only used, and must be provided, if `lnu` is provided.
+#'
+#' @return A named list with the parameters in the original scale:
+#' \describe{
+#'   \item{hx}{The original scale for hx (exponential of lhx).}
+#'   \item{hy}{The original scale for hy (exponential of lhy).}
+#'   \item{hxy}{The original scale for hxy (inverse logit transformation of logit_hxy).}
+#'   \item{sigma}{The original scale for sigma (exponential of lsigma).}
+#'   \item{nu (optional)}{The original scale for nu (using the forward_nu transformation). Only included if `lnu` is provided.}
+#' }
+#' @export
+#'
+#' @examples
+#' # With lnu
+#' theta <- c(log(0.1), log(0.2), log((0.3 + 1) / (1 - 0.3)), log(0.5), log(1))
+#' nu_upper_bound <- 2
+#' transform_parameters_anisotropic(theta, nu_upper_bound)
+#'
+#' # Without lnu
+#' theta <- c(log(0.1), log(0.2), log((0.3 + 1) / (1 - 0.3)), log(0.5))
+#' transform_parameters_anisotropic(theta)
+transform_parameters_anisotropic <- function(theta, nu_upper_bound = NULL) {
+  if (!(length(theta) %in% c(4, 5))) {
+    stop("Theta must be a numeric vector of length 4 or 5.")
+  }
+  
+  # Functions for transformations
+  adjusted_inv_logit <- function(z) {
+    (2 / (1 + exp(-z))) - 1
+  }
+  
+  forward_nu <- function(lnu, nu_upper_bound) {
+    exp(lnu) / (1 + exp(lnu)) * nu_upper_bound
+  }
+  
+  # Extract parameters
+  lhx <- theta[1]
+  lhy <- theta[2]
+  logit_hxy <- theta[3]
+  lsigma <- theta[4]
+  
+  # Transform parameters to original scale
+  hx <- exp(lhx)
+  hy <- exp(lhy)
+  hxy <- adjusted_inv_logit(logit_hxy)
+  sigma <- exp(lsigma)
+  
+  # Prepare the output
+  result <- list(hx = hx, hy = hy, hxy = hxy, sigma = sigma)
+  
+  # If lnu is provided, compute nu
+  if (length(theta) == 5) {
+    if (is.null(nu_upper_bound)) {
+      stop("nu_upper_bound must be provided if lnu is included in theta.")
+    }
+    lnu <- theta[5]
+    nu <- forward_nu(lnu, nu_upper_bound)
+    result$nu <- nu
+  }
+  
+  return(result)
+}

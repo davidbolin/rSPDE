@@ -7,13 +7,13 @@
 \alias{ibm_jacobian.bru_mapper_inla_rspde}
 \title{rSPDE inlabru mapper}
 \usage{
-bru_get_mapper.inla_rspde(model, ...)
+\method{bru_get_mapper}{inla_rspde}(model, ...)
 
-ibm_n.bru_mapper_inla_rspde(mapper, ...)
+\method{ibm_n}{bru_mapper_inla_rspde}(mapper, ...)
 
-ibm_values.bru_mapper_inla_rspde(mapper, ...)
+\method{ibm_values}{bru_mapper_inla_rspde}(mapper, ...)
 
-ibm_jacobian.bru_mapper_inla_rspde(mapper, input, ...)
+\method{ibm_jacobian}{bru_mapper_inla_rspde}(mapper, input, ...)
 }
 \arguments{
 \item{model}{An \code{inla_rspde} object for which to construct or extract a mapper}

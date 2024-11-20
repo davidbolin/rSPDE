@@ -263,5 +263,6 @@ rspde.intrinsic.matern <- function(mesh,
     model$mesh <- mesh
     model$alpha <- alpha
     model$fem_mesh <- fem_mesh_orig
+    model$rspde_version <- as.character(packageVersion("rSPDE"))
     return(model)
 }

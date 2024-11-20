@@ -221,6 +221,7 @@ rspde.spacetime <- function(mesh_space = NULL,
     model$mesh <- graph
   }
   model$time_mesh <- op$mesh_time
+  model$rspde_version <- as.character(packageVersion("rSPDE"))
 
   class(model) <- c("inla_rspde_spacetime", class(model))
 
