@@ -25,7 +25,9 @@ jobs:
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
+          extra-repositories: 'https://inla.r-inla-download.org/R/testing https://inlabru-org.r-universe.dev'
 
       - name: Install system dependencies on macOS
         if: runner.os == 'macOS'
@@ -46,12 +48,18 @@ jobs:
           mkdir -p /Users/runner/work/_temp/Library/INLA/bin/mac.arm64/malloc/
           ln -s $(brew --prefix mimalloc)/lib/libmimalloc.2.1.dylib /Users/runner/work/_temp/Library/INLA/bin/mac.arm64/malloc/libmimalloc.2.1.dylib
 
-      - name: Reinstall INLA
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: '"all"'
+          extra-packages: |
+             rcmdcheck
+      - name: Session info
         run: |
-          Rscript -e "install.packages('INLA', repos = 'https://inla.r-inla-download.org/R/testing')"
-
-      - name: Run R CMD check
-        uses: r-lib/actions/check-r-package@v2
+          options(width = 100)
+          pkgs <- installed.packages()[, "Package"]
+          sessioninfo::session_info(pkgs, include_base = TRUE)
+        shell: Rscript {0}
+      - uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
         with:
@@ -76,7 +84,9 @@ jobs:
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
+          extra-repositories: 'https://inla.r-inla-download.org/R/testing https://inlabru-org.r-universe.dev'
 
       - name: Install system dependencies on macOS
         if: runner.os == 'macOS'
@@ -97,12 +107,18 @@ jobs:
           mkdir -p /Users/runner/work/_temp/Library/INLA/bin/mac.arm64/malloc/
           ln -s $(brew --prefix mimalloc)/lib/libmimalloc.2.1.dylib /Users/runner/work/_temp/Library/INLA/bin/mac.arm64/malloc/libmimalloc.2.1.dylib
 
-      - name: Reinstall INLA
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: '"all"'
+          extra-packages: |
+             rcmdcheck
+      - name: Session info
         run: |
-          Rscript -e "install.packages('INLA', repos = 'https://inla.r-inla-download.org/R/testing')"
-
-      - name: Run R CMD check
-        uses: r-lib/actions/check-r-package@v2
+          options(width = 100)
+          pkgs <- installed.packages()[, "Package"]
+          sessioninfo::session_info(pkgs, include_base = TRUE)
+        shell: Rscript {0}
+      - uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
         with:
