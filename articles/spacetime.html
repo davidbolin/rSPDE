@@ -15,8 +15,8 @@
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.9/font.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Spatio-temporal models">
 </head>
 <body>
@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-10-23. Last
-modified: 2024-11-14.</h4>
+modified: 2024-11-21.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/spacetime.Rmd" class="external-link"><code>vignettes/spacetime.Rmd</code></a></small>
       <div class="d-none name"><code>spacetime.Rmd</code></div>
@@ -284,8 +284,8 @@ model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 36</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  23.14506 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 4.68995 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  23.53296 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 4.85022 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
@@ -487,8 +487,8 @@ model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 113</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  18.37983 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 7.91622 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  18.83823 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 8.23886 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
@@ -514,8 +514,7 @@ object:</p>
 <span>        mesh_time <span class="op">=</span> <span class="va">mesh_time</span>, alpha <span class="op">=</span> <span class="va">alpha</span>, beta <span class="op">=</span> <span class="va">beta</span><span class="op">)</span></span></code></pre></div>
 <p>Let us now prepare the <code>data.frame</code> object:</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/edzer/sp/" class="external-link">sp</a></span><span class="op">)</span></span>
-<span><span class="va">df_bru</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">Y</span>, coord_x <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">x</span>, coord_y <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">y</span>, time <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">t</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">df_bru</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">Y</span>, coord_x <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">x</span>, coord_y <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">y</span>, time <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">t</span><span class="op">)</span></span></code></pre></div>
 <p>Now, the component:</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fu">Intercept</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span> <span class="fu">field</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>space<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">coord_x</span>, <span class="va">coord_y</span><span class="op">)</span>, </span>

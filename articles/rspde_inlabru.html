@@ -15,8 +15,8 @@
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.9/font.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="inlabru implementation of the rational SPDE approach">
 </head>
 <body>
@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2022-09-13. Last
-modified: 2024-11-14.</h4>
+modified: 2024-11-21.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rspde_inlabru.Rmd" class="external-link"><code>vignettes/rspde_inlabru.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_inlabru.Rmd</code></div>
@@ -322,7 +322,7 @@ of the RW1, and the parameters of the spatial field):</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## inlabru version: 2.11.1</span></span>
-<span><span class="co">## INLA version: 24.11.07-4</span></span>
+<span><span class="co">## INLA version: 24.11.17</span></span>
 <span><span class="co">## Components:</span></span>
 <span><span class="co">## Intercept: main = linear(1), group = exchangeable(1L), replicate = iid(1L)</span></span>
 <span><span class="co">## distSea: main = rw1(seaDist), group = exchangeable(1L), replicate = iid(1L)</span></span>
@@ -332,7 +332,7 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">##     Data class: 'sf', 'data.frame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.393, Running = 7.03, Post = 0.12, Total = 7.55 </span></span>
+<span><span class="co">##     Pre = 0.406, Running = 7.12, Post = 0.127, Total = 7.66 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean   sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.941 0.04      1.862    1.941       2.02 1.941   0</span></span>
@@ -684,7 +684,7 @@ some meaningless model.</p>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## inlabru version: 2.11.1</span></span>
-<span><span class="co">## INLA version: 24.11.07-4</span></span>
+<span><span class="co">## INLA version: 24.11.17</span></span>
 <span><span class="co">## Components:</span></span>
 <span><span class="co">## field: main = cgeneric(geometry), group = exchangeable(1L), replicate = iid(repl)</span></span>
 <span><span class="co">## Likelihoods:</span></span>
@@ -692,7 +692,7 @@ some meaningless model.</p>
 <span><span class="co">##     Data class: 'sf', 'data.frame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.237, Running = 55.6, Post = 4.27, Total = 60.1 </span></span>
+<span><span class="co">##     Pre = 0.246, Running = 56.2, Post = 4.8, Total = 61.2 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
@@ -923,7 +923,7 @@ some meaningless model.</p>
 <div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit_nonstat</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## inlabru version: 2.11.1</span></span>
-<span><span class="co">## INLA version: 24.11.07-4</span></span>
+<span><span class="co">## INLA version: 24.11.17</span></span>
 <span><span class="co">## Components:</span></span>
 <span><span class="co">## field: main = cgeneric(geometry), group = exchangeable(1L), replicate = iid(1L)</span></span>
 <span><span class="co">## Likelihoods:</span></span>
@@ -931,7 +931,7 @@ some meaningless model.</p>
 <span><span class="co">##     Data class: 'sf', 'data.frame'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.216, Running = 10, Post = 0.201, Total = 10.4 </span></span>
+<span><span class="co">##     Pre = 0.221, Running = 10.1, Post = 0.199, Total = 10.5 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
@@ -1048,13 +1048,13 @@ Observe that the best model with respect to each score is displayed in
 the last row.</p>
 <div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cv_result</span></span></code></pre></div>
-<pre><code><span><span class="co">##           Model                dss               mse              crps</span></span>
-<span><span class="co">## 1    stationary -0.999361145926078 0.135173094677544 0.194771284122132</span></span>
-<span><span class="co">## 2 nonstationary -0.999361723210525 0.133107112064052 0.193034181308674</span></span>
-<span><span class="co">##            Best      nonstationary     nonstationary     nonstationary</span></span>
+<pre><code><span><span class="co">##           Model              dss               mse              crps</span></span>
+<span><span class="co">## 1    stationary -1.0014830767523 0.135645825416756  0.19432078789799</span></span>
+<span><span class="co">## 2 nonstationary -1.0259153683235 0.133507547963475 0.192562171245026</span></span>
+<span><span class="co">##            Best    nonstationary     nonstationary     nonstationary</span></span>
 <span><span class="co">##               scrps</span></span>
-<span><span class="co">## 1 0.517607190920796</span></span>
-<span><span class="co">## 2 0.516643451474199</span></span>
+<span><span class="co">## 1 0.516883599161106</span></span>
+<span><span class="co">## 2 0.512125919553807</span></span>
 <span><span class="co">##       nonstationary</span></span></code></pre>
 <p>The <code><a href="../reference/cross_validation.html">cross_validation()</a></code> function also has the following
 useful options:</p>

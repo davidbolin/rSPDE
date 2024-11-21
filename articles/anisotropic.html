@@ -15,8 +15,8 @@
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.9/font.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Anisotropic models">
 </head>
 <body>
@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-10-23. Last
-modified: 2024-11-14.</h4>
+modified: 2024-11-21.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/anisotropic.Rmd" class="external-link"><code>vignettes/anisotropic.Rmd</code></a></small>
       <div class="d-none name"><code>anisotropic.Rmd</code></div>
@@ -256,8 +256,8 @@ us see a summary of the fitted model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 51</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  28.29182 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 4.52813 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  28.79393 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 4.79957 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span>
@@ -291,6 +291,51 @@ us see a summary of the fitted model:</p>
 <span>        show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>        <span class="fu"><a href="https://sjmgarnier.github.io/viridis/reference/scale_viridis.html" class="external-link">scale_fill_viridis</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://sjmgarnier.github.io/viridis/reference/scale_viridis.html" class="external-link">scale_colour_viridis</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="anisotropic_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+</div>
+<div class="section level2">
+<h2 id="inlabru-implementation">Inlabru Implementation<a class="anchor" aria-label="anchor" href="#inlabru-implementation"></a>
+</h2>
+<p>We will now fit the model using the <code>inlabru</code> package.
+First, we load the package, and create the anisotropic model object:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://www.inlabru.org" class="external-link">inlabru</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_aniso</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.anistropic2d.html">rspde.anistropic2d</a></span><span class="op">(</span>mesh <span class="op">=</span> <span class="va">mesh_2d</span><span class="op">)</span></span></code></pre></div>
+<p>Then we create the component and fit the model using the
+<code>inlabru</code> package. Observe that we can use the same data
+frame as in the <code>rspde_lme</code> example.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="va">Y</span> <span class="op">~</span> <span class="fu">Intercept</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span> <span class="op">+</span> <span class="fu">field</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span><span class="op">)</span>, model <span class="op">=</span> <span class="va">model_aniso</span><span class="op">)</span></span>
+<span><span class="va">bru_fit_field</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru</a></span><span class="op">(</span><span class="va">cmp</span>, data <span class="op">=</span> <span class="va">df</span>, options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>num.threads <span class="op">=</span> <span class="st">"1:1"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Let us now compare the estimated results (the means of the
+parameters) with the true values. Observe that we are using the helper
+function <code><a href="../reference/transform_parameters_anisotropic.html">transform_parameters_anisotropic()</a></code> to change the
+scale of the estimated parameters back to the original scale.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
+<span>    <span class="co"># True values</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>hx <span class="op">=</span> <span class="va">hx</span>, hy <span class="op">=</span> <span class="va">hy</span>, hxy <span class="op">=</span> <span class="va">hxy</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, nu <span class="op">=</span> <span class="va">nu</span><span class="op">)</span>,</span>
+<span>    <span class="co"># Estimated values transformed using transform_parameters_anisotropic</span></span>
+<span>    <span class="fu"><a href="../reference/transform_parameters_anisotropic.html">transform_parameters_anisotropic</a></span><span class="op">(</span></span>
+<span>      <span class="va">bru_fit_field</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>,</span>
+<span>      <span class="va">model_aniso</span><span class="op">[[</span><span class="st">"nu_upper_bound"</span><span class="op">]</span><span class="op">]</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  <span class="co"># Add sigma.e values</span></span>
+<span>  sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="va">bru_fit_field</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="co"># Add intercept values</span></span>
+<span>  intercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">bru_fit_field</span><span class="op">$</span><span class="va">summary.fixed</span><span class="op">$</span><span class="va">mean</span><span class="op">)</span>,</span>
+<span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                  hx         hy       hxy     sigma        nu   sigma.e</span></span>
+<span><span class="co">#&gt; True           0.08       0.08       0.5         1       0.5 0.1000000</span></span>
+<span><span class="co">#&gt; Estimate 0.09779554 0.09940151 0.5555206 0.9850088 0.4663209 0.1004149</span></span>
+<span><span class="co">#&gt;           intercept</span></span>
+<span><span class="co">#&gt; True      0.0000000</span></span>
+<span><span class="co">#&gt; Estimate -0.1698077</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

@@ -15,8 +15,8 @@
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.9/font.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Intrinsic models in the rSPDE package">
 </head>
 <body>
@@ -76,7 +76,7 @@
                         <h4 data-toc-skip class="author">David
 Bolin</h4>
             
-            <h4 data-toc-skip class="date">2024-11-14</h4>
+            <h4 data-toc-skip class="date">2024-11-21</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/intrinsic.Rmd" class="external-link"><code>vignettes/intrinsic.Rmd</code></a></small>
       <div class="d-none name"><code>intrinsic.Rmd</code></div>
@@ -232,7 +232,7 @@ For these non-fractional models, we can use the standard INLA functions
 to make the required elements.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span>
-<span><span class="co">#&gt; This is INLA_24.11.07-4 built 2024-11-07 10:48:18 UTC.</span></span>
+<span><span class="co">#&gt; This is INLA_24.11.17 built 2024-11-17 09:15:42 UTC.</span></span>
 <span><span class="co">#&gt;  - See www.r-inla.org/contact-us for how to get help.</span></span>
 <span><span class="co">#&gt;  - List available models/likelihoods/etc with inla.list.models()</span></span>
 <span><span class="co">#&gt;  - Use inla.doc(&lt;NAME&gt;) to access documentation</span></span>
@@ -253,19 +253,19 @@ to make the required elements.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 0.376, Running = 29, Post = 0.17, Total = 29.6 </span></span>
+<span><span class="co">#&gt;     Pre = 0.393, Running = 46.6, Post = 0.207, Total = 47.2 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model hyperparameters:</span></span>
 <span><span class="co">#&gt;                                          mean    sd 0.025quant 0.5quant</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations 96.19 3.475      89.56    96.12</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations 96.21 3.474      89.53    96.16</span></span>
 <span><span class="co">#&gt; Theta1 for field                        -4.52 0.089      -4.70    -4.52</span></span>
-<span><span class="co">#&gt; Theta2 for field                         2.14 0.124       1.89     2.14</span></span>
+<span><span class="co">#&gt; Theta2 for field                         2.14 0.125       1.89     2.14</span></span>
 <span><span class="co">#&gt;                                         0.975quant  mode</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations     103.24 95.96</span></span>
-<span><span class="co">#&gt; Theta1 for field                             -4.35 -4.52</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations     103.21 96.06</span></span>
+<span><span class="co">#&gt; Theta1 for field                             -4.35 -4.53</span></span>
 <span><span class="co">#&gt; Theta2 for field                              2.38  2.14</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Marginal log-Likelihood:  1333.96 </span></span>
@@ -277,9 +277,9 @@ following:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;            mean          sd 0.025quant  0.5quant 0.975quant      mode</span></span>
-<span><span class="co">#&gt; tau   0.0108941 0.000964686 0.00911897 0.0108356  0.0129109 0.0107516</span></span>
-<span><span class="co">#&gt; kappa 8.5472100 1.059540000 6.64153000 8.4881300 10.7973000 8.3732800</span></span>
+<span><span class="co">#&gt;            mean          sd 0.025quant 0.5quant 0.975quant      mode</span></span>
+<span><span class="co">#&gt; tau   0.0108929 0.000969334 0.00911795 0.010825  0.0129229 0.0107386</span></span>
+<span><span class="co">#&gt; kappa 8.5447000 1.059200000 6.62930000 8.490140 10.7832000 8.3891800</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span><span class="op">)</span>,</span>
@@ -289,8 +289,8 @@ following:</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter  true       mean       mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.01 0.01089414 0.01075158</span></span>
-<span><span class="co">#&gt; 2     kappa 10.00 8.54720969 8.37327731</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       tau  0.01 0.01089287 0.01073856</span></span>
+<span><span class="co">#&gt; 2     kappa 10.00 8.54469880 8.38918419</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="kriging-with-r-inla-implementation">Kriging with <code>R-INLA</code> implementation<a class="anchor" aria-label="anchor" href="#kriging-with-r-inla-implementation"></a>
