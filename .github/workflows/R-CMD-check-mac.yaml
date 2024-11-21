@@ -12,17 +12,12 @@ name: R-CMD-check-mac
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
 
     strategy:
       fail-fast: false
       matrix:
         config:
           - {os: macOS-latest, r: 'release'}
-
-    env:
-      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
-      R_KEEP_PKG_SOURCE: yes
 
     steps:
       - uses: actions/checkout@v4
@@ -31,19 +26,13 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
-          extra-repositories: "https://inla.r-inla-download.org/R/testing https://mugglejinx.github.io/drat/"
 
       - name: Install system dependencies on macOS
         if: runner.os == 'macOS'
         run: |
+          arch -arm64 brew install mimalloc
           brew install --cask xquartz
-          brew install pkg-config
-          brew install proj@9
-          brew install gdal
-          brew install gcc
-          brew install eigen
-          brew install gcc@14
-          brew install mimalloc
+          brew install pkg-config proj@9 gdal gcc eigen gcc@14
           sudo mkdir -p /usr/local/include
           sudo mkdir -p /usr/local/bin
           sudo ln -s $(brew --prefix gcc@14)/bin/gcc-14 /usr/local/bin/gcc
@@ -51,20 +40,18 @@ jobs:
           sudo ln -s $(brew --prefix eigen)/include/eigen3 /usr/local/include/eigen3
           echo "export DYLD_LIBRARY_PATH=$(brew --prefix mimalloc)/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          dependencies: '"all"'
-          extra-packages: |
-             rcmdcheck
-
-      - name: Session info
+      - name: Link mimalloc for INLA
+        if: runner.os == 'macOS'
         run: |
-          options(width = 100)
-          pkgs <- installed.packages()[, "Package"]
-          sessioninfo::session_info(pkgs, include_base = TRUE)
-        shell: Rscript {0}
+          mkdir -p /Users/runner/work/_temp/Library/INLA/bin/mac.arm64/malloc/
+          ln -s $(brew --prefix mimalloc)/lib/libmimalloc.2.1.dylib /Users/runner/work/_temp/Library/INLA/bin/mac.arm64/malloc/libmimalloc.2.1.dylib
 
-      - uses: r-lib/actions/check-r-package@v2
+      - name: Reinstall INLA
+        run: |
+          Rscript -e "install.packages('INLA', repos = 'https://inla.r-inla-download.org/R/testing')"
+
+      - name: Run R CMD check
+        uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
         with:
@@ -75,16 +62,13 @@ jobs:
     needs: R-CMD-check
     if: ${{ failure() && github.run_attempt < 3 }}
     runs-on: ${{ matrix.config.os }}
-    name: Retry ${{ matrix.config.os }} (${{ matrix.config.r }}) - Attempt ${{ github.run_attempt }}
+    name: Retry R-CMD-check (${{ matrix.config.os }})
 
     strategy:
+      fail-fast: false
       matrix:
         config:
           - {os: macOS-latest, r: 'release'}
-
-    env:
-      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
-      R_KEEP_PKG_SOURCE: yes
 
     steps:
       - uses: actions/checkout@v4
@@ -97,14 +81,9 @@ jobs:
       - name: Install system dependencies on macOS
         if: runner.os == 'macOS'
         run: |
+          arch -arm64 brew install mimalloc
           brew install --cask xquartz
-          brew install pkg-config
-          brew install proj@9
-          brew install gdal
-          brew install gcc
-          brew install eigen
-          brew install gcc@14
-          brew install mimalloc
+          brew install pkg-config proj@9 gdal gcc eigen gcc@14
           sudo mkdir -p /usr/local/include
           sudo mkdir -p /usr/local/bin
           sudo ln -s $(brew --prefix gcc@14)/bin/gcc-14 /usr/local/bin/gcc
@@ -112,13 +91,18 @@ jobs:
           sudo ln -s $(brew --prefix eigen)/include/eigen3 /usr/local/include/eigen3
           echo "export DYLD_LIBRARY_PATH=$(brew --prefix mimalloc)/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          dependencies: '"all"'
-          extra-packages: |
-             rcmdcheck
+      - name: Link mimalloc for INLA
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p /Users/runner/work/_temp/Library/INLA/bin/mac.arm64/malloc/
+          ln -s $(brew --prefix mimalloc)/lib/libmimalloc.2.1.dylib /Users/runner/work/_temp/Library/INLA/bin/mac.arm64/malloc/libmimalloc.2.1.dylib
 
-      - uses: r-lib/actions/check-r-package@v2
+      - name: Reinstall INLA
+        run: |
+          Rscript -e "install.packages('INLA', repos = 'https://inla.r-inla-download.org/R/testing')"
+
+      - name: Run R CMD check
+        uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
         with:
