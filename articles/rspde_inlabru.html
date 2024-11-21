@@ -321,18 +321,21 @@ hyper-parameters (i.e. dispersion in the gamma likelihood, the precision
 of the RW1, and the parameters of the spatial field):</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## inlabru version: 2.11.1</span></span>
+<pre><code><span><span class="co">## inlabru version: 2.12.0.9000</span></span>
 <span><span class="co">## INLA version: 24.11.17</span></span>
 <span><span class="co">## Components:</span></span>
-<span><span class="co">## Intercept: main = linear(1), group = exchangeable(1L), replicate = iid(1L)</span></span>
-<span><span class="co">## distSea: main = rw1(seaDist), group = exchangeable(1L), replicate = iid(1L)</span></span>
-<span><span class="co">## field: main = cgeneric(geometry), group = exchangeable(1L), replicate = iid(1L)</span></span>
+<span><span class="co">## Intercept: main = linear(1), group = exchangeable(1L), replicate = iid(1L), NULL</span></span>
+<span><span class="co">## distSea: main = rw1(seaDist), group = exchangeable(1L), replicate = iid(1L), NULL</span></span>
+<span><span class="co">## field: main = cgeneric(geometry), group = exchangeable(1L), replicate = iid(1L), NULL</span></span>
 <span><span class="co">## Likelihoods:</span></span>
 <span><span class="co">##   Family: 'Gamma'</span></span>
+<span><span class="co">##     Tag: ''</span></span>
 <span><span class="co">##     Data class: 'sf', 'data.frame'</span></span>
+<span><span class="co">##     Response class: 'numeric'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
+<span><span class="co">##     Used components: effects[Intercept, distSea, field], latent[]</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.402, Running = 7.01, Post = 0.127, Total = 7.54 </span></span>
+<span><span class="co">##     Pre = 0.402, Running = 7.06, Post = 0.124, Total = 7.59 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean   sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.941 0.04      1.862    1.941       2.02 1.941   0</span></span>
@@ -683,16 +686,19 @@ some meaningless model.</p>
 <p>We can get the summary:</p>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## inlabru version: 2.11.1</span></span>
+<pre><code><span><span class="co">## inlabru version: 2.12.0.9000</span></span>
 <span><span class="co">## INLA version: 24.11.17</span></span>
 <span><span class="co">## Components:</span></span>
-<span><span class="co">## field: main = cgeneric(geometry), group = exchangeable(1L), replicate = iid(repl)</span></span>
+<span><span class="co">## field: main = cgeneric(geometry), group = exchangeable(1L), replicate = iid(repl), NULL</span></span>
 <span><span class="co">## Likelihoods:</span></span>
 <span><span class="co">##   Family: 'gaussian'</span></span>
+<span><span class="co">##     Tag: ''</span></span>
 <span><span class="co">##     Data class: 'sf', 'data.frame'</span></span>
+<span><span class="co">##     Response class: 'numeric'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
+<span><span class="co">##     Used components: effects[field], latent[]</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.236, Running = 56.1, Post = 4.55, Total = 60.9 </span></span>
+<span><span class="co">##     Pre = 0.25, Running = 56.1, Post = 4.34, Total = 60.7 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
@@ -922,16 +928,19 @@ some meaningless model.</p>
 <p>We can get the summary:</p>
 <div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit_nonstat</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## inlabru version: 2.11.1</span></span>
+<pre><code><span><span class="co">## inlabru version: 2.12.0.9000</span></span>
 <span><span class="co">## INLA version: 24.11.17</span></span>
 <span><span class="co">## Components:</span></span>
-<span><span class="co">## field: main = cgeneric(geometry), group = exchangeable(1L), replicate = iid(1L)</span></span>
+<span><span class="co">## field: main = cgeneric(geometry), group = exchangeable(1L), replicate = iid(1L), NULL</span></span>
 <span><span class="co">## Likelihoods:</span></span>
 <span><span class="co">##   Family: 'gaussian'</span></span>
+<span><span class="co">##     Tag: ''</span></span>
 <span><span class="co">##     Data class: 'sf', 'data.frame'</span></span>
+<span><span class="co">##     Response class: 'numeric'</span></span>
 <span><span class="co">##     Predictor: y ~ .</span></span>
+<span><span class="co">##     Used components: effects[field], latent[]</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.218, Running = 10.1, Post = 0.168, Total = 10.4 </span></span>
+<span><span class="co">##     Pre = 0.218, Running = 10, Post = 0.211, Total = 10.5 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
@@ -1048,13 +1057,13 @@ Observe that the best model with respect to each score is displayed in
 the last row.</p>
 <div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cv_result</span></span></code></pre></div>
-<pre><code><span><span class="co">##           Model                dss               mse              crps</span></span>
-<span><span class="co">## 1    stationary   -0.9989982150173 0.135752315606851   0.1945883847821</span></span>
-<span><span class="co">## 2 nonstationary -0.998458491322321 0.133088258386726 0.193291932108764</span></span>
-<span><span class="co">##            Best         stationary     nonstationary     nonstationary</span></span>
+<pre><code><span><span class="co">##           Model               dss               mse              crps</span></span>
+<span><span class="co">## 1    stationary -1.00098167504745  0.13599321018961 0.195064633610543</span></span>
+<span><span class="co">## 2 nonstationary -1.00108523405259 0.133450352911517 0.193849901561569</span></span>
+<span><span class="co">##            Best     nonstationary     nonstationary     nonstationary</span></span>
 <span><span class="co">##               scrps</span></span>
-<span><span class="co">## 1 0.517129650594727</span></span>
-<span><span class="co">## 2 0.517250832192454</span></span>
+<span><span class="co">## 1 0.517874610001168</span></span>
+<span><span class="co">## 2 0.518401247113393</span></span>
 <span><span class="co">##          stationary</span></span></code></pre>
 <p>The <code><a href="../reference/cross_validation.html">cross_validation()</a></code> function also has the following
 useful options:</p>
