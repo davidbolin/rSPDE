@@ -2,6 +2,8 @@
 #include <Rinternals.h>
 #include <dlfcn.h>
 #include <stdio.h>
+#include <string.h>
+#include <assert.h>
 #include "cgeneric.h"
 
 SEXP call_dynamic_inla_cgeneric(SEXP r_cmd, SEXP r_theta, SEXP r_data, SEXP r_func_name, SEXP r_so_path) {
@@ -40,31 +42,11 @@ SEXP call_dynamic_inla_cgeneric(SEXP r_cmd, SEXP r_theta, SEXP r_data, SEXP r_fu
     }
     inla_cgeneric_cmd_tp cmd_parsed = (inla_cgeneric_cmd_tp)cmd;
 
-    // Print the parsed command name
-    const char *cmd_name = INLA_CGENERIC_CMD_NAME(cmd_parsed);
-    Rprintf("Parsed cmd = %d, Command Name = '%s'\n", cmd_parsed, cmd_name);
-
     // Parse theta
-    if (!isReal(r_theta)) {
-        Rf_error("Expected numeric vector for 'theta'.");
-    }
+    if (!isReal(r_theta)) Rf_error("Expected numeric vector for 'theta'.");
     double *theta = REAL(r_theta);
     int theta_len = LENGTH(r_theta);
     Rprintf("Received theta of length %d\n", theta_len);
-    
-    // Print values of theta
-    Rprintf("Theta values: ");
-    for (int i = 0; i < theta_len; i++) {
-        Rprintf("%f ", theta[i]);
-    }
-    Rprintf("\n");
-
-    // Debug r_data structure
-    Rprintf("Debugging r_data structure:\n");
-    for (int i = 0; i < LENGTH(r_data); i++) {
-        SEXP current_element = VECTOR_ELT(r_data, i);
-        Rprintf("Element %d: TYPEOF = %d, LENGTH = %d\n", i, TYPEOF(current_element), LENGTH(current_element));
-    }
 
     inla_cgeneric_data_tp data = {0};
 
@@ -75,24 +57,26 @@ SEXP call_dynamic_inla_cgeneric(SEXP r_cmd, SEXP r_theta, SEXP r_data, SEXP r_fu
 
     if (data.n_ints > 0) {
         data.ints = Calloc(data.n_ints, inla_cgeneric_vec_tp *);
+        SEXP int_names = getAttrib(r_ints, R_NamesSymbol);
         for (int i = 0; i < data.n_ints; i++) {
             SEXP current_int = VECTOR_ELT(r_ints, i);
-            SEXP name = getAttrib(r_ints, R_NamesSymbol);
-            const char *int_name = (name != R_NilValue) ? CHAR(STRING_ELT(name, i)) : "unnamed";
             if (TYPEOF(current_int) != INTSXP) {
-                Rf_error("ints[%d] (%s) is not of type integer (TYPEOF = %d).", i, int_name, TYPEOF(current_int));
+                Rf_error("ints[%d] is not of type integer.", i);
             }
             data.ints[i] = Calloc(1, inla_cgeneric_vec_tp);
             data.ints[i]->len = LENGTH(current_int);
             data.ints[i]->ints = INTEGER(current_int);
-            data.ints[i]->name = NULL;
-            Rprintf("Successfully parsed ints[%d] (%s):\n", i, int_name);
-            for (int j = 0; j < data.ints[i]->len && j < 10; j++) {
-                Rprintf("  %d\n", data.ints[i]->ints[j]);
+            if (int_names != R_NilValue && LENGTH(int_names) > i) {
+                data.ints[i]->name = strdup(CHAR(STRING_ELT(int_names, i)));
+            } else {
+                data.ints[i]->name = strdup("unnamed");
             }
+            Rprintf("ints[%d] (%s): ", i, data.ints[i]->name);
+            for (int j = 0; j < data.ints[i]->len; j++) {
+                Rprintf("%d ", data.ints[i]->ints[j]);
+            }
+            Rprintf("\n");
         }
-    } else {
-        data.ints = NULL; // No integers present
     }
 
     // Parse doubles
@@ -102,78 +86,111 @@ SEXP call_dynamic_inla_cgeneric(SEXP r_cmd, SEXP r_theta, SEXP r_data, SEXP r_fu
 
     if (data.n_doubles > 0) {
         data.doubles = Calloc(data.n_doubles, inla_cgeneric_vec_tp *);
+        SEXP double_names = getAttrib(r_doubles, R_NamesSymbol);
         for (int i = 0; i < data.n_doubles; i++) {
             SEXP current_double = VECTOR_ELT(r_doubles, i);
-            SEXP name = getAttrib(r_doubles, R_NamesSymbol);
-            const char *double_name = (name != R_NilValue) ? CHAR(STRING_ELT(name, i)) : "unnamed";
             if (TYPEOF(current_double) != REALSXP) {
-                Rf_error("doubles[%d] (%s) is not of type numeric (TYPEOF = %d).", i, double_name, TYPEOF(current_double));
+                Rf_error("doubles[%d] is not of type numeric.", i);
             }
             data.doubles[i] = Calloc(1, inla_cgeneric_vec_tp);
             data.doubles[i]->len = LENGTH(current_double);
             data.doubles[i]->doubles = REAL(current_double);
-            data.doubles[i]->name = NULL;
-            Rprintf("Successfully parsed doubles[%d] (%s):\n", i, double_name);
-            for (int j = 0; j < data.doubles[i]->len && j < 10; j++) {
-                Rprintf("  %f\n", data.doubles[i]->doubles[j]);
+            if (double_names != R_NilValue && LENGTH(double_names) > i) {
+                data.doubles[i]->name = strdup(CHAR(STRING_ELT(double_names, i)));
+            } else {
+                data.doubles[i]->name = strdup("unnamed");
             }
+            Rprintf("doubles[%d] (%s): ", i, data.doubles[i]->name);
+            for (int j = 0; j < data.doubles[i]->len; j++) {
+                Rprintf("%f ", data.doubles[i]->doubles[j]);
+            }
+            Rprintf("\n");
         }
-    } else {
-        data.doubles = NULL; // No doubles present
     }
 
-    // Parse dense matrices
+    // Parse character arrays
+    SEXP r_chars = VECTOR_ELT(r_data, 2); // Assuming character arrays are in the third slot
+    data.n_chars = LENGTH(r_chars);
+    Rprintf("r_chars length: %d\n", data.n_chars);
+
+    if (data.n_chars > 0) {
+        data.chars = Calloc(data.n_chars, inla_cgeneric_vec_tp *);
+        SEXP char_names = getAttrib(r_chars, R_NamesSymbol);
+
+        for (int i = 0; i < data.n_chars; i++) {
+            SEXP current_char = VECTOR_ELT(r_chars, i);
+            if (TYPEOF(current_char) != STRSXP || LENGTH(current_char) != 1) {
+                Rf_error("chars[%d] must be a single string.", i);
+            }
+
+            data.chars[i] = Calloc(1, inla_cgeneric_vec_tp);
+            data.chars[i]->len = strlen(CHAR(STRING_ELT(current_char, 0))); // Length of the string
+            data.chars[i]->chars = strdup(CHAR(STRING_ELT(current_char, 0))); // Store the string
+
+            // Store the name of the vector
+            if (char_names != R_NilValue && LENGTH(char_names) > i) {
+                data.chars[i]->name = strdup(CHAR(STRING_ELT(char_names, i)));
+            } else {
+                data.chars[i]->name = strdup("unnamed");
+            }
+
+            // Print debug info
+            Rprintf("chars[%d] (%s): %s\n", i, data.chars[i]->name, data.chars[i]->chars);
+        }
+    } else {
+        data.chars = NULL; // No character arrays present
+    }
+
+        // Parse dense matrices
     SEXP r_mats = VECTOR_ELT(r_data, 3);
     data.n_mats = LENGTH(r_mats);
     Rprintf("r_mats length: %d\n", data.n_mats);
 
     if (data.n_mats > 0) {
         data.mats = Calloc(data.n_mats, inla_cgeneric_mat_tp *);
+        SEXP mat_names = getAttrib(r_mats, R_NamesSymbol);
         for (int i = 0; i < data.n_mats; i++) {
             SEXP current_mat = VECTOR_ELT(r_mats, i);
-            SEXP name = getAttrib(r_mats, R_NamesSymbol);
-            const char *mat_name = (name != R_NilValue) ? CHAR(STRING_ELT(name, i)) : "unnamed";
-            Rprintf("mats[%d] (%s): TYPEOF = %d, LENGTH = %d\n", i, mat_name, TYPEOF(current_mat), LENGTH(current_mat));
-
-            if (current_mat == R_NilValue) {
-                Rprintf("mats[%d] (%s) is NULL\n", i, mat_name);
-                continue;
+            if (TYPEOF(current_mat) != VECSXP || LENGTH(current_mat) != 3) {
+                Rf_error("mats[%d] is not a valid dense matrix structure.", i);
             }
-
-            // Dense matrices are VECSXP and must be handled as structured objects
-            if (TYPEOF(current_mat) != VECSXP) {
-                Rf_error("mats[%d] (%s) is not a structured object (TYPEOF = %d).", i, mat_name, TYPEOF(current_mat));
-            }
-
-            // Extract nrow, ncol, and x
             SEXP r_nrow = VECTOR_ELT(current_mat, 0);
             SEXP r_ncol = VECTOR_ELT(current_mat, 1);
             SEXP r_x = VECTOR_ELT(current_mat, 2);
 
             if (TYPEOF(r_nrow) != INTSXP || LENGTH(r_nrow) != 1) {
-                Rf_error("mats[%d] (%s) has invalid 'nrow' (TYPEOF = %d, LENGTH = %d).", i, mat_name, TYPEOF(r_nrow), LENGTH(r_nrow));
+                Rf_error("mats[%d] has invalid 'nrow'.", i);
             }
             if (TYPEOF(r_ncol) != INTSXP || LENGTH(r_ncol) != 1) {
-                Rf_error("mats[%d] (%s) has invalid 'ncol' (TYPEOF = %d, LENGTH = %d).", i, mat_name, TYPEOF(r_ncol), LENGTH(r_ncol));
+                Rf_error("mats[%d] has invalid 'ncol'.", i);
             }
             if (TYPEOF(r_x) != REALSXP) {
-                Rf_error("mats[%d] (%s) has invalid 'x' (TYPEOF = %d).", i, mat_name, TYPEOF(r_x));
+                Rf_error("mats[%d] has invalid 'x'.", i);
             }
 
-            // Allocate and parse the matrix
             data.mats[i] = Calloc(1, inla_cgeneric_mat_tp);
             data.mats[i]->nrow = INTEGER(r_nrow)[0];
             data.mats[i]->ncol = INTEGER(r_ncol)[0];
             data.mats[i]->x = REAL(r_x);
 
-            Rprintf("Successfully parsed mats[%d] (%s): nrow=%d, ncol=%d\n", i, mat_name, data.mats[i]->nrow, data.mats[i]->ncol);
+            if (mat_names != R_NilValue && LENGTH(mat_names) > i) {
+                data.mats[i]->name = strdup(CHAR(STRING_ELT(mat_names, i)));
+            } else {
+                data.mats[i]->name = strdup("unnamed");
+            }
+
+            Rprintf("mats[%d] (%s): nrow=%d, ncol=%d\n", i, data.mats[i]->name, data.mats[i]->nrow, data.mats[i]->ncol);
             for (int j = 0; j < data.mats[i]->nrow * data.mats[i]->ncol && j < 10; j++) {
-                Rprintf("  x[%d]=%f\n", j, data.mats[i]->x[j]);
+                Rprintf("  x[%d] = %f\n", j, data.mats[i]->x[j]);
+            }
+            if (data.mats[i]->nrow * data.mats[i]->ncol > 10) {
+                Rprintf("  ... (only showing the first 10 elements)\n");
             }
         }
     } else {
         data.mats = NULL; // No dense matrices present
     }
+
     // Parse sparse matrices
     SEXP r_smats = VECTOR_ELT(r_data, 4);
     data.n_smats = LENGTH(r_smats);
@@ -181,24 +198,12 @@ SEXP call_dynamic_inla_cgeneric(SEXP r_cmd, SEXP r_theta, SEXP r_data, SEXP r_fu
 
     if (data.n_smats > 0) {
         data.smats = Calloc(data.n_smats, inla_cgeneric_smat_tp *);
+        SEXP smat_names = getAttrib(r_smats, R_NamesSymbol);
         for (int i = 0; i < data.n_smats; i++) {
             SEXP current_smat = VECTOR_ELT(r_smats, i);
-            SEXP name = getAttrib(r_smats, R_NamesSymbol);
-            const char *smat_name = (name != R_NilValue) ? CHAR(STRING_ELT(name, i)) : "unnamed";
-            Rprintf("smats[%d] (%s): TYPEOF = %d, LENGTH = %d\n", i, smat_name, TYPEOF(current_smat), LENGTH(current_smat));
-
-            if (current_smat == R_NilValue) {
-                Rprintf("smats[%d] (%s) is NULL\n", i, smat_name);
-                continue;
-            }
-
-            // Sparse matrices are structured as lists (VECSXP)
             if (TYPEOF(current_smat) != VECSXP || LENGTH(current_smat) != 6) {
-                Rf_error("smats[%d] (%s) does not have the required 6 components (TYPEOF = %d, LENGTH = %d).",
-                         i, smat_name, TYPEOF(current_smat), LENGTH(current_smat));
+                Rf_error("smats[%d] is not a valid sparse matrix structure.", i);
             }
-
-            // Extract components: nrow, ncol, n, i, j, and x
             SEXP r_nrow = VECTOR_ELT(current_smat, 0);
             SEXP r_ncol = VECTOR_ELT(current_smat, 1);
             SEXP r_n = VECTOR_ELT(current_smat, 2);
@@ -206,36 +211,25 @@ SEXP call_dynamic_inla_cgeneric(SEXP r_cmd, SEXP r_theta, SEXP r_data, SEXP r_fu
             SEXP r_j = VECTOR_ELT(current_smat, 4);
             SEXP r_x = VECTOR_ELT(current_smat, 5);
 
-            // Debugging component types and lengths
-            Rprintf("smats[%d] (%s) components:\n", i, smat_name);
-            Rprintf("  nrow: TYPEOF = %d, LENGTH = %d\n", TYPEOF(r_nrow), LENGTH(r_nrow));
-            Rprintf("  ncol: TYPEOF = %d, LENGTH = %d\n", TYPEOF(r_ncol), LENGTH(r_ncol));
-            Rprintf("  n: TYPEOF = %d, LENGTH = %d\n", TYPEOF(r_n), LENGTH(r_n));
-            Rprintf("  i: TYPEOF = %d, LENGTH = %d\n", TYPEOF(r_i), LENGTH(r_i));
-            Rprintf("  j: TYPEOF = %d, LENGTH = %d\n", TYPEOF(r_j), LENGTH(r_j));
-            Rprintf("  x: TYPEOF = %d, LENGTH = %d\n", TYPEOF(r_x), LENGTH(r_x));
-
-            // Validate types
             if (TYPEOF(r_nrow) != INTSXP || LENGTH(r_nrow) != 1) {
-                Rf_error("smats[%d] (%s) has invalid 'nrow' (TYPEOF = %d, LENGTH = %d).", i, smat_name, TYPEOF(r_nrow), LENGTH(r_nrow));
+                Rf_error("smats[%d] has invalid 'nrow'.", i);
             }
             if (TYPEOF(r_ncol) != INTSXP || LENGTH(r_ncol) != 1) {
-                Rf_error("smats[%d] (%s) has invalid 'ncol' (TYPEOF = %d, LENGTH = %d).", i, smat_name, TYPEOF(r_ncol), LENGTH(r_ncol));
+                Rf_error("smats[%d] has invalid 'ncol'.", i);
             }
             if (TYPEOF(r_n) != INTSXP || LENGTH(r_n) != 1) {
-                Rf_error("smats[%d] (%s) has invalid 'n' (TYPEOF = %d, LENGTH = %d).", i, smat_name, TYPEOF(r_n), LENGTH(r_n));
+                Rf_error("smats[%d] has invalid 'n'.", i);
             }
             if (TYPEOF(r_i) != INTSXP) {
-                Rf_error("smats[%d] (%s) has invalid 'i' (TYPEOF = %d).", i, smat_name, TYPEOF(r_i));
+                Rf_error("smats[%d] has invalid 'i'.", i);
             }
             if (TYPEOF(r_j) != INTSXP) {
-                Rf_error("smats[%d] (%s) has invalid 'j' (TYPEOF = %d).", i, smat_name, TYPEOF(r_j));
+                Rf_error("smats[%d] has invalid 'j'.", i);
             }
             if (TYPEOF(r_x) != REALSXP) {
-                Rf_error("smats[%d] (%s) has invalid 'x' (TYPEOF = %d).", i, smat_name, TYPEOF(r_x));
+                Rf_error("smats[%d] has invalid 'x'.", i);
             }
 
-            // Allocate and parse the sparse matrix
             data.smats[i] = Calloc(1, inla_cgeneric_smat_tp);
             data.smats[i]->nrow = INTEGER(r_nrow)[0];
             data.smats[i]->ncol = INTEGER(r_ncol)[0];
@@ -244,12 +238,18 @@ SEXP call_dynamic_inla_cgeneric(SEXP r_cmd, SEXP r_theta, SEXP r_data, SEXP r_fu
             data.smats[i]->j = INTEGER(r_j);
             data.smats[i]->x = REAL(r_x);
 
-            // Debug parsed values
-            Rprintf("Successfully parsed smats[%d] (%s): nrow=%d, ncol=%d, n=%d\n",
-                    i, smat_name, data.smats[i]->nrow, data.smats[i]->ncol, data.smats[i]->n);
+            if (smat_names != R_NilValue && LENGTH(smat_names) > i) {
+                data.smats[i]->name = strdup(CHAR(STRING_ELT(smat_names, i)));
+            } else {
+                data.smats[i]->name = strdup("unnamed");
+            }
+
+            Rprintf("smats[%d] (%s): nrow=%d, ncol=%d, n=%d\n", i, data.smats[i]->name, data.smats[i]->nrow, data.smats[i]->ncol, data.smats[i]->n);
             for (int j = 0; j < data.smats[i]->n && j < 10; j++) {
-                Rprintf("  i[%d]=%d, j[%d]=%d, x[%d]=%f\n",
-                        j, data.smats[i]->i[j], j, data.smats[i]->j[j], j, data.smats[i]->x[j]);
+                Rprintf("  i[%d] = %d, j[%d] = %d, x[%d] = %f\n", j, data.smats[i]->i[j], j, data.smats[i]->j[j], j, data.smats[i]->x[j]);
+            }
+            if (data.smats[i]->n > 10) {
+                Rprintf("  ... (only showing the first 10 entries)\n");
             }
         }
     } else {
@@ -257,45 +257,100 @@ SEXP call_dynamic_inla_cgeneric(SEXP r_cmd, SEXP r_theta, SEXP r_data, SEXP r_fu
     }
 
     Rprintf("All data successfully parsed. Calling the dynamic function now...\n");
+    
+     // Define integer constants for commands
+    #define CMD_Q 1
+    #define CMD_GRAPH 2
+    #define CMD_MU 3
+    #define CMD_LOG_NORM_CONST 4
+    #define CMD_LOG_PRIOR 5
+    #define CMD_INITIAL 6
 
     // Dynamically call the loaded function
     double *result = dynamic_function(cmd_parsed, theta, &data);
 
-    // Convert the result to an R vector
-    SEXP r_result = PROTECT(allocVector(REALSXP, theta_len));
-    for (int i = 0; i < theta_len; i++) {
-        REAL(r_result)[i] = result[i];
+    int M; // Variable to store the number of non-zero entries or other relevant sizes
+    SEXP r_result;
+
+    switch (cmd_parsed) {
+        case CMD_Q: // Allocate for M + 2
+            M = (int) result[1]; // Second element of result contains M
+            r_result = PROTECT(allocVector(REALSXP, M + 2));
+            for (int i = 0; i < M + 2; i++) {
+                REAL(r_result)[i] = result[i];
+            }
+            break;
+
+        case CMD_GRAPH: // Allocate for 2*M + 2
+            M = (int) result[1]; // Second element of result contains M
+            r_result = PROTECT(allocVector(REALSXP, 2 * M + 2));
+            for (int i = 0; i < 2 * M + 2; i++) {
+                REAL(r_result)[i] = result[i];
+            }
+            break;
+
+        case CMD_MU: // Allocate for 1
+        case CMD_LOG_NORM_CONST:
+        case CMD_LOG_PRIOR:
+            r_result = PROTECT(allocVector(REALSXP, 1));
+            REAL(r_result)[0] = result[0];
+            break;
+
+        case CMD_INITIAL: // Allocate for the length of theta
+            r_result = PROTECT(allocVector(REALSXP, LENGTH(r_theta)));
+            for (int i = 0; i < LENGTH(r_theta); i++) {
+                REAL(r_result)[i] = result[i];
+            }
+            break;
+
+        default: // Handle unknown command
+            dlclose(handle);
+            Rf_error("Unknown command received: %d", cmd_parsed);
     }
+
+    // Release memory and return
     UNPROTECT(1);
 
     // Free allocated memory
     if (data.ints) {
         for (int i = 0; i < data.n_ints; i++) {
+            Free(data.ints[i]->name);
             Free(data.ints[i]);
         }
         Free(data.ints);
     }
     if (data.doubles) {
         for (int i = 0; i < data.n_doubles; i++) {
+            Free(data.doubles[i]->name);
             Free(data.doubles[i]);
         }
         Free(data.doubles);
     }
+    if (data.chars) {
+        for (int i = 0; i < data.n_chars; i++) {
+            if (data.chars[i]) {
+                Free(data.chars[i]->name);    // Free the name string
+                Free(data.chars[i]->chars);  // Free the single string
+                Free(data.chars[i]);         // Free the struct itself
+            }
+        }
+        Free(data.chars);  // Free the array of struct pointers
+    }
     if (data.mats) {
         for (int i = 0; i < data.n_mats; i++) {
+            Free(data.mats[i]->name);
             Free(data.mats[i]);
         }
         Free(data.mats);
     }
     if (data.smats) {
         for (int i = 0; i < data.n_smats; i++) {
+            Free(data.smats[i]->name);
             Free(data.smats[i]);
         }
         Free(data.smats);
     }
 
-    // Close the shared library
     dlclose(handle);
-
     return r_result;
 }
