@@ -1,7 +1,4 @@
-R_HOME := $(shell R RHOME)
-R_LIBRARY_DIR := $(shell Rscript -e 'cat(.libPaths()[1])')
-
-toInclude = ${R_LIBRARY_DIR}/INLA/include/
+toInclude = $(R_LIBRARY_DIR)/INLA/include/
 PKG_CFLAGS = -I$(R_HOME)/include
 
 obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o \
@@ -29,24 +26,32 @@ MAC_LIB = /usr/local/brewlib
 MAC_INCLUDE = /usr/local/brewinclude
 
 UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
+
 ifeq ($(UNAME_S),Linux)
     flags = -O2 -Wall -Wextra -fpic -g -fopenmp
     LINK_FLAGS = -L$(R_HOME)/lib -lR -ldl -lm
 endif
+
 ifeq ($(UNAME_S),Darwin)
-    flags = -Wl,-ld_classic -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp -arch arm64
-    LINK_FLAGS = -L$(R_HOME)/lib -lR -ldl -lm -arch arm64
+    ifeq ($(UNAME_M),arm64)
+        flags = -Wl,-ld_classic -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp -arch arm64
+        LINK_FLAGS = -L$(R_HOME)/lib -lR -ldl -lm -arch arm64
+    else ifeq ($(UNAME_M),x86_64)
+        flags = -Wl,-ld_classic -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp -arch x86_64
+        LINK_FLAGS = -L$(R_HOME)/lib -lR -ldl -lm -arch x86_64
+    endif
 endif
 
 %.o: %.c
-	test -f ${R_LIBRARY_DIR}/INLA/include/cgeneric.h || test -f cgeneric.h || wget -O cgeneric.h https://raw.githubusercontent.com/hrue/r-inla/devel/inlaprog/src/cgeneric.h
+	test -f $(toInclude)/cgeneric.h || wget -O cgeneric.h https://raw.githubusercontent.com/hrue/r-inla/devel/inlaprog/src/cgeneric.h
 	$(CC) $(flags) $(PKG_CFLAGS) -Iinclude -I$(toInclude) -L$(R_HOME)/lib -lR -c $< -o $@ -L$(MAC_LIB) -ldl -lm
 
 %.o: %.cpp
-	$(CXX) $(flags) -I$(toInclude) -I$(EIGEN_MAC)/include/eigen3/ -I$(EIGEN_LINUX)/include/eigen3/ -c $^ -o $@
+	$(CXX) $(flags) -I$(toInclude) -I$(EIGEN_MAC)/include/eigen3/ -I$(EIGEN_LINUX)/include/eigen3/ -c $< -o $@
 
 rSPDE.so: $(obj)
-	$(CXX) $(flags) -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack $(LINK_FLAGS)
+	$(CXX) $(flags) -shared $(obj) -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack $(LINK_FLAGS)
 
 clean :
 	rm -f *.o
