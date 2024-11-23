@@ -20,24 +20,25 @@ double Q00(int i, int j, double l, double kappa, double tau){
     double kl = kappa * l;
     double c1 =  2.0 * kappa * kl;
     double C = 2.0 * kappa * pow(tau,2) / (-2.0*pow(kl,2) + cosh(2.0*kl) - 1.0);
-    
+    double out = 0;
     if( (i==0 && j == 0) || (i == 2 && j == 2) ){
-        return( C * (c1*kappa + pow(kappa,2) * sinh(2.0*kl)) );
+        out = C * (c1*kappa + pow(kappa,2) * sinh(2.0*kl));
     } else if ( (i == 0 && j == 1) || (i == 1 && j == 0) ) {
-        return( C * c1 * kl );
+        out = C * c1 * kl;
     } else if ( (i == 2 && j == 3) || (i == 3 && j == 2) ) {
-        return(-C * c1 * kl );
+        out = -C * c1 * kl;
     } else if ( (i == 0 && j == 2) || (i == 2 && j == 0) ) {
-        return( C * (-(2.0*pow(kappa,2) * sinh(kl) + c1*kappa*cosh(kl))) );
+        out =  C * (-(2.0*pow(kappa,2) * sinh(kl) + c1*kappa*cosh(kl)));
     }  else if ( (i == 0 && j == 3) || (i == 3 && j == 0) ) {
-        return( C* c1 * sinh(kl) );
+        out = C* c1 * sinh(kl);
     } else if ( (i == 1 && j == 2) || (i == 2 && j == 1) ) {
-        return(-C * c1 * sinh(kl));
+        out = -C * c1 * sinh(kl);
     } else if ( (i == 1 && j == 1) || (i == 3 && j == 3) ) {
-        return( C * (sinh(2.0*kl) - 2.0*kl) );
+        out = C * (sinh(2.0*kl) - 2.0*kl);
     } else if ( (i == 1 && j == 3) || (i == 3 && j == 1) ) {
-        return( C * (-2.0*(sinh(kl) - kl*cosh(kl))) );
+        out = C * (-2.0*(sinh(kl) - kl*cosh(kl)));
     } 
+    return(out);
 }
 
 
@@ -77,7 +78,7 @@ void compute_Q_alpha2(int *i_Tc, int *j_Tc, double *x_Tc, double kappa, double t
                         Eigen::VectorXd x_ = Eigen::VectorXd::Zero(nE*16 + 2*lower_edges_len + 2*upper_edges_len);
 
                         int count = 0;
-                        double l_e, r_0l, r_11, Qij;
+                        double l_e, Qij;
 
                         for(int i=0; i<nE; i++){
                             l_e = edge_lengths[i];

@@ -261,7 +261,7 @@ double *inla_cgeneric_rspde_intrinsic_eigen_cache(inla_cgeneric_cmd_tp cmd, doub
             {
                 // return c(P, initials)
                 // where P is the number of hyperparameters      
-                ret = Calloc(2, double);
+                ret = Calloc(3, double);
                 ret[0] = 2;
                 ret[1] = start_theta->doubles[0];
                 ret[2] = start_theta->doubles[1];

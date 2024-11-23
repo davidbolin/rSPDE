@@ -14,8 +14,8 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
     int N = data->ints[0]->ints[0];
     assert(N > 0);
 
-    assert(!strcasecmp(data->ints[1]->name, "debug"));
-    int debug = data->ints[1]->ints[0];
+    //assert(!strcasecmp(data->ints[1]->name, "debug"));
+    //int debug = data->ints[1]->ints[0];
 
     // Basic parameter assertions and retrievals
     assert(!strcasecmp(data->ints[2]->name, "d"));
@@ -33,8 +33,8 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
     assert(!strcasecmp(data->ints[6]->name, "n_M2list"));
     int n_M2list = data->ints[6]->ints[0];
     
-    assert(!strcasecmp(data->ints[7]->name, "n_M2list2"));
-    int n_M2list2 = data->ints[7]->ints[0];
+    //assert(!strcasecmp(data->ints[7]->name, "n_M2list2"));
+    //int n_M2list2 = data->ints[7]->ints[0];
     
     assert(!strcasecmp(data->ints[8]->name, "drift"));
     int drift = data->ints[8]->ints[0];
@@ -54,6 +54,8 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
 
     if(d == 2){
         prior_rho2_mean = data->doubles[3]->doubles[1];
+    } else {
+        prior_rho2_mean = NAN;
     }
 
     // Beta and Alpha

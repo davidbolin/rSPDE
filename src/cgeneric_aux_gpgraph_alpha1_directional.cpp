@@ -10,7 +10,7 @@ void compute_Q_alpha1_directional(int *i_Tc, int *j_Tc, double *x_Tc, double kap
                     
                         typedef Eigen::Triplet<double> Trip;
                         std::vector<Trip> trp_Tc;
-                        int k, i;
+                        int k;
 
                         
                         // Assemble Tc

@@ -323,5 +323,32 @@ augment(fit, newdata = df_pred, loc = "loc", which_repl = 1) %>% ggplot() +
                 geom_point(data = df_data[df_data$repl==1,], aes(x = loc, y=y))
 ```
 
+## Using the models in INLA
+
+```{r}
+library(INLA)
+library(rSPDE)
+kappa <- 20
+sigma <- 2
+nu <- 0.8
+sigma.e <- 0.1
+n.obs <- 100
+r <- sqrt(8*nu)/kappa 
+s <- seq(from = 0, to = 1, length.out = n.obs)
+op_cov <- matern.rational(loc = s, nu = nu, range = r, sigma = sigma, m = 2, parameterization = "matern")
+u <- simulate(op_cov)
+Y <- u + sigma.e * rnorm(n.obs)
+plot(s, u, type = "l")
+points(s,Y,col=2)
+```
+```{r}
+inla_model <- rspde.matern(loc = s)
+st.dat <- inla.stack(data = list(y = as.vector(Y)), A = inla_model$A, effects = inla_model$index)
+res <- inla(y ~ -1 + f(field, model = inla_model), 
+        data = inla.stack.data(st.dat),
+        family = "gaussian",
+        control.predictor = list(A = inla.stack.A(st.dat)),
+        verbose = TRUE)
+```
 
 ## References
