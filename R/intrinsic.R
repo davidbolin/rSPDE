@@ -65,7 +65,7 @@ intrinsic.operators <- function(C,
 
   if (is.null(fem_mesh_matrices)) {
     if (!is.null(mesh)) {
-      d <- get_inla_mesh_dimension(inla_mesh = mesh)
+      d <- fmesher::fm_manifold_dim(mesh)
       m_alpha <- floor(alpha)
       m_order <- m_alpha + 1
 
@@ -153,7 +153,7 @@ intrinsic.operators <- function(C,
     m_alpha <- floor(alpha)
     m_order <- m_alpha + 1
     if (!is.null(mesh)) {
-      d <- get_inla_mesh_dimension(inla_mesh = mesh)
+      d <- fmesher::fm_manifold_dim(mesh)
     }
     Gk <- list()
     Gk[[1]] <- G
@@ -527,7 +527,7 @@ intrinsic.matern.operators <- function(kappa,
   }
 
   if (!is.null(mesh)) {
-    d <- get_inla_mesh_dimension(inla_mesh = mesh)
+    d <- fmesher::fm_manifold_dim(mesh)
     # fem <- INLA::inla.mesh.fem(mesh)
     fem <- fmesher::fm_fem(mesh)
     C <- fem$c0

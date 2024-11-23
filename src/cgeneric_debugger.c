@@ -262,9 +262,9 @@ SEXP call_dynamic_inla_cgeneric(SEXP r_cmd, SEXP r_theta, SEXP r_data, SEXP r_fu
     #define CMD_Q 1
     #define CMD_GRAPH 2
     #define CMD_MU 3
-    #define CMD_LOG_NORM_CONST 4
-    #define CMD_LOG_PRIOR 5
-    #define CMD_INITIAL 6
+    #define CMD_INITIAL 4
+    #define CMD_LOG_NORM_CONST 5
+    #define CMD_LOG_PRIOR 6
 
     // Dynamically call the loaded function
     double *result = dynamic_function(cmd_parsed, theta, &data);
@@ -297,8 +297,9 @@ SEXP call_dynamic_inla_cgeneric(SEXP r_cmd, SEXP r_theta, SEXP r_data, SEXP r_fu
             break;
 
         case CMD_INITIAL: // Allocate for the length of theta
-            r_result = PROTECT(allocVector(REALSXP, LENGTH(r_theta)));
-            for (int i = 0; i < LENGTH(r_theta); i++) {
+            M = (int) result[0];
+            r_result = PROTECT(allocVector(REALSXP, M+1));
+            for (int i = 0; i < M+1; i++) {
                 REAL(r_result)[i] = result[i];
             }
             break;

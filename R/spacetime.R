@@ -74,7 +74,7 @@ spacetime.operators <- function(mesh_space = NULL,
     } 
     
     if(!is.null(mesh_time)){
-        d_time <- get_inla_mesh_dimension(inla_mesh = mesh_time)
+        d_time <- fmesher::fm_manifold_dim(mesh_time)
         if(d_time != 1) {
             stop("mesh_time should be a 1d mesh")
         }
@@ -121,7 +121,7 @@ spacetime.operators <- function(mesh_space = NULL,
         has_graph <- TRUE
     } else if (!is.null(mesh_space)) {
         mesh <- mesh_space
-        d <- get_inla_mesh_dimension(inla_mesh = mesh)
+        d <- fmesher::fm_manifold_dim(mesh)
         if(d==2){
             P <- mesh$loc[,1:2]
             FV <- mesh$graph$tv
@@ -1015,7 +1015,7 @@ rSPDE.Ast <- function(mesh_space = NULL,
     }
     
     if(!is.null(mesh_time)){
-        d_time <- get_inla_mesh_dimension(inla_mesh = mesh_time)
+        d_time <- fmesher::fm_manifold_dim(mesh_time)
         if(d_time != 1) {
             stop("mesh_time should be a 1d mesh")
         }

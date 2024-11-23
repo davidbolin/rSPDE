@@ -38,10 +38,8 @@ ifeq ($(UNAME_S),Darwin)
     LINK_FLAGS = -L$(R_HOME)/lib -lR -ldl -lm -arch arm64
 endif
 
-cgeneric.h:
-	wget -O cgeneric.h https://raw.githubusercontent.com/hrue/r-inla/devel/inlaprog/src/cgeneric.h
-
 %.o: %.c
+	test -f ${R_LIBRARY_DIR}/INLA/include/cgeneric.h || test -f cgeneric.h || wget -O cgeneric.h https://raw.githubusercontent.com/hrue/r-inla/devel/inlaprog/src/cgeneric.h
 	$(CC) $(flags) $(PKG_CFLAGS) -Iinclude -I$(toInclude) -L$(R_HOME)/lib -lR -c $< -o $@ -L$(MAC_LIB) -ldl -lm
 
 %.o: %.cpp
