@@ -44,8 +44,8 @@ double *inla_cgeneric_rspde_anisotropic2d_model(inla_cgeneric_cmd_tp cmd, double
     int N = data->ints[0]->ints[0];
     assert(N > 0);
 
-    assert(!strcasecmp(data->ints[1]->name, "debug"));
-    int debug = data->ints[1]->ints[0];
+    //assert(!strcasecmp(data->ints[1]->name, "debug"));
+    //int debug = data->ints[1]->ints[0];
 
     // Basic parameter assertions and retrievals
     assert(!strcasecmp(data->ints[2]->name, "est_nu"));
@@ -132,6 +132,8 @@ double *inla_cgeneric_rspde_anisotropic2d_model(inla_cgeneric_cmd_tp cmd, double
         if(est_nu == 1){
             lnu = theta[4];
             nu = forward_nu(lnu, nu_upper_bound);            
+        } else {
+            lnu = nu = NAN;
         }
 
         sigma = exp(lsigma);

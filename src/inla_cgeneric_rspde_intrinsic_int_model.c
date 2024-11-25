@@ -6,7 +6,7 @@ double *inla_cgeneric_rspde_intrinsic_int_model(inla_cgeneric_cmd_tp cmd,
 
   double *ret = NULL;
   double ltau, lkappa, tau, kappa;
-  int d, alpha;
+  int alpha;
   
   int N, M, i, k;
   
@@ -21,8 +21,8 @@ double *inla_cgeneric_rspde_intrinsic_int_model(inla_cgeneric_cmd_tp cmd,
     debug = 1;
   }
 
-  assert(!strcasecmp(data->ints[4]->name, "d"));
-  d = data->ints[4]->ints[0];
+  //assert(!strcasecmp(data->ints[4]->name, "d"));
+  //int d = data->ints[4]->ints[0];
   
   assert(!strcasecmp(data->ints[5]->name, "alpha"));
   alpha = data->ints[5]->ints[0];
