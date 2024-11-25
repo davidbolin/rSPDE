@@ -68,7 +68,7 @@ rspde.intrinsic.matern <- function(mesh,
     rspde_lib <- get_shared_library(shared_lib)
 
     if (inherits(mesh, c("fm_mesh_1d", "fm_mesh_2d"))) {
-        d <- get_inla_mesh_dimension(mesh)
+        d <- fmesher::fm_manifold_dim(mesh)
     } else if (!is.null(mesh$d)) {
         d <- mesh$d
     } else {

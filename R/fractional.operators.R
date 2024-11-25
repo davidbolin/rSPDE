@@ -481,7 +481,7 @@ matern.operators <- function(kappa = NULL,
   }
 
   if (!is.null(mesh)) {
-    d <- get_inla_mesh_dimension(inla_mesh = mesh)
+    d <- fmesher::fm_manifold_dim(mesh)
     # fem <- INLA::inla.mesh.fem(mesh)
     # fem <- fmesher::fm_fem(mesh)
     fem <- fm_fem(mesh)
@@ -821,7 +821,7 @@ CBrSPDE.matern.operators <- function(C,
   if (is.null(fem_mesh_matrices)) {
     if (!is.null(mesh)) {
       ## get alpha, m_alpha
-      d <- get_inla_mesh_dimension(inla_mesh = mesh)
+      d <- fmesher::fm_manifold_dim(mesh)
       alpha <- nu + d / 2
       m_alpha <- floor(alpha)
       m_order <- m_alpha + 1
@@ -918,7 +918,7 @@ CBrSPDE.matern.operators <- function(C,
     m_alpha <- floor(alpha)
     m_order <- m_alpha + 1
     if (!is.null(mesh)) {
-      d <- get_inla_mesh_dimension(inla_mesh = mesh)
+      d <- fmesher::fm_manifold_dim(mesh)
     }
     # tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
     # (4 * pi)^(d / 2) * gamma(nu + d / 2)))
@@ -1235,7 +1235,7 @@ spde.matern.operators <- function(kappa = NULL,
   }
 
   if (!is.null(mesh)) {
-    d <- get_inla_mesh_dimension(inla_mesh = mesh)
+    d <- fmesher::fm_manifold_dim(mesh)
     # fem <- INLA::inla.mesh.fem(mesh)
     # fem <- fmesher::fm_fem(mesh)
     fem <- fm_fem(mesh)
@@ -1677,7 +1677,7 @@ matern2d.operators <- function(hx = NULL,
             stop("The mesh should be created using INLA or fmesher!")
         }
 
-        d <- get_inla_mesh_dimension(inla_mesh = mesh)
+        d <- fmesher::fm_manifold_dim(mesh)
         if(d != 2) {
             stop("Only 2d domains supported")
         }

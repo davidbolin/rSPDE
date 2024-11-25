@@ -512,24 +512,6 @@ check_class_inla_rspde <- function(model) {
   }
 }
 
-#' @name get_inla_mesh_dimension
-#' @title Get the dimension of an INLA mesh
-#' @description Get the dimension of an INLA mesh
-#' @param inla_mesh An INLA mesh
-#' @return The dimension of an INLA mesh.
-#' @noRd
-
-
-get_inla_mesh_dimension <- function(inla_mesh) {
-  if (!fmesher::fm_manifold(inla_mesh, c("R1", "S1", "R2", "S2"))) {
-    # FL : Is this actually required? E.g., is S1 not allowed, and other valid
-    # fmesher manifold types that support fm_fem() etc?
-    stop("The mesh should be from a flat or spherical manifold.")
-  }
-  d <- fmesher::fm_manifold_dim(inla_mesh)
-  return(d)
-}
-
 #' @name fem_mesh_order_1d
 #' @title Get fem_mesh_matrices for 1d inla.mesh objects
 #' @description Get fem_mesh_matrices for 1d inla.mesh objects

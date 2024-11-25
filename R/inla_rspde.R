@@ -177,7 +177,7 @@ rspde.matern <- function(mesh,
   }
 
   if (inherits(mesh, c("fm_mesh_1d", "fm_mesh_2d"))) {
-    d <- get_inla_mesh_dimension(mesh)
+    d <- fmesher::fm_manifold_dim(mesh)
   } else if (!is.null(mesh$d)) {
     d <- mesh$d
   } else {
@@ -953,7 +953,7 @@ spde.make.A <- function(mesh = NULL,
     cond3 <- inherits(mesh, "metric_graph")
     stopifnot(cond1 || cond2 || cond3)
     if (cond1 || cond2) {
-      dim <- get_inla_mesh_dimension(mesh)
+      dim <- fmesher::fm_manifold_dim(mesh)
     } else if (cond3) {
       dim <- 1
     }
@@ -1133,7 +1133,7 @@ rspde.make.A <- function(mesh = NULL,
     cond3 <- inherits(mesh, "metric_graph")
     stopifnot(cond1 || cond2 || cond3)
     if (cond1 || cond2) {
-      dim <- get_inla_mesh_dimension(mesh)
+      dim <- fmesher::fm_manifold_dim(mesh)
     } else if (cond3) {
       dim <- 1
     }
@@ -1345,7 +1345,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
     stopifnot(cond1 || cond2 || cond3)
     if (cond1 || cond2) {
       n_mesh <- fmesher::fm_dof(mesh)
-      dim <- get_inla_mesh_dimension(mesh)
+      dim <- fmesher::fm_manifold_dim(mesh)
     } else if (cond3) {
       dim <- 1
       # n_mesh <- nrow(mesh$mesh$VtE)
@@ -2580,7 +2580,7 @@ rspde.mesh.projector <- function(mesh,
   args_list[["dims"]] <- dims
   # out <- do.call(INLA::inla.mesh.projector, args_list)
   out <- do.call(fmesher::fm_evaluator, args_list)
-  dim <- get_inla_mesh_dimension(mesh)
+  dim <- fmesher::fm_manifold_dim(mesh)
 
   out$proj$A <- rspde.make.A(
     A = out$proj$A, rspde.order = rspde.order, dim = dim,
