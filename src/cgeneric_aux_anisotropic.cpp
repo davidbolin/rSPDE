@@ -108,7 +108,8 @@ extern "C" {
     const inla_cgeneric_smat_tp *Hxy,
     const inla_cgeneric_smat_tp *Q_graph,    
     double *ret, int rspde_order,
-    const inla_cgeneric_mat_tp *rational_table);
+    const inla_cgeneric_mat_tp *rational_table,
+    int est_nu);
 }
 
 void compute_Q_anisotropic(double hx, double hy, double hxy, double sigma, double nu,
@@ -119,7 +120,8 @@ void compute_Q_anisotropic(double hx, double hy, double hxy, double sigma, doubl
     const inla_cgeneric_smat_tp *Hxy,
     const inla_cgeneric_smat_tp *Q_graph,
     double *ret, int rspde_order,
-    const inla_cgeneric_mat_tp *rational_table) {
+    const inla_cgeneric_mat_tp *rational_table,
+    int est_nu) {
         
         double alpha = nu + 1.0;
 
@@ -144,7 +146,7 @@ void compute_Q_anisotropic(double hx, double hy, double hxy, double sigma, doubl
         SparseMatrixColMajor CiL = Ci_eigen * L;
 
         SparseMatrixColMajor Q;
-        if (std::floor(alpha) == alpha) { // Check if alpha is an integer
+        if (std::floor(alpha) == alpha && est_nu == 0) { // Check if alpha is an integer
             Q = L;
                 if (alpha > 1) {
                     for (int k = 1; k < alpha; ++k) {

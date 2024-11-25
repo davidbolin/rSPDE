@@ -231,29 +231,3 @@ bru_get_mapper.inla_rspde_anisotropic2d <- function(model, ...) {
   }
 }
 
-
-
-#####################################################
-#####################################################
-###### HELPER FUNCTIONS FOR CGENERIC DEBUGGING ######
-#####################################################
-#####################################################
-
-
-# library(fmesher)
-# n_loc <- 20
-# loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
-# mesh_2d <- fm_mesh_2d(
-#     loc = loc_2d_mesh,
-#     cutoff = 0.01,
-#     max.edge = c(0.1, 0.5)
-# )
-# library(inlabru)
-# library(rSPDE)
-# model_aniso <- rspde.anistropic2d(mesh = mesh_2d)
-
-
-# Q <- call_dynamic_cgeneric_model(model_aniso, cmd = "Q", theta = c(-1,-1,0,0,0))
-# graph <- call_dynamic_cgeneric_model(model_aniso, cmd = "graph", theta = c(-1,-1,0,0,0))
-
-# Q_full <- build_Q_cgeneric(Q, graph)

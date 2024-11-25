@@ -113,7 +113,8 @@ void compute_Q_anisotropic(
     const inla_cgeneric_smat_tp *Hxy,
     const inla_cgeneric_smat_tp *Q_graph,    
     double *ret, int rspde_order,
-    const inla_cgeneric_mat_tp *rational_table);
+    const inla_cgeneric_mat_tp *rational_table,
+    int est_nu);
 
 void compute_Q1d(int n, double *loc, int rspde_order, double kappa,
                  double sigma, double *rat_p, double *rat_r, double rat_k,
