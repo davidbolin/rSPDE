@@ -179,7 +179,7 @@ matern.rational = function(graph = NULL,
     equally_spaced = FALSE
     if(!is.null(loc)) {
         lu <- unique(diff(sort(loc)))
-        if(sqrt(var(unique(diff(lu)))) < 1e-10) {
+        if(length(lu) == 1 || sqrt(var(unique(diff(lu)))) < 1e-10) {
             equally_spaced = TRUE
         }
     }
@@ -741,7 +741,7 @@ matern.rational.ldl <- function(loc,
         tmp <- matern.p.chol(loc = loc,kappa = kappa,p = 0,
                              equally_spaced = equally_spaced, alpha = alpha) 
         L <- tmp$Bs
-        D <- tmp$Fsi
+        D <- tmp$Fsi/sigma^2
         A <- tmp$A
     } else {
         coeff <- interp_rational_coefficients(order = order, 
@@ -1117,15 +1117,9 @@ matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
             counter2 <- 1
             if(fa > 1) {
                 for(k in 2:fa) {
-                    if(0) { #k > 2
-                        ss <- Sdiag[1:(k-1),1:(k-1)]
-                        prec <- diag(1/sqrt(diag(ss)))
-                        tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sdiag[1:(k-1),k])  
-                    } else {
-                        tmp <- solve(Sdiag[1:(k-1),1:(k-1)], Sdiag[1:(k-1),k])   
-                    }
-                    
-                    
+            
+                    tmp <- solve(Sdiag[1:(k-1),1:(k-1)], Sdiag[1:(k-1),k])   
+            
                     val[counter2 + (1:k)] <- c(-t(tmp),1)
                     ii[counter2 + (1:k)] <- rep(counter,k)
                     jj[counter2 + (1:k)] <- (counter-k+1):counter
@@ -1150,13 +1144,8 @@ matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
 
             } 
             for(k in (fa+1):(2*fa)) {
-                if(0) { #k > 2
-                    ss <- Sigma[1:(k-1),1:(k-1)]
-                    prec <- diag(1/sqrt(diag(ss)))
-                    tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sigma[1:(k-1),k])    
-                } else {
-                    tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])   
-                }
+       
+                tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])   
                 
                 val[counter2 + (1:k)] <- c(-tmp,1)
                 ii[counter2 + (1:k)] <- rep(counter,k)
@@ -1187,12 +1176,14 @@ matern.k.chol <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
     n <- length(loc)
     
     fa <- floor(alpha)
-    if(fa == 0) {
-        N <- n 
-    } else {
-        N <- n*fa^2 + (n-1)*fa^2 - n*fa*(fa -1)/2    
-    }
+    #if(fa == 0) {
+    #    N <- n 
+    #} else {
+    #    N <- n*fa^2 + (n-1)*fa^2 - n*fa*(fa -1)/2    
+    #}
+    
     fa <- max(fa,1)
+    N <- n*fa^2 + (n-1)*fa^2 - n*fa*(fa -1)/2    
     ii <- numeric(N)
     jj <- numeric(N)
     val <- numeric(N)
@@ -1242,24 +1233,11 @@ matern.k.chol <- function(loc,kappa,equally_spaced = FALSE, alpha = 1) {
             }
         } else {
             if(!equally_spaced){
-                
-                #Sigma <- rbind(cbind(matern.k.joint(loc[i-1],loc[i-1],kappa,alpha),
-                #                     matern.k.joint(loc[i-1],loc[i],kappa,alpha)),
-                #               cbind(matern.k.joint(loc[i],loc[i-1],kappa,alpha),
-                #                     matern.k.joint(loc[i],loc[i],kappa,alpha)))
-                
                 Sigma[1:fa,(fa+1):(2*fa)] <- matern.k.joint(loc[i-1],loc[i],kappa,alpha)
                 Sigma[(fa+1):(2*fa),1:fa] <- Stransp*Sigma[1:fa,(fa+1):(2*fa)]
             } 
             for(k in (fa+1):(2*fa)) {
-                #tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])
-                if(0) { #k > 2
-                    ss <- Sigma[1:(k-1),1:(k-1)]
-                    prec <- diag(1/sqrt(diag(ss)))
-                    tmp <- prec%*%solve(prec%*%ss%*%prec, prec%*%Sigma[1:(k-1),k])  
-                } else {
-                    tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])   
-                }
+                tmp <- solve(Sigma[1:(k-1),1:(k-1)], Sigma[1:(k-1),k])   
                 val[counter2 + (1:k)] <- c(-t(tmp),1)
                 ii[counter2 + (1:k)] <- rep(counter,k)
                 jj[counter2 + (1:k)] <- (counter-k+1):counter
