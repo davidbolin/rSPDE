@@ -351,7 +351,6 @@ res <- inla(y ~ -1 + f(field, model = inla_model),
 ```
 Let us look at some summaries of the fit:
 ```{r}
-inla_model$stationary = TRUE
 result_fit <- rspde.result(res, "field", inla_model, parameterization = "matern") 
 summary(result_fit)
 posterior_df_fit <- gg_df(result_fit)
