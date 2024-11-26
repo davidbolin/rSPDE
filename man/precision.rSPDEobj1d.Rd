@@ -6,13 +6,13 @@
 \usage{
 \method{precision}{rSPDEobj1d}(
   object,
-  user_loc = NULL,
-  user_nu = NULL,
-  user_kappa = NULL,
-  user_sigma = NULL,
-  user_range = NULL,
-  user_tau = NULL,
-  user_m = NULL,
+  loc = NULL,
+  nu = NULL,
+  kappa = NULL,
+  sigma = NULL,
+  range = NULL,
+  tau = NULL,
+  m = NULL,
   ordering = c("field", "location"),
   ldl = FALSE,
   ...
@@ -22,23 +22,23 @@
 \item{object}{The covariance-based rational SPDE approximation,
 computed using \code{\link[=matern.rational]{matern.rational()}}}
 
-\item{user_loc}{If non-null, update the locations where to evaluate the model.}
+\item{loc}{If non-null, update the locations where to evaluate the model.}
 
-\item{user_nu}{If non-null, update the shape parameter of the
+\item{nu}{If non-null, update the shape parameter of the
 covariance function.}
 
-\item{user_kappa}{If non-null, update the range parameter of
+\item{kappa}{If non-null, update the range parameter of
 the covariance function.}
 
-\item{user_sigma}{If non-null, update the standard deviation of
+\item{sigma}{If non-null, update the standard deviation of
 the covariance function.}
 
-\item{user_range}{If non-null, update the range parameter
+\item{range}{If non-null, update the range parameter
 of the covariance function.}
 
-\item{user_tau}{If non-null, update the parameter tau.}
+\item{tau}{If non-null, update the parameter tau.}
 
-\item{user_m}{If non-null, update the order of the rational approximation,
+\item{m}{If non-null, update the order of the rational approximation,
 which needs to be a positive integer.}
 
 \item{ordering}{Return the matrices ordered by field or by location?}

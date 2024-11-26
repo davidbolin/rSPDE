@@ -10,8 +10,8 @@ construct.spde.matern.loglike(
   A,
   sigma.e = NULL,
   mu = 0,
-  user_nu = NULL,
-  user_m = NULL,
+  nu = NULL,
+  m = NULL,
   log_scale = TRUE,
   return_negative_likelihood = TRUE
 )
@@ -31,9 +31,9 @@ the returned likelihood.}
 
 \item{mu}{Expectation vector of the latent field (default = 0).}
 
-\item{user_nu}{If non-null, the shape parameter will be kept fixed in the returned likelihood.}
+\item{nu}{If non-null, the shape parameter will be kept fixed in the returned likelihood.}
 
-\item{user_m}{If non-null, update the order of the rational approximation,
+\item{m}{If non-null, update the order of the rational approximation,
 which needs to be a positive integer.}
 
 \item{log_scale}{Should the parameters be evaluated in log-scale?}

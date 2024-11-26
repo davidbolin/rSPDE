@@ -81,17 +81,17 @@ simulate.rSPDEobj <- function(object,
 #' @description Function to change the parameters of a CBrSPDEobj object
 #' @param object The covariance-based rational SPDE approximation,
 #' computed using [matern.operators()]
-#' @param user_kappa If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.
-#' @param user_tau If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param kappa If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.
+#' @param tau If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function. Will be used if parameterization is 'matern'.
-#' @param user_range If non-null, update the range parameter
+#' @param range If non-null, update the range parameter
 #' of the covariance function. Will be used if parameterization is 'matern'.
-#' @param user_theta For non-stationary models. If non-null, update the vector of parameters.
-#' @param user_nu If non-null, update the shape parameter of the
+#' @param theta For non-stationary models. If non-null, update the vector of parameters.
+#' @param nu If non-null, update the shape parameter of the
 #' covariance function. Will be used if parameterization is 'matern'.
-#' @param user_alpha If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.
-#' @param user_m If non-null, update the order of the rational
+#' @param alpha If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.
+#' @param m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
 #' @param mesh An optional inla mesh. Replaces `d`, `C` and `G`.
 #' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`.
@@ -133,16 +133,16 @@ simulate.rSPDEobj <- function(object,
 #' op_cov
 #'
 #' # Update the range parameter of the model:
-#' op_cov <- update(op_cov, user_kappa = 20)
+#' op_cov <- update(op_cov, kappa = 20)
 #' op_cov
 #'
-update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
-                              user_kappa = NULL,
-                              user_tau = NULL,
-                              user_sigma = NULL,
-                              user_range = NULL,
-                              user_theta = NULL,
-                              user_m = NULL,
+update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
+                              kappa = NULL,
+                              tau = NULL,
+                              sigma = NULL,
+                              range = NULL,
+                              theta = NULL,
+                              m = NULL,
                               mesh = NULL,
                               loc_mesh = NULL,
                               graph = NULL,
@@ -159,8 +159,8 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
   if (object$stationary) {
     fem_mesh_matrices <- object$fem_mesh_matrices
 
-    if (is.null(user_nu) && !(object$higher_order) && compute_higher_order) {
-      user_nu <- object$nu
+    if (is.null(nu) && !(object$higher_order) && compute_higher_order) {
+      nu <- object$nu
     }
 
     new_object[["fem_mesh_matrices"]] <- fem_mesh_matrices
@@ -175,49 +175,49 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
     }
 
     if (parameterization == "spde") {
-      if (!is.null(user_kappa)) {
-        new_object$kappa <- rspde_check_user_input(user_kappa, "kappa", 0)
+      if (!is.null(kappa)) {
+        new_object$kappa <- rspde_check_user_input(kappa, "kappa", 0)
         new_object$range <- NULL
         new_object$sigma <- NULL
       }
 
-      if (!is.null(user_tau)) {
-        new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
+      if (!is.null(tau)) {
+        new_object$tau <- rspde_check_user_input(tau, "tau", 0)
         new_object$sigma <- NULL
       }
 
-      if (!is.null(user_alpha)) {
-        alpha <- rspde_check_user_input(user_alpha, "alpha", d / 2)
-        user_nu <- alpha - d / 2
-        new_object$nu <- user_nu
+      if (!is.null(alpha)) {
+        alpha <- rspde_check_user_input(alpha, "alpha", d / 2)
+        nu <- alpha - d / 2
+        new_object$nu <- nu
         new_object$alpha <- alpha
       }
     } else if (parameterization == "matern") {
-      if (!is.null(user_range)) {
-        new_object$range <- rspde_check_user_input(user_range, "range", 0)
+      if (!is.null(range)) {
+        new_object$range <- rspde_check_user_input(range, "range", 0)
         new_object$kappa <- NULL
         new_object$tau <- NULL
       }
 
-      if (!is.null(user_sigma)) {
-        new_object$sigma <- rspde_check_user_input(user_sigma, "sigma", 0)
+      if (!is.null(sigma)) {
+        new_object$sigma <- rspde_check_user_input(sigma, "sigma", 0)
         new_object$tau <- NULL
       }
-      if (!is.null(user_nu)) {
-        new_object$nu <- rspde_check_user_input(user_nu, "nu")
+      if (!is.null(nu)) {
+        new_object$nu <- rspde_check_user_input(nu, "nu")
       }
       alpha <- new_object$nu + d / 2
       new_object$alpha <- alpha
     }
     # else if(parameterization == "graph"){
-    #   if (!is.null(user_kappa)) {
-    #     new_object$kappa <- rspde_check_user_input(user_kappa, "kappa")
+    #   if (!is.null(kappa)) {
+    #     new_object$kappa <- rspde_check_user_input(kappa, "kappa")
     #     new_object$range <- NULL
     #     new_object$tau <- NULL
     #   }
 
-    #   if (!is.null(user_sigma)) {
-    #     new_object$sigma <- rspde_check_user_input(user_sigma, "sigma")
+    #   if (!is.null(sigma)) {
+    #     new_object$sigma <- rspde_check_user_input(sigma, "sigma")
     #     new_object$tau <- NULL
     #   }
     # }
@@ -240,8 +240,8 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
     }
 
 
-    if (!is.null(user_m)) {
-      new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+    if (!is.null(m)) {
+      new_object$m <- as.integer(rspde_check_user_input(m, "m", 0))
     }
 
     if (is.null(mesh)) {
@@ -301,23 +301,23 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
   } else {
     ## get parameters
 
-    if (!is.null(user_tau)) {
-      new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
+    if (!is.null(tau)) {
+      new_object$tau <- rspde_check_user_input(tau, "tau", 0)
     }
 
-    if (!is.null(user_kappa)) {
-      new_object$kappa <- rspde_check_user_input(user_kappa, "kappa", 0)
+    if (!is.null(kappa)) {
+      new_object$kappa <- rspde_check_user_input(kappa, "kappa", 0)
     }
 
-    if (!is.null(user_theta)) {
-      if (!is.numeric(user_theta)) {
-        stop("user_theta must be numeric!")
+    if (!is.null(theta)) {
+      if (!is.numeric(theta)) {
+        stop("theta must be numeric!")
       }
-      new_object$theta <- user_theta
+      new_object$theta <- theta
     }
 
-    if (!is.null(user_m)) {
-      new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+    if (!is.null(m)) {
+      new_object$m <- as.integer(rspde_check_user_input(m, "m", 0))
     }
 
     if (is.null(mesh)) {
@@ -343,15 +343,15 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
     }
 
     if (parameterization == "spde") {
-      if (!is.null(user_alpha)) {
-        alpha <- rspde_check_user_input(user_alpha, "alpha", d / 2)
-        user_nu <- alpha - d / 2
-        new_object$nu <- user_nu
+      if (!is.null(alpha)) {
+        alpha <- rspde_check_user_input(alpha, "alpha", d / 2)
+        nu <- alpha - d / 2
+        new_object$nu <- nu
         new_object$alpha <- alpha
       }
     } else if (parameterization == "matern") {
-      if (!is.null(user_nu)) {
-        new_object$nu <- rspde_check_user_input(user_nu, "nu")
+      if (!is.null(nu)) {
+        new_object$nu <- rspde_check_user_input(nu, "nu")
       }
       alpha <- new_object$nu + d / 2
       new_object$alpha <- alpha
@@ -406,14 +406,14 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
 #' @description Function to change the parameters of a CBrSPDEobj object
 #' @param object The covariance-based rational SPDE approximation,
 #' computed using [matern2d.operators()]
-#' @param user_hx If non-null, update the hx parameter.
-#' @param user_hy If non-null, update the hy parameter.
-#' @param user_hxy If non-null, update the hxy parameter.
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param hx If non-null, update the hx parameter.
+#' @param hy If non-null, update the hy parameter.
+#' @param hxy If non-null, update the hxy parameter.
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function. 
-#' @param user_nu If non-null, update the shape parameter of the
+#' @param nu If non-null, update the shape parameter of the
 #' covariance function. Will be used if parameterization is 'matern'.
-#' @param user_m If non-null, update the order of the rational
+#' @param m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
 #' @param ... Currently not used.
 #' @return It returns an object of class "CBrSPDEobj2d. 
@@ -428,40 +428,40 @@ update.CBrSPDEobj <- function(object, user_nu = NULL, user_alpha = NULL,
 #' op <- matern2d.operators(mesh = mesh_2d)
 #' op <- update(op, nu = 0.5)
 update.CBrSPDEobj2d <- function(object, 
-                                user_hx = NULL,
-                                user_hy = NULL,
-                                user_hxy = NULL,
-                                user_sigma = NULL,
-                                user_nu = NULL, 
-                                user_m = NULL,
+                                hx = NULL,
+                                hy = NULL,
+                                hxy = NULL,
+                                sigma = NULL,
+                                nu = NULL, 
+                                m = NULL,
                                 ...) {
     new_object <- object
     
     
-    if (!is.null(user_nu)) {
-        new_object$nu <- rspde_check_user_input(user_nu, "nu", 0)
+    if (!is.null(nu)) {
+        new_object$nu <- rspde_check_user_input(nu, "nu", 0)
     }
      
-    if (!is.null(user_hx)) {
-        new_object$hx <- rspde_check_user_input(user_hx, "hx", 0)
+    if (!is.null(hx)) {
+        new_object$hx <- rspde_check_user_input(hx, "hx", 0)
     }
-    if (!is.null(user_hy)) {
-        new_object$hy <- rspde_check_user_input(user_hy, "hy", 0)
+    if (!is.null(hy)) {
+        new_object$hy <- rspde_check_user_input(hy, "hy", 0)
     }
-    if (!is.null(user_hxy)) {
-        new_object$hxy <- rspde_check_user_input(user_hxy, "hxy", -1)
+    if (!is.null(hxy)) {
+        new_object$hxy <- rspde_check_user_input(hxy, "hxy", -1)
         if(new_object$hxy > 1) {
             stop("hxy must be in (-1,1)")
         }
     }
             
-    if (!is.null(user_sigma)) {
-        new_object$sigma <- rspde_check_user_input(user_sigma, "sigma", 0)
+    if (!is.null(sigma)) {
+        new_object$sigma <- rspde_check_user_input(sigma, "sigma", 0)
     }
             
 
-    if (!is.null(user_m)) {
-        new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+    if (!is.null(m)) {
+        new_object$m <- as.integer(rspde_check_user_input(m, "m", 0))
     }
         
     new_object <- matern2d.operators(hx = new_object$hx,
@@ -482,19 +482,19 @@ update.CBrSPDEobj2d <- function(object,
 #' @description Function to change the parameters of a rSPDEobj object
 #' @param object The operator-based rational SPDE approximation,
 #' computed using [matern.operators()] with `type="operator"`
-#' @param user_kappa If non-null, update the range parameter
+#' @param kappa If non-null, update the range parameter
 #' of the covariance function.
-#' @param user_tau If non-null, update the parameter tau.
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param tau If non-null, update the parameter tau.
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function.
-#' @param user_range If non-null, update the range parameter
+#' @param range If non-null, update the range parameter
 #' of the covariance function.
-#' @param user_theta If non-null, update the parameter theta, that connects
+#' @param theta If non-null, update the parameter theta, that connects
 #' tau and kappa to the model matrices.
-#' @param user_nu If non-null, update the shape parameter
+#' @param nu If non-null, update the shape parameter
 #' of the covariance function.
-#' @param user_alpha If non-null, update the fractional order.
-#' @param user_m If non-null, update the order of the rational
+#' @param alpha If non-null, update the fractional order.
+#' @param m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
 #' @param mesh An optional inla mesh. Replaces `d`, `C` and `G`.
 #' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`.
@@ -528,17 +528,17 @@ update.CBrSPDEobj2d <- function(object,
 #' op
 #'
 #' # Update the range parameter of the model:
-#' op <- update(op, user_kappa = 20)
+#' op <- update(op, kappa = 20)
 #' op
 #'
-update.rSPDEobj <- function(object, user_nu = NULL,
-                            user_alpha = NULL,
-                            user_kappa = NULL,
-                            user_sigma = NULL,
-                            user_range = NULL,
-                            user_tau = NULL,
-                            user_theta = NULL,
-                            user_m = NULL,
+update.rSPDEobj <- function(object, nu = NULL,
+                            alpha = NULL,
+                            kappa = NULL,
+                            sigma = NULL,
+                            range = NULL,
+                            tau = NULL,
+                            theta = NULL,
+                            m = NULL,
                             mesh = NULL,
                             loc_mesh = NULL,
                             graph = NULL,
@@ -550,12 +550,12 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 
   d <- object$d
 
-  if (!is.null(user_m)) {
-    new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 1))
+  if (!is.null(m)) {
+    new_object$m <- as.integer(rspde_check_user_input(m, "m", 1))
   }
 
-  if (!is.null(user_theta)) {
-    new_object$theta <- rspde_check_user_input(user_theta, "theta")
+  if (!is.null(theta)) {
+    new_object$theta <- rspde_check_user_input(theta, "theta")
   }
 
   if (new_object$stationary) {
@@ -569,43 +569,43 @@ update.rSPDEobj <- function(object, user_nu = NULL,
     }
 
     if (parameterization == "spde") {
-      if (!is.null(user_kappa)) {
-        new_object$kappa <- rspde_check_user_input(user_kappa, "kappa", 0)
+      if (!is.null(kappa)) {
+        new_object$kappa <- rspde_check_user_input(kappa, "kappa", 0)
         new_object$range <- NULL
         new_object$sigma <- NULL
       }
 
-      if (!is.null(user_tau)) {
-        new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
+      if (!is.null(tau)) {
+        new_object$tau <- rspde_check_user_input(tau, "tau", 0)
         new_object$sigma <- NULL
       }
 
-      if (!is.null(user_alpha)) {
-        alpha <- rspde_check_user_input(user_alpha, "alpha", d / 2)
-        user_nu <- alpha - d / 2
-        new_object$nu <- user_nu
+      if (!is.null(alpha)) {
+        alpha <- rspde_check_user_input(alpha, "alpha", d / 2)
+        nu <- alpha - d / 2
+        new_object$nu <- nu
         new_object$alpha <- alpha
       }
     } else if (parameterization == "matern") {
-      if (!is.null(user_range)) {
-        new_object$range <- rspde_check_user_input(user_range, "range", 0)
+      if (!is.null(range)) {
+        new_object$range <- rspde_check_user_input(range, "range", 0)
         new_object$kappa <- NULL
         new_object$tau <- NULL
       }
 
-      if (!is.null(user_sigma)) {
-        new_object$sigma <- rspde_check_user_input(user_sigma, "sigma", 0)
+      if (!is.null(sigma)) {
+        new_object$sigma <- rspde_check_user_input(sigma, "sigma", 0)
         new_object$tau <- NULL
       }
-      if (!is.null(user_nu)) {
-        new_object$nu <- rspde_check_user_input(user_nu, "nu")
+      if (!is.null(nu)) {
+        new_object$nu <- rspde_check_user_input(nu, "nu")
       }
       alpha <- new_object$nu + d / 2
       new_object$alpha <- alpha
     }
 
-    if (!is.null(user_m)) {
-      new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+    if (!is.null(m)) {
+      new_object$m <- as.integer(rspde_check_user_input(m, "m", 0))
     }
 
     if (is.null(mesh)) {
@@ -655,23 +655,23 @@ update.rSPDEobj <- function(object, user_nu = NULL,
       )
     }
   } else {
-    if (!is.null(user_tau)) {
-      new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
+    if (!is.null(tau)) {
+      new_object$tau <- rspde_check_user_input(tau, "tau", 0)
     }
 
-    if (!is.null(user_kappa)) {
-      new_object$kappa <- rspde_check_user_input(user_kappa, "kappa", 0)
+    if (!is.null(kappa)) {
+      new_object$kappa <- rspde_check_user_input(kappa, "kappa", 0)
     }
 
-    if (!is.null(user_theta)) {
-      if (!is.numeric(user_theta)) {
-        stop("user_theta must be numeric!")
+    if (!is.null(theta)) {
+      if (!is.numeric(theta)) {
+        stop("theta must be numeric!")
       }
-      new_object$theta <- user_theta
+      new_object$theta <- theta
     }
 
-    if (!is.null(user_m)) {
-      new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+    if (!is.null(m)) {
+      new_object$m <- as.integer(rspde_check_user_input(m, "m", 0))
     }
 
     if (is.null(mesh)) {
@@ -697,15 +697,15 @@ update.rSPDEobj <- function(object, user_nu = NULL,
     }
 
     if (parameterization == "spde") {
-      if (!is.null(user_alpha)) {
-        alpha <- rspde_check_user_input(user_alpha, "alpha", d / 2)
-        user_nu <- alpha - d / 2
-        new_object$nu <- user_nu
+      if (!is.null(alpha)) {
+        alpha <- rspde_check_user_input(alpha, "alpha", d / 2)
+        nu <- alpha - d / 2
+        new_object$nu <- nu
         new_object$alpha <- alpha
       }
     } else if (parameterization == "matern") {
-      if (!is.null(user_nu)) {
-        new_object$nu <- rspde_check_user_input(user_nu, "nu")
+      if (!is.null(nu)) {
+        new_object$nu <- rspde_check_user_input(nu, "nu")
       }
       alpha <- new_object$nu + d / 2
       new_object$alpha <- alpha
@@ -767,17 +767,17 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #' computed using [matern.operators()]
 #' @param nsim The number of simulations.
 #' @param seed An object specifying if and how the random number generator should be initialized (‘seeded’).
-#' @param user_kappa If non-null, update the range parameter
+#' @param kappa If non-null, update the range parameter
 #' of the covariance function.
-#' @param user_tau If non-null, update the parameter tau.
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param tau If non-null, update the parameter tau.
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function.
-#' @param user_range If non-null, update the range parameter
+#' @param range If non-null, update the range parameter
 #' of the covariance function.
-#' @param user_theta For non-stationary models. If non-null, update the vector of parameters.
-#' @param user_nu If non-null, update the shape parameter of the
+#' @param theta For non-stationary models. If non-null, update the vector of parameters.
+#' @param nu If non-null, update the shape parameter of the
 #' covariance function.
-#' @param user_m If non-null, update the order of the rational
+#' @param m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
 #' @param ... Currently not used.
 #' @return A matrix with the `n` samples as columns.
@@ -809,19 +809,19 @@ update.rSPDEobj <- function(object, user_nu = NULL,
 #'
 simulate.CBrSPDEobj <- function(object, nsim = 1,
                                 seed = NULL,
-                                user_nu = NULL,
-                                user_kappa = NULL,
-                                user_sigma = NULL,
-                                user_range = NULL,
-                                user_tau = NULL,
-                                user_theta = NULL,
-                                user_m = NULL,
+                                nu = NULL,
+                                kappa = NULL,
+                                sigma = NULL,
+                                range = NULL,
+                                tau = NULL,
+                                theta = NULL,
+                                m = NULL,
                                 ...) {
   if (!is.null(seed)) {
     set.seed(seed)
   }
   d <- object$d
-  nu_temp <- ifelse(is.null(user_nu), object$nu, user_nu)
+  nu_temp <- ifelse(is.null(nu), object$nu, nu)
   alpha <- nu_temp + d / 2
 
 
@@ -829,12 +829,12 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
   if ((alpha %% 1 == 0) && object$stationary) { # simulation in integer case
     object <- update.CBrSPDEobj(
       object = object,
-      user_nu = user_nu,
-      user_kappa = user_kappa,
-      user_sigma = user_sigma,
-      user_tau = user_tau,
-      user_range = user_range,
-      user_m = user_m,
+      nu = nu,
+      kappa = kappa,
+      sigma = sigma,
+      tau = tau,
+      range = range,
+      m = m,
       parameterization = object$parameterization,
       compute_higher_order = TRUE
     )
@@ -873,13 +873,13 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
   } else {
     object <- update.CBrSPDEobj(
       object = object,
-      user_nu = user_nu,
-      user_kappa = user_kappa,
-      user_sigma = user_sigma,
-      user_m = user_m,
-      user_range = user_range,
-      user_tau = user_tau,
-      user_theta = user_theta,
+      nu = nu,
+      kappa = kappa,
+      sigma = sigma,
+      m = m,
+      range = range,
+      tau = tau,
+      theta = theta,
       parameterization = object$parameterization,
     )
 
@@ -916,14 +916,14 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 #' computed using [matern2d.operators()]
 #' @param nsim The number of simulations.
 #' @param seed An object specifying if and how the random number generator should be initialized (‘seeded’).
-#' @param user_hx If non-null, update the hx parameter.
-#' @param user_hy If non-null, update the hy parameter.
-#' @param user_hxy If non-null, update the hxy parameter.
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param hx If non-null, update the hx parameter.
+#' @param hy If non-null, update the hy parameter.
+#' @param hxy If non-null, update the hxy parameter.
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function.
-#' @param user_nu If non-null, update the shape parameter of the
+#' @param nu If non-null, update the shape parameter of the
 #' covariance function.
-#' @param user_m If non-null, update the order of the rational
+#' @param m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
 #' @param ... Currently not used.
 #' @return A matrix with the `n` samples as columns.
@@ -939,28 +939,28 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
 simulate.CBrSPDEobj2d <- function(object, 
                                   nsim = 1,
                                   seed = NULL,
-                                  user_nu = NULL,
-                                  user_hx = NULL,
-                                  user_hy = NULL,
-                                  user_hxy = NULL,
-                                  user_sigma = NULL,
-                                  user_m = NULL,
+                                  nu = NULL,
+                                  hx = NULL,
+                                  hy = NULL,
+                                  hxy = NULL,
+                                  sigma = NULL,
+                                  m = NULL,
                                   ...) {
     if (!is.null(seed)) {
         set.seed(seed)
     }
     
-    user_nu <- ifelse(is.null(user_nu), object$nu, user_nu)
-    alpha <- user_nu + 1
+    nu <- ifelse(is.null(nu), object$nu, nu)
+    alpha <- nu + 1
     
     
     object <- update.CBrSPDEobj2d(object = object,
-                                  user_nu = user_nu,
-                                  user_hx = user_hx,
-                                  user_hy = user_hy,
-                                  user_hxy = user_hxy,
-                                  user_sigma = user_sigma,
-                                  user_m = user_m)
+                                  nu = nu,
+                                  hx = hx,
+                                  hy = hy,
+                                  hxy = hxy,
+                                  sigma = sigma,
+                                  m = m)
     
     Q <- object$Q
     sizeQ <- dim(Q)[1]
@@ -1277,16 +1277,16 @@ rSPDE.loglike <- function(obj,
 #' finite element basis.
 #' @param sigma.e The standard deviation of the measurement noise.
 #' @param mu Expectation vector of the latent field (default = 0).
-#' @param user_kappa If non-null, update the range parameter of the covariance
+#' @param kappa If non-null, update the range parameter of the covariance
 #' function.
-#' @param user_tau If non-null, update the parameter tau.
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param tau If non-null, update the parameter tau.
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function.
-#' @param user_range If non-null, update the range parameter
+#' @param range If non-null, update the range parameter
 #' of the covariance function.
-#' @param user_nu If non-null, update the shape parameter of the covariance
+#' @param nu If non-null, update the shape parameter of the covariance
 #' function.
-#' @param user_m If non-null, update the order of the rational approximation,
+#' @param m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
 #' @return The log-likelihood value.
 #' @export
@@ -1340,8 +1340,8 @@ rSPDE.loglike <- function(obj,
 #'   nu <- exp(theta[3])
 #'   return(-rSPDE.matern.loglike(
 #'     object = op_cov, Y = Y,
-#'     A = A, user_kappa = kappa, user_sigma = sigma,
-#'     user_nu = nu, sigma.e = exp(theta[4])
+#'     A = A, kappa = kappa, sigma = sigma,
+#'     nu = nu, sigma.e = exp(theta[4])
 #'   ))
 #' }
 #'
@@ -1364,35 +1364,35 @@ rSPDE.loglike <- function(obj,
 #' }
 #'
 rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
-                                 user_nu = NULL,
-                                 user_kappa = NULL,
-                                 user_sigma = NULL,
-                                 user_range = NULL,
-                                 user_tau = NULL,
-                                 user_m = NULL) {
+                                 nu = NULL,
+                                 kappa = NULL,
+                                 sigma = NULL,
+                                 range = NULL,
+                                 tau = NULL,
+                                 m = NULL) {
   if (inherits(object, "CBrSPDEobj")) {
     return(CBrSPDE.matern.loglike(
       object = object,
       Y = Y, A = A,
       sigma.e = sigma.e,
       mu = mu,
-      user_nu = user_nu,
-      user_kappa = user_kappa,
-      user_sigma = user_sigma,
-      user_tau = user_tau,
-      user_range = user_range,
-      user_m = user_m
+      nu = nu,
+      kappa = kappa,
+      sigma = sigma,
+      tau = tau,
+      range = range,
+      m = m
     ))
   } else {
     if (inherits(object, "rSPDEobj")) {
       if (object$type == "Matern approximation") {
         object <- update.rSPDEobj(object,
-          user_nu = user_nu,
-          user_kappa = user_kappa,
-          user_sigma = user_sigma,
-          user_tau = user_tau,
-          user_range = user_range,
-          user_m = user_m
+          nu = nu,
+          kappa = kappa,
+          sigma = sigma,
+          tau = tau,
+          range = range,
+          m = m
         )
         return(rSPDE.loglike(
           obj = object, Y = Y, A = A,
@@ -1427,16 +1427,16 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' to the finite element basis.
 #' @param sigma.e The standard deviation of the measurement noise.
 #' @param mu Expectation vector of the latent field (default = 0).
-#' @param user_kappa If non-null, update the range parameter of the
+#' @param kappa If non-null, update the range parameter of the
 #' covariance function.
-#' @param user_tau If non-null, update the parameter tau.
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param tau If non-null, update the parameter tau.
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function.
-#' @param user_range If non-null, update the range parameter
+#' @param range If non-null, update the range parameter
 #' of the covariance function.
-#' @param user_nu If non-null, update the shape parameter of the
+#' @param nu If non-null, update the shape parameter of the
 #' covariance function.
-#' @param user_m If non-null, update the order of the rational approximation,
+#' @param m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
 #' @return The log-likelihood value.
 #' @noRd
@@ -1488,8 +1488,8 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #'   nu <- exp(theta[3])
 #'   return(-rSPDE.matern.loglike(
 #'     object = op_cov, Y = Y,
-#'     A = A, user_kappa = kappa, user_sigma = sigma,
-#'     user_nu = nu, sigma.e = exp(theta[4])
+#'     A = A, kappa = kappa, sigma = sigma,
+#'     nu = nu, sigma.e = exp(theta[4])
 #'   ))
 #' }
 #'
@@ -1511,12 +1511,12 @@ rSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' ))
 #' }
 CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
-                                   user_nu = NULL,
-                                   user_kappa = NULL,
-                                   user_sigma = NULL,
-                                   user_range = NULL,
-                                   user_tau = NULL,
-                                   user_m = NULL) {
+                                   nu = NULL,
+                                   kappa = NULL,
+                                   sigma = NULL,
+                                   range = NULL,
+                                   tau = NULL,
+                                   m = NULL) {
   Y <- as.matrix(Y)
   if (length(dim(Y)) == 2) {
     n.rep <- dim(Y)[2]
@@ -1534,12 +1534,12 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
   object <- update.CBrSPDEobj(
     object = object,
-    user_nu = user_nu,
-    user_kappa = user_kappa,
-    user_sigma = user_sigma,
-    user_range = user_range,
-    user_tau = user_tau,
-    user_m = user_m,
+    nu = nu,
+    kappa = kappa,
+    sigma = sigma,
+    range = range,
+    tau = tau,
+    m = m,
     parameterization = object$parameterization
   )
 
@@ -1634,11 +1634,11 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' @noRd
 
 aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
-                                       user_nu = NULL,
-                                       user_kappa = NULL,
-                                       user_tau = NULL,
-                                       user_theta = NULL,
-                                       user_m = NULL) {
+                                       nu = NULL,
+                                       kappa = NULL,
+                                       tau = NULL,
+                                       theta = NULL,
+                                       m = NULL) {
   Y <- as.matrix(Y)
   if (length(dim(Y)) == 2) {
     n.rep <- dim(Y)[2]
@@ -1657,11 +1657,11 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 
   object <- update.CBrSPDEobj(
     object = object,
-    user_nu = user_nu,
-    user_kappa = user_kappa,
-    user_theta = user_theta,
-    user_tau = user_tau,
-    user_m = user_m
+    nu = nu,
+    kappa = kappa,
+    theta = theta,
+    tau = tau,
+    m = m
   )
 
   m <- object$m
@@ -1778,11 +1778,11 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' @param sigma.e IF non-null, the standard deviation of the measurement noise will be kept fixed in
 #' the returned likelihood.
 #' @param mu Expectation vector of the latent field (default = 0).
-#' @param user_kappa If non-null, updates the range parameter.
-#' @param user_tau If non-null, updates the parameter tau.
-#' @param user_theta If non-null, updates the parameter theta (that connects tau and kappa to the model matrices in `object`).
-#' @param user_nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
-#' @param user_m If non-null, update the order of the rational approximation,
+#' @param kappa If non-null, updates the range parameter.
+#' @param tau If non-null, updates the parameter tau.
+#' @param theta If non-null, updates the parameter theta (that connects tau and kappa to the model matrices in `object`).
+#' @param nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
+#' @param m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
 #'
 #' @return The log-likelihood value.
@@ -1822,9 +1822,9 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' mlik <- function(theta) {
 #'   return(-spde.matern.loglike(op, Y, A,
 #'     sigma.e = exp(theta[4]),
-#'     user_nu = exp(theta[3]),
-#'     user_kappa = exp(theta[2]),
-#'     user_tau = exp(theta[1])
+#'     nu = exp(theta[3]),
+#'     kappa = exp(theta[2]),
+#'     tau = exp(theta[1])
 #'   ))
 #' }
 #' #' #The parameters can now be estimated by minimizing mlik with optim
@@ -1840,37 +1840,37 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' ))
 #' }
 spde.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
-                                user_nu = NULL,
-                                user_kappa = NULL,
-                                user_tau = NULL,
-                                user_theta = NULL,
-                                user_m = NULL) {
+                                nu = NULL,
+                                kappa = NULL,
+                                tau = NULL,
+                                theta = NULL,
+                                m = NULL) {
   if (inherits(object, "CBrSPDEobj")) {
     object <- update.CBrSPDEobj(object,
-      user_nu = user_nu,
-      user_kappa = user_kappa,
-      user_tau = user_tau,
-      user_theta = user_theta,
-      user_m = user_m
+      nu = nu,
+      kappa = kappa,
+      tau = tau,
+      theta = theta,
+      m = m
     )
 
     return(aux_CBrSPDE.matern.loglike(
       object = object, Y = Y, A = A, sigma.e = sigma.e, mu = mu,
-      user_nu = user_nu,
-      user_kappa = user_kappa,
-      user_tau = user_tau,
-      user_theta = user_theta,
-      user_m = user_m
+      nu = nu,
+      kappa = kappa,
+      tau = tau,
+      theta = theta,
+      m = m
     ))
   } else {
     if (inherits(object, "rSPDEobj")) {
       if (object$type == "Matern approximation") {
         object <- update.rSPDEobj(object,
-          user_nu = user_nu,
-          user_kappa = user_kappa,
-          user_tau = user_tau,
-          user_theta = user_theta,
-          user_m = user_m
+          nu = nu,
+          kappa = kappa,
+          tau = tau,
+          theta = theta,
+          m = m
         )
         return(rSPDE.loglike(
           obj = object, Y = Y, A = A,
@@ -2242,16 +2242,16 @@ precision <- function(object, ...) {
 #' @description Function to get the precision matrix of a CBrSPDEobj object
 #' @param object The covariance-based rational SPDE approximation,
 #' computed using [matern.operators()]
-#' @param user_kappa If non-null, update the range parameter of
+#' @param kappa If non-null, update the range parameter of
 #' the covariance function.
-#' @param user_tau If non-null, update the parameter tau.
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param tau If non-null, update the parameter tau.
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function.
-#' @param user_range If non-null, update the range parameter
+#' @param range If non-null, update the range parameter
 #' of the covariance function.
-#' @param user_nu If non-null, update the shape parameter of the
+#' @param nu If non-null, update the shape parameter of the
 #' covariance function.
-#' @param user_m If non-null, update the order of the rational approximation,
+#' @param m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
 #' @param ... Currently not used.
 #' @return The precision matrix.
@@ -2283,21 +2283,21 @@ precision <- function(object, ...) {
 #' prec_matrix <- precision(op_cov)
 #'
 precision.CBrSPDEobj <- function(object,
-                                 user_nu = NULL,
-                                 user_kappa = NULL,
-                                 user_sigma = NULL,
-                                 user_range = NULL,
-                                 user_tau = NULL,
-                                 user_m = NULL,
+                                 nu = NULL,
+                                 kappa = NULL,
+                                 sigma = NULL,
+                                 range = NULL,
+                                 tau = NULL,
+                                 m = NULL,
                                  ...) {
   object <- update.CBrSPDEobj(
     object = object,
-    user_nu = user_nu,
-    user_kappa = user_kappa,
-    user_sigma = user_sigma,
-    user_range = user_range,
-    user_tau = user_tau,
-    user_m = user_m
+    nu = nu,
+    kappa = kappa,
+    sigma = sigma,
+    range = range,
+    tau = tau,
+    m = m
   )
 
   Q <- object$Q
@@ -2309,14 +2309,14 @@ precision.CBrSPDEobj <- function(object,
 #' @description Function to get the precision matrix of a CBrSPDEobj2d object
 #' @param object The covariance-based rational SPDE approximation,
 #' computed using [matern2d.operators()]
-#' @param user_nu If non-null, update the shape parameter of the
+#' @param nu If non-null, update the shape parameter of the
 #' covariance function.
-#' @param user_hx If non-null, update the hx parameter. 
-#' @param user_hy If non-null, update the hy parameter. 
-#' @param user_hxy If non-null, update the hxy parameter. 
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param hx If non-null, update the hx parameter. 
+#' @param hy If non-null, update the hy parameter. 
+#' @param hxy If non-null, update the hxy parameter. 
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function.
-#' @param user_m If non-null, update the order of the rational approximation,
+#' @param m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
 #' @param ... Currently not used.
 #' @return The precision matrix.
@@ -2331,21 +2331,21 @@ precision.CBrSPDEobj <- function(object,
 #' op <- matern2d.operators(mesh = mesh_2d)
 #' Q <- precision(op)
 precision.CBrSPDEobj2d <- function(object,
-                                 user_nu = NULL,
-                                 user_hx = NULL,
-                                 user_hy = NULL,
-                                 user_hxy = NULL,
-                                 user_sigma = NULL,
-                                 user_m = NULL,
+                                 nu = NULL,
+                                 hx = NULL,
+                                 hy = NULL,
+                                 hxy = NULL,
+                                 sigma = NULL,
+                                 m = NULL,
                                  ...) {
     object <- update.CBrSPDEobj2d(
         object = object,
-        user_nu = user_nu,
-        user_hx = user_hx,
-        user_hy = user_hy,
-        user_hxy = user_hxy,
-        user_sigma = user_sigma,
-        user_m = user_m
+        nu = nu,
+        hx = hx,
+        hy = hy,
+        hxy = hxy,
+        sigma = sigma,
+        m = m
     )
     
     Q <- object$Q
@@ -2372,13 +2372,13 @@ precision.CBrSPDEobj2d <- function(object,
 #' @param sigma.e IF non-null, the standard deviation of the measurement noise will be kept fixed in
 #' the returned likelihood.
 #' @param mu Expectation vector of the latent field (default = 0).
-#' @param user_kappa If non-null, the range parameter will be kept fixed in the returned likelihood.
-#' @param user_range If non-null, the range parameter will be kept fixed in the returned likelihood. (Replaces kappa)
-#' @param user_sigma If non-null, the standard deviation will be kept fixed in the returned likelihood.
-#' @param user_tau If non-null, the tau parameter will be kept fixed in the returned likelihood. (Replaces sigma)
-#' @param user_nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
+#' @param kappa If non-null, the range parameter will be kept fixed in the returned likelihood.
+#' @param range If non-null, the range parameter will be kept fixed in the returned likelihood. (Replaces kappa)
+#' @param sigma If non-null, the standard deviation will be kept fixed in the returned likelihood.
+#' @param tau If non-null, the tau parameter will be kept fixed in the returned likelihood. (Replaces sigma)
+#' @param nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
 #' @param parameterization If `spde`, then one will use the parameters `tau` and `kappa`. If `matern`, then one will use the parameters `sigma` and `range`.
-#' @param user_m If non-null, update the order of the rational approximation,
+#' @param m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
 #' @param log_scale Should the parameters be evaluated in log-scale?
 #' @param return_negative_likelihood Return minus the likelihood to turn the maximization into a minimization?
@@ -2440,13 +2440,13 @@ precision.CBrSPDEobj2d <- function(object,
 #' }
 rSPDE.construct.matern.loglike <- function(object, Y, A,
                                            sigma.e = NULL, mu = 0,
-                                           user_nu = NULL,
-                                           user_tau = NULL,
-                                           user_kappa = NULL,
-                                           user_sigma = NULL,
-                                           user_range = NULL,
+                                           nu = NULL,
+                                           tau = NULL,
+                                           kappa = NULL,
+                                           sigma = NULL,
+                                           range = NULL,
                                            parameterization = c("spde", "matern"),
-                                           user_m = NULL,
+                                           m = NULL,
                                            log_scale = TRUE,
                                            return_negative_likelihood = TRUE) {
   parameterization <- parameterization[[1]]
@@ -2456,15 +2456,15 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
   }
 
   if (parameterization == "spde") {
-    param_vector <- likelihood_process_inputs_spde(user_kappa, user_tau, user_nu, sigma.e)
+    param_vector <- likelihood_process_inputs_spde(kappa, tau, nu, sigma.e)
   } else {
-    param_vector <- likelihood_process_inputs_matern(user_range, user_sigma, user_nu, sigma.e)
+    param_vector <- likelihood_process_inputs_matern(range, sigma, nu, sigma.e)
   }
 
 
   if (parameterization == "spde") {
     loglik <- function(theta) {
-      if (is.null(user_tau)) {
+      if (is.null(tau)) {
         tau <- likelihood_process_parameters(
           theta = theta,
           param_vector = param_vector,
@@ -2472,9 +2472,9 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
           logscale = log_scale
         )
       } else {
-        tau <- user_tau
+        tau <- tau
       }
-      if (is.null(user_kappa)) {
+      if (is.null(kappa)) {
         kappa <- likelihood_process_parameters(
           theta = theta,
           param_vector = param_vector,
@@ -2482,9 +2482,9 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
           logscale = log_scale
         )
       } else {
-        kappa <- user_kappa
+        kappa <- kappa
       }
-      if (is.null(user_nu)) {
+      if (is.null(nu)) {
         nu <- likelihood_process_parameters(
           theta = theta,
           param_vector = param_vector,
@@ -2492,7 +2492,7 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
           logscale = log_scale
         )
       } else {
-        nu <- user_nu
+        nu <- nu
       }
       if (is.null(sigma.e)) {
         sigma.e <- likelihood_process_parameters(
@@ -2510,10 +2510,10 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
         object = object, Y = Y, A = A,
         sigma.e = sigma.e,
         mu = mu,
-        user_kappa = kappa,
-        user_nu = nu,
-        user_tau = tau,
-        user_m = user_m
+        kappa = kappa,
+        nu = nu,
+        tau = tau,
+        m = m
       )
       if (return_negative_likelihood) {
         return(-loglike)
@@ -2523,7 +2523,7 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
     }
   } else {
     loglik <- function(theta) {
-      if (is.null(user_sigma)) {
+      if (is.null(sigma)) {
         sigma <- likelihood_process_parameters(
           theta = theta,
           param_vector = param_vector,
@@ -2531,9 +2531,9 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
           logscale = log_scale
         )
       } else {
-        sigma <- user_sigma
+        sigma <- sigma
       }
-      if (is.null(user_range)) {
+      if (is.null(range)) {
         range <- likelihood_process_parameters(
           theta = theta,
           param_vector = param_vector,
@@ -2541,9 +2541,9 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
           logscale = log_scale
         )
       } else {
-        range <- user_range
+        range <- range
       }
-      if (is.null(user_nu)) {
+      if (is.null(nu)) {
         nu <- likelihood_process_parameters(
           theta = theta,
           param_vector = param_vector,
@@ -2551,7 +2551,7 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
           logscale = log_scale
         )
       } else {
-        nu <- user_nu
+        nu <- nu
       }
       if (is.null(sigma.e)) {
         sigma.e <- likelihood_process_parameters(
@@ -2569,10 +2569,10 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
         object = object, Y = Y, A = A,
         sigma.e = sigma.e,
         mu = mu,
-        user_range = range,
-        user_nu = nu,
-        user_sigma = sigma,
-        user_m = user_m
+        range = range,
+        nu = nu,
+        sigma = sigma,
+        m = m
       )
       if (return_negative_likelihood) {
         return(-loglike)
@@ -2607,8 +2607,8 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
 #' @param sigma.e IF non-null, the standard deviation of the measurement noise will be kept fixed in
 #' the returned likelihood.
 #' @param mu Expectation vector of the latent field (default = 0).
-#' @param user_nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
-#' @param user_m If non-null, update the order of the rational approximation,
+#' @param nu If non-null, the shape parameter will be kept fixed in the returned likelihood.
+#' @param m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
 #' @param log_scale Should the parameters be evaluated in log-scale?
 #' @param return_negative_likelihood Return minus the likelihood to turn the maximization into a minimization?
@@ -2693,13 +2693,13 @@ rSPDE.construct.matern.loglike <- function(object, Y, A,
 #' }
 construct.spde.matern.loglike <- function(object, Y, A,
                                           sigma.e = NULL, mu = 0,
-                                          user_nu = NULL,
-                                          user_m = NULL,
+                                          nu = NULL,
+                                          m = NULL,
                                           log_scale = TRUE,
                                           return_negative_likelihood = TRUE) {
   loglik <- function(theta) {
     n_tmp <- length(theta)
-    if (is.null(user_nu)) {
+    if (is.null(nu)) {
       if (log_scale) {
         nu <- exp(theta[n_tmp - 1])
       } else {
@@ -2707,7 +2707,7 @@ construct.spde.matern.loglike <- function(object, Y, A,
       }
       n_tmp <- n_tmp - 1
     } else {
-      nu <- user_nu
+      nu <- nu
     }
 
     if (is.null(sigma.e)) {
@@ -2727,9 +2727,9 @@ construct.spde.matern.loglike <- function(object, Y, A,
       object = object, Y = Y, A = A,
       sigma.e = sigma.e,
       mu = mu,
-      user_theta = theta[1:n_tmp],
-      user_nu = nu,
-      user_m = user_m
+      theta = theta[1:n_tmp],
+      nu = nu,
+      m = m
     )
     if (return_negative_likelihood) {
       return(-loglike)

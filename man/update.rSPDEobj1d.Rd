@@ -6,14 +6,14 @@
 \usage{
 \method{update}{rSPDEobj1d}(
   object,
-  user_nu = NULL,
-  user_alpha = NULL,
-  user_kappa = NULL,
-  user_tau = NULL,
-  user_sigma = NULL,
-  user_range = NULL,
-  user_theta = NULL,
-  user_m = NULL,
+  nu = NULL,
+  alpha = NULL,
+  kappa = NULL,
+  tau = NULL,
+  sigma = NULL,
+  range = NULL,
+  theta = NULL,
+  m = NULL,
   loc = NULL,
   graph = NULL,
   parameterization = NULL,
@@ -25,24 +25,24 @@
 \item{object}{The covariance-based rational SPDE approximation,
 computed using \code{\link[=matern.rational]{matern.rational()}}}
 
-\item{user_nu}{If non-null, update the shape parameter of the
+\item{nu}{If non-null, update the shape parameter of the
 covariance function. Will be used if parameterization is 'matern'.}
 
-\item{user_alpha}{If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.}
+\item{alpha}{If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.}
 
-\item{user_kappa}{If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.}
+\item{kappa}{If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.}
 
-\item{user_tau}{If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.}
+\item{tau}{If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.}
 
-\item{user_sigma}{If non-null, update the standard deviation of
+\item{sigma}{If non-null, update the standard deviation of
 the covariance function. Will be used if parameterization is 'matern'.}
 
-\item{user_range}{If non-null, update the range parameter
+\item{range}{If non-null, update the range parameter
 of the covariance function. Will be used if parameterization is 'matern'.}
 
-\item{user_theta}{For non-stationary models. If non-null, update the vector of parameters.}
+\item{theta}{For non-stationary models. If non-null, update the vector of parameters.}
 
-\item{user_m}{If non-null, update the order of the rational
+\item{m}{If non-null, update the order of the rational
 approximation, which needs to be a positive integer.}
 
 \item{loc}{The locations of interest for evaluating the model.}
@@ -74,7 +74,7 @@ r <- sqrt(8*nu)/kappa #range parameter
 op_cov <- matern.rational(loc = s, nu = nu, range = r, sigma = sigma, m = 2, 
 parameterization = "matern")
 cov1 <- op_cov$covariance(ind = 1)
-op_cov <- update(op_cov, user_range = 0.2)
+op_cov <- update(op_cov, range = 0.2)
 cov2 <- op_cov$covariance(ind = 1)
 plot(s, cov1, type = "l")
 lines(s, cov2, col = 2)

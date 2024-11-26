@@ -4,28 +4,21 @@
 \alias{precision.spacetimeobj}
 \title{Get the precision matrix of spacetimeobj objects}
 \usage{
-\method{precision}{spacetimeobj}(
-  object,
-  user_kappa = NULL,
-  user_sigma = NULL,
-  user_gamma = NULL,
-  user_rho = NULL,
-  ...
-)
+\method{precision}{spacetimeobj}(object, kappa = NULL, sigma = NULL, gamma = NULL, rho = NULL, ...)
 }
 \arguments{
 \item{object}{The model object computed using \code{\link[=spacetime.operators]{spacetime.operators()}}}
 
-\item{user_kappa}{If non-null, update the range parameter of
+\item{kappa}{If non-null, update the range parameter of
 the covariance function.}
 
-\item{user_sigma}{If non-null, update the standard deviation of
+\item{sigma}{If non-null, update the standard deviation of
 the covariance function.}
 
-\item{user_gamma}{If non-null, update the temporal range parameter
+\item{gamma}{If non-null, update the temporal range parameter
 of the covariance function.}
 
-\item{user_rho}{If non-null, update the drift parameter of the
+\item{rho}{If non-null, update the drift parameter of the
 covariance function.}
 
 \item{...}{Currently not used.}

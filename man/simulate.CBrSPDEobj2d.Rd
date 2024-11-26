@@ -9,12 +9,12 @@ covariance-based rational SPDE approximation}
   object,
   nsim = 1,
   seed = NULL,
-  user_nu = NULL,
-  user_hx = NULL,
-  user_hy = NULL,
-  user_hxy = NULL,
-  user_sigma = NULL,
-  user_m = NULL,
+  nu = NULL,
+  hx = NULL,
+  hy = NULL,
+  hxy = NULL,
+  sigma = NULL,
+  m = NULL,
   ...
 )
 }
@@ -26,19 +26,19 @@ computed using \code{\link[=matern2d.operators]{matern2d.operators()}}}
 
 \item{seed}{An object specifying if and how the random number generator should be initialized (‘seeded’).}
 
-\item{user_nu}{If non-null, update the shape parameter of the
+\item{nu}{If non-null, update the shape parameter of the
 covariance function.}
 
-\item{user_hx}{If non-null, update the hx parameter.}
+\item{hx}{If non-null, update the hx parameter.}
 
-\item{user_hy}{If non-null, update the hy parameter.}
+\item{hy}{If non-null, update the hy parameter.}
 
-\item{user_hxy}{If non-null, update the hxy parameter.}
+\item{hxy}{If non-null, update the hxy parameter.}
 
-\item{user_sigma}{If non-null, update the standard deviation of
+\item{sigma}{If non-null, update the standard deviation of
 the covariance function.}
 
-\item{user_m}{If non-null, update the order of the rational
+\item{m}{If non-null, update the order of the rational
 approximation, which needs to be a positive integer.}
 
 \item{...}{Currently not used.}

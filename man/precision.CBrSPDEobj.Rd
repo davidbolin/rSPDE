@@ -9,12 +9,12 @@ precision(object, ...)
 
 \method{precision}{CBrSPDEobj}(
   object,
-  user_nu = NULL,
-  user_kappa = NULL,
-  user_sigma = NULL,
-  user_range = NULL,
-  user_tau = NULL,
-  user_m = NULL,
+  nu = NULL,
+  kappa = NULL,
+  sigma = NULL,
+  range = NULL,
+  tau = NULL,
+  m = NULL,
   ...
 )
 }
@@ -24,21 +24,21 @@ computed using \code{\link[=matern.operators]{matern.operators()}}}
 
 \item{...}{Currently not used.}
 
-\item{user_nu}{If non-null, update the shape parameter of the
+\item{nu}{If non-null, update the shape parameter of the
 covariance function.}
 
-\item{user_kappa}{If non-null, update the range parameter of
+\item{kappa}{If non-null, update the range parameter of
 the covariance function.}
 
-\item{user_sigma}{If non-null, update the standard deviation of
+\item{sigma}{If non-null, update the standard deviation of
 the covariance function.}
 
-\item{user_range}{If non-null, update the range parameter
+\item{range}{If non-null, update the range parameter
 of the covariance function.}
 
-\item{user_tau}{If non-null, update the parameter tau.}
+\item{tau}{If non-null, update the parameter tau.}
 
-\item{user_m}{If non-null, update the order of the rational approximation,
+\item{m}{If non-null, update the order of the rational approximation,
 which needs to be a positive integer.}
 }
 \value{

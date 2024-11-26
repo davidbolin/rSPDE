@@ -171,7 +171,7 @@ rspde_lme <- function(formula,
 
   if (!is.null(rspde_order) && !is.null(model)) {
       if(!spacetime){
-          model <- update(model, user_m = rspde_order)      
+          model <- update(model, m = rspde_order)      
       }
     
   } else if (!is.null(model)) {
@@ -520,8 +520,8 @@ rspde_lme <- function(formula,
           tau <- exp(theta[2 + gap])
           kappa <- exp(theta[3 + gap])
           model_tmp <- update.CBrSPDEobj(model_tmp,
-            user_alpha = alpha, user_tau = tau,
-            user_kappa = kappa, parameterization = "spde"
+            alpha = alpha, tau = tau,
+            kappa = kappa, parameterization = "spde"
           )
         } else {
           theta_model <- theta[(2 + gap):(n_initial)]
@@ -530,8 +530,8 @@ rspde_lme <- function(formula,
             alpha <- max(1e-5 + model$d / 2, alpha)
           }
           model_tmp <- update.CBrSPDEobj(model_tmp,
-            user_theta = theta_model,
-            user_alpha = alpha,
+            theta = theta_model,
+            alpha = alpha,
             parameterization = "spde"
           )
         }
@@ -570,11 +570,11 @@ rspde_lme <- function(formula,
             hy <- exp(theta[4 + gap])
             hxy <- 2*exp(theta[5 + gap])/(1+exp(theta[5 + gap])) - 1
             model_tmp <- update.CBrSPDEobj2d(model_tmp,
-                                             user_nu = nu, 
-                                             user_sigma = sigma,
-                                             user_hx = hx,
-                                             user_hy = hy,
-                                             user_hxy = hxy)
+                                             nu = nu, 
+                                             sigma = sigma,
+                                             hx = hx,
+                                             hy = hy,
+                                             hxy = hxy)
         
             
             if (n_cov > 0) {
@@ -606,8 +606,8 @@ rspde_lme <- function(formula,
           }
           
           model_tmp <- update.spacetimeobj(model_tmp,
-                                         user_kappa = kappa, user_sigma = sigma,
-                                         user_gamma = gamma, user_rho = rho)
+                                         kappa = kappa, sigma = sigma,
+                                         gamma = gamma, rho = rho)
 
           if (n_cov > 0) {
               beta_cov <- theta[(n_initial + 1):(n_initial + n_cov)]
@@ -644,8 +644,8 @@ rspde_lme <- function(formula,
           tau <- exp(theta[2 + gap])
           kappa <- exp(theta[3 + gap])
           model_tmp <- update.rSPDEobj1d(model_tmp,
-                                       user_alpha = alpha, user_tau = tau,
-                                       user_kappa = kappa, parameterization = "spde"
+                                       alpha = alpha, tau = tau,
+                                       kappa = kappa, parameterization = "spde"
               )
           
           
@@ -688,15 +688,15 @@ rspde_lme <- function(formula,
           tau <- exp(theta[2 + gap])
           kappa <- exp(theta[3 + gap])
           model_tmp <- update.rSPDEobj(model_tmp,
-            user_alpha = alpha, user_tau = tau,
-            user_kappa = kappa, parameterization = "spde"
+            alpha = alpha, tau = tau,
+            kappa = kappa, parameterization = "spde"
           )
           # } else if(model_tmp$parameterization == "matern"){
           #     sigma <- exp(theta[2+gap])
           #     range <- exp(theta[3+gap])
           #     model_tmp <- update.rSPDEobj(model_tmp,
-          #         user_nu = nu,
-          #         user_sigma = sigma, user_range = range,
+          #         nu = nu,
+          #         sigma = sigma, range = range,
           #         parameterization = "matern")
           # }
         } else {
@@ -706,8 +706,8 @@ rspde_lme <- function(formula,
             alpha <- max(1e-5 + model$d / 2, alpha)
           }
           model_tmp <- update.rSPDEobj(model_tmp,
-            user_theta = theta_model,
-            user_alpha = alpha, parameterization = "spde"
+            theta = theta_model,
+            alpha = alpha, parameterization = "spde"
           )
         }
 
@@ -1750,9 +1750,9 @@ predict.rspde_lme <- function(object,
       }
       
       new_rspde_obj <- update(object$latent_model,
-                              user_alpha = alpha_est,
-                              user_kappa = kappa_est,
-                              user_tau = tau_est,
+                              alpha = alpha_est,
+                              kappa = kappa_est,
+                              tau = tau_est,
                               parameterization = "spde"
       )    
   } else if(object$anisotropic) {
@@ -1771,11 +1771,11 @@ predict.rspde_lme <- function(object,
       }
       
       new_rspde_obj <- update(object$latent_model,
-                              user_sigma = sigma_est,
-                              user_hx = hx_est,
-                              user_hy = hy_est,
-                              user_hxy = hxy_est,
-                              user_nu = nu_est
+                              sigma = sigma_est,
+                              hx = hx_est,
+                              hy = hy_est,
+                              hxy = hxy_est,
+                              nu = nu_est
       )
   } else if(!object$spacetime) {
       if (object$estimate_nu) {
@@ -1786,8 +1786,8 @@ predict.rspde_lme <- function(object,
           alpha_est <- NULL
       }
       new_rspde_obj <- update(object$latent_model,
-                              user_alpha = alpha_est,
-                              user_theta = theta_model,
+                              alpha = alpha_est,
+                              theta = theta_model,
                               parameterization = "spde"
                               )    
   } else {
@@ -1796,10 +1796,10 @@ predict.rspde_lme <- function(object,
       gamma_est <- coeff_random[3]
       rho_est <- coeff_random[4]
       new_rspde_obj <- update(object$latent_model,
-                              user_kappa = kappa_est,
-                              user_sigma = sigma_est,
-                              user_gamma = gamma_est,
-                              user_rho = rho_est)    
+                              kappa = kappa_est,
+                              sigma = sigma_est,
+                              gamma = gamma_est,
+                              rho = rho_est)    
   }
   
 
