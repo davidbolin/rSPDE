@@ -437,7 +437,8 @@ bru_get_mapper.inla_rspde_matern1d <- function(model, ...) {
 #' @param mapper A `bru_mapper_inla_rspde_matern1d` object
 #' @rdname bru_get_mapper.inla_rspde_matern1d
 ibm_n.bru_mapper_inla_rspde_matern1d <- function(mapper, ...) {
-  model <- mapper[["model"]][["f"]][["n"]]
+  model <- mapper[["model"]]
+  return(model$f$n)
 }
 #' @rdname bru_get_mapper.inla_rspde_matern1d
 ibm_values.bru_mapper_inla_rspde_matern1d <- function(mapper, ...) {
@@ -448,13 +449,113 @@ ibm_values.bru_mapper_inla_rspde_matern1d <- function(mapper, ...) {
 ibm_jacobian.bru_mapper_inla_rspde_matern1d <- function(mapper, input, ...) {
   model <- mapper[["model"]]
   loc <- model[["loc"]]
-
   indices <- match_with_tolerance(input, loc)
-  
   A <- model[["A"]]
-
-  A <- A[indices,, drop=FALSE]
-  
-  return(A)
+  return(A[indices,, drop=FALSE])
 }
 
+#' @name predict.inla_rspde_matern1d
+#' @title Predict method for 'inlabru' stationary Matern 1d models
+#' @description Auxiliar function to obtain predictions of the stationary Matern 1d models
+#' using 'inlabru'.
+#' @param object An `inla_rspde_matern1d` object built with the `rspde.matern1d()`
+#' function.
+#' @param cmp The 'inlabru' component used to fit the model.
+#' @param bru_fit A fitted model using 'inlabru' or 'INLA'.
+#' @param newdata A data.frame of covariates needed for the prediction. 
+#' @param formula A formula where the right hand side defines an R expression to
+#' evaluate for each generated sample. If NULL, the latent and hyperparameter
+#' states are returned as named list elements. See Details for more information.
+#' @param n.samples Integer setting the number of samples to draw in order to
+#' calculate the posterior statistics. The default is rather low but provides a
+#' quick approximate result.
+#' @param seed Random number generator seed passed on to `inla.posterior.sample()`
+#' @param probs	A numeric vector of probabilities with values in the standard
+#' unit interval to be passed to stats::quantile
+#' @param return_original_order Should the predictions be returned in the
+#' original order?
+#' @param num.threads	Specification of desired number of threads for parallel
+#' computations. Default NULL, leaves it up to 'INLA'. When seed != 0, overridden to "1:1"
+#' @param include	Character vector of component labels that are needed by the
+#' predictor expression; Default: NULL (include all components that are not
+#' explicitly excluded)
+#' @param exclude	Character vector of component labels that are not used by the
+#' predictor expression. The exclusion list is applied to the list as determined
+#' by the include parameter; Default: NULL (do not remove any components from
+#' the inclusion list)
+#' @param drop logical; If keep=FALSE, data is a SpatialDataFrame, and the
+#' prediciton summary has the same number of rows as data, then the output is a
+#' SpatialDataFrame object. Default FALSE.
+#' @param tolerance Tolerance for merging locations.
+#' @param... Additional arguments passed on to `inla.posterior.sample()`.
+#' @return A list with predictions.
+#' @export
+
+predict.inla_rspde_matern1d <- function(object,
+                                           cmp,
+                                           bru_fit,
+                                           newdata = NULL,
+                                           formula = NULL,
+                                           n.samples = 100,
+                                           seed = 0L,
+                                           probs = c(0.025, 0.5, 0.975),
+                                           return_original_order = TRUE,
+                                           num.threads = NULL,
+                                           include = NULL,
+                                           exclude = NULL,
+                                           drop = FALSE,
+                                           tolerance = 1e-4,
+                                           ...){
+  if(length(bru_fit$bru_info$lhoods) > 1){
+    stop("Only models with one likelihood implemented.")
+  }
+
+  name_locations <- bru_fit$bru_info$model$effects$field$main$input$input
+  
+  original_data <- bru_fit$bru_info$lhoods[[1]]$data
+
+  new_data <- newdata
+  new_data[["__new"]] <- TRUE
+  n_locations <- nrow(newdata[[name_locations]])
+  names_columns <- names(original_data)
+
+  new_data <- merge_with_tolerance(original_data, new_data, by = as.character(name_locations), tolerance = tolerance)
+
+  spde____model <- rspde.matern1d(loc = new_data[[name_locations]], 
+                                    rspde.order = object[["rspde.order"]],
+                                    nu.upper.bound = object[["nu.upper.bound"]],
+                                    nu = object[["nu"]],
+                                    parameterization = object[["parameterization"]],
+                                    start.nu = object[["start.nu"]],
+                                    start.theta = object[["start.theta"]],
+                                    prior.nu = object[["prior.nu"]],
+                                    theta.prior.mean = object[["theta.prior.mean"]],
+                                    theta.prior.prec = object[["theta.prior.prec"]],
+                                    prior.nu.dist = object[["prior.nu.dist"]],
+                                    type.rational.approx = object[["type.rational.approx"]])
+
+  cmp_c <- as.character(cmp)
+  name_model <- deparse(substitute(object))
+  cmp_c[3] <- sub(name_model, "spde____model", cmp_c[3])
+  cmp_new <- as.formula(paste(cmp_c[2], cmp_c[1], cmp_c[3]))
+
+  info <- bru_fit[["bru_info"]]
+  info[["options"]] <- inlabru::bru_call_options(inlabru::bru_options(info[["options"]]))
+
+  bru_fit_new <- inlabru::bru(cmp_new,
+          data = new_data, options = info[["options"]])
+  
+  pred <- predict(object = bru_fit_new,
+                    newdata = newdata,
+                    formula = formula,
+                    n.samples = n.samples,
+                    seed = seed,
+                    probs = probs,
+                    num.threads = num.threads,
+                    include = include,
+                    exclude = exclude,
+                    drop = drop,
+                    ...)
+
+  return(pred)
+}
