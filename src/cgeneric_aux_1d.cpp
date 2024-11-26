@@ -4,7 +4,6 @@
 #include <cmath>
 #include <numbers>
 #include "cgeneric_defs.h"
-#include <iostream>
 
 double matern_covariance(double h, double kappa, double nu, double sigma) {
     double out;
@@ -407,6 +406,10 @@ void compute_Q1d(int n, double *loc, int rspde_order, double kappa,
         fa2 = floor(alpha) + 1;
     }
     int fa_base = floor(nu_upper_bound + 0.5);
+
+    if(fa_base == 0) {
+        fa_base = 1;
+    }
     int fa_base2;
     if(floor(alpha_ub) == alpha_ub) {
         fa_base2 = alpha_ub;

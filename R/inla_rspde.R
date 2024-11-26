@@ -188,7 +188,7 @@ rspde.matern <- function(mesh,
       nu.upper.bound <- 2
   }
 
-  if (nu.upper.bound - floor(nu.upper.bound) == 0) {
+  if (nu.upper.bound + d/2 - floor(nu.upper.bound + d/2) == 0) {
     nu.upper.bound <- nu.upper.bound - 1e-5
   }
   fixed_nu <- !is.null(nu)
@@ -860,7 +860,7 @@ rspde.matern <- function(mesh,
   class(model) <- c("inla_rspde", class(model))
 
   rspde_check_cgeneric_symbol(model)
-  
+
   model$dim <- d
   model$est_nu <- !fixed_nu
   model$n.spde <- mesh$n

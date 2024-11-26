@@ -4,8 +4,6 @@
 #include "cgeneric_defs.h"
 #include "cgeneric_cpp.h"
 
-#include <iostream> // For printing debug messages
-
 
 /**
  * Convert an inla_cgeneric_mat_tp to Eigen::MatrixXd.
