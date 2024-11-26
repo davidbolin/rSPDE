@@ -253,6 +253,8 @@ rspde.intrinsic.matern <- function(mesh,
     model$theta.prior.prec <- theta.prior.prec
     model$start.theta <- start.theta
 
+    rspde_check_cgeneric_symbol(model)
+
     class(model) <- c("inla_rspde", "intrinsic", class(model))
     model$parameterization <- "spde"
     model$stationary <- TRUE

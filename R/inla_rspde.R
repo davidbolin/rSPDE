@@ -858,6 +858,9 @@ rspde.matern <- function(mesh,
   }
   model$rspde.order <- rspde.order
   class(model) <- c("inla_rspde", class(model))
+
+  rspde_check_cgeneric_symbol(model)
+  
   model$dim <- d
   model$est_nu <- !fixed_nu
   model$n.spde <- mesh$n

@@ -392,6 +392,9 @@ rspde.matern1d <- function(loc = NULL,
         rspde.order <- 0
     }
     model$rspde.order <- rspde.order
+
+    rspde_check_cgeneric_symbol(model)
+    
     class(model) <- c("inla_rspde", class(model))
     model$dim <- d
     model$est_nu <- !fixed_nu

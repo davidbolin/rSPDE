@@ -177,6 +177,8 @@ rspde.anistropic2d <- function(mesh,
 
   model <- do.call(INLA::inla.cgeneric.define, list_args)
 
+  rspde_check_cgeneric_symbol(model)
+
   model$prior.sigma <- prior.sigma
   model$prior.hx <- prior.hx
   model$prior.hy <- prior.hy
