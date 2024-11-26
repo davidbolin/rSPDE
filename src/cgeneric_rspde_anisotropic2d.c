@@ -132,16 +132,17 @@ double *inla_cgeneric_rspde_anisotropic2d_model(inla_cgeneric_cmd_tp cmd, double
         if(est_nu == 1){
             lnu = theta[4];
             nu = forward_nu(lnu, nu_upper_bound);            
-        } else {
-            lnu = nu = NAN;
-        }
+        } 
 
         sigma = exp(lsigma);
         hx = exp(lhx);
         hy = exp(lhy);
         hxy = adjusted_inv_logit(logit_hxy);
     } else {   
-        lhx = lhy = logit_hxy = lsigma = lnu = sigma = hx = hy = hxy = nu = NAN;
+        lhx = lhy = logit_hxy = lsigma = sigma = hx = hy = hxy = NAN;
+        if(est_nu == 1){
+            nu = lnu = NAN;
+        }
     }
 
     switch (cmd) {
