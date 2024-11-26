@@ -5,7 +5,7 @@
 \title{Matern rSPDE model object for INLA}
 \usage{
 rspde.matern1d(
-  loc = NULL,
+  loc,
   nu.upper.bound = NULL,
   rspde.order = 1,
   nu = NULL,

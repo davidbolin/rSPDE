@@ -507,7 +507,7 @@ cut_decimals <- function(nu) {
 #' @noRd
 
 check_class_inla_rspde <- function(model) {
-  if (!inherits(model, "inla_rspde")) {
+  if (!inherits(model, c("inla_rspde", "inla_rspde_matern1d"))) {
     stop("You should provide a rSPDE model!")
   }
 }
@@ -2188,4 +2188,29 @@ rspde_check_cgeneric_symbol <- function(model) {
                    latest testing version of INLA, please open an issue at https://github.com/davidbolin/rSPDE/issues, 
                    requesting that this model be added to INLA."))
   })
+}
+
+#' @noRd
+match_with_tolerance <- function(input, loc, tolerance = 1e-6) {
+  # Initialize a vector to store matched indices
+  matched_indices <- integer(length(input))
+  
+  for (i in seq_along(input)) {
+    # Find the indices in loc that match the current input element within the tolerance
+    match_idx <- which(abs(loc - input[i]) <= tolerance)
+    
+    if (length(match_idx) == 0) {
+      # If no match is found, throw an error
+      stop(sprintf("Error: The input location %.10f is not present in the original locations used to create the model object.", input[i]))
+    } else if (length(match_idx) > 1) {
+      # Handle the case where multiple matches are found
+      warning(sprintf("Warning: Multiple matches found for input location %.10f. Using the first match.", input[i]))
+      match_idx <- match_idx[1]
+    }
+    
+    # Store the matched index
+    matched_indices[i] <- match_idx
+  }
+  
+  return(matched_indices)
 }
