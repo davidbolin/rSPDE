@@ -118,10 +118,11 @@ rspde.matern1d <- function(loc,
     if(is.null(nu.upper.bound)){
         nu.upper.bound <- 2
     }
-    
-    if (nu.upper.bound - floor(nu.upper.bound) == 0) {
+
+    if(nu.upper.bound + 0.5 - floor(nu.upper.bound + 0.5) == 0){
         nu.upper.bound <- nu.upper.bound - 1e-5
     }
+    
     fixed_nu <- !is.null(nu)
     if (fixed_nu) {
         nu_order <- nu
