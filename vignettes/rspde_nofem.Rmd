@@ -361,7 +361,22 @@ facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 
 ## Using the models in `inlabru`
 
-We will now fit the same model as the one above using our `inlabru` implementation, however, we will now estimate nu. We need to create a `data.frame` with the response variables and locations:
+Let us now fit the following model using our `inlabru` implementation. In this case, we will estimate nu. 
+
+
+```{r}
+sigma <- 1
+nu <- 0.8
+sigma.e <- 0.1
+n.obs <- 251
+r <- 1
+s <- seq(from = 0, to = 5, length.out = n.obs)
+op_cov <- matern.rational(loc = s, nu = nu, range = r, sigma = sigma, m = 1, parameterization = "matern")
+u <- simulate(op_cov)
+Y <- u + sigma.e * rnorm(n.obs)
+```
+
+We need to create a `data.frame` with the response variables and locations:
 
 ```{r}
 df_bru <- data.frame(y = Y, loc = s)
@@ -391,5 +406,23 @@ summary(result_fit)
 
 ## Kriging with the inlabru implementation
 
+We will now do prediction with the previous model. To this end, we start by creating the `data.frame` containing the locations in which we want to do prediction:
+
+```{r}
+s_pred <- seq(from = 0, to = 5, length.out = 1001)
+df_pred <- data.frame(loc = s_pred)
+```
+
+Now, first observe that we cannot directly use `inlabru`'s predict method:
+
+```{r, error=TRUE}
+pred <- predict(bru_fit, newdata = df_pred, formula = ~ Intercept + field)
+```
+
+However, we can obtain predictions using our modified `predict` method, in which we need to pass the components and well as the model:
+
+```{r}
+pred <- predict(bru_model, cmp, bru_fit, newdata = df_pred, formula = ~ Intercept + field)
+```
 
 ## References

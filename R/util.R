@@ -923,7 +923,7 @@ get.roots <- function(order, beta, type_interp = "linear") {
 #' @description Get matrix with rational coefficients
 #' @param order order of the rational approximation
 #' @param type_rational_approx Type of the rational
-#' approximation. Options are "chebfun", "brasil", "chebfunLB" and "operator"
+#' approximation. Options are "mix", "chebfun", "brasil", "chebfunLB" and "operator"
 #' @return A matrix with rational approximations.
 #' @noRd
 
@@ -934,8 +934,14 @@ get_rational_coefficients <- function(order, type_rational_approx) {
     mt <- get(paste0("m_brasil", order, "t"))
   } else if (type_rational_approx == "chebfunLB") {
     mt <- get(paste0("m_chebfun", order, "t"))
-  } else {
-    stop("The options are 'chebfun', 'brasil' and 'chebfunLB'!")
+  } else if(type_rational_approx == "mix"){
+    mt_brasil <- get(paste0("m_brasil", order, "t"))
+    mt_chebfun <- get(paste0("m", order, "t"))
+    mt <- matrix(nrow = nrow(mt_brasil), ncol = ncol(mt_brasil))
+    mt[1:500,] <- mt_brasil[1:500,]
+    mt[501:999] <- mt_chebfun[501:999,]
+  } else{
+    stop("The options are 'mix', 'chebfun', 'brasil' and 'chebfunLB'!")
   }
   return(mt)
 }
@@ -2213,4 +2219,58 @@ match_with_tolerance <- function(input, loc, tolerance = 1e-6) {
   }
   
   return(matched_indices)
+}
+
+
+#' @noRd 
+merge_with_tolerance <- function(original_data, new_data, by, tolerance = 1e-5) {
+  # Ensure column names match by adding missing columns
+  all_columns <- union(names(original_data), names(new_data))
+  original_data[setdiff(all_columns, names(original_data))] <- NA
+  new_data[setdiff(all_columns, names(new_data))] <- NA
+  
+  # Extract reference columns
+  original_loc <- original_data[[by]]
+  new_loc <- new_data[[by]]
+  
+  # Initialize the merged dataset
+  merged_data <- original_data
+  
+  # Match rows from new_data to original_data within the tolerance
+  for (i in seq_along(new_loc)) {
+    diffs <- abs(original_loc - new_loc[i])
+    if (any(diffs <= tolerance)) {
+      # Find the closest match in original_data
+      matched_index <- which.min(diffs)
+      merged_row <- merged_data[matched_index, ]
+      new_row <- new_data[i, ]
+      
+      # Exclude the `by` column from the merge
+      columns_to_merge <- setdiff(names(new_data), by)
+      
+      # Check for conflicts and replace missing values in merged_row with new_row
+      for (col in columns_to_merge) {
+        if (!is.na(new_row[[col]])) {
+          if (!is.na(merged_row[[col]]) && merged_row[[col]] != new_row[[col]]) {
+            warning(sprintf(
+              "Conflicting values in column '%s' for location '%s': original='%s', new='%s'. Using new value.",
+              col, new_loc[i], merged_row[[col]], new_row[[col]]
+            ))
+          }
+          merged_row[[col]] <- new_row[[col]]
+        }
+      }
+      
+      # Replace the row in merged_data
+      merged_data[matched_index, ] <- merged_row
+    } else {
+      # Add unmatched rows from new_data directly
+      merged_data <- rbind(merged_data, new_data[i, ])
+    }
+  }
+  
+  # Remove duplicates based on the `by` column
+  merged_data <- merged_data[!duplicated(merged_data[[by]]), ]
+  
+  return(merged_data)
 }
