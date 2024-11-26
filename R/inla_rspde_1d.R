@@ -2,10 +2,12 @@
 #' @title Matern rSPDE model object for INLA
 #' @description Creates an INLA object for a stationary Matern model with
 #' general smoothness parameter.
+#' @param loc A vector of spatial locations.
 #' @param nu.upper.bound Upper bound for the smoothness parameter. If `NULL`, it will be set to 2.
 #' @param rspde.order The order of the covariance-based rational SPDE approach. The default order is 1.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
 #' be estimated. If nu is `NULL`, it will be estimated.
+#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). `matern2` uses range-like (1/kappa), variance and nu (smoothness). The default is `spde`.
 #' @param prior.kappa a `list` containing the elements `meanlog` and
 #' `sdlog`, that is, the mean and standard deviation on the log scale.
 #' @param prior.nu a list containing the elements `mean` and `prec`
@@ -53,7 +55,7 @@
 #'
 #' @return An INLA model.
 #' @export
-rspde.matern1d <- function(loc = NULL,
+rspde.matern1d <- function(loc,
                          nu.upper.bound = NULL, 
                          rspde.order = 1,
                          nu = NULL,
@@ -395,7 +397,7 @@ rspde.matern1d <- function(loc = NULL,
 
     rspde_check_cgeneric_symbol(model)
     
-    class(model) <- c("inla_rspde", class(model))
+    class(model) <- c("inla_rspde_matern1d", class(model))
     model$dim <- d
     model$est_nu <- !fixed_nu
     model$nu.upper.bound <- nu.upper.bound
@@ -404,8 +406,58 @@ rspde.matern1d <- function(loc = NULL,
     model$type.rational.approx <- type.rational.approx
     model$parameterization <- parameterization
     model$A <- A
-    model$index <- inla.spde.make.index(name = "field", n.spde = dim(A)[2])
+    model$index <- INLA::inla.spde.make.index(name = "field", n.spde = dim(A)[2])
     model$rspde_version <- as.character(packageVersion("rSPDE"))
     model$stationary = TRUE
+    model$loc <- loc
     return(model)
 }
+
+
+
+#' @title rSPDE stationary inlabru mapper
+#' @name bru_get_mapper.inla_rspde_matern1d
+#' @param model An `inla_rspde_matern1d` object for which to construct or extract a mapper
+#' @param \dots Arguments passed on to other methods
+#' @rdname bru_get_mapper.inla_rspde_matern1d
+#' @rawNamespace if (getRversion() >= "3.6.0") {
+#'   S3method(inlabru::bru_get_mapper, inla_rspde_matern1d)
+#'   S3method(inlabru::ibm_n, bru_mapper_inla_rspde_matern1d)
+#'   S3method(inlabru::ibm_values, bru_mapper_inla_rspde_matern1d)
+#'   S3method(inlabru::ibm_jacobian, bru_mapper_inla_rspde_matern1d)
+#' }
+
+bru_get_mapper.inla_rspde_matern1d <- function(model, ...) {
+  stopifnot(requireNamespace("inlabru"))
+  mapper <- list(model = model)
+  inlabru::bru_mapper_define(mapper, new_class = "bru_mapper_inla_rspde_matern1d")
+}
+
+
+#' @param mapper A `bru_mapper_inla_rspde_matern1d` object
+#' @rdname bru_get_mapper.inla_rspde_matern1d
+ibm_n.bru_mapper_inla_rspde_matern1d <- function(mapper, ...) {
+  model <- mapper[["model"]][["f"]][["n"]]
+}
+#' @rdname bru_get_mapper.inla_rspde_matern1d
+ibm_values.bru_mapper_inla_rspde_matern1d <- function(mapper, ...) {
+  seq_len(inlabru::ibm_n(mapper))
+}
+#' @param input The values for which to produce a mapping matrix
+#' @rdname bru_get_mapper.inla_rspde_matern1d
+ibm_jacobian.bru_mapper_inla_rspde_matern1d <- function(mapper, input, ...) {
+  model <- mapper[["model"]]
+
+  loc <- model[["loc"]]
+  
+  A <- model[["A"]]
+
+  
+  
+  n_rep <- model[["rspde.order"]] + 1
+  if((model[["est_nu"]] == 0L) && (model[["nu"]] %% 1 == 0)){
+      n_rep <- 1
+  }
+  kronecker(matrix(1, 1, n_rep), A)
+}
+
