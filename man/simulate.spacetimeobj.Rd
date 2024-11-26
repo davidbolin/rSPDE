@@ -8,10 +8,10 @@
   object,
   nsim = 1,
   seed = NULL,
-  user_kappa = NULL,
-  user_sigma = NULL,
-  user_gamma = NULL,
-  user_rho = NULL,
+  kappa = NULL,
+  sigma = NULL,
+  gamma = NULL,
+  rho = NULL,
   ...
 )
 }
@@ -22,13 +22,13 @@
 
 \item{seed}{an object specifying if and how the random number generator should be initialized (‘seeded’).}
 
-\item{user_kappa}{kappa parameter if it should be updated}
+\item{kappa}{kappa parameter if it should be updated}
 
-\item{user_sigma}{sigma parameter if it should be updated}
+\item{sigma}{sigma parameter if it should be updated}
 
-\item{user_gamma}{gamma parameter if it should be updated}
+\item{gamma}{gamma parameter if it should be updated}
 
-\item{user_rho}{rho parameter if it should be updated}
+\item{rho}{rho parameter if it should be updated}
 
 \item{...}{Currently not used.}
 }

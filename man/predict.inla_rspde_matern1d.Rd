@@ -10,12 +10,6 @@
   bru_fit,
   newdata = NULL,
   formula = NULL,
-  data_coords = c("PtE", "euclidean"),
-  normalized = TRUE,
-  repl = NULL,
-  repl_col = NULL,
-  group = NULL,
-  group_col = NULL,
   n.samples = 100,
   seed = 0L,
   probs = c(0.025, 0.5, 0.975),
@@ -24,6 +18,7 @@
   include = NULL,
   exclude = NULL,
   drop = FALSE,
+  tolerance = 1e-04,
   ...
 )
 }
@@ -68,6 +63,8 @@ the inclusion list)}
 \item{drop}{logical; If keep=FALSE, data is a SpatialDataFrame, and the
 prediciton summary has the same number of rows as data, then the output is a
 SpatialDataFrame object. Default FALSE.}
+
+\item{tolerance}{Tolerance for merging locations.}
 
 \item{...}{Additional arguments passed on to \code{inla.posterior.sample()}.}
 }

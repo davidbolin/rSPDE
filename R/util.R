@@ -1098,7 +1098,7 @@ rational.type <- function(object) {
   rspde.order <- rspde.order[[1]]
 
   if (inherits(object, "CBrSPDEobj") || inherits(object, "rSPDEobj")) {
-    model <- update(object, user_m = rspde.order)
+    model <- update(object, m = rspde.order)
   } else if (inherits(object, "inla_rspde")) {
     if (rspde.order > 0 && object$integer.nu) {
       warning("The order was not changed since there is no
@@ -1258,23 +1258,23 @@ rspde_check_user_input <- function(param, label, lower_bound = NULL, dim = 1) {
 
 #' Process inputs likelihood
 #'
-#' @param user_kappa kappa
-#' @param user_tau tau
-#' @param user_nu nu
+#' @param kappa kappa
+#' @param tau tau
+#' @param nu nu
 #' @param sigma.e sigma.e
 #'
 #' @return List with the positions
 #' @noRd
 
-likelihood_process_inputs_spde <- function(user_kappa, user_tau, user_nu, sigma.e) {
+likelihood_process_inputs_spde <- function(kappa, tau, nu, sigma.e) {
   param_vector <- c("tau", "kappa", "nu", "sigma.e")
-  if (!is.null(user_tau)) {
+  if (!is.null(tau)) {
     param_vector <- setdiff(param_vector, "tau")
   }
-  if (!is.null(user_kappa)) {
+  if (!is.null(kappa)) {
     param_vector <- setdiff(param_vector, "kappa")
   }
-  if (!is.null(user_nu)) {
+  if (!is.null(nu)) {
     param_vector <- setdiff(param_vector, "nu")
   }
   if (!is.null(sigma.e)) {
@@ -1288,23 +1288,23 @@ likelihood_process_inputs_spde <- function(user_kappa, user_tau, user_nu, sigma.
 
 #' Process inputs likelihood
 #'
-#' @param user_kappa kappa
-#' @param user_tau tau
-#' @param user_nu nu
+#' @param kappa kappa
+#' @param tau tau
+#' @param nu nu
 #' @param sigma.e sigma.e
 #'
 #' @return List with the positions
 #' @noRd
 
-likelihood_process_inputs_matern <- function(user_range, user_sigma, user_nu, sigma.e) {
+likelihood_process_inputs_matern <- function(range, sigma, nu, sigma.e) {
   param_vector <- c("sigma", "range", "nu", "sigma.e")
-  if (!is.null(user_sigma)) {
+  if (!is.null(sigma)) {
     param_vector <- setdiff(param_vector, "sigma")
   }
-  if (!is.null(user_range)) {
+  if (!is.null(range)) {
     param_vector <- setdiff(param_vector, "range")
   }
-  if (!is.null(user_nu)) {
+  if (!is.null(nu)) {
     param_vector <- setdiff(param_vector, "nu")
   }
   if (!is.null(sigma.e)) {

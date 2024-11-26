@@ -6,12 +6,12 @@
 \usage{
 \method{update}{CBrSPDEobj2d}(
   object,
-  user_hx = NULL,
-  user_hy = NULL,
-  user_hxy = NULL,
-  user_sigma = NULL,
-  user_nu = NULL,
-  user_m = NULL,
+  hx = NULL,
+  hy = NULL,
+  hxy = NULL,
+  sigma = NULL,
+  nu = NULL,
+  m = NULL,
   ...
 )
 }
@@ -19,19 +19,19 @@
 \item{object}{The covariance-based rational SPDE approximation,
 computed using \code{\link[=matern2d.operators]{matern2d.operators()}}}
 
-\item{user_hx}{If non-null, update the hx parameter.}
+\item{hx}{If non-null, update the hx parameter.}
 
-\item{user_hy}{If non-null, update the hy parameter.}
+\item{hy}{If non-null, update the hy parameter.}
 
-\item{user_hxy}{If non-null, update the hxy parameter.}
+\item{hxy}{If non-null, update the hxy parameter.}
 
-\item{user_sigma}{If non-null, update the standard deviation of
+\item{sigma}{If non-null, update the standard deviation of
 the covariance function.}
 
-\item{user_nu}{If non-null, update the shape parameter of the
+\item{nu}{If non-null, update the shape parameter of the
 covariance function. Will be used if parameterization is 'matern'.}
 
-\item{user_m}{If non-null, update the order of the rational
+\item{m}{If non-null, update the order of the rational
 approximation, which needs to be a positive integer.}
 
 \item{...}{Currently not used.}

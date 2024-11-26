@@ -11,11 +11,11 @@ spde.matern.loglike(
   A,
   sigma.e,
   mu = 0,
-  user_nu = NULL,
-  user_kappa = NULL,
-  user_tau = NULL,
-  user_theta = NULL,
-  user_m = NULL
+  nu = NULL,
+  kappa = NULL,
+  tau = NULL,
+  theta = NULL,
+  m = NULL
 )
 }
 \arguments{
@@ -33,15 +33,15 @@ the returned likelihood.}
 
 \item{mu}{Expectation vector of the latent field (default = 0).}
 
-\item{user_nu}{If non-null, the shape parameter will be kept fixed in the returned likelihood.}
+\item{nu}{If non-null, the shape parameter will be kept fixed in the returned likelihood.}
 
-\item{user_kappa}{If non-null, updates the range parameter.}
+\item{kappa}{If non-null, updates the range parameter.}
 
-\item{user_tau}{If non-null, updates the parameter tau.}
+\item{tau}{If non-null, updates the parameter tau.}
 
-\item{user_theta}{If non-null, updates the parameter theta (that connects tau and kappa to the model matrices in \code{object}).}
+\item{theta}{If non-null, updates the parameter theta (that connects tau and kappa to the model matrices in \code{object}).}
 
-\item{user_m}{If non-null, update the order of the rational approximation,
+\item{m}{If non-null, update the order of the rational approximation,
 which needs to be a positive integer.}
 }
 \value{
@@ -92,9 +92,9 @@ Y <- as.matrix(A \%*\% u + sigma.e * noise)
 mlik <- function(theta) {
   return(-spde.matern.loglike(op, Y, A,
     sigma.e = exp(theta[4]),
-    user_nu = exp(theta[3]),
-    user_kappa = exp(theta[2]),
-    user_tau = exp(theta[1])
+    nu = exp(theta[3]),
+    kappa = exp(theta[2]),
+    tau = exp(theta[1])
   ))
 }
 #' #The parameters can now be estimated by minimizing mlik with optim

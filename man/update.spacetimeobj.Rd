@@ -6,22 +6,22 @@
 \usage{
 update.spacetimeobj(
   object,
-  user_kappa = NULL,
-  user_sigma = NULL,
-  user_gamma = NULL,
-  user_rho = NULL
+  kappa = NULL,
+  sigma = NULL,
+  gamma = NULL,
+  rho = NULL
 )
 }
 \arguments{
 \item{object}{Space-time object created by \code{\link[=spacetime.operators]{spacetime.operators()}}}
 
-\item{user_kappa}{kappa value to be updated.}
+\item{kappa}{kappa value to be updated.}
 
-\item{user_sigma}{sigma value to be updated.}
+\item{sigma}{sigma value to be updated.}
 
-\item{user_gamma}{gamma value to be updated.}
+\item{gamma}{gamma value to be updated.}
 
-\item{user_rho}{rho value to be updated.}
+\item{rho}{rho value to be updated.}
 }
 \value{
 An object of type spacetimeobj with updated parameters.
@@ -36,6 +36,6 @@ t <- seq(from = 0, to = 20, length.out = 31)
 op_cov <- spacetime.operators(space_loc = s, time_loc = t,
                              kappa = 5, sigma = 10, alpha = 1,
                              beta = 2, rho = 1, gamma = 0.05)
-op_cov <- update.spacetimeobj(op_cov, user_kappa = 4, 
-                             user_sigma = 2, user_gamma = 0.1)                              
+op_cov <- update.spacetimeobj(op_cov, kappa = 4, 
+                             sigma = 2, gamma = 0.1)                              
 }

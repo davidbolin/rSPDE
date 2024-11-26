@@ -43,9 +43,9 @@ test_that("Checking loglike of CBrSPDE", {
     sim_data <- A %*% simulate(op2) + rnorm(dim(A)[1], sd = 0.1)
     loglike2 <- rSPDE.matern.loglike(
       object = op2, Y = sim_data, A = A,
-      sigma.e = 0.1, user_nu = nu,
-      user_kappa = kappa,
-      user_sigma = sigma
+      sigma.e = 0.1, nu = nu,
+      kappa = kappa,
+      sigma = sigma
     )
 
     op1 <- matern.operators(

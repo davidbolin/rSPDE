@@ -238,17 +238,17 @@ matern.rational = function(graph = NULL,
 #' @description Function to change the parameters of a rSPDEobj1d object
 #' @param object The covariance-based rational SPDE approximation,
 #' computed using [matern.rational()]
-#' @param user_kappa If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.
-#' @param user_tau If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param kappa If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.
+#' @param tau If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function. Will be used if parameterization is 'matern'.
-#' @param user_range If non-null, update the range parameter
+#' @param range If non-null, update the range parameter
 #' of the covariance function. Will be used if parameterization is 'matern'.
-#' @param user_theta For non-stationary models. If non-null, update the vector of parameters.
-#' @param user_nu If non-null, update the shape parameter of the
+#' @param theta For non-stationary models. If non-null, update the vector of parameters.
+#' @param nu If non-null, update the shape parameter of the
 #' covariance function. Will be used if parameterization is 'matern'.
-#' @param user_alpha If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.
-#' @param user_m If non-null, update the order of the rational
+#' @param alpha If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.
+#' @param m If non-null, update the order of the rational
 #' approximation, which needs to be a positive integer.
 #' @param graph An optional `metric_graph` object. 
 #' @param loc The locations of interest for evaluating the model. 
@@ -272,19 +272,19 @@ matern.rational = function(graph = NULL,
 #' op_cov <- matern.rational(loc = s, nu = nu, range = r, sigma = sigma, m = 2, 
 #' parameterization = "matern")
 #' cov1 <- op_cov$covariance(ind = 1)
-#' op_cov <- update(op_cov, user_range = 0.2)
+#' op_cov <- update(op_cov, range = 0.2)
 #' cov2 <- op_cov$covariance(ind = 1)
 #' plot(s, cov1, type = "l")
 #' lines(s, cov2, col = 2)
 update.rSPDEobj1d <- function(object, 
-                              user_nu = NULL, 
-                              user_alpha = NULL,
-                              user_kappa = NULL,
-                              user_tau = NULL,
-                              user_sigma = NULL,
-                              user_range = NULL,
-                              user_theta = NULL,
-                              user_m = NULL,
+                              nu = NULL, 
+                              alpha = NULL,
+                              kappa = NULL,
+                              tau = NULL,
+                              sigma = NULL,
+                              range = NULL,
+                              theta = NULL,
+                              m = NULL,
                               loc = NULL,
                               graph = NULL,
                               parameterization = NULL,
@@ -304,36 +304,36 @@ update.rSPDEobj1d <- function(object,
     }
     
     if (parameterization == "spde") {
-        if (!is.null(user_kappa)) {
-            new_object$kappa <- rspde_check_user_input(user_kappa, "kappa", 0)
+        if (!is.null(kappa)) {
+            new_object$kappa <- rspde_check_user_input(kappa, "kappa", 0)
             new_object$range <- NULL
             new_object$sigma <- NULL
         }
         
-        if (!is.null(user_tau)) {
-            new_object$tau <- rspde_check_user_input(user_tau, "tau", 0)
+        if (!is.null(tau)) {
+            new_object$tau <- rspde_check_user_input(tau, "tau", 0)
             new_object$sigma <- NULL
         }
         
-        if (!is.null(user_alpha)) {
-            alpha <- rspde_check_user_input(user_alpha, "alpha", d / 2)
-            user_nu <- alpha - d / 2
-            new_object$nu <- user_nu
+        if (!is.null(alpha)) {
+            alpha <- rspde_check_user_input(alpha, "alpha", d / 2)
+            nu <- alpha - d / 2
+            new_object$nu <- nu
             new_object$alpha <- alpha
         }
     } else if (parameterization == "matern") {
-        if (!is.null(user_range)) {
-            new_object$range <- rspde_check_user_input(user_range, "range", 0)
+        if (!is.null(range)) {
+            new_object$range <- rspde_check_user_input(range, "range", 0)
             new_object$kappa <- NULL
             new_object$tau <- NULL
         }
         
-        if (!is.null(user_sigma)) {
-            new_object$sigma <- rspde_check_user_input(user_sigma, "sigma", 0)
+        if (!is.null(sigma)) {
+            new_object$sigma <- rspde_check_user_input(sigma, "sigma", 0)
             new_object$tau <- NULL
         }
-        if (!is.null(user_nu)) {
-            new_object$nu <- rspde_check_user_input(user_nu, "nu")
+        if (!is.null(nu)) {
+            new_object$nu <- rspde_check_user_input(nu, "nu")
         }
         alpha <- new_object$nu + d / 2
         new_object$alpha <- alpha
@@ -342,8 +342,8 @@ update.rSPDEobj1d <- function(object,
     ## get parameters
     alpha <- new_object$alpha
 
-    if (!is.null(user_m)) {
-        new_object$m <- as.integer(rspde_check_user_input(user_m, "m", 0))
+    if (!is.null(m)) {
+        new_object$m <- as.integer(rspde_check_user_input(m, "m", 0))
     }
     
     
@@ -543,17 +543,17 @@ aux_lme_rSPDE.matern.rational.loglike <- function(object, y, X_cov, repl, loc, s
 #' @description Function to get the precision matrix of a rSPDEobj1d object
 #' @param object The covariance-based rational SPDE approximation,
 #' computed using [matern.rational()]
-#' @param user_loc If non-null, update the locations where to evaluate the model.
-#' @param user_kappa If non-null, update the range parameter of
+#' @param loc If non-null, update the locations where to evaluate the model.
+#' @param kappa If non-null, update the range parameter of
 #' the covariance function.
-#' @param user_tau If non-null, update the parameter tau.
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param tau If non-null, update the parameter tau.
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function.
-#' @param user_range If non-null, update the range parameter
+#' @param range If non-null, update the range parameter
 #' of the covariance function.
-#' @param user_nu If non-null, update the shape parameter of the
+#' @param nu If non-null, update the shape parameter of the
 #' covariance function.
-#' @param user_m If non-null, update the order of the rational approximation,
+#' @param m If non-null, update the order of the rational approximation,
 #' which needs to be a positive integer.
 #' @param ... Currently not used.
 #' @param ordering Return the matrices ordered by field or by location?
@@ -586,26 +586,26 @@ aux_lme_rSPDE.matern.rational.loglike <- function(object, y, X_cov, repl, loc, s
 #' prec_matrix <- precision(op_cov)
 #'
 precision.rSPDEobj1d <- function(object,
-                                 user_loc = NULL,
-                                 user_nu = NULL,
-                                 user_kappa = NULL,
-                                 user_sigma = NULL,
-                                 user_range = NULL,
-                                 user_tau = NULL,
-                                 user_m = NULL,
+                                 loc = NULL,
+                                 nu = NULL,
+                                 kappa = NULL,
+                                 sigma = NULL,
+                                 range = NULL,
+                                 tau = NULL,
+                                 m = NULL,
                                  ordering = c("field", "location"),
                                  ldl = FALSE,
                                  ...) {
     ordering <- ordering[1]
     object <- update.rSPDEobj1d(
         object = object,
-        user_loc = user_loc,
-        user_nu = user_nu,
-        user_kappa = user_kappa,
-        user_sigma = user_sigma,
-        user_range = user_range,
-        user_tau = user_tau,
-        user_m = user_m
+        loc = loc,
+        nu = nu,
+        kappa = kappa,
+        sigma = sigma,
+        range = range,
+        tau = tau,
+        m = m
     )
     
     if(is.null(object$loc)) {

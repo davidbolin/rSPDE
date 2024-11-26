@@ -454,10 +454,10 @@ spacetime.operators <- function(mesh_space = NULL,
 #' Update space-time operator object with new parameters
 #'
 #' @param object Space-time object created by [spacetime.operators()]
-#' @param user_kappa kappa value to be updated.
-#' @param user_sigma sigma value to be updated.
-#' @param user_gamma gamma value to be updated.
-#' @param user_rho rho value to be updated.
+#' @param kappa kappa value to be updated.
+#' @param sigma sigma value to be updated.
+#' @param gamma gamma value to be updated.
+#' @param rho rho value to be updated.
 #'
 #' @return An object of type spacetimeobj with updated parameters.
 #' @export
@@ -469,39 +469,39 @@ spacetime.operators <- function(mesh_space = NULL,
 #'op_cov <- spacetime.operators(space_loc = s, time_loc = t,
 #'                              kappa = 5, sigma = 10, alpha = 1,
 #'                              beta = 2, rho = 1, gamma = 0.05)
-#'op_cov <- update.spacetimeobj(op_cov, user_kappa = 4, 
-#'                              user_sigma = 2, user_gamma = 0.1)                              
+#'op_cov <- update.spacetimeobj(op_cov, kappa = 4, 
+#'                              sigma = 2, gamma = 0.1)                              
 update.spacetimeobj <- function(object, 
-                                user_kappa = NULL,
-                                user_sigma = NULL,
-                                user_gamma = NULL,
-                                user_rho = NULL) {
+                                kappa = NULL,
+                                sigma = NULL,
+                                gamma = NULL,
+                                rho = NULL) {
     new_object <- object
     
-    if (!is.null(user_kappa)) {
-        kappa <- rspde_check_user_input(user_kappa, "kappa", 0, 1)
+    if (!is.null(kappa)) {
+        kappa <- rspde_check_user_input(kappa, "kappa", 0, 1)
     } else {
         kappa <- object$kappa
     }
     
-    if (!is.null(user_sigma)) {
-        sigma <- rspde_check_user_input(user_sigma, "sigma", 0, 1)
+    if (!is.null(sigma)) {
+        sigma <- rspde_check_user_input(sigma, "sigma", 0, 1)
     } else {
         sigma <- object$sigma
     }
     
-    if(!is.null(user_rho)){
+    if(!is.null(rho)){
         if(object$has_graph) {
-            rho <- rspde_check_user_input(user_rho, "rho", dim = 1) 
+            rho <- rspde_check_user_input(rho, "rho", dim = 1) 
         } else {
-            rho <- rspde_check_user_input(user_rho, "rho", dim = object$d) 
+            rho <- rspde_check_user_input(rho, "rho", dim = object$d) 
         }
     } else {
         rho <- object$rho
     }
     
-    if (!is.null(user_gamma)) {
-        gamma <- rspde_check_user_input(user_gamma, "gamma", 0, 1)
+    if (!is.null(gamma)) {
+        gamma <- rspde_check_user_input(gamma, "gamma", 0, 1)
     } else {
         gamma <- object$gamma
     }
@@ -544,10 +544,10 @@ update.spacetimeobj <- function(object,
 #' @param object Space-time object created by [spacetime.operators()]
 #' @param nsim The number of simulations.
 #' @param seed an object specifying if and how the random number generator should be initialized (‘seeded’).
-#' @param user_kappa kappa parameter if it should be updated
-#' @param user_sigma sigma parameter if it should be updated
-#' @param user_gamma gamma parameter if it should be updated
-#' @param user_rho rho parameter if it should be updated
+#' @param kappa kappa parameter if it should be updated
+#' @param sigma sigma parameter if it should be updated
+#' @param gamma gamma parameter if it should be updated
+#' @param rho rho parameter if it should be updated
 #' @param ... Currently not used.
 #'
 #' @return A matrix with the simulations as columns.
@@ -564,19 +564,19 @@ update.spacetimeobj <- function(object,
 #'image(matrix(x, nrow = length(s), ncol = length(t)))                              
 simulate.spacetimeobj <- function(object, nsim = 1,
                                 seed = NULL,
-                                user_kappa = NULL,
-                                user_sigma = NULL,
-                                user_gamma = NULL,
-                                user_rho = NULL,
+                                kappa = NULL,
+                                sigma = NULL,
+                                gamma = NULL,
+                                rho = NULL,
                                 ...) {
     if (!is.null(seed)) {
         set.seed(seed)
     }
-    if(!is.null(user_kappa) || !is.null(user_sigma) || !is.null(user_gamma) || !is.null(user_rho)) {
-        object <- update.spacetimeobj(object, user_kappa = user_kappa,
-                                      user_sigma = user_sigma,
-                                      user_gamma = user_gamma,
-                                      user_rho = user_rho)    
+    if(!is.null(kappa) || !is.null(sigma) || !is.null(gamma) || !is.null(rho)) {
+        object <- update.spacetimeobj(object, kappa = kappa,
+                                      sigma = sigma,
+                                      gamma = gamma,
+                                      rho = rho)    
     }
     
     sizeQ <- dim(object$Q)[1]
@@ -597,13 +597,13 @@ simulate.spacetimeobj <- function(object, nsim = 1,
 #' @title Get the precision matrix of spacetimeobj objects
 #' @description Function to get the precision matrix of a spacetimeobj object
 #' @param object The model object computed using [spacetime.operators()]
-#' @param user_kappa If non-null, update the range parameter of
+#' @param kappa If non-null, update the range parameter of
 #' the covariance function.
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function.
-#' @param user_gamma If non-null, update the temporal range parameter
+#' @param gamma If non-null, update the temporal range parameter
 #' of the covariance function.
-#' @param user_rho If non-null, update the drift parameter of the
+#' @param rho If non-null, update the drift parameter of the
 #' covariance function.
 #' @param ... Currently not used.
 #' @return The precision matrix.
@@ -619,17 +619,17 @@ simulate.spacetimeobj <- function(object, nsim = 1,
 #'                              beta = 2, rho = 1, gamma = 0.05)
 #' prec_matrix <- precision(op_cov)
 precision.spacetimeobj <- function(object,
-                                   user_kappa = NULL,
-                                   user_sigma = NULL,
-                                   user_gamma = NULL,
-                                   user_rho = NULL,
+                                   kappa = NULL,
+                                   sigma = NULL,
+                                   gamma = NULL,
+                                   rho = NULL,
                                    ...) {
     object <- update.spacetimeobj(
         object = object,
-        user_kappa = user_kappa,
-        user_sigma = user_sigma,
-        user_gamma = user_gamma,
-        user_rho = user_rho
+        kappa = kappa,
+        sigma = sigma,
+        gamma = gamma,
+        rho = rho
     )
     return(object$Q)
 }
@@ -780,13 +780,13 @@ predict.spacetimeobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
 #' to the finite element basis.
 #' @param sigma.e The standard deviation of the measurement noise.
 #' @param mu Expectation vector of the latent field (default = 0).
-#' @param user_kappa If non-null, update the range parameter of the
+#' @param kappa If non-null, update the range parameter of the
 #' covariance function.
-#' @param user_sigma If non-null, update the standard deviation of
+#' @param sigma If non-null, update the standard deviation of
 #' the covariance function.
-#' @param user_gamma If non-null, update the temporal range parameter
+#' @param gamma If non-null, update the temporal range parameter
 #' of the covariance function.
-#' @param user_rho If non-null, update the drift parameter of the
+#' @param rho If non-null, update the drift parameter of the
 #' covariance function.
 #' @return The log-likelihood value.
 #' @noRd
@@ -807,10 +807,10 @@ predict.spacetimeobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
 #'Y <- A%*%x + sigma.e*rnorm(n.obs)
 #'spacetime.loglike(object, Y, A, sigma.e)
 spacetime.loglike <- function(object, Y, A, sigma.e, mu = 0,
-                              user_kappa = NULL,
-                              user_sigma = NULL,
-                              user_gamma = NULL,
-                              user_rho = NULL) {
+                              kappa = NULL,
+                              sigma = NULL,
+                              gamma = NULL,
+                              rho = NULL) {
     Y <- as.matrix(Y)
     if (length(dim(Y)) == 2) {
         n.rep <- dim(Y)[2]
@@ -826,13 +826,13 @@ spacetime.loglike <- function(object, Y, A, sigma.e, mu = 0,
     
     ## get relevant parameters
     
-    if(!is.null(user_kappa) || !is.null(user_sigma) || !is.null(user_gamma) || !is.null(user_rho)) {
+    if(!is.null(kappa) || !is.null(sigma) || !is.null(gamma) || !is.null(rho)) {
         object <- update.spacetimeobj(
             object = object,
-            user_kappa = user_kappa,
-            user_sigma = user_sigma,
-            user_gamma = user_gamma,
-            user_rho = user_rho)    
+            kappa = kappa,
+            sigma = sigma,
+            gamma = gamma,
+            rho = rho)    
     }
     
     
