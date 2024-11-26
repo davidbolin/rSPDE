@@ -55,14 +55,14 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'rSPDEobj'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span></span>
 <span>  <span class="va">object</span>,</span>
-<span>  user_nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  user_alpha <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  user_kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  user_sigma <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  user_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  user_tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  user_theta <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  user_m <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  alpha <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sigma <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  range <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  theta <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  m <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  loc_mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  graph <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -81,40 +81,40 @@
 computed using <code><a href="matern.operators.html">matern.operators()</a></code> with <code>type="operator"</code></p></dd>
 
 
-<dt id="arg-user-nu">user_nu<a class="anchor" aria-label="anchor" href="#arg-user-nu"></a></dt>
+<dt id="arg-nu">nu<a class="anchor" aria-label="anchor" href="#arg-nu"></a></dt>
 <dd><p>If non-null, update the shape parameter
 of the covariance function.</p></dd>
 
 
-<dt id="arg-user-alpha">user_alpha<a class="anchor" aria-label="anchor" href="#arg-user-alpha"></a></dt>
+<dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
 <dd><p>If non-null, update the fractional order.</p></dd>
 
 
-<dt id="arg-user-kappa">user_kappa<a class="anchor" aria-label="anchor" href="#arg-user-kappa"></a></dt>
+<dt id="arg-kappa">kappa<a class="anchor" aria-label="anchor" href="#arg-kappa"></a></dt>
 <dd><p>If non-null, update the range parameter
 of the covariance function.</p></dd>
 
 
-<dt id="arg-user-sigma">user_sigma<a class="anchor" aria-label="anchor" href="#arg-user-sigma"></a></dt>
+<dt id="arg-sigma">sigma<a class="anchor" aria-label="anchor" href="#arg-sigma"></a></dt>
 <dd><p>If non-null, update the standard deviation of
 the covariance function.</p></dd>
 
 
-<dt id="arg-user-range">user_range<a class="anchor" aria-label="anchor" href="#arg-user-range"></a></dt>
+<dt id="arg-range">range<a class="anchor" aria-label="anchor" href="#arg-range"></a></dt>
 <dd><p>If non-null, update the range parameter
 of the covariance function.</p></dd>
 
 
-<dt id="arg-user-tau">user_tau<a class="anchor" aria-label="anchor" href="#arg-user-tau"></a></dt>
+<dt id="arg-tau">tau<a class="anchor" aria-label="anchor" href="#arg-tau"></a></dt>
 <dd><p>If non-null, update the parameter tau.</p></dd>
 
 
-<dt id="arg-user-theta">user_theta<a class="anchor" aria-label="anchor" href="#arg-user-theta"></a></dt>
+<dt id="arg-theta">theta<a class="anchor" aria-label="anchor" href="#arg-theta"></a></dt>
 <dd><p>If non-null, update the parameter theta, that connects
 tau and kappa to the model matrices.</p></dd>
 
 
-<dt id="arg-user-m">user_m<a class="anchor" aria-label="anchor" href="#arg-user-m"></a></dt>
+<dt id="arg-m">m<a class="anchor" aria-label="anchor" href="#arg-m"></a></dt>
 <dd><p>If non-null, update the order of the rational
 approximation, which needs to be a positive integer.</p></dd>
 
@@ -181,7 +181,7 @@ same quantities listed in the output of <code><a href="matern.operators.html">ma
 <span class="r-out co"><span class="r-pr">#&gt;</span> Stationary Model</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Update the range parameter of the model:</span></span></span>
-<span class="r-in"><span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">op</span>, user_kappa <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">op</span>, kappa <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">op</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Type of approximation:  Matern approximation </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameterization:  matern </span>

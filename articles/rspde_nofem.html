@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-07-20. Last
-modified: 2024-11-21.</h4>
+modified: 2024-11-26.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rspde_nofem.Rmd" class="external-link"><code>vignettes/rspde_nofem.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_nofem.Rmd</code></div>
@@ -279,8 +279,8 @@ and
 <span><span class="co">## Number of function calls by 'optim' = 56</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.61375 mins </span></span>
-<span><span class="co">##   set up the parallelization = 2.31959 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.63995 mins </span></span>
+<span><span class="co">##   set up the parallelization = 2.37899 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -296,7 +296,7 @@ and
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 159.1448 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 160.7761 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -338,6 +338,122 @@ results into a plot:</p>
 <span>                <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">df_data</span><span class="op">[</span><span class="va">df_data</span><span class="op">$</span><span class="va">repl</span><span class="op">==</span><span class="fl">1</span>,<span class="op">]</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">loc</span>, y<span class="op">=</span><span class="va">y</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="rspde_nofem_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="using-the-models-in-inla">Using the models in <code>INLA</code><a class="anchor" aria-label="anchor" href="#using-the-models-in-inla"></a>
+</h2>
+<p>The <code>inla</code> implementation of the models is found in the
+<code>rspde.matern1d</code> function. To test it, let us simulate some
+data again.</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span>
+<span><span class="va">sigma.e</span> <span class="op">&lt;-</span> <span class="fl">0.1</span></span>
+<span><span class="va">n.obs</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
+<span><span class="va">r</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">5</span>, length.out <span class="op">=</span> <span class="va">n.obs</span><span class="op">)</span></span>
+<span><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/matern.rational.html">matern.rational</a></span><span class="op">(</span>loc <span class="op">=</span> <span class="va">s</span>, nu <span class="op">=</span> <span class="va">nu</span>, range <span class="op">=</span> <span class="va">r</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, m <span class="op">=</span> <span class="fl">1</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span>
+<span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op_cov</span><span class="op">)</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">u</span> <span class="op">+</span> <span class="va">sigma.e</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n.obs</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">s</span>, <span class="va">u</span>, type <span class="op">=</span> <span class="st">"l"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">s</span>,<span class="va">Y</span>,col<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-19-1.png" width="700">
+We can now specify the model and fit it to the data using
+<code>inla</code>. In the following code, we fix the smoothness
+parameter to 0.5. In this case, it will not be estimated in
+<code>inla</code>. By removing the specification of <code>nu</code> in
+the <code>rspde.matern1d</code> call, it is assumed to be free and will
+be estimated from data. Note that the <code>A</code> matrix and the
+<code>index</code> vector needed by <code>inla</code> are pre-computed
+in the function. The default name of the model component (set in the
+index vector) is <code>field</code>.</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## This is INLA_24.11.25 built 2024-11-25 08:34:57 UTC.</span></span>
+<span><span class="co">##  - See www.r-inla.org/contact-us for how to get help.</span></span>
+<span><span class="co">##  - List available models/likelihoods/etc with inla.list.models()</span></span>
+<span><span class="co">##  - Use inla.doc(&lt;NAME&gt;) to access documentation</span></span></code></pre>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">inla_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.matern1d.html">rspde.matern1d</a></span><span class="op">(</span>loc <span class="op">=</span> <span class="va">s</span>, nu <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="va">st.dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span>, A <span class="op">=</span> <span class="va">inla_model</span><span class="op">$</span><span class="va">A</span>, effects <span class="op">=</span> <span class="va">inla_model</span><span class="op">$</span><span class="va">index</span><span class="op">)</span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.html" class="external-link">inla</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/f.html" class="external-link">f</a></span><span class="op">(</span><span class="va">field</span>, model <span class="op">=</span> <span class="va">inla_model</span><span class="op">)</span>, </span>
+<span>        data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.data</a></span><span class="op">(</span><span class="va">st.dat</span><span class="op">)</span>,</span>
+<span>        family <span class="op">=</span> <span class="st">"gaussian"</span>,</span>
+<span>        control.predictor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>A <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack.A</a></span><span class="op">(</span><span class="va">st.dat</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Let us look at some summaries of the fit:</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">res</span>, <span class="st">"field"</span>, <span class="va">inla_model</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span> </span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##            mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## std.dev 1.02829 0.343695   0.574494 0.950729    1.88258 0.836497</span></span>
+<span><span class="co">## range   2.96505 2.377820   0.762304 2.270970    9.26594 1.549370</span></span></code></pre>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">posterior_df_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gg_df.html">gg_df</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">posterior_df_fit</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">parameter</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Density"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
+</div>
+<div class="section level2">
+<h2 id="using-the-models-in-inlabru">Using the models in <code>inlabru</code><a class="anchor" aria-label="anchor" href="#using-the-models-in-inlabru"></a>
+</h2>
+<p>Let us now fit the following model using our <code>inlabru</code>
+implementation. In this case, we will estimate nu.</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span>
+<span><span class="va">sigma.e</span> <span class="op">&lt;-</span> <span class="fl">0.1</span></span>
+<span><span class="va">n.obs</span> <span class="op">&lt;-</span> <span class="fl">251</span></span>
+<span><span class="va">r</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">5</span>, length.out <span class="op">=</span> <span class="va">n.obs</span><span class="op">)</span></span>
+<span><span class="va">op_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/matern.rational.html">matern.rational</a></span><span class="op">(</span>loc <span class="op">=</span> <span class="va">s</span>, nu <span class="op">=</span> <span class="va">nu</span>, range <span class="op">=</span> <span class="va">r</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, m <span class="op">=</span> <span class="fl">1</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span>
+<span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op_cov</span><span class="op">)</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">u</span> <span class="op">+</span> <span class="va">sigma.e</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n.obs</span><span class="op">)</span></span></code></pre></div>
+<p>We need to create a <code>data.frame</code> with the response
+variables and locations:</p>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">df_bru</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">Y</span>, loc <span class="op">=</span> <span class="va">s</span><span class="op">)</span></span></code></pre></div>
+<p>We now create the model object, without specifying
+<code>nu</code>:</p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bru_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.matern1d.html">rspde.matern1d</a></span><span class="op">(</span>loc <span class="op">=</span> <span class="va">s</span><span class="op">)</span></span></code></pre></div>
+<p>Finally, we can load the <code>inlabru</code> package, create the
+model component, and fit the model:</p>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://www.inlabru.org" class="external-link">inlabru</a></span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Loading required package: fmesher</span></span></code></pre>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fu">Intercept</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span> <span class="fu">field</span><span class="op">(</span><span class="va">loc</span>, model <span class="op">=</span> <span class="va">bru_model</span><span class="op">)</span></span>
+<span><span class="va">bru_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru</a></span><span class="op">(</span><span class="va">cmp</span>, data <span class="op">=</span> <span class="va">df_bru</span>, options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>num.threads <span class="op">=</span> <span class="st">"1:1"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Let us, again, look at the summaries of the fit:</p>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">bru_fit</span>, <span class="st">"field"</span>, <span class="va">bru_model</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span> </span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##             mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## std.dev 1.070510 0.322436   0.594989 1.016800    1.82159 0.926133</span></span>
+<span><span class="co">## range   0.809650 0.264447   0.411458 0.772452    1.44301 0.707646</span></span>
+<span><span class="co">## nu      0.974127 0.199463   0.600204 0.968840    1.37212 0.948662</span></span></code></pre>
+</div>
+<div class="section level2">
+<h2 id="kriging-with-the-inlabru-implementation">Kriging with the inlabru implementation<a class="anchor" aria-label="anchor" href="#kriging-with-the-inlabru-implementation"></a>
+</h2>
+<p>We will now do prediction with the previous model. To this end, we
+start by creating the <code>data.frame</code> containing the locations
+in which we want to do prediction:</p>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">s_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">5</span>, length.out <span class="op">=</span> <span class="fl">1001</span><span class="op">)</span></span>
+<span><span class="va">df_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>loc <span class="op">=</span> <span class="va">s_pred</span><span class="op">)</span></span></code></pre></div>
+<p>Now, first observe that we cannot directly use <code>inlabru</code>’s
+predict method:</p>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">bru_fit</span>, newdata <span class="op">=</span> <span class="va">df_pred</span>, formula <span class="op">=</span> <span class="op">~</span> <span class="va">Intercept</span> <span class="op">+</span> <span class="va">field</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Error in match_with_tolerance(input, loc): Error: The input location 0.0050000000 is not present in the original locations used to create the model object.</span></span></code></pre>
+<p>Indeed, it complained that we are trying to obtain predictions at
+locations that were not used to create the model object. However, we can
+obtain predictions using our modified <code>predict</code> method, in
+which we need to pass the components and well as the model:</p>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">bru_model</span>, <span class="va">cmp</span>, <span class="va">bru_fit</span>, newdata <span class="op">=</span> <span class="va">df_pred</span>, formula <span class="op">=</span> <span class="op">~</span> <span class="va">Intercept</span> <span class="op">+</span> <span class="va">field</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

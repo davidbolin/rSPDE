@@ -64,11 +64,11 @@ $$(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.$$</p>
 <span>  <span class="va">A</span>,</span>
 <span>  <span class="va">sigma.e</span>,</span>
 <span>  mu <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  user_nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  user_kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  user_tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  user_theta <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  user_m <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  theta <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  m <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -100,23 +100,23 @@ the returned likelihood.</p></dd>
 <dd><p>Expectation vector of the latent field (default = 0).</p></dd>
 
 
-<dt id="arg-user-nu">user_nu<a class="anchor" aria-label="anchor" href="#arg-user-nu"></a></dt>
+<dt id="arg-nu">nu<a class="anchor" aria-label="anchor" href="#arg-nu"></a></dt>
 <dd><p>If non-null, the shape parameter will be kept fixed in the returned likelihood.</p></dd>
 
 
-<dt id="arg-user-kappa">user_kappa<a class="anchor" aria-label="anchor" href="#arg-user-kappa"></a></dt>
+<dt id="arg-kappa">kappa<a class="anchor" aria-label="anchor" href="#arg-kappa"></a></dt>
 <dd><p>If non-null, updates the range parameter.</p></dd>
 
 
-<dt id="arg-user-tau">user_tau<a class="anchor" aria-label="anchor" href="#arg-user-tau"></a></dt>
+<dt id="arg-tau">tau<a class="anchor" aria-label="anchor" href="#arg-tau"></a></dt>
 <dd><p>If non-null, updates the parameter tau.</p></dd>
 
 
-<dt id="arg-user-theta">user_theta<a class="anchor" aria-label="anchor" href="#arg-user-theta"></a></dt>
+<dt id="arg-theta">theta<a class="anchor" aria-label="anchor" href="#arg-theta"></a></dt>
 <dd><p>If non-null, updates the parameter theta (that connects tau and kappa to the model matrices in <code>object</code>).</p></dd>
 
 
-<dt id="arg-user-m">user_m<a class="anchor" aria-label="anchor" href="#arg-user-m"></a></dt>
+<dt id="arg-m">m<a class="anchor" aria-label="anchor" href="#arg-m"></a></dt>
 <dd><p>If non-null, update the order of the rational approximation,
 which needs to be a positive integer.</p></dd>
 
@@ -172,9 +172,9 @@ rational approximation of the fractional SPDE model.</p>
 <span class="r-in"><span><span class="va">mlik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="fu">spde.matern.loglike</span><span class="op">(</span><span class="va">op</span>, <span class="va">Y</span>, <span class="va">A</span>,</span></span>
 <span class="r-in"><span>    sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    user_nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    user_kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    user_tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="co">#' #The parameters can now be estimated by minimizing mlik with optim</span></span></span>
