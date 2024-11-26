@@ -447,17 +447,14 @@ ibm_values.bru_mapper_inla_rspde_matern1d <- function(mapper, ...) {
 #' @rdname bru_get_mapper.inla_rspde_matern1d
 ibm_jacobian.bru_mapper_inla_rspde_matern1d <- function(mapper, input, ...) {
   model <- mapper[["model"]]
-
   loc <- model[["loc"]]
+
+  indices <- match_with_tolerance(input, loc)
   
   A <- model[["A"]]
 
+  A <- A[indices,, drop=FALSE]
   
-  
-  n_rep <- model[["rspde.order"]] + 1
-  if((model[["est_nu"]] == 0L) && (model[["nu"]] %% 1 == 0)){
-      n_rep <- 1
-  }
-  kronecker(matrix(1, 1, n_rep), A)
+  return(A)
 }
 

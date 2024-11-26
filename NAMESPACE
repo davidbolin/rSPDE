@@ -124,6 +124,12 @@ if (getRversion() >= "3.6.0") {
 }
 
 if (getRversion() >= "3.6.0") {
+  S3method(inlabru::bru_get_mapper, inla_rspde_matern1d)
+  S3method(inlabru::ibm_n, bru_mapper_inla_rspde_matern1d)
+  S3method(inlabru::ibm_values, bru_mapper_inla_rspde_matern1d)
+  S3method(inlabru::ibm_jacobian, bru_mapper_inla_rspde_matern1d)
+}
+if (getRversion() >= "3.6.0") {
   S3method(inlabru::bru_get_mapper, inla_rspde_spacetime)
   S3method(inlabru::bru_mapper, metric_graph)
   S3method(inlabru::ibm_n, bru_mapper_metric_graph)
