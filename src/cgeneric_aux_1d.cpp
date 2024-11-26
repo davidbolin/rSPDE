@@ -414,7 +414,7 @@ void compute_Q1d(int n, double *loc, int rspde_order, double kappa,
         fa_base2 = floor(alpha_ub) + 1;
     }
     
-    Eigen::VectorXd vec_ind(N); 
+    Eigen::VectorXd vec_ind = Eigen::VectorXd::Zero(N);
     int J = fa*n + rspde_order*fa2*n;
     for(int j = 0; j < J; j++) {
         vec_ind(map_index(j, n, fa, fa2, fa_base, fa_base2)) = 1;
@@ -477,7 +477,7 @@ void compute_Q1d(int n, double *loc, int rspde_order, double kappa,
     
     //std::cout << "Q = " << std::endl << Eigen::MatrixXd(Q) << std::endl;
     for(k = 0; k < N; k++){
-        if(vec_ind(k) == 0) {
+        if(vec_ind(k) != 1) {
             Q.coeffRef(k,k) += 1.0;
         }
     }

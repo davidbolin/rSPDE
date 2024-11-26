@@ -394,7 +394,7 @@ Finally, we can load the `inlabru` package, create the model component, and fit 
 library(inlabru)
 
 cmp <- y ~ -1 + Intercept(1) + field(loc, model = bru_model)
-bru_fit <- bru(cmp, data = df_bru)
+bru_fit <- bru(cmp, data = df_bru, options = list(num.threads = "1:1"))
 ```
 
 Let us, again, look at the summaries of the fit:
@@ -419,7 +419,7 @@ Now, first observe that we cannot directly use `inlabru`'s predict method:
 pred <- predict(bru_fit, newdata = df_pred, formula = ~ Intercept + field)
 ```
 
-However, we can obtain predictions using our modified `predict` method, in which we need to pass the components and well as the model:
+Indeed, it complained that we are trying to obtain predictions at locations that were not used to create the model object. However, we can obtain predictions using our modified `predict` method, in which we need to pass the components and well as the model:
 
 ```{r}
 pred <- predict(bru_model, cmp, bru_fit, newdata = df_pred, formula = ~ Intercept + field)
