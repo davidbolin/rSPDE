@@ -33,12 +33,16 @@ rspde.matern1d(
 )
 }
 \arguments{
+\item{loc}{A vector of spatial locations.}
+
 \item{nu.upper.bound}{Upper bound for the smoothness parameter. If \code{NULL}, it will be set to 2.}
 
 \item{rspde.order}{The order of the covariance-based rational SPDE approach. The default order is 1.}
 
 \item{nu}{If nu is set to a parameter, nu will be kept fixed and will not
 be estimated. If nu is \code{NULL}, it will be estimated.}
+
+\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). \code{matern2} uses range-like (1/kappa), variance and nu (smoothness). The default is \code{spde}.}
 
 \item{start.nu}{Starting value for nu.}
 
