@@ -2150,3 +2150,42 @@ transform_parameters_anisotropic <- function(theta, nu_upper_bound = NULL) {
   
   return(result)
 }
+
+
+#' @noRd 
+
+rspde_check_cgeneric_symbol <- function(model) {
+  # Ensure the required fields exist in the model object
+  if (!"f" %in% names(model) || !"cgeneric" %in% names(model$f) || 
+      !"shlib" %in% names(model$f$cgeneric) || !"model" %in% names(model$f$cgeneric)) {
+    stop("There was a problem with the model creation.")
+  }
+  
+  # Extract the shared library path and the symbol name
+  shlib <- model$f$cgeneric$shlib
+  symbol <- model$f$cgeneric$model
+  
+  # Check if the shared library exists
+  if (!file.exists(shlib)) {
+    stop(paste("The shared library", shlib, "does not exist."))
+  }
+  
+  # Use the `dyn.load` and `is.loaded` functions to check for the symbol
+  tryCatch({
+    dyn.load(shlib) # Load the shared library
+    if (is.loaded(symbol)) {
+      dyn.unload(shlib) # Unload if the symbol is available
+      return(invisible(TRUE)) # Return silently
+    } else {
+      warning(paste0("The symbol '", symbol, "' is not available in the shared library. Please install the latest testing version of INLA. 
+      If the problem persists after installing the latest testing version of INLA, please open an issue at https://github.com/davidbolin/rSPDE/issues, 
+      requesting that this model be added to INLA."))
+    }
+    dyn.unload(shlib) # Ensure the library is unloaded
+  }, error = function(e) {
+    warning(paste0("Error while loading the shared library or checking the symbol: ", e$message, 
+                   ". Please install the latest testing version of INLA. If the problem persists after installing the 
+                   latest testing version of INLA, please open an issue at https://github.com/davidbolin/rSPDE/issues, 
+                   requesting that this model be added to INLA."))
+  })
+}

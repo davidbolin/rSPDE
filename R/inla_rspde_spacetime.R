@@ -215,6 +215,9 @@ rspde.spacetime <- function(mesh_space = NULL,
   model$prior.rho <- prior.rho
   model$d <- op$d
   model$prior.precision <- prior.precision
+
+  rspde_check_cgeneric_symbol(model)
+
   if(!is.null(op$mesh_space)){
     model$mesh <- op$mesh_space
   } else{
