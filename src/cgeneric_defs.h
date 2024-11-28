@@ -80,6 +80,9 @@ void compute_Q_alpha1_directional(int *i_Tc, int *j_Tc, double *x_Tc, double kap
                                         int nrow_Tc, int ncol_Tc, int n_nonzero_Tc, double *edge_lengths, double *Q_out, int stat_ind_len, int *stat_ind, int BC);
 
 
+double adjusted_inv_logit(double z, double L);
+double logit_adjusted(double x, double L);
+
 #ifdef __cplusplus
 extern "C" {
 #endif

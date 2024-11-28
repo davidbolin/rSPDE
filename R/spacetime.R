@@ -3,7 +3,7 @@
 #' 
 #' `spacetime.operators` is used for computing a FEM approximation of a Gaussian 
 #' random field defined as a solution to the SPDE
-#' \deqn{d u + \gamma(\kappa^2 + \rho\cdot\nabla - \Delta)^\alpha u = \sigma dW_C.}
+#' \deqn{d u + \gamma(\kappa^2 + \kappa^{d/2}\rho \cdot\nabla - \Delta)^\alpha u = \sigma dW_C.}
 #'where C is a Whittle-Matern covariance operator with smoothness parameter 
 #'\eqn{\beta} and range parameter \eqn{\kappa}
 #' @param mesh_space Spatial mesh for FEM approximation
@@ -19,6 +19,11 @@
 #' @param gamma Temporal range parameter.  
 #' @param alpha Integer smoothness parameter alpha.
 #' @param beta Integer smoothness parameter beta.
+#' @param check_rho Logical. Should `rho` be checked to ensure it is bounded for the existence, uniqueness, and well-posedness of the solution? Defaults to `TRUE`. 
+#' Note that this bounding is not a strict condition; there may exist values of `rho` beyond the upper bound that still satisfy these properties. 
+#' For dimension 1, the upper bound is `sqrt(2)`, while for dimension 2, the absolute value of each coordinate must not exceed `2`. 
+#' If the estimated value of `rho` approaches the upper bound too closely, we recommend refitting the model with `check_rho = FALSE`, but this should be done with caution. 
+#' While this may lead to instability in some cases, it may also result in a well-fitting model.
 #'
 #' @return An object of type spacetimeobj. 
 #' @export
@@ -46,7 +51,8 @@ spacetime.operators <- function(mesh_space = NULL,
                                 gamma = NULL,
                                 rho = NULL,
                                 alpha = NULL,
-                                beta = NULL) {
+                                beta = NULL,
+                                check_rho = TRUE) {
     
     
     if ((!is.null(mesh_space) && !is.null(graph)) || (!is.null(mesh_space) && !is.null(space_loc)) || (!is.null(graph) && !is.null(space_loc))){
@@ -83,6 +89,13 @@ spacetime.operators <- function(mesh_space = NULL,
         time <- time_loc
         mesh_time <- mesh <- fm_mesh_1d(time)
     }
+
+    if(!is.null(mesh_space)){
+        if(!inherits(mesh_space, c("fm_mesh_2d", "fm_mesh_1d"))){
+            stop("mesh_space should be a mesh generated from fmesher::fm_mesh_1d() or fmesher::fm_mesh_2d().")
+        }
+    }
+
     nt <- length(time)
     d <- c(Inf, diff(time))
     dm1 <- c(d[2:nt], Inf)
@@ -180,6 +193,19 @@ spacetime.operators <- function(mesh_space = NULL,
     } else {
         sigma <- rspde_check_user_input(sigma, "sigma", 0, 1)
     }
+
+    if(has_graph){
+        edge_lengths <- graph$get_edge_lengths()
+        bound_rho <- max(edge_lengths)/pi
+    } else if(d == 1){
+        bbox_mesh <- fmesher::fm_bbox(mesh_space)
+        bound_rho <- (bbox_mesh[[1]][2] - bbox_mesh[[1]][1])/pi
+    } else{
+        bbox_mesh <- fmesher::fm_bbox(mesh_space)
+        bound_rho <- min(bbox_mesh[[1]][2] - bbox_mesh[[1]][1], bbox_mesh[[2]][2] - bbox_mesh[[2]][1])/pi
+    }
+
+
     
     if(is.null(rho)){
         if(d == 1){
@@ -191,12 +217,24 @@ spacetime.operators <- function(mesh_space = NULL,
         }
     } else {
         if(has_graph) {
-            rho <- rspde_check_user_input(rho, "rho", dim = 1) 
+            if(check_rho){
+                rho <- rspde_check_user_input(rho, "rho", lower_bound = -bound_rho, upper_bound = bound_rho, dim = 1) 
+            } else{
+                rho <- rspde_check_user_input(rho, "rho", dim = 1) 
+            }
         } else {
             if(d==1){
-                rho <- rspde_check_user_input(rho, "rho", dim = 1)     
+                if(check_rho){
+                    rho <- rspde_check_user_input(rho, "rho", lower_bound = -bound_rho, upper_bound = bound_rho, dim = 1) 
+                } else{
+                    rho <- rspde_check_user_input(rho, "rho", dim = 1) 
+                }
             } else {
-                rho <- rspde_check_user_input(rho, "rho", dim = 2) 
+                if(check_rho){
+                    rho <- rspde_check_user_input(rho, "rho", lower_bound = -bound_rho, upper_bound = bound_rho, dim = 2) 
+                } else{
+                    rho <- rspde_check_user_input(rho, "rho", dim = 2) 
+                }
             }
             
         }
@@ -246,18 +284,20 @@ spacetime.operators <- function(mesh_space = NULL,
     if(d==2) {
         Q <- Q + gamma^2*make.L(beta+2*alpha,kappa,Ctlist)
         if(alpha == 1){
-            tmp <- rho[1]^2*make.L(beta,kappa,M2list[[1]]) + rho[2]^2*make.L(beta,kappa,M2list[[2]]) + 2*rho[1]*rho[2]*make.L(beta,kappa,M2list[[3]])
+            fact_rho <- kappa^2
+            tmp <- (fact_rho*rho[1])^2*make.L(beta,kappa,M2list[[1]]) + (fact_rho*rho[2])^2*make.L(beta,kappa,M2list[[2]]) + 2*(fact_rho*rho[1])*(fact_rho*rho[2])*make.L(beta,kappa,M2list[[3]])
             Q <- Q + 0.5*gamma^2*(tmp + t(tmp))
-            M2 <- rho[1]*make.L(beta,kappa,M2list[[4]]) + rho[2]*make.L(beta,kappa,M2list[[5]])
+            M2 <- (fact_rho*rho[1])*make.L(beta,kappa,M2list[[4]]) + (fact_rho*rho[2])*make.L(beta,kappa,M2list[[5]])
             Q <- Q - gamma*(M2 + t(M2))
         } 
     } else {
+        fact_rho <- kappa
         for(k in 0:alpha) {
-            Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),
+            Q <- Q + gamma^2*choose(alpha,k)*(fact_rho * rho)^(2*k)*make.L(beta+2*(alpha-k),
                                                               kappa,
                                                               Ctlist[(k+1):length(Ctlist)])
             M2 <- make.L(beta+alpha-k,kappa,M2list[[k+1]])
-            Q <- Q - 0.5*(-1)^(floor(k/2))*gamma*choose(alpha,k)*(1-(-1)^k)*rho^(k)*(M2 + t(M2))    
+            Q <- Q - 0.5*(-1)^(floor(k/2))*gamma*choose(alpha,k)*(1-(-1)^k)*(fact_rho * rho)^(k)*(M2 + t(M2))    
         }    
     }
     
@@ -443,6 +483,7 @@ spacetime.operators <- function(mesh_space = NULL,
     out$make_A <- make_A
     out$plot_covariances <- plot_covariances
     out$stationary <- TRUE
+    out$bound_rho <- bound_rho
     
     class(out) <- "spacetimeobj"
     return(out)
@@ -513,21 +554,23 @@ update.spacetimeobj <- function(object,
                                                            object$B0list)
     
     if(object$d==2) {
+        fact_rho <- kappa^2
         Q <- Q + gamma^2*make.L(beta+2*alpha,kappa,object$Ctlist)
         if(alpha == 1){
-            tmp <- rho[1]^2*make.L(beta,kappa,object$M2list[[1]]) + rho[2]^2*make.L(beta,kappa,object$M2list[[2]]) + 2*rho[1]*rho[2]*make.L(beta,kappa,object$M2list[[3]])
+            tmp <- (fact_rho*rho[1])^2*make.L(beta,kappa,object$M2list[[1]]) + (fact_rho*rho[2])^2*make.L(beta,kappa,object$M2list[[2]]) + 2*(fact_rho * rho[1])*(fact_rho*rho[2])*make.L(beta,kappa,object$M2list[[3]])
             Q <- Q + gamma^2*(tmp + t(tmp))
             
-            M2 <- rho[1]*make.L(beta,kappa,object$M2list[[4]]) + rho[2]*make.L(beta,kappa,object$M2list[[5]])
+            M2 <- (fact_rho*rho[1])*make.L(beta,kappa,object$M2list[[4]]) + (fact_rho*rho[2])*make.L(beta,kappa,object$M2list[[5]])
             Q <- Q - gamma*(M2 + t(M2))
         }
     } else {
+        fact_rho <- kappa
         for(k in 0:alpha) {
-            Q <- Q + gamma^2*choose(alpha,k)*rho^(2*k)*make.L(beta+2*(alpha-k),
+            Q <- Q + gamma^2*choose(alpha,k)*(fact_rho*rho)^(2*k)*make.L(beta+2*(alpha-k),
                                                               kappa,
                                                               object$Ctlist[(k+1):length(object$Ctlist)])
             M2 <- make.L(beta+alpha-k,kappa,object$M2list[[k+1]])
-            Q <- Q - 0.5*(-1)^(floor(k/2))*gamma*choose(alpha,k)*(1-(-1)^k)*rho^(k)*(M2 + t(M2))    
+            Q <- Q - 0.5*(-1)^(floor(k/2))*gamma*choose(alpha,k)*(1-(-1)^k)*(fact_rho*rho)^(k)*(M2 + t(M2))    
         }    
     }
     

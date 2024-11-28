@@ -17,6 +17,7 @@ rspde.spacetime(
   prior.rho = NULL,
   prior.gamma = NULL,
   prior.precision = NULL,
+  bounded_rho = TRUE,
   shared_lib = "detect",
   debug = FALSE,
   ...
@@ -65,6 +66,12 @@ default values will be used. The \code{mean} value is also used as starting valu
 \item{prior.precision}{A precision matrix for \eqn{\log(\kappa), \log(\sigma), \log(\gamma), \rho}. This matrix replaces the precision
 element from \code{prior.kappa}, \code{prior.sigma}, \code{prior.gamma}, and \code{prior.rho} respectively. For dimension 1 \code{prior.precision} must be a 4x4 matrix. For dimension 2, \eqn{\rho} is a vector of length 2, so in this case \code{prior.precision} must be a 5x5 matrix. If \code{NULL}, a diagonal precision matrix with default values will be used.}
 
+\item{bounded_rho}{Logical. Should \code{rho} be bounded to ensure the existence, uniqueness, and well-posedness of the solution? Defaults to \code{TRUE}.
+Note that this bounding is not a strict condition; there may exist values of \code{rho} beyond the upper bound that still satisfy these properties.
+For dimension 1, the upper bound is \code{sqrt(2)}, while for dimension 2, the absolute value of each coordinate must not exceed \code{2}.
+If the estimated value of \code{rho} approaches the upper bound too closely, we recommend refitting the model with \code{bounded_rho = FALSE}, but this should be done with caution.
+While this may lead to instability in some cases, it may also result in a well-fitting model.}
+
 \item{shared_lib}{String specifying which shared library to use for the Cgeneric
 implementation. Options are "detect", "INLA", or "rSPDE". You may also specify the
 direct path to a .so (or .dll) file.}
@@ -81,7 +88,7 @@ the space-time Gaussian random field.
 \code{rspde.spacetime} computes a Finite Element Method (FEM) approximation of a
 Gaussian random field defined as the solution to the stochastic partial
 differential equation (SPDE):
-\deqn{d u + \gamma(\kappa^2 + \rho\cdot\nabla - \Delta)^\alpha u = \sigma dW_C}
+\deqn{d u + \gamma(\kappa^2 + \kappa^{d/2}\rho\cdot\nabla - \Delta)^\alpha u = \sigma dW_C}
 where \eqn{C} is a Whittle-Matérn covariance operator with smoothness parameter
 \eqn{\beta} and range parameter \eqn{\kappa}. This function is designed to handle
 space-time random fields using either 1D spatial models or higher-dimensional

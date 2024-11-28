@@ -3,7 +3,7 @@
 #' `rspde.spacetime` computes a Finite Element Method (FEM) approximation of a
 #' Gaussian random field defined as the solution to the stochastic partial
 #' differential equation (SPDE):
-#' \deqn{d u + \gamma(\kappa^2 + \rho\cdot\nabla - \Delta)^\alpha u = \sigma dW_C}
+#' \deqn{d u + \gamma(\kappa^2 + \kappa^{d/2}\rho\cdot\nabla - \Delta)^\alpha u = \sigma dW_C}
 #' where \eqn{C} is a Whittle-Matérn covariance operator with smoothness parameter
 #' \eqn{\beta} and range parameter \eqn{\kappa}. This function is designed to handle
 #' space-time random fields using either 1D spatial models or higher-dimensional
@@ -39,6 +39,11 @@
 #' default values will be used. The `mean` value is also used as starting value for gamma.
 #' @param prior.precision A precision matrix for \eqn{\log(\kappa), \log(\sigma), \log(\gamma), \rho}. This matrix replaces the precision
 #' element from `prior.kappa`, `prior.sigma`, `prior.gamma`, and `prior.rho` respectively. For dimension 1 `prior.precision` must be a 4x4 matrix. For dimension 2, \eqn{\rho} is a vector of length 2, so in this case `prior.precision` must be a 5x5 matrix. If `NULL`, a diagonal precision matrix with default values will be used.
+#' @param bounded_rho Logical. Should `rho` be bounded to ensure the existence, uniqueness, and well-posedness of the solution? Defaults to `TRUE`. 
+#' Note that this bounding is not a strict condition; there may exist values of `rho` beyond the upper bound that still satisfy these properties. 
+#' For dimension 1, the upper bound is `sqrt(2)`, while for dimension 2, the absolute value of each coordinate must not exceed `2`. 
+#' If the estimated value of `rho` approaches the upper bound too closely, we recommend refitting the model with `bounded_rho = FALSE`, but this should be done with caution. 
+#' While this may lead to instability in some cases, it may also result in a well-fitting model.
 #' @param shared_lib String specifying which shared library to use for the Cgeneric
 #' implementation. Options are "detect", "INLA", or "rSPDE". You may also specify the
 #' direct path to a .so (or .dll) file.
@@ -77,6 +82,7 @@ rspde.spacetime <- function(mesh_space = NULL,
                             prior.rho = NULL,
                             prior.gamma = NULL,
                             prior.precision = NULL,
+                            bounded_rho = TRUE,
                             shared_lib = "detect",
                             debug = FALSE,
                             ...) {
@@ -112,7 +118,8 @@ rspde.spacetime <- function(mesh_space = NULL,
     gamma = prior.gamma$mean,
     rho = prior.rho$mean,
     alpha = alpha,
-    beta = beta
+    beta = beta,
+    check_rho = bounded_rho
   )
 
   default_precision <- 0.1
@@ -185,7 +192,9 @@ rspde.spacetime <- function(mesh_space = NULL,
       beta = beta,
       alpha = alpha,
       drift = as.integer(drift),
-      prior.precision = prior.precision
+      prior.precision = prior.precision,
+      bounded_rho = as.integer(bounded_rho),
+      bound_rho = op$bound_rho
     ),
 
     # Single-level lists, each element added separately
@@ -215,6 +224,9 @@ rspde.spacetime <- function(mesh_space = NULL,
   model$prior.rho <- prior.rho
   model$d <- op$d
   model$prior.precision <- prior.precision
+  model$bound_rho <- op$bound_rho
+  model$is_bounded <- bounded_rho
+
 
   rspde_check_cgeneric_symbol(model)
 

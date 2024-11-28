@@ -74,7 +74,7 @@ void compute_Q_dim1(
 
     // Loop over alpha to add the contributions from each term
     for (int k = 0; k <= alpha; ++k) {
-        double gamma_sq_rho = gamma * gamma * nChoosek(alpha, k) * pow(rho, 2 * k);
+        double gamma_sq_rho = gamma * gamma * nChoosek(alpha, k) * pow(kappa * rho, 2 * k);
 
         // Compute the gamma^2 term
         SparseMatrixColMajor Ct_sum = make_L(beta + 2 * (alpha - k), kappa, &Ctlist[k]);
@@ -86,7 +86,7 @@ void compute_Q_dim1(
         SparseMatrixColMajor M2_term = make_L(beta + alpha - k, kappa, M2list[k]);
 
         // Add the M2 term to Q
-        double factor = -0.5 * pow(-1, k / 2) * gamma * nChoosek(alpha, k) * (1 - pow(-1, k)) * pow(rho, k);
+        double factor = -0.5 * pow(-1, k / 2) * gamma * nChoosek(alpha, k) * (1 - pow(-1, k)) * pow(kappa * rho, k);
 
         // Ensure that M2_term and its transpose have the same storage order
         SparseMatrixColMajor M2_term_transpose = M2_term.transpose();
@@ -123,17 +123,17 @@ void compute_Q_dim2(
     Q += gamma * gamma * make_L(beta + 2 * alpha, kappa, Ctlist);
 
     if (alpha == 1) {
-        SparseMatrixColMajor tmp = rho_1 * rho_1 * make_L(beta, kappa, M2list[0]) +
-                                   rho_2 * rho_2 * make_L(beta, kappa, M2list[1]) +
-                                   2 * rho_1 * rho_2 * make_L(beta, kappa, M2list[2]);
+        SparseMatrixColMajor tmp = (pow(kappa, 2.0) * rho_1) * (pow(kappa, 2.0) * rho_1) * make_L(beta, kappa, M2list[0]) +
+                                   (pow(kappa, 2.0) * rho_2) * (pow(kappa, 2.0) * rho_2) * make_L(beta, kappa, M2list[1]) +
+                                   2 * (pow(kappa, 2.0) * rho_1) * (pow(kappa, 2.0) * rho_2) * make_L(beta, kappa, M2list[2]);
 
         SparseMatrixColMajor tmp_transp = tmp.transpose();
         
         Q += 0.5 * gamma * gamma * (tmp + tmp_transp);
 
         // Calculate M2 term
-        SparseMatrixColMajor M2 = rho_1 * make_L(beta, kappa, M2list[3]) +
-                                  rho_2 * make_L(beta, kappa, M2list[4]);
+        SparseMatrixColMajor M2 = (pow(kappa, 2.0) * rho_1) * make_L(beta, kappa, M2list[3]) +
+                                  (pow(kappa, 2.0) * rho_2) * make_L(beta, kappa, M2list[4]);
 
         SparseMatrixColMajor M2_transp = M2.transpose();
         

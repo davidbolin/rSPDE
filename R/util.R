@@ -1222,37 +1222,37 @@ rational.order <- function(object) {
 
 #' Check user input.
 #'
-#' @param parameter A parameter.
-#' @param label Label for the parameter
-#' @param check_null Check if parameter is null.
+#' @param param A parameter to validate.
+#' @param label Label for the parameter (used in error messages).
+#' @param lower_bound Optional lower bound for the parameter.
+#' @param dim Expected dimension of the parameter (default is 1 for scalar).
+#' @param upper_bound Optional upper bound for the parameter.
 #'
-#' @return Check the parameter.
+#' @return The validated parameter.
 #' @noRd
 #'
-
-rspde_check_user_input <- function(param, label, lower_bound = NULL, dim = 1) {
-  if (is.null(lower_bound)) {
-    if (!is.numeric(param)) {
-      stop(paste(param, "should be a number!"))
-    }
-    if (length(param) > 1 && dim == 1) {
-      stop(paste(param, "should be a number!"))
-    } else if (length(param) != dim) {
-        stop(paste(param, "has the wrong size!"))
-    }
-    return(param)
-  } else {
-    if (!is.numeric(param)) {
-      stop(paste(param, "should be a number greater or equal to", lower_bound))
-    }
-    if (length(param) > 1) {
-      stop(paste(param, "should be a number greater or equal to", lower_bound))
-    }
-    if (param < lower_bound) {
-      stop(paste(param, "should be a number greater or equal to", lower_bound))
-    }
-    return(param)
+rspde_check_user_input <- function(param, label, lower_bound = NULL, dim = 1, upper_bound = NULL) {
+  if (!is.numeric(param)) {
+    stop(paste(label, "should be a numeric value!"))
   }
+  
+  if (length(param) != dim) {
+    if (dim == 1) {
+      stop(paste(label, "should be a single numeric value!"))
+    } else {
+      stop(paste(label, "should have a length of", dim, "!"))
+    }
+  }
+  
+  if (!is.null(lower_bound) && any(param < lower_bound)) {
+    stop(paste(label, "should be greater than or equal to", lower_bound, "!"))
+  }
+  
+  if (!is.null(upper_bound) && any(param > upper_bound)) {
+    stop(paste(label, "should be less than or equal to", upper_bound, "!"))
+  }
+  
+  return(param)
 }
 
 
@@ -2273,4 +2273,93 @@ merge_with_tolerance <- function(original_data, new_data, by, tolerance = 1e-5) 
   merged_data <- merged_data[!duplicated(merged_data[[by]]), ]
   
   return(merged_data)
+}
+
+
+#' Transform Spacetime SPDE Model Parameters to Original Scale
+#'
+#' @description
+#' This function takes a vector of transformed parameters and applies the appropriate
+#' transformations to return them in the original scale for use in spacetime SPDE models.
+#'
+#' @param theta A numeric vector containing the transformed parameters in this order:
+#' \describe{
+#'   \item{lkappa}{The logarithmic representation of kappa.}
+#'   \item{lsigma}{The logarithmic representation of sigma.}
+#'   \item{lgamma}{The logarithmic representation of gamma.}
+#'   \item{logit_rho (optional)}{The logit-transformed representation of rho, if drift = 1.}
+#'   \item{logit_rho2 (optional)}{The logit-transformed representation of rho2, if drift = 1 and d = 2.}
+#' }
+#' @param st_model A list containing the spacetime model parameters:
+#' \describe{
+#'   \item{d}{The dimension (e.g., 1 or 2).}
+#'   \item{bound}{The bound for rho and rho2.}
+#'   \item{is_bounded}{A logical value indicating if rho and rho2 are bounded.}
+#'   \item{drift}{A logical value indicating if drift is included in the model.}
+#' }
+#'
+#' @return A named list with the parameters in the original scale:
+#' \describe{
+#'   \item{kappa}{The original scale for kappa (exponential of lkappa).}
+#'   \item{sigma}{The original scale for sigma (exponential of lsigma).}
+#'   \item{gamma}{The original scale for gamma (exponential of lgamma).}
+#'   \item{rho (optional)}{The original scale for rho.}
+#'   \item{rho2 (optional)}{The original scale for rho2, if d = 2.}
+#' }
+#' @export
+transform_parameters_spacetime <- function(theta, st_model) {
+  if (!is.list(st_model) || !all(c("d", "bound_rho", "is_bounded", "drift") %in% names(st_model))) {
+    stop("st_model must be a list containing 'd', 'bound_rho', 'is_bounded', and 'drift'.")
+  }
+  
+  # Extract model parameters
+  d <- st_model$d
+  bound <- st_model$bound_rho
+  is_bounded <- st_model$is_bounded
+  drift <- st_model$drift
+  
+  # Functions for transformations
+  adjusted_inv_logit <- function(z, L) {
+    if (L <= 0) stop("Bound L must be positive.")
+    L * (2 / (1 + exp(-z)) - 1)
+  }
+  
+  # Transform required parameters
+  lkappa <- theta[1]
+  lsigma <- theta[2]
+  lgamma <- theta[3]
+  kappa <- exp(lkappa)
+  sigma <- exp(lsigma)
+  gamma <- exp(lgamma)
+  
+  result <- list(kappa = kappa, sigma = sigma, gamma = gamma)
+  
+  # Include rho and rho2 if drift is included
+  if (drift) {
+    if (is_bounded) {
+      logit_rho <- theta[4]
+      rho <- adjusted_inv_logit(logit_rho, bound)
+    } else {
+      rho <- theta[4]
+    }
+    result$rho <- rho
+    
+    # Include rho2 if d = 2
+    if (d == 2) {
+      if (is_bounded) {
+        logit_rho2 <- theta[5]
+        rho2 <- adjusted_inv_logit(logit_rho2, bound)
+      } else {
+        rho2 <- theta[5]
+      }
+      result$rho2 <- rho2
+    } else {
+      result$rho2 <- 0.0
+    }
+  } else {
+    result$rho <- 0.0
+    result$rho2 <- 0.0
+  }
+  
+  return(result)
 }

@@ -15,7 +15,8 @@ spacetime.operators(
   gamma = NULL,
   rho = NULL,
   alpha = NULL,
-  beta = NULL
+  beta = NULL,
+  check_rho = TRUE
 )
 }
 \arguments{
@@ -42,6 +43,12 @@ one-dimensional spatial domains, a vector with two number on 2d domains.}
 \item{alpha}{Integer smoothness parameter alpha.}
 
 \item{beta}{Integer smoothness parameter beta.}
+
+\item{check_rho}{Logical. Should \code{rho} be checked to ensure it is bounded for the existence, uniqueness, and well-posedness of the solution? Defaults to \code{TRUE}.
+Note that this bounding is not a strict condition; there may exist values of \code{rho} beyond the upper bound that still satisfy these properties.
+For dimension 1, the upper bound is \code{sqrt(2)}, while for dimension 2, the absolute value of each coordinate must not exceed \code{2}.
+If the estimated value of \code{rho} approaches the upper bound too closely, we recommend refitting the model with \code{check_rho = FALSE}, but this should be done with caution.
+While this may lead to instability in some cases, it may also result in a well-fitting model.}
 }
 \value{
 An object of type spacetimeobj.
@@ -49,7 +56,7 @@ An object of type spacetimeobj.
 \description{
 \code{spacetime.operators} is used for computing a FEM approximation of a Gaussian
 random field defined as a solution to the SPDE
-\deqn{d u + \gamma(\kappa^2 + \rho\cdot\nabla - \Delta)^\alpha u = \sigma dW_C.}
+\deqn{d u + \gamma(\kappa^2 + \kappa^{d/2}\rho \cdot\nabla - \Delta)^\alpha u = \sigma dW_C.}
 where C is a Whittle-Matern covariance operator with smoothness parameter
 \eqn{\beta} and range parameter \eqn{\kappa}
 }

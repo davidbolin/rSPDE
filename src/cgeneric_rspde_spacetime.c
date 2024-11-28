@@ -5,7 +5,7 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
 
     double *ret = NULL;
     int k, i;
-    double lkappa, lsigma, lgamma, rho, rho2;
+    double lkappa, lsigma, lgamma, rho, rho2, logit_rho, logit_rho2;
     double kappa, sigma, gamma;
     double prior_rho2_mean;
 
@@ -39,6 +39,9 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
     assert(!strcasecmp(data->ints[8]->name, "drift"));
     int drift = data->ints[8]->ints[0];
 
+    assert(!strcasecmp(data->ints[9]->name, "bounded_rho"));
+    int bounded_rho = data->ints[9]->ints[0];    
+
     // Retrieve prior means for each parameter
     assert(!strcasecmp(data->doubles[0]->name, "prior.kappa.mean"));
     double prior_kappa_mean = data->doubles[0]->doubles[0];
@@ -64,6 +67,9 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
 
     assert(!strcasecmp(data->doubles[5]->name, "alpha"));
     double alpha = data->doubles[5]->doubles[0];
+
+    assert(!strcasecmp(data->doubles[6]->name, "bound_rho"));
+    double bound_rho = data->doubles[6]->doubles[0];
 
     // Retrieve sparse matrix Q
     assert(!strcasecmp(data->smats[0]->name, "Q"));
@@ -147,9 +153,19 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
         lsigma = theta[1];
         lgamma = theta[2];
         if(drift == 1){
-            rho = theta[3];  // No exponential transformation for rho
+            if(bounded_rho == 1){
+                logit_rho = theta[3];
+                rho = adjusted_inv_logit(logit_rho, bound_rho);
+            } else{
+                rho = theta[3];  // No exponential transformation for rho
+            }
             if(d == 2){
-                rho2 = theta[4];
+                if(bounded_rho == 1){
+                    logit_rho2 = theta[4];
+                    rho2 = adjusted_inv_logit(logit_rho2, bound_rho);
+                } else{
+                    rho2 = theta[4];
+                }
             } else{
                 rho2 = 0.0;
             }
@@ -162,7 +178,7 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
         sigma = exp(lsigma);
         gamma = exp(lgamma);
     } else {   
-        lkappa = lsigma = lgamma = kappa = sigma = gamma = rho = rho2 = NAN;
+        lkappa = lsigma = lgamma = kappa = sigma = gamma = rho = rho2 = logit_rho = logit_rho2 = NAN;
     }
 
     switch (cmd) {
@@ -231,9 +247,17 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
                 ret[2] = log(prior_sigma_mean);                   
                 ret[3] = log(prior_gamma_mean);        
                 if(drift == 1){
-                    ret[4] = prior_rho_mean;                     
+                    if(bounded_rho == 1){
+                        ret[4] = logit_adjusted(prior_rho_mean, bound_rho);
+                    } else{
+                        ret[4] = prior_rho_mean;                     
+                    }
                     if(d == 2){
-                        ret[5] = prior_rho2_mean;
+                        if(bounded_rho == 1){
+                            ret[5] = logit_adjusted(prior_rho2_mean, bound_rho);
+                        } else{
+                            ret[5] = prior_rho2_mean;
+                        }
                     } 
                 }           
                 break;
@@ -251,13 +275,25 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
             
             if(drift == 1){
                 if(d == 1){
-                    double mean_vector[4] = {log(prior_kappa_mean), log(prior_sigma_mean), log(prior_gamma_mean), prior_rho_mean};
-                    double theta_vector[4] = {lkappa, lsigma, lgamma, rho};
-                    ret[0] = logmultnormvdens(4, mean_vector, prior_precision->x, theta_vector);
+                    if(bounded_rho == 1){
+                        double mean_vector[4] = {log(prior_kappa_mean), log(prior_sigma_mean), log(prior_gamma_mean), logit_adjusted(prior_rho_mean, bound_rho)};
+                        double theta_vector[4] = {lkappa, lsigma, lgamma, logit_rho};
+                        ret[0] = logmultnormvdens(4, mean_vector, prior_precision->x, theta_vector);
+                    } else{
+                        double mean_vector[4] = {log(prior_kappa_mean), log(prior_sigma_mean), log(prior_gamma_mean), prior_rho_mean};
+                        double theta_vector[4] = {lkappa, lsigma, lgamma, rho};
+                        ret[0] = logmultnormvdens(4, mean_vector, prior_precision->x, theta_vector);
+                    }
                 } else{
-                    double mean_vector[5] = {log(prior_kappa_mean), log(prior_sigma_mean), log(prior_gamma_mean), prior_rho_mean, prior_rho2_mean};
-                    double theta_vector[5] = {lkappa, lsigma, lgamma, rho, rho2};
-                    ret[0] = logmultnormvdens(5, mean_vector, prior_precision->x, theta_vector);
+                    if(bounded_rho == 1){
+                        double mean_vector[5] = {log(prior_kappa_mean), log(prior_sigma_mean), log(prior_gamma_mean), logit_adjusted(prior_rho_mean, bound_rho), logit_adjusted(prior_rho2_mean, bound_rho)};
+                        double theta_vector[5] = {lkappa, lsigma, lgamma, logit_rho, logit_rho2};
+                        ret[0] = logmultnormvdens(5, mean_vector, prior_precision->x, theta_vector);
+                    } else{
+                        double mean_vector[5] = {log(prior_kappa_mean), log(prior_sigma_mean), log(prior_gamma_mean), prior_rho_mean, prior_rho2_mean};
+                        double theta_vector[5] = {lkappa, lsigma, lgamma, rho, rho2};
+                        ret[0] = logmultnormvdens(5, mean_vector, prior_precision->x, theta_vector);
+                    }
                 }
             } else{
                 double mean_vector[3] = {log(prior_kappa_mean), log(prior_sigma_mean), log(prior_gamma_mean)};

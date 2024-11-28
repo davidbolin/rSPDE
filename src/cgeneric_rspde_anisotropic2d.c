@@ -1,18 +1,26 @@
 #include "cgeneric_defs.h"
 #include "stdio.h"
 
-// Logit function mapping x in (-1, 1) to (-inf, inf)
-double logit_adjusted(double x) {
-    if (x <= -1 || x >= 1) {
-        fprintf(stderr, "Input x must be in the range (-1, 1).\n");
+// Logit function mapping x in (-L, L) to (-inf, inf)
+double logit_adjusted(double x, double L) {
+    if (L <= 0) {
+        fprintf(stderr, "L must be positive.\n");
         return NAN;
     }
-    return log((x + 1) / (1 - x));
+    if (x <= -L || x >= L) {
+        fprintf(stderr, "Input x must be in the range (-L, L).\n");
+        return NAN;
+    }
+    return log((x + L) / (L - x));
 }
 
-// Inverse logit function mapping (-inf, inf) back to (-1, 1)
-double adjusted_inv_logit(double z) {
-    return (2.0 / (1.0 + exp(-z))) - 1.0;
+// Inverse logit function mapping (-inf, inf) back to (-L, L)
+double adjusted_inv_logit(double z, double L) {
+    if (L <= 0) {
+        fprintf(stderr, "L must be positive.\n");
+        return NAN;
+    }
+    return L * (2.0 / (1.0 + exp(-z)) - 1.0);
 }
 
 // Forward transformation: Compute nu from lnu
@@ -137,7 +145,7 @@ double *inla_cgeneric_rspde_anisotropic2d_model(inla_cgeneric_cmd_tp cmd, double
         sigma = exp(lsigma);
         hx = exp(lhx);
         hy = exp(lhy);
-        hxy = adjusted_inv_logit(logit_hxy);
+        hxy = adjusted_inv_logit(logit_hxy, 1.0);
     } else {   
         lhx = lhy = logit_hxy = lsigma = sigma = hx = hy = hxy = NAN;
         if(est_nu == 1){
@@ -196,7 +204,7 @@ double *inla_cgeneric_rspde_anisotropic2d_model(inla_cgeneric_cmd_tp cmd, double
 
                 ret[1] = log(prior_hx_mean);
                 ret[2] = log(prior_hy_mean);
-                ret[3] = logit_adjusted(prior_hxy_mean);                   
+                ret[3] = logit_adjusted(prior_hxy_mean, 1.0);                   
                 ret[4] = log(prior_sigma_mean);                   
                 if(est_nu == 1){
                     ret[5] = inverse_lnu(start_nu, nu_upper_bound);
@@ -214,7 +222,7 @@ double *inla_cgeneric_rspde_anisotropic2d_model(inla_cgeneric_cmd_tp cmd, double
             ret = Calloc(1, double);
             ret[0] = 0.0;
 
-            double mean_vector[4] = {log(prior_hx_mean), log(prior_hy_mean), logit_adjusted(prior_hxy_mean), log(prior_sigma_mean)};
+            double mean_vector[4] = {log(prior_hx_mean), log(prior_hy_mean), logit_adjusted(prior_hxy_mean, 1.0), log(prior_sigma_mean)};
             double theta_vector[4] = {lhx, lhy, logit_hxy, lsigma};
             ret[0] = logmultnormvdens(4, mean_vector, prior_precision->x, theta_vector);
             
