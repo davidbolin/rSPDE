@@ -36,7 +36,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 library(rSPDE)
-set.seed(123)
+set.seed(12345)
 ```
 
 ```{r inla_link, include = FALSE}
@@ -78,13 +78,13 @@ We can now use `spacetime.operators()` to construct the model
 kappa <- 5
 sigma <- 10
 gamma <- 1/20
-rho <- 1
+rho_1d <- 1
 alpha <- 1
 beta <- 1
 
 op <- spacetime.operators(space_loc = s, time_loc = t,
                           kappa = kappa, sigma = sigma, alpha = alpha,
-                          beta = beta, rho = rho, gamma = gamma)
+                          beta = beta, rho = rho_1d, gamma = gamma)
 ```
 
 The `spacetime.operators` object has a `plot_covariances` method which for univariate spatial domains simply plots the covariance 
@@ -140,14 +140,14 @@ ggplot(df_plot) + aes(x = space, y = time, fill = field) +
 To estimate the model parameters based on this data, we can use the our `rspde_lme` function or our `inlabru` implementation. For this, we collect the data in a data frame, that also contanis the spatial locations, and
 
 ```{r}
-df <- data.frame(y = as.matrix(Y), space = obs.loc$x, time = obs.loc$t)
+df_1d <- data.frame(y = as.matrix(Y), space = obs.loc$x, time = obs.loc$t)
 ```
 
 ### `rspde_lme` implementation
 We now fit the model:
 
 ```{r}
-res <- rspde_lme(y ~ 1, loc = "space", loc_time = "time", data = df, model = op, parallel = TRUE)
+res <- rspde_lme(y ~ 1, loc = "space", loc_time = "time", data = df_1d, model = op, parallel = TRUE)
 
 ```
 
@@ -163,7 +163,7 @@ Let us compare the estimated results with the true values:
 results <- data.frame(kappa = c(kappa, res$coeff$random_effects[1]), 
                       sigma = c(sigma, res$coeff$random_effects[2]),
                       gamma = c(gamma, res$coeff$random_effects[3]), 
-                      rho = c(rho, res$coeff$random_effects[4]),
+                      rho = c(rho_1d, res$coeff$random_effects[4]),
                       sigma.e = c(sigma.e, res$coeff$measurement_error),
                       intercept = c(0, res$coeff$fixed_effects),
                       row.names = c("True", "Estimate"))
@@ -203,20 +203,22 @@ cmp <- y ~ -1 + Intercept(1) + field(list(space=space, time = time), model = st_
 We are now in a position to fit the model:
 
 ```{r}
-bru_fit <- bru(cmp, data = df,
-    options = list(num.threads = "1:1")
-)
+bru_fit <- bru(cmp, data = df_1d)
 ```
 
 Let us now compare the estimated results (the means of the parameters) with the true values:
 
 ```{r}
-results <- data.frame(kappa = c(kappa, exp(bru_fit$summary.hyperpar$mean[2])), 
-                      sigma = c(sigma, exp(bru_fit$summary.hyperpar$mean[3])),
-                      gamma = c(gamma, exp(bru_fit$summary.hyperpar$mean[4])), 
-                      rho = c(rho, bru_fit$summary.hyperpar$mean[5]),
-                      sigma.e = c(sigma.e, sqrt(1/bru_fit$summary.hyperpar$mean[1])),
-                      intercept = c(0, bru_fit$summary.fixed$mean),
+param_st_1d <- transform_parameters_spacetime(
+                        bru_fit_field$summary.hyperpar$mean[2:5], 
+                                            st_bru_field)
+
+results <- data.frame(kappa = c(kappa,  param_st_1d[[1]]), 
+                      sigma = c(sigma,  param_st_1d[[2]]),
+                      gamma = c(gamma,  param_st_1d[[3]]), 
+                      rho = c(rho_1d, param_st_1d[[4]]),
+                      sigma.e = c(sigma.e, sqrt(1/bru_fit_field$summary.hyperpar$mean[1])),
+                      intercept = c(0, bru_fit_field$summary.fixed$mean),
                       row.names = c("True", "Estimate"))
                       
 print(results)
@@ -243,13 +245,13 @@ t <- seq(from = 0, to = 10, length.out = 11)
 kappa <- 10
 sigma <- 10
 gamma <- 1/200
-rho <- 0.3*c(1,1)
+rho_2d <- 0.3*c(1,1)
 alpha <- 1
 beta <- 1
 
 op <- spacetime.operators(mesh_space = mesh_2d, time_loc = t,
                           kappa = kappa, sigma = sigma, alpha = alpha,
-                          beta = beta, rho = rho, gamma = gamma)
+                          beta = beta, rho = rho_2d, gamma = gamma)
 op$plot_covariances(s.ind = 100, t.ind = 5, t.shift = c(-2,0,2))
 ```
 
@@ -294,7 +296,7 @@ Y <- as.vector(A%*%u + sigma.e*rnorm(n.obs))
 To estimate the model parameters based on this data, we can use the `rspde_lme` function. For this, we collect the data in a data frame, that also contanis the spatial locations, and we fit the model:
 
 ```{r}
-df <- data.frame(Y = as.matrix(Y), x = obs.loc$x, y = obs.loc$y, t = obs.loc$t)
+df_2d <- data.frame(Y = as.matrix(Y), x = obs.loc$x, y = obs.loc$y, t = obs.loc$t)
 res <- rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df, model = op, parallel = TRUE)
 ```
 
@@ -345,9 +347,7 @@ cmp <- y ~ -1 + Intercept(1) + field(list(space=cbind(coord_x, coord_y),
 We are now in a position to fit the model:
 
 ```{r}
-bru_fit_field <- bru(cmp, data = df_bru,
-    options = list(num.threads = "1:1")
-  )
+bru_fit_field <- bru(cmp, data = df_bru)
 ```
 
 Let us now compare the estimated results (the means of the parameters) with the true values:
@@ -366,6 +366,80 @@ results <- data.frame(kappa = c(kappa,  param_st[[1]]),
                       row.names = c("True", "Estimate"))
                       
 print(results)
+```
+
+
+## Fit with `bounded_rho = FALSE`
+
+In cases where the estimated value of \(\rho\) approaches the upper bound (available in `st_bru$bound_rho`), the model can be re-fitted with `bounded_rho = FALSE`. This removes the bounding constraint on \(\rho\), which can lead to a better fit but may introduce numerical instability. Below, we demonstrate this for both the 1D and spatial examples.
+
+---
+
+### 1D Example with `bounded_rho = FALSE`
+
+```{r}
+### Fit with bounded_rho = FALSE
+st_bru_unbounded <- rspde.spacetime(space_loc = s, time_loc = t, alpha = 1, 
+            beta = 1, bounded_rho = FALSE)
+
+### Fitting the Model
+cmp_unbounded <- y ~ -1 + Intercept(1) + field(list(space = space, time = time), 
+                                          model = st_bru_unbounded)
+
+bru_fit_unbounded <- bru(cmp_unbounded, data = df_1d)
+
+### Extract and Compare Results
+param_unbounded <- transform_parameters_spacetime(
+                bru_fit_unbounded$summary.hyperpar$mean[2:5], 
+                st_bru_unbounded)
+
+results_unbounded <- data.frame(
+  kappa = c(kappa, param_unbounded$kappa),
+  sigma = c(sigma, param_unbounded$sigma),
+  gamma = c(gamma, param_unbounded$gamma),
+  rho = c(rho_1d, param_unbounded$rho),
+  sigma.e = c(sigma.e, sqrt(1 / bru_fit_unbounded$summary.hyperpar$mean[1])),
+  intercept = c(0, bru_fit_unbounded$summary.fixed$mean),
+  row.names = c("True", "Estimate")
+)
+
+print(results_unbounded)
+```
+
+---
+
+### Spatial Example with `bounded_rho = FALSE`
+
+```{r}
+### Fit with bounded_rho = FALSE
+st_bru_spatial_unbounded <- rspde.spacetime(
+  mesh_space = mesh_2d, mesh_time = mesh_time, alpha = 1, beta = 1, 
+  bounded_rho = FALSE
+)
+
+### Fitting the Model
+cmp_spatial_unbounded <- y ~ -1 + Intercept(1) + field(list(space = cbind(coord_x, coord_y), 
+                          time = time), model = st_bru_spatial_unbounded)
+
+bru_fit_spatial_unbounded <- bru(cmp_spatial_unbounded, data = df_bru)
+
+### Extract and Compare Results
+param_spatial_unbounded <- transform_parameters_spacetime(
+                    bru_fit_spatial_unbounded$summary.hyperpar$mean[2:6], 
+                    st_bru_spatial_unbounded)
+
+results_spatial_unbounded <- data.frame(
+  kappa = c(kappa, param_spatial_unbounded$kappa),
+  sigma = c(sigma, param_spatial_unbounded$sigma),
+  gamma = c(gamma, param_spatial_unbounded$gamma),
+  rho_1 = c(rho_2d[1], param_spatial_unbounded$rho),
+  rho_2 = c(rho_2d[2], param_spatial_unbounded$rho2),
+  sigma.e = c(sigma.e, sqrt(1 / bru_fit_spatial_unbounded$summary.hyperpar$mean[1])),
+  intercept = c(0, bru_fit_spatial_unbounded$summary.fixed$mean),
+  row.names = c("True", "Estimate")
+)
+
+print(results_spatial_unbounded)
 ```
 
 ## References
