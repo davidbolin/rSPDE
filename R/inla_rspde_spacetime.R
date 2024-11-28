@@ -119,7 +119,7 @@ rspde.spacetime <- function(mesh_space = NULL,
     rho = prior.rho$mean,
     alpha = alpha,
     beta = beta,
-    check_rho = bounded_rho
+    bounded_rho = bounded_rho
   )
 
   default_precision <- 0.1

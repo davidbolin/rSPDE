@@ -19,10 +19,11 @@
 #' @param gamma Temporal range parameter.  
 #' @param alpha Integer smoothness parameter alpha.
 #' @param beta Integer smoothness parameter beta.
-#' @param check_rho Logical. Should `rho` be checked to ensure it is bounded for the existence, uniqueness, and well-posedness of the solution? Defaults to `TRUE`. 
+#' @param bounded_rho Logical. Should `rho` be bounded to ensure the existence, uniqueness, and well-posedness of the solution? Defaults to `TRUE`. 
 #' Note that this bounding is not a strict condition; there may exist values of `rho` beyond the upper bound that still satisfy these properties. 
 #' For dimension 1, the upper bound is `sqrt(2)`, while for dimension 2, the absolute value of each coordinate must not exceed `2`. 
-#' If the estimated value of `rho` approaches the upper bound too closely, we recommend refitting the model with `check_rho = FALSE`, but this should be done with caution. 
+#' If `bounded_rho = TRUE`, it implies that `rspde_lme` models will enforce bounded `rho` for consistency. 
+#' If the estimated value of `rho` approaches the upper bound too closely, we recommend refitting the model with `bounded_rho = FALSE`, but this should be done with caution. 
 #' While this may lead to instability in some cases, it may also result in a well-fitting model.
 #'
 #' @return An object of type spacetimeobj. 
@@ -52,7 +53,7 @@ spacetime.operators <- function(mesh_space = NULL,
                                 rho = NULL,
                                 alpha = NULL,
                                 beta = NULL,
-                                check_rho = TRUE) {
+                                bounded_rho = TRUE) {
     
     
     if ((!is.null(mesh_space) && !is.null(graph)) || (!is.null(mesh_space) && !is.null(space_loc)) || (!is.null(graph) && !is.null(space_loc))){
@@ -217,20 +218,20 @@ spacetime.operators <- function(mesh_space = NULL,
         }
     } else {
         if(has_graph) {
-            if(check_rho){
+            if(bounded_rho){
                 rho <- rspde_check_user_input(rho, "rho", lower_bound = -bound_rho, upper_bound = bound_rho, dim = 1) 
             } else{
                 rho <- rspde_check_user_input(rho, "rho", dim = 1) 
             }
         } else {
             if(d==1){
-                if(check_rho){
+                if(bounded_rho){
                     rho <- rspde_check_user_input(rho, "rho", lower_bound = -bound_rho, upper_bound = bound_rho, dim = 1) 
                 } else{
                     rho <- rspde_check_user_input(rho, "rho", dim = 1) 
                 }
             } else {
-                if(check_rho){
+                if(bounded_rho){
                     rho <- rspde_check_user_input(rho, "rho", lower_bound = -bound_rho, upper_bound = bound_rho, dim = 2) 
                 } else{
                     rho <- rspde_check_user_input(rho, "rho", dim = 2) 
@@ -484,6 +485,7 @@ spacetime.operators <- function(mesh_space = NULL,
     out$plot_covariances <- plot_covariances
     out$stationary <- TRUE
     out$bound_rho <- bound_rho
+    out$is_bounded_rho <- bounded_rho
     
     class(out) <- "spacetimeobj"
     return(out)

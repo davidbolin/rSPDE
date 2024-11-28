@@ -594,13 +594,19 @@ rspde_lme <- function(formula,
       likelihood <- function(theta) {
           n_cov <- ncol(X_cov)
           n_initial <- n_coeff_nonfixed
+          bounded_rho <- model_tmp$is_bounded_rho
+          bound_rho <- model_tmp$bound_rho
           
           sigma_e <- exp(theta[1])
           kappa <- exp(theta[2])
           sigma <- exp(theta[3])
           gamma <- exp(theta[4])
           if(model_tmp$alpha >0) {
-              rho <- theta[5:(5+model_tmp$d-1)]    
+              if(bounded_rho){
+                rho <- bound_rho * (2.0 / (1.0 + exp(-theta[5:(5+model_tmp$d-1)])) - 1.0)
+              } else{
+                rho <- theta[5:(5+model_tmp$d-1)]    
+              }
           } else {
               rho <- rep(0,model_tmp$d)
           }
@@ -982,7 +988,12 @@ rspde_lme <- function(formula,
     }
     
     if(spacetime) {
+      if(model_tmp$is_bounded_rho){
+        bound_rho <- model_tmp$bound_rho
+        coeff <- c(exp(c(res$par[1:4])), bound_rho * (2.0 / (1.0 + exp(-res$par[-c(1:4)])) - 1.0))
+      } else{
         coeff <- c(exp(c(res$par[1:4])), res$par[-c(1:4)])
+      }
     } else {
         if (model$stationary) {
             if(anisotropic) {
@@ -1025,8 +1036,21 @@ rspde_lme <- function(formula,
             hxy.trans <- 2/(2*(hxy+1)- (hxy+1)^2) 
             par_change <- diag(c(exp(c(-res$par[1:(n_coeff_nonfixed-1)])), hxy.trans, rep(1, n_fixed)))      
         } else if (spacetime ){
+          if(model_tmp$is_bounded_rho){
+            if(model_tmp$d == 1){
+              bound_rho <- model_tmp$bound_rho
+              rho.trans <- bound_rho * 2.0 * exp(res$par[n_coeff_nonfixed])/ ((1.0 + exp(res$par[n_coeff_nonfixed]))^2)
+              par_change <- diag(c(exp(-c(res$par[1:(n_coeff_nonfixed-1)])), rho.trans, rep(1, n_fixed)))   
+            } else{
+              bound_rho <- model_tmp$bound_rho
+              rho1.trans <- bound_rho * 2.0 * exp(res$par[n_coeff_nonfixed-1])/ ((1.0 + exp(res$par[n_coeff_nonfixed-1]))^2)
+              rho2.trans <- bound_rho * 2.0 * exp(res$par[n_coeff_nonfixed])/ ((1.0 + exp(res$par[n_coeff_nonfixed]))^2)
+              par_change <- diag(c(exp(-c(res$par[1:(n_coeff_nonfixed-2)])), rho1.trans, rho2.trans, rep(1, n_fixed)))   
+            }
+          } else{
             # no transform for rho
-            par_change <- diag(c(exp(-c(res$par[1:(n_coeff_nonfixed-1)])), rep(1, n_fixed+1)))      
+            par_change <- diag(c(exp(-c(res$par[1:(n_coeff_nonfixed-model_tmp$d)])), rep(1, n_fixed+model_tmp$d)))      
+          }
         } else {
             par_change <- diag(c(exp(-c(res$par[1:n_coeff_nonfixed])), rep(1, n_fixed)))      
         }
