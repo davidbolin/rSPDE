@@ -377,6 +377,29 @@ In cases where the estimated value of \(\rho\) approaches the upper bound (avail
 
 ### 1D Example with `bounded_rho = FALSE`
 
+Let us first start with the `rspde_lme()` example:
+
+```{r}
+op_1d_unbounded <- spacetime.operators(space_loc = s, time_loc = t,
+                          kappa = kappa, sigma = sigma, alpha = alpha,
+                          beta = beta, rho = rho_1d, gamma = gamma,
+                          bounded_rho = FALSE)
+
+res_unbounded <- rspde_lme(y ~ 1, loc = "space", loc_time = "time", 
+                      data = df_1d, model = op_1d_unbounded, parallel = TRUE)
+
+results <- data.frame(kappa = c(kappa, res_unbounded$coeff$random_effects[1]), 
+                      sigma = c(sigma, res_unbounded$coeff$random_effects[2]),
+                      gamma = c(gamma, res_unbounded$coeff$random_effects[3]), 
+                      rho = c(rho_1d, res_unbounded$coeff$random_effects[4]),
+                      sigma.e = c(sigma.e, res_unbounded$coeff$measurement_error),
+                      intercept = c(0, res_unbounded$coeff$fixed_effects),
+                      row.names = c("True", "Estimate"))
+                      
+print(results)
+```
+
+Now, the `inlabru` implementation:
 ```{r}
 ### Fit with bounded_rho = FALSE
 st_bru_unbounded <- rspde.spacetime(space_loc = s, time_loc = t, alpha = 1, 
@@ -409,6 +432,31 @@ print(results_unbounded)
 ---
 
 ### Spatial Example with `bounded_rho = FALSE`
+
+First, the `rspde_lme()` implementation:
+
+```{r}
+op_2d_unbounded <- spacetime.operators(mesh_space = mesh_2d, time_loc = t,
+                          kappa = kappa, sigma = sigma, alpha = alpha,
+                          beta = beta, rho = rho_2d, gamma = gamma,
+                          bounded_rho = FALSE)
+
+res_unbounded <- rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df_2d, 
+                          model = op_2d_unbounded, parallel = TRUE)
+
+results_unbounded <- data.frame(kappa = c(kappa, res_unbounded$coeff$random_effects[1]), 
+                      sigma = c(sigma, res_unbounded$coeff$random_effects[2]),
+                      gamma = c(gamma, res_unbounded$coeff$random_effects[3]), 
+                      rho_1 = c(rho_2d[1], res_unbounded$coeff$random_effects[4]),
+                      rho_2 = c(rho_2d[2], res_unbounded$coeff$random_effects[5]),
+                      sigma.e = c(sigma.e, res_unbounded$coeff$measurement_error),
+                      intercept = c(0, res_unbounded$coeff$fixed_effects),
+                      row.names = c("True", "Estimate"))
+                     
+print(results_unbounded)
+```
+
+Now, the `inlabru` implementation:
 
 ```{r}
 ### Fit with bounded_rho = FALSE

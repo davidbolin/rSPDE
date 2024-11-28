@@ -16,7 +16,7 @@ spacetime.operators(
   rho = NULL,
   alpha = NULL,
   beta = NULL,
-  check_rho = TRUE
+  bounded_rho = TRUE
 )
 }
 \arguments{
@@ -44,10 +44,11 @@ one-dimensional spatial domains, a vector with two number on 2d domains.}
 
 \item{beta}{Integer smoothness parameter beta.}
 
-\item{check_rho}{Logical. Should \code{rho} be checked to ensure it is bounded for the existence, uniqueness, and well-posedness of the solution? Defaults to \code{TRUE}.
+\item{bounded_rho}{Logical. Should \code{rho} be bounded to ensure the existence, uniqueness, and well-posedness of the solution? Defaults to \code{TRUE}.
 Note that this bounding is not a strict condition; there may exist values of \code{rho} beyond the upper bound that still satisfy these properties.
 For dimension 1, the upper bound is \code{sqrt(2)}, while for dimension 2, the absolute value of each coordinate must not exceed \code{2}.
-If the estimated value of \code{rho} approaches the upper bound too closely, we recommend refitting the model with \code{check_rho = FALSE}, but this should be done with caution.
+If \code{bounded_rho = TRUE}, it implies that \code{rspde_lme} models will enforce bounded \code{rho} for consistency.
+If the estimated value of \code{rho} approaches the upper bound too closely, we recommend refitting the model with \code{bounded_rho = FALSE}, but this should be done with caution.
 While this may lead to instability in some cases, it may also result in a well-fitting model.}
 }
 \value{
