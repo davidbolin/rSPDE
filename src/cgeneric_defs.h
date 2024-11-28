@@ -11,9 +11,6 @@
 
 // https://stackoverflow.com/questions/9330915/number-of-combinations-n-choose-r-in-c
 
-double nChoosek( int n, int k );
-double cut_decimals(double nu);
-
 void daxpy_(int* N, double* DA, double* DX, int* INCX, double* DY, int* INCY);
 
 void dscal_(int* N, double* DA, double* DX,int* INCX);
@@ -81,3 +78,52 @@ void compute_Q_alpha2(int *i_Tc, int *j_Tc, double *x_Tc, double kappa, double t
 
 void compute_Q_alpha1_directional(int *i_Tc, int *j_Tc, double *x_Tc, double kappa, double tau, int nE, double w,
                                         int nrow_Tc, int ncol_Tc, int n_nonzero_Tc, double *edge_lengths, double *Q_out, int stat_ind_len, int *stat_ind, int BC);
+
+
+double adjusted_inv_logit(double z, double L);
+double logit_adjusted(double x, double L);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+double cut_decimals(double nu);
+
+double nChoosek(int n, int k);
+
+void compute_Q_dim1(
+    double kappa, double sigma, double gamma, double rho, int beta, int alpha,
+    double* result,
+    inla_cgeneric_smat_tp** Gtlist,
+    inla_cgeneric_smat_tp** Ctlist,
+    inla_cgeneric_smat_tp** B0list,
+    inla_cgeneric_smat_tp*** M2list);
+
+void compute_Q_dim2(
+    double kappa, double sigma, double gamma, double rho_1, double rho_2, int beta, int alpha,
+    double* result,
+    inla_cgeneric_smat_tp** Gtlist, 
+    inla_cgeneric_smat_tp** Ctlist, 
+    inla_cgeneric_smat_tp** B0list, 
+    inla_cgeneric_smat_tp*** M2list);
+
+void compute_Q_anisotropic(
+    double hx, double hy, double hxy, double sigma, double nu,
+    const inla_cgeneric_smat_tp *C,
+    const inla_cgeneric_smat_tp *Ci,
+    const inla_cgeneric_smat_tp *Hxx,
+    const inla_cgeneric_smat_tp *Hyy,
+    const inla_cgeneric_smat_tp *Hxy,
+    const inla_cgeneric_smat_tp *Q_graph,    
+    double *ret, int rspde_order,
+    const inla_cgeneric_mat_tp *rational_table,
+    int est_nu);
+
+void compute_Q1d(int n, double *loc, int rspde_order, double kappa,
+                 double sigma, double *rat_p, double *rat_r, double rat_k,
+                 double *Q_out, int *graph_i, int *graph_j, double nu, int M,
+                 int equally_spaced, double nu_upper_bound, int N, double *lconst);
+    
+#ifdef __cplusplus
+}
+#endif

@@ -21,7 +21,7 @@ void compute_Q_intrinsic(int size,
     
     typedef Eigen::Triplet<double> Trip;
     std::vector<Trip> trp_C, trp_G;
-    int k, i, j;
+    int k, i;
     
     
     // Assemble C and G
