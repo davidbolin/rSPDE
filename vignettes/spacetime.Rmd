@@ -210,15 +210,15 @@ Let us now compare the estimated results (the means of the parameters) with the 
 
 ```{r}
 param_st_1d <- transform_parameters_spacetime(
-                        bru_fit_field$summary.hyperpar$mean[2:5], 
-                                            st_bru_field)
+                        bru_fit$summary.hyperpar$mean[2:5], 
+                                            st_bru)
 
 results <- data.frame(kappa = c(kappa,  param_st_1d[[1]]), 
                       sigma = c(sigma,  param_st_1d[[2]]),
                       gamma = c(gamma,  param_st_1d[[3]]), 
                       rho = c(rho_1d, param_st_1d[[4]]),
-                      sigma.e = c(sigma.e, sqrt(1/bru_fit_field$summary.hyperpar$mean[1])),
-                      intercept = c(0, bru_fit_field$summary.fixed$mean),
+                      sigma.e = c(sigma.e, sqrt(1/bru_fit$summary.hyperpar$mean[1])),
+                      intercept = c(0, bru_fit$summary.fixed$mean),
                       row.names = c("True", "Estimate"))
                       
 print(results)
@@ -297,7 +297,7 @@ To estimate the model parameters based on this data, we can use the `rspde_lme` 
 
 ```{r}
 df_2d <- data.frame(Y = as.matrix(Y), x = obs.loc$x, y = obs.loc$y, t = obs.loc$t)
-res <- rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df, model = op, parallel = TRUE)
+res <- rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df_2d, model = op, parallel = TRUE)
 ```
 
 Let us see a summary of the fitted model:
@@ -312,8 +312,8 @@ Let us compare the estimated results with the true values:
 results <- data.frame(kappa = c(kappa, res$coeff$random_effects[1]), 
                       sigma = c(sigma, res$coeff$random_effects[2]),
                       gamma = c(gamma, res$coeff$random_effects[3]), 
-                      rho_1 = c(rho[1], res$coeff$random_effects[4]),
-                      rho_2 = c(rho[2], res$coeff$random_effects[5]),
+                      rho_1 = c(rho_2d[1], res$coeff$random_effects[4]),
+                      rho_2 = c(rho_2d[2], res$coeff$random_effects[5]),
                       sigma.e = c(sigma.e, res$coeff$measurement_error),
                       intercept = c(0, res$coeff$fixed_effects),
                       row.names = c("True", "Estimate"))
@@ -359,8 +359,8 @@ param_st <- transform_parameters_spacetime(bru_fit_field$summary.hyperpar$mean[2
 results <- data.frame(kappa = c(kappa,  param_st[[1]]), 
                       sigma = c(sigma,  param_st[[2]]),
                       gamma = c(gamma,  param_st[[3]]), 
-                      rho_1 = c(rho[1], param_st[[4]]),
-                      rho_2 = c(rho[2], param_st[[5]]),
+                      rho_1 = c(rho_2d[1], param_st[[4]]),
+                      rho_2 = c(rho_2d[2], param_st[[5]]),
                       sigma.e = c(sigma.e, sqrt(1/bru_fit_field$summary.hyperpar$mean[1])),
                       intercept = c(0, bru_fit_field$summary.fixed$mean),
                       row.names = c("True", "Estimate"))
