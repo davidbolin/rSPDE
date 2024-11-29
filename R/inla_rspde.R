@@ -1427,8 +1427,8 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #'
 #' Extracts data from metric graphs to be used by 'INLA' and 'inlabru'.
 #'
-#' @param graph_rspde An `inla_metric_graph_spde` object built with the
-#' `rspde.metric_graph()` function.
+#' @param graph_rspde An `inla_metric_graph_spde` or `inla_rspde_spacetime` object built with the
+#' `rspde.metric_graph()` or `rspde.spacetime()` function.
 #' @param name A character string with the base name of the effect.
 #' @param repl Which replicates? If there is no replicates, one
 #' can set `repl` to `NULL`. If one wants all replicates,
@@ -1439,7 +1439,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
 #' then one sets to `group` to `.all`.
 #' @param group_col Which "column" of the data contains the group variable?
 #' @param only_pred Should only return the `data.frame` to the prediction data?
-#' @param loc  Locations. If not given, they will be chosen as the available locations on the metric graph internal dataset.
+#' @param time Column containing times for space time models. Not needed when using inlabru. Only for INLA implementation of space time model. 
 #' @param bru Should the data be processed for `inlabru`?
 #' @param tibble Should the data be returned as a `tidyr::tibble`?
 #' @param drop_na Should the rows with at least one NA for one of the columns be removed? DEFAULT is `FALSE`. This option is turned to `FALSE` if `only_pred` is `TRUE`.
@@ -1453,15 +1453,25 @@ graph_data_rspde <- function(graph_rspde, name = "field",
                              group = NULL,
                              group_col = NULL,
                              only_pred = FALSE,
-                             loc = NULL,
+                             time = NULL,
                              bru = FALSE,
                              tibble = FALSE,
                              drop_na = FALSE, drop_all_na = TRUE) {
   ret <- list()
 
   rspde.order <- graph_rspde$rspde.order
-
   nu <- graph_rspde$nu
+
+  if(inherits(graph_rspde, "inla_rspde_spacetime")){
+    rspde.order <- 0
+    nu <- 0.5
+    graph_rspde$integer.nu <- TRUE
+    graph_rspde$rspde.order <- 0
+    if(is.null(time) && !bru){
+      stop("If bru is FALSE, 'time' must be provided for space-time models!")
+    }
+  }
+
 
   graph_tmp <- graph_rspde$mesh
 
@@ -1582,7 +1592,11 @@ graph_data_rspde <- function(graph_rspde, name = "field",
 
     ret[["basis"]] <- Matrix::Matrix(nrow = 0, ncol = 0)
 
-    ret[["index"]] <- rspde.make.index(mesh = graph_tmp, n.group = n.group, n.repl = n.repl, nu = nu, dim = 1, rspde.order = rspde.order, name = name)
+    if(inherits(graph_rspde, "inla_rspde_spacetime")){
+      ret[["index"]] <- rspde.make.index(n.spde = graph_rspde$f$n, n.group = n.group, n.repl = n.repl, nu = nu, dim = 1, rspde.order = rspde.order, name = name)
+    } else{
+      ret[["index"]] <- rspde.make.index(mesh = graph_tmp, n.group = n.group, n.repl = n.repl, nu = nu, dim = 1, rspde.order = rspde.order, name = name)
+    }
 
     loc_basis <- cbind(ret[["data"]][[".edge_number"]], ret[["data"]][[".distance_on_edge"]])
 
@@ -1593,7 +1607,12 @@ graph_data_rspde <- function(graph_rspde, name = "field",
       for (group_ in group) {
         idx_grp <- (group_vec == group_)
         idx_grp_rep <- as.logical(idx_grp * idx_rep)
-        ret[["basis"]] <- Matrix::bdiag(ret[["basis"]], graph_tmp$fem_basis(loc_basis[idx_grp_rep, ,drop=FALSE]))
+        if(inherits(graph_rspde, "inla_rspde_spacetime")){
+          time_basis <- ret[["data"]][[time]]
+          ret[["basis"]] <- Matrix::bdiag(ret[["basis"]], graph_rspde$A(loc = loc_basis[idx_grp_rep, ,drop=FALSE], time = time_basis[idx_grp_rep]))
+        } else{
+          ret[["basis"]] <- Matrix::bdiag(ret[["basis"]], graph_tmp$fem_basis(loc_basis[idx_grp_rep, ,drop=FALSE]))
+        }
       }
     }
 
