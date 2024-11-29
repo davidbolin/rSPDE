@@ -71,7 +71,7 @@ The function `spacetime.operators()` can be used to define the model. The functi
 Assume that we want to define a model on the spatial interval $[0,20]$ and the temporal domain $[0,10]$. We can then simply specify the mesh nodes as  
 ```{r}
 s <- seq(from = 0, to = 20, length.out = 101)
-t <- seq(from = 0, to = 10, length.out = 31)
+t <- seq(from = 0, to = 10, length.out = 21)
 ```
 We can now use `spacetime.operators()` to construct the model
 ```{r}
@@ -233,8 +233,8 @@ n_loc <- 1000
 loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
 mesh_2d <- fm_mesh_2d(
   loc = loc_2d_mesh,
-  cutoff = 0.05,
-  max.edge = c(0.1, 0.5)
+  cutoff = 0.07,
+  max.edge = c(0.2, 0.6)
 )
 plot(mesh_2d, main = "")
 ```
