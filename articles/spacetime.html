@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-10-23. Last
-modified: 2024-11-26.</h4>
+modified: 2024-11-29.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/spacetime.Rmd" class="external-link"><code>vignettes/spacetime.Rmd</code></a></small>
       <div class="d-none name"><code>spacetime.Rmd</code></div>
@@ -90,8 +90,8 @@ modified: 2024-11-26.</h4>
 </h2>
 <p>The <code>rSPDE</code> package implements the following
 spatio-temporal model
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>u</mi><mo>+</mo><mi>γ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>+</mo><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>α</mi></msup><mi>u</mi><mo>=</mo><mi>d</mi><msub><mi>W</mi><mi>Q</mi></msub><mo>,</mo><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">on </mtext><mspace width="0.333em"></mspace></mrow><mi>T</mi><mo>×</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">
-d u + \gamma(\kappa^2 + \rho\cdot \nabla - \Delta)^{\alpha} u = dW_Q, \quad \text{on } T\times D
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>u</mi><mo>+</mo><mi>γ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>+</mo><msup><mi>κ</mi><mrow><mi>d</mi><mi>/</mi><mn>2</mn></mrow></msup><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>α</mi></msup><mi>u</mi><mo>=</mo><mi>d</mi><msub><mi>W</mi><mi>Q</mi></msub><mo>,</mo><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">on </mtext><mspace width="0.333em"></mspace></mrow><mi>T</mi><mo>×</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">
+d u + \gamma(\kappa^2 + \kappa^{d/2}\rho\cdot \nabla - \Delta)^{\alpha} u = dW_Q, \quad \text{on } T\times D
 </annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
 is a temporal interval and
@@ -125,8 +125,8 @@ generalization of the spatio-temporal models introduced in <a href="https://www.
 generalization is to allow for drift and to allow for metric graphs as
 spatial domains. The model is implemented using a finite element
 discretization of the corresponding precision operator
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mrow><mo>−</mo><mn>2</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mo>+</mo><mi>γ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>+</mo><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>α</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mo>+</mo><mi>γ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>α</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>β</mi></msup></mrow><annotation encoding="application/x-tex">
-\sigma^{-2}(d + \gamma(\kappa^2 + \rho\cdot \nabla - \Delta)^{\alpha})((d + \gamma(\kappa^2 - \rho\cdot \nabla - \Delta)^{\alpha}))(\kappa^2 - \rho\cdot \nabla - \Delta)^{\beta}
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mrow><mo>−</mo><mn>2</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mo>+</mo><mi>γ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>+</mo><msup><mi>κ</mi><mrow><mi>d</mi><mi>/</mi><mn>2</mn></mrow></msup><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>α</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mo>+</mo><mi>γ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><msup><mi>κ</mi><mrow><mi>d</mi><mi>/</mi><mn>2</mn></mrow></msup><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>α</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>β</mi></msup></mrow><annotation encoding="application/x-tex">
+\sigma^{-2}(d + \gamma(\kappa^2 + \kappa^{d/2}\rho\cdot \nabla - \Delta)^{\alpha})((d + \gamma(\kappa^2 - \kappa^{d/2}\rho\cdot \nabla - \Delta)^{\alpha}))(\kappa^2 - \rho\cdot \nabla - \Delta)^{\beta}
 </annotation></semantics></math> in both space and time, similarly to
 the discretization introduced in <a href="https://www.raco.cat/index.php/SORT/article/view/428665" class="external-link"><span class="citation">Lindgren et al. (2024)</span></a>.</p>
 </div>
@@ -160,13 +160,13 @@ model</p>
 <code class="sourceCode R"><span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">5</span></span>
 <span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
 <span><span class="va">gamma</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">/</span><span class="fl">20</span></span>
-<span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">rho_1d</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
 <span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
 <span><span class="va">beta</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
 <span></span>
 <span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spacetime.operators.html">spacetime.operators</a></span><span class="op">(</span>space_loc <span class="op">=</span> <span class="va">s</span>, time_loc <span class="op">=</span> <span class="va">t</span>,</span>
 <span>                          kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, alpha <span class="op">=</span> <span class="va">alpha</span>,</span>
-<span>                          beta <span class="op">=</span> <span class="va">beta</span>, rho <span class="op">=</span> <span class="va">rho</span>, gamma <span class="op">=</span> <span class="va">gamma</span><span class="op">)</span></span></code></pre></div>
+<span>                          beta <span class="op">=</span> <span class="va">beta</span>, rho <span class="op">=</span> <span class="va">rho_1d</span>, gamma <span class="op">=</span> <span class="va">gamma</span><span class="op">)</span></span></code></pre></div>
 <p>The <code>spacetime.operators</code> object has a
 <code>plot_covariances</code> method which for univariate spatial
 domains simply plots the covariance
@@ -235,19 +235,19 @@ our <code>rspde_lme</code> function or our <code>inlabru</code>
 implementation. For this, we collect the data in a data frame, that also
 contanis the spatial locations, and</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, space <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">x</span>, time <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">t</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">df_1d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, space <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">x</span>, time <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">t</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="rspde_lme-implementation">
 <code>rspde_lme</code> implementation<a class="anchor" aria-label="anchor" href="#rspde_lme-implementation"></a>
 </h3>
 <p>We now fit the model:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="st">"space"</span>, loc_time <span class="op">=</span> <span class="st">"time"</span>, data <span class="op">=</span> <span class="va">df</span>, model <span class="op">=</span> <span class="va">op</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in rspde_lme(y ~ 1, loc = "space", loc_time = "time", data = df, : The</span></span>
-<span><span class="co">#&gt; optimization failed to provide a numerically positive-definite Hessian. You can</span></span>
-<span><span class="co">#&gt; try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE</span></span>
-<span><span class="co">#&gt; or by setting 'parallel' to FALSE, which allows other optimization methods to</span></span>
-<span><span class="co">#&gt; be used.</span></span>
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="st">"space"</span>, loc_time <span class="op">=</span> <span class="st">"time"</span>, data <span class="op">=</span> <span class="va">df_1d</span>, model <span class="op">=</span> <span class="va">op</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in rspde_lme(y ~ 1, loc = "space", loc_time = "time", data = df_1d, :</span></span>
+<span><span class="co">#&gt; The optimization failed to provide a numerically positive-definite Hessian. You</span></span>
+<span><span class="co">#&gt; can try to obtain a positive-definite Hessian by setting 'improve_hessian' to</span></span>
+<span><span class="co">#&gt; TRUE or by setting 'parallel' to FALSE, which allows other optimization methods</span></span>
+<span><span class="co">#&gt; to be used.</span></span>
 <span><span class="co">#&gt; Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre></div>
 <p>In the call, <code>y~1</code> indicates that we also want to estimate
 a mean value of the model, and the arguments <code>loc</code> and
@@ -261,45 +261,45 @@ model:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; rspde_lme(formula = y ~ 1, loc = "space", loc_time = "time", </span></span>
-<span><span class="co">#&gt;     data = df, model = op, parallel = TRUE)</span></span>
+<span><span class="co">#&gt;     data = df_1d, model = op, parallel = TRUE)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Fixed effects:</span></span>
 <span><span class="co">#&gt;             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
-<span><span class="co">#&gt; (Intercept) -0.01548   0.10693  -0.145    0.885</span></span>
+<span><span class="co">#&gt; (Intercept)  -0.1758    0.1125  -1.562    0.118</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
-<span><span class="co">#&gt;       Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; kappa 4.902904       NaN     NaN</span></span>
-<span><span class="co">#&gt; sigma 9.613799  0.309921   31.02</span></span>
-<span><span class="co">#&gt; gamma 0.054744  0.004906   11.16</span></span>
-<span><span class="co">#&gt; rho   0.207058       NaN     NaN</span></span>
+<span><span class="co">#&gt;        Estimate Std.error z-value</span></span>
+<span><span class="co">#&gt; kappa  5.082088  0.438378  11.593</span></span>
+<span><span class="co">#&gt; sigma 10.661322  0.962934  11.072</span></span>
+<span><span class="co">#&gt; gamma  0.051734  0.009749   5.306</span></span>
+<span><span class="co">#&gt; rho    0.987080  0.045975  21.470</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Measurement error:</span></span>
 <span><span class="co">#&gt;           Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; std. dev 1.918e-06       NaN     NaN</span></span>
+<span><span class="co">#&gt; std. dev 0.0001511       NaN     NaN</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Log-Likelihood:  -630.5747 </span></span>
-<span><span class="co">#&gt; Number of function calls by 'optim' = 36</span></span>
+<span><span class="co">#&gt; Log-Likelihood:  -670.6338 </span></span>
+<span><span class="co">#&gt; Number of function calls by 'optim' = 56</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  23.17988 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 4.67325 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  33.26925 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 4.94592 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>                      sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>                      gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">gamma</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>, </span>
-<span>                      rho <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>                      rho <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho_1d</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>                      sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">measurement_error</span><span class="op">)</span>,</span>
 <span>                      intercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">fixed_effects</span><span class="op">)</span>,</span>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa     sigma      gamma       rho      sigma.e   intercept</span></span>
-<span><span class="co">#&gt; True     5.000000 10.000000 0.05000000 1.0000000 1.000000e-02  0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 4.902904  9.613799 0.05474378 0.2070578 1.918334e-06 -0.01548373</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa    sigma      gamma       rho    sigma.e  intercept</span></span>
+<span><span class="co">#&gt; True     5.000000 10.00000 0.05000000 1.0000000 0.01000000  0.0000000</span></span>
+<span><span class="co">#&gt; Estimate 5.082088 10.66132 0.05173361 0.9870804 0.00015105 -0.1757613</span></span></code></pre></div>
 <p>Finally, we can also do prediction based on the fitted model as</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred.data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">s</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">t</span><span class="op">)</span><span class="op">)</span>, t <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">t</span>,each<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -333,24 +333,26 @@ spatial indices and <code>time</code> with the temporal indices:</p>
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fu">Intercept</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span> <span class="fu">field</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>space<span class="op">=</span><span class="va">space</span>, time <span class="op">=</span> <span class="va">time</span><span class="op">)</span>, model <span class="op">=</span> <span class="va">st_bru</span><span class="op">)</span></span></code></pre></div>
 <p>We are now in a position to fit the model:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bru_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru</a></span><span class="op">(</span><span class="va">cmp</span>, data <span class="op">=</span> <span class="va">df</span>,</span>
-<span>    options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>num.threads <span class="op">=</span> <span class="st">"1:1"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">bru_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru</a></span><span class="op">(</span><span class="va">cmp</span>, data <span class="op">=</span> <span class="va">df_1d</span><span class="op">)</span></span></code></pre></div>
 <p>Let us now compare the estimated results (the means of the
 parameters) with the true values:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">bru_fit</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, </span>
-<span>                      sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">bru_fit</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                      gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">gamma</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">bru_fit</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, </span>
-<span>                      rho <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho</span>, <span class="va">bru_fit</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span>,</span>
+<code class="sourceCode R"><span><span class="va">param_st_1d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/transform_parameters_spacetime.html">transform_parameters_spacetime</a></span><span class="op">(</span></span>
+<span>                        <span class="va">bru_fit</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span>, </span>
+<span>                                            <span class="va">st_bru</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>,  <span class="va">param_st_1d</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, </span>
+<span>                      sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>,  <span class="va">param_st_1d</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>                      gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">gamma</span>,  <span class="va">param_st_1d</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, </span>
+<span>                      rho <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho_1d</span>, <span class="va">param_st_1d</span><span class="op">[[</span><span class="fl">4</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>                      sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">bru_fit</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                      intercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">bru_fit</span><span class="op">$</span><span class="va">summary.fixed</span><span class="op">$</span><span class="va">mean</span><span class="op">)</span>,</span>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa     sigma      gamma        rho    sigma.e   intercept</span></span>
-<span><span class="co">#&gt; True     5.000000 10.000000 0.05000000  1.0000000 0.01000000  0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 4.774062  9.458859 0.05664663 -0.1479466 0.00603655 -0.02181802</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa    sigma      gamma      rho     sigma.e   intercept</span></span>
+<span><span class="co">#&gt; True     5.000000 10.00000 0.05000000 1.000000 0.010000000  0.00000000</span></span>
+<span><span class="co">#&gt; Estimate 5.072503 10.61032 0.05083214 1.003651 0.006907754 -0.05454077</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -377,13 +379,13 @@ model</p>
 <span><span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
 <span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
 <span><span class="va">gamma</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">/</span><span class="fl">200</span></span>
-<span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">rho_2d</span> <span class="op">&lt;-</span> <span class="fl">0.3</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
 <span><span class="va">beta</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
 <span></span>
 <span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spacetime.operators.html">spacetime.operators</a></span><span class="op">(</span>mesh_space <span class="op">=</span> <span class="va">mesh_2d</span>, time_loc <span class="op">=</span> <span class="va">t</span>,</span>
 <span>                          kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, alpha <span class="op">=</span> <span class="va">alpha</span>,</span>
-<span>                          beta <span class="op">=</span> <span class="va">beta</span>, rho <span class="op">=</span> <span class="va">rho</span>, gamma <span class="op">=</span> <span class="va">gamma</span><span class="op">)</span></span>
+<span>                          beta <span class="op">=</span> <span class="va">beta</span>, rho <span class="op">=</span> <span class="va">rho_2d</span>, gamma <span class="op">=</span> <span class="va">gamma</span><span class="op">)</span></span>
 <span><span class="va">op</span><span class="op">$</span><span class="fu">plot_covariances</span><span class="op">(</span>s.ind <span class="op">=</span> <span class="fl">100</span>, t.ind <span class="op">=</span> <span class="fl">5</span>, t.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>,<span class="fl">0</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="spacetime_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt; TableGrob (2 x 1) "arrange": 2 grobs</span></span>
@@ -403,7 +405,7 @@ discretization to plot the marginal spatial covariance for, and an input
 discretization to show the marginal temporal covariance for. It further
 takes an input <code>t.shift</code> which can be used to plot
 covariances
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo>,</mo><msub><mi>t</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo>,</mo><msub><mi>t</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(u(\cdot, t_i), u(\cdot, t_j)</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo>,</mo><msub><mi>t</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo>,</mo><msub><mi>t</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(u(\cdot, t_i), u(\cdot, t_j))</annotation></semantics></math>,
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>i</mi></msub><annotation encoding="application/x-tex">t_i</annotation></semantics></math>
 is <code>t[t.ind]</code> and
@@ -447,14 +449,8 @@ is Gaussian measurement noise.</p>
 frame, that also contanis the spatial locations, and we fit the
 model:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, x <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">x</span>, y <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">y</span>, t <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">t</span><span class="op">)</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span>, loc_time <span class="op">=</span> <span class="st">"t"</span>, data <span class="op">=</span> <span class="va">df</span>, model <span class="op">=</span> <span class="va">op</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df, : The</span></span>
-<span><span class="co">#&gt; optimization failed to provide a numerically positive-definite Hessian. You can</span></span>
-<span><span class="co">#&gt; try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE</span></span>
-<span><span class="co">#&gt; or by setting 'parallel' to FALSE, which allows other optimization methods to</span></span>
-<span><span class="co">#&gt; be used.</span></span>
-<span><span class="co">#&gt; Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">df_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, x <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">x</span>, y <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">y</span>, t <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">t</span><span class="op">)</span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span>, loc_time <span class="op">=</span> <span class="st">"t"</span>, data <span class="op">=</span> <span class="va">df_2d</span>, model <span class="op">=</span> <span class="va">op</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Let us see a summary of the fitted model:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
@@ -463,47 +459,50 @@ model:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; rspde_lme(formula = Y ~ 1, loc = c("x", "y"), loc_time = "t", </span></span>
-<span><span class="co">#&gt;     data = df, model = op, parallel = TRUE)</span></span>
+<span><span class="co">#&gt;     data = df_2d, model = op, parallel = TRUE)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Fixed effects:</span></span>
 <span><span class="co">#&gt;             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
-<span><span class="co">#&gt; (Intercept)  -0.0329    0.3600  -0.091    0.927</span></span>
+<span><span class="co">#&gt; (Intercept) -0.06804   0.48461   -0.14    0.888</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;        Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; kappa 10.572540       NaN     NaN</span></span>
-<span><span class="co">#&gt; sigma 10.912670       NaN     NaN</span></span>
-<span><span class="co">#&gt; gamma  0.005053       NaN     NaN</span></span>
-<span><span class="co">#&gt; rho    2.180223       NaN     NaN</span></span>
-<span><span class="co">#&gt; NA     2.049221       NaN     NaN</span></span>
+<span><span class="co">#&gt; kappa 8.896e+00 7.991e-01  11.132</span></span>
+<span><span class="co">#&gt; sigma 1.060e+01 1.263e+00   8.396</span></span>
+<span><span class="co">#&gt; gamma 5.810e-03 9.903e-04   5.867</span></span>
+<span><span class="co">#&gt; rho   2.936e-01 2.697e+00   0.109</span></span>
+<span><span class="co">#&gt; NA    1.863e-01 1.298e+00   0.143</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Measurement error:</span></span>
 <span><span class="co">#&gt;           Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; std. dev 3.124e-06       NaN     NaN</span></span>
+<span><span class="co">#&gt; std. dev 0.0002295 0.0025328   0.091</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Log-Likelihood:  -838.6627 </span></span>
-<span><span class="co">#&gt; Number of function calls by 'optim' = 113</span></span>
+<span><span class="co">#&gt; Log-Likelihood:  -711.2529 </span></span>
+<span><span class="co">#&gt; Number of function calls by 'optim' = 114</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  18.39842 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 7.95863 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  20.34985 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 8.29589 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>                      sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>                      gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">gamma</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>, </span>
-<span>                      rho_1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>                      rho_2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>                      rho_1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho_2d</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>                      rho_2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho_2d</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>                      sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">measurement_error</span><span class="op">)</span>,</span>
 <span>                      intercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">fixed_effects</span><span class="op">)</span>,</span>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa    sigma      gamma    rho_1    rho_2      sigma.e  intercept</span></span>
-<span><span class="co">#&gt; True     10.00000 10.00000 0.00500000 1.000000 1.000000 1.000000e-02  0.0000000</span></span>
-<span><span class="co">#&gt; Estimate 10.57254 10.91267 0.00505264 2.180223 2.049221 3.124446e-06 -0.0329028</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa    sigma       gamma     rho_1     rho_2      sigma.e</span></span>
+<span><span class="co">#&gt; True     10.00000 10.00000 0.005000000 0.3000000 0.3000000 0.0100000000</span></span>
+<span><span class="co">#&gt; Estimate  8.89591 10.60402 0.005809714 0.2935909 0.1862913 0.0002294926</span></span>
+<span><span class="co">#&gt;           intercept</span></span>
+<span><span class="co">#&gt; True      0.0000000</span></span>
+<span><span class="co">#&gt; Estimate -0.0680357</span></span></code></pre></div>
 <p>Let us now use our <code>inlabru</code> implementation. We first
 define the model. To this end we need to create a mesh for the time
 object:</p>
@@ -521,28 +520,99 @@ object:</p>
 <span>                time <span class="op">=</span> <span class="va">time</span><span class="op">)</span>, model <span class="op">=</span> <span class="va">st_bru_field</span><span class="op">)</span></span></code></pre></div>
 <p>We are now in a position to fit the model:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bru_fit_field</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru</a></span><span class="op">(</span><span class="va">cmp</span>, data <span class="op">=</span> <span class="va">df_bru</span>,</span>
-<span>    options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>num.threads <span class="op">=</span> <span class="st">"1:1"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">bru_fit_field</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru</a></span><span class="op">(</span><span class="va">cmp</span>, data <span class="op">=</span> <span class="va">df_bru</span><span class="op">)</span></span></code></pre></div>
 <p>Let us now compare the estimated results (the means of the
 parameters) with the true values:</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">bru_fit_field</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, </span>
-<span>                      sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">bru_fit_field</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                      gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">gamma</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">bru_fit_field</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, </span>
-<span>                      rho_1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">bru_fit_field</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>                      rho_2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">bru_fit_field</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">6</span><span class="op">]</span><span class="op">)</span>,</span>
+<code class="sourceCode R"><span><span class="va">param_st</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/transform_parameters_spacetime.html">transform_parameters_spacetime</a></span><span class="op">(</span><span class="va">bru_fit_field</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>, </span>
+<span>                                            <span class="va">st_bru_field</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>,  <span class="va">param_st</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, </span>
+<span>                      sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>,  <span class="va">param_st</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>                      gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">gamma</span>,  <span class="va">param_st</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, </span>
+<span>                      rho_1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho_2d</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">param_st</span><span class="op">[[</span><span class="fl">4</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>                      rho_2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho_2d</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">param_st</span><span class="op">[[</span><span class="fl">5</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>                      sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">bru_fit_field</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                      intercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">bru_fit_field</span><span class="op">$</span><span class="va">summary.fixed</span><span class="op">$</span><span class="va">mean</span><span class="op">)</span>,</span>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa    sigma       gamma     rho_1     rho_2     sigma.e</span></span>
-<span><span class="co">#&gt; True     10.00000 10.00000 0.005000000 1.0000000 1.0000000 0.010000000</span></span>
-<span><span class="co">#&gt; Estimate 10.46137 10.89161 0.005113764 0.9741562 0.9056709 0.006107971</span></span>
+<span><span class="co">#&gt;              kappa    sigma       gamma     rho_1     rho_2     sigma.e</span></span>
+<span><span class="co">#&gt; True     10.000000 10.00000 0.005000000 0.3000000 0.3000000 0.010000000</span></span>
+<span><span class="co">#&gt; Estimate  9.500961 10.67341 0.005824711 0.3576428 0.2573748 0.007074685</span></span>
 <span><span class="co">#&gt;           intercept</span></span>
 <span><span class="co">#&gt; True      0.0000000</span></span>
-<span><span class="co">#&gt; Estimate -0.0384667</span></span></code></pre></div>
+<span><span class="co">#&gt; Estimate -0.2780601</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="fit-with-bounded_rho-false">Fit with <code>bounded_rho = FALSE</code><a class="anchor" aria-label="anchor" href="#fit-with-bounded_rho-false"></a>
+</h2>
+<p>In cases where the estimated value of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+approaches the upper bound (available in <code>st_bru$bound_rho</code>),
+the model can be re-fitted with <code>bounded_rho = FALSE</code>. This
+removes the bounding constraint on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>,
+which can lead to a better fit but may introduce numerical instability.
+Below, we demonstrate this for both the 1D and spatial examples.</p>
+<hr>
+<div class="section level3">
+<h3 id="d-example-with-bounded_rho-false">1D Example with <code>bounded_rho = FALSE</code><a class="anchor" aria-label="anchor" href="#d-example-with-bounded_rho-false"></a>
+</h3>
+<p>Let us first start with the <code><a href="../reference/rspde_lme.html">rspde_lme()</a></code> example:</p>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">op_1d_unbounded</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spacetime.operators.html">spacetime.operators</a></span><span class="op">(</span>space_loc <span class="op">=</span> <span class="va">s</span>, time_loc <span class="op">=</span> <span class="va">t</span>,</span>
+<span>                          kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, alpha <span class="op">=</span> <span class="va">alpha</span>,</span>
+<span>                          beta <span class="op">=</span> <span class="va">beta</span>, rho <span class="op">=</span> <span class="va">rho_1d</span>, gamma <span class="op">=</span> <span class="va">gamma</span>,</span>
+<span>                          bounded_rho <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">res_unbounded</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="st">"space"</span>, loc_time <span class="op">=</span> <span class="st">"time"</span>, </span>
+<span>                      data <span class="op">=</span> <span class="va">df_1d</span>, model <span class="op">=</span> <span class="va">op_1d_unbounded</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res_unbounded</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
+<span>                      sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">res_unbounded</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>                      gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">gamma</span>, <span class="va">res_unbounded</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>, </span>
+<span>                      rho <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho_1d</span>, <span class="va">res_unbounded</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>                      sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="va">res_unbounded</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">measurement_error</span><span class="op">)</span>,</span>
+<span>                      intercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">res_unbounded</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">fixed_effects</span><span class="op">)</span>,</span>
+<span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
+<span>                      </span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              kappa    sigma      gamma      rho   sigma.e   intercept</span></span>
+<span><span class="co">#&gt; True     10.000000 10.00000 0.00500000 1.000000 0.0100000  0.00000000</span></span>
+<span><span class="co">#&gt; Estimate  4.423254 10.36837 0.07022944 1.195668 0.6274882 -0.06071171</span></span></code></pre></div>
+<p>Now, the <code>inlabru</code> implementation:</p>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">### Fit with bounded_rho = FALSE</span></span>
+<span><span class="va">st_bru_unbounded</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.spacetime.html">rspde.spacetime</a></span><span class="op">(</span>space_loc <span class="op">=</span> <span class="va">s</span>, time_loc <span class="op">=</span> <span class="va">t</span>, alpha <span class="op">=</span> <span class="fl">1</span>, </span>
+<span>            beta <span class="op">=</span> <span class="fl">1</span>, bounded_rho <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">### Fitting the Model</span></span>
+<span><span class="va">cmp_unbounded</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fu">Intercept</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span> <span class="fu">field</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>space <span class="op">=</span> <span class="va">space</span>, time <span class="op">=</span> <span class="va">time</span><span class="op">)</span>, </span>
+<span>                                          model <span class="op">=</span> <span class="va">st_bru_unbounded</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">bru_fit_unbounded</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru</a></span><span class="op">(</span><span class="va">cmp_unbounded</span>, data <span class="op">=</span> <span class="va">df_1d</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">### Extract and Compare Results</span></span>
+<span><span class="va">param_unbounded</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/transform_parameters_spacetime.html">transform_parameters_spacetime</a></span><span class="op">(</span></span>
+<span>                <span class="va">bru_fit_unbounded</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span>, </span>
+<span>                <span class="va">st_bru_unbounded</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">results_unbounded</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">param_unbounded</span><span class="op">$</span><span class="va">kappa</span><span class="op">)</span>,</span>
+<span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">param_unbounded</span><span class="op">$</span><span class="va">sigma</span><span class="op">)</span>,</span>
+<span>  gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">gamma</span>, <span class="va">param_unbounded</span><span class="op">$</span><span class="va">gamma</span><span class="op">)</span>,</span>
+<span>  rho <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho_1d</span>, <span class="va">param_unbounded</span><span class="op">$</span><span class="va">rho</span><span class="op">)</span>,</span>
+<span>  sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="va">bru_fit_unbounded</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  intercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">bru_fit_unbounded</span><span class="op">$</span><span class="va">summary.fixed</span><span class="op">$</span><span class="va">mean</span><span class="op">)</span>,</span>
+<span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results_unbounded</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              kappa    sigma      gamma      rho   sigma.e   intercept</span></span>
+<span><span class="co">#&gt; True     10.000000 10.00000 0.00500000 1.000000 0.0100000  0.00000000</span></span>
+<span><span class="co">#&gt; Estimate  4.403779 10.19409 0.06865831 1.342379 0.6219549 -0.05950991</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
