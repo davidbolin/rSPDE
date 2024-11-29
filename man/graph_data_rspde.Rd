@@ -12,7 +12,7 @@ graph_data_rspde(
   group = NULL,
   group_col = NULL,
   only_pred = FALSE,
-  loc = NULL,
+  time = NULL,
   bru = FALSE,
   tibble = FALSE,
   drop_na = FALSE,
@@ -20,8 +20,8 @@ graph_data_rspde(
 )
 }
 \arguments{
-\item{graph_rspde}{An \code{inla_metric_graph_spde} object built with the
-\code{rspde.metric_graph()} function.}
+\item{graph_rspde}{An \code{inla_metric_graph_spde} or \code{inla_rspde_spacetime} object built with the
+\code{rspde.metric_graph()} or \code{rspde.spacetime()} function.}
 
 \item{name}{A character string with the base name of the effect.}
 
@@ -39,7 +39,7 @@ then one sets to \code{group} to \code{.all}.}
 
 \item{only_pred}{Should only return the \code{data.frame} to the prediction data?}
 
-\item{loc}{Locations. If not given, they will be chosen as the available locations on the metric graph internal dataset.}
+\item{time}{Column containing times for space time models. Not needed when using inlabru. Only for INLA implementation of space time model.}
 
 \item{bru}{Should the data be processed for \code{inlabru}?}
 
