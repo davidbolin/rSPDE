@@ -975,8 +975,18 @@ spde.make.A <- function(mesh = NULL,
       #   x = mesh, loc = loc, repl = repl)
 
       A <- fm_basis(
-        x = mesh, loc = loc, repl = repl
+        x = mesh, loc = loc
       )
+
+    } 
+
+    if(cond3){
+        if (is.null(loc)) {
+          A <- mesh$fem_basis(mesh$get_PtE())
+        } else {
+          A <- mesh$fem_basis(loc)
+        }
+    }
 
       if (!is.null(index)) {
         A <- A[index, ]
@@ -1002,71 +1012,7 @@ spde.make.A <- function(mesh = NULL,
         blk_rep <- fm_block(repl)
         A <- fm_row_kron(Matrix::t(blk_rep), A)
       }
-    } else if (cond3) {
-      if (is.null(mesh$mesh)) {
-        stop("The graph object should contain a mesh!")
-      }
-      if (!is.null(group) || !is.null(n.group)) {
-        stop("Groups are still not implemented for metric graphs.")
-      }
-      if (!is.null(n.repl)) {
-        if (is.null(loc)) {
-          A <- kronecker(Matrix::Diagonal(n.repl), mesh$fem_basis(mesh$get_PtE()))
-        } else {
-          A <- kronecker(Matrix::Diagonal(n.repl), mesh$fem_basis(loc))
-        }
-      } else if (!is.null(index)) {
-        if (min(repl) != 1) {
-          stop("The indexes of the replicates should begin at 1!")
-        }
-        if (any(!is.integer(repl))) {
-          stop("The indexes of the replicates should be integers!")
-        }
-
-        if (is.null(loc)) {
-          loc_PtE <- mesh$get_PtE()
-        } else {
-          loc_PtE <- loc
-        }
-
-
-        if (max(repl) == 1) {
-          A <- mesh$fem_basis(loc_PtE[index, ])
-        } else {
-          stopifnot(length(index) == length(repl))
-
-          if (max(abs(diff(repl))) > 1) {
-            stop("The indexes of the replicates should increase by steps of size 1!")
-          }
-
-          total_repl <- max(repl)
-          index_tmp <- index[repl == 1]
-          A <- mesh$fem_basis(loc_PtE[index_tmp, ])
-          for (i in 2:total_repl) {
-            index_tmp <- index[repl == i]
-            A_tmp <- mesh$fem_basis(loc_PtE[index_tmp, ])
-            A <- bdiag(A, A_tmp)
-          }
-          if (any(diff(repl)) < 0) {
-            col_indexes <- 1:ncol(A)
-            new_col_indexes <- col_indexes[repl == 1]
-            for (i in 2:total_repl) {
-              new_col_indexes <- c(new_col_indexes, col_indexes[repl == i])
-            }
-            A <- A[, new_col_indexes]
-          }
-        }
-      } else if (length(repl) > 1) {
-        stop("When using replicates, you should provide index!")
-      } else {
-        if (is.null(loc)) {
-          A <- mesh$fem_basis(mesh$get_PtE())
-        } else {
-          A <- mesh$fem_basis(loc)
-        }
-      }
-    }
-  } else if (is.null(A)) {
+    } else if (is.null(A)) {
     stop("If mesh is not provided, then you should provide the A matrix from
          the standard SPDE approach!")
   }
@@ -1600,20 +1546,20 @@ graph_data_rspde <- function(graph_rspde, name = "field",
 
     loc_basis <- cbind(ret[["data"]][[".edge_number"]], ret[["data"]][[".distance_on_edge"]])
 
-    # We assume the data is ordered by group, then repl. This will be handled by the advanced grouping we are implementing
+    if(inherits(graph_rspde, "inla_rspde_spacetime")){
+      time_basis <- ret[["data"]][[time]]
+    }
+    blk_grp <- fmesher::fm_block(group_vec)
+    blk_rep <- fmesher::fm_block(repl_vec)
 
-    for (repl_ in repl) {
-      idx_rep <- (repl_vec == repl_)
-      for (group_ in group) {
-        idx_grp <- (group_vec == group_)
-        idx_grp_rep <- as.logical(idx_grp * idx_rep)
-        if(inherits(graph_rspde, "inla_rspde_spacetime")){
-          time_basis <- ret[["data"]][[time]]
-          ret[["basis"]] <- Matrix::bdiag(ret[["basis"]], graph_rspde$A(loc = loc_basis[idx_grp_rep, ,drop=FALSE], time = time_basis[idx_grp_rep]))
-        } else{
-          ret[["basis"]] <- Matrix::bdiag(ret[["basis"]], graph_tmp$fem_basis(loc_basis[idx_grp_rep, ,drop=FALSE]))
-        }
-      }
+    if(inherits(graph_rspde, "inla_rspde_spacetime")){
+      ret[["basis"]] <- graph_rspde$A(loc = loc_basis, time = time_basis)
+      ret[["basis"]] <- fmesher::fm_row_kron(t(blk_grp), ret[["basis"]])
+      ret[["basis"]] <- fmesher::fm_row_kron(t(blk_rep), ret[["basis"]])      
+    } else{
+      ret[["basis"]] <- graph_tmp$fem_basis(loc_basis)
+      ret[["basis"]] <- fmesher::fm_row_kron(t(blk_grp), ret[["basis"]])
+      ret[["basis"]] <- fmesher::fm_row_kron(t(blk_rep), ret[["basis"]])            
     }
 
     if (!graph_rspde$integer.nu) {
