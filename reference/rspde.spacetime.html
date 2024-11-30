@@ -165,10 +165,10 @@ element from <code>prior.kappa</code>, <code>prior.sigma</code>, <code>prior.gam
 
 <dt id="arg-bounded-rho">bounded_rho<a class="anchor" aria-label="anchor" href="#arg-bounded-rho"></a></dt>
 <dd><p>Logical. Should <code>rho</code> be bounded to ensure the existence, uniqueness, and well-posedness of the solution? Defaults to <code>TRUE</code>.
-Note that this bounding is not a strict condition; there may exist values of <code>rho</code> beyond the upper bound that still satisfy these properties.
-For dimension 1, the upper bound is <code>sqrt(2)</code>, while for dimension 2, the absolute value of each coordinate must not exceed <code>2</code>.
-If the estimated value of <code>rho</code> approaches the upper bound too closely, we recommend refitting the model with <code>bounded_rho = FALSE</code>, but this should be done with caution.
-While this may lead to instability in some cases, it may also result in a well-fitting model.</p></dd>
+Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties.
+When <code>bounded_rho = TRUE</code>, the <code>rspde_lme</code> models enforce bounded <code>rho</code> for consistency.
+If the estimated value of <code>rho</code> approaches the upper bound too closely, we recommend refitting the model with <code>bounded_rho = FALSE</code>. However, this should be done with caution, as it may lead to instability in some cases, though it can also result in a better model fit.
+The actual bound used for <code>rho</code> can be accessed from the <code>bound_rho</code> element of the returned object.</p></dd>
 
 
 <dt id="arg-shared-lib">shared_lib<a class="anchor" aria-label="anchor" href="#arg-shared-lib"></a></dt>
@@ -209,7 +209,7 @@ the space-time Gaussian random field.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> 	 Edge-Edge 0</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Setup edges and merge close vertices</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Snap vertices to close edges</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Total construction time: 1.41 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Total construction time: 1.40 secs</span>
 <span class="r-in"><span><span class="va">graph</span><span class="op">$</span><span class="fu">build_mesh</span><span class="op">(</span>h <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">graph</span><span class="op">$</span><span class="fu">compute_fem</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
