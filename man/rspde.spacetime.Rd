@@ -67,10 +67,10 @@ default values will be used. The \code{mean} value is also used as starting valu
 element from \code{prior.kappa}, \code{prior.sigma}, \code{prior.gamma}, and \code{prior.rho} respectively. For dimension 1 \code{prior.precision} must be a 4x4 matrix. For dimension 2, \eqn{\rho} is a vector of length 2, so in this case \code{prior.precision} must be a 5x5 matrix. If \code{NULL}, a diagonal precision matrix with default values will be used.}
 
 \item{bounded_rho}{Logical. Should \code{rho} be bounded to ensure the existence, uniqueness, and well-posedness of the solution? Defaults to \code{TRUE}.
-Note that this bounding is not a strict condition; there may exist values of \code{rho} beyond the upper bound that still satisfy these properties.
-For dimension 1, the upper bound is \code{sqrt(2)}, while for dimension 2, the absolute value of each coordinate must not exceed \code{2}.
-If the estimated value of \code{rho} approaches the upper bound too closely, we recommend refitting the model with \code{bounded_rho = FALSE}, but this should be done with caution.
-While this may lead to instability in some cases, it may also result in a well-fitting model.}
+Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties.
+When \code{bounded_rho = TRUE}, the \code{rspde_lme} models enforce bounded \code{rho} for consistency.
+If the estimated value of \code{rho} approaches the upper bound too closely, we recommend refitting the model with \code{bounded_rho = FALSE}. However, this should be done with caution, as it may lead to instability in some cases, though it can also result in a better model fit.
+The actual bound used for \code{rho} can be accessed from the \code{bound_rho} element of the returned object.}
 
 \item{shared_lib}{String specifying which shared library to use for the Cgeneric
 implementation. Options are "detect", "INLA", or "rSPDE". You may also specify the

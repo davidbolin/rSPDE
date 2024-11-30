@@ -40,10 +40,10 @@
 #' @param prior.precision A precision matrix for \eqn{\log(\kappa), \log(\sigma), \log(\gamma), \rho}. This matrix replaces the precision
 #' element from `prior.kappa`, `prior.sigma`, `prior.gamma`, and `prior.rho` respectively. For dimension 1 `prior.precision` must be a 4x4 matrix. For dimension 2, \eqn{\rho} is a vector of length 2, so in this case `prior.precision` must be a 5x5 matrix. If `NULL`, a diagonal precision matrix with default values will be used.
 #' @param bounded_rho Logical. Should `rho` be bounded to ensure the existence, uniqueness, and well-posedness of the solution? Defaults to `TRUE`. 
-#' Note that this bounding is not a strict condition; there may exist values of `rho` beyond the upper bound that still satisfy these properties. 
-#' For dimension 1, the upper bound is `sqrt(2)`, while for dimension 2, the absolute value of each coordinate must not exceed `2`. 
-#' If the estimated value of `rho` approaches the upper bound too closely, we recommend refitting the model with `bounded_rho = FALSE`, but this should be done with caution. 
-#' While this may lead to instability in some cases, it may also result in a well-fitting model.
+#' Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties. 
+#' When `bounded_rho = TRUE`, the `rspde_lme` models enforce bounded `rho` for consistency. 
+#' If the estimated value of `rho` approaches the upper bound too closely, we recommend refitting the model with `bounded_rho = FALSE`. However, this should be done with caution, as it may lead to instability in some cases, though it can also result in a better model fit. 
+#' The actual bound used for `rho` can be accessed from the `bound_rho` element of the returned object.
 #' @param shared_lib String specifying which shared library to use for the Cgeneric
 #' implementation. Options are "detect", "INLA", or "rSPDE". You may also specify the
 #' direct path to a .so (or .dll) file.
