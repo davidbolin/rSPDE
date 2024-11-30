@@ -60,7 +60,7 @@
 <span>  group <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  only_pred <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  loc <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  bru <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  tibble <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  drop_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -73,8 +73,8 @@
 
 
 <dl><dt id="arg-graph-rspde">graph_rspde<a class="anchor" aria-label="anchor" href="#arg-graph-rspde"></a></dt>
-<dd><p>An <code>inla_metric_graph_spde</code> object built with the
-<code><a href="rspde.metric_graph.html">rspde.metric_graph()</a></code> function.</p></dd>
+<dd><p>An <code>inla_metric_graph_spde</code> or <code>inla_rspde_spacetime</code> object built with the
+<code><a href="rspde.metric_graph.html">rspde.metric_graph()</a></code> or <code><a href="rspde.spacetime.html">rspde.spacetime()</a></code> function.</p></dd>
 
 
 <dt id="arg-name">name<a class="anchor" aria-label="anchor" href="#arg-name"></a></dt>
@@ -105,8 +105,8 @@ then one sets to <code>group</code> to <code>.all</code>.</p></dd>
 <dd><p>Should only return the <code>data.frame</code> to the prediction data?</p></dd>
 
 
-<dt id="arg-loc">loc<a class="anchor" aria-label="anchor" href="#arg-loc"></a></dt>
-<dd><p>Locations. If not given, they will be chosen as the available locations on the metric graph internal dataset.</p></dd>
+<dt id="arg-time">time<a class="anchor" aria-label="anchor" href="#arg-time"></a></dt>
+<dd><p>Column containing times for space time models. Not needed when using inlabru. Only for INLA implementation of space time model.</p></dd>
 
 
 <dt id="arg-bru">bru<a class="anchor" aria-label="anchor" href="#arg-bru"></a></dt>

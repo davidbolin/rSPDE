@@ -153,7 +153,7 @@ and the temporal domain
 We can then simply specify the mesh nodes as</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">20</span>, length.out <span class="op">=</span> <span class="fl">101</span><span class="op">)</span></span>
-<span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">10</span>, length.out <span class="op">=</span> <span class="fl">31</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">10</span>, length.out <span class="op">=</span> <span class="fl">21</span><span class="op">)</span></span></code></pre></div>
 <p>We can now use <code><a href="../reference/spacetime.operators.html">spacetime.operators()</a></code> to construct the
 model</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -242,13 +242,7 @@ contanis the spatial locations, and</p>
 </h3>
 <p>We now fit the model:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="st">"space"</span>, loc_time <span class="op">=</span> <span class="st">"time"</span>, data <span class="op">=</span> <span class="va">df_1d</span>, model <span class="op">=</span> <span class="va">op</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in rspde_lme(y ~ 1, loc = "space", loc_time = "time", data = df_1d, :</span></span>
-<span><span class="co">#&gt; The optimization failed to provide a numerically positive-definite Hessian. You</span></span>
-<span><span class="co">#&gt; can try to obtain a positive-definite Hessian by setting 'improve_hessian' to</span></span>
-<span><span class="co">#&gt; TRUE or by setting 'parallel' to FALSE, which allows other optimization methods</span></span>
-<span><span class="co">#&gt; to be used.</span></span>
-<span><span class="co">#&gt; Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="st">"space"</span>, loc_time <span class="op">=</span> <span class="st">"time"</span>, data <span class="op">=</span> <span class="va">df_1d</span>, model <span class="op">=</span> <span class="va">op</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>In the call, <code>y~1</code> indicates that we also want to estimate
 a mean value of the model, and the arguments <code>loc</code> and
 <code>loc_time</code> provides the names of the spatial and temporal
@@ -265,27 +259,27 @@ model:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Fixed effects:</span></span>
 <span><span class="co">#&gt;             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
-<span><span class="co">#&gt; (Intercept)  -0.1758    0.1125  -1.562    0.118</span></span>
+<span><span class="co">#&gt; (Intercept)   0.0419    0.1137   0.369    0.712</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
-<span><span class="co">#&gt;        Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; kappa  5.082088  0.438378  11.593</span></span>
-<span><span class="co">#&gt; sigma 10.661322  0.962934  11.072</span></span>
-<span><span class="co">#&gt; gamma  0.051734  0.009749   5.306</span></span>
-<span><span class="co">#&gt; rho    0.987080  0.045975  21.470</span></span>
+<span><span class="co">#&gt;       Estimate Std.error z-value</span></span>
+<span><span class="co">#&gt; kappa 4.678250  0.388209  12.051</span></span>
+<span><span class="co">#&gt; sigma 9.117339  0.875866  10.410</span></span>
+<span><span class="co">#&gt; gamma 0.054523  0.009569   5.698</span></span>
+<span><span class="co">#&gt; rho   1.164626  0.042404  27.465</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Measurement error:</span></span>
-<span><span class="co">#&gt;           Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; std. dev 0.0001511       NaN     NaN</span></span>
+<span><span class="co">#&gt;          Estimate Std.error z-value</span></span>
+<span><span class="co">#&gt; std. dev  0.01704   0.01306   1.304</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Log-Likelihood:  -670.6338 </span></span>
-<span><span class="co">#&gt; Number of function calls by 'optim' = 56</span></span>
+<span><span class="co">#&gt; Log-Likelihood:  -568.7374 </span></span>
+<span><span class="co">#&gt; Number of function calls by 'optim' = 39</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  33.26925 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 4.94592 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  18.45671 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 4.64912 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
@@ -297,9 +291,9 @@ model:</p>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa    sigma      gamma       rho    sigma.e  intercept</span></span>
-<span><span class="co">#&gt; True     5.000000 10.00000 0.05000000 1.0000000 0.01000000  0.0000000</span></span>
-<span><span class="co">#&gt; Estimate 5.082088 10.66132 0.05173361 0.9870804 0.00015105 -0.1757613</span></span></code></pre></div>
+<span><span class="co">#&gt;            kappa     sigma     gamma      rho    sigma.e  intercept</span></span>
+<span><span class="co">#&gt; True     5.00000 10.000000 0.0500000 1.000000 0.01000000 0.00000000</span></span>
+<span><span class="co">#&gt; Estimate 4.67825  9.117339 0.0545233 1.164626 0.01703642 0.04189725</span></span></code></pre></div>
 <p>Finally, we can also do prediction based on the fitted model as</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred.data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">s</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">t</span><span class="op">)</span><span class="op">)</span>, t <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">t</span>,each<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -350,9 +344,9 @@ parameters) with the true values:</p>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa    sigma      gamma      rho     sigma.e   intercept</span></span>
-<span><span class="co">#&gt; True     5.000000 10.00000 0.05000000 1.000000 0.010000000  0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 5.072503 10.61032 0.05083214 1.003651 0.006907754 -0.05454077</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa   sigma    gamma       rho    sigma.e  intercept</span></span>
+<span><span class="co">#&gt; True      5.00000      10 0.050000  1.000000 0.01000000  0.0000000</span></span>
+<span><span class="co">#&gt; Estimate 95.20847 1627877 4.611924 -2.989474 0.01320269 -0.0201642</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -363,12 +357,12 @@ creating a region of interest and a spatial mesh using the
 <code>fmesher</code> package:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://inlabru-org.github.io/fmesher/" class="external-link">fmesher</a></span><span class="op">)</span></span>
-<span><span class="va">n_loc</span> <span class="op">&lt;-</span> <span class="fl">2000</span></span>
+<span><span class="va">n_loc</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
 <span><span class="va">loc_2d_mesh</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n_loc</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span>, <span class="va">n_loc</span>, <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">mesh_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/fmesher/reference/fm_mesh_2d.html" class="external-link">fm_mesh_2d</a></span><span class="op">(</span></span>
 <span>  loc <span class="op">=</span> <span class="va">loc_2d_mesh</span>,</span>
-<span>  cutoff <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  max.edge <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.5</span><span class="op">)</span></span>
+<span>  cutoff <span class="op">=</span> <span class="fl">0.07</span>,</span>
+<span>  max.edge <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.6</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mesh_2d</span>, main <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></code></pre></div>
 <p><img src="spacetime_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
@@ -450,7 +444,13 @@ frame, that also contanis the spatial locations, and we fit the
 model:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, x <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">x</span>, y <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">y</span>, t <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">t</span><span class="op">)</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span>, loc_time <span class="op">=</span> <span class="st">"t"</span>, data <span class="op">=</span> <span class="va">df_2d</span>, model <span class="op">=</span> <span class="va">op</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span>, loc_time <span class="op">=</span> <span class="st">"t"</span>, data <span class="op">=</span> <span class="va">df_2d</span>, model <span class="op">=</span> <span class="va">op</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df_2d, :</span></span>
+<span><span class="co">#&gt; The optimization failed to provide a numerically positive-definite Hessian. You</span></span>
+<span><span class="co">#&gt; can try to obtain a positive-definite Hessian by setting 'improve_hessian' to</span></span>
+<span><span class="co">#&gt; TRUE or by setting 'parallel' to FALSE, which allows other optimization methods</span></span>
+<span><span class="co">#&gt; to be used.</span></span>
+<span><span class="co">#&gt; Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre></div>
 <p>Let us see a summary of the fitted model:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
@@ -463,28 +463,28 @@ model:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Fixed effects:</span></span>
 <span><span class="co">#&gt;             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
-<span><span class="co">#&gt; (Intercept) -0.06804   0.48461   -0.14    0.888</span></span>
+<span><span class="co">#&gt; (Intercept)   0.1502    0.3159   0.476    0.634</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;        Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; kappa 8.896e+00 7.991e-01  11.132</span></span>
-<span><span class="co">#&gt; sigma 1.060e+01 1.263e+00   8.396</span></span>
-<span><span class="co">#&gt; gamma 5.810e-03 9.903e-04   5.867</span></span>
-<span><span class="co">#&gt; rho   2.936e-01 2.697e+00   0.109</span></span>
-<span><span class="co">#&gt; NA    1.863e-01 1.298e+00   0.143</span></span>
+<span><span class="co">#&gt; kappa 11.178757  1.059719  10.549</span></span>
+<span><span class="co">#&gt; sigma 11.419295  1.408109   8.110</span></span>
+<span><span class="co">#&gt; gamma  0.005183  0.001050   4.934</span></span>
+<span><span class="co">#&gt; rho    0.164721  0.949677   0.173</span></span>
+<span><span class="co">#&gt; NA     0.190030  1.140014   0.167</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Measurement error:</span></span>
 <span><span class="co">#&gt;           Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; std. dev 0.0002295 0.0025328   0.091</span></span>
+<span><span class="co">#&gt; std. dev 0.0002992       NaN     NaN</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Log-Likelihood:  -711.2529 </span></span>
-<span><span class="co">#&gt; Number of function calls by 'optim' = 114</span></span>
+<span><span class="co">#&gt; Log-Likelihood:  -644.4856 </span></span>
+<span><span class="co">#&gt; Number of function calls by 'optim' = 78</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  20.34985 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 8.29589 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  3.11819 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 5.70378 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
@@ -497,12 +497,9 @@ model:</p>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa    sigma       gamma     rho_1     rho_2      sigma.e</span></span>
-<span><span class="co">#&gt; True     10.00000 10.00000 0.005000000 0.3000000 0.3000000 0.0100000000</span></span>
-<span><span class="co">#&gt; Estimate  8.89591 10.60402 0.005809714 0.2935909 0.1862913 0.0002294926</span></span>
-<span><span class="co">#&gt;           intercept</span></span>
-<span><span class="co">#&gt; True      0.0000000</span></span>
-<span><span class="co">#&gt; Estimate -0.0680357</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa    sigma       gamma     rho_1   rho_2      sigma.e intercept</span></span>
+<span><span class="co">#&gt; True     10.00000 10.00000 0.005000000 0.3000000 0.30000 0.0100000000 0.0000000</span></span>
+<span><span class="co">#&gt; Estimate 11.17876 11.41929 0.005182506 0.1647205 0.19003 0.0002992413 0.1502212</span></span></code></pre></div>
 <p>Let us now use our <code>inlabru</code> implementation. We first
 define the model. To this end we need to create a mesh for the time
 object:</p>
@@ -537,12 +534,12 @@ parameters) with the true values:</p>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              kappa    sigma       gamma     rho_1     rho_2     sigma.e</span></span>
-<span><span class="co">#&gt; True     10.000000 10.00000 0.005000000 0.3000000 0.3000000 0.010000000</span></span>
-<span><span class="co">#&gt; Estimate  9.500961 10.67341 0.005824711 0.3576428 0.2573748 0.007074685</span></span>
-<span><span class="co">#&gt;           intercept</span></span>
-<span><span class="co">#&gt; True      0.0000000</span></span>
-<span><span class="co">#&gt; Estimate -0.2780601</span></span></code></pre></div>
+<span><span class="co">#&gt;               kappa        sigma      gamma      rho_1      rho_2  sigma.e</span></span>
+<span><span class="co">#&gt; True     10.0000000 10.000000000 0.00500000  0.3000000  0.3000000 0.010000</span></span>
+<span><span class="co">#&gt; Estimate  0.4552458  0.007042837 0.00545485 -0.4699229 -0.4925543 1.823862</span></span>
+<span><span class="co">#&gt;          intercept</span></span>
+<span><span class="co">#&gt; True     0.0000000</span></span>
+<span><span class="co">#&gt; Estimate 0.4321567</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="fit-with-bounded_rho-false">Fit with <code>bounded_rho = FALSE</code><a class="anchor" aria-label="anchor" href="#fit-with-bounded_rho-false"></a>
@@ -578,9 +575,9 @@ Below, we demonstrate this for both the 1D and spatial examples.</p>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              kappa    sigma      gamma      rho   sigma.e   intercept</span></span>
-<span><span class="co">#&gt; True     10.000000 10.00000 0.00500000 1.000000 0.0100000  0.00000000</span></span>
-<span><span class="co">#&gt; Estimate  4.423254 10.36837 0.07022944 1.195668 0.6274882 -0.06071171</span></span></code></pre></div>
+<span><span class="co">#&gt;              kappa    sigma      gamma      rho   sigma.e    intercept</span></span>
+<span><span class="co">#&gt; True     10.000000 10.00000 0.00500000 1.000000 0.0100000  0.000000000</span></span>
+<span><span class="co">#&gt; Estimate  5.939571 13.06381 0.04256791 1.521502 0.3809751 -0.005708659</span></span></code></pre></div>
 <p>Now, the <code>inlabru</code> implementation:</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">### Fit with bounded_rho = FALSE</span></span>
@@ -609,9 +606,9 @@ Below, we demonstrate this for both the 1D and spatial examples.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results_unbounded</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              kappa    sigma      gamma      rho   sigma.e   intercept</span></span>
-<span><span class="co">#&gt; True     10.000000 10.00000 0.00500000 1.000000 0.0100000  0.00000000</span></span>
-<span><span class="co">#&gt; Estimate  4.403779 10.19409 0.06865831 1.342379 0.6219549 -0.05950991</span></span></code></pre></div>
+<span><span class="co">#&gt;              kappa    sigma      gamma      rho   sigma.e    intercept</span></span>
+<span><span class="co">#&gt; True     10.000000 10.00000 0.00500000 1.000000 0.0100000  0.000000000</span></span>
+<span><span class="co">#&gt; Estimate  5.845725 12.58408 0.04247886 1.435806 0.3746729 -0.005727348</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2 unnumbered">
