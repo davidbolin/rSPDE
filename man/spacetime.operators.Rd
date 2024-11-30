@@ -44,12 +44,11 @@ one-dimensional spatial domains, a vector with two number on 2d domains.}
 
 \item{beta}{Integer smoothness parameter beta.}
 
-\item{bounded_rho}{Logical. Should \code{rho} be bounded to ensure the existence, uniqueness, and well-posedness of the solution? Defaults to \code{TRUE}.
-Note that this bounding is not a strict condition; there may exist values of \code{rho} beyond the upper bound that still satisfy these properties.
-For dimension 1, the upper bound is \code{sqrt(2)}, while for dimension 2, the absolute value of each coordinate must not exceed \code{2}.
-If \code{bounded_rho = TRUE}, it implies that \code{rspde_lme} models will enforce bounded \code{rho} for consistency.
-If the estimated value of \code{rho} approaches the upper bound too closely, we recommend refitting the model with \code{bounded_rho = FALSE}, but this should be done with caution.
-While this may lead to instability in some cases, it may also result in a well-fitting model.}
+\item{bounded_rho}{Logical. Specifies whether \code{rho} should be bounded to ensure the existence, uniqueness, and well-posedness of the solution. Defaults to \code{TRUE}.
+Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties.
+When \code{bounded_rho = TRUE}, the \code{rspde_lme} models enforce bounded \code{rho} for consistency.
+If the estimated value of \code{rho} approaches the upper bound too closely, we recommend refitting the model with \code{bounded_rho = FALSE}. However, this should be done with caution, as it may lead to instability in some cases, though it can also result in a better model fit.
+The actual bound used for \code{rho} can be accessed from the \code{bound_rho} element of the returned object.}
 }
 \value{
 An object of type spacetimeobj.

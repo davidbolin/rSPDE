@@ -19,12 +19,11 @@
 #' @param gamma Temporal range parameter.  
 #' @param alpha Integer smoothness parameter alpha.
 #' @param beta Integer smoothness parameter beta.
-#' @param bounded_rho Logical. Should `rho` be bounded to ensure the existence, uniqueness, and well-posedness of the solution? Defaults to `TRUE`. 
-#' Note that this bounding is not a strict condition; there may exist values of `rho` beyond the upper bound that still satisfy these properties. 
-#' For dimension 1, the upper bound is `sqrt(2)`, while for dimension 2, the absolute value of each coordinate must not exceed `2`. 
-#' If `bounded_rho = TRUE`, it implies that `rspde_lme` models will enforce bounded `rho` for consistency. 
-#' If the estimated value of `rho` approaches the upper bound too closely, we recommend refitting the model with `bounded_rho = FALSE`, but this should be done with caution. 
-#' While this may lead to instability in some cases, it may also result in a well-fitting model.
+#' @param bounded_rho Logical. Specifies whether `rho` should be bounded to ensure the existence, uniqueness, and well-posedness of the solution. Defaults to `TRUE`. 
+#' Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties. 
+#' When `bounded_rho = TRUE`, the `rspde_lme` models enforce bounded `rho` for consistency. 
+#' If the estimated value of `rho` approaches the upper bound too closely, we recommend refitting the model with `bounded_rho = FALSE`. However, this should be done with caution, as it may lead to instability in some cases, though it can also result in a better model fit. 
+#' The actual bound used for `rho` can be accessed from the `bound_rho` element of the returned object.
 #'
 #' @return An object of type spacetimeobj. 
 #' @export
