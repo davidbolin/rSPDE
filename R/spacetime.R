@@ -517,7 +517,8 @@ update.spacetimeobj <- function(object,
                                 kappa = NULL,
                                 sigma = NULL,
                                 gamma = NULL,
-                                rho = NULL) {
+                                rho = NULL,
+                                ...) {
     new_object <- object
     
     if (!is.null(kappa)) {
