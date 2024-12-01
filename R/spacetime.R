@@ -500,6 +500,7 @@ spacetime.operators <- function(mesh_space = NULL,
 #' @param sigma sigma value to be updated.
 #' @param gamma gamma value to be updated.
 #' @param rho rho value to be updated.
+#' @param ... currently not used.
 #'
 #' @return An object of type spacetimeobj with updated parameters.
 #' @export
