@@ -493,8 +493,9 @@ spacetime.operators <- function(mesh_space = NULL,
 
 
 
-#' Update space-time operator object with new parameters
-#'
+#' @name update.spacetimeobj
+#' @title Update parameters of spacetimeobj objects
+#' @description Function to change the parameters of a spacetimeobj object
 #' @param object Space-time object created by [spacetime.operators()]
 #' @param kappa kappa value to be updated.
 #' @param sigma sigma value to be updated.
