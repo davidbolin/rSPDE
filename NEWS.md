@@ -1,4 +1,4 @@
-# rSPDE (development version)
+# rSPDE 2.4.0
 
 * Created the `group_predict` function, to obtain predictions on a testing set based on observations on a training set.
 * Added support for `stochvol`, `stochvol.nig`, `stochvolln` and `binomial` likelihoods in `cross_validation` function.
