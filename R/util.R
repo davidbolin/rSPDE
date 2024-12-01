@@ -16,425 +16,6 @@
 ##   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# Internal function to get the roots of the polynomials used
-# in the rational approximation.
-get.roots <- function(m, beta) {
-  if (beta > 2) {
-    beta <- beta - floor(beta - 1)
-  }
-
-  rb <- rep(0, m + 1)
-  rc <- rep(0, m)
-  if (m == 1) {
-    rc <- approx(m1table$beta, m1table$rc, beta)$y
-    rb[1] <- approx(m1table$beta, m1table$rb.1, beta)$y
-    rb[2] <- approx(m1table$beta, m1table$rb.2, beta)$y
-    factor <- approx(m1table$beta, m1table$factor, beta)$y
-  } else if (m == 2) {
-    rc[1] <- approx(m2table$beta, m2table$rc.1, beta)$y
-    rc[2] <- approx(m2table$beta, m2table$rc.2, beta)$y
-    rb[1] <- approx(m2table$beta, m2table$rb.1, beta)$y
-    rb[2] <- approx(m2table$beta, m2table$rb.2, beta)$y
-    rb[3] <- approx(m2table$beta, m2table$rb.3, beta)$y
-    factor <- approx(m2table$beta, m2table$factor, beta)$y
-  } else if (m == 3) {
-    rc[1] <- approx(m3table$beta, m3table$rc.1, beta)$y
-    rc[2] <- approx(m3table$beta, m3table$rc.2, beta)$y
-    rc[3] <- approx(m3table$beta, m3table$rc.3, beta)$y
-    rb[1] <- approx(m3table$beta, m3table$rb.1, beta)$y
-    rb[2] <- approx(m3table$beta, m3table$rb.2, beta)$y
-    rb[3] <- approx(m3table$beta, m3table$rb.3, beta)$y
-    rb[4] <- approx(m3table$beta, m3table$rb.4, beta)$y
-    factor <- approx(m3table$beta, m3table$factor, beta)$y
-  } else if (m == 4) {
-    rc[1] <- approx(m4table$beta, m4table$rc.1, beta)$y
-    rc[2] <- approx(m4table$beta, m4table$rc.2, beta)$y
-    rc[3] <- approx(m4table$beta, m4table$rc.3, beta)$y
-    rc[4] <- approx(m4table$beta, m4table$rc.4, beta)$y
-    rb[1] <- approx(m4table$beta, m4table$rb.1, beta)$y
-    rb[2] <- approx(m4table$beta, m4table$rb.2, beta)$y
-    rb[3] <- approx(m4table$beta, m4table$rb.3, beta)$y
-    rb[4] <- approx(m4table$beta, m4table$rb.4, beta)$y
-    rb[5] <- approx(m4table$beta, m4table$rb.5, beta)$y
-    factor <- approx(m4table$beta, m4table$factor, beta)$y
-  } else {
-    stop("m must be one of the values 1,2,3,4.")
-  }
-
-  return(list(rb = rb, rc = rc, factor = factor))
-}
-
-#' The Matern covariance function
-#'
-#' `matern.covariance` evaluates the Matern covariance function
-#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu
-#' K_\nu(\kappa h).}
-#'
-#' @param h Distances to evaluate the covariance function at.
-#' @param kappa Range parameter.
-#' @param nu Shape parameter.
-#' @param sigma Standard deviation.
-#'
-#' @return A vector with the values C(h).
-#' @export
-#'
-#' @examples
-#' x <- seq(from = 0, to = 1, length.out = 101)
-#' plot(x, matern.covariance(abs(x - 0.5), kappa = 10, nu = 1 / 5, sigma = 1),
-#'   type = "l", ylab = "C(h)", xlab = "h"
-#' )
-#'
-matern.covariance <- function(h,
-                              kappa,
-                              nu,
-                              sigma) {
-  if (nu == 1 / 2) {
-    C <- sigma^2 * exp(-kappa * abs(h))
-  } else {
-    C <- (sigma^2 / (2^(nu - 1) * gamma(nu))) *
-    ((kappa * abs(h))^nu) * besselK(kappa * abs(h), nu)
-  }
-  C[h == 0] <- sigma^2
-  return(as.matrix(C))
-}
-
-#' The 1d folded Matern covariance function
-#'
-#' @description
-#' `folded.matern.covariance.1d` evaluates the 1d
-#' folded Matern covariance function over an interval \eqn{[0,L]}.
-#'
-#' @details
-#' `folded.matern.covariance.1d` evaluates the 1d folded Matern
-#' covariance function over an interval \eqn{[0,L]} under different
-#' boundary conditions. For periodic boundary conditions
-#' \deqn{C_{\mathcal{P}}(h,m) = \sum_{k=-\infty}^{\infty} (C(h-m+2kL),}
-#' for Neumann boundary conditions
-#' \deqn{C_{\mathcal{N}}(h,m) = \sum_{k=-\infty}^{\infty}
-#' (C(h-m+2kL)+C(h+m+2kL)),}
-#' and for Dirichlet boundary conditions:
-#' \deqn{C_{\mathcal{D}}(h,m) = \sum_{k=-\infty}^{\infty}
-#' (C(h-m+2kL)-C(h+m+2kL)),}
-#' where \eqn{C(\cdot)} is the Matern covariance function:
-#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}(\kappa h)^\nu
-#' K_\nu(\kappa h).}
-#'
-#' We consider the truncation:
-#' \deqn{C_{{\mathcal{P}},N}(h,m) = \sum_{k=-N}^{N} C(h-m+2kL),
-#' C_{\mathcal{N},N}(h,m) = \sum_{k=-\infty}^{\infty}
-#' (C(h-m+2kL)+C(h+m+2kL)),}
-#' and
-#' \deqn{C_{\mathcal{D},N}(h,m) = \sum_{k=-N}^{N}
-#' (C(h-m+2kL)-C(h+m+2kL)).}
-#'
-#' @param h,m Vectors of arguments of the covariance function.
-#' @param kappa Range parameter.
-#' @param nu Shape parameter.
-#' @param sigma Standard deviation.
-#' @param L The upper bound of the interval \eqn{[0,L]}. By default, `L=1`.
-#' @param N The truncation parameter.
-#' @param boundary The boundary condition. The possible conditions
-#' are `"neumann"` (default), `"dirichlet"` or
-#' `"periodic"`.
-#'
-#' @return A matrix with the corresponding covariance values.
-#' @export
-#'
-#' @examples
-#' x <- seq(from = 0, to = 1, length.out = 101)
-#' plot(x, folded.matern.covariance.1d(rep(0.5, length(x)), x,
-#' kappa = 10, nu = 1 / 5, sigma = 1),
-#'   type = "l", ylab = "C(h)", xlab = "h"
-#' )
-#'
-folded.matern.covariance.1d <- function(h, m, kappa, nu, sigma,
-                                        L = 1, N = 10,
-                                        boundary = c("neumann",
-                                        "dirichlet", "periodic")) {
-  boundary <- tolower(boundary[1])
-  if (!(boundary %in% c("neumann", "dirichlet", "periodic"))) {
-    stop("The possible boundary conditions are 'neumann',
-    'dirichlet' or 'periodic'!")
-  }
-  if (length(h) != length(m)) {
-    stop("h and m should have the same length!")
-  }
-
-  s1 <- sapply(-N:N, function(j) {
-    h - m + 2 * j * L
-  })
-  s2 <- sapply(-N:N, function(j) {
-    h + m + 2 * j * L
-  })
-  if (boundary == "neumann") {
-    C <- rowSums(matern.covariance(h = s1, kappa = kappa,
-    nu = nu, sigma = sigma) +
-      matern.covariance(h = s2, kappa = kappa,
-      nu = nu, sigma = sigma))
-  } else if (boundary == "dirichlet") {
-    C <- rowSums(matern.covariance(h = s1, kappa = kappa,
-    nu = nu, sigma = sigma) -
-      matern.covariance(h = s2, kappa = kappa,
-      nu = nu, sigma = sigma))
-  } else {
-    C <- rowSums(matern.covariance(h = s1,
-    kappa = kappa, nu = nu, sigma = sigma))
-  }
-
-  if (length(h) == 1) {
-    return(sum(C))
-  }
-  return(as.matrix(C))
-}
-
-#' The 2d folded Matern covariance function
-#'
-#' @description
-#' `folded.matern.covariance.2d` evaluates the 2d
-#' folded Matern covariance function over an interval
-#' \eqn{[0,L]\times [0,L]}.
-#'
-#' @details
-#' `folded.matern.covariance.2d` evaluates the 1d folded
-#' Matern covariance function over an interval
-#' \eqn{[0,L]\times [0,L]} under different boundary conditions.
-#' For periodic boundary conditions
-#' \deqn{C_{\mathcal{P}}((h_1,h_2),(m_1,m_2)) =
-#' \sum_{k_2=-\infty}^\infty \sum_{k_1=-\infty}^{\infty}
-#' (C(\|(h_1-m_1+2k_1L,h_2-m_2+2k_2L)\|),}
-#' for Neumann boundary conditions
-#' \deqn{C_{\mathcal{N}}((h_1,h_2),(m_1,m_2)) =
-#' \sum_{k_2=-\infty}^\infty \sum_{k_1=-\infty}^{\infty}
-#' (C(\|(h_1-m_1+2k_1L,h_2-m_2+2k_2L)\|)+C(\|(h_1-m_1+2k_1L,
-#' h_2+m_2+2k_2L)\|)+C(\|(h_1+m_1+2k_1L,h_2-m_2+2k_2L)\|)+
-#' C(\|(h_1+m_1+2k_1L,h_2+m_2+2k_2L)\|)),}
-#' and for Dirichlet boundary conditions:
-#' \deqn{C_{\mathcal{D}}((h_1,h_2),(m_1,m_2)) = \sum_{k_2=-\infty}^\infty
-#' \sum_{k_1=-\infty}^{\infty} (C(\|(h_1-m_1+2k_1L,h_2-m_2+2k_2L)\|)-
-#' C(\|(h_1-m_1+2k_1L,h_2+m_2+2k_2L)\|)-C(\|(h_1+m_1+2k_1L,
-#' h_2-m_2+2k_2L)\|)+C(\|(h_1+m_1+2k_1L,h_2+m_2+2k_2L)\|)),}
-#' where \eqn{C(\cdot)} is the Matern covariance function:
-#' \deqn{C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}
-#' (\kappa h)^\nu K_\nu(\kappa h).}
-#'
-#' We consider the truncation for \eqn{k_1,k_2} from \eqn{-N} to \eqn{N}.
-#'
-#' @param h,m Vectors with two coordinates.
-#' @param kappa Range parameter.
-#' @param nu Shape parameter.
-#' @param sigma Standard deviation.
-#' @param L The upper bound of the square \eqn{[0,L]\times [0,L]}.
-#' By default, `L=1`.
-#' @param N The truncation parameter.
-#' @param boundary The boundary condition. The possible conditions
-#' are `"neumann"` (default), `"dirichlet"`,
-#' `"periodic"` or `"R2"`.
-#'
-#' @return The correspoding covariance.
-#' @export
-#'
-#' @examples
-#' h <- c(0.5, 0.5)
-#' m <- c(0.5, 0.5)
-#' folded.matern.covariance.2d(h, m, kappa = 10, nu = 1 / 5, sigma = 1)
-#'
-folded.matern.covariance.2d <- function(h, m, kappa, nu, sigma,
-                                        L = 1, N = 10,
-                                        boundary = c("neumann",
-                                        "dirichlet",
-                                        "periodic",
-                                        "R2")) {
-  boundary <- tolower(boundary[1])
-  if (!(boundary %in% c("neumann", "dirichlet",
-  "periodic", "r2"))) {
-    stop("The possible boundary conditions are
-    'neumann', 'dirichlet', 'periodic' or 'R2'!")
-  }
-
-  if (is.vector(h)) {
-    if (!is.vector(m)) {
-      stop("since 'h' is a vector, 'm' should be a vector!")
-    }
-
-    if ((length(h) != 2) || (length(m) != 2)) {
-      stop("The vectors h and m should have length 2!")
-    }
-  } else if (is.matrix(h)) {
-    if (!is.matrix(m)) {
-      stop("since 'h' is a matrix, 'm' should be a matrix!")
-    }
-    if (ncol(h) != 2) {
-      stop("h must have two columns!")
-    }
-    if (!all(dim(h) == dim(m))) {
-      stop("h and m must have the same dimensions!")
-    }
-  }
-
-  if (!is.vector(h) && !is.matrix(h)) {
-    stop("h should be either a vector or a matrix!")
-  }
-
-  list.comb <- expand.grid(-N:N, -N:N)
-
-  if (is.matrix(h)) {
-    h_matrix_1 <- matrix(rep(h[, 1], length(list.comb[, 1])), nrow = nrow(h))
-    h_matrix_2 <- matrix(rep(h[, 2], length(list.comb[, 1])), nrow = nrow(h))
-    m_matrix_1 <- matrix(rep(m[, 1], length(list.comb[, 1])), nrow = nrow(m))
-    m_matrix_2 <- matrix(rep(m[, 2], length(list.comb[, 1])), nrow = nrow(m))
-    list_comb_matrix_1 <- t(matrix(rep(list.comb[, 1],
-    nrow(h)), ncol = nrow(h)))
-    list_comb_matrix_2 <- t(matrix(rep(list.comb[, 2],
-    nrow(h)), ncol = nrow(h)))
-
-    s11 <- sqrt((h_matrix_1 - m_matrix_1 + 2 *
-    list_comb_matrix_1 * L)^2 + (h_matrix_2 -
-    m_matrix_2 + 2 * list_comb_matrix_2 * L)^2)
-    s12 <- sqrt((h_matrix_1 - m_matrix_1 + 2 *
-    list_comb_matrix_1 * L)^2 + (h_matrix_2 +
-    m_matrix_2 + 2 * list_comb_matrix_2 * L)^2)
-    s21 <- sqrt((h_matrix_1 + m_matrix_1 + 2 *
-    list_comb_matrix_1 * L)^2 + (h_matrix_2 -
-    m_matrix_2 + 2 * list_comb_matrix_2 * L)^2)
-    s22 <- sqrt((h_matrix_1 + m_matrix_1 + 2 *
-    list_comb_matrix_1 * L)^2 + (h_matrix_2 +
-    m_matrix_2 + 2 * list_comb_matrix_2 * L)^2)
-
-    if (boundary == "neumann") {
-      C <- rowSums(matern.covariance(h = s11,
-      kappa = kappa, nu = nu, sigma = sigma) +
-        matern.covariance(h = s12, kappa = kappa,
-        nu = nu, sigma = sigma) +
-        matern.covariance(h = s21, kappa = kappa,
-        nu = nu, sigma = sigma) +
-        matern.covariance(h = s22, kappa = kappa,
-        nu = nu, sigma = sigma))
-    } else if (boundary == "dirichlet") {
-      C <- rowSums(matern.covariance(h = s11,
-      kappa = kappa, nu = nu, sigma = sigma) -
-        matern.covariance(h = s12, kappa = kappa,
-        nu = nu, sigma = sigma) -
-        matern.covariance(h = s21, kappa = kappa,
-        nu = nu, sigma = sigma) +
-        matern.covariance(h = s22, kappa = kappa,
-        nu = nu, sigma = sigma))
-    } else if (boundary == "r2") {
-      C <- matern.covariance(h = sqrt((h[1] - m[1])^2 +
-      (h[2] - m[2])^2), kappa = kappa, sigma = sigma,
-      nu = nu)
-    } else {
-      C <- rowSums(matern.covariance(h = s11,
-      kappa = kappa, nu = nu, sigma = sigma))
-    }
-    return(as.double(C))
-  } else {
-    s11 <- sqrt((h[1] - m[1] + 2 * list.comb[, 1] * L)^2 +
-    (h[2] - m[2] + 2 * list.comb[, 2] * L)^2)
-    s12 <- sqrt((h[1] - m[1] + 2 * list.comb[, 1] * L)^2 +
-    (h[2] + m[2] + 2 * list.comb[, 2] * L)^2)
-    s21 <- sqrt((h[1] + m[1] + 2 * list.comb[, 1] * L)^2 +
-    (h[2] - m[2] + 2 * list.comb[, 2] * L)^2)
-    s22 <- sqrt((h[1] + m[1] + 2 * list.comb[, 1] * L)^2 +
-    (h[2] + m[2] + 2 * list.comb[, 2] * L)^2)
-
-    if (boundary == "neumann") {
-      C <- sum(matern.covariance(h = s11, kappa = kappa,
-      nu = nu, sigma = sigma) +
-        matern.covariance(h = s12, kappa = kappa,
-        nu = nu, sigma = sigma) +
-        matern.covariance(h = s21, kappa = kappa,
-        nu = nu, sigma = sigma) +
-        matern.covariance(h = s22, kappa = kappa,
-        nu = nu, sigma = sigma))
-    } else if (boundary == "dirichlet") {
-      C <- sum(matern.covariance(h = s11,
-      kappa = kappa, nu = nu, sigma = sigma) -
-        matern.covariance(h = s12, kappa = kappa,
-        nu = nu, sigma = sigma) -
-        matern.covariance(h = s21, kappa = kappa,
-        nu = nu, sigma = sigma) +
-        matern.covariance(h = s22, kappa = kappa,
-        nu = nu, sigma = sigma))
-    } else if (boundary == "r2") {
-      C <- matern.covariance(h = sqrt((h[1] - m[1])^2 +
-      (h[2] - m[2])^2), kappa = kappa, sigma = sigma,
-      nu = nu)
-    } else {
-      C <- sum(matern.covariance(h = s11,
-      kappa = kappa, nu = nu, sigma = sigma))
-    }
-    return(as.double(C))
-  }
-}
-
-
-
-
-#' Summarise rSPDE objects
-#'
-#' Summary method for class "rSPDEobj"
-#'
-#' @param object an object of class "rSPDEobj", usually, a result of a call
-#'   to [fractional.operators()], [matern.operators()], or
-#'   [spde.matern.operators()].
-#' @param ... further arguments passed to or from other methods.
-#' @export
-#' @method summary rSPDEobj
-summary.rSPDEobj <- function(object, ...) {
-  out <- list()
-  class(out) <- "summary.rSPDEobj"
-  out$type <- object$type
-  if (out$type == "Matern approximation") {
-    out$kappa <- object$kappa
-    out$sigma <- object$sigma
-    out$tau <- object$tau
-    out[["range"]] <- object[["range"]]
-    out$nu <- object$nu
-  }
-  out$m <- object$m
-  out$stationary <- object$stationary
-  out$parameterization <- object$parameterization
-  out$n <- dim(object$L)[1]
-  return(out)
-}
-
-#' @param x an object of class "summary.rSPDEobj", usually, a result of a call
-#'   to [summary.rSPDEobj()].
-#' @export
-#' @method print summary.rSPDEobj
-#' @rdname summary.rSPDEobj
-print.summary.rSPDEobj <- function(x, ...) {
-  cat("Type of approximation: ", x$type, "\n")
-  cat("Parameterization: ", x$parameterization, "\n")  
-  if (x$type == "Matern approximation") {
-    if(x$parameterization == "spde"){
-    cat(
-      "Parameters of covariance function: kappa = ",
-      x$kappa, ", tau = ", x$tau, ", nu = ", x$nu, "\n"
-    )
-    } else{
-      cat(
-      "Parameters of covariance function: range = ",
-      x[["range"]], ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
-    )
-    }
-  }
-  cat("Order or rational approximation: ", x$m, "\n")
-  cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
-  if(x$stationary){
-    cat("Stationary Model\n")
-  } else{
-    cat("Non-Stationary Model")
-  }
-}
-
-#' @export
-#' @method print rSPDEobj
-#' @rdname summary.rSPDEobj
-print.rSPDEobj <- function(x, ...) {
-  print.summary.rSPDEobj(summary(x))
-}
-
 #' Observation matrix for finite element discretization on R
 #'
 #' A finite element discretization on R can be written as
@@ -502,8 +83,10 @@ rSPDE.A1d <- function(x, loc) {
 #' @param x Locations of the nodes in the FEM approximation.
 #'
 #' @return The function returns a list with the following elements
-#' \item{G }{The stiffness matrix.}
-#' \item{C }{The mass matrix.}
+#' \item{G }{The stiffness matrix with elements \eqn{(\nabla \phi_i, \nabla \phi_j)}.}
+#' \item{C }{The mass matrix with elements \eqn{(\phi_i, \phi_j)}.}
+#' \item{Cd }{Mass lumped mass matrix.}
+#' \item{B }{Matrix with elements \eqn{(\nabla \phi_i, \phi_j)}.}
 #' @export
 #' @author David Bolin \email{davidbolin@@gmail.com}
 #' @seealso [rSPDE.A1d()]
@@ -521,12 +104,17 @@ rSPDE.fem1d <- function(x) {
   )
   C <- bandSparse(
     n = n, m = n, k = c(-1, 0, 1),
-    diagonals = cbind(dm1 / 6, (dm1 + d) / 3, c(d[2:n],Inf) / 6)
+    diagonals = cbind(dm1 / 6, (dm1 + d) / 3, c(d[2:n], Inf) / 6)
   )
   C[1, 1:2] <- c(d[2], d[2] / 2) / 3
   C[n, (n - 1):n] <- c(d[n] / 2, d[n]) / 3
 
-  return(list(G = G, C = C))
+  Cd <- Diagonal(rowSums(C),n=n)
+
+  B <- bandSparse(n = n, m = n, k = c(-1, 0, 1),
+                  diagonals = cbind(rep(0.5,n), rep(0,n), rep(-0.5,n)))
+
+  return(list(G = G, C = C, Cd = Cd, B = B))
 }
 
 #' Finite element calculations for problems in 2D
@@ -545,73 +133,118 @@ rSPDE.fem1d <- function(x) {
 #' \item{Hyy }{Matrix with elements \eqn{(\partial_y \phi_i, \partial_y \phi_j)}.}
 #' \item{Hxy }{Matrix with elements \eqn{(\partial_x \phi_i, \partial_y \phi_j)}.}
 #' \item{Hyx }{Matrix with elements \eqn{(\partial_y \phi_i, \partial_x \phi_j)}.}
+#' \item{Bx }{Matrix with elements \eqn{(\partial_x \phi_i, \phi_j)}.}
+#' \item{By }{Matrix with elements \eqn{(\partial_y \phi_i, \phi_j)}.}
 #' @export
 #' @author David Bolin \email{davidbolin@@gmail.com}
 #' @seealso [rSPDE.fem1d()]
 #' @examples
-#' P <- rbind(c(0,0), c(1,0), c(1,1), c(0,1))
-#' FV <- rbind(c(1,2,3), c(2,3,4))
-#' fem <- rSPDE.fem2d(FV,P)
+#' P <- rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1))
+#' FV <- rbind(c(1, 2, 3), c(2, 3, 4))
+#' fem <- rSPDE.fem2d(FV, P)
 rSPDE.fem2d <- function(FV, P) {
-  
   d <- ncol(FV) - 1
-  if(d != 2){stop("Only 2d supported")}
-  if(ncol(P) != d){P <- t(P)}
-  if(ncol(P) != d){stop("Wrong dimension of P")}
-  
+  if (d != 2) {
+    stop("Only 2d supported")
+  }
+  if (ncol(P) != d) {
+    P <- t(P)
+  }
+  if (ncol(P) != d) {
+    stop("Wrong dimension of P")
+  }
+
   nV <- nrow(P)
   nF <- nrow(FV)
-  Gi <- matrix(0, nrow = nF*3, ncol = 3)
-  Gj <- Gz <- Ci <- Cj <- Cz <- Gxx <- Gxy <- Gyx <- Gyy <- Gi
-  
-  Mxx <- matrix(c(1, -1, 0,-1, 1, 0, 0, 0, 0), 3, 3)   
+  Gi <- matrix(0, nrow = nF * 3, ncol = 3)
+  Gj <- Gz <- Ci <- Cj <- Cz <- Gxx <- Gxy <- Gyx <- Gyy <- Bxz <- Byz <- Gi
+
+  Mxx <- matrix(c(1, -1, 0, -1, 1, 0, 0, 0, 0), 3, 3)
   Myy <- matrix(c(1, 0, -1, 0, 0, 0, -1, 0, 1), 3, 3)
   Mxy <- matrix(c(1, -1, 0, 0, 0, 0, -1, 1, 0), 3, 3)
   Myx <- matrix(c(1, 0, -1, -1, 0, 1, 0, 0, 0), 3, 3)
-  for(f in 1:nF) {
-    dd <- 3*(f-1)+(1:3)
-    Gi[dd, ] <- Ci[dd, ] <- FV[f, ] %*% t(rep(1,3))
+  for (f in 1:nF) {
+    dd <- 3 * (f - 1) + (1:3)
+    Gi[dd, ] <- Ci[dd, ] <- FV[f, ] %*% t(rep(1, 3))
     Gj[dd, ] <- Cj[dd, ] <- t(Gi[dd, ])
-    
+
     xy <- t(P[FV[f, ], ])
     m1 <- rbind(rep(1, 3), xy)
     m2 <- rbind(rep(0, 2), diag(1, 2))
     m <- solve(m1, m2)
     ddet <- abs(det(m1))
-    Gz[dd,] <- ddet * (m %*% t(m)) / 2
-    Cz[dd,] <- ddet * (rep(1, 3) + diag(3)) / 24
-    
-    Bk <- matrix(c(xy[1, 2] - xy[1, 1], 
-                   xy[2, 2] - xy[2, 1],
-                   xy[1, 3] - xy[1, 1], 
-                   xy[2, 3] - xy[2, 1]), 2, 2)
-    
+    Gz[dd, ] <- ddet * (m %*% t(m)) / 2
+    Cz[dd, ] <- ddet * (rep(1, 3) + diag(3)) / 24
+
+    Bk <- matrix(c(
+      xy[1, 2] - xy[1, 1],
+      xy[2, 2] - xy[2, 1],
+      xy[1, 3] - xy[1, 1],
+      xy[2, 3] - xy[2, 1]
+    ), 2, 2)
+
     Bki <- solve(Bk)
-    Cxx <- Bki%*%matrix(c(1, 0, 0, 0), 2, 2)%*%t(Bki)
-    Cyy <- Bki%*%matrix(c(0, 0, 0, 1), 2, 2)%*%t(Bki)
-    Cxy <- Bki%*%matrix(c(0, 0, 1, 0), 2, 2)%*%t(Bki)
-    Cyx <- Bki%*%matrix(c(0, 1, 0, 0), 2, 2)%*%t(Bki)
-    
-    Gxx[dd, ] <- ddet*(Cxx[1, 1]*Mxx + Cxx[1, 2]*Mxy + Cxx[2, 1]*Myx + Cxx[2, 2]*Myy) / 2
-    Gyy[dd, ] <- ddet*(Cyy[1, 1]*Mxx + Cyy[1, 2]*Mxy + Cyy[2, 1]*Myx + Cyy[2, 2]*Myy) / 2
-    Gxy[dd, ] <- ddet*(Cxy[1, 1]*Mxx + Cxy[1, 2]*Mxy + Cxy[2, 1]*Myx + Cxy[2, 2]*Myy) / 2
-    Gyx[dd, ] <- ddet*(Cyx[1, 1]*Mxx + Cyx[1, 2]*Mxy + Cyx[2, 1]*Myx + Cyx[2, 2]*Myy) / 2
+    Cxx <- Bki %*% matrix(c(1, 0, 0, 0), 2, 2) %*% t(Bki)
+    Cyy <- Bki %*% matrix(c(0, 0, 0, 1), 2, 2) %*% t(Bki)
+    Cxy <- Bki %*% matrix(c(0, 0, 1, 0), 2, 2) %*% t(Bki)
+    Cyx <- Bki %*% matrix(c(0, 1, 0, 0), 2, 2) %*% t(Bki)
+
+    Gxx[dd, ] <- ddet * (Cxx[1, 1] * Mxx + Cxx[1, 2] * Mxy + Cxx[2, 1] * Myx + Cxx[2, 2] * Myy) / 2
+    Gyy[dd, ] <- ddet * (Cyy[1, 1] * Mxx + Cyy[1, 2] * Mxy + Cyy[2, 1] * Myx + Cyy[2, 2] * Myy) / 2
+    Gxy[dd, ] <- ddet * (Cxy[1, 1] * Mxx + Cxy[1, 2] * Mxy + Cxy[2, 1] * Myx + Cxy[2, 2] * Myy) / 2
+    Gyx[dd, ] <- ddet * (Cyx[1, 1] * Mxx + Cyx[1, 2] * Mxy + Cyx[2, 1] * Myx + Cyx[2, 2] * Myy) / 2
+
+    ab1 <- solve(matrix(c(xy[1,2]-xy[1,1], xy[1,3]-xy[1,1],
+                          xy[2,2]-xy[2,1], xy[2,3]-xy[2,1]),2,2),rep(1,2))
+    ab2 <- solve(matrix(c(xy[1,1]-xy[1,2], xy[1,3]-xy[1,2],
+                          xy[2,1]-xy[2,2], xy[2,3]-xy[2,2]),2,2),rep(1,2))
+    ab3 <- solve(matrix(c(xy[1,1]-xy[1,3], xy[1,2]-xy[1,3],
+                          xy[2,1]-xy[2,3], xy[2,2]-xy[2,3]),2,2),rep(1,2))
+
+    Bxz[dd, ] <-  -c(ab1[1], ab2[1], ab3[1]) * ddet/6
+    Byz[dd, ] <-  -c(ab1[2], ab2[2], ab3[2]) * ddet/6
+
   }
-  
-  G <- Matrix::sparseMatrix(i = as.vector(Gi), j = as.vector(Gj), 
-                            x = as.vector(Gz), dims = c(nV,nV))
-  Hxx <- Matrix::sparseMatrix(i = as.vector(Gi), j = as.vector(Gj), 
-                              x = as.vector(Gxx), dims = c(nV,nV))
-  Hyy <- Matrix::sparseMatrix(i = as.vector(Gi), j = as.vector(Gj), 
-                              x = as.vector(Gyy), dims = c(nV,nV))
-  Hxy <- Matrix::sparseMatrix(i = as.vector(Gi), j = as.vector(Gj), 
-                              x = as.vector(Gxy), dims = c(nV,nV))
-  Hyx <- Matrix::sparseMatrix(i = as.vector(Gi), j = as.vector(Gj), 
-                              x = as.vector(Gyx), dims = c(nV,nV))
-  Ce <- Matrix::sparseMatrix(i = as.vector(Ci), j = as.vector(Cj), 
-                             x = as.vector(Cz), dims = c(nV,nV))
+
+  G <- Matrix::sparseMatrix(
+    i = as.vector(Gi), j = as.vector(Gj),
+    x = as.vector(Gz), dims = c(nV, nV)
+  )
+  Hxx <- Matrix::sparseMatrix(
+    i = as.vector(Gi), j = as.vector(Gj),
+    x = as.vector(Gxx), dims = c(nV, nV)
+  )
+  Hyy <- Matrix::sparseMatrix(
+    i = as.vector(Gi), j = as.vector(Gj),
+    x = as.vector(Gyy), dims = c(nV, nV)
+  )
+  Hxy <- Matrix::sparseMatrix(
+    i = as.vector(Gi), j = as.vector(Gj),
+    x = as.vector(Gxy), dims = c(nV, nV)
+  )
+  Hyx <- Matrix::sparseMatrix(
+    i = as.vector(Gi), j = as.vector(Gj),
+    x = as.vector(Gyx), dims = c(nV, nV)
+  )
+
+  Bx <- Matrix::sparseMatrix(
+      i = as.vector(Gi), j = as.vector(Gj),
+      x = as.vector(Bxz), dims = c(nV, nV)
+  )
+
+  By <- Matrix::sparseMatrix(
+      i = as.vector(Gi), j = as.vector(Gj),
+      x = as.vector(Byz), dims = c(nV, nV)
+  )
+
+  Ce <- Matrix::sparseMatrix(
+    i = as.vector(Ci), j = as.vector(Cj),
+    x = as.vector(Cz), dims = c(nV, nV)
+  )
   C <- Matrix::Diagonal(n = nV, x = Matrix::colSums(Ce))
-  return(list(G = G, C = Ce, Cd = C, Hxx = Hxx, Hyy = Hyy, Hxy = Hxy, Hyx = Hyx))
+  return(list(G = G, C = Ce, Cd = C,
+              Hxx = Hxx, Hyy = Hyy, Hxy = Hxy, Hyx = Hyx,
+              Bx = Bx, By = By))
 }
 #' Warnings free loading of add-on packages
 #'
@@ -642,8 +275,9 @@ rSPDE.fem2d <- function(FV, P) {
 #'   message("Package loaded successfully")
 #' }
 #'
-require.nowarnings <- function(package, lib.loc = NULL,
-character.only = FALSE) {
+require.nowarnings <- function(
+    package, lib.loc = NULL,
+    character.only = FALSE) {
   if (!character.only) {
     package <- as.character(substitute(package))
   }
@@ -684,17 +318,17 @@ character.only = FALSE) {
 
 get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
                                      graph.obj = NULL,
-                                    n.spde = 1,
-                                    dim = NULL, B.tau = NULL, B.kappa = NULL,
+                                     n.spde = 1,
+                                     dim = NULL, B.tau = NULL, B.kappa = NULL,
                                      B.sigma = NULL, B.range = NULL, nu = NULL,
-                                    parameterization = c("matern", "spde"),
-                                    include.nu = TRUE, log.scale = TRUE,
-                                    nu.upper.bound = NULL) {
+                                     parameterization = c("matern", "spde"),
+                                     include.nu = TRUE, log.scale = TRUE,
+                                     nu.upper.bound = NULL) {
   if (is.null(mesh) && is.null(mesh.range) && is.null(graph.obj)) {
     stop("You should either provide mesh, mesh.range or graph_obj!")
   }
 
-    parameterization <- parameterization[[1]]
+  parameterization <- parameterization[[1]]
 
   if (!parameterization %in% c("matern", "spde")) {
     stop("parameterization should be either 'matern' or 'spde'!")
@@ -704,16 +338,16 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
     stop("If you don't provide mesh, you have to provide dim!")
   }
 
-  if(!is.null(mesh)){
-    if(!inherits(mesh, c("inla.mesh", "inla.mesh.1d"))){
-      stop("The mesh should be created using INLA!")
+  if (!is.null(mesh)) {
+    if (!inherits(mesh, c("fm_mesh_1d", "fm_mesh_2d"))) {
+      stop("The mesh should be created using fmesher!")
     }
 
-    dim <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
-  } 
+    dim <- fmesher::fm_manifold_dim(mesh)
+  }
 
-  if(!is.null(graph.obj)){
-    if(!inherits(graph.obj, "metric_graph")){
+  if (!is.null(graph.obj)) {
+    if (!inherits(graph.obj, "metric_graph")) {
       stop("graph_obj should be a metric_graph object.")
     }
     dim <- 1
@@ -725,110 +359,114 @@ get.initial.values.rSPDE <- function(mesh = NULL, mesh.range = NULL,
     } else {
       nu <- 1
     }
-  } else{
-    if(is.null(nu)){
+  } else {
+    if (is.null(nu)) {
       stop("If include.nu is FALSE, then nu must be provided!")
     }
   }
 
-  if(parameterization == "matern"){
-    if(is.null(B.sigma)){
-      B.sigma = matrix(c(0, 1, 0), 1, 3)
+  if (parameterization == "matern") {
+    if (is.null(B.sigma)) {
+      B.sigma <- matrix(c(0, 1, 0), 1, 3)
     }
-    if(is.null(B.range)){
-      B.range = matrix(c(0, 0, 1), 1, 3)
+    if (is.null(B.range)) {
+      B.range <- matrix(c(0, 0, 1), 1, 3)
     }
 
-    if(is.null(graph.obj)){
-      param <- get_parameters_rSPDE(mesh = mesh,
-                                  alpha = nu + dim/2,
-                                  B.tau = B.tau,
-                                  B.kappa = B.kappa,
-                                  B.sigma = B.sigma,
-                                  B.range = B.range,
-                                  nu.nominal = nu,
-                                  alpha.nominal = nu + dim/2,
-                                  parameterization = parameterization,
-                                  prior.std.dev.nominal = 1,
-                                  prior.range.nominal = NULL,
-                                  prior.tau = NULL,
-                                  prior.kappa = NULL,
-                                  theta.prior.mean = NULL,
-                                  theta.prior.prec = 0.1,
-                                  mesh.range = mesh.range,
-                                  d = dim,
-                                  n.spde = n.spde
-                                  )
-    } else{
-      param <- get_parameters_rSPDE_graph(graph_obj = graph.obj,
-                                  alpha = nu + 1/2,
-                                  B.tau = B.tau,
-                                  B.kappa = B.kappa,
-                                  B.sigma = B.sigma,
-                                  B.range = B.range,
-                                  nu.nominal = nu,
-                                  alpha.nominal = nu + 1/2,
-                                  parameterization = parameterization,
-                                  prior.std.dev.nominal = 1,
-                                  prior.range.nominal = NULL,
-                                  prior.tau = NULL,
-                                  prior.kappa = NULL,
-                                  theta.prior.mean = NULL,
-                                  theta.prior.prec = 0.1
-                                  )
+    if (is.null(graph.obj)) {
+      param <- get_parameters_rSPDE(
+        mesh = mesh,
+        alpha = nu + dim / 2,
+        B.tau = B.tau,
+        B.kappa = B.kappa,
+        B.sigma = B.sigma,
+        B.range = B.range,
+        nu.nominal = nu,
+        alpha.nominal = nu + dim / 2,
+        parameterization = parameterization,
+        prior.std.dev.nominal = 1,
+        prior.range.nominal = NULL,
+        prior.tau = NULL,
+        prior.kappa = NULL,
+        theta.prior.mean = NULL,
+        theta.prior.prec = 0.1,
+        mesh.range = mesh.range,
+        d = dim,
+        n.spde = n.spde
+      )
+    } else {
+      param <- get_parameters_rSPDE_graph(
+        graph_obj = graph.obj,
+        alpha = nu + 1 / 2,
+        B.tau = B.tau,
+        B.kappa = B.kappa,
+        B.sigma = B.sigma,
+        B.range = B.range,
+        nu.nominal = nu,
+        alpha.nominal = nu + 1 / 2,
+        parameterization = parameterization,
+        prior.std.dev.nominal = 1,
+        prior.range.nominal = NULL,
+        prior.tau = NULL,
+        prior.kappa = NULL,
+        theta.prior.mean = NULL,
+        theta.prior.prec = 0.1
+      )
     }
 
     initial <- param$theta.prior.mean
-  } else{
-    if(is.null(B.tau)){
-      B.tau = matrix(c(0, 1, 0), 1, 3)
+  } else {
+    if (is.null(B.tau)) {
+      B.tau <- matrix(c(0, 1, 0), 1, 3)
     }
-    if(is.null(B.kappa)){
-      B.kappa = matrix(c(0, 0, 1), 1, 3)
+    if (is.null(B.kappa)) {
+      B.kappa <- matrix(c(0, 0, 1), 1, 3)
     }
-    if(is.null(graph.obj)){
-      param <- get_parameters_rSPDE(mesh = mesh,
-                                  alpha = nu + dim/2,
-                                  B.tau = B.tau,
-                                  B.kappa = B.kappa,
-                                  B.sigma = B.sigma,
-                                  B.range = B.range,
-                                  nu.nominal = nu,
-                                  alpha.nominal = nu + dim/2,
-                                  parameterization = parameterization,
-                                  prior.std.dev.nominal = 1,
-                                  prior.range.nominal = NULL,
-                                  prior.tau = NULL,
-                                  prior.kappa = NULL,
-                                  theta.prior.mean = NULL,
-                                  theta.prior.prec = 0.1,
-                                  mesh.range = mesh.range,
-                                  d = dim,
-                                  n.spde = n.spde
-                                  )
+    if (is.null(graph.obj)) {
+      param <- get_parameters_rSPDE(
+        mesh = mesh,
+        alpha = nu + dim / 2,
+        B.tau = B.tau,
+        B.kappa = B.kappa,
+        B.sigma = B.sigma,
+        B.range = B.range,
+        nu.nominal = nu,
+        alpha.nominal = nu + dim / 2,
+        parameterization = parameterization,
+        prior.std.dev.nominal = 1,
+        prior.range.nominal = NULL,
+        prior.tau = NULL,
+        prior.kappa = NULL,
+        theta.prior.mean = NULL,
+        theta.prior.prec = 0.1,
+        mesh.range = mesh.range,
+        d = dim,
+        n.spde = n.spde
+      )
     } else {
-      param <- get_parameters_rSPDE_graph(graph_obj = graph.obj,
-                                  alpha = nu + 1/2,
-                                  B.tau = B.tau,
-                                  B.kappa = B.kappa,
-                                  B.sigma = B.sigma,
-                                  B.range = B.range,
-                                  nu.nominal = nu,
-                                  alpha.nominal = nu + 1/2,
-                                  parameterization = parameterization,
-                                  prior.std.dev.nominal = 1,
-                                  prior.range.nominal = NULL,
-                                  prior.tau = NULL,
-                                  prior.kappa = NULL,
-                                  theta.prior.mean = NULL,
-                                  theta.prior.prec = 0.1
-                                  )
+      param <- get_parameters_rSPDE_graph(
+        graph_obj = graph.obj,
+        alpha = nu + 1 / 2,
+        B.tau = B.tau,
+        B.kappa = B.kappa,
+        B.sigma = B.sigma,
+        B.range = B.range,
+        nu.nominal = nu,
+        alpha.nominal = nu + 1 / 2,
+        parameterization = parameterization,
+        prior.std.dev.nominal = 1,
+        prior.range.nominal = NULL,
+        prior.tau = NULL,
+        prior.kappa = NULL,
+        theta.prior.mean = NULL,
+        theta.prior.prec = 0.1
+      )
     }
 
-  initial <- param$theta.prior.mean
+    initial <- param$theta.prior.mean
   }
 
-  if(include.nu){
+  if (include.nu) {
     initial <- c(initial, log(nu))
   }
 
@@ -869,31 +507,9 @@ cut_decimals <- function(nu) {
 #' @noRd
 
 check_class_inla_rspde <- function(model) {
-  if (!inherits(model, "inla_rspde")) {
+  if (!inherits(model, c("inla_rspde", "inla_rspde_matern1d"))) {
     stop("You should provide a rSPDE model!")
   }
-}
-
-#' @name get_inla_mesh_dimension
-#' @title Get the dimension of an INLA mesh
-#' @description Get the dimension of an INLA mesh
-#' @param inla_mesh An INLA mesh
-#' @return The dimension of an INLA mesh.
-#' @noRd
-
-
-get_inla_mesh_dimension <- function(inla_mesh) {
-  cond1 <- inherits(inla_mesh, "inla.mesh.1d")
-  cond2 <- inherits(inla_mesh, "inla.mesh")
-  stopifnot(cond1 || cond2)
-  if (inla_mesh$manifold == "R1") {
-    d <- 1
-  } else if (inla_mesh$manifold %in% c("R2","S2")) {
-    d <- 2
-  } else {
-    stop("The mesh should be from a flat manifold.")
-  }
-  return(d)
 }
 
 #' @name fem_mesh_order_1d
@@ -913,7 +529,7 @@ fem_mesh_order_1d <- function(inla_mesh, m_order) {
   fem_mesh <- fm_fem(mesh_1d)
   C <- fem_mesh$c0
   C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
-  C <- as(C,"TsparseMatrix")
+  C <- as(C, "TsparseMatrix")
   G <- fem_mesh$g1
   Gk <- list()
   Ci <- C
@@ -999,18 +615,15 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
                                      rspde.order = 2,
                                      dim = NULL) {
   if (!is.null(mesh)) {
-    stopifnot(inherits(mesh, "inla.mesh"))
-    if (mesh$manifold == "R1") {
-      dim <- 1
-    } else if (mesh$manifold == "R2") {
-      dim <- 2
-    } else {
+    dim <- fmesher::fm_manifold_dim(mesh)
+    if (!fmesher::fm_manifold(mesh, c("R1", "R2"))) {
+      # FL: Is this actually required? Is fm_fem() etc support not sufficient?
       stop("The mesh should be from a flat manifold.")
     }
   } else if (is.null(dim)) {
     stop("If an INLA mesh is not provided, you should provide the dimension!")
   }
-  sharp = TRUE
+  sharp <- TRUE
   alpha <- nu + dim / 2
 
   m_alpha <- floor(alpha)
@@ -1108,7 +721,7 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
 build_sparse_matrix_rspde <- function(entries, graph) {
   if (!is.null(graph)) {
     # graph <- as(graph, "dgTMatrix")
-    graph <- as(graph,"TsparseMatrix")
+    graph <- as(graph, "TsparseMatrix")
     idx <- which(graph@i <= graph@j)
     Q <- Matrix::sparseMatrix(
       i = graph@i[idx], j = graph@j[idx], x = entries,
@@ -1153,19 +766,27 @@ analyze_sparsity_rspde <- function(nu.upper.bound, dim, rspde.order,
   }
   if (m_alpha > 1) {
     for (j in 2:(m_alpha)) {
-      assign(paste0("G_", j, "_list"),
-      symmetric_part_matrix(fem_mesh_matrices[[paste0("g", j)]]))
+      assign(
+        paste0("G_", j, "_list"),
+        symmetric_part_matrix(fem_mesh_matrices[[paste0("g", j)]])
+      )
     }
   }
 
-    if (include_higher_order) {
-      assign(paste0("G_", m_alpha + 1, "_list"),
-      symmetric_part_matrix(fem_mesh_matrices[[paste0("g",
-      m_alpha + 1)]]))
+  if (include_higher_order) {
+    assign(
+      paste0("G_", m_alpha + 1, "_list"),
+      symmetric_part_matrix(fem_mesh_matrices[[paste0(
+        "g",
+        m_alpha + 1
+      )]])
+    )
 
-      positions_matrices[[1]] <- match(C_list$M,
-      get(paste0("G_", m_alpha + 1, "_list"))[["M"]])
-    }
+    positions_matrices[[1]] <- match(
+      C_list$M,
+      get(paste0("G_", m_alpha + 1, "_list"))[["M"]]
+    )
+  }
 
   idx_matrices <- list()
 
@@ -1174,37 +795,51 @@ analyze_sparsity_rspde <- function(nu.upper.bound, dim, rspde.order,
   if (m_alpha > 0) {
     for (i in 1:m_alpha) {
       if (include_higher_order) {
-        positions_matrices[[i + 1]] <- match(get(paste0("G_", i,
-        "_list"))[["M"]], get(paste0("G_", m_alpha + 1,
-        "_list"))[["M"]])
+        positions_matrices[[i + 1]] <- match(get(paste0(
+          "G_", i,
+          "_list"
+        ))[["M"]], get(paste0(
+          "G_", m_alpha + 1,
+          "_list"
+        ))[["M"]])
       }
       idx_matrices[[i + 1]] <- get(paste0("G_", i, "_list"))[["idx"]]
     }
   }
 
   if (include_higher_order) {
-    idx_matrices[[m_alpha + 2]] <- get(paste0("G_", m_alpha + 1,
-    "_list"))[["idx"]]
+    idx_matrices[[m_alpha + 2]] <- get(paste0(
+      "G_", m_alpha + 1,
+      "_list"
+    ))[["idx"]]
   }
 
   if (include_lower_order) {
     positions_matrices_less <- list()
     if (m_alpha > 0) {
-      positions_matrices_less[[1]] <- match(C_list$M, get(paste0("G_",
-      m_alpha, "_list"))[["M"]])
+      positions_matrices_less[[1]] <- match(C_list$M, get(paste0(
+        "G_",
+        m_alpha, "_list"
+      ))[["M"]])
     } else {
-      positions_matrices_less[[1]] <- match(C_list$M, get(paste0("G_",
-      1, "_list"))[["M"]])
+      positions_matrices_less[[1]] <- match(C_list$M, get(paste0(
+        "G_",
+        1, "_list"
+      ))[["M"]])
     }
 
     if (m_alpha > 1) {
       for (i in 1:(m_alpha - 1)) {
-        positions_matrices_less[[i + 1]] <- match(get(paste0("G_", i,
-        "_list"))[["M"]], get(paste0("G_", m_alpha, "_list"))[["M"]])
+        positions_matrices_less[[i + 1]] <- match(get(paste0(
+          "G_", i,
+          "_list"
+        ))[["M"]], get(paste0("G_", m_alpha, "_list"))[["M"]])
       }
     } else if (m_alpha == 1) {
-      positions_matrices_less[[2]] <- seq_len(length(get(paste0("G_",
-      m_alpha, "_list"))[["M"]]))
+      positions_matrices_less[[2]] <- seq_len(length(get(paste0(
+        "G_",
+        m_alpha, "_list"
+      ))[["M"]]))
     }
   } else {
     positions_matrices_less <- NULL
@@ -1226,7 +861,7 @@ analyze_sparsity_rspde <- function(nu.upper.bound, dim, rspde.order,
 
 symmetric_part_matrix <- function(M) {
   # M <- as(M, "dgTMatrix")
-  M <- as(M,"TsparseMatrix")
+  M <- as(M, "TsparseMatrix")
   idx <- which(M@i <= M@j)
   sM <- cbind(M@i[idx], M@j[idx])
   colnames(sM) <- NULL
@@ -1234,194 +869,61 @@ symmetric_part_matrix <- function(M) {
 }
 
 
-#' @name create_summary_from_density
-#' @title Creates a summary from a density data frame
-#' @description Auxiliar function to create summaries from density data drames
-#' @param density_df A density data frame
-#' @param name Name of the parameter
-#' @return A data frame containing a basic summary
+#' @name get.roots
+#' @title Get roots of the polynomials used in the operator based rational
+#' approximation.
+#' @description Get list with rational coefficients
+#' @param order order of the rational approximation
+#' @param beta value of beta to get the coefficients for.
+#' @param type_interp Type of interpolation. Options are "linear" or "spline".
+#' @return A list with coefficients.
 #' @noRd
-
-create_summary_from_density <- function(density_df, name) {
-  min_x <- min(density_df[, "x"])
-  max_x <- max(density_df[, "x"])
-  denstemp <- function(x) {
-    dens <- sapply(x, function(z) {
-      if (z < min_x) {
-        return(0)
-      } else if (z > max_x) {
-        return(0)
+get.roots <- function(order, beta, type_interp = "linear") {
+  if(!(order %in% c(1,2,3,4))) {
+    stop("order must be one of the values 1,2,3,4.")
+  }
+  if (beta > 2) {
+    beta <- beta - floor(beta - 1)
+  }
+  mt <- get(paste0("m", order, "table"))
+  rb <- rep(0, order + 1)
+  rc <- rep(0, order)
+  if(type_interp == "linear"){
+      if(order == 1) {
+          rc = approx(mt$beta, mt[[paste0("rc")]], beta)$y
       } else {
-        return(approx(x = density_df[, "x"], y = density_df[, "y"], xout = z)$y)
+          rc = sapply(1:order, function(i) {
+              approx(mt$beta, mt[[paste0("rc.", i)]], beta)$y
+          })
       }
-    })
-    return(dens)
-  }
-
-  ptemp <- function(q) {
-    prob_temp <- sapply(q, function(v) {
-      if (v <= min_x) {
-        return(0)
-      } else if (v >= max_x) {
-        return(1)
+      rb = sapply(1:(order+1), function(i) {
+           approx(mt$beta, mt[[paste0("rb.", i)]], xout = beta)$y
+      })
+      factor = approx(mt$beta, mt$factor, xout = beta)$y
+  } else if(type_interp == "spline") {
+      if(order == 1) {
+          rc = spline(mt$beta, mt[[paste0("rc")]], xout = beta)$y
       } else {
-        stats::integrate(
-          f = denstemp, lower = min_x, upper = v,
-                  stop.on.error = FALSE
-        )$value
+          rc = sapply(1:order, function(i) {
+              spline(mt$beta, mt[[paste0("rc.", i)]], xout = beta)$y
+          })
       }
-    })
-    return(prob_temp)
+      rb = sapply(1:(order+1), function(i) {
+          spline(mt$beta, mt[[paste0("rb.", i)]], xout = beta)$y
+      })
+      factor = spline(mt$beta, mt$factor, xout = beta)$y
+  } else {
+      stop("invalid type. The options are 'linear' and 'spline'.")
   }
-
-  mean_temp <- stats::integrate(
-    f = function(z) {
-      denstemp(z) * z
-    }, lower = min_x, upper = max_x,
-    subdivisions = nrow(density_df),
-                  stop.on.error = FALSE
-  )$value
-
-  sd_temp <- sqrt(stats::integrate(
-    f = function(z) {
-      denstemp(z) * (z - mean_temp)^2
-    }, lower = min_x, upper = max_x,
-                  stop.on.error = FALSE
-  )$value)
-
-  mode_temp <- density_df[which.max(density_df[, "y"]), "x"]
-
-  qtemp <- function(p) {
-    quant_temp <- sapply(p, function(x) {
-      if (x < 0 | x > 1) {
-        return(NaN)
-      } else {
-        return(stats::uniroot(function(y) {
-          ptemp(y) - x
-        }, lower = min_x, upper = max_x)$root)
-      }
-    })
-    return(quant_temp)
-  }
-
-  out <- data.frame(
-    mean = mean_temp, sd = sd_temp, `0.025quant` = qtemp(0.025),
-    `0.5quant` = qtemp(0.5), `0.975quant` = qtemp(0.975), mode = mode_temp
-  )
-  rownames(out) <- name
-  colnames(out) <- c("mean", "sd", "0.025quant",
-  "0.5quant", "0.975quant", "mode")
-  return(out)
+  return(list(rb = rb, rc = rc, factor = factor))
 }
-
-
-
-
-
-
-#' Summarise CBrSPDE objects
-#'
-#' Summary method for class "CBrSPDEobj"
-#'
-#' @param object an object of class "CBrSPDEobj", usually, a result of a call
-#'   to [matern.operators()].
-#' @param ... further arguments passed to or from other methods.
-#' @export
-#' @method summary CBrSPDEobj
-#' @examples
-#' # Compute the covariance-based rational approximation of a
-#' # Gaussian process with a Matern covariance function on R
-#' kappa <- 10
-#' sigma <- 1
-#' nu <- 0.8
-#' range <- sqrt(8*nu)/kappa
-#'
-#' # create mass and stiffness matrices for a FEM discretization
-#' x <- seq(from = 0, to = 1, length.out = 101)
-#' fem <- rSPDE.fem1d(x)
-#'
-#' # compute rational approximation of covariance function at 0.5
-#' tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-#' (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
-#' op_cov <- matern.operators(
-#'   loc_mesh = x, nu = nu,
-#'   range = range, sigma = sigma, d = 1, m = 2,
-#'   parameterization = "matern"
-#' )
-#'
-#' op_cov
-summary.CBrSPDEobj <- function(object, ...) {
-  out <- list()
-  class(out) <- "summary.CBrSPDEobj"
-  out$type <- object$type
-  out$kappa <- object$kappa
-  out$sigma <- object$sigma
-  out$theta <- object$theta
-  out$tau <- object$tau
-  out[["range"]] <- object[["range"]]  
-  out$nu <- object$nu
-  out$m <- object$m
-  out$stationary <- object$stationary
-  out$parameterization <- object$parameterization  
-  out$n <- dim(object$C)[1]
-  out[["type_rational_approximation"]] <-
-  object[["type_rational_approximation"]]
-  return(out)
-}
-
-#' @param x an object of class "summary.CBrSPDEobj", usually, a result of a call
-#'   to [summary.CBrSPDEobj()].
-#' @export
-#' @method print summary.CBrSPDEobj
-#' @rdname summary.CBrSPDEobj
-print.summary.CBrSPDEobj <- function(x, ...) {
-  cat("Type of approximation: ", x$type, "\n")
-  cat("Parameterization: ", x$parameterization, "\n")
-  cat("Type of rational approximation: ",
-  x[["type_rational_approximation"]], "\n")
-  if(x$stationary){
-    if(x$parameterization == "spde"){
-      cat(
-      "Parameters of covariance function: kappa = ",
-      x$kappa, ", tau = ", x$tau, ", nu = ", x$nu, "\n"
-    )} else{
-        cat(
-      "Parameters of covariance function: range = ",
-      x[["range"]], ", sigma = ", x$sigma, ", nu = ", x$nu, "\n"
-    )
-    }
-  } else if (!is.null(x$theta)){
-        cat(
-      "Parameters of covariance function: theta = ",
-      x$theta, ", nu = ", x$nu, "\n"
-    )
-  }
-
-  cat("Order or rational approximation: ", x$m, "\n")
-  cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
-  if(x$stationary){
-    cat("Stationary Model\n")
-  } else{
-    cat("Non-Stationary Model")
-  }
-}
-
-#' @export
-#' @method print CBrSPDEobj
-#' @rdname summary.CBrSPDEobj
-print.CBrSPDEobj <- function(x, ...) {
-  print.summary.CBrSPDEobj(summary(x))
-}
-
-
 
 #' @name get_rational_coefficients
 #' @title Get matrix with rational coefficients
 #' @description Get matrix with rational coefficients
 #' @param order order of the rational approximation
 #' @param type_rational_approx Type of the rational
-#' approximation. Options are "chebfun", "brasil"
-#' and "chebfunLB"
+#' approximation. Options are "mix", "chebfun", "brasil", "chebfunLB" and "operator"
 #' @return A matrix with rational approximations.
 #' @noRd
 
@@ -1432,14 +934,77 @@ get_rational_coefficients <- function(order, type_rational_approx) {
     mt <- get(paste0("m_brasil", order, "t"))
   } else if (type_rational_approx == "chebfunLB") {
     mt <- get(paste0("m_chebfun", order, "t"))
-  } else {
-    stop("The options are 'chebfun', 'brasil' and 'chebfunLB'!")
+  } else if(type_rational_approx == "mix"){
+    mt_brasil <- get(paste0("m_brasil", order, "t"))
+    mt_chebfun <- get(paste0("m", order, "t"))
+    mt <- matrix(nrow = nrow(mt_brasil), ncol = ncol(mt_brasil))
+    mt[1:500,] <- mt_brasil[1:500,]
+    mt[501:999] <- mt_chebfun[501:999,]
+  } else{
+    stop("The options are 'mix', 'chebfun', 'brasil' and 'chebfunLB'!")
   }
   return(mt)
 }
 
 
-
+#' @name interp_rational_coefficients
+#' @title Get list with interpolated rational coefficients
+#' @description Get list with interpolated rational coefficients for specific
+#' value of alpha.
+#' @param order order of the rational approximation
+#' @param type_rational_approx Type of the rational
+#' approximation. Options are "chebfun", "brasil"
+#' and "chebfunLB"
+#' @param type_interp Type of interpolation. Options are "linear"
+#' (linear interpolation), "log" (log-linear interpolation), "spline" (spline
+#' interpolation) and "logspline" (log-spline interpolation).
+#' @param alpha Value of alpha for the coefficients.
+#' @return A list with rational approximations.
+#' @noRd
+interp_rational_coefficients <- function(order,
+                                         type_rational_approx,
+                                         type_interp = "spline",
+                                         alpha){
+    mt <- get_rational_coefficients(order = order,
+                                    type_rational_approx=type_rational_approx)
+    alpha <- cut_decimals(alpha)
+    if(type_interp == "linear"){
+        r = sapply(1:order, function(i) {
+            approx(mt$alpha, mt[[paste0("r", i)]], alpha)$y
+        })
+        p = sapply(1:order, function(i) {
+            approx(mt$alpha, mt[[paste0("p", i)]], alpha)$y
+        })
+        k = approx(mt$alpha, mt$k, cut_decimals(alpha))$y
+    } else if (type_interp == "log"){
+        r = sapply(1:order, function(i) {
+            exp(approx(mt$alpha, log(mt[[paste0("r", i)]]), alpha)$y)
+        })
+        p = sapply(1:order, function(i) {
+            -exp(approx(mt$alpha, log(-mt[[paste0("p", i)]]), alpha)$y)
+        })
+        k = exp(approx(mt$alpha, log(mt$k), alpha)$y)
+    } else if(type_interp == "spline") {
+        r = sapply(1:order, function(i) {
+            spline(mt$alpha, mt[[paste0("r", i)]], xout = alpha)$y
+        })
+        p = sapply(1:order, function(i) {
+            spline(mt$alpha, mt[[paste0("p", i)]], xout = alpha)$y
+        })
+        k = spline(mt$alpha, mt$k, xout = alpha)$y
+    } else if(type_interp == "logspline") {
+        r = sapply(1:order, function(i) {
+            exp(spline(mt$alpha, log(mt[[paste0("r", i)]]), xout = alpha)$y)
+        })
+        p = sapply(1:order, function(i) {
+            -exp(spline(mt$alpha, log(-mt[[paste0("p", i)]]), xout = alpha)$y)
+        })
+        k = exp(spline(mt$alpha, log(mt$k), xout = alpha)$y)
+    } else {
+        stop("invalid type. The options are 'linear', 'log', 'spline' and 'logspline'.")
+    }
+    return(list(k=k, r=r, p=p))
+}
 
 #' Changing the type of the rational approximation
 #'
@@ -1489,7 +1054,6 @@ get_rational_coefficients <- function(order, type_rational_approx) {
       prior.nu.dist = prior.nu.dist,
       type.rational.approx = type_rational_approximation
     )
-    
   } else {
     stop("The object must be of class 'CBrSPDE' or 'inla_rspde'!")
   }
@@ -1534,7 +1098,7 @@ rational.type <- function(object) {
   rspde.order <- rspde.order[[1]]
 
   if (inherits(object, "CBrSPDEobj") || inherits(object, "rSPDEobj")) {
-    model <- update(object, user_m = rspde.order)
+    model <- update(object, m = rspde.order)
   } else if (inherits(object, "inla_rspde")) {
     if (rspde.order > 0 && object$integer.nu) {
       warning("The order was not changed since there is no
@@ -1610,12 +1174,15 @@ rational.type <- function(object) {
     out <- list()
     out[[name]] <- as.vector(sapply(1:factor_rspde, function(i) {
       rep(rep(((i - 1) * n_mesh + 1):(i * n_mesh),
-      times = n.group), times = n.repl)
+        times = n.group
+      ), times = n.repl)
     }))
     out[[name.group]] <- rep(rep(rep(1:n.group, each = n_mesh),
-    times = n.repl), times = factor_rspde)
+      times = n.repl
+    ), times = factor_rspde)
     out[[name.repl]] <- rep(rep(1:n.repl, each = n_mesh * n.group),
-    times = factor_rspde)
+      times = factor_rspde
+    )
     class(out) <- c("inla_rspde_index", class(out))
     attr(out, "rspde.order") <- rspde.order
     attr(out, "integer_nu") <- integer_nu
@@ -1655,93 +1222,95 @@ rational.order <- function(object) {
 
 #' Check user input.
 #'
-#' @param parameter A parameter.
-#' @param label Label for the parameter
-#' @param check_null Check if parameter is null.
+#' @param param A parameter to validate.
+#' @param label Label for the parameter (used in error messages).
+#' @param lower_bound Optional lower bound for the parameter.
+#' @param dim Expected dimension of the parameter (default is 1 for scalar).
+#' @param upper_bound Optional upper bound for the parameter.
 #'
-#' @return Check the parameter.
+#' @return The validated parameter.
 #' @noRd
 #'
-
-rspde_check_user_input <- function(param, label, lower_bound = NULL){
-  if(is.null(lower_bound)){
-    if (!is.numeric(param)) {
-      stop(paste(param,"should be a number!"))
-    }
-    if (length(param) > 1) {
-      stop(paste(param,"should be a number!"))
-    }
-    return(param)
-  } else{
-    if (!is.numeric(param)) {
-      stop(paste(param,"should be a number greater or equal to",lower_bound))
-    }
-    if (length(param) > 1) {
-      stop(paste(param,"should be a number greater or equal to",lower_bound))
-    }
-    if (param < lower_bound) {
-      stop(paste(param,"should be a number greater or equal to",lower_bound))
-    }
-    return(param)
+rspde_check_user_input <- function(param, label, lower_bound = NULL, dim = 1, upper_bound = NULL) {
+  if (!is.numeric(param)) {
+    stop(paste(label, "should be a numeric value!"))
   }
+  
+  if (length(param) != dim) {
+    if (dim == 1) {
+      stop(paste(label, "should be a single numeric value!"))
+    } else {
+      stop(paste(label, "should have a length of", dim, "!"))
+    }
   }
+  
+  if (!is.null(lower_bound) && any(param < lower_bound)) {
+    stop(paste(label, "should be greater than or equal to", lower_bound, "!"))
+  }
+  
+  if (!is.null(upper_bound) && any(param > upper_bound)) {
+    stop(paste(label, "should be less than or equal to", upper_bound, "!"))
+  }
+  
+  return(param)
+}
 
 
-  #' Process inputs likelihood
-  #'
-  #' @param user_kappa kappa
-  #' @param user_tau tau
-  #' @param user_nu nu
-  #' @param sigma.e sigma.e
-  #'
-  #' @return List with the positions
-  #' @noRd
+#' Process inputs likelihood
+#'
+#' @param kappa kappa
+#' @param tau tau
+#' @param nu nu
+#' @param sigma.e sigma.e
+#'
+#' @return List with the positions
+#' @noRd
 
-likelihood_process_inputs_spde <- function(user_kappa, user_tau, user_nu, sigma.e){
+likelihood_process_inputs_spde <- function(kappa, tau, nu, sigma.e) {
   param_vector <- c("tau", "kappa", "nu", "sigma.e")
-  if(!is.null(user_tau)){
+  if (!is.null(tau)) {
     param_vector <- setdiff(param_vector, "tau")
-  } 
-  if(!is.null(user_kappa)){
+  }
+  if (!is.null(kappa)) {
     param_vector <- setdiff(param_vector, "kappa")
   }
-  if(!is.null(user_nu)){
+  if (!is.null(nu)) {
     param_vector <- setdiff(param_vector, "nu")
   }
-  if(!is.null(sigma.e)){
+  if (!is.null(sigma.e)) {
     param_vector <- setdiff(param_vector, "sigma.e")
   }
-  if(length(param_vector)==0){
+  if (length(param_vector) == 0) {
     stop("You should leave at least one parameter free.")
   }
   return(param_vector)
 }
 
-  #' Process inputs likelihood
-  #'
-  #' @param user_kappa kappa
-  #' @param user_tau tau
-  #' @param user_nu nu
-  #' @param sigma.e sigma.e
-  #'
-  #' @return List with the positions
-  #' @noRd
+#' Process inputs likelihood
+#'
+#' @param kappa kappa
+#' @param tau tau
+#' @param nu nu
+#' @param sigma.e sigma.e
+#'
+#' @return List with the positions
+#' @noRd
 
-likelihood_process_inputs_matern <- function(user_range, user_sigma, user_nu, sigma.e){
+likelihood_process_inputs_matern <- function(range, sigma, nu, sigma.e) {
   param_vector <- c("sigma", "range", "nu", "sigma.e")
-  if(!is.null(user_sigma)){
+  if (!is.null(sigma)) {
     param_vector <- setdiff(param_vector, "sigma")
-  } 
-  if(!is.null(user_range)){
+  }
+  if (!is.null(range)) {
     param_vector <- setdiff(param_vector, "range")
   }
-  if(!is.null(user_nu)){
+  if (!is.null(nu)) {
     param_vector <- setdiff(param_vector, "nu")
   }
-  if(!is.null(sigma.e)){
+  if (!is.null(sigma.e)) {
     param_vector <- setdiff(param_vector, "sigma.e")
   }
-  if(length(param_vector)==0){
+  if (length(param_vector) == 0) {
     stop("You should leave at least one parameter free.")
   }
   return(param_vector)
@@ -1757,366 +1326,425 @@ likelihood_process_inputs_matern <- function(user_range, user_sigma, user_nu, si
 #' @return The value in the correct scale
 #' @noRd
 
-likelihood_process_parameters <- function(theta, param_vector, which_par, logscale){
+likelihood_process_parameters <- function(theta, param_vector, which_par, logscale) {
   coord_par <- which(which_par == param_vector)
-  if(logscale){
+  if (logscale) {
     param_value <- exp(theta[[coord_par]])
-  } else{
+  } else {
     param_value <- theta[[coord_par]]
   }
   return(param_value)
 }
 
 
-#' @noRd 
+#' @noRd
 # Get priors and starting values
 # Based on INLA::param2.matern.orig()
 
-get_parameters_rSPDE <- function (mesh, alpha, 
-    B.tau, 
-    B.kappa, 
+get_parameters_rSPDE <- function(
+    mesh, alpha,
+    B.tau,
+    B.kappa,
     B.sigma,
-    B.range, 
+    B.range,
     nu.nominal,
     alpha.nominal,
     parameterization,
-    prior.std.dev.nominal, 
-    prior.range.nominal, 
-    prior.tau, 
-    prior.kappa, 
-    theta.prior.mean, 
+    prior.std.dev.nominal,
+    prior.range.nominal,
+    prior.tau,
+    prior.kappa,
+    theta.prior.mean,
     theta.prior.prec,
     mesh.range = NULL,
     d = NULL,
-    n.spde = NULL) 
-{
-  if(!is.null(mesh)){
-    if(!inherits(mesh, c("inla.mesh", "inla.mesh.1d"))){
-      stop("The mesh should be created using INLA!")
+    n.spde = NULL) {
+  if (!is.null(mesh)) {
+    if (!inherits(mesh, c("fm_mesh_1d", "fm_mesh_2d"))) {
+      stop("The mesh should be created using fmesher!")
     }
 
-    d <- ifelse(inherits(mesh, "inla.mesh"), 2, 1)
-    n.spde <- ifelse(d == 2, mesh$n, mesh$m)
-  } else{
-    if(is.null(d)){
+    d <- fmesher::fm_manifold_dim(mesh)
+    n.spde <- fmesher::fm_dof(mesh)
+  } else {
+    if (is.null(d)) {
       stop("If you do not provide the mesh, you must provide the dimension!")
     }
-    if(is.null(n.spde)){
+    if (is.null(n.spde)) {
       stop("If you do not provide the mesh, you must provide n.spde!")
     }
-  } 
+  }
 
-    if (is.null(B.tau) && is.null(B.sigma)) 
-        stop("One of B.tau or B.sigma must not be NULL.")
-    if (is.null(B.kappa) && is.null(B.range)) 
-        stop("One of B.kappa or B.range must not be NULL.")
+  if (is.null(B.tau) && is.null(B.sigma)) {
+    stop("One of B.tau or B.sigma must not be NULL.")
+  }
+  if (is.null(B.kappa) && is.null(B.range)) {
+    stop("One of B.kappa or B.range must not be NULL.")
+  }
 
 
 
-    if(parameterization == "spde"){
-      n.theta <- ncol(B.kappa) - 1L
+  if (parameterization == "spde") {
+    n.theta <- ncol(B.kappa) - 1L
 
-      B.kappa <- prepare_B_matrices(B.kappa, n.spde, 
-          n.theta)
-      B.tau <- prepare_B_matrices(B.tau, n.spde, n.theta)
-    } else if(parameterization == "matern"){
-      n.theta <- ncol(B.sigma) - 1L
-      
-      B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
-          n.theta)
-      B.range <- prepare_B_matrices(B.range, n.spde, 
-          n.theta)
+    B.kappa <- prepare_B_matrices(
+      B.kappa, n.spde,
+      n.theta
+    )
+    B.tau <- prepare_B_matrices(B.tau, n.spde, n.theta)
+  } else if (parameterization == "matern") {
+    n.theta <- ncol(B.sigma) - 1L
 
-      B.kappa <- cbind(0.5 * log(8 * nu.nominal) - B.range[, 1], 
-        -B.range[, -1, drop = FALSE])
+    B.sigma <- prepare_B_matrices(
+      B.sigma, n.spde,
+      n.theta
+    )
+    B.range <- prepare_B_matrices(
+      B.range, n.spde,
+      n.theta
+    )
 
-      B.tau <- cbind(0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) - 
-                d/2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] - 
-                B.sigma[,1], 
-                - nu.nominal * B.kappa[, -1, drop = FALSE] -
-                B.sigma[, -1, drop = FALSE])
-  } else if(parameterization == "matern2"){
-      n.theta <- ncol(B.sigma) - 1L
-      
-      B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
-          n.theta)
-      B.range <- prepare_B_matrices(B.range, n.spde, 
-          n.theta)
+    B.kappa <- cbind(
+      0.5 * log(8 * nu.nominal) - B.range[, 1],
+      -B.range[, -1, drop = FALSE]
+    )
 
-      B.kappa <- -B.range
+    B.tau <- cbind(
+      0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) -
+        d / 2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] -
+        B.sigma[, 1],
+      -nu.nominal * B.kappa[, -1, drop = FALSE] -
+        B.sigma[, -1, drop = FALSE]
+    )
+  } else if (parameterization == "matern2") {
+    n.theta <- ncol(B.sigma) - 1L
 
-      B.tau <- cbind(0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) - 
-                d/2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] - 
-                0.5 * B.sigma[,1], 
-                - nu.nominal * B.kappa[, -1, drop = FALSE] -
-                0.5 * B.sigma[, -1, drop = FALSE])
+    B.sigma <- prepare_B_matrices(
+      B.sigma, n.spde,
+      n.theta
+    )
+    B.range <- prepare_B_matrices(
+      B.range, n.spde,
+      n.theta
+    )
+
+    B.kappa <- -B.range
+
+    B.tau <- cbind(
+      0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) -
+        d / 2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] -
+        0.5 * B.sigma[, 1],
+      -nu.nominal * B.kappa[, -1, drop = FALSE] -
+        0.5 * B.sigma[, -1, drop = FALSE]
+    )
+  }
+
+
+  if (is.null(theta.prior.prec)) {
+    theta.prior.prec <- diag(0.1, n.theta, n.theta)
+  } else {
+    theta.prior.prec <- as.matrix(theta.prior.prec)
+    if (ncol(theta.prior.prec) == 1) {
+      theta.prior.prec <- diag(
+        as.vector(theta.prior.prec),
+        n.theta, n.theta
+      )
     }
+    if ((nrow(theta.prior.prec) != n.theta) || (ncol(theta.prior.prec) !=
+      n.theta)) {
+      stop(paste(
+        "Size of theta.prior.prec is (", paste(dim(theta.prior.prec),
+          collapse = ",", sep = ""
+        ), ") but should be (",
+        paste(c(n.theta, n.theta), collapse = ",", sep = ""),
+        ")."
+      ))
+    }
+  }
 
 
-    if (is.null(theta.prior.prec)) {
-        theta.prior.prec = diag(0.1, n.theta, n.theta)
+  if (is.null(theta.prior.mean)) {
+    if (is.null(prior.range.nominal)) {
+      if (is.null(mesh.range)) {
+        mesh.range <- ifelse(d == 2, (max(c(diff(range(mesh$loc[
+          ,
+          1
+        ])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[
+          ,
+          3
+        ]))))), diff(mesh$interval))
+      }
+      prior.range.nominal <- mesh.range * 0.2
     }
-    else {
-        theta.prior.prec = as.matrix(theta.prior.prec)
-        if (ncol(theta.prior.prec) == 1) {
-            theta.prior.prec = diag(as.vector(theta.prior.prec), 
-                n.theta, n.theta)
-        }
-        if ((nrow(theta.prior.prec) != n.theta) || (ncol(theta.prior.prec) != 
-            n.theta)) {
-            stop(paste("Size of theta.prior.prec is (", paste(dim(theta.prior.prec), 
-                collapse = ",", sep = ""), ") but should be (", 
-                paste(c(n.theta, n.theta), collapse = ",", sep = ""), 
-                ")."))
-        }
+    if (is.null(prior.kappa)) {
+      prior.kappa <- sqrt(8 * nu.nominal) / prior.range.nominal
     }
-
-    
-    if (is.null(theta.prior.mean)) {
-        if (is.null(prior.range.nominal)) {
-          if(is.null(mesh.range)){
-            mesh.range = ifelse(d == 2, (max(c(diff(range(mesh$loc[, 
-                1])), diff(range(mesh$loc[, 2])), diff(range(mesh$loc[, 
-                3]))))), diff(mesh$interval))
-          }
-            prior.range.nominal = mesh.range * 0.2
-        }
-        if (is.null(prior.kappa)) {
-            prior.kappa = sqrt(8 * nu.nominal)/prior.range.nominal
-        }
-        if (is.null(prior.tau)) {
-            prior.tau = sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/((4 * 
-                pi)^(d/2) * prior.kappa^(2 * nu.nominal) * prior.std.dev.nominal^2))
-        }
-        if (n.theta > 0) {
-          if(parameterization == "spde"){
-              theta.prior.mean = qr.solve(rbind(B.tau[, -1, drop = FALSE], 
-                  B.kappa[, -1, drop = FALSE]), c(log(prior.tau) - 
-                  B.tau[, 1], log(prior.kappa) - B.kappa[, 1]))
-          } else if(parameterization == "matern"){
-              theta.prior.mean = qr.solve(rbind(B.sigma[, -1, drop = FALSE], 
-                  B.range[, -1, drop = FALSE]), c(log(prior.std.dev.nominal) - 
-                  B.sigma[, 1], log(prior.range.nominal) - B.range[, 1]))
-          } else if(parameterization == "matern2"){
-              theta.prior.mean = qr.solve(rbind(B.sigma[, -1, drop = FALSE], 
-                  B.range[, -1, drop = FALSE]), c(2*log(prior.std.dev.nominal) - 
-                  B.sigma[, 1], -log(prior.kappa) - B.range[, 1]))
-          }
-        }
-        else {
-            theta.prior.mean = rep(0, n.theta)
-        }
+    if (is.null(prior.tau)) {
+      prior.tau <- sqrt(gamma(nu.nominal) / gamma(alpha.nominal) / ((4 *
+        pi)^(d / 2) * prior.kappa^(2 * nu.nominal) * prior.std.dev.nominal^2))
     }
-    param = list(B.tau = B.tau, 
-        B.kappa = B.kappa, theta.prior.mean = theta.prior.mean, 
-        theta.prior.prec = theta.prior.prec)
-    return(param)
+    if (n.theta > 0) {
+      if (parameterization == "spde") {
+        theta.prior.mean <- qr.solve(rbind(
+          B.tau[, -1, drop = FALSE],
+          B.kappa[, -1, drop = FALSE]
+        ), c(log(prior.tau) -
+          B.tau[, 1], log(prior.kappa) - B.kappa[, 1]))
+      } else if (parameterization == "matern") {
+        theta.prior.mean <- qr.solve(rbind(
+          B.sigma[, -1, drop = FALSE],
+          B.range[, -1, drop = FALSE]
+        ), c(log(prior.std.dev.nominal) -
+          B.sigma[, 1], log(prior.range.nominal) - B.range[, 1]))
+      } else if (parameterization == "matern2") {
+        theta.prior.mean <- qr.solve(rbind(
+          B.sigma[, -1, drop = FALSE],
+          B.range[, -1, drop = FALSE]
+        ), c(2 * log(prior.std.dev.nominal) -
+          B.sigma[, 1], -log(prior.kappa) - B.range[, 1]))
+      }
+    } else {
+      theta.prior.mean <- rep(0, n.theta)
+    }
+  }
+  param <- list(
+    B.tau = B.tau,
+    B.kappa = B.kappa, theta.prior.mean = theta.prior.mean,
+    theta.prior.prec = theta.prior.prec
+  )
+  return(param)
 }
 
-#' @noRd 
+#' @noRd
 # Check B matrices and adjust the number of lines
 # Based on INLA:::inla.spde.homogenise_B_matrix()
 
-prepare_B_matrices <- function (B, n.spde, n.theta) 
-{
-    if (!is.numeric(B)) {
-        stop("B matrix must be numeric.")
+prepare_B_matrices <- function(B, n.spde, n.theta) {
+  if (!is.numeric(B)) {
+    stop("B matrix must be numeric.")
+  }
+  if (is.matrix(B)) {
+    if ((nrow(B) != 1) && (nrow(B) != n.spde)) {
+      stop(paste("B matrix must have either 1 or", as.character(n.spde), "rows."))
     }
-    if (is.matrix(B)) {
-        if ((nrow(B) != 1) && (nrow(B) != n.spde)) {
-            stop(paste("B matrix must have either 1 or", as.character(n.spde),"rows."))
-        }
-        if ((ncol(B) != 1) && (ncol(B) != 1 + n.theta)) {
-            stop(paste("B matrix must have 1 or", as.character(1 + 
-                  n.theta),"columns."))
-        }
-        if (ncol(B) == 1) {
-            return(cbind(as.vector(B), matrix(0, n.spde, n.theta)))
-        }
-        else if (ncol(B) == 1 + n.theta) {
-            if (nrow(B) == 1) {
-                return(matrix(as.vector(B), n.spde, 1 + n.theta, 
-                  byrow = TRUE))
-            }
-            else if (nrow(B) == n.spde) {
-                return(B)
-            }
-        }
+    if ((ncol(B) != 1) && (ncol(B) != 1 + n.theta)) {
+      stop(paste("B matrix must have 1 or", as.character(1 +
+        n.theta), "columns."))
     }
-    else {
-        if ((length(B) == 1) || (length(B) == n.spde)) {
-            return(cbind(B, matrix(0, n.spde, n.theta)))
-        }
-        else if (length(B) == 1 + n.theta) {
-            return(matrix(B, n.spde, 1 + n.theta, byrow = TRUE))
-        }
-        else {
-            stop(paste("Length of B must be 1,", as.character(1 + n.theta), 
-                "or", as.character(n.spde)))
-        }
+    if (ncol(B) == 1) {
+      return(cbind(as.vector(B), matrix(0, n.spde, n.theta)))
+    } else if (ncol(B) == 1 + n.theta) {
+      if (nrow(B) == 1) {
+        return(matrix(as.vector(B), n.spde, 1 + n.theta,
+          byrow = TRUE
+        ))
+      } else if (nrow(B) == n.spde) {
+        return(B)
+      }
     }
-    stop("Unrecognised structure for B matrix")
+  } else {
+    if ((length(B) == 1) || (length(B) == n.spde)) {
+      return(cbind(B, matrix(0, n.spde, n.theta)))
+    } else if (length(B) == 1 + n.theta) {
+      return(matrix(B, n.spde, 1 + n.theta, byrow = TRUE))
+    } else {
+      stop(paste(
+        "Length of B must be 1,", as.character(1 + n.theta),
+        "or", as.character(n.spde)
+      ))
+    }
+  }
+  stop("Unrecognised structure for B matrix")
 }
 
 
 
-#' @noRd 
+#' @noRd
 # Get priors and starting values
 # Based on INLA::param2.matern.orig()
 
-get_parameters_rSPDE_graph <- function (graph_obj, alpha, 
-    B.tau, 
-    B.kappa, 
+get_parameters_rSPDE_graph <- function(
+    graph_obj, alpha,
+    B.tau,
+    B.kappa,
     B.sigma,
-    B.range, 
+    B.range,
     nu.nominal,
     alpha.nominal,
     parameterization,
-    prior.std.dev.nominal, 
-    prior.range.nominal, 
-    prior.tau, 
-    prior.kappa, 
-    theta.prior.mean, 
-    theta.prior.prec) 
-{
-    if(!inherits(graph_obj, "metric_graph")){
-      stop("The graph object should be of class metric_graph!")
+    prior.std.dev.nominal,
+    prior.range.nominal,
+    prior.tau,
+    prior.kappa,
+    theta.prior.mean,
+    theta.prior.prec) {
+  if (!inherits(graph_obj, "metric_graph")) {
+    stop("The graph object should be of class metric_graph!")
+  }
+  if (is.null(B.tau) && is.null(B.sigma)) {
+    stop("One of B.tau or B.sigma must not be NULL.")
+  }
+  if (is.null(B.kappa) && is.null(B.range)) {
+    stop("One of B.kappa or B.range must not be NULL.")
+  }
+
+  d <- 1
+  n.spde <- nrow(graph_obj$mesh$C)
+
+  if (parameterization == "spde") {
+    n.theta <- ncol(B.kappa) - 1L
+    B.kappa <- prepare_B_matrices(
+      B.kappa, n.spde,
+      n.theta
+    )
+    B.tau <- prepare_B_matrices(B.tau, n.spde, n.theta)
+  } else if (parameterization == "matern") {
+    n.theta <- ncol(B.sigma) - 1L
+    B.sigma <- prepare_B_matrices(
+      B.sigma, n.spde,
+      n.theta
+    )
+    B.range <- prepare_B_matrices(
+      B.range, n.spde,
+      n.theta
+    )
+
+    B.kappa <- cbind(
+      0.5 * log(8 * nu.nominal) - B.range[, 1],
+      -B.range[, -1, drop = FALSE]
+    )
+
+    B.tau <- cbind(0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) -
+      d / 2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] -
+      B.sigma[, 1], -nu.nominal * B.kappa[, -1, drop = FALSE] -
+      B.sigma[, -1, drop = FALSE])
+  }
+
+
+  if (is.null(theta.prior.prec)) {
+    theta.prior.prec <- diag(0.1, n.theta, n.theta)
+  } else {
+    theta.prior.prec <- as.matrix(theta.prior.prec)
+    if (ncol(theta.prior.prec) == 1) {
+      theta.prior.prec <- diag(
+        as.vector(theta.prior.prec),
+        n.theta, n.theta
+      )
     }
-    if (is.null(B.tau) && is.null(B.sigma)) 
-        stop("One of B.tau or B.sigma must not be NULL.")
-    if (is.null(B.kappa) && is.null(B.range)) 
-        stop("One of B.kappa or B.range must not be NULL.")
-
-    d <- 1
-    n.spde <- nrow(graph_obj$mesh$C)
-
-    if(parameterization == "spde"){
-      n.theta <- ncol(B.kappa) - 1L
-      B.kappa <- prepare_B_matrices(B.kappa, n.spde, 
-          n.theta)
-      B.tau <- prepare_B_matrices(B.tau, n.spde, n.theta)
-    } else if(parameterization == "matern"){
-      n.theta <- ncol(B.sigma) - 1L
-      B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
-          n.theta)
-      B.range <- prepare_B_matrices(B.range, n.spde, 
-          n.theta)
-
-      B.kappa <- cbind(0.5 * log(8 * nu.nominal) - B.range[, 1], 
-        -B.range[, -1, drop = FALSE])
-
-      B.tau <- cbind(0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) - 
-                d/2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] - 
-                B.sigma[,1], - nu.nominal * B.kappa[, -1, drop = FALSE] -
-                B.sigma[, -1, drop = FALSE])
+    if ((nrow(theta.prior.prec) != n.theta) || (ncol(theta.prior.prec) !=
+      n.theta)) {
+      stop(paste(
+        "Size of theta.prior.prec is (", paste(dim(theta.prior.prec),
+          collapse = ",", sep = ""
+        ), ") but should be (",
+        paste(c(n.theta, n.theta), collapse = ",", sep = ""),
+        ")."
+      ))
     }
+  }
 
 
-    if (is.null(theta.prior.prec)) {
-        theta.prior.prec = diag(0.1, n.theta, n.theta)
+  if (is.null(theta.prior.mean)) {
+    if (is.null(prior.range.nominal)) {
+      if (is.null(graph_obj$geo_dist)) {
+        graph_obj$compute_geodist(obs = FALSE)
+      } else if (is.null(graph_obj$geo_dist[[".vertices"]])) {
+        graph_obj$compute_geodist(obs = FALSE)
+      }
+      finite_geodist <- is.finite(graph_obj$geo_dist[[".vertices"]])
+      finite_geodist <- graph_obj$geo_dist[[".vertices"]][finite_geodist]
+      prior.range.nominal <- max(finite_geodist) * 0.2
     }
-    else {
-        theta.prior.prec = as.matrix(theta.prior.prec)
-        if (ncol(theta.prior.prec) == 1) {
-            theta.prior.prec = diag(as.vector(theta.prior.prec), 
-                n.theta, n.theta)
-        }
-        if ((nrow(theta.prior.prec) != n.theta) || (ncol(theta.prior.prec) != 
-            n.theta)) {
-            stop(paste("Size of theta.prior.prec is (", paste(dim(theta.prior.prec), 
-                collapse = ",", sep = ""), ") but should be (", 
-                paste(c(n.theta, n.theta), collapse = ",", sep = ""), 
-                ")."))
-        }
+    if (is.null(prior.kappa)) {
+      prior.kappa <- sqrt(8 * nu.nominal) / prior.range.nominal
     }
-
-    
-    if (is.null(theta.prior.mean)) {
-        if (is.null(prior.range.nominal)) {
-            if(is.null(graph_obj$geo_dist)){
-              graph_obj$compute_geodist(obs=FALSE)
-            } else if(is.null(graph_obj$geo_dist[[".vertices"]])){
-              graph_obj$compute_geodist(obs=FALSE)
-            }
-            finite_geodist <- is.finite(graph_obj$geo_dist[[".vertices"]])
-            finite_geodist <- graph_obj$geo_dist[[".vertices"]][finite_geodist]
-            prior.range.nominal <- max(finite_geodist) * 0.2
-        }
-        if (is.null(prior.kappa)) {
-            prior.kappa = sqrt(8 * nu.nominal)/prior.range.nominal
-        }
-        if (is.null(prior.tau)) {
-            prior.tau = sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/(4 * 
-                pi * prior.kappa^(2 * nu.nominal) * prior.std.dev.nominal^2))
-        }
-        if (n.theta > 0) {
-          if(parameterization == "spde"){
-              theta.prior.mean = qr.solve(rbind(B.tau[, -1, drop = FALSE], 
-                  B.kappa[, -1, drop = FALSE]), c(log(prior.tau) - 
-                  B.tau[, 1], log(prior.kappa) - B.kappa[, 1]))
-          } else if(parameterization == "matern"){
-              theta.prior.mean = qr.solve(rbind(B.sigma[, -1, drop = FALSE], 
-                  B.range[, -1, drop = FALSE]), c(log(prior.std.dev.nominal) - 
-                  B.sigma[, 1], log(prior.range.nominal) - B.range[, 1]))
-          }
-        }
-        else {
-            theta.prior.mean = rep(0, n.theta)
-        }
+    if (is.null(prior.tau)) {
+      prior.tau <- sqrt(gamma(nu.nominal) / gamma(alpha.nominal) / (4 *
+        pi * prior.kappa^(2 * nu.nominal) * prior.std.dev.nominal^2))
     }
-    param = list(B.tau = B.tau, 
-        B.kappa = B.kappa, theta.prior.mean = theta.prior.mean, 
-        theta.prior.prec = theta.prior.prec)
-    return(param)
+    if (n.theta > 0) {
+      if (parameterization == "spde") {
+        theta.prior.mean <- qr.solve(rbind(
+          B.tau[, -1, drop = FALSE],
+          B.kappa[, -1, drop = FALSE]
+        ), c(log(prior.tau) -
+          B.tau[, 1], log(prior.kappa) - B.kappa[, 1]))
+      } else if (parameterization == "matern") {
+        theta.prior.mean <- qr.solve(rbind(
+          B.sigma[, -1, drop = FALSE],
+          B.range[, -1, drop = FALSE]
+        ), c(log(prior.std.dev.nominal) -
+          B.sigma[, 1], log(prior.range.nominal) - B.range[, 1]))
+      }
+    } else {
+      theta.prior.mean <- rep(0, n.theta)
+    }
+  }
+  param <- list(
+    B.tau = B.tau,
+    B.kappa = B.kappa, theta.prior.mean = theta.prior.mean,
+    theta.prior.prec = theta.prior.prec
+  )
+  return(param)
 }
 
 
 
-#' @noRd 
+#' @noRd
 
 # Function to convert B.sigma and B.range to B.tau and B.kappa
 
-convert_B_matrices <- function(B.sigma, B.range, n.spde, nu.nominal, d){
-      n.theta <- ncol(B.sigma) - 1L
+convert_B_matrices <- function(B.sigma, B.range, n.spde, nu.nominal, d) {
+  n.theta <- ncol(B.sigma) - 1L
 
-      alpha.nominal <- nu.nominal + d / 2
-      
-      B.sigma <- prepare_B_matrices(B.sigma, n.spde, 
-          n.theta)
-      B.range <- prepare_B_matrices(B.range, n.spde, 
-          n.theta)
+  alpha.nominal <- nu.nominal + d / 2
 
-      B.kappa <- cbind(0.5 * log(8 * nu.nominal) - B.range[, 1], 
-        -B.range[, -1, drop = FALSE])
+  B.sigma <- prepare_B_matrices(
+    B.sigma, n.spde,
+    n.theta
+  )
+  B.range <- prepare_B_matrices(
+    B.range, n.spde,
+    n.theta
+  )
 
-      B.tau <- cbind(0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) - 
-                d/2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] - 
-                B.sigma[,1], 
-                - nu.nominal * B.kappa[, -1, drop = FALSE] -
-                B.sigma[, -1, drop = FALSE])
-    
-    return(list(B.tau = B.tau, B.kappa = B.kappa))
+  B.kappa <- cbind(
+    0.5 * log(8 * nu.nominal) - B.range[, 1],
+    -B.range[, -1, drop = FALSE]
+  )
+
+  B.tau <- cbind(
+    0.5 * (lgamma(nu.nominal) - lgamma(alpha.nominal) -
+      d / 2 * log(4 * pi)) - nu.nominal * B.kappa[, 1] -
+      B.sigma[, 1],
+    -nu.nominal * B.kappa[, -1, drop = FALSE] -
+      B.sigma[, -1, drop = FALSE]
+  )
+
+  return(list(B.tau = B.tau, B.kappa = B.kappa))
 }
 
-#' @noRd 
+#' @noRd
 # Change parameterization in rspde_lme to matern
 
 change_parameterization_lme <- function(likelihood, d, nu, par, hessian
-#, improve_gradient, gradient_args
-){
+                                        # , improve_gradient, gradient_args
+) {
   tau <- par[1]
   kappa <- par[2]
 
-  C1 <- sqrt(8*nu)
+  C1 <- sqrt(8 * nu)
   C2 <- sqrt(gamma(nu) / ((4 * pi)^(d / 2) * gamma(nu + d / 2)))
 
-  sigma <- C2/(tau * kappa^nu)
-  range <- C1/kappa
+  sigma <- C2 / (tau * kappa^nu)
+  range <- C1 / kappa
 
-  grad_par <- matrix(c(-C2/(kappa^nu * sigma^2),0,
-                    nu * range^(nu-1) * C2/(sigma * C1^nu), 
-                    -C1/range^2), nrow = 2, ncol=2)
-  
+  grad_par <- matrix(c(
+    -C2 / (kappa^nu * sigma^2), 0,
+    nu * range^(nu - 1) * C2 / (sigma * C1^nu),
+    -C1 / range^2
+  ), nrow = 2, ncol = 2)
+
 
   new_observed_fisher <- t(grad_par) %*% hessian %*% (grad_par)
 
@@ -2127,7 +1755,7 @@ change_parameterization_lme <- function(likelihood, d, nu, par, hessian
   # hess_par <- matrix(c(2*C2/(kappa^nu * sigma^3), 0,
   #                     -nu * C2/((sigma^2) * (C1^nu)) * range^(nu-1),
   #                     2*C1/range^3) , ncol=2, nrow=2)
-  
+
   # if(!improve_gradient){
   #   grad_lik <- numDeriv::grad(likelihood, log(par), method = "simple", method.args = gradient_args)
   # } else{
@@ -2143,7 +1771,7 @@ change_parameterization_lme <- function(likelihood, d, nu, par, hessian
   # new_observed_fisher <- new_observed_fisher + add_mat
 
   inv_fisher <- tryCatch(solve(new_observed_fisher), error = function(e) matrix(NA, nrow(new_observed_fisher), ncol(new_observed_fisher)))
-  
+
   std_err <- sqrt(diag(inv_fisher))
 
   # new_lik <- function(theta){
@@ -2164,13 +1792,13 @@ change_parameterization_lme <- function(likelihood, d, nu, par, hessian
 
 
 
-#' @noRd 
-#' 
+#' @noRd
+#'
 
-return_same_input_type_matrix_vector <- function(v, orig_v){
-  if(isS4(orig_v)){
+return_same_input_type_matrix_vector <- function(v, orig_v) {
+  if (isS4(orig_v)) {
     return(v)
-  } else{
+  } else {
     v_out <- as.matrix(v)
     dim(v_out) <- dim(orig_v)
     return(v_out)
@@ -2182,60 +1810,556 @@ return_same_input_type_matrix_vector <- function(v, orig_v){
 #' find indices of the rows with all NA's in lists
 #' @noRd
 #'
-idx_not_all_NA <- function(data_list){
-     data_list[[".edge_number"]] <- NULL
-     data_list[[".distance_on_edge"]] <- NULL
-     data_list[[".coord_x"]] <- NULL
-     data_list[[".coord_y"]] <- NULL
-     data_list[[".group"]] <- NULL
-     data_names <- names(data_list)
-     n_data <- length(data_list[[data_names[1]]])
-     idx_non_na <- logical(n_data)
-     for(i in 1:n_data){
-        na_idx <- lapply(data_list, function(dat){
-          return(is.na(dat[i]))
-        })
-        idx_non_na[i] <- !all(unlist(na_idx))
-     }
-     return(idx_non_na)
+idx_not_all_NA <- function(data_list) {
+  data_list[[".edge_number"]] <- NULL
+  data_list[[".distance_on_edge"]] <- NULL
+  data_list[[".coord_x"]] <- NULL
+  data_list[[".coord_y"]] <- NULL
+  data_list[[".group"]] <- NULL
+  data_names <- names(data_list)
+  n_data <- length(data_list[[data_names[1]]])
+  idx_non_na <- logical(n_data)
+  for (i in 1:n_data) {
+    na_idx <- lapply(data_list, function(dat) {
+      return(is.na(dat[i]))
+    })
+    idx_non_na[i] <- !all(unlist(na_idx))
+  }
+  return(idx_non_na)
 }
 
 #' find indices of the rows with at least one NA's in lists
 #' @noRd
 #'
-idx_not_any_NA <- function(data_list){
-     data_list[[".edge_number"]] <- NULL
-     data_list[[".distance_on_edge"]] <- NULL
-     data_list[[".coord_x"]] <- NULL
-     data_list[[".coord_y"]] <- NULL
-     data_list[[".group"]] <- NULL
-     data_names <- names(data_list)
-     n_data <- length(data_list[[data_names[1]]])
-     idx_non_na <- logical(n_data)
-     for(i in 1:n_data){
-        na_idx <- lapply(data_list, function(dat){
-          return(is.na(dat[i]))
-        })
-        idx_non_na[i] <- !any(unlist(na_idx))
-     }
-     return(idx_non_na)
+idx_not_any_NA <- function(data_list) {
+  data_list[[".edge_number"]] <- NULL
+  data_list[[".distance_on_edge"]] <- NULL
+  data_list[[".coord_x"]] <- NULL
+  data_list[[".coord_y"]] <- NULL
+  data_list[[".group"]] <- NULL
+  data_names <- names(data_list)
+  n_data <- length(data_list[[data_names[1]]])
+  idx_non_na <- logical(n_data)
+  for (i in 1:n_data) {
+    na_idx <- lapply(data_list, function(dat) {
+      return(is.na(dat[i]))
+    })
+    idx_non_na[i] <- !any(unlist(na_idx))
+  }
+  return(idx_non_na)
+}
+
+
+#' @noRd
+#'
+
+select_indexes <- function(data, idx) {
+  if (inherits(data, "SpatialPointsDataFrame")) {
+    data <- data[idx, , drop = FALSE]
+  } else {
+    data <- lapply(data, function(dat) {
+      if (is.null(dim(dat))) {
+        return(dat[idx])
+      } else {
+        return(dat[idx, , drop = FALSE])
+      }
+    })
+  }
+  return(data)
+}
+
+
+
+#' Create train and test splits to be used in the `cross_validation` function
+#'
+#' Train and test splits
+#'
+#' @param data A `list`, `data.frame`, `SpatialPointsDataFrame` or `metric_graph_data` objects.
+#' @param cv_type The type of the folding to be carried out. The options are `k-fold` for `k`-fold cross-validation, in which case the parameter `k` should be provided,
+#' `loo`, for leave-one-out and `lpo` for leave-percentage-out, in this case, the parameter `percentage` should be given, and also the `number_folds`
+#' with the number of folds to be done. The default is `k-fold`.
+#' @param k The number of folds to be used in `k`-fold cross-validation. Will only be used if `cv_type` is `k-fold`.
+#' @param percentage The percentage (from 1 to 99) of the data to be used to train the model. Will only be used if `cv_type` is `lpo`.
+#' @param number_folds Number of folds to be done if `cv_type` is `lpo`.
+#' @return A list with two elements, `train` containing the training indices and `test` containing indices.
+#' @export
+
+create_train_test_indices <- function(data, cv_type = c("k-fold", "loo", "lpo"),
+                                      k = 5, percentage = 20, number_folds = 10) {
+  if (inherits(data, "metric_graph_data")) {
+    idx <- seq_len(nrow(as.data.frame(data)))
+  } else {
+    idx <- seq_len(nrow(data))
+  }
+  if (inherits(data, "SpatialPointsDataFrame")) {
+    data_tmp <- data@data
+    data_nonNA <- !is.na(data_tmp)
+  } else if (inherits(data, "metric_graph_data")) {
+    data_nonNA <- !is.na(as.data.frame(data))
+  } else {
+    data_nonNA <- !is.na(data)
+  }
+  idx_nonNA <- sapply(1:length(idx), function(i) {
+    all(data_nonNA[i, ])
+  })
+  idx <- idx[idx_nonNA]
+  if (cv_type == "k-fold") {
+    # split idx into k
+    folds <- cut(sample(idx), breaks = k, label = FALSE)
+    test_list_idx <- lapply(1:k, function(i) {
+      which(folds == i, arr.ind = TRUE)
+    })
+    test_list <- lapply(test_list_idx, function(idx_test) {
+      idx[idx_test]
+    })
+    train_list <- lapply(1:k, function(i) {
+      idx[-test_list_idx[[i]]]
+    })
+  } else if (cv_type == "loo") {
+    train_list <- lapply(1:length(idx), function(i) {
+      idx[-i]
+    })
+    # test_list <- lapply(1:length(idx), function(i){idx[i]})
+    test_list <- as.list(idx)
+  } else if (cv_type == "lpo") {
+    test_list_idx <- list()
+    n_Y <- length(idx)
+    for (i in number_folds:1) {
+      test_list_idx[[i]] <- sample(1:length(idx), size = (1 - percentage / 100) * n_Y)
+    }
+    train_list <- lapply(1:number_folds, function(i) {
+      idx[-test_list_idx[[i]]]
+    })
+    test_list <- lapply(test_list_idx, function(idx_test) {
+      idx[idx_test]
+    })
+  }
+  return(list(train = train_list, test = test_list))
+}
+
+# Check for required packages
+#' @noRd
+check_packages <- function(packages, func) {
+    are_installed <-vapply(packages,
+                           function(x) {
+                               requireNamespace(x, quietly = TRUE)
+                               },
+                           TRUE
+        )
+    if (any(!are_installed)) {
+        stop(paste0("Needed package(s) ",
+                    paste0("'", packages[!are_installed], "'", collapse = ", "),
+                    " not installed, but are needed by ", func)
+             )
+    }
+}
+
+#' @noRd
+# Get appropriate shared library
+get_shared_library <- function(shared_lib) {
+  if (shared_lib == "INLA") {
+    return(INLA::inla.external.lib("rSPDE"))
+  }
+  if (shared_lib == "rSPDE") {
+    rspde_lib <- system.file("shared", package = "rSPDE")
+    return(ifelse(Sys.info()["sysname"] == "Windows",
+                 paste0(rspde_lib, "/rspde_cgeneric_models.dll"),
+                 paste0(rspde_lib, "/rspde_cgeneric_models.so")))
+  }
+  if (shared_lib == "detect") {
+    rspde_lib_local <- system.file("shared", package = "rSPDE")
+    lib_path <- ifelse(Sys.info()["sysname"] == "Windows",
+                      paste0(rspde_lib_local, "/rspde_cgeneric_models.dll"),
+                      paste0(rspde_lib_local, "/rspde_cgeneric_models.so"))
+    return(if (file.exists(lib_path)) lib_path else INLA::inla.external.lib("rSPDE"))
+  }
+  stop("'shared_lib' must be 'INLA', 'rSPDE', or 'detect'")
+}
+
+#' @noRd
+set_prior <- function(prior, default_mean, default_precision, p = 1) {
+  # Validate default parameters
+  if (!is.numeric(default_mean) || length(default_mean) != p) {
+    stop(paste("default_mean must be a numeric vector of length equal to",p,"."))
+  }
+  if (!is.numeric(default_precision) || length(default_precision) != p || any(default_precision <= 0)) {
+    stop(paste("default_precision must be a positive numeric vector of length equal to",p,"."))
+  }
+
+  # Return default prior if none is provided
+  if (is.null(prior)) {
+    return(list(mean = default_mean, precision = default_precision))
+  }
+
+  # Ensure prior only contains allowed elements
+  allowed_elements <- c("mean", "precision")
+  invalid_elements <- setdiff(names(prior), allowed_elements)
+  if (length(invalid_elements) > 0) {
+    warning(sprintf("Invalid elements in prior: %s. Only 'mean' and 'precision' are allowed.",
+                    paste(invalid_elements, collapse = ", ")))
+  }
+
+  # Validate and set 'mean'
+  if (!is.null(prior$mean)) {
+    if (!is.numeric(prior$mean) || length(prior$mean) != p) {
+      stop(sprintf("'mean' must be a numeric vector of length %d.", p))
+    }
+  } else {
+    prior$mean <- default_mean  # Use default mean if not provided
+  }
+
+  # Validate and set 'precision'
+  if (!is.null(prior$precision)) {
+    if (!is.numeric(prior$precision) || length(prior$precision) != p || any(prior$precision <= 0)) {
+      stop(sprintf("'precision' must be a positive numeric vector of length %d.", p))
+    }
+  } else {
+    prior$precision <- default_precision  # Use default precision if not provided
+  }
+
+  return(prior)
+}
+
+handle_prior_nu <- function(prior.nu, nu.upper.bound, nu.prec.inc = 0.01, prior.nu.dist = "lognormal") {
+  if (is.null(prior.nu)) {
+    prior.nu <- list()
+  }
+  
+  # Check and set loglocation
+  if (is.null(prior.nu$loglocation)) {
+    prior.nu$loglocation <- log(min(1, nu.upper.bound / 2))
+  } else if (length(prior.nu$loglocation) != 1) {
+    warning("'prior.nu$loglocation' has length > 1. Only the first element will be used.")
+    prior.nu$loglocation <- prior.nu$loglocation[1]
+  }
+  
+  # Check and set mean
+  if (is.null(prior.nu[["mean"]])) {
+    prior.nu[["mean"]] <- min(1, nu.upper.bound / 2)
+  } else if (length(prior.nu[["mean"]]) != 1) {
+    warning("'prior.nu$mean' has length > 1. Only the first element will be used.")
+    prior.nu[["mean"]] <- prior.nu[["mean"]][1]
+  }
+  
+  # Check and set prec
+  if (is.null(prior.nu$prec)) {
+    mu_temp <- prior.nu[["mean"]] / nu.upper.bound
+    prior.nu$prec <- max(1 / mu_temp, 1 / (1 - mu_temp)) + nu.prec.inc
+  } else if (length(prior.nu$prec) != 1) {
+    warning("'prior.nu$prec' has length > 1. Only the first element will be used.")
+    prior.nu$prec <- prior.nu$prec[1]
+  }
+  
+  # Check and set logscale
+  if (is.null(prior.nu[["logscale"]])) {
+    prior.nu[["logscale"]] <- 1
+  } else if (length(prior.nu[["logscale"]]) != 1) {
+    warning("'prior.nu$logscale' has length > 1. Only the first element will be used.")
+    prior.nu[["logscale"]] <- prior.nu[["logscale"]][1]
+  }
+  
+  # Determine starting value for nu
+  if (prior.nu.dist == "beta") {
+    start.nu <- prior.nu[["mean"]]
+  } else if (prior.nu.dist == "lognormal") {
+    start.nu <- exp(prior.nu[["loglocation"]])
+  } else {
+    stop("prior.nu.dist should be either 'beta' or 'lognormal'.")
+  }
+  
+  # Validate start.nu range
+  if (start.nu > nu.upper.bound || start.nu < 0) {
+    if (prior.nu.dist == "beta") {
+      stop("The 'mean' element of 'prior.nu' should be a number between 0 and nu.upper.bound!")
+    } else {
+      stop("The 'loglocation' element of 'prior.nu' should be a number less than log(nu.upper.bound)!")
+    }
+  }
+  
+  return(list(prior.nu = prior.nu, start.nu = start.nu))
+}
+
+#' Transform Anisotropic SPDE Model Parameters to Original Scale
+#'
+#' @description
+#' This function takes a vector of transformed parameters and applies the appropriate
+#' transformations to return them in the original scale for use in anisotropic SPDE models.
+#'
+#' @param theta A numeric vector of length 4 or 5, containing the transformed parameters in this order:
+#' \describe{
+#'   \item{lhx}{The logarithmic representation of hx.}
+#'   \item{lhy}{The logarithmic representation of hy.}
+#'   \item{logit_hxy}{The logit-transformed representation of hxy.}
+#'   \item{lsigma}{The logarithmic representation of sigma.}
+#'   \item{lnu (optional)}{The logarithmic representation of nu. If not provided, nu is not returned.}
+#' }
+#' @param nu_upper_bound (optional) A numeric value representing the upper bound for the smoothness parameter nu.
+#' This is only used, and must be provided, if `lnu` is provided.
+#'
+#' @return A named list with the parameters in the original scale:
+#' \describe{
+#'   \item{hx}{The original scale for hx (exponential of lhx).}
+#'   \item{hy}{The original scale for hy (exponential of lhy).}
+#'   \item{hxy}{The original scale for hxy (inverse logit transformation of logit_hxy).}
+#'   \item{sigma}{The original scale for sigma (exponential of lsigma).}
+#'   \item{nu (optional)}{The original scale for nu (using the forward_nu transformation). Only included if `lnu` is provided.}
+#' }
+#' @export
+#'
+#' @examples
+#' # With lnu
+#' theta <- c(log(0.1), log(0.2), log((0.3 + 1) / (1 - 0.3)), log(0.5), log(1))
+#' nu_upper_bound <- 2
+#' transform_parameters_anisotropic(theta, nu_upper_bound)
+#'
+#' # Without lnu
+#' theta <- c(log(0.1), log(0.2), log((0.3 + 1) / (1 - 0.3)), log(0.5))
+#' transform_parameters_anisotropic(theta)
+transform_parameters_anisotropic <- function(theta, nu_upper_bound = NULL) {
+  if (!(length(theta) %in% c(4, 5))) {
+    stop("Theta must be a numeric vector of length 4 or 5.")
+  }
+  
+  # Functions for transformations
+  adjusted_inv_logit <- function(z) {
+    (2 / (1 + exp(-z))) - 1
+  }
+  
+  forward_nu <- function(lnu, nu_upper_bound) {
+    exp(lnu) / (1 + exp(lnu)) * nu_upper_bound
+  }
+  
+  # Extract parameters
+  lhx <- theta[1]
+  lhy <- theta[2]
+  logit_hxy <- theta[3]
+  lsigma <- theta[4]
+  
+  # Transform parameters to original scale
+  hx <- exp(lhx)
+  hy <- exp(lhy)
+  hxy <- adjusted_inv_logit(logit_hxy)
+  sigma <- exp(lsigma)
+  
+  # Prepare the output
+  result <- list(hx = hx, hy = hy, hxy = hxy, sigma = sigma)
+  
+  # If lnu is provided, compute nu
+  if (length(theta) == 5) {
+    if (is.null(nu_upper_bound)) {
+      stop("nu_upper_bound must be provided if lnu is included in theta.")
+    }
+    lnu <- theta[5]
+    nu <- forward_nu(lnu, nu_upper_bound)
+    result$nu <- nu
+  }
+  
+  return(result)
 }
 
 
 #' @noRd 
-#' 
 
-select_indexes <- function(data, idx){
-    if(inherits(data,"SpatialPointsDataFrame")){
-      data <- data[idx,]
-  } else{
-      data <- lapply(data, function(dat){
-        if(is.null(nrow(dat))){
-          return(dat[idx])
-        } else{
-          return(dat[idx,])
-        }
-        })
+rspde_check_cgeneric_symbol <- function(model) {
+  # Ensure the required fields exist in the model object
+  if (!"f" %in% names(model) || !"cgeneric" %in% names(model$f) || 
+      !"shlib" %in% names(model$f$cgeneric) || !"model" %in% names(model$f$cgeneric)) {
+    stop("There was a problem with the model creation.")
   }
-  return(data)
+  
+  # Extract the shared library path and the symbol name
+  shlib <- model$f$cgeneric$shlib
+  symbol <- model$f$cgeneric$model
+  
+  # Check if the shared library exists
+  if (!file.exists(shlib)) {
+    stop(paste("The shared library", shlib, "does not exist."))
+  }
+  
+  # Use the `dyn.load` and `is.loaded` functions to check for the symbol
+  tryCatch({
+    dyn.load(shlib) # Load the shared library
+    if (is.loaded(symbol)) {
+      dyn.unload(shlib) # Unload if the symbol is available
+      return(invisible(TRUE)) # Return silently
+    } else {
+      warning(paste0("The symbol '", symbol, "' is not available in the shared library. Please install the latest testing version of INLA. 
+      If the problem persists after installing the latest testing version of INLA, please open an issue at https://github.com/davidbolin/rSPDE/issues, 
+      requesting that this model be added to INLA."))
+    }
+    dyn.unload(shlib) # Ensure the library is unloaded
+  }, error = function(e) {
+    warning(paste0("Error while loading the shared library or checking the symbol: ", e$message, 
+                   ". Please install the latest testing version of INLA. If the problem persists after installing the 
+                   latest testing version of INLA, please open an issue at https://github.com/davidbolin/rSPDE/issues, 
+                   requesting that this model be added to INLA."))
+  })
+}
+
+#' @noRd
+match_with_tolerance <- function(input, loc, tolerance = 1e-6) {
+  # Initialize a vector to store matched indices
+  matched_indices <- integer(length(input))
+  
+  for (i in seq_along(input)) {
+    # Find the indices in loc that match the current input element within the tolerance
+    match_idx <- which(abs(loc - input[i]) <= tolerance)
+    
+    if (length(match_idx) == 0) {
+      # If no match is found, throw an error
+      stop(sprintf("Error: The input location %.10f is not present in the original locations used to create the model object.", input[i]))
+    } else if (length(match_idx) > 1) {
+      # Handle the case where multiple matches are found
+      warning(sprintf("Warning: Multiple matches found for input location %.10f. Using the first match.", input[i]))
+      match_idx <- match_idx[1]
+    }
+    
+    # Store the matched index
+    matched_indices[i] <- match_idx
+  }
+  
+  return(matched_indices)
+}
+
+
+#' @noRd 
+merge_with_tolerance <- function(original_data, new_data, by, tolerance = 1e-5) {
+  # Ensure column names match by adding missing columns
+  all_columns <- union(names(original_data), names(new_data))
+  original_data[setdiff(all_columns, names(original_data))] <- NA
+  new_data[setdiff(all_columns, names(new_data))] <- NA
+  
+  # Extract reference columns
+  original_loc <- original_data[[by]]
+  new_loc <- new_data[[by]]
+  
+  # Initialize the merged dataset
+  merged_data <- original_data
+  
+  # Match rows from new_data to original_data within the tolerance
+  for (i in seq_along(new_loc)) {
+    diffs <- abs(original_loc - new_loc[i])
+    if (any(diffs <= tolerance)) {
+      # Find the closest match in original_data
+      matched_index <- which.min(diffs)
+      merged_row <- merged_data[matched_index, ]
+      new_row <- new_data[i, ]
+      
+      # Exclude the `by` column from the merge
+      columns_to_merge <- setdiff(names(new_data), by)
+      
+      # Check for conflicts and replace missing values in merged_row with new_row
+      for (col in columns_to_merge) {
+        if (!is.na(new_row[[col]])) {
+          if (!is.na(merged_row[[col]]) && merged_row[[col]] != new_row[[col]]) {
+            warning(sprintf(
+              "Conflicting values in column '%s' for location '%s': original='%s', new='%s'. Using new value.",
+              col, new_loc[i], merged_row[[col]], new_row[[col]]
+            ))
+          }
+          merged_row[[col]] <- new_row[[col]]
+        }
+      }
+      
+      # Replace the row in merged_data
+      merged_data[matched_index, ] <- merged_row
+    } else {
+      # Add unmatched rows from new_data directly
+      merged_data <- rbind(merged_data, new_data[i, ])
+    }
+  }
+  
+  # Remove duplicates based on the `by` column
+  merged_data <- merged_data[!duplicated(merged_data[[by]]), ]
+  
+  return(merged_data)
+}
+
+
+#' Transform Spacetime SPDE Model Parameters to Original Scale
+#'
+#' @description
+#' This function takes a vector of transformed parameters and applies the appropriate
+#' transformations to return them in the original scale for use in spacetime SPDE models.
+#'
+#' @param theta A numeric vector containing the transformed parameters in this order:
+#' \describe{
+#'   \item{lkappa}{The logarithmic representation of kappa.}
+#'   \item{lsigma}{The logarithmic representation of sigma.}
+#'   \item{lgamma}{The logarithmic representation of gamma.}
+#'   \item{logit_rho (optional)}{The logit-transformed representation of rho, if drift = 1.}
+#'   \item{logit_rho2 (optional)}{The logit-transformed representation of rho2, if drift = 1 and d = 2.}
+#' }
+#' @param st_model A list containing the spacetime model parameters:
+#' \describe{
+#'   \item{d}{The dimension (e.g., 1 or 2).}
+#'   \item{bound}{The bound for rho and rho2.}
+#'   \item{is_bounded}{A logical value indicating if rho and rho2 are bounded.}
+#'   \item{drift}{A logical value indicating if drift is included in the model.}
+#' }
+#'
+#' @return A named list with the parameters in the original scale:
+#' \describe{
+#'   \item{kappa}{The original scale for kappa (exponential of lkappa).}
+#'   \item{sigma}{The original scale for sigma (exponential of lsigma).}
+#'   \item{gamma}{The original scale for gamma (exponential of lgamma).}
+#'   \item{rho (optional)}{The original scale for rho.}
+#'   \item{rho2 (optional)}{The original scale for rho2, if d = 2.}
+#' }
+#' @export
+transform_parameters_spacetime <- function(theta, st_model) {
+  if (!is.list(st_model) || !all(c("d", "bound_rho", "is_bounded", "drift") %in% names(st_model))) {
+    stop("st_model must be a list containing 'd', 'bound_rho', 'is_bounded', and 'drift'.")
+  }
+  
+  # Extract model parameters
+  d <- st_model$d
+  bound <- st_model$bound_rho
+  is_bounded <- st_model$is_bounded
+  drift <- st_model$drift
+  
+  # Functions for transformations
+  adjusted_inv_logit <- function(z, L) {
+    if (L <= 0) stop("Bound L must be positive.")
+    L * (2 / (1 + exp(-z)) - 1)
+  }
+  
+  # Transform required parameters
+  lkappa <- theta[1]
+  lsigma <- theta[2]
+  lgamma <- theta[3]
+  kappa <- exp(lkappa)
+  sigma <- exp(lsigma)
+  gamma <- exp(lgamma)
+  
+  result <- list(kappa = kappa, sigma = sigma, gamma = gamma)
+  
+  # Include rho and rho2 if drift is included
+  if (drift) {
+    if (is_bounded) {
+      logit_rho <- theta[4]
+      rho <- adjusted_inv_logit(logit_rho, bound)
+    } else {
+      rho <- theta[4]
+    }
+    result$rho <- rho
+    
+    # Include rho2 if d = 2
+    if (d == 2) {
+      if (is_bounded) {
+        logit_rho2 <- theta[5]
+        rho2 <- adjusted_inv_logit(logit_rho2, bound)
+      } else {
+        rho2 <- theta[5]
+      }
+      result$rho2 <- rho2
+    } else {
+      result$rho2 <- 0.0
+    }
+  } else {
+    result$rho <- 0.0
+    result$rho2 <- 0.0
+  }
+  
+  return(result)
 }

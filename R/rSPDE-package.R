@@ -32,17 +32,24 @@
 #'
 #' For a more detailed introduction to the package, see the rSPDE Vignettes.
 #'
-#' @docType package
-#' @name rSPDE
-#' @aliases rSPDE-package
+"_PACKAGE"
 #' @import Matrix
-#' @importFrom stats rnorm approx quantile
-#' @importFrom stats dnorm pnorm dbeta nobs deviance logLik
+#' @importFrom stats rnorm approx quantile var dist setNames cov
+#' @importFrom stats dnorm pnorm dbeta nobs deviance logLik as.formula predict
 #' @importFrom methods as
-#' @importFrom stats simulate lm logLik na.omit optim sd terms
-#' @importFrom fmesher fm_mesh_2d fm_basis fm_block fm_row_kron fm_mesh_1d fm_fem
+#' @importFrom stats simulate lm logLik na.omit optim sd terms rt spline
+#' @importFrom fmesher fm_mesh_2d fm_basis fm_block fm_row_kron fm_mesh_1d fm_fem fm_evaluate fm_evaluator
 #' @importFrom lifecycle deprecated
 #' @importFrom broom augment glance
+#' @importFrom utils packageVersion
 #' @export augment glance
 #'
 NULL
+
+.onAttach <- function(libname, pkgname) {
+  version <- utils::packageVersion("rSPDE")
+  packageStartupMessage(
+    "This is rSPDE ", version, "\n",
+    "- See https://davidbolin.github.io/rSPDE for vignettes and manuals."
+  )
+}

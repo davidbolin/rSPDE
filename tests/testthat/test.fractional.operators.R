@@ -1,4 +1,4 @@
-context("factional.operators")
+context("fractional.operators")
 
 test_that("Operator construction for fractional stationary Matern", {
   x <- seq(from = 0, to = 1, length.out = 51)

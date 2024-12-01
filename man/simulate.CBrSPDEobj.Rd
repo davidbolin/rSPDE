@@ -9,13 +9,13 @@ covariance-based rational SPDE approximation}
   object,
   nsim = 1,
   seed = NULL,
-  user_nu = NULL,
-  user_kappa = NULL,
-  user_sigma = NULL,
-  user_range = NULL,
-  user_tau = NULL,
-  user_theta = NULL,
-  user_m = NULL,
+  nu = NULL,
+  kappa = NULL,
+  sigma = NULL,
+  range = NULL,
+  tau = NULL,
+  theta = NULL,
+  m = NULL,
   ...
 )
 }
@@ -27,23 +27,23 @@ computed using \code{\link[=matern.operators]{matern.operators()}}}
 
 \item{seed}{An object specifying if and how the random number generator should be initialized (‘seeded’).}
 
-\item{user_nu}{If non-null, update the shape parameter of the
+\item{nu}{If non-null, update the shape parameter of the
 covariance function.}
 
-\item{user_kappa}{If non-null, update the range parameter
+\item{kappa}{If non-null, update the range parameter
 of the covariance function.}
 
-\item{user_sigma}{If non-null, update the standard deviation of
+\item{sigma}{If non-null, update the standard deviation of
 the covariance function.}
 
-\item{user_range}{If non-null, update the range parameter
+\item{range}{If non-null, update the range parameter
 of the covariance function.}
 
-\item{user_tau}{If non-null, update the parameter tau.}
+\item{tau}{If non-null, update the parameter tau.}
 
-\item{user_theta}{For non-stationary models. If non-null, update the vector of parameters.}
+\item{theta}{For non-stationary models. If non-null, update the vector of parameters.}
 
-\item{user_m}{If non-null, update the order of the rational
+\item{m}{If non-null, update the order of the rational
 approximation, which needs to be a positive integer.}
 
 \item{...}{Currently not used.}
@@ -60,7 +60,7 @@ covariance-based rational SPDE approximation.
 kappa <- 10
 sigma <- 1
 nu <- 0.8
-range <- sqrt(8*nu)/kappa
+range <- sqrt(8 * nu) / kappa
 
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
@@ -68,7 +68,7 @@ fem <- rSPDE.fem1d(x)
 
 # compute rational approximation of covariance function at 0.5
 tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-(4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
+  (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 op_cov <- matern.operators(
   loc_mesh = x, nu = nu,
   range = range, sigma = sigma, d = 1, m = 2,

@@ -37,8 +37,7 @@ are iid mean-zero Gaussian variables and \eqn{x(s) =
 \eqn{\mu(s)}{\mu(s)} is the expectation vector of the latent field.
 }
 \note{
-This example below shows how the function can be used to evaluate
-the likelihood of a latent Matern model.
+This example below shows how the function can be used to evaluate the likelihood of a latent Matern model.
 }
 \examples{
 # Sample a Gaussian Matern process on R using a rational approximation

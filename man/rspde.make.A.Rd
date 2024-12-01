@@ -9,7 +9,7 @@ rspde.make.A(
   loc = NULL,
   A = NULL,
   dim = NULL,
-  rspde.order = 2,
+  rspde.order = 1,
   nu = NULL,
   index = NULL,
   group = NULL,
@@ -60,17 +60,20 @@ for rSPDE models based on \code{inla.mesh} or
 tryCatch({
 if (requireNamespace("INLA", quietly = TRUE)){
 library(INLA)
+\donttest{
+# devel version
+if (requireNamespace("INLA", quietly = TRUE)) {
+  library(INLA)
 
-set.seed(123)
-loc <- matrix(runif(100 * 2) * 100, 100, 2)
-mesh <- inla.mesh.2d(
-  loc = loc,
-  cutoff = 50,
-  max.edge = c(50, 500)
-)
-A <- rspde.make.A(mesh, loc = loc, rspde.order = 3)
+  set.seed(123)
+  loc <- matrix(runif(100 * 2) * 100, 100, 2)
+  mesh <- inla.mesh.2d(
+    loc = loc,
+    cutoff = 50,
+    max.edge = c(50, 500)
+  )
+  A <- rspde.make.A(mesh, loc = loc, rspde.order = 3)
 }
-#stable.tryCatch
-}, error = function(e){print("Could not run the example")})
+# devel.tag
 }
 }

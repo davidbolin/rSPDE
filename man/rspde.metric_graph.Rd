@@ -8,7 +8,7 @@ rspde.metric_graph(
   graph_obj,
   h = NULL,
   nu.upper.bound = 2,
-  rspde.order = 2,
+  rspde.order = 1,
   nu = NULL,
   debug = FALSE,
   B.sigma = matrix(c(0, 1, 0), 1, 3),
@@ -97,7 +97,7 @@ distribution on the log scale. Check details below.}
 \item{prior.theta.param}{Should the lognormal prior be on \code{theta} or on the SPDE parameters (\code{tau} and \code{kappa} on the stationary case)?}
 
 \item{prior.nu.dist}{The distribution of the smoothness parameter.
-The current options are "beta" or "lognormal". The default is "lognormal".}
+The current options are "beta" or "lognormal". The default is "beta".}
 
 \item{nu.prec.inc}{Amount to increase the precision in the beta prior
 distribution. Check details below.}
