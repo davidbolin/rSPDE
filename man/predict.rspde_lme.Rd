@@ -8,15 +8,13 @@
   object,
   newdata = NULL,
   loc = NULL,
+  time = NULL,
   mesh = FALSE,
   which_repl = NULL,
   compute_variances = FALSE,
   posterior_samples = FALSE,
   n_samples = 100,
   sample_latent = FALSE,
-  edge_number = "edge_number",
-  distance_on_edge = "distance_on_edge",
-  normalized = FALSE,
   return_as_list = FALSE,
   return_original_order = TRUE,
   ...,
@@ -26,12 +24,18 @@
 \arguments{
 \item{object}{The fitted object with the \code{rspde_lme()} function}
 
-\item{newdata}{A \code{data.frame} or a \code{list} containing the covariates, the edge number and the distance on edge
-for the locations to obtain the prediction.}
+\item{newdata}{A \code{data.frame} or a \code{list} containing the covariates, the edge
+number and the distance on edge for the locations to obtain the prediction.}
 
-\item{loc}{Prediction locations. Can either be a \code{data.frame}, a \code{matrix} or a character vector, that contains the names of the columns of the coordinates of the locations. For models using \code{metric_graph} objects, plase use \code{edge_number} and \code{distance_on_edge} instead.}
+\item{loc}{Prediction locations. Can either be a \code{data.frame}, a \code{matrix} or
+a character vector, that contains the names of the columns of the coordinates
+of the locations. For models using \code{metric_graph} objects, plase use
+\code{edge_number} and \code{distance_on_edge} instead.}
 
-\item{mesh}{Obtain predictions for mesh nodes? The graph must have a mesh, and either \code{only_latent} is set to TRUE or the model does not have covariates.}
+\item{time}{Prediction times for spatio-temporal models.}
+
+\item{mesh}{Obtain predictions for mesh nodes? The graph must have a mesh, and
+either \code{only_latent} is set to TRUE or the model does not have covariates.}
 
 \item{which_repl}{Which replicates to use? If \code{NULL} all replicates will be used.}
 
@@ -39,29 +43,27 @@ for the locations to obtain the prediction.}
 
 \item{posterior_samples}{If \code{TRUE}, posterior samples will be returned.}
 
-\item{n_samples}{Number of samples to be returned. Will only be used if \code{sampling} is \code{TRUE}.}
+\item{n_samples}{Number of samples to be returned. Will only be used if
+\code{sampling} is \code{TRUE}.}
 
 \item{sample_latent}{Do posterior samples only for the random effects?}
 
-\item{edge_number}{Name of the variable that contains the edge number, the default is \code{edge_number}.}
+\item{return_as_list}{Should the means of the predictions and the posterior
+samples be returned as a list, with each replicate being an element?}
 
-\item{distance_on_edge}{Name of the variable that contains the distance on edge, the default is \code{distance_on_edge}.}
+\item{return_original_order}{Should the results be return in the original
+(input) order or in the order inside the graph?}
 
-\item{normalized}{Are the distances on edges normalized?}
-
-\item{return_as_list}{Should the means of the predictions and the posterior samples be returned as a list, with each replicate being an element?}
-
-\item{return_original_order}{Should the results be return in the original (input) order or in the order inside the graph?}
-
-\item{...}{Not used.}
+\item{...}{Additional arguments. Expert use only.}
 
 \item{data}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{newdata} instead.}
 }
 \value{
 A list with elements \code{mean}, which contains the means of the
-predictions, \code{fe_mean}, which is the prediction for the fixed effects, \code{re_mean}, which is the prediction for the random effects, \code{variance} (if \code{compute_variance} is \code{TRUE}), which contains the
-variances of the predictions, \code{samples} (if \code{posterior_samples} is \code{TRUE}),
-which contains the posterior samples.
+predictions, \code{fe_mean}, which is the prediction for the fixed effects,
+\code{re_mean}, which is the prediction for the random effects, \code{variance} (if
+\code{compute_variance} is \code{TRUE}), which contains the variances of the predictions,
+\code{samples} (if \code{posterior_samples} is \code{TRUE}), which contains the posterior samples.
 }
 \description{
 Prediction of a mixed effects regression model on a metric graph.

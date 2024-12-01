@@ -6,14 +6,14 @@
 \usage{
 \method{update}{CBrSPDEobj}(
   object,
-  user_nu = NULL,
-  user_alpha = NULL,
-  user_kappa = NULL,
-  user_tau = NULL,
-  user_sigma = NULL,
-  user_range = NULL,
-  user_theta = NULL,
-  user_m = NULL,
+  nu = NULL,
+  alpha = NULL,
+  kappa = NULL,
+  tau = NULL,
+  sigma = NULL,
+  range = NULL,
+  theta = NULL,
+  m = NULL,
   mesh = NULL,
   loc_mesh = NULL,
   graph = NULL,
@@ -29,24 +29,24 @@
 \item{object}{The covariance-based rational SPDE approximation,
 computed using \code{\link[=matern.operators]{matern.operators()}}}
 
-\item{user_nu}{If non-null, update the shape parameter of the
+\item{nu}{If non-null, update the shape parameter of the
 covariance function. Will be used if parameterization is 'matern'.}
 
-\item{user_alpha}{If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.}
+\item{alpha}{If non-null, update the fractional SPDE order parameter. Will be used if parameterization is 'spde'.}
 
-\item{user_kappa}{If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.}
+\item{kappa}{If non-null, update the parameter kappa of the SPDE. Will be used if parameterization is 'spde'.}
 
-\item{user_tau}{If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.}
+\item{tau}{If non-null, update the parameter tau of the SPDE. Will be used if parameterization is 'spde'.}
 
-\item{user_sigma}{If non-null, update the standard deviation of
+\item{sigma}{If non-null, update the standard deviation of
 the covariance function. Will be used if parameterization is 'matern'.}
 
-\item{user_range}{If non-null, update the range parameter
+\item{range}{If non-null, update the range parameter
 of the covariance function. Will be used if parameterization is 'matern'.}
 
-\item{user_theta}{For non-stationary models. If non-null, update the vector of parameters.}
+\item{theta}{For non-stationary models. If non-null, update the vector of parameters.}
 
-\item{user_m}{If non-null, update the order of the rational
+\item{m}{If non-null, update the order of the rational
 approximation, which needs to be a positive integer.}
 
 \item{mesh}{An optional inla mesh. Replaces \code{d}, \code{C} and \code{G}.}
@@ -85,7 +85,7 @@ Function to change the parameters of a CBrSPDEobj object
 kappa <- 10
 sigma <- 1
 nu <- 0.8
-range <- sqrt(8*nu)/kappa
+range <- sqrt(8 * nu) / kappa
 
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
@@ -100,7 +100,7 @@ op_cov <- matern.operators(
 op_cov
 
 # Update the range parameter of the model:
-op_cov <- update(op_cov, user_kappa = 20)
+op_cov <- update(op_cov, kappa = 20)
 op_cov
 
 }

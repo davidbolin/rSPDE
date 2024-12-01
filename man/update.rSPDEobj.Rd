@@ -6,14 +6,14 @@
 \usage{
 \method{update}{rSPDEobj}(
   object,
-  user_nu = NULL,
-  user_alpha = NULL,
-  user_kappa = NULL,
-  user_sigma = NULL,
-  user_range = NULL,
-  user_tau = NULL,
-  user_theta = NULL,
-  user_m = NULL,
+  nu = NULL,
+  alpha = NULL,
+  kappa = NULL,
+  sigma = NULL,
+  range = NULL,
+  tau = NULL,
+  theta = NULL,
+  m = NULL,
   mesh = NULL,
   loc_mesh = NULL,
   graph = NULL,
@@ -26,26 +26,26 @@
 \item{object}{The operator-based rational SPDE approximation,
 computed using \code{\link[=matern.operators]{matern.operators()}} with \code{type="operator"}}
 
-\item{user_nu}{If non-null, update the shape parameter
+\item{nu}{If non-null, update the shape parameter
 of the covariance function.}
 
-\item{user_alpha}{If non-null, update the fractional order.}
+\item{alpha}{If non-null, update the fractional order.}
 
-\item{user_kappa}{If non-null, update the range parameter
+\item{kappa}{If non-null, update the range parameter
 of the covariance function.}
 
-\item{user_sigma}{If non-null, update the standard deviation of
+\item{sigma}{If non-null, update the standard deviation of
 the covariance function.}
 
-\item{user_range}{If non-null, update the range parameter
+\item{range}{If non-null, update the range parameter
 of the covariance function.}
 
-\item{user_tau}{If non-null, update the parameter tau.}
+\item{tau}{If non-null, update the parameter tau.}
 
-\item{user_theta}{If non-null, update the parameter theta, that connects
+\item{theta}{If non-null, update the parameter theta, that connects
 tau and kappa to the model matrices.}
 
-\item{user_m}{If non-null, update the order of the rational
+\item{m}{If non-null, update the order of the rational
 approximation, which needs to be a positive integer.}
 
 \item{mesh}{An optional inla mesh. Replaces \code{d}, \code{C} and \code{G}.}
@@ -73,7 +73,7 @@ Function to change the parameters of a rSPDEobj object
 kappa <- 10
 sigma <- 1
 nu <- 0.8
-range <- sqrt(8*nu)/kappa
+range <- sqrt(8 * nu) / kappa
 
 # create mass and stiffness matrices for a FEM discretization
 x <- seq(from = 0, to = 1, length.out = 101)
@@ -88,7 +88,7 @@ op <- matern.operators(
 op
 
 # Update the range parameter of the model:
-op <- update(op, user_kappa = 20)
+op <- update(op, kappa = 20)
 op
 
 }

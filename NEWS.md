@@ -1,3 +1,18 @@
+# rSPDE 2.4.0
+
+* Created the `group_predict` function, to obtain predictions on a testing set based on observations on a training set.
+* Added support for `stochvol`, `stochvol.nig`, `stochvolln` and `binomial` likelihoods in `cross_validation` function.
+* Changing the default `nu.upper.bound` to 2 in dimension 1, and keeping the default `nu.upper.bound` to 4 in dimension 2 in `rspde.matern()` function.
+* Created `matern.rational()` operators for creating stationary matern operators.
+* Created `spacetime.operators()` for creating space-time models.
+* Created `matern2d.operators()` for anisotropic operators.
+* Implemented space-time operators in cgeneric to be used in `INLA` and `inlabru`.
+* Implemented anisotropic operators in cgeneric to be used in `INLA` and `inlabru`.
+* Implemented stationary operators in cgeneric to be used in `INLA` and `inlabru`.
+* Added vignette on space-time models.
+* Added vignette on stationary models.
+* Added vignette on anisotropic models.
+
 # rSPDE 2.3.3
 * Bugfix on rspde_lme when fitting with fixed smoothness.
 * Added a 2d fem interface.

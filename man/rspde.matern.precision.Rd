@@ -67,8 +67,8 @@ sigma <- 1
 d <- 1
 nu <- 2.6
 tau <- sqrt(gamma(nu) / (kappa^(2 * nu) * (4 * pi)^(d / 2) *
-gamma(nu + d / 2)))
-range <- sqrt(8*nu)/kappa
+  gamma(nu + d / 2)))
+range <- sqrt(8 * nu) / kappa
 op_cov <- matern.operators(
   loc_mesh = x, nu = nu, range = range, sigma = sigma,
   d = 1, m = 2, compute_higher_order = TRUE,

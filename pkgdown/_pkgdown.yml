@@ -29,6 +29,14 @@ navbar:
         href: articles/rspde_cov.html
       - text: Operator-based rational approximation
         href: articles/rspde_base.html
+      - text: Intrinsic models
+        href: articles/intrinsic.html
+      - text: Anisotropic models
+        href: articles/anisotropic.html
+      - text: Spatio-temporal models
+        href: articles/spacetime.html
+      - text: Rational approximations without finite element approximations
+        href: articles/rspde_nofem.html
       - text: Building the rSPDE package from source on Mac and Linux
         href: articles/build_source.html
     twitter:
@@ -45,14 +53,21 @@ home:
 reference:
   - title: rSPDE package
     contents: 
+    - rSPDE-package
     - rSPDE
   - title: rSPDE models
     contents:
     - rspde.matern
     - rspde.metric_graph
+    - rspde.spacetime
+    - rspde.anistropic2d
+    - rspde.matern1d
     - matern.operators
+    - matern2d.operators
     - spde.matern.operators    
     - fractional.operators
+    - matern.rational
+    - spacetime.operators
   - title: Linear mixed-effects models
     contents:    
     - rspde_lme
@@ -64,6 +79,8 @@ reference:
     contents:
     - intrinsic.matern.operators
     - variogram.intrinsic.spde
+    - rspde.matern.intrinsic
+    - simulate.intrinsicCBrSPDEobj
   - title: Log-likelihood
     contents:
     - rSPDE.matern.loglike
@@ -75,7 +92,7 @@ reference:
     contents:
     - rspde.matern.precision
     - rspde.matern.precision.integer
-  - title: Methods for rSPDE and CBrSPDE objects
+  - title: Methods for rSPDE, CBrSPDE and spacetime objects
     contents:
     - predict.rSPDEobj
     - simulate.rSPDEobj
@@ -86,6 +103,20 @@ reference:
     - summary.CBrSPDEobj
     - update.CBrSPDEobj
     - precision.CBrSPDEobj
+    - predict.CBrSPDEobj2d
+    - simulate.CBrSPDEobj2d
+    - summary.CBrSPDEobj2d
+    - update.CBrSPDEobj2d
+    - precision.CBrSPDEobj2d
+    - simulate.rSPDEobj1d
+    - summary.rSPDEobj1d
+    - update.rSPDEobj1d
+    - precision.rSPDEobj1d
+    - precision.spacetimeobj
+    - predict.spacetimeobj
+    - simulate.spacetimeobj
+    - update.spacetimeobj
+    - summary.spacetimeobj
   - title: Functions and methods for R-INLA rSPDE objects
     contents:
     - rspde.make.A
@@ -101,17 +132,25 @@ reference:
   - title: Functions and methods for rSPDE interface for inlabru
     contents:
     - cross_validation
+    - group_predict
+    - predict.inla_rspde_matern1d
     - bru_get_mapper.inla_rspde
+    - bru_get_mapper.inla_rspde_spacetime
+    - bru_get_mapper.inla_rspde_anisotropic2d
+    - bru_get_mapper.inla_rspde_matern1d
   - title: Finite element-related functions
     contents:
     - rSPDE.A1d
     - rSPDE.fem1d
     - rSPDE.fem2d
+    - rSPDE.Ast
   - title: Auxiliary functions
     contents:
+    - create_train_test_indices
     - get.initial.values.rSPDE
     - require.nowarnings
     - matern.covariance
+    - matern.rational.cov
     - folded.matern.covariance.1d
     - folded.matern.covariance.2d
     - rspde.matern.precision.opt
@@ -120,6 +159,8 @@ reference:
     - rational.type<-
     - rational.order
     - rational.type
+    - transform_parameters_anisotropic
+    - transform_parameters_spacetime
   - title: Operator operations
     contents:
     - operator.operations
