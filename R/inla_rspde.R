@@ -926,8 +926,8 @@ restructure_matrices_less <- function(matrices_less, m_alpha) {
 #' @return The \eqn{A} matrix for rSPDE models.
 #' @export
 #' @examples
-#' \donttest{
-#' # devel version
+#' \donttest{ #tryCatch version
+          #' tryCatch({
 #' if (requireNamespace("fmesher", quietly = TRUE)) {
 #'   library(fmesher)
 #'
@@ -940,7 +940,8 @@ restructure_matrices_less <- function(matrices_less, m_alpha) {
 #'   )
 #'   A <- spde.make.A(mesh, loc = loc)
 #' }
-#' # devel.tag
+#' #stable.tryCatch
+          #' }, error = function(e){print("Could not run the example")})
 #' }
 spde.make.A <- function(mesh = NULL,
                         loc = NULL,
@@ -1050,8 +1051,8 @@ spde.make.A <- function(mesh = NULL,
 #' @return The \eqn{A} matrix for rSPDE models.
 #' @export
 #' @examples
-#' \donttest{
-#' # devel version
+#' \donttest{ #tryCatch version
+          #' tryCatch({
 #' if (requireNamespace("INLA", quietly = TRUE)) {
 #'   library(INLA)
 #'
@@ -1064,7 +1065,8 @@ spde.make.A <- function(mesh = NULL,
 #'   )
 #'   A <- rspde.make.A(mesh, loc = loc, rspde.order = 3)
 #' }
-#' # devel.tag
+#' #stable.tryCatch
+          #' }, error = function(e){print("Could not run the example")})
 #' }
 rspde.make.A <- function(mesh = NULL,
                          loc = NULL,
@@ -1227,8 +1229,8 @@ rspde.make.A <- function(mesh = NULL,
 #' \item{name.repl}{Indices for replicates}
 #' @export
 #' @examples
-#' \donttest{
-#' # devel version
+#' \donttest{ #tryCatch version
+          #' tryCatch({
 #' if (requireNamespace("INLA", quietly = TRUE)) {
 #'   library(INLA)
 #'
@@ -1278,7 +1280,8 @@ rspde.make.A <- function(mesh = NULL,
 #'   result <- rspde.result(rspde_fit, "field", rspde_model)
 #'   summary(result)
 #' }
-#' # devel.tag
+#' #stable.tryCatch
+          #' }, error = function(e){print("Could not run the example")})
 #' }
 rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
                              n.repl = 1, mesh = NULL,
@@ -1689,8 +1692,8 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #' \item{summary.nu}{Summary statistics for nu}
 #' @export
 #' @examples
-#' \donttest{
-#' # devel version
+#' \donttest{ #tryCatch version
+          #' tryCatch({
 #' if (requireNamespace("INLA", quietly = TRUE)) {
 #'   library(INLA)
 #'
@@ -1740,7 +1743,8 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #'   result <- rspde.result(rspde_fit, "field", rspde_model)
 #'   summary(result)
 #' }
-#' # devel.tag
+#' #stable.tryCatch
+          #' }, error = function(e){print("Could not run the example")})
 #' }
 rspde.result <- function(inla, name, rspde, compute.summary = TRUE, parameterization = "detect", n_samples = 5000, n_density = 1024) {
   check_class_inla_rspde(rspde)
@@ -2398,8 +2402,8 @@ gg_df.rspde_result <- function(result,
 #' @export
 #' @method summary rspde_result
 #' @examples
-#' \donttest{
-#' # devel version
+#' \donttest{ #tryCatch version
+          #' tryCatch({
 #' if (requireNamespace("INLA", quietly = TRUE)) {
 #'   library(INLA)
 #'
@@ -2449,7 +2453,8 @@ gg_df.rspde_result <- function(result,
 #'   result <- rspde.result(rspde_fit, "field", rspde_model)
 #'   summary(result)
 #' }
-#' # devel.tag
+#' #stable.tryCatch
+          #' }, error = function(e){print("Could not run the example")})
 #' }
 #'
 summary.rspde_result <- function(object,

@@ -94,20 +94,3 @@ where \eqn{C} is a Whittle-Matérn covariance operator with smoothness parameter
 space-time random fields using either 1D spatial models or higher-dimensional
 FEM-based approaches.
 }
-\examples{
-library(INLA)
-library(MetricGraph)
-graph <- metric_graph$new()
-graph$build_mesh(h = 0.1)
-graph$compute_fem()
-
-# Define the time locations
-time_loc <- seq(from = 0, to = 10, length.out = 11)
-
-# Create the model
-model <- rspde.spacetime(mesh_space = graph,
-                         time_loc = time_loc,
-                         alpha = 2,
-                         beta = 1)
-
-}

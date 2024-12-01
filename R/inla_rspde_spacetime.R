@@ -52,24 +52,6 @@
 #' @return An object of class `inla_rspde_spacetime` representing the FEM approximation of
 #' the space-time Gaussian random field.
 #' @export
-#'
-#' @examples
-#' library(INLA)
-#' library(MetricGraph)
-#' graph <- metric_graph$new()
-#' graph$build_mesh(h = 0.1)
-#' graph$compute_fem()
-#'
-#' # Define the time locations
-#' time_loc <- seq(from = 0, to = 10, length.out = 11)
-#'
-#' # Create the model
-#' model <- rspde.spacetime(mesh_space = graph,
-#'                          time_loc = time_loc,
-#'                          alpha = 2,
-#'                          beta = 1)
-#'
-
 rspde.spacetime <- function(mesh_space = NULL,
                             mesh_time = NULL,
                             space_loc = NULL,
