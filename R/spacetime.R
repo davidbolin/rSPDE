@@ -504,6 +504,7 @@ spacetime.operators <- function(mesh_space = NULL,
 #'
 #' @return An object of type spacetimeobj with updated parameters.
 #' @export
+#' @method update spacetimeobj
 #'
 #' @examples
 #'s <- seq(from = 0, to = 20, length.out = 101)
@@ -513,7 +514,8 @@ spacetime.operators <- function(mesh_space = NULL,
 #'                              kappa = 5, sigma = 10, alpha = 1,
 #'                              beta = 2, rho = 1, gamma = 0.05)
 #'op_cov <- update.spacetimeobj(op_cov, kappa = 4, 
-#'                              sigma = 2, gamma = 0.1)                              
+#'                              sigma = 2, gamma = 0.1)      
+                        
 update.spacetimeobj <- function(object, 
                                 kappa = NULL,
                                 sigma = NULL,
