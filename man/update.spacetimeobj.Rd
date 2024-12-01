@@ -2,7 +2,7 @@
 % Please edit documentation in R/spacetime.R
 \name{update.spacetimeobj}
 \alias{update.spacetimeobj}
-\title{Update space-time operator object with new parameters}
+\title{Update parameters of spacetimeobj objects}
 \usage{
 \method{update}{spacetimeobj}(object, kappa = NULL, sigma = NULL, gamma = NULL, rho = NULL, ...)
 }
@@ -23,7 +23,7 @@
 An object of type spacetimeobj with updated parameters.
 }
 \description{
-Update space-time operator object with new parameters
+Function to change the parameters of a spacetimeobj object
 }
 \examples{
 s <- seq(from = 0, to = 20, length.out = 101)
