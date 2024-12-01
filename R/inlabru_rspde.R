@@ -1450,10 +1450,26 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
 
         if (parallelize_RP) {
           Y1_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
-            sqrt(posterior_samples[i, 1:n_samples]) * ngme2::rnig(n_samples, delta = -skewness_1/gamma_1, mu = skewness_1, nu = shape_1^2, sigma = 1/sqrt(gamma_1))
+            sqrt(posterior_samples[i, 1:n_samples]) * GeneralizedHyperbolic::rnig(n_samples,
+                                   mu = -skewness_1 / gamma_1,   # mu_new corresponds to delta_old = -skewness_1 / gamma_1
+                                   delta = shape_1 / gamma_1,    # delta_new = sqrt(nu * sigma^2) = shape_1 / gamma_1
+                                   alpha = sqrt(skewness_1^2 * gamma_1^4 + shape_1^2 * gamma_1^2), 
+                                   # alpha = sqrt(mu^2 / sigma^4 + nu / sigma^2)
+                                   #        = sqrt(skewness_1^2 * gamma_1^4 + shape_1^2 * gamma_1^2)
+                              
+                                   beta = skewness_1 * gamma_1   # beta = mu_old / sigma^2 = skewness_1 * gamma_1
+                              )
           })
           Y2_sample <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
-            sqrt(posterior_samples[i, (n_samples + 1):(2 * n_samples)]) * ngme2::rnig(n_samples, delta = -skewness_2/gamma_2, mu = skewness_2, nu = shape_2^2, sigma = 1/sqrt(gamma_2))
+            sqrt(posterior_samples[i, (n_samples + 1):(2 * n_samples)]) * GeneralizedHyperbolic::rnig(n_samples,
+                                   mu = -skewness_2 / gamma_2,   # mu_new corresponds to delta_old = -skewness_2 / gamma_2
+                                   delta = shape_2 / gamma_2,    # delta_new = sqrt(nu * sigma^2) = shape_2 / gamma_2
+                                   alpha = sqrt(skewness_2^2 * gamma_2^4 + shape_2^2 * gamma_2^2),
+                                   # alpha = sqrt(mu^2 / sigma^4 + nu / sigma^2)
+                                   #        = sqrt(skewness_2^2 * gamma_2^4 + shape_2^2 * gamma_2^2)
+                              
+                                   beta = skewness_2 * gamma_2   # beta = mu_old / sigma^2 = skewness_2 * gamma_2
+                              )
           })
           E1_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
             mean(abs(Y1_sample[[i]] - test_data[i]))
@@ -1463,10 +1479,26 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
           })
         } else {
           Y1_sample <- lapply(1:length(test_data), function(i) {
-            sqrt(posterior_samples[i, 1:n_samples]) * ngme2::rnig(n_samples, delta = -skewness_1/gamma_1, mu = skewness_1, nu = shape_1^2, sigma = 1/sqrt(gamma_1))
+            sqrt(posterior_samples[i, 1:n_samples]) * GeneralizedHyperbolic::rnig(n_samples,
+                                   mu = -skewness_1 / gamma_1,   # mu_new corresponds to delta_old = -skewness_1 / gamma_1
+                                   delta = shape_1 / gamma_1,    # delta_new = sqrt(nu * sigma^2) = shape_1 / gamma_1
+                                   alpha = sqrt(skewness_1^2 * gamma_1^4 + shape_1^2 * gamma_1^2),
+                                   # alpha = sqrt(mu^2 / sigma^4 + nu / sigma^2)
+                                   #        = sqrt(skewness_1^2 * gamma_1^4 + shape_1^2 * gamma_1^2)
+
+                                   beta = skewness_1 * gamma_1   # beta = mu_old / sigma^2 = skewness_1 * gamma_1
+                              )
           })
           Y2_sample <- lapply(1:length(test_data), function(i) {
-            sqrt(posterior_samples[i, (n_samples + 1):(2 * n_samples)]) * ngme2::rnig(n_samples, delta = -skewness_2/gamma_2, mu = skewness_2, nu = shape_2^2, sigma = 1/sqrt(gamma_2))
+            sqrt(posterior_samples[i, (n_samples + 1):(2 * n_samples)]) * GeneralizedHyperbolic::rnig(n_samples,
+                                   mu = -skewness_2 / gamma_2,   # mu_new corresponds to delta_old = -skewness_2 / gamma_2
+                                   delta = shape_2 / gamma_2,    # delta_new = sqrt(nu * sigma^2) = shape_2 / gamma_2
+                                   alpha = sqrt(skewness_2^2 * gamma_2^4 + shape_2^2 * gamma_2^2),
+                                   # alpha = sqrt(mu^2 / sigma^4 + nu / sigma^2)
+                                   #        = sqrt(skewness_2^2 * gamma_2^4 + shape_2^2 * gamma_2^2)
+                              
+                                   beta = skewness_2 * gamma_2   # beta = mu_old / sigma^2 = skewness_2 * gamma_2
+                              )
           })
           E1_tmp <- lapply(1:length(test_data), function(i) {
             mean(abs(Y1_sample[[i]] - test_data[i]))
