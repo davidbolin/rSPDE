@@ -59,5 +59,5 @@ jobs:
 
       - uses: r-lib/actions/check-r-package@v2
         with:
-          args: 'c("--no-manual", "--as-cran")'
-          error-on: '"error"'
+          args: 'c("--as-cran", "--run-donttest", "--timings", "--incoming", "--remote")'
+          error-on: 'error'
