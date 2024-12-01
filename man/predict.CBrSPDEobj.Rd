@@ -75,7 +75,7 @@ x <- seq(from = 0, to = 1, length.out = 101)
 fem <- rSPDE.fem1d(x)
 
 tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-       (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
+  (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 
 # Compute the covariance-based rational approximation
 op_cov <- matern.operators(

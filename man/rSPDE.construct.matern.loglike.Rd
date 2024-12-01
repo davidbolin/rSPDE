@@ -10,13 +10,13 @@ rSPDE.construct.matern.loglike(
   A,
   sigma.e = NULL,
   mu = 0,
-  user_nu = NULL,
-  user_tau = NULL,
-  user_kappa = NULL,
-  user_sigma = NULL,
-  user_range = NULL,
+  nu = NULL,
+  tau = NULL,
+  kappa = NULL,
+  sigma = NULL,
+  range = NULL,
   parameterization = c("spde", "matern"),
-  user_m = NULL,
+  m = NULL,
   log_scale = TRUE,
   return_negative_likelihood = TRUE
 )
@@ -36,19 +36,19 @@ the returned likelihood.}
 
 \item{mu}{Expectation vector of the latent field (default = 0).}
 
-\item{user_nu}{If non-null, the shape parameter will be kept fixed in the returned likelihood.}
+\item{nu}{If non-null, the shape parameter will be kept fixed in the returned likelihood.}
 
-\item{user_tau}{If non-null, the tau parameter will be kept fixed in the returned likelihood. (Replaces sigma)}
+\item{tau}{If non-null, the tau parameter will be kept fixed in the returned likelihood. (Replaces sigma)}
 
-\item{user_kappa}{If non-null, the range parameter will be kept fixed in the returned likelihood.}
+\item{kappa}{If non-null, the range parameter will be kept fixed in the returned likelihood.}
 
-\item{user_sigma}{If non-null, the standard deviation will be kept fixed in the returned likelihood.}
+\item{sigma}{If non-null, the standard deviation will be kept fixed in the returned likelihood.}
 
-\item{user_range}{If non-null, the range parameter will be kept fixed in the returned likelihood. (Replaces kappa)}
+\item{range}{If non-null, the range parameter will be kept fixed in the returned likelihood. (Replaces kappa)}
 
 \item{parameterization}{If \code{spde}, then one will use the parameters \code{tau} and \code{kappa}. If \code{matern}, then one will use the parameters \code{sigma} and \code{range}.}
 
-\item{user_m}{If non-null, update the order of the rational approximation,
+\item{m}{If non-null, update the order of the rational approximation,
 which needs to be a positive integer.}
 
 \item{log_scale}{Should the parameters be evaluated in log-scale?}
@@ -88,7 +88,7 @@ x <- seq(from = 0, to = 1, length.out = n.x)
 op_cov <- matern.operators(
   loc_mesh = x, nu = nu,
   range = range, sigma = sigma, d = 1, m = 2,
- parameterization = "matern"
+  parameterization = "matern"
 )
 # Sample the model
 u <- simulate(op_cov, n.rep)
@@ -102,13 +102,15 @@ Y <- as.matrix(A \%*\% u + sigma.e * noise)
 # Define the negative likelihood function for optimization
 # using CBrSPDE.matern.loglike
 # Matern parameterization
-loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A, parameterization = "matern") 
+loglike <- rSPDE.construct.matern.loglike(op_cov, Y, A, parameterization = "matern")
 
 # The parameters can now be estimated by minimizing mlik with optim
 
 # Choose some reasonable starting values depending on the size of the domain
-theta0 <- c(get.initial.values.rSPDE(mesh.range = 1, dim = 1), 
-                                 log(0.1*sd(as.vector(Y))))
+theta0 <- c(
+  get.initial.values.rSPDE(mesh.range = 1, dim = 1),
+  log(0.1 * sd(as.vector(Y)))
+)
 # run estimation and display the results
 theta <- optim(theta0, loglike,
   method = "L-BFGS-B"
@@ -118,7 +120,6 @@ print(data.frame(
   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
   row.names = c("Truth", "Estimates")
 ))
-
 }
 }
 \seealso{

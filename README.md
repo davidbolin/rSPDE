@@ -1,8 +1,8 @@
 # rSPDE <a href="https://davidbolin.github.io/rSPDE/"><img src="./man/figures/logo.png" align="right" height="138" /></a>
 
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-last-release/rSPDE)](https://cran.r-project.org/package=rSPDE)
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version-last-release/rSPDE)](https://cran.r-project.org/package=rSPDE)
 [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)
-[![R-CMD-check](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml/badge.svg?branch=devel-src)](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml)
 
 # Description #
 `rSPDE` is an R package used for computing rational approximations of fractional SPDEs. These rational approximations can be used for computationally efficient statistical inference.
@@ -48,7 +48,7 @@ remotes::install_github("davidbolin/rspde", ref = "devel")
 
 *The following is intended for expert use only:* 
 
-In case you want to build the source, the `stable-src` and `devel-src` branches require compilation, which is not the case for the `cran`, `stable` and `devel` branches. 
+In case you want to build the source, the `stable-src` and `devel-src` branches require compilation, which is not the case for the `cran`, `stable` and `devel` branches. Observe that it is possible that some features will only be available (for a while) for those using the `devel-src` branch. But within a month or so, after such feature was implemented, it will also be available for those using the `devel` branch.
 
 For Windows operating systems, we recommend the user to install from either of the `cran`, `stable` or `devel` branches, which require no compilation. 
 
@@ -94,14 +94,23 @@ For non `devel` branches that collaborators need access to (e.g. release branche
 
   * Prepare a new stable release with CRAN submission:
 ```
+# If git flow was not initialized, initialize it with
+git flow init
+# When initializing git flow, choose the tag prefix as v
+# Now, start the release 
 git flow release start major.(minor+1).0
-
 # In R, the following updates the version number in DESCRIPTION and NEWS:
 usethis::use_version("minor") 
 ## At this point, see the CRAN submission section below.
 git flow release finish 'VERSION'
 # In the stable merge, accept all incoming changes.
-# Push the changes and do adjustments if needed.
+# Do adjustments if needed and push the changes.
+# Check the existing tags with
+git tag
+# If a tag was not created, create one with 
+git tag vX.X.X -m "Tag for version X.X.X"
+# After pushing the merge, also push the tag:
+git push origin vX.X.X
 # After handling the stable branch, merge back with devel.
 # In R, the following updates the dev version number in DESCRIPTION and NEWS:
 usethis::use_dev_version() 

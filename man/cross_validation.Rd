@@ -18,9 +18,11 @@ cross_validation(
   include_best = TRUE,
   train_test_indexes = NULL,
   return_train_test = FALSE,
+  return_post_samples = FALSE,
+  return_true_test_values = FALSE,
   parallelize_RP = FALSE,
   n_cores_RP = parallel::detectCores() - 1,
-  true_CV = FALSE,
+  true_CV = TRUE,
   save_settings = FALSE,
   print = TRUE,
   fit_verbose = FALSE
@@ -56,7 +58,11 @@ Typically this will be returned list obtained by setting the argument \code{retu
 
 \item{return_train_test}{Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list.}
 
-\item{parallelize_RP}{Logical. Should the computation of CRPS and SCRPS be parallelized?}
+\item{return_post_samples}{If \code{TRUE} the posterior samples will be included in the returned list.}
+
+\item{return_true_test_values}{If \code{TRUE} the true test values will be included in the returned list.}
+
+\item{parallelize_RP}{Logical. Should the computation of CRPS and SCRPS (and for some cases, DSS) be parallelized?}
 
 \item{n_cores_RP}{Number of cores to be used if \code{parallelize_rp} is \code{TRUE}.}
 

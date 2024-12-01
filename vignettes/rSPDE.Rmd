@@ -7,94 +7,7 @@ vignette: >
   %\VignetteIndexEntry{An introduction to the rSPDE package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-references:
-- id: bolin19
-  title: "The rational SPDE approach for Gaussian random fields with general smoothness"
-  author:
-  - family: Bolin
-    given: David
-  - family: Kirchner
-    given: Kristin
-  container-title: Journal of Computational and Graphical Statistics
-  volume: 29
-  issue: 2
-  page: 274-285
-  type: article-journal
-  issued:
-    year: 2020
-- id: lindgren11
-  title: "An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach"
-  author:
-  - family: Lindgren
-    given: Finn
-  - family: Rue
-    given: Håvard
-  - family: Lindström
-    given: Johan
-  container-title: Journal of the Royal Statistical Society. Series B. Statistical Methodology
-  volume: 73
-  issue: 4
-  page: 423--498
-  type: article-journal
-  issued:
-    year: 2011
-- id: bolin13
-  title: "Spatial Matérn Fields Driven by Non-Gaussian Noise"
-  author:
-    - family: Bolin
-      given: David
-  container-title: Scandinavian Journal of Statistics
-  volume: 41
-  issue: 3
-  page: 557-579
-  type: article-journal
-  issued:
-    year: 2013
-- id: wallin15
-  title: "Geostatistical Modelling Using Non-Gaussian Matérn Fields"
-  author:
-    - family: Wallin
-      given: Jonas
-    - family: Bolin
-      given: David
-  container-title: Scandinavian Journal of Statistics
-  volume: 42
-  issue: 3
-  page: 872-890
-  type: article-journal
-  issued:
-    year: 2015
-- id: asar20
-  title: "Linear mixed effects models for non‐Gaussian repeated measurement data"
-  author:
-    - family: Asar
-      given: Özgür
-    - family: Bolin
-      given: David
-    - family: Diggle
-      given: Peter
-    - family: Wallin
-      given: Jonas
-  container-title: Journal of the Royal Statistical Society. Series C. Applied Statistics
-  volume: 69
-  issue: 5
-  page: 1015-1065
-  type: article-journal
-  issued:
-    year: 2020 
-- id: xiong22
-  title: "Covariance-based rational approximations of fractional SPDEs for computationally efficient Bayesian inference"
-  author: 
-  - family: Bolin
-    given: David
-  - family: Simas
-    given: Alexandre B.
-  - family: Xiong
-    given: Zhen    
-  container-title: Journal of Computational and Graphical Statistics
-  type: article-journal
-  issued:
-    year: 2023   
+bibliography: references.bib
 ---
 
 ```{r setup, include = FALSE}
@@ -163,7 +76,7 @@ We will begin by defining a mesh over $[0,1]\times [0, 1]$:
 
 ```{r, message=FALSE, warning=FALSE, fig.align='center'}
 library(fmesher)
-n_loc <- 2000
+n_loc <- 1000
 loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
 mesh_2d <- fm_mesh_2d(
   loc = loc_2d_mesh,
@@ -404,12 +317,7 @@ rspde_fitprd <- inla(f,
   family = "Gaussian",
   data = inla.stack.data(st.all),
   control.predictor = list(
-    A = inla.stack.A(st.all),
-    compute = TRUE, link = 1
-  ),
-  control.compute = list(
-    return.marginals = FALSE,
-    return.marginals.predictor = FALSE
+    A = inla.stack.A(st.all)
   ),
   control.inla = list(int.strategy = "eb")
 )
@@ -471,20 +379,22 @@ rspde_model <- rspde.matern(
 ```
 
 The advantage with `inlabru` is that we do not need to form the stack manually, but can simply collect the required data in 
-a `data.frame()`:
+a `data.frame()`. Further, we can turn the data into an `sf` object.
 
 ```{r}
+library(sf)
 toy_df <- data.frame(coord1 = loc_2d_mesh[,1],
                      coord2 = loc_2d_mesh[,2],
                      y = as.vector(y))
-coordinates(toy_df) <- c("coord1", "coord2")
+toy_df <- st_as_sf(toy_df, coords = c("coord1", "coord2"))
 ```
 
 Finally, we create the component and fit:
 
 ```{r message=FALSE, warning=FALSE}
 cmp <-
-  y ~ -1 + field(coordinates, model = rspde_model)
+  y ~ -1 + field(geometry, 
+                    model = rspde_model)
 
 rspde_bru_fit <-
   bru(cmp,
@@ -551,43 +461,41 @@ a dense grid in the region.
 We begin by creating the grid of the locations where we want to evaluate the predictions. We begin
 by creating a regular grid in and then extract the coorinates:
 ```{r}
-pred_coords <- data.frame(x1 = projgrid$lattice$loc[,1],
-                          x2 = projgrid$lattice$loc[,2])
-coordinates(pred_coords) <- c("x1", "x2")
+pred_coords <- data.frame(coord1 = projgrid$lattice$loc[,1],
+                          coord2 = projgrid$lattice$loc[,2])
+pred_coords <- st_as_sf(pred_coords, coords = c("coord1", "coord2"))                          
 ```
 
 Let us now compute the predictions. An advantage with `inlabru` is that we can do this after fitting the model to the data:
 
 ```{r}
-field_pred <- predict(rspde_bru_fit, pred_coords, ~field)
+field_pred <- predict(rspde_bru_fit, pred_coords, ~ data.frame(field))
 ```
 
 The following figure shows the mean of these predictions:
 
 ```{r, echo=TRUE, fig.align='center', message=FALSE, warning=FALSE}
-field_pred_df <- field_pred@data
-field_pred_df <- cbind(field_pred_df, field_pred@coords)
-ggplot(field_pred_df, aes(x = x1, y = x2, fill = mean)) +
-  geom_raster() + xlim(0,1) + ylim(0,1) + 
+ggplot() + gg(field_pred, geom = "tile", aes(fill = mean)) + 
+  xlim(0,1) + ylim(0,1) + 
   scale_fill_viridis()
 ```
 
 The following figure shows the marginal standard deviations of the predictions:
 
 ```{r plot_pred_sd_bru, fig.align='center', echo=TRUE, message=FALSE, warning=FALSE}
-ggplot(field_pred_df, aes(x = x1, y = x2, fill = sd)) +
-  geom_raster() + xlim(0,1) + ylim(0,1) + 
+ggplot() + gg(field_pred, geom = "tile", aes(fill = sd)) + 
+  xlim(0,1) + ylim(0,1) + 
   scale_fill_viridis()
 ```
 
-An alternative and very simple approach is to use the `pixels()` function:
+An alternative and very simple approach is to use the `fm_pixels()` function:
 
 ```{r plot_pred_pxl, fig.align='center', warning=FALSE}
-pxl <- pixels(mesh_2d)
+pxl <- fm_pixels(mesh_2d)
 
 field_pred <- predict(rspde_bru_fit, pxl, ~field)
 
-ggplot() + gg(field_pred) +
+ggplot() + gg(field_pred, geom = "tile", aes(fill = mean)) +
   scale_fill_viridis() + xlim(0,1) + ylim(0,1)
 ```
 

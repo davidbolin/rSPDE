@@ -11,8 +11,10 @@ rSPDE.fem1d(x)
 }
 \value{
 The function returns a list with the following elements
-\item{G }{The stiffness matrix.}
-\item{C }{The mass matrix.}
+\item{G }{The stiffness matrix with elements \eqn{(\nabla \phi_i, \nabla \phi_j)}.}
+\item{C }{The mass matrix with elements \eqn{(\phi_i, \phi_j)}.}
+\item{Cd }{Mass lumped mass matrix.}
+\item{B }{Matrix with elements \eqn{(\nabla \phi_i, \phi_j)}.}
 }
 \description{
 This function computes mass and stiffness matrices

@@ -10,8 +10,8 @@ construct.spde.matern.loglike(
   A,
   sigma.e = NULL,
   mu = 0,
-  user_nu = NULL,
-  user_m = NULL,
+  nu = NULL,
+  m = NULL,
   log_scale = TRUE,
   return_negative_likelihood = TRUE
 )
@@ -31,9 +31,9 @@ the returned likelihood.}
 
 \item{mu}{Expectation vector of the latent field (default = 0).}
 
-\item{user_nu}{If non-null, the shape parameter will be kept fixed in the returned likelihood.}
+\item{nu}{If non-null, the shape parameter will be kept fixed in the returned likelihood.}
 
-\item{user_m}{If non-null, update the order of the rational approximation,
+\item{m}{If non-null, update the order of the rational approximation,
 which needs to be a positive integer.}
 
 \item{log_scale}{Should the parameters be evaluated in log-scale?}
@@ -73,11 +73,11 @@ alpha <- nu + 0.5
 kappa <- rep(1, n.x)
 # Matern parameterization
 # compute rational approximation
- op <- spde.matern.operators(
-    loc_mesh = x,
-   kappa = kappa, tau = tau, alpha = alpha,
-   parameterization = "spde", d = 1
- )
+op <- spde.matern.operators(
+  loc_mesh = x,
+  kappa = kappa, tau = tau, alpha = alpha,
+  parameterization = "spde", d = 1
+)
 # Sample the model
 u <- simulate(op, n.rep)
 # Create some data
@@ -91,7 +91,7 @@ mlik <- construct.spde.matern.loglike(op, Y, A)
 #' #The parameters can now be estimated by minimizing mlik with optim
 \donttest{
 # Choose some reasonable starting values depending on the size of the domain
-theta0 <- log(c( 1 / sqrt(var(c(Y))),sqrt(8), 0.9, 0.01))
+theta0 <- log(c(1 / sqrt(var(c(Y))), sqrt(8), 0.9, 0.01))
 # run estimation and display the results
 theta <- optim(theta0, mlik)
 print(data.frame(
@@ -103,11 +103,11 @@ print(data.frame(
 
 # SPDE parameterization
 # compute rational approximation
- op <- spde.matern.operators(
-   kappa = kappa, tau = tau, alpha = alpha,
-   loc_mesh = x, d = 1, 
-   parameterization = "spde"
- )
+op <- spde.matern.operators(
+  kappa = kappa, tau = tau, alpha = alpha,
+  loc_mesh = x, d = 1,
+  parameterization = "spde"
+)
 # Sample the model
 u <- simulate(op, n.rep)
 # Create some data
@@ -121,7 +121,7 @@ mlik <- construct.spde.matern.loglike(op, Y, A)
 #' #The parameters can now be estimated by minimizing mlik with optim
 \donttest{
 # Choose some reasonable starting values depending on the size of the domain
-theta0 <- log(c( 1 / sqrt(var(c(Y))),sqrt(8), 0.9, 0.01))
+theta0 <- log(c(1 / sqrt(var(c(Y))), sqrt(8), 0.9, 0.01))
 # run estimation and display the results
 theta <- optim(theta0, mlik)
 print(data.frame(

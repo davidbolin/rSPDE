@@ -16,9 +16,6 @@
   pred_int = FALSE,
   level = 0.95,
   n_samples = 100,
-  edge_number = "edge_number",
-  distance_on_edge = "distance_on_edge",
-  normalized = FALSE,
   ...
 )
 }
@@ -45,13 +42,7 @@ will be obtained for all replicates. Default is \code{NULL}.}
 
 \item{n_samples}{Number of samples when computing prediction intervals.}
 
-\item{edge_number}{Name of the variable that contains the edge number, the default is \code{edge_number}.}
-
-\item{distance_on_edge}{Name of the variable that contains the distance on edge, the default is \code{distance_on_edge}.}
-
-\item{normalized}{Are the distances on edges normalized?}
-
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments. Expert use only.}
 }
 \value{
 A \code{\link[tidyr:reexports]{tidyr::tibble()}} with columns:

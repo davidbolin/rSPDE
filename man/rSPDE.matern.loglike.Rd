@@ -11,12 +11,12 @@ rSPDE.matern.loglike(
   A,
   sigma.e,
   mu = 0,
-  user_nu = NULL,
-  user_kappa = NULL,
-  user_sigma = NULL,
-  user_range = NULL,
-  user_tau = NULL,
-  user_m = NULL
+  nu = NULL,
+  kappa = NULL,
+  sigma = NULL,
+  range = NULL,
+  tau = NULL,
+  m = NULL
 )
 }
 \arguments{
@@ -33,21 +33,21 @@ finite element basis.}
 
 \item{mu}{Expectation vector of the latent field (default = 0).}
 
-\item{user_nu}{If non-null, update the shape parameter of the covariance
+\item{nu}{If non-null, update the shape parameter of the covariance
 function.}
 
-\item{user_kappa}{If non-null, update the range parameter of the covariance
+\item{kappa}{If non-null, update the range parameter of the covariance
 function.}
 
-\item{user_sigma}{If non-null, update the standard deviation of
+\item{sigma}{If non-null, update the standard deviation of
 the covariance function.}
 
-\item{user_range}{If non-null, update the range parameter
+\item{range}{If non-null, update the range parameter
 of the covariance function.}
 
-\item{user_tau}{If non-null, update the parameter tau.}
+\item{tau}{If non-null, update the parameter tau.}
 
-\item{user_m}{If non-null, update the order of the rational approximation,
+\item{m}{If non-null, update the order of the rational approximation,
 which needs to be a positive integer.}
 }
 \value{
@@ -64,8 +64,7 @@ the a rational approximation
 of the fractional SPDE model corresponding to the Gaussian process.
 }
 \examples{
-# this example illustrates how the function can be used for maximum
-# likelihood estimation
+# this example illustrates how the function can be used for maximum likelihood estimation
 
 set.seed(123)
 # Sample a Gaussian Matern process on R using a rational approximation
@@ -83,13 +82,13 @@ x <- seq(from = 0, to = 1, length.out = n.x)
 fem <- rSPDE.fem1d(x)
 
 tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-(4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
+  (4 * pi)^(1 / 2) * gamma(nu + 1 / 2)))
 
 # Compute the covariance-based rational approximation
 op_cov <- matern.operators(
   loc_mesh = x, nu = nu,
   range = range, sigma = sigma, d = 1, m = 2,
- parameterization = "matern"
+  parameterization = "matern"
 )
 
 # Sample the model
@@ -113,8 +112,8 @@ mlik_cov <- function(theta, Y, A, op_cov) {
   nu <- exp(theta[3])
   return(-rSPDE.matern.loglike(
     object = op_cov, Y = Y,
-    A = A, user_kappa = kappa, user_sigma = sigma,
-    user_nu = nu, sigma.e = exp(theta[4])
+    A = A, kappa = kappa, sigma = sigma,
+    nu = nu, sigma.e = exp(theta[4])
   ))
 }
 
