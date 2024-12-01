@@ -9,6 +9,8 @@
 * Created `spacetime.operators()` for creating space-time models.
 * Created `matern2d.operators()` for anisotropic operators.
 * Implemented space-time operators in cgeneric to be used in `INLA` and `inlabru`.
+* Implemented anisotropic operators in cgeneric to be used in `INLA` and `inlabru`.
+* Implemented stationary operators in cgeneric to be used in `INLA` and `inlabru`.
 * Added vignette on space-time models.
 * Added vignette on stationary models.
 * Added vignette on anisotropic models.
