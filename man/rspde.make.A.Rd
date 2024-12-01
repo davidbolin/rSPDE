@@ -56,10 +56,6 @@ for rSPDE models based on \code{inla.mesh} or
 \code{inla.mesh.1d} objects.
 }
 \examples{
-\donttest{ #tryCatch version
-tryCatch({
-if (requireNamespace("INLA", quietly = TRUE)){
-library(INLA)
 \donttest{
 # devel version
 if (requireNamespace("INLA", quietly = TRUE)) {
