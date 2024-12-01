@@ -23,6 +23,8 @@ update.spacetimeobj(
 \item{gamma}{gamma value to be updated.}
 
 \item{rho}{rho value to be updated.}
+
+\item{...}{currently not used.}
 }
 \value{
 An object of type spacetimeobj with updated parameters.
