@@ -34,7 +34,6 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
-          extra-repositories: 'https://inla.r-inla-download.org/R/testing https://mugglejinx.github.io/drat/ https://inlabru-org.r-universe.dev/'
 
       - name: Install system dependencies on macOS
         if: runner.os == 'macOS'
@@ -54,22 +53,12 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           choco install miktex --params "/Paper=a4" --yes
-          miktexsetup finish
-          initexmf --admin --update-fndb
-          initexmf --admin --mkmaps
+          initexmf --update-fndb --admin
+          initexmf --mkmaps --admin
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           dependencies: '"all"'
-          extra-packages: |
-             rcmdcheck
-
-      - name: Session info
-        run: |
-          options(width = 100)
-          pkgs <- installed.packages()[, "Package"]
-          sessioninfo::session_info(pkgs, include_base = TRUE)
-        shell: Rscript {0}
 
       - uses: r-lib/actions/check-r-package@v2
         with:
