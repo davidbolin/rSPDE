@@ -183,7 +183,7 @@ cmp <- y ~ -1 + Intercept(1) + field(list(space=space, time = time), model = st_
 We are now in a position to fit the model:
 
 ```{r}
-bru_fit <- bru(cmp, data = df_1d)
+bru_fit <- bru(cmp, data = df_1d, options = list(num.threads = "1:1"))
 ```
 
 Let us now compare the estimated results (the means of the parameters) with the true values:
@@ -327,7 +327,7 @@ cmp <- y ~ -1 + Intercept(1) + field(list(space=cbind(coord_x, coord_y),
 We are now in a position to fit the model:
 
 ```{r}
-bru_fit_field <- bru(cmp, data = df_bru)
+bru_fit_field <- bru(cmp, data = df_bru, options = list(num.threads = "1:1"))
 ```
 
 Let us now compare the estimated results (the means of the parameters) with the true values:
@@ -389,7 +389,7 @@ st_bru_unbounded <- rspde.spacetime(space_loc = s, time_loc = t, alpha = 1,
 cmp_unbounded <- y ~ -1 + Intercept(1) + field(list(space = space, time = time), 
                                           model = st_bru_unbounded)
 
-bru_fit_unbounded <- bru(cmp_unbounded, data = df_1d)
+bru_fit_unbounded <- bru(cmp_unbounded, data = df_1d, options = list(num.threads = "1:1", verbose=TRUE))
 
 ### Extract and Compare Results
 param_unbounded <- transform_parameters_spacetime(
