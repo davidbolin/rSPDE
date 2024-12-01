@@ -9,7 +9,8 @@ update.spacetimeobj(
   kappa = NULL,
   sigma = NULL,
   gamma = NULL,
-  rho = NULL
+  rho = NULL,
+  ...
 )
 }
 \arguments{
