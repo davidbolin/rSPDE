@@ -4,14 +4,7 @@
 \alias{update.spacetimeobj}
 \title{Update space-time operator object with new parameters}
 \usage{
-update.spacetimeobj(
-  object,
-  kappa = NULL,
-  sigma = NULL,
-  gamma = NULL,
-  rho = NULL,
-  ...
-)
+\method{update}{spacetimeobj}(object, kappa = NULL, sigma = NULL, gamma = NULL, rho = NULL, ...)
 }
 \arguments{
 \item{object}{Space-time object created by \code{\link[=spacetime.operators]{spacetime.operators()}}}
@@ -39,6 +32,6 @@ t <- seq(from = 0, to = 20, length.out = 31)
 op_cov <- spacetime.operators(space_loc = s, time_loc = t,
                              kappa = 5, sigma = 10, alpha = 1,
                              beta = 2, rho = 1, gamma = 0.05)
-op_cov <- update.spacetimeobj(op_cov, kappa = 4, 
+op_cov <- update(op_cov, kappa = 4, 
                              sigma = 2, gamma = 0.1)                              
 }
