@@ -75,6 +75,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
             choco install html-tidy --yes
+            Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
             refreshenv
 
       - uses: r-lib/actions/setup-r-dependencies@v2
