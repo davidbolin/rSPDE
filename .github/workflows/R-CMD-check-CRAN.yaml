@@ -48,33 +48,9 @@ jobs:
         run: |
           install.packages("tinytex", repos = "https://cloud.r-project.org")
 
-      - name: Install TinyTeX on Windows
-        if: runner.os == 'Windows'
-        shell: Rscript {0}
-        run: |
-           if (!requireNamespace("tinytex", quietly = TRUE)) install.packages("tinytex", repos = "https://cloud.r-project.org")
-           if (!tinytex::is_tinytex()) tinytex::install_tinytex()
-
-      - name: Install additional LaTeX packages (Windows only)
-        if: runner.os == 'Windows'
-        shell: Rscript {0}
-        run: |
-           tinytex::tlmgr_install(c('graphics', 'geometry', 'hyperref', 'oberdiek', 'tools', 'url', 'amsmath', 'xcolor', 'etoolbox', 'fancyhdr'))
-
-      - name: Install LaTeX on macOS
-        if: runner.os == 'macOS'
-        run: |
-           brew install --cask mactex-no-gui
-           sudo tlmgr update --self
-           sudo tlmgr install graphics geometry hyperref oberdiek tools url amsmath xcolor etoolbox fancyhdr
-
-      - name: Install LaTeX on Linux
-        if: runner.os == 'Linux'
-        run: |
-           sudo apt-get update -q
-           sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
+      - name: Install tinytex
+        uses: r-lib/actions/setup-tinytex@v2
   
-
       - name: Install system dependencies on macOS
         if: runner.os == 'macOS'
         run: |
