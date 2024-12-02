@@ -37,13 +37,14 @@ jobs:
           extra-repositories: |
             https://inla.r-inla-download.org/R/testing
 
-      - name: Install LaTeX
-        uses: r-universe-org/setup-tinytex@v1
-        with:
-          tlmgr: true
+      - name: Install TinyTeX
+        shell: Rscript {0}
+        run: |
+          if (!tinytex::is_tinytex()) {
+            tinytex::install_tinytex()
+          }
 
-      - name: Install additional LaTeX packages (Windows only)
-        if: runner.os == 'Windows'
+      - name: Install additional LaTeX packages
         shell: Rscript {0}
         run: |
           tinytex::tlmgr_install(c('graphics', 'geometry', 'hyperref', 'oberdiek', 'tools', 'url'))
