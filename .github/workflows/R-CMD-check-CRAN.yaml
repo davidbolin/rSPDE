@@ -74,8 +74,8 @@ jobs:
       - name: Install Tidy on Windows
         if: runner.os == 'Windows'
         run: |
-          choco install tidy --version=5.8.0 --yes
-          refreshenv
+            choco install html-tidy --yes
+            refreshenv
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
