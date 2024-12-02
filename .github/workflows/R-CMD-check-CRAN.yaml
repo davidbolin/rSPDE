@@ -37,6 +37,17 @@ jobs:
           extra-repositories: |
             https://inla.r-inla-download.org/R/testing
 
+      - name: Install LaTeX
+        uses: r-universe-org/setup-tinytex@v1
+        with:
+          tlmgr: true
+
+      - name: Install additional LaTeX packages (Windows only)
+        if: runner.os == 'Windows'
+        shell: Rscript {0}
+        run: |
+          tinytex::tlmgr_install(c('graphics', 'geometry', 'hyperref', 'oberdiek', 'tools', 'url'))
+
       - name: Install system dependencies on macOS
         if: runner.os == 'macOS'
         run: |
@@ -45,23 +56,22 @@ jobs:
           brew install proj@9
           brew install gdal
 
-      - name: Install LaTeX on Ubuntu
+      - name: Install LaTeX on Linux
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -q
           sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
 
-      - name: Install LaTeX on Windows
-        if: runner.os == 'Windows'
-        run: |
-          choco install miktex --params "/Paper=a4" --yes
-          refreshenv
-          "C:\Program Files\MiKTeX\miktex\bin\x64\initexmf.exe" --update-fndb --admin
-          "C:\Program Files\MiKTeX\miktex\bin\x64\initexmf.exe" --mkmaps --admin
-
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           dependencies: '"all"'
+
+      - name: Session Info
+        run: |
+          options(width = 100)
+          pkgs <- installed.packages()[, "Package"]
+          sessioninfo::session_info(pkgs, include_base = TRUE)
+        shell: Rscript {0}
 
       - uses: r-lib/actions/check-r-package@v2
         with:
