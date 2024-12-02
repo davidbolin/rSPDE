@@ -37,17 +37,31 @@ jobs:
           extra-repositories: |
             https://inla.r-inla-download.org/R/testing
 
-      - name: Install TinyTeX
+      - name: Install R dependencies (Windows only)
+        if: runner.os == 'Windows'
+        shell: Rscript {0}
+        run: |
+          install.packages("tinytex", repos = "https://cloud.r-project.org")
+
+      - name: Install TinyTeX on Windows
+        if: runner.os == 'Windows'
         shell: Rscript {0}
         run: |
           if (!tinytex::is_tinytex()) {
             tinytex::install_tinytex()
           }
 
-      - name: Install additional LaTeX packages
+      - name: Install additional LaTeX packages (Windows only)
+        if: runner.os == 'Windows'
         shell: Rscript {0}
         run: |
           tinytex::tlmgr_install(c('graphics', 'geometry', 'hyperref', 'oberdiek', 'tools', 'url'))
+
+      - name: Install LaTeX on Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
 
       - name: Install system dependencies on macOS
         if: runner.os == 'macOS'
@@ -56,12 +70,6 @@ jobs:
           brew install pkg-config
           brew install proj@9
           brew install gdal
-
-      - name: Install LaTeX on Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -78,3 +86,4 @@ jobs:
         with:
           args: 'c("--as-cran", "--run-donttest", "--timings", "--incoming", "--remote")'
           error-on: '"error"'
+
