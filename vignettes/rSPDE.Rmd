@@ -209,7 +209,8 @@ rspde_fit <-
     data = inla.stack.data(st.dat),
     family = "gaussian",
     control.predictor =
-      list(A = inla.stack.A(st.dat))
+      list(A = inla.stack.A(st.dat)),
+      num.threads = "1:1"
   )
 ```
 
@@ -319,7 +320,8 @@ rspde_fitprd <- inla(f,
   control.predictor = list(
     A = inla.stack.A(st.all)
   ),
-  control.inla = list(int.strategy = "eb")
+  control.inla = list(int.strategy = "eb"),
+  num.threads = "1:1"
 )
 ```
 
@@ -400,7 +402,8 @@ rspde_bru_fit <-
   bru(cmp,
       data=toy_df,
     options=list(
-    family = "gaussian")
+    family = "gaussian",
+    num.threads = "1:1")
   )
 ```
 
