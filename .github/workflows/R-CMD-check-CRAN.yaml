@@ -60,6 +60,23 @@ jobs:
           brew install gdal
           brew install udunits
 
+      - name: Install Tidy on Ubuntu
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tidy
+
+      - name: Install Tidy on macOS
+        if: runner.os == 'macOS'
+        run: |
+          brew install tidy-html5
+
+      - name: Install Tidy on Windows
+        if: runner.os == 'Windows'
+        run: |
+          choco install tidy --version=5.8.0 --yes
+          refreshenv
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
             dependencies: '"all"'
