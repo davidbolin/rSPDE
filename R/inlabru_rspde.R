@@ -68,7 +68,7 @@ bru_get_mapper.inla_rspde <- function(model, ...) {
   inlabru_version <- as.character(packageVersion("inlabru"))
   if(inlabru_version >= "2.11.1.9022"){
       n_rep <- model[["rspde.order"]] + 1
-      if((model[["est_nu"]] == 0L) && (model[["nu"]] %% 1 == 0)){
+      if((model[["est_nu"]] == 0L) && (model[["integer.nu"]])){
           n_rep <- 1
       }
     inlabru::bru_mapper_repeat(inlabru::bru_mapper(model[["mesh"]]), n_rep = n_rep)
