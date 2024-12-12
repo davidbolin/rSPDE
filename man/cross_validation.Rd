@@ -7,7 +7,7 @@
 cross_validation(
   models,
   model_names = NULL,
-  scores = c("mse", "crps", "scrps", "dss"),
+  scores = c("mae", "mse", "crps", "scrps", "dss"),
   cv_type = c("k-fold", "loo", "lpo"),
   k = 5,
   percentage = 20,

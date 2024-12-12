@@ -1897,10 +1897,10 @@ create_train_test_indices <- function(data_list, cv_type = c("k-fold", "loo", "l
                                     k = 5, percentage = 20, number_folds = 10) {
   # First concatenate all data
   if (inherits(data_list[[1]], "metric_graph_data")) {
-    data <- do.call(rbind, lapply(data_list, as.data.frame))
-  } else {
-    data <- do.call(rbind, data_list)
-  }
+    data_list <- lapply(data_list, as.data.frame)
+  } 
+  
+  data <- do.call(rbind, data_list)
   
   # Get indices for concatenated data as before
   idx <- seq_len(nrow(data))

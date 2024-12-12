@@ -311,7 +311,7 @@ get_post_var <- function(density_df) {
 #' @param fit_verbose Should INLA's run during cross-validation be verbose?
 #' @return A data.frame with the fitted models and the corresponding scores.
 #' @export
-cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps", "scrps", "dss"),
+cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse", "crps", "scrps", "dss"),
                              cv_type = c("k-fold", "loo", "lpo"),
                              k = 5, percentage = 20, number_folds = 10,
                              n_samples = 1000, return_scores_folds = FALSE,
@@ -330,7 +330,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
     stop("orientation_results must be either 'positive' or 'negative'!")
   }
 
-  scores <- intersect(scores, c("mse", "crps", "scrps", "dss"))
+  scores <- intersect(scores, c("mae", "mse", "crps", "scrps", "dss"))
 
   cv_type <- cv_type[[1]]
   if (!(cv_type %in% c("k-fold", "loo", "lpo"))) {
@@ -565,16 +565,19 @@ cross_validation <- function(models, model_names = NULL, scores = c("mse", "crps
           }
         
           if ("dss" %in% scores) {
-            post_var <- rowMeans(post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, 1:n_samples]^2) - (rowMeans(post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, 1:n_samples]))^2
+            post_var <- rowMeans(post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, 1:n_samples, drop=FALSE]^2) - (rowMeans(post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, 1:n_samples, drop=FALSE]))^2
 
-            dss[[i_lik]][fold, model_number] <- mean((test_data - rowMeans(post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, (n_samples + 1):(2 * n_samples)]))^2 / post_var + log(post_var))
+            dss[[i_lik]][fold, model_number] <- mean((test_data - rowMeans(post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, (n_samples + 1):(2 * n_samples), drop=FALSE]))^2 / post_var + log(post_var))
+            if (print) {
+              cat(paste("DSS - Likelihood ",i_lik,": ", dss[[i_lik]][fold, model_number], "\n"))
+            }            
           }
 
 
 
         if (("crps" %in% scores) || ("scrps" %in% scores)) {
-          Y1_sample <- post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, 1:n_samples]
-          Y2_sample <- post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, (n_samples + 1):(2 * n_samples)]
+          Y1_sample <- post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, 1:n_samples, drop=FALSE]
+          Y2_sample <- post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, (n_samples + 1):(2 * n_samples), drop=FALSE]
           if (parallelize_RP) {
             E1_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
               mean(abs(Y1_sample[i,] - test_data[i]))
@@ -917,10 +920,8 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
     family_mappings <- map_models_to_strings(full_model)
     if(family_mappings[[i_lik]] != ".none"){
       meas_err_par <- lapply(family_mappings[[i_lik]], function(param) {
-                INLA::inla.rmarginal(
-                    new_n_samples,
-                    model_sample$marginals.hyperpar[[param]]
-                )
+                hyper_sample <- INLA::inla.hyperpar.sample(new_n_samples, model_sample, improve.marginals = TRUE)
+                return(hyper_sample[,param])
             })
     }
 
