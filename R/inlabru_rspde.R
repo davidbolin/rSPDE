@@ -525,7 +525,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
 
           model_family <- models[[model_number]]$.args$family[[i_lik]]
 
-          post_linear_predictors <- sample_posterior_linear_predictor(new_model, i_lik, test_list, n_samples, print)
+          post_linear_predictors <- sample_posterior_linear_predictor(new_model, i_lik, test_list, new_n_samples, print)
 
           post_samples[[model_names[[model_number]]]][[fold]][[i_lik]] <- get_posterior_samples(
                       post_linear_predictors = post_linear_predictors, new_model = new_model, 
@@ -865,7 +865,7 @@ sample_posterior_linear_predictor <- function(model, i_lik, test_list, n_samples
         model_family <- model$.args$family[[i_lik]]
 
         if (link_name == "default") {
-          if (model_family == "gaussian") {
+          if (model_family %in% c("gaussian", "t")) {
             linkfuninv <- function(x) {
               x
             }
@@ -918,7 +918,7 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
     }
 
     family_mappings <- map_models_to_strings(full_model)
-    if(family_mappings[[i_lik]] != ".none"){
+    if(family_mappings[[i_lik]][[1]] != ".none"){
       meas_err_par <- lapply(family_mappings[[i_lik]], function(param) {
                 hyper_sample <- INLA::inla.hyperpar.sample(new_n_samples, model_sample, improve.marginals = TRUE)
                 return(hyper_sample[,param])
@@ -935,6 +935,13 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
       Y_sample <-  lapply(1:nrow(post_linear_predictors), function(i) {
         scale_temp <- post_linear_predictors[i,] / phi_sample
         rgamma(new_n_samples, shape = phi_sample, scale = scale_temp)
+      })
+    } else if(model_family == "t"){
+      sd_sample <- 1 / sqrt(as.vector(meas_err_par[[1]]))
+      deg_sample <- as.vector(meas_err_par[[2]])
+      Y_sample <-  lapply(1:nrow(post_linear_predictors), function(i) {
+        scale_temp <- post_linear_predictors[i,] + 
+        sd_sample + rt(new_n_samples, df = deg_sample)
       })
     } else if(model_family == "poisson"){
       Y_sample <- lapply(1:nrow(post_linear_predictors), function(i) {
@@ -998,7 +1005,8 @@ map_models_to_strings <- function(models) {
    "stochvol" = "Offset precision for stochvol",
    "stochvolln" = c("Offset precision for stochvolln","Mean offset for stochvolln"),
    "stochvolnig" = c("shape parameter for stochvol-nig", "skewness parameter for stochvol-nig"),
-   "stochvolt" = "degrees of freedom for stochvol student-t"
+   "stochvolt" = "degrees of freedom for stochvol student-t",
+   "t" = c("precision for the student-t observations", "degrees of freedom for student-t")
  )
  
  # Count occurrences of each family
