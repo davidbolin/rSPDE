@@ -2,10 +2,10 @@
 % Please edit documentation in R/util.R
 \name{create_train_test_indices}
 \alias{create_train_test_indices}
-\title{Create train and test splits to be used in the \code{cross_validation} function}
+\title{Create train and test splits for cross-validation}
 \usage{
 create_train_test_indices(
-  data,
+  data_list,
   cv_type = c("k-fold", "loo", "lpo"),
   k = 5,
   percentage = 20,
@@ -13,21 +13,29 @@ create_train_test_indices(
 )
 }
 \arguments{
-\item{data}{A \code{list}, \code{data.frame}, \code{SpatialPointsDataFrame} or \code{metric_graph_data} objects.}
+\item{data_list}{A list of datasets, one per likelihood. Each dataset can be a data.frame,
+SpatialPointsDataFrame, or metric_graph_data object}
 
-\item{cv_type}{The type of the folding to be carried out. The options are \code{k-fold} for \code{k}-fold cross-validation, in which case the parameter \code{k} should be provided,
-\code{loo}, for leave-one-out and \code{lpo} for leave-percentage-out, in this case, the parameter \code{percentage} should be given, and also the \code{number_folds}
-with the number of folds to be done. The default is \code{k-fold}.}
+\item{cv_type}{Type of cross-validation: "k-fold", "loo", or "lpo". Default is "k-fold"}
 
-\item{k}{The number of folds to be used in \code{k}-fold cross-validation. Will only be used if \code{cv_type} is \code{k-fold}.}
+\item{k}{Number of folds for k-fold CV. Default is 5}
 
-\item{percentage}{The percentage (from 1 to 99) of the data to be used to train the model. Will only be used if \code{cv_type} is \code{lpo}.}
+\item{percentage}{Training data percentage for LPO CV (1-99). Default is 20}
 
-\item{number_folds}{Number of folds to be done if \code{cv_type} is \code{lpo}.}
+\item{number_folds}{Number of folds for LPO CV. Default is 10}
 }
 \value{
-A list with two elements, \code{train} containing the training indices and \code{test} containing indices.
+A list where each element contains:
+\item{train}{Indices for training data mapped to original datasets}
+\item{test}{Indices for test data mapped to original datasets}
 }
 \description{
-Train and test splits
+Creates train and test splits for cross-validation by handling multiple data types
+and supporting k-fold, leave-one-out (LOO), and leave-percentage-out (LPO) methods.
+Handles missing values and maintains data structure across multiple datasets.
+}
+\details{
+The function handles NA values by removing rows with any missing values before
+creating splits. For multiple datasets, indices are mapped back to their original
+positions in each dataset.
 }
