@@ -29,7 +29,9 @@ cross_validation(
 )
 }
 \arguments{
-\item{models}{A fitted model obtained from calling the \code{bru()} function or a list of models fitted with the \code{bru()} function.}
+\item{models}{A fitted model obtained from calling the \code{bru()} function or a list of fitted models.
+All models in the list must have the same number of likelihoods and must be fitted to
+identical datasets.}
 
 \item{model_names}{A vector containing the names of the models to appear in the returned \code{data.frame}. If \code{NULL}, the names will be of the form \verb{Model 1}, \verb{Model 2}, and so on. By default, it will try to obtain the name from the models list.}
 
@@ -53,8 +55,12 @@ with the number of folds to be done. The default is \code{k-fold}.}
 
 \item{include_best}{Should a row indicating which model was the best for each score be included?}
 
-\item{train_test_indexes}{A list containing two entries \code{train}, which is a list whose elements are vectors of indexes of the training data, and \code{test}, which is a list whose elements are vectors of indexes of the test data.
-Typically this will be returned list obtained by setting the argument \code{return_train_test} to \code{TRUE}.}
+\item{train_test_indexes}{A list where each element corresponds to a fold. Each fold contains:
+\itemize{
+\item \code{train}: A list of training index vectors, one for each likelihood.
+\item \code{test}: A list of test index vectors, one for each likelihood, with the same length as \code{train}.
+This list is typically obtained by setting the argument \code{return_train_test} to \code{TRUE}.
+}}
 
 \item{return_train_test}{Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list.}
 
