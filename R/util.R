@@ -2328,7 +2328,7 @@ transform_parameters_spacetime <- function(theta, st_model) {
   
   # Extract model parameters
   d <- st_model$d
-  bound <- st_model$bound_rho
+  bound <- as.double(st_model$bound_rho)
   is_bounded <- st_model$is_bounded
   drift <- st_model$drift
   
