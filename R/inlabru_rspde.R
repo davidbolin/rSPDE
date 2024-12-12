@@ -991,6 +991,7 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
     return(Y_sample)
 }
 
+#' @noRd
 map_models_to_strings <- function(models) {
  # Extract families from models
  families <- models$.args$family
@@ -1008,41 +1009,27 @@ map_models_to_strings <- function(models) {
    "t" = c("precision for the student-t observations", "degrees of freedom for student-t")
  )
  
- # Count occurrences of each family
- family_counts <- table(families)
- 
  # Initialize result list
  result <- vector("list", length(families))
- 
- # Track how many times we've seen each family
- seen_counts <- list()
  
  # Process each family
  for (i in seq_along(families)) {
    family <- families[i]
-   
-   # Initialize or increment counter for this family
-   seen_counts[[family]] <- if (is.null(seen_counts[[family]])) 1 else seen_counts[[family]] + 1
-   
-   # Get base string(s) for this family
    base_string <- mapping[[family]]
    
-   # Only append counter if it's not .none and appears multiple times
-   if (base_string[1] != ".none" && family_counts[family] > 1 && seen_counts[[family]] > 1) {
-     if (length(base_string) == 1) {
-       result[[i]] <- paste0(base_string, "[", seen_counts[[family]], "]")
-     } else {
-       result[[i]] <- paste0(base_string, "[", seen_counts[[family]], "]")
-     }
-   } else {
+   # If it's first occurrence or .none, use base string
+   if (i == 1 || base_string[1] == ".none") {
      result[[i]] <- base_string
+   } else {
+     # For subsequent occurrences, append [i]
+     if (length(base_string) == 1) {
+       result[[i]] <- paste0(base_string, "[", i, "]")
+     } else {
+       result[[i]] <- paste0(base_string, "[", i, "]")
+     }
    }
  }
  
  return(result)
 }
-
-
-
-
 
