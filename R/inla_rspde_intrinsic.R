@@ -1,3 +1,179 @@
+
+#' Rational approximations of fractional intrinsic fields
+#'
+#' `rspde.intrinsic` computes a Finite Element Method (FEM) approximation of a
+#' Gaussian random field defined as the solution to the stochastic partial
+#' differential equation (SPDE):
+#' \deqn{(-\Delta)^{(\nu+d/2)/2}\tau u = W}.
+#'
+#' @param mesh Spatial mesh for the FEM approximation.
+#' @param nu If nu is set to a parameter, nu will be kept fixed and will not
+#' be estimated. If nu is `NULL`, it will be estimated.
+#' @param nu.upper.bound Upper bound for the smoothness parameter \eqn{\nu}. If `NULL`, it will be set to 2.
+#' @param mean.correction Add mean correction for extreme value models?
+#' @param rspde.order The order of the covariance-based rational SPDE approach. The default order is 1.
+#' @param prior.tau A list specifying the prior for the variance parameter \eqn{\tau}.
+#' This list may contain two elements: `mean` and/or `precision`, both of which must
+#' be numeric scalars. 
+#' @param prior.nu a list containing the elements `mean` and `prec`
+#' for beta distribution, or `loglocation` and `logscale` for a
+#' truncated lognormal distribution. `loglocation` stands for
+#' the location parameter of the truncated lognormal distribution in the log
+#' scale. `prec` stands for the precision of a beta distribution.
+#' `logscale` stands for the scale of the truncated lognormal
+#' distribution on the log scale. Check details below.
+#' @param prior.nu.dist The distribution of the smoothness parameter.
+#' The current options are "beta" or "lognormal". The default is "lognormal".
+#' @param nu.prec.inc Amount to increase the precision in the beta prior
+#' distribution. Check details below.
+#' @param type.rational.approx Which type of rational approximation
+#' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#' @param shared_lib String specifying which shared library to use for the Cgeneric
+#' implementation. Options are "detect", "INLA", or "rSPDE". You may also specify the
+#' direct path to a .so (or .dll) file.
+#' @param debug Logical value indicating whether to enable INLA debug mode.
+#' @param ... Additional arguments passed internally for configuration purposes.
+#' @return An object of class `inla_rspde_intrinsic` representing the FEM approximation of
+#' the intrinsic Gaussian random field.
+#' @export
+#'
+#' @examples
+#' library(fmesher)
+#' n_loc <- 2000
+#' loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
+#' mesh_2d <- fm_mesh_2d(loc = loc_2d_mesh, cutoff = 0.03, max.edge = c(0.1, 0.5))
+#' model <- rspde.intrinsic(mesh = mesh_2d)
+#'
+
+rspde.intrinsic <- function(mesh,
+                            nu = NULL,
+                            nu.upper.bound = 2,
+                            mean.correction = FALSE,
+                            rspde.order = 1,
+                            prior.tau = NULL,
+                            prior.nu = NULL,
+                            prior.nu.dist = "lognormal",
+                            nu.prec.inc = 0.01,
+                            type.rational.approx = "chebfun",
+                            shared_lib = "detect",
+                            debug = FALSE,
+                            ...) {
+    # Validate mesh input
+    if (inherits(mesh, c("fm_mesh_1d", "fm_mesh_2d"))) {
+        d <- fmesher::fm_manifold_dim(mesh)
+    } else if (!is.null(mesh$d)) {
+        d <- mesh$d
+    } else {
+        stop("The mesh object should either be an INLA mesh object or contain d, the dimension!")
+    }
+    fem_mesh <- fm_fem(mesh)
+    G <- fem_mesh$g1
+    C <- fem_mesh$c0
+    Ci <- Diagonal(dim(C)[1],1/diag(C))
+    
+    if (nu.upper.bound - floor(nu.upper.bound) == 0) {
+        nu.upper.bound <- nu.upper.bound - 1e-5
+    }
+    
+    if(!is.null(nu)){
+        nu.upper.bound <- nu
+    }
+    
+    prior.tau <- set_prior(prior.tau, 0, 0.1, p = 1)
+    
+    est_nu <- 0L
+    
+    if(is.null(nu)){
+        est_nu <- 1L
+        nu <- -1.0
+    }
+    
+    result_nu <- handle_prior_nu(prior.nu, nu.upper.bound = nu.upper.bound, nu.prec.inc = nu.prec.inc, prior.nu.dist = prior.nu.dist)
+    
+    prior.nu <- result_nu$prior.nu
+    start.nu <- result_nu$start.nu
+    
+    rational_table <- as.matrix(get_rational_coefficients(rspde.order, type.rational.approx))
+    
+    rspde_lib <- get_shared_library(shared_lib)
+    
+    #Q <- G
+    #alpha_ub <- nu.upper.bound + d/2
+    #if(alpha>1){
+    #    for(i in 1:ceiling(alpha)){
+    #        Q <- G%*%G
+    #    }
+    #}
+    op <- matern.operators(kappa = 1, tau = 1, alpha = nu.upper.bound + d/2, G = G, C = C, d = d,
+                           mesh = mesh, m = rspde.order, type_rational_approximation = type.rational.approx)
+    
+    to.inla.matrix <- function(M) {
+        out  <-  as(as(as(M, "dMatrix"), "generalMatrix"), "TsparseMatrix")
+        ii <- out@i
+        out@i <- out@j
+        out@j <- ii
+        idx <- which(out@i <= out@j)
+        out@i <- out@i[idx]
+        out@j <- out@j[idx]
+        out@x <- out@x[idx]  
+        return(out)
+    }
+    Cmatrix <- to.inla.matrix(op$Q)
+    
+    list_args <- 
+        list(
+            model = "inla_cgeneric_rspde_fintrinsic_model",
+            shlib = rspde_lib,
+            n = as.integer(nrow(op$Q)),
+            est_nu = as.integer(est_nu),
+            rspde_order = as.integer(rspde.order),
+            dim = as.integer(d),
+            mean_correction = as.integer(mean.correction),
+            prior.tau.mean = prior.tau$mean,
+            prior.tau.precision = prior.tau$precision,
+            start_nu = start.nu,
+            nu = nu,
+            prior.nu.loglocation = prior.nu$loglocation,
+            prior.nu.mean = prior.nu$mean,
+            prior.nu.prec = prior.nu$prec,
+            prior.nu.logscale = prior.nu$logscale,
+            nu_upper_bound = nu.upper.bound,
+            prior.nu.dist = prior.nu.dist,
+            Q = Cmatrix,
+            C = C,
+            Ci = Ci,
+            G = G,
+            rational_table = rational_table
+        )
+    
+    model <- do.call(INLA::inla.cgeneric.define, list_args)
+    
+    rspde_check_cgeneric_symbol(model)
+    
+    model$prior.tau <- prior.tau
+    model$mesh <- mesh
+    model$rspde.order <- rspde.order
+    model$type_rational_approximation <- type.rational.approx
+    model$est_nu <- est_nu
+    model$nu <- nu
+    model$nu_upper_bound <- nu.upper.bound
+    model$rspde_version <- as.character(packageVersion("rSPDE"))
+    
+    ### The following objects are provided for backward compatibility
+    if(!est_nu){
+        model$integer.nu <- (nu %% 1) == 0
+    } else{
+        model$integer.nu <- FALSE
+    }
+    model$n.spde <- mesh$n
+    ### 
+    
+    class(model) <- c("inla_rspde_fintrinsic", class(model))
+    
+    return(model)
+}
+
+
 #' @name rspde.matern.intrinsic
 #' @title Intrinsic Matern rSPDE model object for INLA
 #' @description Creates an INLA object for a stationary intrinsic Matern model.

@@ -663,9 +663,9 @@ intrinsic.matern.operators <- function(kappa,
       type_rational_approximation = type_rational_approximation[[1]]
     )
     if (is.list(op1$Q)) {
-      Q.list1 <- op1$Q
+      Q.list1 <- op1$Q*tau^2
     } else {
-      Q.list1 <- list(op1$Q)
+      Q.list1 <- list(op1$Q*tau^2)
     }
     m1 <- length(Q.list1)
     if (!return_block_list) {

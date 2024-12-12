@@ -12,17 +12,17 @@ obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o 
 	  cgeneric_gpgraph_alpha1.o cgeneric_gpgraph_alpha2.o \
 	  cgeneric_aux_gpgraph_alpha2.o cgeneric_gpgraph_alpha1_directional.o cgeneric_aux_gpgraph_alpha1_directional.o \
 	  inla_cgeneric_rspde_intrinsic_int_model.o \
-      cgeneric_aux_intrinsic.o cgeneric_rspde_intrinsic_eigen_cache.o \
+      cgeneric_aux_intrinsic.o cgeneric_rspde_intrinsic_eigen_cache.o cgeneric_rspde_fintrinsic.o \
       cgeneric_rspde_spacetime.o cgeneric_aux_spacetime.o \
 	  cgeneric_rspde_anisotropic2d.o cgeneric_aux_anisotropic.o \
-	  cgeneric_rspde_1d_general.o cgeneric_aux_1d.o
+	  cgeneric_rspde_1d_general.o cgeneric_aux_1d.o 
 
 # Compiler settings
 CC = /usr/local/bin/gcc
 CXX = /usr/local/bin/g++
 
 # Eigen and library paths
-EIGEN_MAC = /usr/local
+EIGEN_MAC = /opt/homebrew/
 EIGEN_LINUX = /usr
 MAC_LIB = /usr/local/brewlib
 MAC_INCLUDE = /usr/local/brewinclude
