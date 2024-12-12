@@ -221,14 +221,13 @@ bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
 
   original_timings <- result[["bru_timings"]]
 
-  lhoods_tmp <- info[["lhoods"]]
-  for(i_like in seq_along(lhoods_tmp)){
-    lhoods_tmp[[i_like]]$response_data$BRU_response[-idx_data[[i_like]]] <- NA
+  for(i_like in seq_along(info[["lhoods"]])){
+    info[["lhoods"]][[i_like]]$response_data$BRU_response[-idx_data[[i_like]]] <- NA
   }
 
   result <- inlabru::iinla(
       model = info[["model"]],
-      lhoods = lhoods_tmp,
+      lhoods = info[["lhoods"]],
       initial = result,
       options = info[["options"]]
     )
@@ -858,8 +857,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
 #' @noRd 
 
 sample_posterior_linear_predictor <- function(model, i_lik, test_list, n_samples, print){
-        test_data <- model$bru_info$lhoods[[i_lik]]$response_data$BRU_response[test_list[[i_lik]]]
-
         link_name <- model$.args$control.family[[i_lik]]$link
 
         model_family <- model$.args$family[[i_lik]]
@@ -884,7 +881,7 @@ sample_posterior_linear_predictor <- function(model, i_lik, test_list, n_samples
           linkfuninv <- process_link(link_name)
         }
 
-        formula_tmp <- process_formula(model)
+        formula_tmp <- process_formula_lhoods(model, i_lik)
         
         env_tmp <- environment(formula_tmp)
         assign("linkfuninv", linkfuninv, envir = env_tmp)
@@ -898,11 +895,13 @@ sample_posterior_linear_predictor <- function(model, i_lik, test_list, n_samples
 
         data <- model$bru_info$lhoods[[i_lik]]$data
 
-        df_pred <- select_indexes(data, test_list[[i_lik]])        
+        # df_pred <- select_indexes(data, test_list[[i_lik]])        
 
-        post_samples <- inlabru::generate(model, newdata = df_pred, formula = formula_tmp, n.samples = n_samples)
+        # post_samples <- inlabru::generate(model, newdata = df_pred, formula = formula_tmp, n.samples = n_samples)
 
-        return(post_samples)
+        post_samples <- inlabru::generate(model, newdata = data, formula = formula_tmp, n.samples = n_samples)
+
+        return(post_samples[test_list[[i_lik]] , , drop=FALSE])
 }
 
 
@@ -999,7 +998,7 @@ map_models_to_strings <- function(models) {
  # Define base mappings
  mapping <- list(
    "gaussian" = "Precision for the Gaussian observations",
-   "gamma" = "Precision parameter for the Gamma observations", 
+   "gamma" = "Precision-parameter for the Gamma observations", 
    "poisson" = ".none",
    "binomial" = ".none",
    "stochvol" = "Offset precision for stochvol",
