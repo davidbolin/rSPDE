@@ -1904,21 +1904,7 @@ create_train_test_indices <- function(data_list, cv_type = c("k-fold", "loo", "l
   
   # Get indices for concatenated data as before
   idx <- seq_len(nrow(data))
-  
-  if (inherits(data_list[[1]], "SpatialPointsDataFrame")) {
-    data_tmp <- data@data
-    data_nonNA <- !is.na(data_tmp)
-  } else if (inherits(data_list[[1]], "metric_graph_data")) {
-    data_nonNA <- !is.na(as.data.frame(data))
-  } else {
-    data_nonNA <- !is.na(data)
-  }
-  
-  idx_nonNA <- sapply(1:length(idx), function(i) {
-    all(data_nonNA[i, ])
-  })
-  idx <- idx[idx_nonNA]
-  
+    
   # Get cumulative sizes to map back to individual datasets
   n_samples <- sapply(data_list, nrow)
   cum_sizes <- cumsum(c(0, n_samples))
