@@ -117,7 +117,7 @@ ggplot(df_plot) + aes(x = space, y = time, fill = field) +
 
 ## Parameter estimation
 
-To estimate the model parameters based on this data, we can use the our `rspde_lme` function or our `inlabru` implementation. For this, we collect the data in a data frame, that also contanis the spatial locations, and
+To estimate the model parameters based on this data, we can use the our `rspde_lme` function or our `inlabru` implementation. For this, we collect the data in a data frame, that also contains the spatial locations and the time points.
 
 ```{r}
 df_1d <- data.frame(y = as.matrix(Y), space = obs.loc$x, time = obs.loc$t)
@@ -131,7 +131,7 @@ res <- rspde_lme(y ~ 1, loc = "space", loc_time = "time", data = df_1d, model = 
 
 ```
 
-In the call, `y~1` indicates that we also want to estimate a mean value of the model, and the arguments `loc` and `loc_time` provides the names of the spatial and temporal coordinates in the data frame. 
+In the call, `y~1` indicates that we also want to estimate a mean value of the model, and the arguments `loc` and `loc_time` provide the names of the spatial and temporal coordinates in the data frame. 
 Let us see a summary of the fitted model:
 
 ```{r}
