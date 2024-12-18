@@ -137,7 +137,9 @@ void compute_Q_fintrinsic(double tau, double nu,
                           const inla_cgeneric_mat_tp *rational_table,
                           int est_nu, int d, int compute_Q, 
                           int compute_mean, int compute_logdet,
-                          double*ld_out, double *mean_out);
+                          double*ld_out, double *mean_out,
+                          double scaling,
+                          const inla_cgeneric_smat_tp *D);
     
 #ifdef __cplusplus
 }

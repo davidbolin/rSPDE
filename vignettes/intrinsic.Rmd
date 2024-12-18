@@ -32,12 +32,15 @@ package.
 
 ## Model specification and simulation 
 
-The intrinsic models are defined as  
+The most general intrinsic model is defined as  
 $$
 (-\Delta)^{\beta/2}(\kappa^2-\Delta)^{\alpha/2}(\tau u) = \mathcal{W},
 $$ 
 where $\alpha + \beta > d/2$ and $d$ is the dimension of the spatial domain. These models are handled 
-by performing two rational approximations, one for each fractional operator. 
+by performing two rational approximations, one for each fractional operator. The package also contains a separate implementation for the special case 
+$$
+(-\Delta)^{\beta/2}(\tau u) = \mathcal{W}.
+$$ 
 
 To illustrate these models, we begin by defining a mesh over $[0,2]\times [0, 2]$:
 
@@ -54,7 +57,8 @@ plot(mesh_2d, main = "")
 ```
 
 We now use the `intrinsic.matern.operators()` function to construct the `rSPDE` representation
-of the model. 
+of the general model. One can similarly use `intrinsic.operators()` to construct the `rSPDE` representation 
+of the special case with $\alpha = 0$.
 
 ```{r, message=FALSE}
 library(rSPDE)
@@ -320,4 +324,93 @@ posterior_df_fit <- gg_df(result_fit)
 
 ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
 facet_wrap(~parameter, scales = "free") + labs(y = "Density")
+```
+
+## Fitting fractional models with `R-INLA` 
+
+Although the general intrinsic model currently only can be fitted to data in `R-INLA` having fixed values of 
+$alpha$ and $\beta$, the special case with $\alpha=0$ can be estimated with general smoothness parameter. We now illustrate this. We start by simulating some data using the `intrinsic.operators()` specification
+
+```{r, message=FALSE}
+tau <- 1
+beta <- 1.4
+op <- intrinsic.operators(tau = tau, beta = beta, mesh = mesh_2d)
+u <- simulate(op,nsim = 1)
+field <- fm_evaluate(proj, field = as.vector(u))
+field.df <- data.frame(x1 = proj$lattice$loc[,1],
+                       x2 = proj$lattice$loc[,2], 
+                       y = as.vector(field))
+
+ggplot(field.df, aes(x = x1, y = x2, fill = y)) +
+    geom_raster() +
+    scale_fill_viridis()
+
+```
+We now generate some data for this model as above. 
+
+```{r}
+n_loc <- 2000
+loc_2d_mesh <- matrix(2*runif(n_loc * 2), n_loc, 2)
+A <- spde.make.A(
+    mesh = mesh_2d,
+    loc = loc_2d_mesh
+)
+sigma.e <- 0.1
+y <- A %*% u + rnorm(n_loc) * sigma.e
+```
+
+The generated data can be seen in the following image.
+
+```{r,fig.align = "center", echo=TRUE}
+df <- data.frame(x1 = as.double(loc_2d_mesh[, 1]),
+  x2 = as.double(loc_2d_mesh[, 2]), y = as.double(y))
+ggplot(df, aes(x = x1, y = x2, col = y)) +
+  geom_point() +
+  scale_color_viridis()
+```
+
+
+We will now fit the model using our `r inla_link()` implementation of the
+rational SPDE approach. As we will estimate the smoothness, we have to use the `rspde.make.index` and `rspde.make.A` functions when creating the stack.
+
+```{r}
+mesh.index <- rspde.make.index(name = "field", mesh = mesh_2d)
+Abar <- rspde.make.A(mesh = mesh_2d, loc = loc_2d_mesh)
+st.dat <- inla.stack(data = list(y = as.vector(y)), A = Abar, effects = mesh.index)
+```
+
+We now create the model object. 
+
+```{r}
+rspde_model <- rspde.intrinsic(mesh = mesh_2d)
+
+```
+
+Finally, we create the formula and fit the model to the data: 
+
+```{r message=FALSE, warning=FALSE}
+f <- y ~ -1 + f(field, model = rspde_model)
+rspde_fit <- inla(f,
+                  data = inla.stack.data(st.dat),
+                  family = "gaussian",
+                  control.predictor = list(A = inla.stack.A(st.dat)))
+
+```
+
+
+To compare the estimated parameters to the true parameters, we can do the following:
+```{r}
+result_fit <- rspde.result(rspde_fit, "field", rspde_model)
+summary(result_fit)
+tau <- op$tau
+nu <- op$beta - 1 #beta = nu + d/2 
+result_df <- data.frame(
+    parameter = c("tau", "nu", "sigma.e"),
+    true = c(tau, nu, sigma.e), 
+    mean = c(result_fit$summary.tau$mean,result_fit$summary.nu$mean,
+             sqrt(1/rspde_fit$summary.hyperpar[1,1])),
+    mode = c(result_fit$summary.tau$mode, result_fit$summary.nu$mode,
+             sqrt(1/rspde_fit$summary.hyperpar[1,6]))
+)
+print(result_df)
 ```

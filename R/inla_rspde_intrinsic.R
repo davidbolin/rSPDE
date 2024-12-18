@@ -26,6 +26,7 @@
 #' The current options are "beta" or "lognormal". The default is "lognormal".
 #' @param nu.prec.inc Amount to increase the precision in the beta prior
 #' distribution. Check details below.
+#' @param diagonal Number added to diagonal of Q for increased stability. 
 #' @param type.rational.approx Which type of rational approximation
 #' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
 #' @param shared_lib String specifying which shared library to use for the Cgeneric
@@ -54,6 +55,7 @@ rspde.intrinsic <- function(mesh,
                             prior.nu = NULL,
                             prior.nu.dist = "lognormal",
                             nu.prec.inc = 0.01,
+                            diagonal = 1e-5,
                             type.rational.approx = "chebfun",
                             shared_lib = "detect",
                             debug = FALSE,
@@ -119,6 +121,8 @@ rspde.intrinsic <- function(mesh,
         return(out)
     }
     Cmatrix <- to.inla.matrix(op$Q)
+    D <- Diagonal(dim(op$Q)[1], diagonal)
+    scaling <- RSpectra::eigs(as(G, "CsparseMatrix"), 2, which = "SM")$values[1]
     
     list_args <- 
         list(
@@ -138,11 +142,13 @@ rspde.intrinsic <- function(mesh,
             prior.nu.prec = prior.nu$prec,
             prior.nu.logscale = prior.nu$logscale,
             nu_upper_bound = nu.upper.bound,
+            scaling = scaling,
             prior.nu.dist = prior.nu.dist,
             Q = Cmatrix,
             C = C,
             Ci = Ci,
             G = G,
+            D = D,
             rational_table = rational_table
         )
     
@@ -443,4 +449,148 @@ rspde.intrinsic.matern <- function(mesh,
     model$fem_mesh <- fem_mesh_orig
     model$rspde_version <- as.character(packageVersion("rSPDE"))
     return(model)
+}
+
+
+#' result summary for intrinsic models
+#' @noRd
+rspde.intrinsic.result <- function(inla, name, rspde, 
+                                    compute.summary = TRUE, 
+                                    n_samples = 5000, 
+                                    n_density = 1024) {
+
+    nu.upper.bound <- rspde$nu_upper_bound
+    result <- list()
+    
+    if (!rspde$est_nu) {
+        row_names <- c("tau")
+    } else {
+        row_names <- c("tau", "nu")
+    }
+        
+    result$summary.values <- inla$summary.random[[name]]
+        
+    if (!is.null(inla$marginals.random[[name]])) {
+        result$marginals.values <- inla$marginals.random[[name]]
+    }
+        
+    name_theta1 <- "tau"
+    name_theta2 <- "nu"
+
+    name_theta1_model <- "tau"
+    name_theta2_model <- "nu"
+
+    result[[paste0("summary.log.", name_theta1_model)]] <- INLA::inla.extract.el(
+            inla$summary.hyperpar,
+            paste("Theta1 for ", name, "$", sep = "")
+    )
+    rownames(result[[paste0("summary.log.", name_theta1_model)]]) <- paste0("log(", name_theta1_model, ")")
+        
+    if (rspde$est_nu) {
+        result$summary.logit.nu <- INLA::inla.extract.el(inla$summary.hyperpar,
+                                                         paste("Theta2 for ", name, "$", sep = ""))
+        rownames(result$summary.logit.nu) <- "logit(nu)"
+    }
+        
+    if (!is.null(inla$marginals.hyperpar[[paste0("Theta1 for ", name)]])) {
+        result[[paste0("marginals.log.", name_theta1_model)]] <- INLA::inla.extract.el(
+            inla$marginals.hyperpar,
+            paste("Theta1 for ", name, "$", sep = "")
+        )
+        names(result[[paste0("marginals.log.", name_theta1_model)]]) <- name_theta1_model
+        
+        if (rspde$est_nu) {
+            result$marginals.logit.nu <- INLA::inla.extract.el(
+                inla$marginals.hyperpar,
+                paste("Theta2 for ", name, "$", sep = "")
+            )
+            names(result$marginals.logit.nu) <- "nu"
+        }
+            
+            
+        result[[paste0("marginals.", name_theta1)]] <- lapply(
+            result[[paste0("marginals.log.", name_theta1)]],
+            function(x) {
+                    INLA::inla.tmarginal(function(y) exp(y), x)
+                }
+            )
+    
+        if (rspde$est_nu) {
+            result$marginals.nu <- lapply(result$marginals.logit.nu,
+                function(x) {
+                    INLA::inla.tmarginal(
+                        function(y) {
+                            nu.upper.bound * exp(y) / (1 + exp(y))
+                        }, x)
+                })
+        }
+        
+        if (compute.summary) {
+            norm_const <- function(density_df) {
+                min_x <- min(density_df[, "x"])
+                max_x <- max(density_df[, "x"])
+                denstemp <- function(x) {
+                    dens <- sapply(x, function(z) {
+                        if (z < min_x) {
+                            return(0)
+                        } else if (z > max_x) {
+                            return(0)
+                        } else {
+                            return(approx(
+                                x = density_df[, "x"],
+                                y = density_df[, "y"], xout = z
+                            )$y)
+                        }
+                    })
+                    return(dens)
+                }
+                norm_const <- stats::integrate(
+                    f = function(z) {
+                        denstemp(z)
+                    }, lower = min_x, upper = max_x,
+                    subdivisions = nrow(density_df),
+                    stop.on.error = FALSE
+                )$value
+                return(norm_const)
+            }
+            
+            norm_const_theta1 <- norm_const(result[[paste0("marginals.", name_theta1)]][[name_theta1]])
+            result[[paste0("marginals.", name_theta1)]][[name_theta1]][, "y"] <-
+                result[[paste0("marginals.", name_theta1)]][[name_theta1]][, "y"] / norm_const_theta1
+            
+            result[[paste0("summary.", name_theta1)]] <- create_summary_from_density(result[[paste0("marginals.", name_theta1)]][[name_theta1]],
+                                                                                     name = name_theta1
+            )
+            
+            
+            if (rspde$est_nu) {
+                norm_const_nu <- norm_const(result$marginals.nu$nu)
+                result$marginals.nu$nu[, "y"] <-
+                    result$marginals.nu$nu[, "y"] / norm_const_nu
+                
+                result$summary.nu <- create_summary_from_density(result$marginals.nu$nu,
+                                                                 name = "nu"
+                )
+            }
+        }
+    }
+    
+    result$n_par <- length(rspde$start.theta)
+    
+    class(result) <- c("rspde_result", "rspde_intrinsic")
+    result$stationary <- TRUE
+    result$parameterization <- "spde"
+    
+    result$params <- c(name_theta1)
+    if (rspde$est_nu) {
+        result$params <- c(result$params, "nu")
+    }
+
+    if (!is.null(result$summary.nu)) {
+        if(nu.upper.bound - result$summary.nu$mean < 0.1 || nu.upper.bound - result$summary.nu$mode < 0.1){
+            warning("the mean or mode of nu is very close to nu.upper.bound, please consider increasing nu.upper.bound, and refitting the model.")
+        }
+    }
+    
+    return(result)
 }

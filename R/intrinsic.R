@@ -1,6 +1,99 @@
 #' @name intrinsic.operators
 #' @title Covariance-based approximations of intrinsic fields
-#' @description `intrinsic.operators` is used for computing a
+#' @description `intrinsic.matern.operators` is used for computing a
+#' covariance-based rational SPDE approximation of intrinsic
+#' fields on \eqn{R^d} defined through the SPDE
+#' \deqn{(-\Delta)^{\beta/2} (\tau u) = \mathcal{W}}{(-\Delta)^{\beta/2} (\tau u) = \mathcal{W}}
+#' @param tau precision parameter
+#' @param beta Smoothness parameter
+#' @param G The stiffness matrix of a finite element discretization
+#' of the domain of interest.
+#' @param C The mass matrix of a finite element discretization of
+#' the domain of interest.
+#' @param d The dimension of the domain.
+#' @param mesh An inla mesh.
+#' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`.
+#' @param loc_mesh locations for the mesh for `d=1`.
+#' @param m The order of the rational approximation for the intrinsic part,
+#' which needs to be a positive integer. The default value is 2.
+#' @param compute_higher_order Logical. Should the higher order finite
+#' element matrices be computed?
+#' @param return_block_list Logical. For `type = "covariance"`,
+#' should the block parts of the precision matrix be returned
+#' separately as a list?
+#' @param type_rational_approximation Which type of rational
+#' approximation should be used? The current types are
+#' "chebfun", "brasil" or "chebfunLB".
+#' @param fem_mesh_matrices A list containing FEM-related matrices.
+#' The list should contain elements c0, g1, g2, g3, etc.
+#' @param scaling second lowest eigenvalue of g1
+#' @return `intrinsic.operators` returns an object of
+#' class "intrinsicCBrSPDEobj". 
+#' @export
+#' @details The covariance operator
+#' \deqn{\tau^{-2}(-\Delta)^{\beta}}{\tau^{-2}(-\Delta)^{\beta}}
+#' is approximated based on a rational approximation. The Laplacian is 
+#' equipped with homogeneous Neumann boundary
+#' conditions and a zero-mean constraint is additionally imposed to obtained
+#' a non-intrinsic model.
+#' @examples
+#' if (requireNamespace("RSpectra", quietly = TRUE)) {
+#'   x <- seq(from = 0, to = 10, length.out = 201)
+#'   beta <- 1
+#'   alpha <- 1
+#'   op <- intrinsic.operators(tau = 1, beta = beta, loc_mesh = x, d = 1)
+#'   # Compute and plot the variogram of the model
+#'   Sigma <- op$A[,-1] %*% solve(op$Q[-1,-1], t(op$A[,-1]))
+#'   One <- rep(1, times = ncol(Sigma))
+#'   D <- diag(Sigma)
+#'   Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
+#'   k <- 100
+#'   plot(x, Gamma[k, ], type = "l")
+#'   lines(x,
+#'     variogram.intrinsic.spde(x[k], x, kappa = 0, alpha = 0, 
+#'     beta = beta, L = 10, d = 1),
+#'     col = 2, lty = 2
+#'   )
+#' }
+intrinsic.operators <- function(tau,
+                                alpha,
+                                beta = 1,
+                                G = NULL,
+                                C = NULL,
+                                d = NULL,
+                                mesh = NULL,
+                                graph = NULL,
+                                loc_mesh = NULL,
+                                m_alpha = 2,
+                                m_beta = 2,
+                                compute_higher_order = FALSE,
+                                return_block_list = FALSE,
+                                type_rational_approximation = c(
+                                           "chebfun",
+                                           "brasil", "chebfunLB"
+                                           ),
+                                fem_mesh_matrices = NULL,
+                                scaling = NULL) {
+ return(intrinsic.matern.operators(tau = tau,
+                                  kappa = 0, 
+                                  alpha = 0, 
+                                  beta = beta, 
+                                  G = G,
+                                  C = C,
+                                  d = d,
+                                  mesh = mesh,
+                                  graph = graph,
+                                  loc_mesh = loc_mesh,
+                                  m_beta = m,
+                                  compute_higher_order =  compute_higher_order,
+                                  return_block_list = return_block_list,
+                                  type_rational_approximation = type_rational_approximation,
+                                  fem_mesh_matrices = fem_mesh_matrices,
+                                  scaling = scaling))
+}
+#' @name intrinsic.operators.internal
+#' @title Covariance-based approximations of intrinsic fields
+#' @description `intrinsic.operators.internal` is used for computing a
 #' covariance-based rational SPDE approximation of intrinsic
 #' fields on \eqn{R^d} defined through the SPDE
 #' \deqn{(-\Delta)^{\alpha/2}u = \mathcal{W}}{(-\Delta)^{\alpha/2}u = \mathcal{W}}
@@ -25,7 +118,7 @@
 #' @param fem_mesh_matrices A list containing FEM-related matrices.
 #' The list should contain elements c0, g1, g2, g3, etc.
 #' @param scaling second lowest eigenvalue of g1
-#' @return `intrinsic.operators` returns an object of
+#' @return `intrinsic.operators.internal` returns an object of
 #' class "CBrSPDEobj". This object is a list containing the
 #' following quantities:
 #' \item{C}{The mass lumped mass matrix.}
@@ -46,7 +139,7 @@
 #' so that the equation has a unique solution. This contraint needs to be
 #' imposed while working with the model later.
 #' @noRd
-intrinsic.operators <- function(C,
+intrinsic.operators.internal <- function(C,
                                 G,
                                 mesh,
                                 alpha,
@@ -318,7 +411,7 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 
     Q <- bdiag(Q, Kpart)
 
-    Q <- Q * scaling^alpha
+    Q <- Q * scaling^(alpha)
 
     return(Q)
   } else {
@@ -575,7 +668,7 @@ intrinsic.matern.operators <- function(kappa,
       return_block_list = TRUE,
       type_rational_approximation = type_rational_approximation[[1]]
     )
-    op2 <- intrinsic.operators(
+    op2 <- intrinsic.operators.internal(
       C = C, G = G, mesh = mesh, alpha = beta,
       m = m_beta, d = d, compute_higher_order = compute_higher_order,
       return_block_list = TRUE, fem_mesh_matrices = fem_mesh_matrices,
@@ -656,14 +749,14 @@ intrinsic.matern.operators <- function(kappa,
     } else {
       alpha_beta <- beta
     }
-    op1 <- intrinsic.operators(
+    op1 <- intrinsic.operators.internal(
       C = C, G = G, mesh = mesh, alpha = alpha_beta,
       m = m_beta, d = d, compute_higher_order = compute_higher_order,
       return_block_list = TRUE, fem_mesh_matrices = fem_mesh_matrices,
       type_rational_approximation = type_rational_approximation[[1]]
     )
     if (is.list(op1$Q)) {
-      Q.list1 <- op1$Q*tau^2
+      Q.list1 <- lapply(op1$Q, function(x) { x * tau^2})
     } else {
       Q.list1 <- list(op1$Q*tau^2)
     }
@@ -746,7 +839,7 @@ simulate.intrinsicCBrSPDEobj <- function(object, nsim = 1, seed = NULL,
       
       X <- matrix(0,n,nsim)
       for(i in 1:m){
-          ind <- (2+n*(i-1)) : n*i
+          ind <- (2+n*(i-1)) : (n*i)
           Q <- object$Q[ind,ind]
           Z <- rnorm((n - 1) * nsim)
           dim(Z) <- c(n-1, nsim)

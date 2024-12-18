@@ -11,6 +11,45 @@
 #include "cgeneric_cpp.h"
 
 
+Eigen::VectorXd intrinsic_mean(Eigen::SparseMatrix<double> Lq) {
+    
+    Eigen::SparseMatrix<double> S = Lq.selfadjointView<Eigen::Lower>();
+    
+    int n = Lq.rows();
+    
+    for (int i = n - 1; i >= 0; --i) {
+        Eigen::SparseMatrix<double>::ReverseInnerIterator Si(S, i);
+        for (Eigen::SparseMatrix<double>::ReverseInnerIterator ij(Lq, i); ij; --ij) {
+            
+            Eigen::SparseMatrix<double>::ReverseInnerIterator iL(Lq, i);
+            Eigen::SparseMatrix<double>::ReverseInnerIterator iS(S, ij.row());
+            Si.valueRef() = 0.0;
+            while (iL.row() > i) {
+                while (iS && (iL.row() < iS.row())) {
+                    --iS;
+                }
+                if (iS && (iL.row() == iS.row())) {
+                    Si.valueRef() -= iL.value() * iS.value();
+                    --iS;
+                }
+                --iL;
+            }
+            if (i == ij.row()) {
+                Si.valueRef() += 1 / iL.value();
+                Si.valueRef() /= iL.value();
+            } else {
+                Si.valueRef() /= iL.value();
+                while (iS.row() > i) {
+                    --iS;
+                }
+                iS.valueRef() = Si.value();
+            }
+            --Si;
+        }
+    }
+    
+    return S.diagonal();
+}
 
 extern "C" void compute_Q_fintrinsic(
             double tau, double nu,
@@ -22,7 +61,9 @@ extern "C" void compute_Q_fintrinsic(
             const inla_cgeneric_mat_tp *rational_table,
             int est_nu, int d, int compute_Q, 
             int compute_mean, int compute_logdet,
-            double*ld_out, double *mean_out);
+            double*ld_out, double *mean_out,
+            double scaling,
+            const inla_cgeneric_smat_tp *D);
 
 
 void compute_Q_fintrinsic( double tau, double nu,
@@ -34,28 +75,31 @@ void compute_Q_fintrinsic( double tau, double nu,
                            const inla_cgeneric_mat_tp *rational_table,
                            int est_nu, int d,
                            int compute_Q, int compute_mean, int compute_logdet,
-                           double*ld_out, double *mean_out) {
+                           double*ld_out, double *mean_out,
+                           double scaling,
+                           const inla_cgeneric_smat_tp *D) {
     
     double alpha = nu + d/2;
-    
-    std::cout << "set matrices" << std::endl;
+    //std::cout << "tau = " << tau << ", nu = " << nu << std::endl;
+
     // Assembling the FEM matrices
-    SparseMatrixColMajor C_eigen = convertInlaToEigen(C);
-    SparseMatrixColMajor Ci_eigen = convertInlaToEigen(Ci);
-    SparseMatrixColMajor G_eigen = convertInlaToEigen(G);
+    Eigen::SparseMatrix<double> C_eigen = convertInlaToEigen(C);
+    Eigen::SparseMatrix<double> Ci_eigen = convertInlaToEigen(Ci);
+    Eigen::SparseMatrix<double> G_eigen = convertInlaToEigen(G);
+    Eigen::SparseMatrix<double> D_eigen = convertInlaToEigen(D);
     
-    std::cout << "set table" << std::endl;
     // Assembling the rational table
     Eigen::MatrixXd rational_table_eigen = inlaToEigenMatrix(rational_table);
     
     int m_alpha = static_cast<int>(std::floor(alpha));
     
-    SparseMatrixColMajor L = G_eigen;
-    SparseMatrixColMajor CiL = Ci_eigen * L;
+    Eigen::SparseMatrix<double> L = G_eigen / scaling;
+    Eigen::SparseMatrix<double> CiL = Ci_eigen * L;
     
-    SparseMatrixColMajor Q;
-    std::cout << "alpha = " << alpha << std::endl;
-    if (std::floor(alpha) == alpha && est_nu == 0) { // Check if alpha is an integer
+    Eigen::SparseMatrix<double> Q;
+    
+    bool int_alpha = std::floor(alpha) == alpha && est_nu == 0; // Check if alpha is an integer
+    if (int_alpha) { 
         Q = L;
         if (alpha > 1) {
             for (int k = 1; k < alpha; ++k) {
@@ -64,33 +108,23 @@ void compute_Q_fintrinsic( double tau, double nu,
         }
         Q *= tau * tau;
     } else if (rspde_order > 0) {
-        SparseMatrixColMajor Q_graph_eigen = convertInlaToEigen(Q_graph);           
-        SparseMatrixColMajor Q_graph_transpose = Q_graph_eigen.transpose(); 
+        Eigen::SparseMatrix<double> Q_graph_eigen = convertInlaToEigen(Q_graph);           
+        Eigen::SparseMatrix<double> Q_graph_transpose = Q_graph_eigen.transpose(); 
         Q_graph_eigen = Q_graph_eigen + Q_graph_transpose;
-        std::cout << "create precision" << std::endl;
-        std::cout << L.rows() << " " << L.cols() << std::endl;
-        std::cout << C_eigen.rows() << " " << C_eigen.cols() << std::endl;
-        std::cout << Ci_eigen.rows() << " " << Ci_eigen.cols() << std::endl;
-        std::cout << CiL.rows() << " " << CiL.cols() << std::endl;
-        std::cout << alpha << " " << m_alpha << " " << rspde_order << std::endl;
         Q = anisotropic_precision(L, tau, C_eigen, Ci_eigen, CiL, alpha, m_alpha, 
-                                  rspde_order, 1.0, rational_table_eigen);
-        std::cout << "add graph " << Q_graph_eigen.rows() << " " << Q_graph_eigen.cols() << std::endl;
-        std::cout << "add graph " << Q.rows() << " " << Q.cols() << std::endl;
+                                  rspde_order, scaling, rational_table_eigen);
         Q = Q + 0 * Q_graph_eigen;
     } else {
         throw std::invalid_argument("rspde_order > 0 required");
     }
     
-    
-    if(compute_Q== 1) {
-        std::cout << "save Q" << std::endl;
+    if(compute_Q == 1) {
+        Eigen::SparseMatrix<double> Qadj = Q + tau * tau * D_eigen; // add diagonal correction
         // Extract the values from Q into the result array, using only lower triangular part
-        Eigen::SparseMatrix<double, Eigen::ColMajor> Q_triang = Q.triangularView<Eigen::Lower>();
-        
+        Eigen::SparseMatrix<double> Q_triang = Qadj.triangularView<Eigen::Lower>();
         int count = 0;
         for (int k = 0; k < Q_triang.outerSize(); ++k) {
-            for (Eigen::SparseMatrix<double, Eigen::ColMajor>::InnerIterator it(Q_triang, k); it; ++it) {
+            for (Eigen::SparseMatrix<double>::InnerIterator it(Q_triang, k); it; ++it) {
                 ret[count] = it.value();
                 count++;
             }
@@ -98,66 +132,53 @@ void compute_Q_fintrinsic( double tau, double nu,
     }
     
     if(compute_mean || compute_logdet){
-        std::cout << "compute mean" << std::endl;
-        int size = Q.rows();
-        // Get submatrix Q[-n,-,n]
-        Eigen::SparseMatrix<double> Qsub(size-1,size-1);
-        Qsub = Q.topLeftCorner(size-1,size-1);
-        
-        Eigen::SimplicialLLT<Eigen::SparseMatrix<double, 0, int> > R;
-        R.analyzePattern(Qsub);
-        R.factorize(Qsub);
-        Eigen::SparseMatrix<double, 0, int> L = R.matrixL();
-        if(compute_logdet){
-            // constant = log(|Q|*/(2pi)^((d-1)/2), |Q|* = d|Qsub|
-            //log const = log(|Q|*) - (d-1)log(2pi)/2 
-            //          = log(2d) + log(|R|*) - (d-1)log(2pi)/2 
-            double ldet = L.diagonal().array().log().sum(); 
-            ld_out[0] = ldet + log(2*size) - (size- 1) * log(2 * M_PI) / 2;
-        }
-        
-        
-        if(compute_mean){
-            Eigen::SparseMatrix<double, 0, int> S = L.selfadjointView<Eigen::Lower>();
+        Eigen::SimplicialLLT<Eigen::SparseMatrix<double> > R;
+        Eigen::SparseMatrix<double> Lq; 
+        Eigen::VectorXd Qidiag_perm;
+        Eigen::VectorXd Qidiag;
+        int n = C_eigen.rows();
+        if(int_alpha) {
+            // Get submatrix Q[-n,-,n]
+            Eigen::SparseMatrix<double> Qsub = Q.topLeftCorner(n-1,n-1);
+            R.analyzePattern(Qsub);
+            R.factorize(Qsub);
             
-            int n = L.rows();
-            
-            for (int i = n - 1; i >= 0; --i) {
-                Eigen::SparseMatrix<double>::ReverseInnerIterator Si(S, i);
-                for (Eigen::SparseMatrix<double>::ReverseInnerIterator ij(L, i); ij; --ij) {
-                    
-                    Eigen::SparseMatrix<double>::ReverseInnerIterator iL(L, i);
-                    Eigen::SparseMatrix<double>::ReverseInnerIterator iS(S, ij.row());
-                    Si.valueRef() = 0.0;
-                    while (iL.row() > i) {
-                        while (iS && (iL.row() < iS.row())) {
-                            --iS;
-                        }
-                        if (iS && (iL.row() == iS.row())) {
-                            Si.valueRef() -= iL.value() * iS.value();
-                            --iS;
-                        }
-                        --iL;
-                    }
-                    if (i == ij.row()) {
-                        Si.valueRef() += 1 / iL.value();
-                        Si.valueRef() /= iL.value();
-                    } else {
-                        Si.valueRef() /= iL.value();
-                        while (iS.row() > i) {
-                            --iS;
-                        }
-                        iS.valueRef() = Si.value();
-                    }
-                    --Si;
+            Lq = R.matrixL();
+            if(compute_logdet){
+                // constant = log(|Q|*/(2pi)^((d-1)/2), |Q|* = d|Qsub|
+                //log const = log(|Q|*) - (d-1)log(2pi)/2 
+                //          = log(2d) + log(|R|*) - (d-1)log(2pi)/2 
+                double ldet = Lq.diagonal().array().log().sum(); 
+                ld_out[0] = ldet + log(2*n) - (n - 1) * log(2 * M_PI) / 2;
+            }
+            if(compute_mean){
+                Qidiag_perm = intrinsic_mean(Lq);
+                Qidiag = R.permutationPinv() * Qidiag_perm;
+                for(int i = 0; i < n; i++){
+                    mean_out[i] = Qidiag[i];
                 }
             }
-            
-            Eigen::VectorXd Qidiag_perm = S.diagonal();
-            Eigen::VectorXd Qidiag = R.permutationPinv() * Qidiag_perm;
-            for(int i = 0; i < n; i++){
-                mean_out[i] = Qidiag[i];
-            }
+        } else {
+            int start;
+            ld_out[0] = (rspde_order + 1)*log(2*n) - (rspde_order + 1)* (n - rspde_order) * log(2 * M_PI) / 2;
+            for(int k = 0; k < rspde_order + 1; k ++) {
+                start = k*n;
+                Eigen::SparseMatrix<double> Qsub = Q.block(start,start,n-1,n-1);
+                R.analyzePattern(Qsub);
+                R.factorize(Qsub);
+                Lq = R.matrixL();
+                if(compute_logdet){
+                    ld_out[0] += Lq.diagonal().array().log().sum();
+                }
+                
+                if(compute_mean){
+                    Qidiag_perm = intrinsic_mean(Lq);
+                    Qidiag = R.permutationPinv() * Qidiag_perm;
+                    for(int i = 0; i < n; i++){
+                        mean_out[start + i] = Qidiag[i];
+                    }
+                }
+            }    
         }
     }
 }
@@ -244,10 +265,10 @@ void compute_Q_intrinsic(int size,
         Eigen::SparseMatrix<double> Qsub(size-1,size-1);
         Qsub = Q.topLeftCorner(size-1,size-1);
         
-        Eigen::SimplicialLLT<Eigen::SparseMatrix<double, 0, int> > R;
+        Eigen::SimplicialLLT<Eigen::SparseMatrix<double> > R;
         R.analyzePattern(Qsub);
         R.factorize(Qsub);
-        Eigen::SparseMatrix<double, 0, int> L = R.matrixL();
+        Eigen::SparseMatrix<double> L = R.matrixL();
         if(compute_logdet){
             // constant = log(|Q|*/(2pi)^((d-1)/2), |Q|* = d|Qsub|
             //log const = log(|Q|*) - (d-1)log(2pi)/2 
@@ -258,7 +279,7 @@ void compute_Q_intrinsic(int size,
         
         
         if(compute_mean){
-            Eigen::SparseMatrix<double, 0, int> S = L.selfadjointView<Eigen::Lower>();
+            Eigen::SparseMatrix<double> S = L.selfadjointView<Eigen::Lower>();
             
             int n = L.rows();
             

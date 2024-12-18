@@ -74,6 +74,7 @@ export(gg_df)
 export(glance)
 export(graph_data_rspde)
 export(intrinsic.matern.operators)
+export(intrinsic.operators)
 export(matern.covariance)
 export(matern.operators)
 export(matern.rational)
@@ -137,6 +138,10 @@ if (getRversion() >= "3.6.0") {
   S3method(inlabru::ibm_n, bru_mapper_metric_graph)
   S3method(inlabru::ibm_values, bru_mapper_metric_graph)
   S3method(inlabru::ibm_jacobian, bru_mapper_metric_graph)
+  S3method(inlabru::bru_mapper, metric_graph_dirichlet)
+  S3method(inlabru::ibm_n, bru_mapper_metric_graph_dirichlet)
+  S3method(inlabru::ibm_values, bru_mapper_metric_graph_dirichlet)
+  S3method(inlabru::ibm_jacobian, bru_mapper_metric_graph_dirichlet)
 }
 
 import(Matrix)

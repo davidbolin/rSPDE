@@ -91,7 +91,7 @@ Eigen::SparseMatrix<double> anisotropic_precision(
     }
 
     // Apply scaling factor and tau
-    Q *= std::pow(scale_factor, 2 * alpha) * std::pow(tau, 2);
+    Q *= std::pow(scale_factor, alpha) * std::pow(tau, 2);
 
     return Q;
 }
