@@ -55,17 +55,15 @@
 #'     col = 2, lty = 2
 #'   )
 #' }
-intrinsic.operators <- function(tau,
-                                alpha,
-                                beta = 1,
+intrinsic.operators <- function(tau = NULL,
+                                beta = NULL,
                                 G = NULL,
                                 C = NULL,
                                 d = NULL,
                                 mesh = NULL,
                                 graph = NULL,
                                 loc_mesh = NULL,
-                                m_alpha = 2,
-                                m_beta = 2,
+                                m = 2,
                                 compute_higher_order = FALSE,
                                 return_block_list = FALSE,
                                 type_rational_approximation = c(
@@ -74,8 +72,12 @@ intrinsic.operators <- function(tau,
                                            ),
                                 fem_mesh_matrices = NULL,
                                 scaling = NULL) {
+    
+    if(is.null(tau) || is.null(beta)) {
+        stop("tau and beta must be provided.")
+    }
  return(intrinsic.matern.operators(tau = tau,
-                                  kappa = 0, 
+                                  kappa = 1, 
                                   alpha = 0, 
                                   beta = beta, 
                                   G = G,
@@ -906,8 +908,8 @@ simulate.intrinsicCBrSPDEobj <- function(object, nsim = 1, seed = NULL,
 #' }
 variogram.intrinsic.spde <- function(s0 = NULL,
                                      s = NULL,
-                                     kappa = NULL,
-                                     alpha = NULL,
+                                     kappa = 0,
+                                     alpha = 0,
                                      beta = NULL,
                                      tau = 1,
                                      L = NULL,

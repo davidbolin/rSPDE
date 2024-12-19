@@ -30,17 +30,13 @@ inla_link <- function() {
 In this vignette we provide a brief introduction to the intrinsic models implemented in the `rSPDE`
 package. 
 
-## Model specification and simulation 
+## A fractional intrinsic model 
 
-The most general intrinsic model is defined as  
+A basic intrinsic model which is implemented in `rSPDE`  is defined as  
 $$
-(-\Delta)^{\beta/2}(\kappa^2-\Delta)^{\alpha/2}(\tau u) = \mathcal{W},
+(-\Delta)^{\beta/2}(\tau u) = \mathcal{W},
 $$ 
-where $\alpha + \beta > d/2$ and $d$ is the dimension of the spatial domain. These models are handled 
-by performing two rational approximations, one for each fractional operator. The package also contains a separate implementation for the special case 
-$$
-(-\Delta)^{\beta/2}(\tau u) = \mathcal{W}.
-$$ 
+where $\beta > d/2$ and $d$ is the dimension of the spatial domain. 
 
 To illustrate these models, we begin by defining a mesh over $[0,2]\times [0, 2]$:
 
@@ -50,18 +46,212 @@ bnd <- fm_segm(rbind(c(0, 0), c(2, 0), c(2, 2), c(0, 2)), is.bnd = TRUE)
 mesh_2d <- fm_mesh_2d(
     boundary = bnd, 
     cutoff = 0.04,
-    max.edge = c(0.05)
+    max.edge = c(0.1)
 )
 plot(mesh_2d, main = "")
 
 ```
 
-We now use the `intrinsic.matern.operators()` function to construct the `rSPDE` representation
-of the general model. One can similarly use `intrinsic.operators()` to construct the `rSPDE` representation 
-of the special case with $\alpha = 0$.
+We now use the `intrinsic.operators()` function to construct the `rSPDE` representation
+of the general model. 
 
 ```{r, message=FALSE}
 library(rSPDE)
+tau <- 0.2
+beta <- 1.8
+rspde.order <- 2
+op <- intrinsic.operators(tau = tau, beta = beta, mesh = mesh_2d, m = rspde.order)
+```
+
+To see that the `rSPDE` model is approximating the true model, we can compare the variogram
+of the approximation with the true variogram (implemented in `variogram.intrinsic.spde()`) as follows.
+```{r, message=FALSE}
+ind.fix <- 1 + seq(from=0,to=op$m_beta * mesh_2d$n, by = mesh_2d$n)
+Sigma <- op$A[,-ind.fix] %*% solve(op$Q[-ind.fix,-ind.fix], t(op$A[,-ind.fix]))
+One <- rep(1, times = ncol(Sigma))
+D <- diag(Sigma)
+Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
+point <- matrix(c(1,1),1,2)
+Aobs <- spde.make.A(mesh = mesh_2d, loc = point)
+vario <- variogram.intrinsic.spde(point, mesh_2d$loc[,1:2], tau = tau,
+                                  beta = beta, L = 2, d = 2)
+
+d = sqrt((mesh_2d$loc[,1]-point[1])^2 +  (mesh_2d$loc[,2]-point[2])^2)
+plot(d, Aobs%*%Gamma, xlim = c(0,0.7))
+lines(sort(d),sort(vario),col=2, lwd = 2)
+```
+
+We can note that the approximation is not great here, and the reason is that the order of the rational approximation is too low. Let us increase it and recompute:
+```{r, message=FALSE}
+rspde.order <- 8
+op <- intrinsic.operators(tau = tau, beta = beta, mesh = mesh_2d, m = rspde.order)
+ind.fix <- 1 + seq(from=0,to=op$m_beta * mesh_2d$n, by = mesh_2d$n)
+Sigma <- op$A[,-ind.fix] %*% solve(op$Q[-ind.fix,-ind.fix], t(op$A[,-ind.fix]))
+One <- rep(1, times = ncol(Sigma))
+D <- diag(Sigma)
+Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
+plot(d, Aobs%*%Gamma, xlim = c(0,0.7))
+lines(sort(d),sort(vario),col=2, lwd = 2)
+```
+
+
+We can now use the `simulate` function to simulate a realization of the field $u$:
+
+```{r}
+u <- simulate(op,nsim = 1)
+
+proj <- fm_evaluator(mesh_2d, dims = c(100, 100))
+field <- fm_evaluate(proj, field = as.vector(u))
+field.df <- data.frame(x1 = proj$lattice$loc[,1],
+                       x2 = proj$lattice$loc[,2], 
+                       y = as.vector(field))
+
+library(ggplot2)
+library(viridis)
+ggplot(field.df, aes(x = x1, y = x2, fill = y)) +
+    geom_raster() +
+    scale_fill_viridis()
+
+```
+
+By default, the field is simulated with a zero-integral constraint. 
+
+## Fitting the model with `R-INLA` 
+
+Let us now consider a simple Gaussian linear model where 
+the spatial field $u(\mathbf{s})$ is observed at
+$m$ locations, $\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}$ under Gaussian measurement noise.
+For each $i = 1,\ldots,m,$ we have
+$$
+\begin{align} 
+y_i &= u(\mathbf{s}_i)+\varepsilon_i\\
+\end{align},
+$$
+where $\varepsilon_1,\ldots,\varepsilon_{m}$ are iid normally distributed
+with mean 0 and standard deviation 0.1.
+
+To generate a data set `y` from this model, we first draw some observation locations at random in the domain and then
+use the `spde.make.A()` functions (that wraps the functions `fm_basis()`, `fm_block()` and `fm_row_kron()` of the `fmesher` package) to construct the observation matrix which can be used to evaluate the
+simulated field $u$ at the observation locations. After this we simply add the measurment noise. 
+
+```{r}
+n_loc <- 1000
+loc_2d_mesh <- matrix(2*runif(n_loc * 2), n_loc, 2)
+
+A <- spde.make.A(
+  mesh = mesh_2d,
+  loc = loc_2d_mesh
+)
+sigma.e <- 0.1
+y <- A %*% u + rnorm(n_loc) * sigma.e
+```
+
+The generated data can be seen in the following image.
+
+```{r,fig.align = "center", echo=TRUE}
+df <- data.frame(x1 = as.double(loc_2d_mesh[, 1]),
+  x2 = as.double(loc_2d_mesh[, 2]), y = as.double(y))
+ggplot(df, aes(x = x1, y = x2, col = y)) +
+  geom_point() +
+  scale_color_viridis()
+```
+
+
+We will now fit the model using our `r inla_link()` implementation of the
+rational SPDE approach. Further details on this implementation can be found in
+ [R-INLA implementation of the rational SPDE approach](rspde_inla.html).
+ 
+
+```{r}
+library(INLA)
+mesh.index <- rspde.make.index(name = "field", mesh = mesh_2d, rspde.order = rspde.order)
+Abar <- rspde.make.A(mesh = mesh_2d, loc = loc_2d_mesh, rspde.order = rspde.order)
+st.dat <- inla.stack(data = list(y = as.vector(y)), A = Abar, effects = mesh.index)
+
+```
+
+We now create the model object. 
+
+```{r}
+rspde_model <- rspde.intrinsic(mesh = mesh_2d, rspde.order = rspde.order)
+
+```
+
+Finally, we create the formula and fit the model to the data: 
+
+```{r message=FALSE, warning=FALSE}
+f <- y ~ -1 + f(field, model = rspde_model)
+rspde_fit <- inla(f,
+                  data = inla.stack.data(st.dat),
+                  family = "gaussian",
+                  control.predictor = list(A = inla.stack.A(st.dat)))
+
+```
+
+To compare the estimated parameters to the true parameters, we can do the following:
+```{r}
+result_fit <- rspde.result(rspde_fit, "field", rspde_model)
+summary(result_fit)
+tau <- op$tau
+nu <- op$beta - 1 #beta = nu + d/2 
+result_df <- data.frame(
+    parameter = c("tau", "nu", "sigma.e"),
+    true = c(tau, nu, sigma.e), 
+    mean = c(result_fit$summary.tau$mean,result_fit$summary.nu$mean,
+             sqrt(1/rspde_fit$summary.hyperpar[1,1])),
+    mode = c(result_fit$summary.tau$mode, result_fit$summary.nu$mode,
+             sqrt(1/rspde_fit$summary.hyperpar[1,6]))
+)
+print(result_df)
+```
+
+
+## Extreme value models
+
+When used for extreme value statistics, one might want to use a particular form 
+of the mean value of the latent field $u$, which is zero at one location $k$ and is given by the diagonal of $Q_{-k,-k}^{-1}$ for the remaining locations. This option can be
+specified via the `mean.correction` argument of `rspde.intrinsic`:
+
+```{r}
+rspde_model2 <- rspde.intrinsic(mesh = mesh_2d, rspde.order = rspde.order,
+                                mean.correction = TRUE)
+```
+
+We can then fit this model as before: 
+
+```{r message=FALSE, warning=FALSE}
+f <- y ~ -1 + f(field, model = rspde_model2)
+rspde_fit <- inla(f,
+                  data = inla.stack.data(st.dat),
+                  family = "gaussian",
+                  control.predictor = list(A = inla.stack.A(st.dat)))
+
+```
+
+To see the posterior distributions of the parameters we can do:
+```{r}
+result_fit <- rspde.result(rspde_fit, "field", rspde_model2)
+posterior_df_fit <- gg_df(result_fit)
+
+ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
+```
+
+# A more general model 
+
+The `rSPDE` package also contains a partial implementation of a more general intrinsic model, which
+we refer to as an intrinsic Matérn model. The model is defined as  
+$$
+(-\Delta)^{\beta/2}(\kappa^2-\Delta)^{\alpha/2}(\tau u) = \mathcal{W},
+$$ 
+where $\alpha + \beta > d/2$ and $d$ is the dimension of the spatial domain. These models are handled 
+by performing two rational approximations, one for each fractional operator. 
+
+To illustrate this model, we consider the same mesh as before and use 
+the `intrinsic.matern.operators()` function to construct the `rSPDE` representation
+of the general model. 
+
+```{r, message=FALSE}
 kappa <- 10
 tau <- 0.01
 alpha <- 2
@@ -79,7 +269,7 @@ D <- diag(Sigma)
 Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
 point <- matrix(c(1,1),1,2)
 Aobs <- spde.make.A(mesh = mesh_2d, loc = point)
-vario <- variogram.intrinsic.spde(point, mesh_2d$loc[,1:2], kappa, 
+vario <- variogram.intrinsic.spde(point, mesh_2d$loc[,1:2], kappa = kappa, 
                                   alpha = alpha, tau = tau,
                                   beta = beta, L = 2, d = 2)
 
@@ -104,27 +294,18 @@ library(viridis)
 ggplot(field.df, aes(x = x1, y = x2, fill = y)) +
     geom_raster() +
     scale_fill_viridis()
-
 ```
 
 By default, the field is simulated with a zero-integral constraint. 
 
 
-Let us now consider a simple Gaussian linear model where 
-the spatial field $u(\mathbf{s})$ is observed at
-$m$ locations, $\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}$ under Gaussian measurement noise.
-For each $i = 1,\ldots,m,$ we have
-$$
-\begin{align} 
-y_i &= u(\mathbf{s}_i)+\varepsilon_i\\
-\end{align},
-$$
-where $\varepsilon_1,\ldots,\varepsilon_{m}$ are iid normally distributed
-with mean 0 and standard deviation 0.1.
+## Fitting the model with `R-INLA` 
 
-To generate a data set `y` from this model, we first draw some observation locations at random in the domain and then
-use the `spde.make.A()` functions (that wraps the functions `fm_basis()`, `fm_block()` and `fm_row_kron()` of the `fmesher` package) to construct the observation matrix which can be used to evaluate the
-simulated field $u$ at the observation locations. After this we simply add the measurment noise. 
+We will now fit the model using our `r inla_link()` implementation of the
+rational SPDE approach. Further details on this implementation can be found in
+ [R-INLA implementation of the rational SPDE approach](rspde_inla.html).
+
+We begin by simulating some data as before.
 
 ```{r}
 n_loc <- 2000
@@ -141,8 +322,6 @@ y <- A %*% u + rnorm(n_loc) * sigma.e
 The generated data can be seen in the following image.
 
 ```{r,fig.align = "center", echo=TRUE}
-library(ggplot2)
-library(viridis)
 df <- data.frame(x1 = as.double(loc_2d_mesh[, 1]),
   x2 = as.double(loc_2d_mesh[, 2]), y = as.double(y))
 ggplot(df, aes(x = x1, y = x2, col = y)) +
@@ -150,21 +329,12 @@ ggplot(df, aes(x = x1, y = x2, col = y)) +
   scale_color_viridis()
 ```
 
-
-
-## Fitting the model with `R-INLA` 
-
-We will now fit the model using our `r inla_link()` implementation of the
-rational SPDE approach. Further details on this implementation can be found in
- [R-INLA implementation of the rational SPDE approach](rspde_inla.html).
- 
-We begin by loading the `INLA` package and creating the $A$ matrix, the index, and the
-`inla.stack` object. For now, the model can only be estimated with $\beta = 1$ and
+To fit the model, we create the $A$ matrix, the index, and the
+`inla.stack` object. For now, these more general models can only be estimated with $\beta = 1$ and
 $\alpha = 1$ or $\alpha = 2$. For these non-fractional models, we can use the standard
 INLA functions to make the required elements. 
 
 ```{r}
-library(INLA)
 mesh.index <- inla.spde.make.index(name = "field", n.spde = mesh_2d$n)
 
 st.dat <- inla.stack(data = list(y = as.vector(y)), A = A, effects = mesh.index)
@@ -295,122 +465,3 @@ ggplot(field.pred.sd.df, aes(x = x1, y = x2, fill = sd)) +
   geom_raster() + scale_fill_viridis()
 ```
 
-## Extreme value models
-
-When used for extreme value statistics, one might want to use a particular form 
-of the mean value of the latent field $u$, which is zero at one location $k$ and is given by the diagonal of $Q_{-k,-k}^{-1}$ for the remaining locations. This option can be
-specified via the `mean.correction` argument of `rspde.intrinsic.matern`:
-
-```{r}
-rspde_model2 <- rspde.intrinsic.matern(mesh = mesh_2d, alpha = alpha,
-                                       mean.correction = TRUE)
-```
-
-We can then fit this model as before: 
-
-```{r message=FALSE, warning=FALSE}
-f <- y ~ -1 + f(field, model = rspde_model2)
-rspde_fit <- inla(f,
-                  data = inla.stack.data(st.dat),
-                  family = "gaussian",
-                  control.predictor = list(A = inla.stack.A(st.dat)))
-
-```
-
-To see the posterior distributions of the parameters we can do:
-```{r}
-result_fit <- rspde.result(rspde_fit, "field", rspde_model2)
-posterior_df_fit <- gg_df(result_fit)
-
-ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
-facet_wrap(~parameter, scales = "free") + labs(y = "Density")
-```
-
-## Fitting fractional models with `R-INLA` 
-
-Although the general intrinsic model currently only can be fitted to data in `R-INLA` having fixed values of 
-$alpha$ and $\beta$, the special case with $\alpha=0$ can be estimated with general smoothness parameter. We now illustrate this. We start by simulating some data using the `intrinsic.operators()` specification
-
-```{r, message=FALSE}
-tau <- 1
-beta <- 1.4
-op <- intrinsic.operators(tau = tau, beta = beta, mesh = mesh_2d)
-u <- simulate(op,nsim = 1)
-field <- fm_evaluate(proj, field = as.vector(u))
-field.df <- data.frame(x1 = proj$lattice$loc[,1],
-                       x2 = proj$lattice$loc[,2], 
-                       y = as.vector(field))
-
-ggplot(field.df, aes(x = x1, y = x2, fill = y)) +
-    geom_raster() +
-    scale_fill_viridis()
-
-```
-We now generate some data for this model as above. 
-
-```{r}
-n_loc <- 2000
-loc_2d_mesh <- matrix(2*runif(n_loc * 2), n_loc, 2)
-A <- spde.make.A(
-    mesh = mesh_2d,
-    loc = loc_2d_mesh
-)
-sigma.e <- 0.1
-y <- A %*% u + rnorm(n_loc) * sigma.e
-```
-
-The generated data can be seen in the following image.
-
-```{r,fig.align = "center", echo=TRUE}
-df <- data.frame(x1 = as.double(loc_2d_mesh[, 1]),
-  x2 = as.double(loc_2d_mesh[, 2]), y = as.double(y))
-ggplot(df, aes(x = x1, y = x2, col = y)) +
-  geom_point() +
-  scale_color_viridis()
-```
-
-
-We will now fit the model using our `r inla_link()` implementation of the
-rational SPDE approach. As we will estimate the smoothness, we have to use the `rspde.make.index` and `rspde.make.A` functions when creating the stack.
-
-```{r}
-mesh.index <- rspde.make.index(name = "field", mesh = mesh_2d)
-Abar <- rspde.make.A(mesh = mesh_2d, loc = loc_2d_mesh)
-st.dat <- inla.stack(data = list(y = as.vector(y)), A = Abar, effects = mesh.index)
-```
-
-We now create the model object. 
-
-```{r}
-rspde_model <- rspde.intrinsic(mesh = mesh_2d)
-
-```
-
-Finally, we create the formula and fit the model to the data: 
-
-```{r message=FALSE, warning=FALSE}
-f <- y ~ -1 + f(field, model = rspde_model)
-rspde_fit <- inla(f,
-                  data = inla.stack.data(st.dat),
-                  family = "gaussian",
-                  control.predictor = list(A = inla.stack.A(st.dat)))
-
-```
-
-
-To compare the estimated parameters to the true parameters, we can do the following:
-```{r}
-result_fit <- rspde.result(rspde_fit, "field", rspde_model)
-summary(result_fit)
-tau <- op$tau
-nu <- op$beta - 1 #beta = nu + d/2 
-result_df <- data.frame(
-    parameter = c("tau", "nu", "sigma.e"),
-    true = c(tau, nu, sigma.e), 
-    mean = c(result_fit$summary.tau$mean,result_fit$summary.nu$mean,
-             sqrt(1/rspde_fit$summary.hyperpar[1,1])),
-    mode = c(result_fit$summary.tau$mode, result_fit$summary.nu$mode,
-             sqrt(1/rspde_fit$summary.hyperpar[1,6]))
-)
-print(result_df)
-```
