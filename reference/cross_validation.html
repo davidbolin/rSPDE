@@ -58,7 +58,7 @@ to a folding scheme.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">cross_validation</span><span class="op">(</span></span>
 <span>  <span class="va">models</span>,</span>
 <span>  model_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  scores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mse"</span>, <span class="st">"crps"</span>, <span class="st">"scrps"</span>, <span class="st">"dss"</span><span class="op">)</span>,</span>
+<span>  scores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mae"</span>, <span class="st">"mse"</span>, <span class="st">"crps"</span>, <span class="st">"scrps"</span>, <span class="st">"dss"</span><span class="op">)</span>,</span>
 <span>  cv_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"k-fold"</span>, <span class="st">"loo"</span>, <span class="st">"lpo"</span><span class="op">)</span>,</span>
 <span>  k <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  percentage <span class="op">=</span> <span class="fl">20</span>,</span>
@@ -85,7 +85,9 @@ to a folding scheme.</p>
 
 
 <dl><dt id="arg-models">models<a class="anchor" aria-label="anchor" href="#arg-models"></a></dt>
-<dd><p>A fitted model obtained from calling the <code><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru()</a></code> function or a list of models fitted with the <code><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru()</a></code> function.</p></dd>
+<dd><p>A fitted model obtained from calling the <code><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru()</a></code> function or a list of fitted models.
+All models in the list must have the same number of likelihoods and must be fitted to
+identical datasets.</p></dd>
 
 
 <dt id="arg-model-names">model_names<a class="anchor" aria-label="anchor" href="#arg-model-names"></a></dt>
@@ -131,8 +133,10 @@ with the number of folds to be done. The default is <code>k-fold</code>.</p></dd
 
 
 <dt id="arg-train-test-indexes">train_test_indexes<a class="anchor" aria-label="anchor" href="#arg-train-test-indexes"></a></dt>
-<dd><p>A list containing two entries <code>train</code>, which is a list whose elements are vectors of indexes of the training data, and <code>test</code>, which is a list whose elements are vectors of indexes of the test data.
-Typically this will be returned list obtained by setting the argument <code>return_train_test</code> to <code>TRUE</code>.</p></dd>
+<dd><p>A list where each element corresponds to a fold. Each fold contains:</p><ul><li><p><code>train</code>: A list of training index vectors, one for each likelihood.</p></li>
+<li><p><code>test</code>: A list of test index vectors, one for each likelihood, with the same length as <code>train</code>.
+This list is typically obtained by setting the argument <code>return_train_test</code> to <code>TRUE</code>.</p></li>
+</ul></dd>
 
 
 <dt id="arg-return-train-test">return_train_test<a class="anchor" aria-label="anchor" href="#arg-return-train-test"></a></dt>

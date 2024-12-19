@@ -86,6 +86,7 @@ FEM-based approaches.</p>
 <span>  prior.rho <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  prior.gamma <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  prior.precision <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  graph_dirichlet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  bounded_rho <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  shared_lib <span class="op">=</span> <span class="st">"detect"</span>,</span>
 <span>  debug <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -163,6 +164,10 @@ default values will be used. The <code>mean</code> value is also used as startin
 element from <code>prior.kappa</code>, <code>prior.sigma</code>, <code>prior.gamma</code>, and <code>prior.rho</code> respectively. For dimension 1 <code>prior.precision</code> must be a 4x4 matrix. For dimension 2, \(\rho\) is a vector of length 2, so in this case <code>prior.precision</code> must be a 5x5 matrix. If <code>NULL</code>, a diagonal precision matrix with default values will be used.</p></dd>
 
 
+<dt id="arg-graph-dirichlet">graph_dirichlet<a class="anchor" aria-label="anchor" href="#arg-graph-dirichlet"></a></dt>
+<dd><p>For models on metric graphs, use Dirichlet vertex conditions at vertices of degree 1?</p></dd>
+
+
 <dt id="arg-bounded-rho">bounded_rho<a class="anchor" aria-label="anchor" href="#arg-bounded-rho"></a></dt>
 <dd><p>Logical. Should <code>rho</code> be bounded to ensure the existence, uniqueness, and well-posedness of the solution? Defaults to <code>TRUE</code>.
 Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties.
@@ -195,6 +200,8 @@ the space-time Gaussian random field.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://davidbolin.github.io/MetricGraph/" class="external-link">MetricGraph</a></span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> This is MetricGraph 1.4.0</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> - See https://davidbolin.github.io/MetricGraph for vignettes and manuals.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Attaching package: ‘MetricGraph’</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> The following object is masked from ‘package:stats’:</span>
@@ -207,9 +214,16 @@ the space-time Gaussian random field.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> 	 Vertex-Vertex 0.001</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> 	 Vertex-Edge 0.001</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> 	 Edge-Edge 0</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Creating edges...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Setting edge weights...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Computing bounding box...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Setup edges and merge close vertices</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Computing the relative positions of the edges...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Snap vertices to close edges</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Total construction time: 1.39 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Total construction time: 1.49 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Creating and updating vertices...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Storing the initial graph...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Computing the relative positions of the edges...</span>
 <span class="r-in"><span><span class="va">graph</span><span class="op">$</span><span class="fu">build_mesh</span><span class="op">(</span>h <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">graph</span><span class="op">$</span><span class="fu">compute_fem</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
