@@ -154,9 +154,10 @@ void compute_Q_fintrinsic( double tau, double nu,
             if(compute_mean){
                 Qidiag_perm = intrinsic_mean(Lq);
                 Qidiag = R.permutationPinv() * Qidiag_perm;
-                for(int i = 0; i < n; i++){
+                for(int i = 0; i < n - 1; i++){
                     mean_out[i] = Qidiag[i];
                 }
+                mean_out[n-1] = 0;
             }
         } else {
             int start;
@@ -174,9 +175,10 @@ void compute_Q_fintrinsic( double tau, double nu,
                 if(compute_mean){
                     Qidiag_perm = intrinsic_mean(Lq);
                     Qidiag = R.permutationPinv() * Qidiag_perm;
-                    for(int i = 0; i < n; i++){
+                    for(int i = 0; i < n - 1; i++){
                         mean_out[start + i] = Qidiag[i];
                     }
+                    mean_out[start + n - 1] = 0;
                 }
             }    
         }
