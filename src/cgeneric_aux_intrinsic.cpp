@@ -3,7 +3,6 @@
 #include <Eigen/SparseCore>
 #include <Eigen/Sparse>
 #include <Eigen/SparseCholesky>
-#include <iostream>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <cmath>
@@ -80,7 +79,6 @@ void compute_Q_fintrinsic( double tau, double nu,
                            const inla_cgeneric_smat_tp *D) {
     
     double alpha = nu + d/2;
-    //std::cout << "tau = " << tau << ", nu = " << nu << std::endl;
 
     // Assembling the FEM matrices
     Eigen::SparseMatrix<double> C_eigen = convertInlaToEigen(C);
