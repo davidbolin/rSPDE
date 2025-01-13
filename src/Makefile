@@ -23,6 +23,7 @@ CXX = /usr/local/bin/g++
 
 # Eigen and library paths
 EIGEN_MAC = /opt/homebrew/
+EIGEN_MAC_VAR = /usr/local
 EIGEN_LINUX = /usr
 MAC_LIB = /usr/local/brewlib
 MAC_INCLUDE = /usr/local/brewinclude
@@ -63,7 +64,7 @@ cgeneric.h:
 	$(CC) $(flags) $(PKG_CFLAGS) -Iinclude -I$(toInclude) -L$(R_HOME)/lib -lR -c $< -o $@
 
 %.o: %.cpp cgeneric.h
-	$(CXX) $(flags) -I$(toInclude) -I$(EIGEN_MAC)/include/eigen3/ -I$(EIGEN_LINUX)/include/eigen3/ -c $< -o $@
+	$(CXX) $(flags) -I$(toInclude) -I$(EIGEN_MAC_VAR)/include/eigen3/ -I$(EIGEN_MAC)/include/eigen3/ -I$(EIGEN_LINUX)/include/eigen3/ -c $< -o $@
 
 # Link shared library
 rSPDE.so: cgeneric.h $(obj)
