@@ -237,6 +237,91 @@ ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) +
 facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ```
 
+## An example with replicates
+
+Let us redo the previous example with replicated data to illustrate that replicates are handled in the same way as any other `rSPDE` model. We start by generating some data with 200 observations per replicate
+```{r}
+rspde.order <- 5
+tau <- 0.2
+beta <- 1.8
+op <- intrinsic.operators(tau = tau, beta = beta, mesh = mesh_2d, m = rspde.order)
+set.seed(1)
+n.rep <- 30
+m <- 1000
+loc_2d_mesh <- matrix(2*runif(m * 2), m, 2)
+
+A <- spde.make.A(
+  mesh = mesh_2d,
+  loc = loc_2d_mesh,
+  index = rep(1:m, times = n.rep),
+  repl = rep(1:n.rep, each = m)
+)
+
+u <- simulate(op, nsim = n.rep)
+y <- as.vector(A %*% as.vector(u)) +
+  rnorm(m * n.rep) * 0.1
+```
+
+We now create the stack, A matrix and index and fit the model:
+
+```{r}
+Abar.rep <- rspde.make.A(
+  mesh = mesh_2d, loc = loc_2d_mesh, index = rep(1:m, times = n.rep),
+  repl = rep(1:n.rep, each = m),
+  rspde.order = rspde.order
+)
+mesh.index.rep <- rspde.make.index(
+  name = "field", mesh = mesh_2d,
+  n.repl = n.rep,
+  rspde.order = rspde.order
+)
+
+st.dat.rep <- inla.stack(
+  data = list(y = y),
+  A = Abar.rep,
+  effects = mesh.index.rep
+)
+
+rspde_model.rep <- rspde.intrinsic(mesh = mesh_2d, rspde.order = rspde.order)
+
+f.rep <-
+  y ~ -1 + f(field,
+    model = rspde_model.rep,
+    replicate = field.repl
+  )
+rspde_fit.rep <-
+  inla(f.rep,
+    data = inla.stack.data(st.dat.rep),
+    family = "gaussian",
+    control.predictor =
+      list(A = inla.stack.A(st.dat.rep))
+  )
+```
+We then compare with the true parameter estimates as before
+```{r}
+result_fit <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
+summary(result_fit)
+tau <- op$tau
+nu <- op$beta - 1 #beta = nu + d/2 
+result_df <- data.frame(
+    parameter = c("tau", "nu", "sigma.e"),
+    true = c(tau, nu, sigma.e), 
+    mean = c(result_fit$summary.tau$mean,result_fit$summary.nu$mean,
+             sqrt(1/rspde_fit.rep$summary.hyperpar[1,1])),
+    mode = c(result_fit$summary.tau$mode, result_fit$summary.nu$mode,
+             sqrt(1/rspde_fit.rep$summary.hyperpar[1,6]))
+)
+print(result_df)
+```
+To see the posterior distributions of the parameters we can do:
+```{r}
+result_fit <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
+posterior_df_fit <- gg_df(result_fit)
+
+ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
+```
+
 # A more general model 
 
 The `rSPDE` package also contains a partial implementation of a more general intrinsic model, which
