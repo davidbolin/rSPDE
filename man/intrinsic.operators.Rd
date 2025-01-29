@@ -5,17 +5,15 @@
 \title{Covariance-based approximations of intrinsic fields}
 \usage{
 intrinsic.operators(
-  tau,
-  alpha,
-  beta = 1,
+  tau = NULL,
+  beta = NULL,
   G = NULL,
   C = NULL,
   d = NULL,
   mesh = NULL,
   graph = NULL,
   loc_mesh = NULL,
-  m_alpha = 2,
-  m_beta = 2,
+  m = 2,
   compute_higher_order = FALSE,
   return_block_list = FALSE,
   type_rational_approximation = c("chebfun", "brasil", "chebfunLB"),
@@ -42,6 +40,9 @@ the domain of interest.}
 
 \item{loc_mesh}{locations for the mesh for \code{d=1}.}
 
+\item{m}{The order of the rational approximation for the intrinsic part,
+which needs to be a positive integer. The default value is 2.}
+
 \item{compute_higher_order}{Logical. Should the higher order finite
 element matrices be computed?}
 
@@ -57,9 +58,6 @@ approximation should be used? The current types are
 The list should contain elements c0, g1, g2, g3, etc.}
 
 \item{scaling}{second lowest eigenvalue of g1}
-
-\item{m}{The order of the rational approximation for the intrinsic part,
-which needs to be a positive integer. The default value is 2.}
 }
 \value{
 \code{intrinsic.operators} returns an object of

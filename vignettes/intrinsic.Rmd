@@ -45,7 +45,7 @@ library(fmesher)
 bnd <- fm_segm(rbind(c(0, 0), c(2, 0), c(2, 2), c(0, 2)), is.bnd = TRUE)
 mesh_2d <- fm_mesh_2d(
     boundary = bnd, 
-    cutoff = 0.04,
+    cutoff = 0.02,
     max.edge = c(0.1)
 )
 plot(mesh_2d, main = "")
@@ -59,8 +59,8 @@ of the general model.
 library(rSPDE)
 tau <- 0.2
 beta <- 1.8
-rspde.order <- 2
-op <- intrinsic.operators(tau = tau, beta = beta, mesh = mesh_2d, m = rspde.order)
+fem <- fm_fem(mesh_2d)
+op <- intrinsic.operators(tau = tau, beta = beta, mesh = mesh_2d, m = 2)
 ```
 
 To see that the `rSPDE` model is approximating the true model, we can compare the variogram
@@ -81,21 +81,7 @@ plot(d, Aobs%*%Gamma, xlim = c(0,0.7))
 lines(sort(d),sort(vario),col=2, lwd = 2)
 ```
 
-We can note that the approximation is not great here, and the reason is that the order of the rational approximation is too low. Let us increase it and recompute:
-```{r, message=FALSE}
-rspde.order <- 8
-op <- intrinsic.operators(tau = tau, beta = beta, mesh = mesh_2d, m = rspde.order)
-ind.fix <- 1 + seq(from=0,to=op$m_beta * mesh_2d$n, by = mesh_2d$n)
-Sigma <- op$A[,-ind.fix] %*% solve(op$Q[-ind.fix,-ind.fix], t(op$A[,-ind.fix]))
-One <- rep(1, times = ncol(Sigma))
-D <- diag(Sigma)
-Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
-plot(d, Aobs%*%Gamma, xlim = c(0,0.7))
-lines(sort(d),sort(vario),col=2, lwd = 2)
-```
-
-
-We can now use the `simulate` function to simulate a realization of the field $u$:
+If we want to increase the accuracy, we can either use a finer mesh or increase the order of the rational approximation through the argument `m` in `intrinsic.operators`. The default value of `m` is 1. We can now use the `simulate` function to simulate a realization of the field $u$:
 
 ```{r}
 u <- simulate(op,nsim = 1)
@@ -164,6 +150,7 @@ rational SPDE approach. Further details on this implementation can be found in
 
 ```{r}
 library(INLA)
+rspde.order <- 2
 mesh.index <- rspde.make.index(name = "field", mesh = mesh_2d, rspde.order = rspde.order)
 Abar <- rspde.make.A(mesh = mesh_2d, loc = loc_2d_mesh, rspde.order = rspde.order)
 st.dat <- inla.stack(data = list(y = as.vector(y)), A = Abar, effects = mesh.index)
@@ -241,12 +228,11 @@ facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 
 Let us redo the previous example with replicated data to illustrate that replicates are handled in the same way as any other `rSPDE` model. We start by generating some data with 200 observations per replicate
 ```{r}
-rspde.order <- 5
-tau <- 0.2
-beta <- 1.8
-op <- intrinsic.operators(tau = tau, beta = beta, mesh = mesh_2d, m = rspde.order)
 set.seed(1)
-n.rep <- 30
+tau <- 0.2
+beta <- 1.9
+op <- intrinsic.operators(tau = tau, beta = beta, mesh = mesh_2d)
+n.rep <- 5
 m <- 1000
 loc_2d_mesh <- matrix(2*runif(m * 2), m, 2)
 
@@ -267,13 +253,11 @@ We now create the stack, A matrix and index and fit the model:
 ```{r}
 Abar.rep <- rspde.make.A(
   mesh = mesh_2d, loc = loc_2d_mesh, index = rep(1:m, times = n.rep),
-  repl = rep(1:n.rep, each = m),
-  rspde.order = rspde.order
+  repl = rep(1:n.rep, each = m)
 )
 mesh.index.rep <- rspde.make.index(
   name = "field", mesh = mesh_2d,
-  n.repl = n.rep,
-  rspde.order = rspde.order
+  n.repl = n.rep
 )
 
 st.dat.rep <- inla.stack(
@@ -282,7 +266,7 @@ st.dat.rep <- inla.stack(
   effects = mesh.index.rep
 )
 
-rspde_model.rep <- rspde.intrinsic(mesh = mesh_2d, rspde.order = rspde.order)
+rspde_model.rep <- rspde.intrinsic(mesh = mesh_2d, prior.nu.dist = "beta")
 
 f.rep <-
   y ~ -1 + f(field,

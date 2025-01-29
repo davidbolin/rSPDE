@@ -14,7 +14,7 @@ rspde.intrinsic(
   prior.nu = NULL,
   prior.nu.dist = "lognormal",
   nu.prec.inc = 0.01,
-  diagonal = 0,
+  diagonal = 1e-05,
   type.rational.approx = "chebfun",
   shared_lib = "detect",
   debug = FALSE,
