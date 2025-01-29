@@ -122,7 +122,10 @@ rspde.intrinsic <- function(mesh,
     }
     Cmatrix <- to.inla.matrix(op$Q)
     D <- Diagonal(dim(op$Q)[1], diagonal)
-    scaling <- RSpectra::eigs(as(G, "CsparseMatrix"), 2, which = "SM")$values[1]
+    Cd <- Diagonal(dim(C)[1], 1/sqrt(diag(C)))
+    Gg <- Cd%*%G%*%Cd
+    scaling <- RSpectra::eigs(as(Gg, "CsparseMatrix"), 2, which = "SM")$values[1]
+    #scaling <- RSpectra::eigs(as(G, "CsparseMatrix"), 2, which = "SM")$values[1]
     
     list_args <- 
         list(
@@ -593,4 +596,72 @@ rspde.intrinsic.result <- function(inla, name, rspde,
     }
     
     return(result)
+}
+
+
+
+#'
+#' @title rSPDE inlabru mapper
+#' @name bru_get_mapper.inla_rspde_fintrinsic
+#' @param model An `inla_rspde_fintrinsic` object for which to construct or extract a mapper
+#' @param \dots Arguments passed on to other methods
+#' @rdname bru_get_mapper.inla_rspde_fintrinsic
+#' @rawNamespace if (getRversion() >= "3.6.0") {
+#'   S3method(inlabru::bru_get_mapper, inla_rspde_fintrinsic)
+#'   S3method(inlabru::ibm_n, bru_mapper_inla_rspde_fintrinsic)
+#'   S3method(inlabru::ibm_values, bru_mapper_inla_rspde_fintrinsic)
+#'   S3method(inlabru::ibm_jacobian, bru_mapper_inla_rspde_fintrinsic)
+#' }
+bru_get_mapper.inla_rspde_fintrinsic <- function(model, ...) {
+    stopifnot(requireNamespace("inlabru"))
+    inlabru_version <- as.character(packageVersion("inlabru"))
+    if(inlabru_version >= "2.11.1.9022"){
+        n_rep <- model[["rspde.order"]] + 1
+        if((model[["est_nu"]] == 0L) && (model[["integer.nu"]])){
+            n_rep <- 1
+        }
+        inlabru::bru_mapper_repeat(inlabru::bru_mapper(model[["mesh"]]), n_rep = n_rep)
+    } else{
+        mapper <- list(model = model)
+        inlabru::bru_mapper_define(mapper, new_class = "bru_mapper_inla_rspde_fintrinsic")
+    }
+}
+
+#' @param mapper A `bru_mapper_inla_rspde` object
+#' @rdname bru_get_mapper.inla_rspde
+ibm_n.bru_mapper_inla_rspde_fintrinsic <- function(mapper, ...) {
+    model <- mapper[["model"]]
+    integer_nu <- model$integer.nu
+    rspde_order <- model$rspde.order
+    if (integer_nu) {
+        factor_rspde <- 1
+    } else {
+        factor_rspde <- rspde_order + 1
+    }
+    factor_rspde * model$n.spde
+}
+#' @rdname bru_get_mapper.inla_rspde
+ibm_values.bru_mapper_inla_rspde_fintrinsic <- function(mapper, ...) {
+    seq_len(inlabru::ibm_n(mapper))
+}
+#' @param input The values for which to produce a mapping matrix
+#' @rdname bru_get_mapper.inla_rspde
+ibm_jacobian.bru_mapper_inla_rspde_fintrinsic <- function(mapper, input, ...) {
+    model <- mapper[["model"]]
+    if (!is.null(input) && !is.matrix(input) && !inherits(input, "Spatial")) {
+        input <- as.matrix(input)
+    }
+    
+    if (model$est_nu) {
+        nu <- NULL
+    } else {
+        nu <- model$nu
+    }
+    
+    rspde_order <- model$rspde.order
+    rSPDE::rspde.make.A(
+        mesh = model$mesh, loc = input,
+        rspde.order = rspde_order,
+        nu = nu
+    )
 }

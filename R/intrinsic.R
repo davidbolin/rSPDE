@@ -63,7 +63,7 @@ intrinsic.operators <- function(tau = NULL,
                                 mesh = NULL,
                                 graph = NULL,
                                 loc_mesh = NULL,
-                                m = 2,
+                                m = 1,
                                 compute_higher_order = FALSE,
                                 return_block_list = FALSE,
                                 type_rational_approximation = c(
@@ -257,7 +257,10 @@ intrinsic.operators.internal <- function(C,
     }
   }
   if (is.null(scaling)) {
-    scaling <- RSpectra::eigs(as(G, "CsparseMatrix"), 2, which = "SM")$values[1]
+      Cd <- Diagonal(dim(C)[1], 1/sqrt(diag(C)))
+      Gg <- Cd%*%G%*%Cd
+      scaling <- RSpectra::eigs(as(Gg, "CsparseMatrix"), 2, which = "SM")$values[1]
+    #scaling <- RSpectra::eigs(as(G, "CsparseMatrix"), 2, which = "SM")$values[1]
   }
 
   L <- G / scaling
@@ -755,7 +758,8 @@ intrinsic.matern.operators <- function(kappa,
       C = C, G = G, mesh = mesh, alpha = alpha_beta,
       m = m_beta, d = d, compute_higher_order = compute_higher_order,
       return_block_list = TRUE, fem_mesh_matrices = fem_mesh_matrices,
-      type_rational_approximation = type_rational_approximation[[1]]
+      type_rational_approximation = type_rational_approximation[[1]],
+      scaling = scaling
     )
     if (is.list(op1$Q)) {
       Q.list1 <- lapply(op1$Q, function(x) { x * tau^2})
