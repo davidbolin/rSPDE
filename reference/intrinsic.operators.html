@@ -62,17 +62,15 @@ $$(-\Delta)^{\beta/2} (\tau u) = \mathcal{W}$$</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">intrinsic.operators</span><span class="op">(</span></span>
-<span>  <span class="va">tau</span>,</span>
-<span>  <span class="va">alpha</span>,</span>
-<span>  beta <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  beta <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  G <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  C <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  d <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  graph <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  loc_mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  m_alpha <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  m_beta <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  m <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  compute_higher_order <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_block_list <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  type_rational_approximation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chebfun"</span>, <span class="st">"brasil"</span>, <span class="st">"chebfunLB"</span><span class="op">)</span>,</span>
@@ -119,6 +117,11 @@ the domain of interest.</p></dd>
 <dd><p>locations for the mesh for <code>d=1</code>.</p></dd>
 
 
+<dt id="arg-m">m<a class="anchor" aria-label="anchor" href="#arg-m"></a></dt>
+<dd><p>The order of the rational approximation for the intrinsic part,
+which needs to be a positive integer. The default value is 2.</p></dd>
+
+
 <dt id="arg-compute-higher-order">compute_higher_order<a class="anchor" aria-label="anchor" href="#arg-compute-higher-order"></a></dt>
 <dd><p>Logical. Should the higher order finite
 element matrices be computed?</p></dd>
@@ -143,11 +146,6 @@ The list should contain elements c0, g1, g2, g3, etc.</p></dd>
 
 <dt id="arg-scaling">scaling<a class="anchor" aria-label="anchor" href="#arg-scaling"></a></dt>
 <dd><p>second lowest eigenvalue of g1</p></dd>
-
-
-<dt id="arg-m">m<a class="anchor" aria-label="anchor" href="#arg-m"></a></dt>
-<dd><p>The order of the rational approximation for the intrinsic part,
-which needs to be a positive integer. The default value is 2.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -185,7 +183,7 @@ a non-intrinsic model.</p>
 <span class="r-in"><span>    col <span class="op">=</span> <span class="fl">2</span>, lty <span class="op">=</span> <span class="fl">2</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-plt img"><img src="intrinsic.operators-1.png" alt="" width="700" height="433"></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> /(&lt;dgCMatrix&gt;, &lt;complex&gt;) is not yet implemented; ask maintainer("Matrix") to implement the missing method</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
