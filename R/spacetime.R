@@ -317,9 +317,9 @@ spacetime.operators <- function(mesh_space = NULL,
     }
     
     Q <- Q/sigma^2
-    if (!is.null(graph)) {
-        make_A <- function(loc, time, dirichlet = TRUE) {
-            if(graph_dirichlet && dirichlet) {
+    make_A <- function(loc, time, dirichlet = TRUE) {
+        if (!is.null(graph)) {
+            if (graph_dirichlet && dirichlet) {
                 return(rSPDE.Ast(graph = graph, mesh_time = mesh_time, 
                                  obs.s = loc, obs.t = time, 
                                  ind.field = ind.field))    
@@ -327,10 +327,7 @@ spacetime.operators <- function(mesh_space = NULL,
                 return(rSPDE.Ast(graph = graph, mesh_time = mesh_time, 
                                  obs.s = loc, obs.t = time))
             }
-            
-        }
-    } else {
-        make_A <- function(loc, time) {
+        } else {
             return(rSPDE.Ast(mesh_space = mesh_space, mesh_time = mesh_time, 
                              obs.s = loc, obs.t = time))
         }
