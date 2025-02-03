@@ -847,7 +847,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
    }
    if (return_post_samples) {
      out[["post_samples"]] <- post_samples
-     out[["hyper_samples"]] <- hyper_samples
    }
   }
   return(out)
@@ -933,7 +932,7 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
       phi_sample <- as.vector(meas_err_par[[1]])
       Y_sample <-  lapply(1:nrow(post_linear_predictors), function(i) {
         scale_temp <- post_linear_predictors[i,] / phi_sample
-        rgamma(new_n_samples, shape = phi_sample, scale = scale_temp)
+        stats::rgamma(new_n_samples, shape = phi_sample, scale = scale_temp)
       })
     } else if(model_family == "t"){
       sd_sample <- 1 / sqrt(as.vector(meas_err_par[[1]]))
@@ -944,7 +943,7 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
       })
     } else if(model_family == "poisson"){
       Y_sample <- lapply(1:nrow(post_linear_predictors), function(i) {
-              stats::rpois(n_samples, post_linear_predictors[i,])
+              stats::rpois(new_n_samples, post_linear_predictors[i,])
             })
     } else if(model_family == "binomial"){
       Y_sample <- lapply(1:nrow(post_linear_predictors), function(i) {
@@ -967,7 +966,7 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
         shape <- as.vector(meas_err_par[[1]])
         skewness <- as.vector(meas_err_par[[2]])
         gamma <- sqrt(1+skewness^2/shape^2)
-        Y_sample <- lapply(1:length(test_data), function(i) {
+        Y_sample <- lapply(1:nrow(post_linear_predictors), function(i) {
             sqrt(post_linear_predictors[i, ]) * GeneralizedHyperbolic::rnig(new_n_samples,
                                    mu = -skewness / gamma,   # mu_new corresponds to delta_old = -skewness_1 / gamma_1
                                    delta = shape / gamma,    # delta_new = sqrt(nu * sigma^2) = shape_1 / gamma_1

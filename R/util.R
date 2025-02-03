@@ -2172,6 +2172,82 @@ transform_parameters_anisotropic <- function(theta, nu_upper_bound = NULL) {
 }
 
 
+#' @noRd
+
+find_inla_lib_path <- function() {
+    # First check if INLA is installed
+    if (!requireNamespace("INLA", quietly = TRUE)) {
+        warning("INLA package is not installed")
+        return(NULL)
+    }
+    
+    # Get the base INLA bin directory
+    inla_bin_path <- system.file("bin", package = "INLA")
+    
+    if (inla_bin_path == "") {
+        warning("INLA bin directory not found")
+        return(NULL)
+    }
+    
+    # Determine OS and architecture
+    os <- .Platform$OS.type
+    arch <- R.Version()$arch
+    
+    # Initialize path
+    lib_path <- NULL
+    
+    if (os == "windows") {
+        # For Windows - always use windows/64bit or windows/32bit
+        base_path <- file.path(inla_bin_path, "windows")
+        if (dir.exists(base_path)) {
+            lib_path <- if (grepl("64", arch)) {
+                file.path(base_path, "64bit")
+            } else {
+                file.path(base_path, "32bit")
+            }
+        }
+    } else if (os == "unix") {
+        if (Sys.info()["sysname"] == "Darwin") {
+            # For macOS - special case for ARM64
+            if (grepl("arm64|aarch64", arch)) {
+                lib_path <- file.path(inla_bin_path, "mac.arm64")
+            } else {
+                # For Intel Mac
+                base_path <- file.path(inla_bin_path, "mac")
+                if (dir.exists(base_path)) {
+                    lib_path <- if (grepl("64", arch)) {
+                        file.path(base_path, "64bit")
+                    } else {
+                        file.path(base_path, "32bit")
+                    }
+                }
+            }
+        } else {
+            # For Linux - always use linux/64bit or linux/32bit
+            base_path <- file.path(inla_bin_path, "linux")
+            if (dir.exists(base_path)) {
+                lib_path <- if (grepl("64", arch)) {
+                    file.path(base_path, "64bit")
+                } else {
+                    file.path(base_path, "32bit")
+                }
+            }
+        }
+    }
+    
+    if (is.null(lib_path)) {
+        warning("Could not determine appropriate library path")
+        return(NULL)
+    }
+    
+    if (!dir.exists(lib_path)) {
+        warning(sprintf("Directory does not exist: %s", lib_path))
+        return(NULL)
+    }
+    
+    return(lib_path)
+}
+
 #' @noRd 
 rspde_check_cgeneric_symbol <- function(model) {
     # Ensure the required fields exist in the model object
@@ -2192,14 +2268,26 @@ rspde_check_cgeneric_symbol <- function(model) {
     # Get R_HOME library path
     r_lib_path <- file.path(R.home("lib"))
     
-    # Add R_HOME to library path if it is not there
-    current_lib_path <- Sys.getenv("LD_LIBRARY_PATH")
-    if (!grepl(r_lib_path, current_lib_path)) {
-        if (current_lib_path == "") {
-            Sys.setenv(LD_LIBRARY_PATH = r_lib_path)
+    # Get INLA library path
+    inla_lib_path <- find_inla_lib_path()
+    
+    # Set up library path environment variable based on OS
+    if (.Platform$OS.type == "windows") {
+        current_path <- Sys.getenv("PATH")
+        new_path <- if (current_path == "") {
+            paste(r_lib_path, inla_lib_path, sep = ";")
         } else {
-            Sys.setenv(LD_LIBRARY_PATH = paste(current_lib_path, r_lib_path, sep = ":"))
+            paste(current_path, r_lib_path, inla_lib_path, sep = ";")
         }
+        Sys.setenv(PATH = new_path)
+    } else {
+        current_lib_path <- Sys.getenv("LD_LIBRARY_PATH")
+        new_lib_path <- if (current_lib_path == "") {
+            paste(r_lib_path, inla_lib_path, sep = ":")
+        } else {
+            paste(current_lib_path, r_lib_path, inla_lib_path, sep = ":")
+        }
+        Sys.setenv(LD_LIBRARY_PATH = new_lib_path)
     }
     
     # Use the `dyn.load` and `is.loaded` functions to check for the symbol
@@ -2221,8 +2309,12 @@ rspde_check_cgeneric_symbol <- function(model) {
                    requesting that this model be added to INLA."))
     })
     
-    # Restore original LD_LIBRARY_PATH
-    Sys.setenv(LD_LIBRARY_PATH = current_lib_path)
+    # Restore original environment variables
+    if (.Platform$OS.type == "windows") {
+        Sys.setenv(PATH = current_path)
+    } else {
+        Sys.setenv(LD_LIBRARY_PATH = current_lib_path)
+    }
 }
 
 #' @noRd
