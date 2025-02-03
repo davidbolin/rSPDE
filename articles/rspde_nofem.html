@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-07-20. Last
-modified: 2025-01-29.</h4>
+modified: 2025-02-03.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rspde_nofem.Rmd" class="external-link"><code>vignettes/rspde_nofem.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_nofem.Rmd</code></div>
@@ -279,8 +279,8 @@ and
 <span><span class="co">## Number of function calls by 'optim' = 61</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.84498 mins </span></span>
-<span><span class="co">##   set up the parallelization = 2.32135 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.75079 mins </span></span>
+<span><span class="co">##   set up the parallelization = 2.26839 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -296,7 +296,7 @@ and
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 173.0203 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 167.3158 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -384,9 +384,9 @@ index vector) is <code>field</code>.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">res</span>, <span class="st">"field"</span>, <span class="va">inla_model</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span> </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##            mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## std.dev 1.02852 0.343903   0.574424 0.950931    1.88333 0.836622</span></span>
-<span><span class="co">## range   2.96661 2.379980   0.762028 2.271950    9.26987 1.550400</span></span></code></pre>
+<pre><code><span><span class="co">##           mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## std.dev 1.0285 0.343914   0.574427 0.950887    1.88336 0.836683</span></span>
+<span><span class="co">## range   2.9665 2.380160   0.762027 2.271730    9.26952 1.550750</span></span></code></pre>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">posterior_df_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gg_df.html">gg_df</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span></span>
