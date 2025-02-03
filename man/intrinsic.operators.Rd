@@ -13,7 +13,7 @@ intrinsic.operators(
   mesh = NULL,
   graph = NULL,
   loc_mesh = NULL,
-  m = 2,
+  m = 1,
   compute_higher_order = FALSE,
   return_block_list = FALSE,
   type_rational_approximation = c("chebfun", "brasil", "chebfunLB"),

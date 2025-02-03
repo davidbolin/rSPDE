@@ -18,6 +18,7 @@ rspde.intrinsic(
   type.rational.approx = "chebfun",
   shared_lib = "detect",
   debug = FALSE,
+  cache = TRUE,
   ...
 )
 }
@@ -61,6 +62,8 @@ implementation. Options are "detect", "INLA", or "rSPDE". You may also specify t
 direct path to a .so (or .dll) file.}
 
 \item{debug}{Logical value indicating whether to enable INLA debug mode.}
+
+\item{cache}{Use caching internally in the estimation?}
 
 \item{...}{Additional arguments passed internally for configuration purposes.}
 }

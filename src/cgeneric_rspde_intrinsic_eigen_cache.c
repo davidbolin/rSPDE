@@ -41,6 +41,9 @@ double *inla_cgeneric_rspde_fintrinsic_model(inla_cgeneric_cmd_tp cmd, double *t
     assert(!strcasecmp(data->ints[5]->name, "mean_correction"));
     int mean_correction = data->ints[5]->ints[0];
     
+    assert(!strcasecmp(data->ints[6]->name, "use_cache"));
+    int use_cache = data->ints[6]->ints[0];
+    
     // Retrieve prior means for each parameter
     assert(!strcasecmp(data->doubles[0]->name, "prior.tau.mean"));
     double prior_tau_mean = data->doubles[0]->doubles[0];
@@ -114,16 +117,17 @@ double *inla_cgeneric_rspde_fintrinsic_model(inla_cgeneric_cmd_tp cmd, double *t
             nu = lnu = NAN;
         }
     }
+    int cache_idx;
+    
     if (!(data->cache)) {
 #pragma omp critical  (Name_7c3b4712ebb2dda8def3a5273e2a7e6cf1794b5d)
         if (!(data->cache)) {
             data->cache = (void **) Calloc(CGENERIC_CACHE_LEN(data), my_cache_tp *);
         }
     }
-    
-    int cache_idx;
     CGENERIC_CACHE_ASSIGN_IDX(cache_idx, data);
-    my_cache_tp *cache = ((my_cache_tp **) data->cache)[cache_idx];
+    my_cache_tp *cache = ((my_cache_tp **) data->cache)[cache_idx];    
+    
     
     switch (cmd) {
     
@@ -154,59 +158,75 @@ double *inla_cgeneric_rspde_fintrinsic_model(inla_cgeneric_cmd_tp cmd, double *t
         k = 2;
         ret = Calloc(k + M, double);  // Adjust based on Q matrix size
         ret[0] = -1;  // Required value
-        ret[1] = M;   
-        if(cache) {
-            if( (est_nu && cache->theta[0] == theta[0] && cache->theta[1] == theta[1]) ||
-                cache->theta[0] == theta[0]) {
-                memcpy(ret + 2, cache->Q, M * sizeof(double));
+        ret[1] = M;  
+        if(use_cache) {
+            if(cache) {
+                if( (est_nu && cache->theta[0] == theta[0] && cache->theta[1] == theta[1]) ||
+                    cache->theta[0] == theta[0]) {
+                    memcpy(ret + 2, cache->Q, M * sizeof(double));
+                } else {
+                    compute_Q_fintrinsic(tau, nu, C, Ci, G, Q, &ret[k], rspde_order, 
+                                         rational_table, est_nu, d, 1, 0, 0,
+                                         const_store, mu_store, scaling, D);        
+                }
             } else {
                 compute_Q_fintrinsic(tau, nu, C, Ci, G, Q, &ret[k], rspde_order, 
                                      rational_table, est_nu, d, 1, 0, 0,
-                                     const_store, mu_store, scaling, D);        
-            }
+                                     const_store, mu_store, scaling, D);    
+            }    
         } else {
             compute_Q_fintrinsic(tau, nu, C, Ci, G, Q, &ret[k], rspde_order, 
                                  rational_table, est_nu, d, 1, 0, 0,
                                  const_store, mu_store, scaling, D);    
         }
+        
         break;
     }
         
     case INLA_CGENERIC_MU:
     {
+        
         if (mean_correction) {
         ret = Calloc(1 + N, double);
         ret[0] = N;		/* REQUIRED */
-        if(cache) {
-            if((est_nu && cache->theta[0] == theta[0] && cache->theta[1] == theta[1]) ||
-               cache->theta[0] == theta[0]) {
-                memcpy(ret + 1, cache->mu, N * sizeof(double));
+        if(use_cache) {
+            if(cache) {
+                if((est_nu && cache->theta[0] == theta[0] && cache->theta[1] == theta[1]) ||
+                   cache->theta[0] == theta[0]) {
+                    memcpy(ret + 1, cache->mu, N * sizeof(double));
+                } else {
+                    Q_store = Calloc(M, double);
+                    const_store = Calloc(1, double);
+                    compute_Q_fintrinsic(tau, nu, C, Ci, G, Q, Q_store, rspde_order, 
+                                         rational_table, est_nu, d, 1, 1, 1,
+                                         const_store, &ret[1], scaling, D);  
+                    memcpy(cache->Q, Q_store,  M * sizeof(double));
+                    memcpy(cache->mu, ret + 1,  N * sizeof(double));
+                    memcpy(cache->lconst, const_store,  sizeof(double));
+                    memcpy(cache->theta, theta,  n_par * sizeof(double));
+                }
             } else {
                 Q_store = Calloc(M, double);
                 const_store = Calloc(1, double);
                 compute_Q_fintrinsic(tau, nu, C, Ci, G, Q, Q_store, rspde_order, 
                                      rational_table, est_nu, d, 1, 1, 1,
                                      const_store, &ret[1], scaling, D);  
+                ((my_cache_tp **) data->cache)[cache_idx] = cache = Calloc(1, my_cache_tp);
+                cache->Q = Calloc(M, double);
+                cache->mu = Calloc(N, double);
+                cache->lconst = Calloc(1, double);
+                cache->theta = Calloc(n_par, double);
                 memcpy(cache->Q, Q_store,  M * sizeof(double));
                 memcpy(cache->mu, ret + 1,  N * sizeof(double));
                 memcpy(cache->lconst, const_store,  sizeof(double));
                 memcpy(cache->theta, theta,  n_par * sizeof(double));
-            }
+            }   
         } else {
             Q_store = Calloc(M, double);
             const_store = Calloc(1, double);
             compute_Q_fintrinsic(tau, nu, C, Ci, G, Q, Q_store, rspde_order, 
                                  rational_table, est_nu, d, 1, 1, 1,
                                  const_store, &ret[1], scaling, D);  
-            ((my_cache_tp **) data->cache)[cache_idx] = cache = Calloc(1, my_cache_tp);
-            cache->Q = Calloc(M, double);
-            cache->mu = Calloc(N, double);
-            cache->lconst = Calloc(1, double);
-            cache->theta = Calloc(n_par, double);
-            memcpy(cache->Q, Q_store,  M * sizeof(double));
-            memcpy(cache->mu, ret + 1,  N * sizeof(double));
-            memcpy(cache->lconst, const_store,  sizeof(double));
-            memcpy(cache->theta, theta,  n_par * sizeof(double));
         }
     } else {
         ret = Calloc(1, double);
@@ -235,10 +255,36 @@ double *inla_cgeneric_rspde_fintrinsic_model(inla_cgeneric_cmd_tp cmd, double *t
     case INLA_CGENERIC_LOG_NORM_CONST:
     {
         ret = Calloc(1, double);
-        if(cache) {
-            if((est_nu && cache->theta[0] == theta[0] && cache->theta[1] == theta[1]) ||
-               cache->theta[0] == theta[0]) {
-                memcpy(ret, cache->lconst, sizeof(double));
+        if(use_cache) {
+            if(cache) {
+                if((est_nu && cache->theta[0] == theta[0] && cache->theta[1] == theta[1]) ||
+                   cache->theta[0] == theta[0]) {
+                    memcpy(ret, cache->lconst, sizeof(double));
+                } else {
+                    if(mean_correction == 1) {
+                        Q_store = Calloc(M, double);
+                        mu_store = Calloc(N, double);
+                        compute_Q_fintrinsic(tau, nu, C, Ci, G, Q, Q_store, rspde_order, 
+                                             rational_table, est_nu, d, 1, 1, 1,
+                                             &ret[0], mu_store, scaling, D);  
+                        
+                        //then cache them and update theta
+                        memcpy(cache->Q, Q_store,  M * sizeof(double));
+                        memcpy(cache->mu, mu_store,  N * sizeof(double));
+                        memcpy(cache->lconst, ret,  sizeof(double));
+                        memcpy(cache->theta, theta,  n_par * sizeof(double));
+                    } else {
+                        Q_store = Calloc(M, double);
+                        compute_Q_fintrinsic(tau, nu, C, Ci, G, Q, Q_store, rspde_order, 
+                                             rational_table, est_nu, d, 1, 0, 1,
+                                             &ret[0], mu_store, scaling, D); 
+                        
+                        //then cache them and update theta
+                        memcpy(cache->Q, Q_store,  M * sizeof(double));
+                        memcpy(cache->lconst, ret, sizeof(double));
+                        memcpy(cache->theta, theta,  n_par * sizeof(double));
+                    } 
+                }
             } else {
                 if(mean_correction == 1) {
                     Q_store = Calloc(M, double);
@@ -248,6 +294,11 @@ double *inla_cgeneric_rspde_fintrinsic_model(inla_cgeneric_cmd_tp cmd, double *t
                                          &ret[0], mu_store, scaling, D);  
                     
                     //then cache them and update theta
+                    ((my_cache_tp **) data->cache)[cache_idx] = cache = Calloc(1, my_cache_tp);
+                    cache->Q = Calloc(M, double);
+                    cache->mu = Calloc(N, double);
+                    cache->lconst = Calloc(1, double);
+                    cache->theta = Calloc(n_par, double);
                     memcpy(cache->Q, Q_store,  M * sizeof(double));
                     memcpy(cache->mu, mu_store,  N * sizeof(double));
                     memcpy(cache->lconst, ret,  sizeof(double));
@@ -259,11 +310,15 @@ double *inla_cgeneric_rspde_fintrinsic_model(inla_cgeneric_cmd_tp cmd, double *t
                                          &ret[0], mu_store, scaling, D); 
                     
                     //then cache them and update theta
+                    ((my_cache_tp **) data->cache)[cache_idx] = cache = Calloc(1, my_cache_tp);
+                    cache->Q = Calloc(M, double);
+                    cache->lconst = Calloc(1, double);
+                    cache->theta = Calloc(n_par, double);
                     memcpy(cache->Q, Q_store,  M * sizeof(double));
                     memcpy(cache->lconst, ret, sizeof(double));
                     memcpy(cache->theta, theta,  n_par * sizeof(double));
                 } 
-            }
+            }    
         } else {
             if(mean_correction == 1) {
                 Q_store = Calloc(M, double);
@@ -271,33 +326,14 @@ double *inla_cgeneric_rspde_fintrinsic_model(inla_cgeneric_cmd_tp cmd, double *t
                 compute_Q_fintrinsic(tau, nu, C, Ci, G, Q, Q_store, rspde_order, 
                                      rational_table, est_nu, d, 1, 1, 1,
                                      &ret[0], mu_store, scaling, D);  
-                
-                //then cache them and update theta
-                ((my_cache_tp **) data->cache)[cache_idx] = cache = Calloc(1, my_cache_tp);
-                cache->Q = Calloc(M, double);
-                cache->mu = Calloc(N, double);
-                cache->lconst = Calloc(1, double);
-                cache->theta = Calloc(n_par, double);
-                memcpy(cache->Q, Q_store,  M * sizeof(double));
-                memcpy(cache->mu, mu_store,  N * sizeof(double));
-                memcpy(cache->lconst, ret,  sizeof(double));
-                memcpy(cache->theta, theta,  n_par * sizeof(double));
             } else {
                 Q_store = Calloc(M, double);
                 compute_Q_fintrinsic(tau, nu, C, Ci, G, Q, Q_store, rspde_order, 
                                      rational_table, est_nu, d, 1, 0, 1,
                                      &ret[0], mu_store, scaling, D); 
-                
-                //then cache them and update theta
-                ((my_cache_tp **) data->cache)[cache_idx] = cache = Calloc(1, my_cache_tp);
-                cache->Q = Calloc(M, double);
-                cache->lconst = Calloc(1, double);
-                cache->theta = Calloc(n_par, double);
-                memcpy(cache->Q, Q_store,  M * sizeof(double));
-                memcpy(cache->lconst, ret, sizeof(double));
-                memcpy(cache->theta, theta,  n_par * sizeof(double));
-            } 
+            }
         }
+        
         break;
     }
         
