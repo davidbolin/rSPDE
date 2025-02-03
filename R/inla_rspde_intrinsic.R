@@ -33,6 +33,7 @@
 #' implementation. Options are "detect", "INLA", or "rSPDE". You may also specify the
 #' direct path to a .so (or .dll) file.
 #' @param debug Logical value indicating whether to enable INLA debug mode.
+#' @param cache Use caching internally in the estimation?
 #' @param ... Additional arguments passed internally for configuration purposes.
 #' @return An object of class `inla_rspde_intrinsic` representing the FEM approximation of
 #' the intrinsic Gaussian random field.
@@ -59,6 +60,7 @@ rspde.intrinsic <- function(mesh,
                             type.rational.approx = "chebfun",
                             shared_lib = "detect",
                             debug = FALSE,
+                            cache = TRUE,
                             ...) {
     # Validate mesh input
     if (inherits(mesh, c("fm_mesh_1d", "fm_mesh_2d"))) {
@@ -137,6 +139,7 @@ rspde.intrinsic <- function(mesh,
             rspde_order = as.integer(rspde.order),
             dim = as.integer(d),
             mean_correction = as.integer(mean.correction),
+            use_cache = as.integer(cache),
             prior.tau.mean = prior.tau$mean,
             prior.tau.precision = prior.tau$precision,
             start_nu = start.nu,
