@@ -124,7 +124,8 @@ rspde.intrinsic <- function(mesh,
     D <- Diagonal(dim(op$Q)[1], diagonal)
     Cd <- Diagonal(dim(C)[1], 1/sqrt(diag(C)))
     Gg <- Cd%*%G%*%Cd
-    scaling <- RSpectra::eigs(as(Gg, "CsparseMatrix"), 2, which = "SM")$values[1]
+    #scaling <- RSpectra::eigs(as(Gg, "CsparseMatrix"), 2, which = "SM")$values[1]
+    scaling <- RSpectra::eigs(as(forceSymmetric(Gg), "CsparseMatrix"), 2, which = "SM")$values[1]
     #scaling <- RSpectra::eigs(as(G, "CsparseMatrix"), 2, which = "SM")$values[1]
     
     list_args <- 
