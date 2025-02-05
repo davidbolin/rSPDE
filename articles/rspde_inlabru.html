@@ -335,7 +335,7 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">##     Used components: effects[Intercept, distSea, field], latent[]</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.415, Running = 4.53, Post = 0.117, Total = 5.06 </span></span>
+<span><span class="co">##     Pre = 0.438, Running = 4.97, Post = 0.131, Total = 5.53 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.944 0.047      1.853    1.944      2.036 1.944   0</span></span>
@@ -698,7 +698,7 @@ some meaningless model.</p>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">##     Used components: effects[field], latent[]</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.243, Running = 56.8, Post = 4.2, Total = 61.3 </span></span>
+<span><span class="co">##     Pre = 0.26, Running = 58.4, Post = 4.48, Total = 63.2 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
@@ -940,7 +940,7 @@ some meaningless model.</p>
 <span><span class="co">##     Predictor: y ~ .</span></span>
 <span><span class="co">##     Used components: effects[field], latent[]</span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.226, Running = 10.4, Post = 0.176, Total = 10.8 </span></span>
+<span><span class="co">##     Pre = 0.23, Running = 10.5, Post = 0.18, Total = 10.9 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
@@ -1057,13 +1057,13 @@ Observe that the best model with respect to each score is displayed in
 the last row.</p>
 <div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cv_result</span></span></code></pre></div>
-<pre><code><span><span class="co">##           Model               mse               mae               dss</span></span>
-<span><span class="co">## 1    stationary 0.135819038126421 0.274563700822113 -1.01138576698773</span></span>
-<span><span class="co">## 2 nonstationary  0.13350056204084 0.273931882885379 -1.00858401087541</span></span>
-<span><span class="co">##            Best     nonstationary     nonstationary        stationary</span></span>
+<pre><code><span><span class="co">##           Model               mse               mae                dss</span></span>
+<span><span class="co">## 1    stationary 0.135726582027227 0.274621146719924  -1.01716016083286</span></span>
+<span><span class="co">## 2 nonstationary 0.133458583697924 0.273924715370993 -0.999918817189292</span></span>
+<span><span class="co">##            Best     nonstationary     nonstationary         stationary</span></span>
 <span><span class="co">##                crps             scrps</span></span>
-<span><span class="co">## 1 0.195179644221312 0.518823400027748</span></span>
-<span><span class="co">## 2 0.193670854130317 0.518103179517998</span></span>
+<span><span class="co">## 1 0.195165127606996 0.518658900480935</span></span>
+<span><span class="co">## 2 0.193848872310938 0.518561111169293</span></span>
 <span><span class="co">##       nonstationary     nonstationary</span></span></code></pre>
 <p>The <code><a href="../reference/cross_validation.html">cross_validation()</a></code> function also has the following
 useful options:</p>

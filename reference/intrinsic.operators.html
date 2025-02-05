@@ -75,7 +75,8 @@ $$(-\Delta)^{\beta/2} (\tau u) = \mathcal{W}$$</p>
 <span>  return_block_list <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  type_rational_approximation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chebfun"</span>, <span class="st">"brasil"</span>, <span class="st">"chebfunLB"</span><span class="op">)</span>,</span>
 <span>  fem_mesh_matrices <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  scaling <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  scaling <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  opts <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -145,7 +146,11 @@ The list should contain elements c0, g1, g2, g3, etc.</p></dd>
 
 
 <dt id="arg-scaling">scaling<a class="anchor" aria-label="anchor" href="#arg-scaling"></a></dt>
-<dd><p>second lowest eigenvalue of g1</p></dd>
+<dd><p>scaling factor, see details.</p></dd>
+
+
+<dt id="arg-opts">opts<a class="anchor" aria-label="anchor" href="#arg-opts"></a></dt>
+<dd><p>options for numerical calulcation of the scaling, see details.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -160,7 +165,10 @@ $$\tau^{-2}(-\Delta)^{\beta}$$
 is approximated based on a rational approximation. The Laplacian is
 equipped with homogeneous Neumann boundary
 conditions and a zero-mean constraint is additionally imposed to obtained
-a non-intrinsic model.</p>
+a non-intrinsic model. The scaling is computed as the lowest positive eigenvalue of
+sqrt(solve(c0))%*%g1sqrt(solve(c0)). opts provides a list of options for the
+numerical calculation of the scaling factor, which is done using <code>Rspectra::eigs_sym</code>.
+See the help of that function for details.</p>
     </div>
 
     <div class="section level2">
