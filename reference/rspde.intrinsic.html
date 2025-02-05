@@ -76,6 +76,8 @@ $$(-\Delta)^{(\nu+d/2)/2}\tau u = W$$.</p>
 <span>  shared_lib <span class="op">=</span> <span class="st">"detect"</span>,</span>
 <span>  debug <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  cache <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  scaling <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -152,6 +154,17 @@ direct path to a .so (or .dll) file.</p></dd>
 
 <dt id="arg-cache">cache<a class="anchor" aria-label="anchor" href="#arg-cache"></a></dt>
 <dd><p>Use caching internally in the estimation?</p></dd>
+
+
+<dt id="arg-scaling">scaling<a class="anchor" aria-label="anchor" href="#arg-scaling"></a></dt>
+<dd><p>A positive numeric value of length 1 for scaling the model.
+If NULL (default), it will be computed using RSpectra::eigs.
+Must be positive if provided.</p></dd>
+
+
+<dt id="arg-opts">opts<a class="anchor" aria-label="anchor" href="#arg-opts"></a></dt>
+<dd><p>A list of options passed to RSpectra::eigs function.
+Defaults to list(). See RSpectra documentation for available options.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
