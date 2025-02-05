@@ -20,7 +20,7 @@ rspde.intrinsic(
   debug = FALSE,
   cache = TRUE,
   scaling = NULL,
-  opts = list(),
+  opts = NULL,
   ...
 )
 }
@@ -72,7 +72,7 @@ If NULL (default), it will be computed using RSpectra::eigs.
 Must be positive if provided.}
 
 \item{opts}{A list of options passed to RSpectra::eigs function.
-Defaults to list(). See RSpectra documentation for available options.}
+See RSpectra documentation for available options.}
 
 \item{...}{Additional arguments passed internally for configuration purposes.}
 }

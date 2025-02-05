@@ -35,7 +35,7 @@
 #' @param debug Logical value indicating whether to enable INLA debug mode.
 #' @param cache Use caching internally in the estimation?
 #' @param opts A list of options passed to RSpectra::eigs function. 
-#'   Defaults to list(). See RSpectra documentation for available options.
+#' See RSpectra documentation for available options.
 #' @param scaling A positive numeric value of length 1 for scaling the model.
 #'   If NULL (default), it will be computed using RSpectra::eigs.
 #'   Must be positive if provided.
@@ -67,7 +67,7 @@ rspde.intrinsic <- function(mesh,
                             debug = FALSE,
                             cache = TRUE,
                             scaling = NULL,
-                            opts = list(),
+                            opts = NULL,
                             ...) {
     # Validate mesh input
     if (inherits(mesh, c("fm_mesh_1d", "fm_mesh_2d"))) {
@@ -141,8 +141,14 @@ rspde.intrinsic <- function(mesh,
         Cd <- Diagonal(dim(C)[1], 1/sqrt(diag(C)))
         Gg <- Cd%*%G%*%Cd        
         # Use opts argument with RSpectra::eigs
-        scaling <- RSpectra::eigs(as(forceSymmetric(Gg), "CsparseMatrix"), 
-                                k = 2, which = "SM", opts = opts)$values[1]
+        if(is.null(opts)) { 
+            opts = list(tol = 1e-10, maxitr = 1e4)
+        }
+        scaling <- RSpectra::eigs_sym(as(Gg, "CsparseMatrix"), 2, which = "SM", 
+                                      opts = opts)$values[1]
+        if(is.na(scaling)){
+            stop("Computation of scaling failed, provide the scaling manually or change opts to allow for higher maxitr or lower tol")
+        }
     }    
     
     list_args <- 
