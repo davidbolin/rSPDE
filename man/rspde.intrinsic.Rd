@@ -19,6 +19,8 @@ rspde.intrinsic(
   shared_lib = "detect",
   debug = FALSE,
   cache = TRUE,
+  scaling = NULL,
+  opts = list(),
   ...
 )
 }
@@ -64,6 +66,13 @@ direct path to a .so (or .dll) file.}
 \item{debug}{Logical value indicating whether to enable INLA debug mode.}
 
 \item{cache}{Use caching internally in the estimation?}
+
+\item{scaling}{A positive numeric value of length 1 for scaling the model.
+If NULL (default), it will be computed using RSpectra::eigs.
+Must be positive if provided.}
+
+\item{opts}{A list of options passed to RSpectra::eigs function.
+Defaults to list(). See RSpectra documentation for available options.}
 
 \item{...}{Additional arguments passed internally for configuration purposes.}
 }

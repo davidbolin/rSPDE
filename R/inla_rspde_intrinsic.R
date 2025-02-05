@@ -34,6 +34,11 @@
 #' direct path to a .so (or .dll) file.
 #' @param debug Logical value indicating whether to enable INLA debug mode.
 #' @param cache Use caching internally in the estimation?
+#' @param opts A list of options passed to RSpectra::eigs function. 
+#'   Defaults to list(). See RSpectra documentation for available options.
+#' @param scaling A positive numeric value of length 1 for scaling the model.
+#'   If NULL (default), it will be computed using RSpectra::eigs.
+#'   Must be positive if provided.
 #' @param ... Additional arguments passed internally for configuration purposes.
 #' @return An object of class `inla_rspde_intrinsic` representing the FEM approximation of
 #' the intrinsic Gaussian random field.
@@ -61,6 +66,8 @@ rspde.intrinsic <- function(mesh,
                             shared_lib = "detect",
                             debug = FALSE,
                             cache = TRUE,
+                            scaling = NULL,
+                            opts = list(),
                             ...) {
     # Validate mesh input
     if (inherits(mesh, c("fm_mesh_1d", "fm_mesh_2d"))) {
@@ -122,13 +129,21 @@ rspde.intrinsic <- function(mesh,
         out@x <- out@x[idx]  
         return(out)
     }
-    Cmatrix <- to.inla.matrix(op$Q)
-    D <- Diagonal(dim(op$Q)[1], diagonal)
-    Cd <- Diagonal(dim(C)[1], 1/sqrt(diag(C)))
-    Gg <- Cd%*%G%*%Cd
-    #scaling <- RSpectra::eigs(as(Gg, "CsparseMatrix"), 2, which = "SM")$values[1]
-    scaling <- RSpectra::eigs(as(forceSymmetric(Gg), "CsparseMatrix"), 2, which = "SM")$values[1]
-    #scaling <- RSpectra::eigs(as(G, "CsparseMatrix"), 2, which = "SM")$values[1]
+
+    # Add scaling parameter validation
+    if (!is.null(scaling)) {
+        if (!is.numeric(scaling) || length(scaling) != 1 || scaling <= 0) {
+            stop("scaling must be a positive numeric value of length 1")
+        }
+    } else {
+        Cmatrix <- to.inla.matrix(op$Q)
+        D <- Diagonal(dim(op$Q)[1], diagonal)
+        Cd <- Diagonal(dim(C)[1], 1/sqrt(diag(C)))
+        Gg <- Cd%*%G%*%Cd        
+        # Use opts argument with RSpectra::eigs
+        scaling <- RSpectra::eigs(as(forceSymmetric(Gg), "CsparseMatrix"), 
+                                k = 2, which = "SM", opts = opts)$values[1]
+    }    
     
     list_args <- 
         list(
