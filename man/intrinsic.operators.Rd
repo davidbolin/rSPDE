@@ -18,7 +18,8 @@ intrinsic.operators(
   return_block_list = FALSE,
   type_rational_approximation = c("chebfun", "brasil", "chebfunLB"),
   fem_mesh_matrices = NULL,
-  scaling = NULL
+  scaling = NULL,
+  opts = NULL
 )
 }
 \arguments{
@@ -57,7 +58,9 @@ approximation should be used? The current types are
 \item{fem_mesh_matrices}{A list containing FEM-related matrices.
 The list should contain elements c0, g1, g2, g3, etc.}
 
-\item{scaling}{second lowest eigenvalue of g1}
+\item{scaling}{scaling factor, see details.}
+
+\item{opts}{options for numerical calulcation of the scaling, see details.}
 }
 \value{
 \code{intrinsic.operators} returns an object of
@@ -75,7 +78,10 @@ The covariance operator
 is approximated based on a rational approximation. The Laplacian is
 equipped with homogeneous Neumann boundary
 conditions and a zero-mean constraint is additionally imposed to obtained
-a non-intrinsic model.
+a non-intrinsic model. The scaling is computed as the lowest positive eigenvalue of
+sqrt(solve(c0))\%*\%g1sqrt(solve(c0)). opts provides a list of options for the
+numerical calculation of the scaling factor, which is done using \code{Rspectra::eigs_sym}.
+See the help of that function for details.
 }
 \examples{
 if (requireNamespace("RSpectra", quietly = TRUE)) {

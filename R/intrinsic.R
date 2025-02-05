@@ -26,7 +26,8 @@
 #' "chebfun", "brasil" or "chebfunLB".
 #' @param fem_mesh_matrices A list containing FEM-related matrices.
 #' The list should contain elements c0, g1, g2, g3, etc.
-#' @param scaling second lowest eigenvalue of g1
+#' @param scaling scaling factor, see details. 
+#' @param opts options for numerical calulcation of the scaling, see details. 
 #' @return `intrinsic.operators` returns an object of
 #' class "intrinsicCBrSPDEobj". 
 #' @export
@@ -35,7 +36,10 @@
 #' is approximated based on a rational approximation. The Laplacian is 
 #' equipped with homogeneous Neumann boundary
 #' conditions and a zero-mean constraint is additionally imposed to obtained
-#' a non-intrinsic model.
+#' a non-intrinsic model. The scaling is computed as the lowest positive eigenvalue of 
+#' sqrt(solve(c0))%*%g1sqrt(solve(c0)). opts provides a list of options for the 
+#' numerical calculation of the scaling factor, which is done using `Rspectra::eigs_sym`. 
+#' See the help of that function for details. 
 #' @examples
 #' if (requireNamespace("RSpectra", quietly = TRUE)) {
 #'   x <- seq(from = 0, to = 10, length.out = 201)
@@ -71,7 +75,8 @@ intrinsic.operators <- function(tau = NULL,
                                            "brasil", "chebfunLB"
                                            ),
                                 fem_mesh_matrices = NULL,
-                                scaling = NULL) {
+                                scaling = NULL,
+                                opts = NULL) {
     
     if(is.null(tau) || is.null(beta)) {
         stop("tau and beta must be provided.")
@@ -91,7 +96,8 @@ intrinsic.operators <- function(tau = NULL,
                                   return_block_list = return_block_list,
                                   type_rational_approximation = type_rational_approximation,
                                   fem_mesh_matrices = fem_mesh_matrices,
-                                  scaling = scaling))
+                                  scaling = scaling,
+                                  opts = opts))
 }
 #' @name intrinsic.operators.internal
 #' @title Covariance-based approximations of intrinsic fields
@@ -119,7 +125,8 @@ intrinsic.operators <- function(tau = NULL,
 #' "chebfun", "brasil" or "chebfunLB".
 #' @param fem_mesh_matrices A list containing FEM-related matrices.
 #' The list should contain elements c0, g1, g2, g3, etc.
-#' @param scaling second lowest eigenvalue of g1
+#' @param scaling scaling factor.
+#' @param opts options for numerical calculation of scaling factor.
 #' @return `intrinsic.operators.internal` returns an object of
 #' class "CBrSPDEobj". This object is a list containing the
 #' following quantities:
@@ -155,7 +162,8 @@ intrinsic.operators.internal <- function(C,
                                   "chebfunLB"
                                 ),
                                 fem_mesh_matrices = NULL,
-                                scaling = NULL) {
+                                scaling = NULL,
+                                opts = NULL) {
   type_rational_approximation <- type_rational_approximation[[1]]
 
   if (is.null(fem_mesh_matrices)) {
@@ -259,8 +267,18 @@ intrinsic.operators.internal <- function(C,
   if (is.null(scaling)) {
       Cd <- Diagonal(dim(C)[1], 1/sqrt(diag(C)))
       Gg <- Cd%*%G%*%Cd
-      scaling <- RSpectra::eigs(as(forceSymmetric(Gg), "CsparseMatrix"), 2, which = "SM")$values[1]
-    #scaling <- RSpectra::eigs(as(G, "CsparseMatrix"), 2, which = "SM")$values[1]
+      if(is.null(opts)) { 
+          opts = list(tol = 1e-10, maxitr = 1e4)
+      }
+      scaling <- RSpectra::eigs_sym(as(Gg, "CsparseMatrix"), 2, which = "SM",
+                                    opts = list(tol = 1e-10, maxitr = 1e4))$values[1]
+      if(is.na(scaling)){
+          stop("Computation of scaling failed, provide the scaling manually or change opts to allow for higher maxitr or lower tol")
+      }
+  } else {
+      if (!is.numeric(scaling) || length(scaling) != 1 || scaling <= 0) {
+          stop("scaling must be a positive numeric value of length 1")
+      }
   }
 
   L <- G / scaling
@@ -499,7 +517,8 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 #' "chebfun", "brasil" or "chebfunLB".
 #' @param fem_mesh_matrices A list containing FEM-related matrices.
 #' The list should contain elements c0, g1, g2, g3, etc.
-#' @param scaling second lowest eigenvalue of g1
+#' @param scaling scaling factor, see details. 
+#' @param opts options for numerical calulcation of the scaling, see details. 
 #' @return `intrinsic.matern.operators` returns an object of
 #' class "intrinsicCBrSPDEobj". This object is a list containing the
 #' following quantities:
@@ -527,7 +546,11 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 #' is approximated based on rational approximations of the two fractional
 #' components. The Laplacians are equipped with homogeneous Neumann boundary
 #' conditions and a zero-mean constraint is additionally imposed to obtained
-#' a non-intrinsic model.
+#' a non-intrinsic model. The scaling is computed as the lowest positive eigenvalue of 
+#' sqrt(solve(c0))%*%g1sqrt(solve(c0)). opts provides a list of options for the 
+#' numerical calculation of the scaling factor, which is done using `Rspectra::eigs_sym`. 
+#' See the help of that function for details. 
+#' 
 #' @examples
 #' if (requireNamespace("RSpectra", quietly = TRUE)) {
 #'   x <- seq(from = 0, to = 10, length.out = 201)
@@ -569,7 +592,8 @@ intrinsic.matern.operators <- function(kappa,
                                          "brasil", "chebfunLB"
                                        ),
                                        fem_mesh_matrices = NULL,
-                                       scaling = NULL) {
+                                       scaling = NULL,
+                                       opts = NULL) {
   if (is.null(d) && is.null(mesh) && is.null(graph)) {
     stop("You should give either the dimension d, the mesh or graph!")
   }
