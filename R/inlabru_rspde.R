@@ -657,26 +657,31 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
             wcrps_temp <- lapply(1:length(test_data), function(i){
                 return(0.5*E2_tmp_thr[[i]]-E1_tmp_thr[[i]])
             })
-            
             wcrps_temp <- unlist(wcrps_temp)
             wcrps[[i_lik]][fold, model_number] <- mean(wcrps_temp)  
             if(orientation_results == "negative"){
-                wcrps[[i_lik]][fold, model_number] <- - wcrps[fold, model_number]
+                wcrps[[i_lik]][fold, model_number] <- - wcrps[[i_lik]][fold, model_number]
             }    
-            
+
             if (print) {
               cat(paste0("wCRPS - Likelihood ",i_lik,": ", wcrps[[i_lik]][fold, model_number], "\n"))
             }  
         }
 
         if("swcrps" %in% scores){
+          if(any(E2_tmp_thr == 0)){
+            warning("swCRPS cannot be computed. Please, decrease `weight_thr` or increase `n_sample`.")
+            swcrps[[i_lik]][fold, model_number] <- NA
+          } else{
             swcrps_temp <- lapply(1:length(test_data), function(i){
                 return(-E1_tmp_thr[[i]]/E2_tmp_thr[[i]] - 0.5*log(E2_tmp_thr[[i]]))
             })
             swcrps_temp <- unlist(swcrps_temp)
             swcrps[[i_lik]][fold, model_number] <- mean(swcrps_temp)  
+          }
+
             if(orientation_results == "negative"){
-                swcrps[[i_lik]][fold, model_number] <- - swcrps[fold, model_number]
+                swcrps[[i_lik]][fold, model_number] <- - swcrps[[i_lik]][fold, model_number]
             }   
             
             if (print) {
@@ -875,12 +880,20 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
        next
      }
 
-     if (orientation_results == "negative") {
-       best_tmp <- which.min(result_df[, j])
-     } else {
-       best_tmp <- which.max(result_df[, j])
-     }
-     final_row <- c(final_row, model_names[best_tmp])
+      if (orientation_results == "negative") {
+        best_tmp <- if(all(is.na(result_df[, j]))) {
+          NA
+        } else {
+          which.min(result_df[, j])
+        }
+      } else {
+        best_tmp <- if(all(is.na(result_df[, j]))) {
+          NA
+        } else {
+          which.max(result_df[, j])
+        }
+      }
+      final_row <- c(final_row, if(is.na(best_tmp)) NA else model_names[best_tmp])
    }
    result_df <- rbind(result_df, final_row)
    row.names(result_df)[nrow(result_df)] <- ""
