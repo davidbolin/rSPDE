@@ -284,13 +284,14 @@ get_post_var <- function(density_df) {
 #'        All models in the list must have the same number of likelihoods and must be fitted to 
 #'        identical datasets. 
 #' @param model_names A vector containing the names of the models to appear in the returned `data.frame`. If `NULL`, the names will be of the form `Model 1`, `Model 2`, and so on. By default, it will try to obtain the name from the models list.
-#' @param scores A vector containing the scores to be computed. The options are "mse", "crps", "scrps" and "dss". By default, all scores are computed.
+#' @param scores A vector containing the scores to be computed. The options are "mse", "crps", "scrps", "dss", "wcrps" and "swcrps". By default, all scores are computed.
 #' @param cv_type The type of the folding to be carried out. The options are `k-fold` for `k`-fold cross-validation, in which case the parameter `k` should be provided,
 #' `loo`, for leave-one-out and `lpo` for leave-percentage-out, in this case, the parameter `percentage` should be given, and also the `number_folds`
 #' with the number of folds to be done. The default is `k-fold`.
 #' @param k The number of folds to be used in `k`-fold cross-validation. Will only be used if `cv_type` is `k-fold`.
 #' @param percentage The percentage (from 1 to 99) of the data to be used to train the model. Will only be used if `cv_type` is `lpo`.
 #' @param number_folds Number of folds to be done if `cv_type` is `lpo`.
+#' @param weight_thr When computing "wcrps" or "swcrps", the threshold to be used to compute the weights. Must be supplied if any of these scores are requested. No default value is provided.
 #' @param n_samples Number of samples to compute the posterior statistics to be used to compute the scores.
 #' @param return_scores_folds If `TRUE`, the scores for each fold will also be returned.
 #' @param orientation_results character vector. The options are "negative" and "positive". If "negative", the smaller the scores the better. If "positive", the larger the scores the better.
@@ -298,7 +299,8 @@ get_post_var <- function(density_df) {
 #' @param train_test_indexes A list where each element corresponds to a fold. Each fold contains:
 #' - `train`: A list of training index vectors, one for each likelihood.
 #' - `test`: A list of test index vectors, one for each likelihood, with the same length as `train`.
-#' This list is typically obtained by setting the argument `return_train_test` to `TRUE`.
+#' This list is typically obtained by setting the argument `return_train_test` to `TRUE`. 
+#' When supplying `train_test_indexes`, the `cv_type`, `k`, `percentage` and `number_folds` arguments are ignored.
 #' @param return_train_test Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list. 
 #' @param return_post_samples If `TRUE` the posterior samples will be included in the returned list.
 #' @param return_true_test_values If `TRUE` the true test values will be included in the returned list.
@@ -312,6 +314,7 @@ get_post_var <- function(density_df) {
 #' @export
 cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse", "crps", "scrps", "dss"),
                              cv_type = c("k-fold", "loo", "lpo"),
+                             weight_thr=NULL,
                              k = 5, percentage = 20, number_folds = 10,
                              n_samples = 1000, return_scores_folds = FALSE,
                              orientation_results = c("negative", "positive"),
@@ -329,7 +332,11 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
     stop("orientation_results must be either 'positive' or 'negative'!")
   }
 
-  scores <- intersect(scores, c("mae", "mse", "crps", "scrps", "dss"))
+  if(any(scores %in% c("wcrps", "swcrps")) && is.null(weight_thr)){
+    stop("weight_thr must be supplied if 'wcrps' or 'swcrps' are requested!")
+  }
+
+  scores <- intersect(scores, c("mae", "mse", "crps", "scrps", "dss", "wcrps", "swcrps"))
 
   cv_type <- cv_type[[1]]
   if (!(cv_type %in% c("k-fold", "loo", "lpo"))) {
@@ -497,8 +504,10 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
   mae <- lapply(1:n_likelihoods, function(i) matrix(numeric(n_folds * n_models), ncol = n_models))
   crps <- lapply(1:n_likelihoods, function(i) matrix(numeric(n_folds * n_models), ncol = n_models))
   scrps <- lapply(1:n_likelihoods, function(i) matrix(numeric(n_folds * n_models), ncol = n_models))
+  wcrps <- lapply(1:n_likelihoods, function(i) matrix(numeric(n_folds * n_models), ncol = n_models))
+  swcrps <- lapply(1:n_likelihoods, function(i) matrix(numeric(n_folds * n_models), ncol = n_models))
 
-  if (("crps" %in% scores) || ("scrps" %in% scores) || ("dss" %in% scores)) {
+  if(any(c("crps", "scrps", "dss", "wcrps", "swcrps") %in% scores)){
     new_n_samples <- 2 * n_samples
   } else {
     new_n_samples <- n_samples
@@ -572,11 +581,12 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
             }            
           }
 
-
-
-        if (("crps" %in% scores) || ("scrps" %in% scores)) {
+        if(any(c("crps", "scrps", "wcrps", "swcrps") %in% scores)){
           Y1_sample <- post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, 1:n_samples, drop=FALSE]
           Y2_sample <- post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, (n_samples + 1):(2 * n_samples), drop=FALSE]
+        }
+
+        if(any(c("crps", "scrps") %in% scores)){
           if (parallelize_RP) {
             E1_tmp <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
               mean(abs(Y1_sample[i,] - test_data[i]))
@@ -592,6 +602,24 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
               mean(abs(Y1_sample[i,] - Y2_sample[i,]))
             })
           }          
+        }
+
+        if(any(c("wcrps", "swcrps") %in% scores)){
+          if (parallelize_RP) {
+            E1_tmp_thr <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+              mean(abs((Y1_sample[i,]>weight_thr)*(Y1_sample[i,]-weight_thr)-(test_data[i]>weight_thr)*(test_data[i]-weight_thr)))
+            })
+            E2_tmp_thr <- foreach::`%dopar%`(foreach::foreach(i = 1:length(test_data)), {
+              mean(abs((Y1_sample[i,]>weight_thr)*(Y1_sample[i,]-weight_thr)-(Y2_sample[i,]>weight_thr)*(Y2_sample[i,]-weight_thr)))
+            })
+          } else {
+            E1_tmp_thr <- lapply(1:length(test_data), function(i) {
+              mean(abs((Y1_sample[i,]>weight_thr)*(Y1_sample[i,]-weight_thr)-(test_data[i]>weight_thr)*(test_data[i]-weight_thr)))
+            })
+            E2_tmp_thr <- lapply(1:length(test_data), function(i) {
+              mean(abs((Y1_sample[i,]>weight_thr)*(Y1_sample[i,]-weight_thr)-(Y2_sample[i,]>weight_thr)*(Y2_sample[i,]-weight_thr)))
+            })
+          }    
         }
 
         if ("crps" %in% scores) {
@@ -623,7 +651,38 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
           if (print) {
             cat(paste("SCRPS: - Likelihood ",i_lik,": ", scrps[[i_lik]][fold, model_number], "\n"))
           }
-        }                  
+        }     
+
+        if("wcrps" %in% scores){
+            wcrps_temp <- lapply(1:length(test_data), function(i){
+                return(0.5*E2_tmp_thr[[i]]-E1_tmp_thr[[i]])
+            })
+            
+            wcrps_temp <- unlist(wcrps_temp)
+            wcrps[[i_lik]][fold, model_number] <- mean(wcrps_temp)  
+            if(orientation_results == "negative"){
+                wcrps[[i_lik]][fold, model_number] <- - wcrps[fold, model_number]
+            }    
+            
+            if (print) {
+              cat(paste0("wCRPS - Likelihood ",i_lik,": ", wcrps[[i_lik]][fold, model_number], "\n"))
+            }  
+        }
+
+        if("swcrps" %in% scores){
+            swcrps_temp <- lapply(1:length(test_data), function(i){
+                return(-E1_tmp_thr[[i]]/E2_tmp_thr[[i]] - 0.5*log(E2_tmp_thr[[i]]))
+            })
+            swcrps_temp <- unlist(swcrps_temp)
+            swcrps[[i_lik]][fold, model_number] <- mean(swcrps_temp)  
+            if(orientation_results == "negative"){
+                swcrps[[i_lik]][fold, model_number] <- - swcrps[fold, model_number]
+            }   
+            
+            if (print) {
+              cat(paste0("swCRPS - Likelihood ",i_lik,": ", swcrps[[i_lik]][fold, model_number], "\n"))
+            }                                               
+        }        
       }
      }
     }
@@ -717,6 +776,41 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
      scrps_total <- colMeans(scrps_weighted / total_weights)
      result_df <- data.frame(result_df, scrps_total = scrps_total)
    }
+
+   if ("wcrps" %in% scores) {
+     for (i in 1:n_likelihoods) {
+       wcrps_mean <- colMeans(wcrps[[i]])
+       result_df <- data.frame(result_df, wcrps = wcrps_mean)
+       names(result_df)[names(result_df) == "wcrps"] <- paste0("wcrps_lik", i)
+     }
+     wcrps_weighted <- matrix(0, nrow = nrow(wcrps[[1]]), ncol = ncol(wcrps[[1]]))
+     total_weights <- matrix(0, nrow = nrow(wcrps[[1]]), ncol = ncol(wcrps[[1]]))
+     for (i in 1:n_likelihoods) {
+       weights <- sapply(1:nrow(wcrps[[i]]), function(fold) length(train_test_indexes[[fold]][["test"]][[i]]))
+       wcrps_weighted <- wcrps_weighted + weights * wcrps[[i]]
+       total_weights <- total_weights + weights
+     }
+     wcrps_total <- colMeans(wcrps_weighted / total_weights)
+     result_df <- data.frame(result_df, wcrps_total = wcrps_total)
+   }
+
+   if ("swcrps" %in% scores) {
+     for (i in 1:n_likelihoods) {
+       swcrps_mean <- colMeans(swcrps[[i]])
+       result_df <- data.frame(result_df, swcrps = swcrps_mean)
+       names(result_df)[names(result_df) == "swcrps"] <- paste0("swcrps_lik", i)
+     }
+     swcrps_weighted <- matrix(0, nrow = nrow(swcrps[[1]]), ncol = ncol(swcrps[[1]]))
+     total_weights <- matrix(0, nrow = nrow(swcrps[[1]]), ncol = ncol(swcrps[[1]]))
+     for (i in 1:n_likelihoods) {
+       weights <- sapply(1:nrow(swcrps[[i]]), function(fold) length(train_test_indexes[[fold]][["test"]][[i]]))
+       swcrps_weighted <- swcrps_weighted + weights * swcrps[[i]]
+       total_weights <- total_weights + weights
+     }
+     swcrps_total <- colMeans(swcrps_weighted / total_weights)
+     result_df <- data.frame(result_df, swcrps_total = swcrps_total)
+   }
+
   } else {
    # Original code for n_likelihoods == 1
    if ("mse" %in% scores) {
@@ -743,6 +837,16 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
      scrps_mean <- colMeans(scrps[[1]])
      result_df <- data.frame(result_df, scrps = scrps_mean)
    }
+
+   if ("wcrps" %in% scores) {
+     wcrps_mean <- colMeans(wcrps[[1]])
+     result_df <- data.frame(result_df, wcrps = wcrps_mean)
+   }
+
+   if ("swcrps" %in% scores) {
+     swcrps_mean <- colMeans(swcrps[[1]])
+     result_df <- data.frame(result_df, swcrps = swcrps_mean)
+   }   
   }
 
   if (save_settings) {
@@ -766,7 +870,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
    for (j in 2:ncol(result_df)) {
      colname <- names(result_df)[j]
      # Skip if it's not a metric column
-     if (!any(sapply(c("mse", "mae", "dss", "crps", "scrps"), function(x) startsWith(colname, x)))) {
+     if (!any(sapply(c("mse", "mae", "dss", "crps", "scrps","wcrps","swcrps"), function(x) startsWith(colname, x)))) {
        final_row <- c(final_row, "")
        next
      }
@@ -830,6 +934,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
    if ("mae" %in% scores) scores_folds$mae <- add_model_names(mae)
    if ("crps" %in% scores) scores_folds$crps <- add_model_names(crps)
    if ("scrps" %in% scores) scores_folds$scrps <- add_model_names(scrps)
+   if ("wcrps" %in% scores) scores_folds$wcrps <- add_model_names(wcrps)
+   if ("swcrps" %in% scores) scores_folds$swcrps <- add_model_names(swcrps)   
   
    out <- list(
      scores_df = result_df,
@@ -893,10 +999,6 @@ sample_posterior_linear_predictor <- function(model, i_lik, test_list, n_samples
         }
 
         data <- model$bru_info$lhoods[[i_lik]]$data
-
-        # df_pred <- select_indexes(data, test_list[[i_lik]])        
-
-        # post_samples <- inlabru::generate(model, newdata = df_pred, formula = formula_tmp, n.samples = n_samples)
 
         post_samples <- inlabru::generate(model, newdata = data, formula = formula_tmp, n.samples = n_samples)
 

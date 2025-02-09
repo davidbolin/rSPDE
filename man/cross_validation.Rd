@@ -9,6 +9,7 @@ cross_validation(
   model_names = NULL,
   scores = c("mae", "mse", "crps", "scrps", "dss"),
   cv_type = c("k-fold", "loo", "lpo"),
+  weight_thr = NULL,
   k = 5,
   percentage = 20,
   number_folds = 10,
@@ -35,11 +36,13 @@ identical datasets.}
 
 \item{model_names}{A vector containing the names of the models to appear in the returned \code{data.frame}. If \code{NULL}, the names will be of the form \verb{Model 1}, \verb{Model 2}, and so on. By default, it will try to obtain the name from the models list.}
 
-\item{scores}{A vector containing the scores to be computed. The options are "mse", "crps", "scrps" and "dss". By default, all scores are computed.}
+\item{scores}{A vector containing the scores to be computed. The options are "mse", "crps", "scrps", "dss", "wcrps" and "swcrps". By default, all scores are computed.}
 
 \item{cv_type}{The type of the folding to be carried out. The options are \code{k-fold} for \code{k}-fold cross-validation, in which case the parameter \code{k} should be provided,
 \code{loo}, for leave-one-out and \code{lpo} for leave-percentage-out, in this case, the parameter \code{percentage} should be given, and also the \code{number_folds}
 with the number of folds to be done. The default is \code{k-fold}.}
+
+\item{weight_thr}{When computing "wcrps" or "swcrps", the threshold to be used to compute the weights. Must be supplied if any of these scores are requested. No default value is provided.}
 
 \item{k}{The number of folds to be used in \code{k}-fold cross-validation. Will only be used if \code{cv_type} is \code{k-fold}.}
 
@@ -60,6 +63,7 @@ with the number of folds to be done. The default is \code{k-fold}.}
 \item \code{train}: A list of training index vectors, one for each likelihood.
 \item \code{test}: A list of test index vectors, one for each likelihood, with the same length as \code{train}.
 This list is typically obtained by setting the argument \code{return_train_test} to \code{TRUE}.
+When supplying \code{train_test_indexes}, the \code{cv_type}, \code{k}, \code{percentage} and \code{number_folds} arguments are ignored.
 }}
 
 \item{return_train_test}{Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list.}

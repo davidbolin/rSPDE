@@ -1,6 +1,10 @@
 # rSPDE (development version)
 
 * Improved the `cross_validation` function to allow for multiple likelihoods. 
+* General adjusts on `rspde.intrinsic` for stability. 
+* inlabru implementation for `rspde.intrinsic`. 
+* Improved warning messages when calling inla-related functions. 
+* Added `wCRPS` and `swCRPS` scores on `cross_validation`.
 
 # rSPDE 2.4.0
 
