@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-10-23. Last
-modified: 2025-02-05.</h4>
+modified: 2025-02-09.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/spacetime.Rmd" class="external-link"><code>vignettes/spacetime.Rmd</code></a></small>
       <div class="d-none name"><code>spacetime.Rmd</code></div>
@@ -287,8 +287,8 @@ model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 39</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  18.88973 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 4.88547 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  18.29848 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 4.68429 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
@@ -355,7 +355,7 @@ parameters) with the true values:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             kappa     sigma      gamma      rho     sigma.e  intercept</span></span>
 <span><span class="co">#&gt; True     5.000000 10.000000 0.05000000 1.000000 0.010000000 0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 4.688129  9.109715 0.05301967 1.184015 0.006417642 0.01322333</span></span></code></pre></div>
+<span><span class="co">#&gt; Estimate 4.678674  9.128687 0.05344665 1.183844 0.007034671 0.01322226</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -492,8 +492,8 @@ model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 78</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  3.06775 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 6.0104 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  2.96642 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 5.73541 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
@@ -545,7 +545,7 @@ parameters) with the true values:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             kappa    sigma       gamma     rho_1     rho_2    sigma.e intercept</span></span>
 <span><span class="co">#&gt; True     10.00000 10.00000 0.005000000 0.3000000 0.3000000 0.01000000 0.0000000</span></span>
-<span><span class="co">#&gt; Estimate 11.31637 11.59464 0.005199523 0.2462587 0.2686612 0.01128791 0.6125935</span></span></code></pre></div>
+<span><span class="co">#&gt; Estimate 11.48341 11.20202 0.004946009 0.2318148 0.2678743 0.00511045 0.6108947</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="fit-with-bounded_rho-false">Fit with <code>bounded_rho = FALSE</code><a class="anchor" aria-label="anchor" href="#fit-with-bounded_rho-false"></a>
@@ -612,9 +612,9 @@ Below, we demonstrate this for both the 1D and spatial examples.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results_unbounded</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              kappa   sigma      gamma      rho   sigma.e    intercept</span></span>
-<span><span class="co">#&gt; True     10.000000 10.0000 0.00500000 1.000000 0.0100000  0.000000000</span></span>
-<span><span class="co">#&gt; Estimate  6.007034 13.1311 0.03956561 1.743888 0.3744443 -0.005926273</span></span></code></pre></div>
+<span><span class="co">#&gt;              kappa    sigma      gamma      rho  sigma.e    intercept</span></span>
+<span><span class="co">#&gt; True     10.000000 10.00000 0.00500000 1.000000 0.010000  0.000000000</span></span>
+<span><span class="co">#&gt; Estimate  5.967547 13.08675 0.04114486 1.698342 0.375287 -0.005961665</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2 unnumbered">
