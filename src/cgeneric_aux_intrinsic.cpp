@@ -153,7 +153,7 @@ void compute_Q_fintrinsic( double tau, double nu,
                 Qidiag_perm = intrinsic_mean(Lq);
                 Qidiag = R.permutationPinv() * Qidiag_perm;
                 for(int i = 0; i < n - 1; i++){
-                    mean_out[i] = Qidiag[i];
+                    mean_out[i] = -Qidiag[i]/2.0;
                 }
                 mean_out[n-1] = 0;
             }
@@ -174,7 +174,7 @@ void compute_Q_fintrinsic( double tau, double nu,
                     Qidiag_perm = intrinsic_mean(Lq);
                     Qidiag = R.permutationPinv() * Qidiag_perm;
                     for(int i = 0; i < n - 1; i++){
-                        mean_out[start + i] = Qidiag[i];
+                        mean_out[start + i] = -Qidiag[i]/2.0;
                     }
                     mean_out[start + n - 1] = 0;
                 }
@@ -317,7 +317,7 @@ void compute_Q_intrinsic(int size,
             Eigen::VectorXd Qidiag_perm = S.diagonal();
             Eigen::VectorXd Qidiag = R.permutationPinv() * Qidiag_perm;
             for(i = 0; i < n; i++){
-                mean_out[i] = Qidiag[i];
+                mean_out[i] = -Qidiag[i]/2.0;
             }
         }
     }
