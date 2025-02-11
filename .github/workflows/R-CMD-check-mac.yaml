@@ -21,6 +21,9 @@ jobs:
         config:
           - {os: macOS-latest, r: 'release'}
 
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}    
+          
     steps:
       - uses: actions/checkout@v3
 
@@ -65,7 +68,8 @@ jobs:
       - name: Installing MetricGraph
         run: |
           install.packages(c("remotes", "rmarkdown"),dependencies=TRUE)
-          remotes::install_github("davidbolin/MetricGraph")
+          Sys.setenv(GITHUB_PAT = Sys.getenv("GITHUB_PAT"))
+          remotes::install_github("davidbolin/MetricGraph", auth_token = Sys.getenv("GITHUB_PAT"))
         shell: Rscript {0}            
       - uses: r-lib/actions/check-r-package@v2
         env:
