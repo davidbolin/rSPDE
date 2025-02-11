@@ -16,7 +16,7 @@ rational SPDE approximation}
   posterior_samples = FALSE,
   n_samples = 100,
   only_latent = FALSE,
-  compute_var_method = c("direct", "loop", "selected_inv"),
+  compute_var_method = c("direct", "loop"),
   ...
 )
 }
@@ -50,8 +50,7 @@ Put to zero if the model does not have measurement noise.}
 \item{compute_var_method}{Method to compute the variances. Options are:
 "direct", "loop", and "selected_inv". The "direct" method computes the variance directly,
 which is faster but can be memory intensive. The "loop" method computes the variance by looping
-over the elements, which is more memory efficient but slower. The "selected_inv" method uses a
-selected inverse approach, which is also memory efficient but might be less stable.}
+over the elements, which is more memory efficient but slower.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

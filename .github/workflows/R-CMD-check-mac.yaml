@@ -64,13 +64,7 @@ jobs:
           options(width = 100)
           pkgs <- installed.packages()[, "Package"]
           sessioninfo::session_info(pkgs, include_base = TRUE)
-        shell: Rscript {0}
-      - name: Installing MetricGraph
-        run: |
-          install.packages(c("remotes", "rmarkdown"),dependencies=TRUE)
-          Sys.setenv(GITHUB_PAT = Sys.getenv("GITHUB_PAT"))
-          remotes::install_github("davidbolin/MetricGraph", auth_token = Sys.getenv("GITHUB_PAT"))
-        shell: Rscript {0}            
+        shell: Rscript {0}         
       - uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false

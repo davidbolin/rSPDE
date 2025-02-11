@@ -1915,8 +1915,7 @@ spde.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' @param compute_var_method Method to compute the variances. Options are:
 #' "direct", "loop", and "selected_inv". The "direct" method computes the variance directly,
 #' which is faster but can be memory intensive. The "loop" method computes the variance by looping
-#' over the elements, which is more memory efficient but slower. The "selected_inv" method uses a
-#' selected inverse approach, which is also memory efficient but might be less stable.
+#' over the elements, which is more memory efficient but slower.
 #' @param only_latent Should the posterior samples be only given to the laten model?
 #' @param ... further arguments passed to or from other methods.
 #' @return A list with elements
@@ -1974,7 +1973,7 @@ spde.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' lines(x, u.krig$mean - 2 * sqrt(u.krig$variance), col = 2)
 predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
                                compute.variances = FALSE, posterior_samples = FALSE,
-                               n_samples = 100, only_latent = FALSE, compute_var_method = c("direct", "loop", "selected_inv"),
+                               n_samples = 100, only_latent = FALSE, compute_var_method = c("direct", "loop"),
                                ...) {
   compute_var_method <- match.arg(compute_var_method)
   Y <- as.matrix(Y)
@@ -2056,10 +2055,11 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
           for (i in 1:nrow(Aprd_bar)) {
             out$variance[i] <- Aprd_bar[i, ] %*% solve(Q_xgiveny, Aprd_bar[i, ])
           }
-        } else{
-          sel_inv_Qxgiveny <- MetricGraph::selected_inv(Q_xgiveny)
-          out$variance <- diag(Aprd_bar %*% sel_inv_Qxgiveny %*% t(Aprd_bar))
-        }
+        } 
+        # else{
+        #   sel_inv_Qxgiveny <- MetricGraph::selected_inv(Q_xgiveny)
+        #   out$variance <- diag(Aprd_bar %*% sel_inv_Qxgiveny %*% t(Aprd_bar))
+        # }
       }
     }
   } else {
