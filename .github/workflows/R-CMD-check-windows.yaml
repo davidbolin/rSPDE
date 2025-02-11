@@ -61,7 +61,12 @@ jobs:
         run: |
           rm -rf src/
         shell: bash
-
+      
+      - name: Installing MetricGraph
+        run: |
+          install.packages(c("remotes", "rmarkdown"),dependencies=TRUE)
+          remotes::install_github("davidbolin/MetricGraph")
+        shell: Rscript {0}    
       - uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
