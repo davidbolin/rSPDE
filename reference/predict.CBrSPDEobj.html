@@ -79,7 +79,7 @@ where \(d\) is the dimension of the domain.</p>
 <span>  posterior_samples <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_samples <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  only_latent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  compute_var_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"direct"</span>, <span class="st">"loop"</span>, <span class="st">"selected_inv"</span><span class="op">)</span>,</span>
+<span>  compute_var_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"direct"</span>, <span class="st">"loop"</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -138,8 +138,7 @@ Put to zero if the model does not have measurement noise.</p></dd>
 <dd><p>Method to compute the variances. Options are:
 "direct", "loop", and "selected_inv". The "direct" method computes the variance directly,
 which is faster but can be memory intensive. The "loop" method computes the variance by looping
-over the elements, which is more memory efficient but slower. The "selected_inv" method uses a
-selected inverse approach, which is also memory efficient but might be less stable.</p></dd>
+over the elements, which is more memory efficient but slower.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

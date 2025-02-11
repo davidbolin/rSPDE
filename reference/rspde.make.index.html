@@ -170,10 +170,11 @@ be estimated. If nu is fixed, you should provide the value of nu.</p></dd>
 <span class="r-in"><span>  <span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             mean        sd  0.025quant   0.5quant 0.975quant     mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> tau    0.0245379 0.0163572  0.00358559  0.0211133  0.0644481  0.01077</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> kappa 16.9715000 3.4313600 11.37660000 16.5701000 24.8024000 15.76490</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> nu     0.9838540 0.2026390  0.65636600  0.9591970  1.4259700  0.85649</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>the mean or mode of nu is very close to nu.upper.bound, please consider increasing nu.upper.bound, and refitting the model.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              mean         sd  0.025quant    0.5quant 0.975quant        mode</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau    0.00901842  0.0196813 3.20044e-12 6.17462e-04  0.0693771 3.20044e-12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> kappa 25.58250000 12.0122000 1.33927e+01 2.20530e+01 58.0638000 1.61863e+01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nu     1.56980000  0.4315680 6.47404e-01 1.73452e+00  1.9990900 1.99998e+00</span>
 <span class="r-in"><span><span class="co"># devel.tag</span></span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
