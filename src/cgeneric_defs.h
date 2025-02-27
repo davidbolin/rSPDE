@@ -65,13 +65,6 @@ void compute_Q_integer(int size, double *entries_C, int *i_C, int *j_C,
                     double *Q_out, int alpha);
 
 
-void compute_Q_intrinsic(int size, 
-                         double *entries_C, int *i_C, int *j_C, int n_nonzero_C,
-                         double *entries_G, int *i_G, int *j_G, int n_nonzero_G,
-                         double *theta, double *Q_out, int alpha,
-                         int compute_Q, int compute_mean, int compute_logdet,
-                         double*ld_out, double *mean_out);
-
 void compute_Q_alpha2(int *i_Tc, int *j_Tc, double *x_Tc, double kappa, double tau, int nE, double w,
                                         int nrow_Tc, int ncol_Tc, int n_nonzero_Tc, double *edge_lengths, double *Q_out, int *lower_edges,
                                         int *upper_edges, int lower_edges_len, int upper_edges_len);
@@ -83,6 +76,11 @@ void compute_Q_alpha1_directional(int *i_Tc, int *j_Tc, double *x_Tc, double kap
 double adjusted_inv_logit(double z, double L);
 double logit_adjusted(double x, double L);
 
+double forward_nu(double lnu, double nu_upper_bound);
+
+// Inverse transformation: Compute lnu from nu
+double inverse_lnu(double nu, double nu_upper_bound);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -90,6 +88,12 @@ extern "C" {
 double cut_decimals(double nu);
 
 double nChoosek(int n, int k);
+void compute_Q_intrinsic(int size, 
+                         double *entries_C, int *i_C, int *j_C, int n_nonzero_C,
+                         double *entries_G, int *i_G, int *j_G, int n_nonzero_G,
+                         double *theta, double *Q_out, int alpha,
+                         int compute_Q, int compute_mean, int compute_logdet,
+                         double *ld_out, double *mean_out);
 
 void compute_Q_dim1(
     double kappa, double sigma, double gamma, double rho, int beta, int alpha,
@@ -123,6 +127,19 @@ void compute_Q1d(int n, double *loc, int rspde_order, double kappa,
                  double sigma, double *rat_p, double *rat_r, double rat_k,
                  double *Q_out, int *graph_i, int *graph_j, double nu, int M,
                  int equally_spaced, double nu_upper_bound, int N, double *lconst);
+
+void compute_Q_fintrinsic(double tau, double nu, 
+                          const inla_cgeneric_smat_tp *C,
+                          const inla_cgeneric_smat_tp *Ci,
+                          const inla_cgeneric_smat_tp *G,
+                          const inla_cgeneric_smat_tp *Q_graph,    
+                          double *ret, int rspde_order,
+                          const inla_cgeneric_mat_tp *rational_table,
+                          int est_nu, int d, int compute_Q, 
+                          int compute_mean, int compute_logdet,
+                          double*ld_out, double *mean_out,
+                          double scaling,
+                          const inla_cgeneric_smat_tp *D);
     
 #ifdef __cplusplus
 }
