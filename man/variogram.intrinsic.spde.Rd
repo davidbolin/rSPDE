@@ -13,7 +13,8 @@ variogram.intrinsic.spde(
   tau = 1,
   L = NULL,
   N = 100,
-  d = NULL
+  d = NULL,
+  semi = FALSE
 )
 }
 \arguments{
