@@ -11,7 +11,8 @@ rSPDE.Ast(
   time_loc = NULL,
   graph = NULL,
   obs.s = NULL,
-  obs.t = NULL
+  obs.t = NULL,
+  ind.field = NULL
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ rSPDE.Ast(
 \item{obs.s}{spatial locations of observations}
 
 \item{obs.t}{time points for observations}
+
+\item{ind.field}{indices for field (if Dirichlet conditions are used)}
 }
 \value{
 Observation matrix linking observation locations to mesh nodes

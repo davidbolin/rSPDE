@@ -1912,6 +1912,10 @@ spde.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' @param compute.variances Set to also TRUE to compute the kriging variances.
 #' @param posterior_samples If `TRUE`, posterior samples will be returned.
 #' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
+#' @param compute_var_method Method to compute the variances. Options are:
+#' "direct", "loop", and "selected_inv". The "direct" method computes the variance directly,
+#' which is faster but can be memory intensive. The "loop" method computes the variance by looping
+#' over the elements, which is more memory efficient but slower.
 #' @param only_latent Should the posterior samples be only given to the laten model?
 #' @param ... further arguments passed to or from other methods.
 #' @return A list with elements
@@ -1969,8 +1973,9 @@ spde.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' lines(x, u.krig$mean - 2 * sqrt(u.krig$variance), col = 2)
 predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
                                compute.variances = FALSE, posterior_samples = FALSE,
-                               n_samples = 100, only_latent = FALSE,
+                               n_samples = 100, only_latent = FALSE, compute_var_method = c("direct", "loop"),
                                ...) {
+  compute_var_method <- match.arg(compute_var_method)
   Y <- as.matrix(Y)
   if (dim(Y)[1] != dim(A)[1]) {
     stop("the dimensions of A does not match the number of observations")
@@ -2043,7 +2048,18 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
       out$mean <- Aprd_bar %*% mu_xgiveny
 
       if (compute.variances) {
-        out$variance <- diag(Aprd_bar %*% solve(Q_xgiveny, t(Aprd_bar)))
+        if(compute_var_method == "direct"){
+          out$variance <- diag(Aprd_bar %*% solve(Q_xgiveny, t(Aprd_bar)))
+        } else if (compute_var_method == "loop"){
+          out$variance <- rep(0, nrow(Aprd_bar))
+          for (i in 1:nrow(Aprd_bar)) {
+            out$variance[i] <- Aprd_bar[i, ] %*% solve(Q_xgiveny, Aprd_bar[i, ])
+          }
+        } 
+        # else{
+        #   sel_inv_Qxgiveny <- MetricGraph::selected_inv(Q_xgiveny)
+        #   out$variance <- diag(Aprd_bar %*% sel_inv_Qxgiveny %*% t(Aprd_bar))
+        # }
       }
     }
   } else {

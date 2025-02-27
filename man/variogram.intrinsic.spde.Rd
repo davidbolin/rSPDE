@@ -7,13 +7,14 @@
 variogram.intrinsic.spde(
   s0 = NULL,
   s = NULL,
-  kappa = NULL,
-  alpha = NULL,
+  kappa = 0,
+  alpha = 0,
   beta = NULL,
   tau = 1,
   L = NULL,
   N = 100,
-  d = NULL
+  d = NULL,
+  semi = FALSE
 )
 }
 \arguments{

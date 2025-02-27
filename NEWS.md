@@ -1,3 +1,11 @@
+# rSPDE 2.5.0
+
+* Improved the `cross_validation` function to allow for multiple likelihoods. 
+* General adjusts on `rspde.intrinsic` for stability. 
+* inlabru implementation for `rspde.intrinsic`. 
+* Improved warning messages when calling inla-related functions. 
+* Added `wCRPS` and `swCRPS` scores on `cross_validation`.
+
 # rSPDE 2.4.0
 
 * Created the `group_predict` function, to obtain predictions on a testing set based on observations on a training set.

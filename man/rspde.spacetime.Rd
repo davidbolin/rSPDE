@@ -17,6 +17,7 @@ rspde.spacetime(
   prior.rho = NULL,
   prior.gamma = NULL,
   prior.precision = NULL,
+  graph_dirichlet = TRUE,
   bounded_rho = TRUE,
   shared_lib = "detect",
   debug = FALSE,
@@ -65,6 +66,8 @@ default values will be used. The \code{mean} value is also used as starting valu
 
 \item{prior.precision}{A precision matrix for \eqn{\log(\kappa), \log(\sigma), \log(\gamma), \rho}. This matrix replaces the precision
 element from \code{prior.kappa}, \code{prior.sigma}, \code{prior.gamma}, and \code{prior.rho} respectively. For dimension 1 \code{prior.precision} must be a 4x4 matrix. For dimension 2, \eqn{\rho} is a vector of length 2, so in this case \code{prior.precision} must be a 5x5 matrix. If \code{NULL}, a diagonal precision matrix with default values will be used.}
+
+\item{graph_dirichlet}{For models on metric graphs, use Dirichlet vertex conditions at vertices of degree 1?}
 
 \item{bounded_rho}{Logical. Should \code{rho} be bounded to ensure the existence, uniqueness, and well-posedness of the solution? Defaults to \code{TRUE}.
 Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties.

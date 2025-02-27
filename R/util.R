@@ -507,7 +507,7 @@ cut_decimals <- function(nu) {
 #' @noRd
 
 check_class_inla_rspde <- function(model) {
-  if (!inherits(model, c("inla_rspde", "inla_rspde_matern1d"))) {
+  if (!inherits(model, c("inla_rspde", "inla_rspde_matern1d", "inla_rspde_fintrinsic"))) {
     stop("You should provide a rSPDE model!")
   }
 }
@@ -1869,72 +1869,86 @@ select_indexes <- function(data, idx) {
 }
 
 
-
-#' Create train and test splits to be used in the `cross_validation` function
+#' Create train and test splits for cross-validation
 #'
-#' Train and test splits
+#' @description
+#' Creates train and test splits for cross-validation by handling multiple data types
+#' and supporting k-fold, leave-one-out (LOO), and leave-percentage-out (LPO) methods.
+#' Handles missing values and maintains data structure across multiple datasets.
 #'
-#' @param data A `list`, `data.frame`, `SpatialPointsDataFrame` or `metric_graph_data` objects.
-#' @param cv_type The type of the folding to be carried out. The options are `k-fold` for `k`-fold cross-validation, in which case the parameter `k` should be provided,
-#' `loo`, for leave-one-out and `lpo` for leave-percentage-out, in this case, the parameter `percentage` should be given, and also the `number_folds`
-#' with the number of folds to be done. The default is `k-fold`.
-#' @param k The number of folds to be used in `k`-fold cross-validation. Will only be used if `cv_type` is `k-fold`.
-#' @param percentage The percentage (from 1 to 99) of the data to be used to train the model. Will only be used if `cv_type` is `lpo`.
-#' @param number_folds Number of folds to be done if `cv_type` is `lpo`.
-#' @return A list with two elements, `train` containing the training indices and `test` containing indices.
-#' @export
+#' @param data_list A list of datasets, one per likelihood. Each dataset can be a data.frame, 
+#'        SpatialPointsDataFrame, or metric_graph_data object
+#' @param cv_type Type of cross-validation: "k-fold", "loo", or "lpo". Default is "k-fold"
+#' @param k Number of folds for k-fold CV. Default is 5
+#' @param percentage Training data percentage for LPO CV (1-99). Default is 20
+#' @param number_folds Number of folds for LPO CV. Default is 10
+#'
+#' @return A list where each element contains:
+#'   \item{train}{Indices for training data mapped to original datasets}
+#'   \item{test}{Indices for test data mapped to original datasets}
+#'
+#' @details
+#' The function handles NA values by removing rows with any missing values before
+#' creating splits. For multiple datasets, indices are mapped back to their original
+#' positions in each dataset.
+#' @export 
 
-create_train_test_indices <- function(data, cv_type = c("k-fold", "loo", "lpo"),
-                                      k = 5, percentage = 20, number_folds = 10) {
-  if (inherits(data, "metric_graph_data")) {
-    idx <- seq_len(nrow(as.data.frame(data)))
-  } else {
-    idx <- seq_len(nrow(data))
+create_train_test_indices <- function(data_list, cv_type = c("k-fold", "loo", "lpo"),
+                                    k = 5, percentage = 20, number_folds = 10) {
+  # First concatenate all data
+  if (inherits(data_list[[1]], "metric_graph_data")) {
+    data_list <- lapply(data_list, as.data.frame)
+  } 
+  
+  data <- do.call(rbind, data_list)
+  
+  # Get indices for concatenated data as before
+  idx <- seq_len(nrow(data))
+    
+  # Get cumulative sizes to map back to individual datasets
+  n_samples <- sapply(data_list, nrow)
+  cum_sizes <- cumsum(c(0, n_samples))
+  
+  # Function to map concatenated indices to individual dataset indices
+  map_to_likelihood_indices <- function(indices) {
+    lapply(seq_along(data_list), function(i) {
+      likelihood_indices <- indices[indices > cum_sizes[i] & indices <= cum_sizes[i + 1]]
+      likelihood_indices - cum_sizes[i]
+    })
   }
-  if (inherits(data, "SpatialPointsDataFrame")) {
-    data_tmp <- data@data
-    data_nonNA <- !is.na(data_tmp)
-  } else if (inherits(data, "metric_graph_data")) {
-    data_nonNA <- !is.na(as.data.frame(data))
-  } else {
-    data_nonNA <- !is.na(data)
-  }
-  idx_nonNA <- sapply(1:length(idx), function(i) {
-    all(data_nonNA[i, ])
-  })
-  idx <- idx[idx_nonNA]
+  
   if (cv_type == "k-fold") {
-    # split idx into k
     folds <- cut(sample(idx), breaks = k, label = FALSE)
-    test_list_idx <- lapply(1:k, function(i) {
-      which(folds == i, arr.ind = TRUE)
-    })
-    test_list <- lapply(test_list_idx, function(idx_test) {
-      idx[idx_test]
-    })
-    train_list <- lapply(1:k, function(i) {
-      idx[-test_list_idx[[i]]]
+    fold_list <- lapply(1:k, function(i) {
+      test_idx <- which(folds == i, arr.ind = TRUE)
+      train_idx <- idx[-test_idx]
+      test_idx <- idx[test_idx]
+      
+      list(
+        train = map_to_likelihood_indices(train_idx),
+        test = map_to_likelihood_indices(test_idx)
+      )
     })
   } else if (cv_type == "loo") {
-    train_list <- lapply(1:length(idx), function(i) {
-      idx[-i]
+    fold_list <- lapply(seq_along(idx), function(i) {
+      list(
+        train = map_to_likelihood_indices(idx[-i]),
+        test = map_to_likelihood_indices(idx[i])
+      )
     })
-    # test_list <- lapply(1:length(idx), function(i){idx[i]})
-    test_list <- as.list(idx)
   } else if (cv_type == "lpo") {
-    test_list_idx <- list()
-    n_Y <- length(idx)
-    for (i in number_folds:1) {
-      test_list_idx[[i]] <- sample(1:length(idx), size = (1 - percentage / 100) * n_Y)
-    }
-    train_list <- lapply(1:number_folds, function(i) {
-      idx[-test_list_idx[[i]]]
-    })
-    test_list <- lapply(test_list_idx, function(idx_test) {
-      idx[idx_test]
+    fold_list <- lapply(1:number_folds, function(i) {
+      test_idx <- sample(idx, size = (1 - percentage / 100) * length(idx))
+      train_idx <- idx[-match(test_idx, idx)]
+      
+      list(
+        train = map_to_likelihood_indices(train_idx),
+        test = map_to_likelihood_indices(test_idx)
+      )
     })
   }
-  return(list(train = train_list, test = test_list))
+  
+  return(fold_list)
 }
 
 # Check for required packages
@@ -2158,42 +2172,149 @@ transform_parameters_anisotropic <- function(theta, nu_upper_bound = NULL) {
 }
 
 
-#' @noRd 
+#' @noRd
 
+find_inla_lib_path <- function() {
+    # First check if INLA is installed
+    if (!requireNamespace("INLA", quietly = TRUE)) {
+        warning("INLA package is not installed")
+        return(NULL)
+    }
+    
+    # Get the base INLA bin directory
+    inla_bin_path <- system.file("bin", package = "INLA")
+    
+    if (inla_bin_path == "") {
+        warning("INLA bin directory not found")
+        return(NULL)
+    }
+    
+    # Determine OS and architecture
+    os <- .Platform$OS.type
+    arch <- R.Version()$arch
+    
+    # Initialize path
+    lib_path <- NULL
+    
+    if (os == "windows") {
+        # For Windows - always use windows/64bit or windows/32bit
+        base_path <- file.path(inla_bin_path, "windows")
+        if (dir.exists(base_path)) {
+            lib_path <- if (grepl("64", arch)) {
+                file.path(base_path, "64bit")
+            } else {
+                file.path(base_path, "32bit")
+            }
+        }
+    } else if (os == "unix") {
+        if (Sys.info()["sysname"] == "Darwin") {
+            # For macOS - special case for ARM64
+            if (grepl("arm64|aarch64", arch)) {
+                lib_path <- file.path(inla_bin_path, "mac.arm64")
+            } else {
+                # For Intel Mac
+                base_path <- file.path(inla_bin_path, "mac")
+                if (dir.exists(base_path)) {
+                    lib_path <- if (grepl("64", arch)) {
+                        file.path(base_path, "64bit")
+                    } else {
+                        file.path(base_path, "32bit")
+                    }
+                }
+            }
+        } else {
+            # For Linux - always use linux/64bit or linux/32bit
+            base_path <- file.path(inla_bin_path, "linux")
+            if (dir.exists(base_path)) {
+                lib_path <- if (grepl("64", arch)) {
+                    file.path(base_path, "64bit")
+                } else {
+                    file.path(base_path, "32bit")
+                }
+            }
+        }
+    }
+    
+    if (is.null(lib_path)) {
+        warning("Could not determine appropriate library path")
+        return(NULL)
+    }
+    
+    if (!dir.exists(lib_path)) {
+        warning(sprintf("Directory does not exist: %s", lib_path))
+        return(NULL)
+    }
+    
+    return(lib_path)
+}
+
+#' @noRd 
 rspde_check_cgeneric_symbol <- function(model) {
-  # Ensure the required fields exist in the model object
-  if (!"f" %in% names(model) || !"cgeneric" %in% names(model$f) || 
-      !"shlib" %in% names(model$f$cgeneric) || !"model" %in% names(model$f$cgeneric)) {
-    stop("There was a problem with the model creation.")
-  }
-  
-  # Extract the shared library path and the symbol name
-  shlib <- model$f$cgeneric$shlib
-  symbol <- model$f$cgeneric$model
-  
-  # Check if the shared library exists
-  if (!file.exists(shlib)) {
-    stop(paste("The shared library", shlib, "does not exist."))
-  }
-  
-  # Use the `dyn.load` and `is.loaded` functions to check for the symbol
-  tryCatch({
-    dyn.load(shlib) # Load the shared library
-    if (is.loaded(symbol)) {
-      dyn.unload(shlib) # Unload if the symbol is available
-      return(invisible(TRUE)) # Return silently
+    # Ensure the required fields exist in the model object
+    if (!"f" %in% names(model) || !"cgeneric" %in% names(model$f) || 
+        !"shlib" %in% names(model$f$cgeneric) || !"model" %in% names(model$f$cgeneric)) {
+        stop("There was a problem with the model creation.")
+    }
+    
+    # Extract the shared library path and the symbol name
+    shlib <- model$f$cgeneric$shlib
+    symbol <- model$f$cgeneric$model
+    
+    # Check if the shared library exists
+    if (!file.exists(shlib)) {
+        stop(paste("The shared library", shlib, "does not exist."))
+    }
+    
+    # Get R_HOME library path
+    r_lib_path <- file.path(R.home("lib"))
+    
+    # Get INLA library path
+    inla_lib_path <- find_inla_lib_path()
+    
+    # Set up library path environment variable based on OS
+    if (.Platform$OS.type == "windows") {
+        current_path <- Sys.getenv("PATH")
+        new_path <- if (current_path == "") {
+            paste(r_lib_path, inla_lib_path, sep = ";")
+        } else {
+            paste(current_path, r_lib_path, inla_lib_path, sep = ";")
+        }
+        Sys.setenv(PATH = new_path)
     } else {
-      warning(paste0("The symbol '", symbol, "' is not available in the shared library. Please install the latest testing version of INLA. 
+        current_lib_path <- Sys.getenv("LD_LIBRARY_PATH")
+        new_lib_path <- if (current_lib_path == "") {
+            paste(r_lib_path, inla_lib_path, sep = ":")
+        } else {
+            paste(current_lib_path, r_lib_path, inla_lib_path, sep = ":")
+        }
+        Sys.setenv(LD_LIBRARY_PATH = new_lib_path)
+    }
+    
+    # Use the `dyn.load` and `is.loaded` functions to check for the symbol
+    tryCatch({
+        dyn.load(shlib) # Load the shared library
+        if (is.loaded(symbol)) {
+            dyn.unload(shlib) # Unload if the symbol is available
+            return(invisible(TRUE)) # Return silently
+        } else {
+            warning(paste0("The symbol '", symbol, "' is not available in the shared library. Please install the latest testing version of INLA. 
       If the problem persists after installing the latest testing version of INLA, please open an issue at https://github.com/davidbolin/rSPDE/issues, 
       requesting that this model be added to INLA."))
-    }
-    dyn.unload(shlib) # Ensure the library is unloaded
-  }, error = function(e) {
-    warning(paste0("Error while loading the shared library or checking the symbol: ", e$message, 
-                   ". Please install the latest testing version of INLA. If the problem persists after installing the 
+        }
+        dyn.unload(shlib) # Ensure the library is unloaded
+    }, error = function(e) {
+        warning(paste0("Error while loading the shared library or checking the symbol: ", e$message, 
+                       ". Please install the latest testing version of INLA. If the problem persists after installing the 
                    latest testing version of INLA, please open an issue at https://github.com/davidbolin/rSPDE/issues, 
                    requesting that this model be added to INLA."))
-  })
+    })
+    
+    # Restore original environment variables
+    if (.Platform$OS.type == "windows") {
+        Sys.setenv(PATH = current_path)
+    } else {
+        Sys.setenv(LD_LIBRARY_PATH = current_lib_path)
+    }
 }
 
 #' @noRd
@@ -2314,7 +2435,7 @@ transform_parameters_spacetime <- function(theta, st_model) {
   
   # Extract model parameters
   d <- st_model$d
-  bound <- st_model$bound_rho
+  bound <- as.double(st_model$bound_rho)
   is_bounded <- st_model$is_bounded
   drift <- st_model$drift
   
