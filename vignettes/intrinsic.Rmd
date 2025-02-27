@@ -64,21 +64,17 @@ op <- intrinsic.operators(tau = tau, beta = beta, mesh = mesh_2d, m = 2)
 ```
 
 To see that the `rSPDE` model is approximating the true model, we can compare the variogram
-of the approximation with the true variogram (implemented in `variogram.intrinsic.spde()`) as follows.
+of the approximation (implemented in the function `variogram` in the model object) 
+with the true variogram (implemented in `variogram.intrinsic.spde()`) as follows.
 ```{r, message=FALSE}
-ind.fix <- 1 + seq(from=0,to=op$m_beta * mesh_2d$n, by = mesh_2d$n)
-Sigma <- op$A[,-ind.fix] %*% solve(op$Q[-ind.fix,-ind.fix], t(op$A[,-ind.fix]))
-One <- rep(1, times = ncol(Sigma))
-D <- diag(Sigma)
-Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
 point <- matrix(c(1,1),1,2)
-Aobs <- spde.make.A(mesh = mesh_2d, loc = point)
+Gamma <- op$variogram(point)
 vario <- variogram.intrinsic.spde(point, mesh_2d$loc[,1:2], tau = tau,
                                   beta = beta, L = 2, d = 2)
-
 d = sqrt((mesh_2d$loc[,1]-point[1])^2 +  (mesh_2d$loc[,2]-point[2])^2)
-plot(d, Aobs%*%Gamma, xlim = c(0,0.7))
-lines(sort(d),sort(vario),col=2, lwd = 2)
+plot(d, Gamma, xlim = c(0,0.7), ylim = c(0,3),
+     ylab = "variogram(h)", xlab = "h")
+points(d,vario,col=2)
 ```
 
 If we want to increase the accuracy, we can either use a finer mesh or increase the order of the rational approximation through the argument `m` in `intrinsic.operators`. The default value of `m` is 1. We can now use the `simulate` function to simulate a realization of the field $u$:
@@ -321,8 +317,15 @@ the `intrinsic.matern.operators()` function to construct the `rSPDE` representat
 of the general model. 
 
 ```{r, message=FALSE}
+bnd <- fm_segm(rbind(c(0, 0), c(2, 0), c(2, 2), c(0, 2)), is.bnd = TRUE)
+mesh_2d <- fm_mesh_2d(
+    boundary = bnd, 
+    cutoff = 0.01,
+    max.edge = c(0.05)
+)
+
 kappa <- 10
-tau <- 0.01
+tau <- 0.0025
 alpha <- 2
 beta <- 1
 op <- intrinsic.matern.operators(kappa = kappa, tau = tau, alpha = alpha, 
@@ -332,25 +335,22 @@ op <- intrinsic.matern.operators(kappa = kappa, tau = tau, alpha = alpha,
 To see that the `rSPDE` model is approximating the true model, we can compare the variogram
 of the approximation with the true variogram (implemented in `variogram.intrinsic.spde()`) as follows.
 ```{r, message=FALSE}
-Sigma <- op$A[,-1] %*% solve(op$Q[-1,-1], t(op$A[,-1]))
-One <- rep(1, times = ncol(Sigma))
-D <- diag(Sigma)
-Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
 point <- matrix(c(1,1),1,2)
-Aobs <- spde.make.A(mesh = mesh_2d, loc = point)
+Gamma <- op$variogram(point)
 vario <- variogram.intrinsic.spde(point, mesh_2d$loc[,1:2], kappa = kappa, 
                                   alpha = alpha, tau = tau,
                                   beta = beta, L = 2, d = 2)
 
 d = sqrt((mesh_2d$loc[,1]-point[1])^2 +  (mesh_2d$loc[,2]-point[2])^2)
-plot(d, Aobs%*%Gamma, xlim = c(0,0.5), ylim = c(0,0.2))
+plot(d, Gamma, xlim = c(0,0.5), ylim = c(0,4),
+     ylab = "variogram(h)", xlab = "h")
 lines(sort(d),sort(vario),col=2, lwd = 2)
 ```
 
 We can now use the `simulate` function to simulate a realization of the field $u$:
 
 ```{r}
-u <- simulate(op,nsim = 1)
+u <- simulate(op,nsim = 1, use_kl = FALSE)
 
 proj <- fm_evaluator(mesh_2d, dims = c(100, 100))
 field <- fm_evaluate(proj, field = as.vector(u))
@@ -534,3 +534,77 @@ ggplot(field.pred.sd.df, aes(x = x1, y = x2, fill = sd)) +
   geom_raster() + scale_fill_viridis()
 ```
 
+# Using intrinsic models without `R-INLA`
+
+Currently, the more general model is only implemented in `R-INLA` using fixed integer values of the smoothness parameters. However, all intrinsic models are implemented in `rSPDE` in full generality. In this section, we illustrate the `rSPDE` interface. Let us test a model in one dimension. 
+
+Let us start with generating the model
+
+```{r}
+L = 20
+x <- seq(from = 0, to = L, length.out = 101)
+mesh <- fm_mesh_1d(x)
+beta <- 1.1
+alpha <- 0
+kappa <- 10
+tau <- 10
+op <- intrinsic.matern.operators(kappa = kappa, tau = tau, alpha = alpha,
+                                 beta = beta, mesh = mesh, d = 1)
+
+vario <- variogram.intrinsic.spde(c(L/2), mesh$loc, tau = tau,
+                                  beta = beta, alpha = alpha, kappa = kappa, L = L, d = 1)
+plot(x, vario, type = "l", col = 2, lwd = 2)
+points(x,op$variogram(L/2),col=1)
+```
+
+We now generate some data. The option to use a mean value correction for extremes models is also implemented, so we generate some data using this.  
+
+```{r}
+n.rep <- 100
+u <- simulate(op,nsim = n.rep, integral.constraint = FALSE, use_kl = TRUE)
+
+drift <- op$mean_correction()
+u <- u + matrix(rep(drift, times = n.rep), nrow = op$n, ncol= n.rep)
+
+sigma.e <- 0.01
+n.obs <- 100
+obs.loc <- runif(n = n.obs, min = 0, max = L)
+A <- rSPDE.A1d(x, obs.loc)
+Y <- as.matrix(A %*% u + sigma.e * matrix(rnorm(n.obs*n.rep),n.obs,n.rep))
+```
+
+Let us now show how to do kriging prediction for this model. 
+
+```{r}
+A <- op$make_A(obs.loc)
+A.krig <- op$make_A(x)
+u.krig <- predict(op,
+  A = A, Aprd = A.krig, Y = Y[,1], sigma.e = sigma.e,
+  compute.variances = TRUE
+)
+
+
+plot(obs.loc, Y[,1],
+  ylab = "u(x)", xlab = "x", main = "Data and prediction",
+  ylim = c(
+    min(c(min(u.krig$mean - 2 * sqrt(u.krig$variance)),min(u[,1]))),
+    max(c(max(u.krig$mean + 2 * sqrt(u.krig$variance)), max(u[,1])))
+  )
+)
+lines(x,u[,1],col=3)
+lines(x, u.krig$mean)
+lines(x, u.krig$mean + 2 * sqrt(u.krig$variance), col = 2)
+lines(x, u.krig$mean - 2 * sqrt(u.krig$variance), col = 2)
+```
+
+
+We now use `rspde_lme` to fit the parameters based on this data. As we here generated data with `alpha=0`, we specify this in the function to indicate that this parameter should not be fitted but kept fixed at `alpha=0`. We also specify `mean_correction=TRUE` to indicate that we should use the mean value correction when fitting.
+```{r}
+data = data.frame(y = c(Y), loc = rep(obs.loc, n.rep), rep  = rep(1:n.rep, each = n.obs))
+
+fit <- rspde_lme(y ~ -1, loc = "loc", repl  = "rep", data = data,
+                 model = op, alpha = 0, mean_correction = TRUE)
+
+rbind(c(fit$coeff$random_effects, fit$coeff$measurement_error), 
+      c(beta, tau,sigma.e))
+```
