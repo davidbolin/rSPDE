@@ -1,4 +1,4 @@
-# rSPDE (development version)
+# rSPDE 2.5.0
 
 * Improved the `cross_validation` function to allow for multiple likelihoods. 
 * General adjusts on `rspde.intrinsic` for stability. 
