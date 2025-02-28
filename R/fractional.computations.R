@@ -2016,7 +2016,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
       ## compute Q_x|y
       Q_xgiveny <- (t(A) %*% Q.e %*% A) + Q
       ## construct mu_x|y
-      mu_xgiveny <- t(A) %*% Q.e %*% Y
+      mu_xgiveny <- t(A) %*% Q.e %*% (Y - A%*%mu)
 
       R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
       mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
@@ -2087,29 +2087,34 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
 
 
   if (posterior_samples) {
-    if (!no_nugget) {
-      if (alpha %% 1 == 0) {
-        post_cov <- Aprd %*% solve(Q_xgiveny, t(Aprd))
+      if (!no_nugget) {
+          Z <- rnorm(dim(object$Q)[1] * n_samples)
+          dim(Z) <- c(dim(object$Q)[1], n_samples)
+          LQ <-  chol(forceSymmetric(Q_xgiveny))
+          X <- as.matrix(solve(LQ, Z)) + kronecker(as.matrix(mu_xgiveny), 
+                                                   matrix(rep(1,n_samples),1,n_samples))
+          X <- Aprd %*% X
+          if (!only_latent) {
+              X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
+          }
+          return(X)
       } else {
-        post_cov <- Aprd_bar %*% solve(Q_xgiveny, t(Aprd_bar))
+          M <- Q - QiAt %*% solve(AQiA, t(QiAt))
+          post_cov <- Aprd %*% M %*% t(Aprd)
+          Y_tmp <- as.matrix(Y)
+          mean_tmp <- as.matrix(out$mean)
+          out$samples <- lapply(1:ncol(Y_tmp), function(i) {
+              Z <- rnorm(dim(post_cov)[1] * n_samples)
+              dim(Z) <- c(dim(post_cov)[1], n_samples)
+              LQ <-  Matrix::Cholesky(forceSymmetric(post_cov))
+              X <- LQ %*% Z
+              X <- X + mean_tmp[, i]
+              if (!only_latent) {
+                  X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
+              }
+              return(X)
+          })
       }
-    } else {
-      M <- Q - QiAt %*% solve(AQiA, t(QiAt))
-      post_cov <- Aprd_bar %*% M %*% t(Aprd_bar)
-    }
-    Y_tmp <- as.matrix(Y)
-    mean_tmp <- as.matrix(out$mean)
-    out$samples <- lapply(1:ncol(Y_tmp), function(i) {
-      Z <- rnorm(dim(post_cov)[1] * n_samples)
-      dim(Z) <- c(dim(post_cov)[1], n_samples)
-      LQ <- chol(forceSymmetric(post_cov))
-      X <- LQ %*% Z
-      X <- X + mean_tmp[, i]
-      if (!only_latent) {
-        X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
-      }
-      return(X)
-    })
   }
 
 

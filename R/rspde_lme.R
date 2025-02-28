@@ -1500,6 +1500,7 @@ rspde_lme <- function(formula,
   object$spacetime <- spacetime
   object$anisotropic <- anisotropic
   object$intrinsic <- intrinsic
+  object$mean_correction <- mean_correction
   if(spacetime) { 
       object$time <- time_df
   }
@@ -1973,17 +1974,20 @@ predict.rspde_lme <- function(object,
           if (object$has_graph && !normalized) {
               loc[, 2] <- loc[, 2] / object$graph$edge_lengths[loc[, 1]]
           }
-          if(!inherits(object$latent_model, "spacetimeobj")) {
-              Aprd <- object$latent_model$make_A(loc)    
-          } else {
+          if(inherits(object$latent_model, "spacetimeobj")) {
               if(length(time) != n_prd) {
                   stop("loc and time should have the same length.")
               }
               Aprd <- object$latent_model$make_A(loc = loc, time = time)    
+          } else {
+              Aprd <- object$latent_model$make_A(loc)
           }
           
       } else {
           Aprd <- Matrix::Diagonal(nrow(object$latent_model$C))
+          if(inherits(object$latent_model, "intrinsicCBrSPDEobj")) {
+              Aprd <- kronecker(matrix(1, 1, object$m), Aprd)  
+          } 
       }    
   } else {
       n_prd <- length(loc[, 1])
@@ -2019,7 +2023,6 @@ predict.rspde_lme <- function(object,
     mu <- 0
   }
 
-
   Y <- model_matrix_fit[, 1] - mu
 
   model_type <- object$latent_model
@@ -2028,7 +2031,21 @@ predict.rspde_lme <- function(object,
   sigma_e <- sigma.e
 
   ## construct Q
-  if (object$latent_model$stationary && !object$spacetime && !object$anisotropic) {
+  if(object$intrinsic) {
+      tau_est <- object$coeff$random_effects[["tau"]]
+      beta_est <- object$estimated_beta
+      alpha_est <- object$estimated_alpha
+      if(!object$estimate_alpha && object$estimated_alpha == 0) { 
+          kappa_est <- 1
+      } else  {
+          kappa_est <- object$coeff$random_effects[["tau"]]
+      }
+      new_rspde_obj <- update(object$latent_model,
+                              beta = beta_est,
+                              alpha = alpha_est,
+                              kappa = kappa_est,
+                              tau = tau_est)   
+  } else if (object$latent_model$stationary && !object$spacetime && !object$anisotropic) {
       if (object$estimate_nu) {
           alpha_est <- coeff_random[1]
           tau_est <- coeff_random[2]
@@ -2099,14 +2116,19 @@ predict.rspde_lme <- function(object,
 
   if(!inherits(object$latent_model, "rSPDEobj1d") && !inherits(object$latent_model, "spacetimeobj")) {
       Q <- new_rspde_obj$Q
-      if(!inherits(object$latent_model, "CBrSPDEobj2d")) {
+      if(!inherits(object$latent_model, "CBrSPDEobj2d") && !inherits(object$latent_model, "intrinsicCBrSPDEobj")) {
           Aprd <- kronecker(matrix(1, 1, object$rspde_order + 1), Aprd)        
       }
   } else if(inherits(object$latent_model, "spacetimeobj")) {
       Q <- new_rspde_obj$Q
   }
   
-
+  if(object$mean_correction) {
+      mu_corr <- new_rspde_obj$mean_correction(full=TRUE)
+  } else {
+      mu_corr <- 0
+  }
+  
   for (repl_y in u_repl) {
     idx_repl <- repl_vec == repl_y
 
@@ -2114,6 +2136,7 @@ predict.rspde_lme <- function(object,
 
     y_repl <- Y[idx_repl]
     y_repl <- y_repl[idx_obs]
+    
     
     if(inherits(object$latent_model, "rSPDEobj1d")) {
         loc_repl <- object$loc[idx_repl]
@@ -2141,6 +2164,11 @@ predict.rspde_lme <- function(object,
     } else {
         A_repl <- object$A_list[[repl_y]]
     }
+    
+    if(object$mean_correction) {
+        y_repl <- y_repl - A_repl %*% mu_corr    
+    }
+    
     Q_xgiveny <- t(A_repl) %*% A_repl / sigma_e^2 + Q
     mu_krig <- solve(Q_xgiveny, as.vector(t(A_repl) %*% y_repl / sigma_e^2))
     mu_krig <- Aprd %*% mu_krig
@@ -2148,6 +2176,11 @@ predict.rspde_lme <- function(object,
     mu_re <- mu_krig
     mu_fe <- mu_prd
     mu_krig <- mu_prd + mu_krig
+    
+    if(object$mean_correction) {
+        mu_krig <- mu_krig + Aprd %*% mu_corr
+        mu_re <- mu_re + Aprd %*% mu_corr
+    }
 
     mean_tmp <- as.vector(mu_krig)
     mean_fe_tmp <- as.vector(mu_fe)
@@ -2179,13 +2212,23 @@ predict.rspde_lme <- function(object,
 
     if (posterior_samples) {
       mean_tmp <- as.vector(mu_krig)
-      post_cov <- Aprd %*% solve(Q_xgiveny, t(Aprd))
-      Z <- rnorm(dim(post_cov)[1] * n_samples)
-      dim(Z) <- c(dim(post_cov)[1], n_samples)
-      LQ <- tryCatch(chol(post_cov), error = function(e) {
-        chol(post_cov + 1e-8 * Matrix::Diagonal(nrow(post_cov)))
-      })
-      X <- LQ %*% Z
+      if(0) { #Old coviariance-based sampling code
+          post_cov <- Aprd %*% solve(Q_xgiveny, t(Aprd))
+          Z <- rnorm(dim(post_cov)[1] * n_samples)
+          dim(Z) <- c(dim(post_cov)[1], n_samples)
+          LQ <- tryCatch(chol(post_cov), error = function(e) {
+              chol(post_cov + 1e-8 * Matrix::Diagonal(nrow(post_cov)))
+          })
+          X <- LQ %*% Z    
+      } else {
+          Z <- rnorm(dim(Q_xgiveny)[1] * n_samples)
+          dim(Z) <- c(dim(Q_xgiveny)[1], n_samples)
+          LQ <- tryCatch(chol(Q_xgiveny), error = function(e) {
+              chol(Q_xgiveny + 1e-8 * Matrix::Diagonal(nrow(Q_xgiveny)))
+          })
+          X <- as.matrix( Aprd %*% solve(LQ, Z)) 
+      }
+      
       X <- X + mean_tmp
       if (!sample_latent) {
         X <- X + matrix(rnorm(n_samples * length(mean_tmp), sd = sigma.e), nrow = length(mean_tmp))
