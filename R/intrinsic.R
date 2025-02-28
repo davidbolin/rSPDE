@@ -874,25 +874,59 @@ intrinsic.matern.operators <- function(kappa,
       return(Gamma)
     }
   }
-  mean_correction <- function() {
-      out <- rep(0,n)
+  mean_correction <- function(full = FALSE, index = 1) {
+      if(index < 1 || index > n) {
+          stop("Index out of bounds.")
+      }
+      if(!full) {
+          out <- rep(0,n)    
+      }
+      
       for(i in 1:m) {
           if(return_block_list) { 
-              QQ <- Q[[i]][-1,-1]
+              QQ <- Q[[i]][-index,-index]
           } else {
-              ind <- (2+n*(i-1)) : (n*i)
+              ind <- setdiff((1+n*(i-1)) : (n*i), n*(i-1) + index)
               QQ <- Q[ind,ind]
           }
           
           if(require(MetricGraph, quietly = TRUE)) {
-              tryCatch(
-                  expr = {out[-1] <- out[-1] - diag(MetricGraph::selected_inv(QQ))/2},
-                  error = function(e) {
-                      out[-1] <- out[-1] - diag(solve(QQ))/2
+              if(full) {
+                  vec <- rep(0,n)
+                  tryCatch(
+                      expr = {
+                          vec[-index] <- -diag(MetricGraph::selected_inv(QQ))/2},
+                      error = function(e) {
+                          vec[-index] = -diag(solve(QQ))/2
+                      }
+                  ) 
+                  if(i == 1) {
+                      out <- vec 
+                  } else {
+                      out <- c(out,vec)    
                   }
-              )
+              } else {
+                  tryCatch(
+                      expr = {out[-index] <- out[-index] - diag(MetricGraph::selected_inv(QQ))/2},
+                      error = function(e) {
+                          out[-index] <- out[-index] - diag(solve(QQ))/2
+                      }
+                  )    
+              }
+              
           } else {
-              out[-1] <- out[-1] - diag(solve(QQ))/2    
+              if(full) {
+                  vec <- rep(0,n)
+                  vec[-index] <- -diag(solve(QQ))/2 
+                  if(i == 1) {
+                      out <- vec 
+                  } else {
+                      out <- c(out,vec)    
+                  }
+              } else {
+                  out[-index] <- out[-index] - diag(solve(QQ))/2 
+              }
+              
           }
       }
       return(out)
@@ -1328,7 +1362,7 @@ predict.intrinsicCBrSPDEobj <- function(object,
         ## compute Q_x|y
         Q_xgiveny <- (t(A) %*% Q.e %*% A) + Q
         ## construct mu_x|y
-        mu_xgiveny <- t(A) %*% Q.e %*% Y
+        mu_xgiveny <- t(A) %*% Q.e %*% (Y - A%*%mu)
         
         R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
         mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
@@ -1356,24 +1390,33 @@ predict.intrinsicCBrSPDEobj <- function(object,
     
     if (posterior_samples) {
         if (!no_nugget) {
-            post_cov <- Aprd %*% solve(Q_xgiveny, t(Aprd))
-        } else {
-            M <- Q - QiAt %*% solve(AQiA, t(QiAt))
-            post_cov <- Aprd %*% M %*% t(Aprd)
-        }
-        Y_tmp <- as.matrix(Y)
-        mean_tmp <- as.matrix(out$mean)
-        out$samples <- lapply(1:ncol(Y_tmp), function(i) {
-            Z <- rnorm(dim(post_cov)[1] * n_samples)
-            dim(Z) <- c(dim(post_cov)[1], n_samples)
-            LQ <-  Matrix::Cholesky(forceSymmetric(post_cov))
-            X <- LQ %*% Z
-            X <- X + mean_tmp[, i]
+            Z <- rnorm(dim(object$Q)[1] * n_samples)
+            dim(Z) <- c(dim(object$Q)[1], n_samples)
+            LQ <-  chol(forceSymmetric(Q_xgiveny))
+            X <- as.matrix(solve(LQ, Z)) + kronecker(as.matrix(mu_xgiveny), 
+                                                     matrix(rep(1,n_samples),1,n_samples))
+            X <- Aprd %*% X
             if (!only_latent) {
                 X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
             }
             return(X)
-        })
+        } else {
+            M <- Q - QiAt %*% solve(AQiA, t(QiAt))
+            post_cov <- Aprd %*% M %*% t(Aprd)
+            Y_tmp <- as.matrix(Y)
+            mean_tmp <- as.matrix(out$mean)
+            out$samples <- lapply(1:ncol(Y_tmp), function(i) {
+                Z <- rnorm(dim(post_cov)[1] * n_samples)
+                dim(Z) <- c(dim(post_cov)[1], n_samples)
+                LQ <-  Matrix::Cholesky(forceSymmetric(post_cov))
+                X <- LQ %*% Z
+                X <- X + mean_tmp[, i]
+                if (!only_latent) {
+                    X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
+                }
+                return(X)
+            })
+        }
     }
     return(out)
 }
