@@ -2012,8 +2012,10 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
   if(length(mu) == 1) {
       mu <- rep(mu, dim(object$Q)[1])
   } else {
-      if(length(mu) != dim(object$Q)[1]) {
-          stop("mu should be a vector with the same length as the size of the latent field.")
+      if(length(mu) == dim(object$C)[1] && dim(object$C)[1] < dim(object$Q)[1]) {
+          mu <- rep(mu,object$m+1) / (object$m+1)
+      } else if (length(mu) != dim(object$Q)[1]) {
+          stop("the length of mu is wrong.")
       }
   }
 
@@ -2044,7 +2046,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
       ## construct mu_x|y
       Abar <- kronecker(matrix(1, 1, m + 1), A)
       
-      mu_xgiveny <- t(Abar) %*% Q.e %*% (Y - A%*%mu)
+      mu_xgiveny <- t(Abar) %*% Q.e %*% (Y - Abar%*%mu)
       # upper triangle with reordering
       R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
 
