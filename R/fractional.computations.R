@@ -2008,6 +2008,14 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
   }
 
   alpha <- nu + d / 2
+  
+  if(length(mu) == 1) {
+      mu <- rep(mu, dim(object$Q)[1])
+  } else {
+      if(length(mu) != dim(object$Q)[1]) {
+          stop("mu should be a vector with the same length as the size of the latent field.")
+      }
+  }
 
   if (!no_nugget) {
     if (alpha %% 1 == 0) { # loglikelihood in integer case
@@ -2035,6 +2043,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
       Q_xgiveny <- kronecker(matrix(1, m + 1, m + 1), t(A) %*% Q.e %*% A) + Q
       ## construct mu_x|y
       Abar <- kronecker(matrix(1, 1, m + 1), A)
+      
       mu_xgiveny <- t(Abar) %*% Q.e %*% (Y - A%*%mu)
       # upper triangle with reordering
       R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))

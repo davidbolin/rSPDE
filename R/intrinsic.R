@@ -1355,14 +1355,22 @@ predict.intrinsicCBrSPDEobj <- function(object,
         Q.e <- Diagonal(length(sigma.e), 1 / sigma.e^2)
     }
     
+    if(length(mu) == 1) {
+        mu <- rep(mu, dim(object$Q)[1])
+    } else {
+        if(length(mu) != dim(object$Q)[1]) {
+            stop("mu should be a vector with the same length as the size of the latent field.")
+        }
+    }
     
     if (!no_nugget) {
         ## construct Q
         Q <- object$Q
         ## compute Q_x|y
         Q_xgiveny <- (t(A) %*% Q.e %*% A) + Q
+        
         ## construct mu_x|y
-        mu_xgiveny <- t(A) %*% Q.e %*% (Y - A%*%mu)
+        mu_xgiveny <- t(A) %*% Q.e %*% (Y - A%*%mu)    
         
         R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
         mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
