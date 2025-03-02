@@ -1491,7 +1491,7 @@ rspde_lme <- function(formula,
       object$estimated_alpha <- estimated_alpha    
   }
   
-  object$estimated_beta <- estimated_beta
+
   object$df.residual <- object$nobs - (1 + length(object$coeff$fixed_effects) + length(object$coeff$random_effects))
   object$lik_fun <- likelihood_new
   object$par_lik_fun <- new_likelihood
@@ -1505,6 +1505,7 @@ rspde_lme <- function(formula,
       object$time <- time_df
   }
   if(intrinsic) {
+      object$estimated_beta <- estimated_beta
       object$estimate_alpha <- estimate_alpha
       object$estimate_beta <- estimate_beta
   }
