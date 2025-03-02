@@ -1358,8 +1358,10 @@ predict.intrinsicCBrSPDEobj <- function(object,
     if(length(mu) == 1) {
         mu <- rep(mu, dim(object$Q)[1])
     } else {
-        if(length(mu) != dim(object$Q)[1]) {
-            stop("mu should be a vector with the same length as the size of the latent field.")
+        if(length(mu) == dim(object$C)[1] && dim(object$C)[1] < dim(object$Q)[1]) {
+            mu <- rep(mu,object$m) / object$m
+        } else if (length(mu) != dim(object$Q)[1]) {
+            stop("the length of mu is wrong.")
         }
     }
     
