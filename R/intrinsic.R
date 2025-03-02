@@ -890,44 +890,31 @@ intrinsic.matern.operators <- function(kappa,
               QQ <- Q[ind,ind]
           }
           
-          if(require(MetricGraph, quietly = TRUE)) {
-              if(full) {
-                  vec <- rep(0,n)
-                  tryCatch(
-                      expr = {
-                          vec[-index] <- -diag(MetricGraph::selected_inv(QQ))/2},
-                      error = function(e) {
-                          vec[-index] = -diag(solve(QQ))/2
-                      }
-                  ) 
-                  if(i == 1) {
-                      out <- vec 
-                  } else {
-                      out <- c(out,vec)    
+          
+          if(full) {
+              vec <- rep(0,n)
+              tryCatch(
+                  expr = {
+                      vec[-index] <- -diag(MetricGraph::selected_inv(QQ))/2},
+                  error = function(e) {
+                      vec[-index] = -diag(solve(QQ))/2
                   }
+              ) 
+              if(i == 1) {
+                  out <- vec 
               } else {
-                  tryCatch(
-                      expr = {out[-index] <- out[-index] - diag(MetricGraph::selected_inv(QQ))/2},
-                      error = function(e) {
-                          out[-index] <- out[-index] - diag(solve(QQ))/2
-                      }
-                  )    
+                  out <- c(out,vec)    
               }
-              
           } else {
-              if(full) {
-                  vec <- rep(0,n)
-                  vec[-index] <- -diag(solve(QQ))/2 
-                  if(i == 1) {
-                      out <- vec 
-                  } else {
-                      out <- c(out,vec)    
+              tryCatch(
+                  expr = {out[-index] <- out[-index] - diag(MetricGraph::selected_inv(QQ))/2},
+                  error = function(e) {
+                      out[-index] <- out[-index] - diag(solve(QQ))/2
                   }
-              } else {
-                  out[-index] <- out[-index] - diag(solve(QQ))/2 
-              }
-              
+              )    
           }
+          
+          
       }
       return(out)
   }
@@ -1624,7 +1611,7 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
         posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
         
         if(is.na(posterior.ld)) {
-            ind <- 1 + seq(from = n, to = (object$m-1)*object$n, by = object$n)
+            ind <- 1 + seq(from = object$n, to = (object$m-1)*object$n, by = object$n)
             posterior.ld <- 0.5*c(determinant(Q.p[-ind,-ind], logarithm = TRUE)$modulus)
         }
         
@@ -1669,6 +1656,7 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
 #' @param L The side length of the square domain.
 #' @param N The number of terms in the Karhunen-Loeve expansion.
 #' @param d The dimension (1 or 2).
+#' @param semi Compute the semi variogram? Default FALSE.
 #' @details The variogram is computed based on a Karhunen-Loeve expansion of the
 #' covariance function.
 #'
