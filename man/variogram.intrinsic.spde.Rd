@@ -37,6 +37,8 @@ variogram is computed}
 \item{N}{The number of terms in the Karhunen-Loeve expansion.}
 
 \item{d}{The dimension (1 or 2).}
+
+\item{semi}{Compute the semi variogram? Default FALSE.}
 }
 \description{
 Variogram \eqn{\gamma(s_0,s)}{\gamma(s_0,s)} of intrinsic SPDE
