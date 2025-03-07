@@ -153,7 +153,8 @@ rspde_lme <- function(formula,
   if(intrinsic) {
       estimate_alpha <- estimate_beta <- TRUE
       if(!is.null(alpha)) {
-          estimate_alpha <- FALSE
+          estimated_alpha <- alpha
+          estimate_alpha <- FALSE  
           if (!is.numeric(alpha)) {
               stop("alpha must be numeric!")
           }
@@ -163,11 +164,10 @@ rspde_lme <- function(formula,
           if (alpha < 0) {
               stop("alpha must be non-negative.")
           }
-          model <- update(model, alpha = alpha)
-          estimated_alpha <- alpha
       }
       if(!is.null(beta)) {
-          estimate_beta <- FALSE
+          estimated_beta <- beta
+          estimate_beta <- FALSE  
           if (!is.numeric(beta)) {
               stop("beta must be numeric!")
           }
@@ -177,14 +177,22 @@ rspde_lme <- function(formula,
           if (beta < 0) {
               stop("beta must be non-negative.")
           }
-          model <- update(model, beta = beta)
-          estimated_beta <- beta
       }
       if(!estimate_beta && !estimate_alpha) {
           if(alpha + beta < model$d/2) {
               stop("One must have alpha + beta > d/2.")
           }
       }
+      if(estimate_alpha && estimate_beta) {
+          model <- update(model, alpha = 0.9, beta = 1.1)
+      } else if(estimate_beta) {
+          model <- update(model, beta = 1.1, alpha = alpha)
+      } else if(estimate_alpha) {
+          model <- update(model, beta = beta, alpha = 0.9)
+      } else {
+          model <- update(model, beta = beta, alpha = alpha)
+      }
+
   } else {
       estimated_alpha <- NULL
       
@@ -403,7 +411,7 @@ rspde_lme <- function(formula,
             start_alpha = 1
         }
         if(is.null(start_beta)) {
-            start_beta = 0.9
+            start_beta = 1.1
         }
         if(estimate_alpha && estimate_beta) {
             start_values <- c(log(0.1 * sd(y_resp)), 
