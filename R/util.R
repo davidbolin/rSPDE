@@ -2877,6 +2877,8 @@ get_starting_values_lme <- function(model, model_options, y_resp, starting_value
 
   if(spacetime){
     estimate_nu <- FALSE
+  } else if(!is.null(model_options$fix_nu) || !is.null(model_options$fix_alpha)){
+    estimate_nu <- FALSE
   }
     
   # Handle starting values for alpha and beta - prioritize fix_ values over start_ values
@@ -3584,14 +3586,28 @@ organize_parameters <- function(coeff, model, estimate_params, X_cov) {
   # Determine parameter names based on model type
   if (inherits(model, "intrinsicCBrSPDEobj")) {
     par_names <- c()
-    if (estimate_params["alpha"]) par_names <- c(par_names, "alpha")
-    if (estimate_params["beta"]) par_names <- c(par_names, "beta")
+
+    # Check if "alpha" and "beta" are present in names of estimate_params
+    has_alpha_param <- "alpha" %in% names(estimate_params)
+    has_beta_param <- "beta" %in% names(estimate_params)
+
+    # Add parameters to par_names list based on whether they should be estimated
+    if (has_alpha_param && estimate_params["alpha"]) {
+      par_names <- c(par_names, "alpha")
+    }
+
+    if (has_beta_param && estimate_params["beta"]) {
+      par_names <- c(par_names, "beta")
+    }
+
+    # Always add tau
     par_names <- c(par_names, "tau")
-    if (!(!estimate_params["alpha"] && coeff["alpha"] == 0)) {
+
+    # Add kappa only if alpha is not fixed to zero, or if alpha is not in estimate_params
+    if ( (has_alpha_param && estimate_params["alpha"]) || (model["alpha"] > 0)) {
       par_names <- c(par_names, "kappa")
     }
-  } 
-  else if (inherits(model, "CBrSPDEobj2d")) {
+  } else if (inherits(model, "CBrSPDEobj2d")) {
     if(!is.na(estimate_params["nu"])){
       estimate_nu <- estimate_params["nu"]
     } else if(!is.na(estimate_params["alpha"])){
@@ -3735,6 +3751,9 @@ organize_parameters <- function(coeff, model, estimate_params, X_cov) {
   
   # Get the random effect coefficients
   result$coeff_random <- coeff[param_idx]
+
+  print(par_names)
+
   names(result$coeff_random) <- par_names
   
   # Set parameter names

@@ -99,89 +99,97 @@ rspde_lme <- function(formula,
   spacetime <- inherits(model, "spacetimeobj")
   anisotropic <- inherits(model, "CBrSPDEobj2d")
   intrinsic <- inherits(model, "intrinsicCBrSPDEobj")
-  
+
   if (lifecycle::is_present(starting_values_latent)) {
     lifecycle::deprecate_warn(
       "2.5.0", 
-      "rspde_lme(starting_values_latent = )",
-      "rspde_lme(model_options = )"
+      what = "rspde_lme(starting_values_latent)",
+      with = "rspde_lme(model_options)",
+      details = "Starting values for latent parameters should now be specified in model_options."
     )
     if (!is.null(starting_values_latent)) {
       model_options$start_theta <- starting_values_latent
     }
   }
-  
+
   if (lifecycle::is_present(start_sigma_e)) {
     lifecycle::deprecate_warn(
       "2.5.0", 
-      "rspde_lme(start_sigma_e = )",
-      "rspde_lme(model_options = list(start_sigma_e = ))"
+      what = "rspde_lme(start_sigma_e)",
+      with = "rspde_lme(model_options)",
+      details = "Starting value for sigma_e should now be specified in model_options."
     )
     if (!is.null(start_sigma_e)) {
       model_options$start_sigma_e <- start_sigma_e
     }
   }
-  
+
   if (lifecycle::is_present(start_alpha)) {
     lifecycle::deprecate_warn(
       "2.5.0", 
-      "rspde_lme(start_alpha = )",
-      "rspde_lme(model_options = list(start_alpha = ))"
+      what = "rspde_lme(start_alpha)",
+      with = "rspde_lme(model_options)",
+      details = "Starting value for alpha should now be specified in model_options."
     )
     if (!is.null(start_alpha)) {
       model_options$start_alpha <- start_alpha
     }
   }
-  
+
   if (lifecycle::is_present(start_nu)) {
     lifecycle::deprecate_warn(
       "2.5.0", 
-      "rspde_lme(start_nu = )",
-      "rspde_lme(model_options = list(start_nu = ))"
+      what = "rspde_lme(start_nu)",
+      with = "rspde_lme(model_options)",
+      details = "Starting value for nu should now be specified in model_options."
     )
     if (!is.null(start_nu)) {
       model_options$start_nu <- start_nu
     }
   }
-  
+
   if (lifecycle::is_present(start_beta)) {
     lifecycle::deprecate_warn(
       "2.5.0", 
-      "rspde_lme(start_beta = )",
-      "rspde_lme(model_options = list(start_beta = ))"
+      what = "rspde_lme(start_beta)",
+      with = "rspde_lme(model_options)",
+      details = "Starting value for beta should now be specified in model_options."
     )
     if (!is.null(start_beta)) {
       model_options$start_beta <- start_beta
     }
   }
 
-  if (lifecycle::is_present(alpha)) {
-    lifecycle::deprecate_warn(
-      "2.5.0", 
-      "rspde_lme(alpha = )",
-      "rspde_lme(model_options = list(fix_alpha = ))"
-    )
-    if (!is.null(alpha)) {
-      model_options$fix_alpha <- alpha
-    }
-  }
-
   if (lifecycle::is_present(beta)) {
     lifecycle::deprecate_warn(
       "2.5.0", 
-      "rspde_lme(beta = )",
-      "rspde_lme(model_options = list(fix_beta = ))"
+      what = "rspde_lme(beta)",
+      with = "rspde_lme(model_options)",
+      details = "Fixed value for beta should now be specified in model_options."
     )
     if (!is.null(beta)) {
       model_options$fix_beta <- beta
     }
   }
 
+  if (lifecycle::is_present(alpha)) {
+    lifecycle::deprecate_warn(
+      "2.5.0", 
+      what = "rspde_lme(alpha)",
+      with = "rspde_lme(model_options)",
+      details = "Fixed value for alpha should now be specified in model_options."
+    )
+    if (!is.null(alpha)) {
+      model_options$fix_alpha <- alpha
+    }
+  }
+
   if (lifecycle::is_present(nu)) {
     lifecycle::deprecate_warn(
       "2.5.0", 
-      "rspde_lme(nu = )",
-      "rspde_lme(model_options = list(fix_nu = ))"
+      what = "rspde_lme(nu)",
+      with = "rspde_lme(model_options)",
+      details = "Fixed value for nu should now be specified in model_options."
     )
     if (!is.null(nu)) {
       model_options$fix_nu <- nu
@@ -543,6 +551,8 @@ rspde_lme <- function(formula,
       }
       return(l_tmp)
     }
+
+
 
     if (parallel) {
       start_par <- Sys.time()
@@ -1118,7 +1128,7 @@ rspde_lme <- function(formula,
   object$nu <- nu
   object$alpha <- alpha
   object$beta <- beta
-  if(!intrinsic || !estimate_alpha) {
+  if(!intrinsic || !is.null(model_options[["fix_alpha"]])) {
       object$estimated_alpha <- estimated_alpha    
   }
   
@@ -1137,8 +1147,8 @@ rspde_lme <- function(formula,
   }
   if(intrinsic) {
       object$estimated_beta <- estimated_beta
-      object$estimate_alpha <- estimate_alpha
-      object$estimate_beta <- estimate_beta
+      object$estimate_beta <- is.null(model_options$fix_beta)
+      object$estimate_alpha <- is.null(model_options$fix_alpha)
   }
   
 
