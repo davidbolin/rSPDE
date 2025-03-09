@@ -28,6 +28,7 @@
 #' one replicate.
 #' @param which_repl Which replicates to use? If `NULL` all replicates will be used.
 #' @param optim_method The method to be used with `optim` function.
+#' @param possible_methods The optimization methods to try if the model fitting fails.
 #' @param use_data_from_graph Logical. Only for models generated from graphs from 
 #' `metric_graph` class. In this case, should the data, the locations and the 
 #' replicates be obtained from the graph object?
@@ -71,6 +72,7 @@ rspde_lme <- function(formula,
                       repl = NULL,
                       which_repl = NULL,
                       optim_method = "L-BFGS-B",
+                      possible_methods = c("Nelder-Mead", "L-BFGS-B"),
                       use_data_from_graph = TRUE,
                       nu_upper_bound = 4,
                       rspde_order = NULL,
@@ -514,6 +516,8 @@ rspde_lme <- function(formula,
       start_values_aux <- start_values[estimate_pars]
       start_values_aux <- c(start_values_aux, temp_coeff)
       rm(data_tmp)
+    } else{
+      start_values_aux <- start_values[estimate_pars]
     }
 
     time_build_likelihood_end <- Sys.time()
@@ -667,7 +671,6 @@ rspde_lme <- function(formula,
         warning("The optimization failed to provide a numerically positive-definite Hessian. You can try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which allows other optimization methods to be used.")
       }
     } else {
-      possible_methods <- c("Nelder-Mead", "L-BFGS-B", "BFGS", "CG")
 
       start_fit <- Sys.time()
       res <- withCallingHandlers(
@@ -816,8 +819,6 @@ rspde_lme <- function(formula,
     }
 
     loglik <- -res$value
-
-    print(estimate_pars)
 
     coeff_results <- process_model_results(res = res, observed_fisher = observed_fisher, 
                                                       start_values = start_values, estimate_params = estimate_pars,

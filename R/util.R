@@ -1753,7 +1753,7 @@ change_parameterization_lme <- function(likelihood, d, nu, par, hessian,
     -C1 / range^2
   ), nrow = 2, ncol = 2)
 
-  grad_par <- grad_par[!fixed_params, !fixed_params]
+  grad_par <- grad_par[!fixed_params, , drop=FALSE]
 
   new_observed_fisher <- t(grad_par) %*% hessian %*% (grad_par)
 
