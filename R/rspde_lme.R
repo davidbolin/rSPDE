@@ -320,6 +320,8 @@ rspde_lme <- function(formula,
   ### extract_model_update_args might need to be updated by including new parameter names
   ### get_aux_lik_fun_args probably wont need to be updated, but if a novel argument appears in the auxiliary likelihood function, then it must be included there
   ### create_likelihood is designed to be robust and not need any updates
+  ### Will need to update the exported objects to the parallel cores
+  ### Will not need to change anything related to the model fitting
 
   if (!null_model) {
     time_build_likelihood_start <- Sys.time()
@@ -480,8 +482,6 @@ rspde_lme <- function(formula,
         stop("When creating the model object using matern.operators() or spde.matern.operators(), you should either supply a graph, or a mesh, or mesh_loc (this last one only works for dimension 1).")
     }  
 
-    n_coeff_nonfixed <- length(start_values)
-
     model_tmp <- model
     model_tmp$graph <- NULL
     if(inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj")) {
@@ -502,7 +502,8 @@ rspde_lme <- function(formula,
       data_tmp <- na.omit(data_tmp)
       temp_coeff <- lm(data_tmp[, 1] ~ data_tmp[, -1] - 1)$coeff
       names(temp_coeff) <- names_tmp
-      start_values <- c(start_values, temp_coeff)
+      start_values_aux <- start_values[estimate_pars]
+      start_values_aux <- c(start_values_aux, temp_coeff)
       rm(data_tmp)
     }
 
@@ -539,34 +540,85 @@ rspde_lme <- function(formula,
       }
       cl <- parallel::makeCluster(n_cores)
       parallel::setDefaultCluster(cl = cl)
+
       parallel::clusterExport(cl, "y_resp", envir = environment())
       parallel::clusterExport(cl, "model_tmp", envir = environment())
       parallel::clusterExport(cl, "A_list", envir = environment())
       parallel::clusterExport(cl, "X_cov", envir = environment())
-      # parallel::clusterExport(cl, "y_list", envir = environment())
+      if (exists("loc_df")) {
+        parallel::clusterExport(cl, "loc_df", envir = environment())
+      }
+      if (exists("mean_correction")) {
+        parallel::clusterExport(cl, "mean_correction", envir = environment())
+      }
+      if (exists("repl")) {
+        parallel::clusterExport(cl, "repl", envir = environment())
+      }
+      
+      # Export auxiliary likelihood functions from rSPDE namespace
       parallel::clusterExport(cl, "aux_lme_CBrSPDE.matern.loglike",
         envir = as.environment(asNamespace("rSPDE"))
       )
       parallel::clusterExport(cl, "aux_lme_CBrSPDE.matern2d.loglike",
-                              envir = as.environment(asNamespace("rSPDE"))
+        envir = as.environment(asNamespace("rSPDE"))
       )
       parallel::clusterExport(cl, "aux_lme_rSPDE.matern.loglike",
         envir = as.environment(asNamespace("rSPDE"))
       )
       parallel::clusterExport(cl, "aux_lme_rSPDE.matern.rational.loglike",
-                              envir = as.environment(asNamespace("rSPDE"))
+        envir = as.environment(asNamespace("rSPDE"))
       )
       parallel::clusterExport(cl, "aux_lme_spacetime.loglike",
-                              envir = as.environment(asNamespace("rSPDE"))
+        envir = as.environment(asNamespace("rSPDE"))
       )
       parallel::clusterExport(cl, "aux_lme_intrinsic.loglike",
-                              envir = as.environment(asNamespace("rSPDE"))
+        envir = as.environment(asNamespace("rSPDE"))
       )
+      
+      # Export helper functions
+      parallel::clusterExport(cl, "get_aux_likelihood_function",
+        envir = environment()
+      )
+      parallel::clusterExport(cl, "determine_estimate_params",
+        envir = environment()
+      )
+      parallel::clusterExport(cl, "extract_model_update_args",
+        envir = environment()
+      )
+      parallel::clusterExport(cl, "get_aux_lik_fun_args",
+        envir = environment()
+      )
+      parallel::clusterExport(cl, "create_likelihood",
+        envir = environment()
+      )
+      
+      # If theta2beta is used in the code
+      if (inherits(model_tmp, "intrinsicCBrSPDEobj")) {
+        parallel::clusterExport(cl, "theta2beta",
+          envir = as.environment(asNamespace("rSPDE"))
+        )
+      }
+      
+      # Export model_options 
+      if (exists("model_options")) {
+        parallel::clusterExport(cl, "model_options", envir = environment())
+      }
+      
+      # Export start_values 
+      if (exists("start_values")) {
+        parallel::clusterExport(cl, "start_values", envir = environment())
+      }
+      
+      # Export nu_upper_bound
+      if (exists("nu_upper_bound")) {
+        parallel::clusterExport(cl, "nu_upper_bound", envir = environment())
+      }
+
       end_par <- Sys.time()
       time_par <- end_par - start_par
 
       start_fit <- Sys.time()
-      res <- optimParallel::optimParallel(start_values,
+      res <- optimParallel::optimParallel(start_values_aux,
         likelihood_new,
         method = optim_method,
         control = optim_controls,
@@ -610,7 +662,7 @@ rspde_lme <- function(formula,
 
       start_fit <- Sys.time()
       res <- withCallingHandlers(
-        tryCatch(optim(start_values,
+        tryCatch(optim(start_values_aux,
           likelihood_new,
           method = optim_method,
           control = optim_controls,
@@ -678,7 +730,7 @@ rspde_lme <- function(formula,
           time_fit <- NULL
           start_fit <- Sys.time()
           res <- withCallingHandlers(
-            tryCatch(optim(start_values,
+            tryCatch(optim(start_values_aux,
               likelihood_new,
               method = new_method,
               control = optim_controls,
@@ -754,223 +806,26 @@ rspde_lme <- function(formula,
       }
     }
     
-    if(spacetime) {
-      if(model_tmp$is_bounded_rho){
-        bound_rho <- model_tmp$bound_rho
-        coeff <- c(exp(c(res$par[1:4])), bound_rho * (2.0 / (1.0 + exp(-res$par[-c(1:4)])) - 1.0))
-      } else{
-        coeff <- c(exp(c(res$par[1:4])), res$par[-c(1:4)])
-      }
-    } else if (intrinsic) {
-        if(estimate_alpha && estimate_beta) {
-            coeff <- c(exp(res$par[1]), #sigma_e
-                       exp(res$par[2]) + model$d/2, #alpha
-                       theta2beta(res$par[3],model$d), #beta
-                       exp(res$par[4]), #tau
-                       exp(res$par[5]), #kappa
-                       res$par[-c(1:5)])
-            estimated_alpha <- coeff[2]
-            estimated_beta <- coeff[3]
-        } else if(estimate_alpha) {
-            coeff <- c(exp(res$par[1]), #sigma_e
-                       exp(res$par[2]) + model$d/2, #alpha
-                       exp(res$par[3]), #tau
-                       exp(res$par[4]), #kappa
-                       res$par[-c(1:4)])
-            estimated_alpha <- coeff[2]
-        } else if(estimate_beta) {
-            if(alpha == 0) {
-                coeff <- c(exp(res$par[1]), #sigma_e
-                           theta2beta(res$par[2],model$d), #beta
-                           exp(res$par[3]), #tau
-                           res$par[-c(1:3)])    
-            } else {
-                coeff <- c(exp(res$par[1]), #sigma_e
-                           theta2beta(res$par[2],model$d), #beta
-                           exp(res$par[3]), #tau
-                           exp(res$par[4]), #kappa
-                           res$par[-c(1:4)])  
-            }
-            estimated_beta <- coeff[2]
-        } else {
-            if(alpha == 0) {
-                coeff <- c(exp(res$par[1]), #sigma_e
-                           exp(res$par[2]), #tau
-                           res$par[-c(1:2)])    
-            } else {
-                coeff <- c(exp(res$par[1]), #sigma_e
-                           exp(res$par[2]), #tau
-                           exp(res$par[3]), #kappa
-                           res$par[-c(1:3)])  
-            }
-        }
-    } else {
-        if (model$stationary) {
-            if(anisotropic) {
-                if (estimate_nu) {
-                    gap <- 1
-                } else {
-                    gap <- 0
-                }
-            
-                hxy <- 2*exp(res$par[5 + gap])/(1+exp(res$par[5 + gap])) - 1
-                coeff <- c(exp(res$par[1:(4+gap)]), hxy, res$par[-c(1:(5 + gap))])
-                coeff <- coeff[1:n_coeff_nonfixed]
-            } else {
-                coeff <- exp(c(res$par[1:n_coeff_nonfixed]))    
-            }
-            
-            if (estimate_nu) {
-                estimated_alpha <- coeff[2] + model$d / 2
-            }
-        } else {
-            coeff <- res$par[1:n_coeff_nonfixed]
-            coeff[1] <- exp(coeff[1])
-            if (estimate_nu) {
-                coeff[2] <- exp(coeff[2])
-                estimated_alpha <- coeff[2] + model$d / 2
-            }
-        }
-        coeff <- c(coeff, res$par[-c(1:n_coeff_nonfixed)])    
-    }
-    
 
     loglik <- -res$value
 
     n_fixed <- ncol(X_cov)
     n_random <- length(coeff) - n_fixed - 1
 
-    if(intrinsic) {
-        if(estimate_alpha && estimate_beta) {
-            par_change <- diag(c(exp(-res$par[1]), 
-                                 exp(-res$par[2]), #alpha
-                                 dbetadtheta(res$par[3]), #beta
-                                 exp(-res$par[4]), #tau
-                                 exp(-res$par[5]), #kappa
-                                 rep(1,length(res$par[-c(1:5)]))))
-        } else if(estimate_alpha) {
-            par_change <- diag(c(exp(-res$par[1]), #sigma_e
-                                 exp(-res$par[2]), #alpha
-                                 exp(-res$par[3]), #tau
-                                 exp(-res$par[4]), #kappa
-                                 rep(1,length(res$par[-c(1:4)]))))
-        } else if(estimate_beta) {
-            if(alpha == 0) {
-                par_change <- diag(c(exp(-res$par[1]), #sigma_e
-                                     dbetadtheta(res$par[2]), #beta
-                                     exp(-res$par[3]), #tau
-                                     rep(1,length(res$par[-c(1:3)]))))
-            } else {
-                par_change <- diag(c(exp(-res$par[1]), #sigma_e
-                                     dbetadtheta(res$par[2]), #beta
-                                     exp(-res$par[3]), #tau
-                                     exp(-res$par[4]), #kappa
-                                     rep(1,length(res$par[-c(1:4)]))))
-            }
-        } else {
-            if(alpha == 0) {
-                par_change <- diag(c(exp(-res$par[1]), #sigma_e
-                                     exp(-res$par[2]), #tau
-                                     rep(1,length(res$par[-c(1:2)]))))
-            } else {
-                par_change <- diag(c(exp(-res$par[1]), #sigma_e
-                                     exp(-res$par[2]), #tau
-                                     exp(-res$par[3]), #kappa
-                                     diag(1,length(res$par[-c(1:3)]))))
-            }
-        }
-        observed_fisher <- par_change %*% observed_fisher %*% par_change
-    } else if (model$stationary) {
-        if(anisotropic) {
-            hxy <- 2*exp(res$par[n_coeff_nonfixed])/(1+exp(res$par[n_coeff_nonfixed]))-1
-            hxy.trans <- 2/(2*(hxy+1)- (hxy+1)^2) 
-            par_change <- diag(c(exp(c(-res$par[1:(n_coeff_nonfixed-1)])), hxy.trans, rep(1, n_fixed)))      
-        } else if (spacetime ){
-          if(model_tmp$is_bounded_rho){
-            if(model_tmp$d == 1){
-              bound_rho <- model_tmp$bound_rho
-              rho.trans <- bound_rho * 2.0 * exp(res$par[n_coeff_nonfixed])/ ((1.0 + exp(res$par[n_coeff_nonfixed]))^2)
-              par_change <- diag(c(exp(-c(res$par[1:(n_coeff_nonfixed-1)])), rho.trans, rep(1, n_fixed)))   
-            } else{
-              bound_rho <- model_tmp$bound_rho
-              rho1.trans <- bound_rho * 2.0 * exp(res$par[n_coeff_nonfixed-1])/ ((1.0 + exp(res$par[n_coeff_nonfixed-1]))^2)
-              rho2.trans <- bound_rho * 2.0 * exp(res$par[n_coeff_nonfixed])/ ((1.0 + exp(res$par[n_coeff_nonfixed]))^2)
-              par_change <- diag(c(exp(-c(res$par[1:(n_coeff_nonfixed-2)])), rho1.trans, rho2.trans, rep(1, n_fixed)))   
-            }
-          } else{
-            # no transform for rho
-            par_change <- diag(c(exp(-c(res$par[1:(n_coeff_nonfixed-model_tmp$d)])), rep(1, n_fixed+model_tmp$d)))      
-          }
-        } else {
-            par_change <- diag(c(exp(-c(res$par[1:n_coeff_nonfixed])), rep(1, n_fixed)))      
-        }
-        observed_fisher <- par_change %*% observed_fisher %*% par_change
-    }
+    coeff_results <- process_model_results(res = res, observed_fisher = observed_fisher, 
+                                                      start_values = start_values, estimate_params = estimate_pars,
+                                                      model = model,
+                                                      model_options = model_options, X_cov = X_cov, n_coeff_nonfixed = n_coeff_nonfixed)
 
-    inv_fisher <- tryCatch(solve(observed_fisher), error = function(e) matrix(NA, nrow(observed_fisher), ncol(observed_fisher)))
-
-    std_err <- sqrt(diag(inv_fisher))
-
-    coeff_random <- coeff[2:(n_coeff_nonfixed)]
-    std_random <- std_err[2:(n_coeff_nonfixed)]
-
-    if(intrinsic) {
-        if(estimate_alpha && estimate_beta) {
-            par_names <- c("alpha", "beta", "tau", "kappa")
-        } else if(estimate_alpha) {
-            par_names <- c("alpha", "tau", "kappa")
-        } else if(estimate_beta) {
-            if(alpha == 0) {
-                par_names <- c("beta", "tau")
-            } else {
-                par_names <- c("beta", "tau", "kappa")
-            }
-        } else {
-            if(alpha == 0) {
-                par_names <- c("tau")
-            } else {
-                par_names <- c("tau", "kappa")
-            }
-        }
-    } else if (model$stationary && !spacetime) {
-        if(anisotropic) {
-            par_names <- c("sigma", "hx", "hy", "hxy")
-        } else {
-            par_names <- c("tau", "kappa")      
-        }
-    } else if(spacetime) {
-        if(model$alpha == 0){
-            par_names <- c("kappa", "sigma", "gamma")
-        } else {
-            par_names <- c("kappa", "sigma", "gamma", "rho")    
-        }
-    } else {
-      par_names <- c("Theta 1")
-      if (ncol(model$B.tau) > 2) {
-        for (i in 2:(ncol(model$B.tau) - 1)) {
-          par_names <- c(par_names, paste("Theta", i))
-        }
-      }
-    }
-
-    if (!intrinsic && estimate_nu) {
-      par_names <- c("nu", par_names)
-    }
-
-    names(coeff_random) <- par_names
-
-    coeff_meas <- coeff[1]
-    names(coeff_meas) <- "std. dev"
-
-    std_meas <- std_err[1]
-
-    coeff_fixed <- NULL
-    if (n_fixed > 0) {
-      coeff_fixed <- coeff[(2 + n_random):length(coeff)]
-      std_fixed <- std_err[(2 + n_random):length(coeff)]
-    } else {
-      std_fixed <- NULL
-    }
+    coeff_meas <- coeff_results$coeff_meas
+    coeff_random <- coeff_results$coeff_random
+    coeff_fixed <- coeff_results$coeff_fixed      
+    estimated_alpha <- coeff_results$estimated_alpha
+    estimated_beta <- coeff_results$estimated_beta
+    estimate_nu <- (is.null(model_options$fix_nu) && is.null(model_options$fix_alpha))
+    std_meas <- coeff_results$std_meas
+    std_random <- coeff_results$std_random
+    std_fixed <- coeff_results$std_fixed
 
     new_likelihood <- NULL
 

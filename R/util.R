@@ -3352,3 +3352,664 @@ create_likelihood <- function(model, model_options, y_resp,
     n_coeff_nonfixed = n_coeff_nonfixed
   ))
 }
+
+
+#' Extract parameters from optimization results
+#'
+#' @param res Optimization result object
+#' @param start_values Named vector of starting values
+#' @param estimate_params Logical vector indicating which parameters to estimate
+#' @param model Original model object
+#' @param model_options Model options with fixed parameter values
+#' @param X_cov Covariate matrix
+#' @param n_coeff_nonfixed Number of non-fixed coefficients
+#' @return List containing parameter values and additional information
+#' @noRd
+extract_parameters_from_optim <- function(res, start_values, estimate_params, model, 
+                                         model_options, X_cov, n_coeff_nonfixed) {
+  # Initialize result list
+  result <- list(
+    coeff_random = NULL,
+    estimated_alpha = NULL,
+    estimated_beta = NULL
+  )
+  
+  # Initialize tracking index for res$par
+  index <- 1
+  
+  # Create coefficient vector with same length as start_values
+  param_names <- names(start_values)
+  coeff <- numeric(length(start_values))
+  names(coeff) <- param_names
+  
+  # Process each parameter
+  for (i in 1:length(start_values)) {
+    param_name <- param_names[i]
+    
+    # If parameter is estimated, get from res$par
+    if (estimate_params[i]) {
+      if (param_name == "sigma_e" || param_name == "tau" || 
+          param_name == "kappa" || param_name == "sigma" || 
+          param_name == "gamma" || param_name == "hx" || param_name == "hy") {
+        # Parameters with exponential transformation
+        coeff[i] <- exp(res$par[index])
+        index <- index + 1
+      }
+      else if (param_name == "nu") {
+        # Nu parameter
+        nu_value <- exp(res$par[index])
+        if (nu_value %% 1 == 0) nu_value <- nu_value - 1e-5
+        coeff[i] <- min(nu_value, 10)
+        index <- index + 1
+        
+        # Also calculate estimated_alpha if we have nu
+        if (!inherits(model, "spacetimeobj") && !inherits(model, "CBrSPDEobj2d")) {
+          result$estimated_alpha <- coeff[i] + model$d/2
+        }
+      }
+      else if (param_name == "alpha") {
+        # Alpha parameter
+        alpha_value <- exp(res$par[index]) + model$d/2
+        if (alpha_value %% 1 == 0) alpha_value <- alpha_value - 1e-5
+        coeff[i] <- alpha_value
+        index <- index + 1
+        
+        # Store estimated alpha
+        result$estimated_alpha <- alpha_value
+      }
+      else if (param_name == "beta") {
+        # Beta parameter
+        beta_value <- theta2beta(res$par[index], model$d)
+        if (beta_value %% 1 == 0) beta_value <- beta_value - 1e-5
+        coeff[i] <- beta_value
+        index <- index + 1
+        
+        # Store estimated beta
+        result$estimated_beta <- beta_value
+      }
+      else if (param_name == "hxy") {
+        # hxy parameter (correlation)
+        coeff[i] <- 2*exp(res$par[index])/(1+exp(res$par[index])) - 1
+        index <- index + 1
+      }
+      else if (param_name == "rho") {
+        # Handle rho parameter (vector) for spacetime models
+        if (inherits(model, "spacetimeobj") && model$alpha > 0) {
+          if (model$is_bounded_rho) {
+            bound_rho <- model$bound_rho
+            coeff[i] <- bound_rho * (2.0 / (1.0 + exp(-res$par[index:(index+model$d-1)])) - 1.0)
+          } else {
+            coeff[i] <- res$par[index:(index+model$d-1)]
+          }
+          index <- index + model$d
+        } else {
+          coeff[i] <- rep(0, model$d)
+        }
+      }
+      else if (param_name == "theta" || param_name == "") {
+        # Handle theta parameter for non-stationary models
+        if (!model$stationary) {
+          theta_length <- length(model$theta)
+          coeff[i] <- res$par[index:(index + theta_length - 1)]
+          index <- index + theta_length
+        }
+      }
+      else {
+        # Generic parameter with no transformation
+        coeff[i] <- res$par[index]
+        index <- index + 1
+      }
+    }
+    else {
+      # Parameter is fixed - get from model_options or model
+      fix_param_name <- paste0("fix_", param_name)
+      
+      if (param_name == "sigma_e") {
+        coeff[i] <- model_options[[fix_param_name]]
+      }
+      else if (param_name == "nu") {
+        if (!is.null(model_options[[fix_param_name]])) {
+          coeff[i] <- model_options[[fix_param_name]]
+        } else if (!is.null(model_options$fix_alpha)) {
+          coeff[i] <- model_options$fix_alpha - model$d/2
+        } else {
+          coeff[i] <- model$nu
+        }
+      }
+      else if (param_name == "alpha") {
+        if (!is.null(model_options[[fix_param_name]])) {
+          coeff[i] <- model_options[[fix_param_name]]
+        } else {
+          coeff[i] <- model$alpha
+        }
+      }
+      else if (param_name != "sigma_e" && param_name != "nu" && param_name != "alpha") {
+        # For other parameters, just get from model_options or model
+        if (!is.null(model_options[[fix_param_name]])) {
+          coeff[i] <- model_options[[fix_param_name]]
+        } else if (!is.null(model[[param_name]])) {
+          coeff[i] <- model[[param_name]]
+        }
+      }
+    }
+  }
+  
+  # Add coefficients for covariates if any
+  n_fixed <- ncol(X_cov)
+  if (n_fixed > 0) {
+    coeff_fixed <- res$par[(n_coeff_nonfixed + 1):(n_coeff_nonfixed + n_fixed)]
+    result$coeff_fixed <- coeff_fixed
+  }
+  
+  # Set result coefficient vector
+  result$coeff_random <- coeff
+  
+  return(result)
+}
+
+#' Organize extracted parameters into appropriate categories
+#'
+#' @param coeff Full coefficient vector
+#' @param model Model object
+#' @param estimate_params Logical vector indicating which parameters were estimated
+#' @param X_cov Covariate matrix
+#' @return List containing organized parameter vectors
+#' @noRd
+organize_parameters <- function(coeff, model, estimate_params, X_cov) {
+  result <- list(
+    coeff_meas = NULL,
+    coeff_random = NULL,
+    coeff_fixed = NULL,
+    par_names = NULL
+  )
+  
+  # Set measurement error coefficient (always the first parameter)
+  result$coeff_meas <- coeff[1]
+  names(result$coeff_meas) <- "std. dev"
+  
+  # Determine parameter names based on model type
+  if (inherits(model, "intrinsicCBrSPDEobj")) {
+    par_names <- c()
+    if (estimate_params["alpha"]) par_names <- c(par_names, "alpha")
+    if (estimate_params["beta"]) par_names <- c(par_names, "beta")
+    par_names <- c(par_names, "tau")
+    if (!(!estimate_params["alpha"] && coeff["alpha"] == 0)) {
+      par_names <- c(par_names, "kappa")
+    }
+  } 
+  else if (inherits(model, "CBrSPDEobj2d")) {
+    if (estimate_params["nu"]) {
+      par_names <- c("nu", "sigma", "hx", "hy", "hxy")
+    } else {
+      par_names <- c("sigma", "hx", "hy", "hxy")
+    }
+  } 
+  else if ((inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj"))) {
+    if (model$stationary) {
+      if (estimate_params["nu"]) {
+        par_names <- c("nu", "tau", "kappa")
+      } else {
+        par_names <- c("tau", "kappa")
+      }
+    } else {
+      # For non-stationary models, use B.tau to determine theta parameter names
+      if (estimate_params["nu"]) {
+        par_names <- c("nu")
+      } else {
+        par_names <- c()
+      }
+      
+      # Add theta parameter names
+      if (estimate_params["theta"] || !is.null(names(coeff)["theta"])) {
+        if (ncol(model$B.tau) <= 2) {
+          par_names <- c(par_names, "Theta 1")
+        } else {
+          for (i in 1:(ncol(model$B.tau) - 1)) {
+            par_names <- c(par_names, paste("Theta", i))
+          }
+        }
+      }
+    }
+  } 
+  else if (inherits(model, "rSPDEobj1d")) {
+    if (estimate_params["nu"]) {
+      par_names <- c("nu", "tau", "kappa")
+    } else {
+      par_names <- c("tau", "kappa")
+    }
+  } 
+  else if (inherits(model, "spacetimeobj")) {
+    if (model$alpha == 0) {
+      par_names <- c("kappa", "sigma", "gamma")
+    } else {
+      par_names <- c("kappa", "sigma", "gamma", "rho")
+    }
+  } 
+  else {
+    # Generic model
+    par_names <- names(coeff)[-1]  # All except sigma_e
+  }
+  
+  # Extract random effects coefficients
+  # First find which parameters in coeff correspond to par_names
+  param_idx <- numeric(0)
+  param_names <- names(coeff)
+  
+  for (name in par_names) {
+    # For parameters like "Theta 1", we need to check for both the named parameter
+    # and numeric position
+    if (name %in% param_names) {
+      param_idx <- c(param_idx, which(param_names == name))
+    } else if (name == "theta" && "theta" %in% param_names) {
+      param_idx <- c(param_idx, which(param_names == "theta"))
+    } else if (startsWith(name, "Theta ") && !model$stationary) {
+      # For non-stationary models with unnamed theta parameters
+      # This could be in various positions depending on what else is estimated
+      if ("theta" %in% param_names) {
+        param_idx <- c(param_idx, which(param_names == "theta"))
+      } else {
+        # If we have unnamed parameters, attempt to find them by position
+        theta_num <- as.numeric(substring(name, 7))
+        # Start from position 2 (after sigma_e) and count
+        if (estimate_params["nu"]) {
+          pos <- 3 + theta_num - 1  # sigma_e, nu, then theta positions
+        } else {
+          pos <- 2 + theta_num - 1  # sigma_e, then theta positions
+        }
+        if (pos <= length(coeff)) {
+          param_idx <- c(param_idx, pos)
+        }
+      }
+    }
+  }
+  
+  # If we couldn't match by name, use positions (theta is usually after sigma_e and nu)
+  if (length(param_idx) == 0 && !model$stationary) {
+    if (estimate_params["nu"]) {
+      start_pos <- 3  # sigma_e, nu
+    } else {
+      start_pos <- 2  # sigma_e
+    }
+    
+    param_idx <- start_pos:(start_pos + length(par_names) - 1)
+    if (max(param_idx) > length(coeff)) {
+      param_idx <- param_idx[param_idx <= length(coeff)]
+    }
+  }
+  
+  # If we still don't have indices, just use positions 2 through n+1
+  if (length(param_idx) == 0) {
+    param_idx <- 2:(1 + length(par_names))
+    if (max(param_idx) > length(coeff)) {
+      param_idx <- param_idx[param_idx <= length(coeff)]
+    }
+  }
+  
+  # Get the random effect coefficients
+  result$coeff_random <- coeff[param_idx]
+  names(result$coeff_random) <- par_names
+  
+  # Set parameter names
+  result$par_names <- par_names
+  
+  # Extract fixed effects coefficients if any
+  n_fixed <- ncol(X_cov)
+  if (n_fixed > 0) {
+    if (length(coeff) >= length(names(coeff)) + n_fixed) {
+      # If coeff contains unnamed elements at the end (fixed effects)
+      result$coeff_fixed <- coeff[(length(names(coeff)) + 1):length(coeff)]
+    }
+  }
+  
+  return(result)
+}
+
+#' Process optimization results into parameter estimates
+#'
+#' @param res Optimization result object
+#' @param start_values Named vector of starting values
+#' @param estimate_params Logical vector indicating which parameters to estimate
+#' @param model Original model object
+#' @param model_options Model options with fixed parameter values
+#' @param X_cov Covariate matrix
+#' @param n_coeff_nonfixed Number of non-fixed coefficients
+#' @return List containing organized parameter estimates
+#' @noRd
+extract_and_organize_parameters <- function(res, start_values, estimate_params, model,
+                                           model_options, X_cov, n_coeff_nonfixed) {
+  
+  # Extract parameters from optimization results
+  extracted_params <- extract_parameters_from_optim(
+    res = res,
+    start_values = start_values,
+    estimate_params = estimate_params,
+    model = model,
+    model_options = model_options,
+    X_cov = X_cov,
+    n_coeff_nonfixed = n_coeff_nonfixed
+  )
+  
+  # Organize parameters into categories
+  result <- organize_parameters(
+    coeff = c(extracted_params$coeff_random, extracted_params$coeff_fixed),
+    model = model,
+    estimate_params = estimate_params,
+    X_cov = X_cov
+  )
+  
+  # Add estimated alpha/beta if available
+  if (!is.null(extracted_params$estimated_alpha)) {
+    result$estimated_alpha <- extracted_params$estimated_alpha
+  }
+  if (!is.null(extracted_params$estimated_beta)) {
+    result$estimated_beta <- extracted_params$estimated_beta
+  }
+    
+  return(result)
+}
+
+#' Calculate Jacobian of parameter transformation for Fisher information matrix
+#'
+#' @param res Optimization result object
+#' @param estimate_params Logical vector indicating which parameters to estimate
+#' @param model Original model object
+#' @param model_options Model options with fixed parameter values
+#' @param X_cov Covariate matrix
+#' @return Matrix representing the parameter transformation Jacobian
+#' @noRd
+calculate_parameter_jacobian <- function(res, estimate_params, model, model_options, X_cov) {
+  # Get dimensions
+  n_coeff_nonfixed <- sum(estimate_params)
+  n_fixed <- ncol(X_cov)
+  n_total <- n_coeff_nonfixed + n_fixed
+  
+  # Create diagonal matrix for the Jacobian
+  par_change <- diag(n_total)
+  
+  # Track position in res$par
+  index <- 1
+  
+  # Process parameters in order of estimate_params
+  param_names <- names(estimate_params)
+  for (i in 1:length(estimate_params)) {
+    param_name <- param_names[i]
+    
+    if (estimate_params[i]) {
+      # Parameter is estimated, get transformation from res$par
+      if (param_name == "sigma_e" || param_name == "tau" || 
+          param_name == "kappa" || param_name == "sigma" || 
+          param_name == "gamma" || param_name == "hx" || param_name == "hy") {
+        # Parameters with exp transformation
+        par_change[index, index] <- exp(-res$par[index])
+        index <- index + 1
+      }
+      else if (param_name == "nu" || param_name == "alpha") {
+        # Nu/alpha parameters
+        par_change[index, index] <- exp(-res$par[index])
+        index <- index + 1
+      }
+      else if (param_name == "beta") {
+        # Beta parameter (special transformation)
+        par_change[index, index] <- dbetadtheta(res$par[index])
+        index <- index + 1
+      }
+      else if (param_name == "hxy") {
+        # hxy parameter (correlation)
+        hxy <- 2*exp(res$par[index])/(1+exp(res$par[index]))-1
+        hxy_trans <- 2/(2*(hxy+1)-(hxy+1)^2)
+        par_change[index, index] <- hxy_trans
+        index <- index + 1
+      }
+      else if (param_name == "rho" && inherits(model, "spacetimeobj")) {
+        # Rho parameter for spacetime models
+        if (model$alpha > 0) {
+          if (model$is_bounded_rho) {
+            bound_rho <- model$bound_rho
+            if (model$d == 1) {
+              rho_trans <- bound_rho * 2.0 * exp(res$par[index])/ ((1.0 + exp(res$par[index]))^2)
+              par_change[index, index] <- rho_trans
+              index <- index + 1
+            } else {
+              # For multiple dimensions
+              for (j in 1:model$d) {
+                rho_trans <- bound_rho * 2.0 * exp(res$par[index])/ ((1.0 + exp(res$par[index]))^2)
+                par_change[index, index] <- rho_trans
+                index <- index + 1
+              }
+            }
+          } else {
+            # Unbounded rho - no transformation
+            index <- index + model$d
+          }
+        }
+      }
+      else if (param_name == "theta" || param_name == "") {
+        # For non-stationary models
+        if (!model$stationary) {
+          theta_length <- length(model$theta)
+          # No transformation for theta parameters
+          index <- index + theta_length
+        }
+      }
+      else {
+        # Generic parameter with no transformation
+        index <- index + 1
+      }
+    }
+  }
+    
+  return(par_change)
+}
+
+#' Calculate standard errors from optimization results
+#'
+#' @param observed_fisher Observed Fisher information matrix
+#' @param res Optimization result object
+#' @param estimate_params Logical vector indicating which parameters to estimate
+#' @param model Original model object
+#' @param model_options Model options with fixed parameter values
+#' @param X_cov Covariate matrix
+#' @param n_coeff_nonfixed Number of non-fixed coefficients
+#' @param param_results Results from parameter extraction
+#' @return List containing standard errors and other results
+#' @noRd
+calculate_standard_errors <- function(observed_fisher, res, estimate_params, model, 
+                                     model_options, X_cov, n_coeff_nonfixed, param_results) {
+  # Calculate the parameter transformation Jacobian
+  par_change <- calculate_parameter_jacobian(
+    res = res,
+    estimate_params = estimate_params,
+    model = model,
+    model_options = model_options,
+    X_cov = X_cov
+  )
+  
+  # Apply parameter transformation to observed Fisher information
+  observed_fisher <- par_change %*% observed_fisher %*% par_change
+  
+  # Attempt to invert the Fisher information matrix
+  inv_fisher <- tryCatch(
+    solve(observed_fisher), 
+    error = function(e) matrix(NA, nrow(observed_fisher), ncol(observed_fisher))
+  )
+  
+  # Calculate standard errors from inverse Fisher information
+  std_err <- sqrt(diag(inv_fisher))
+  
+  # Create standard error vectors with same structure as parameter vectors
+  # Initialize with NA
+  std_random <- rep(NA, length(param_results$coeff_random))
+  names(std_random) <- names(param_results$coeff_random)
+  
+  std_fixed <- NULL
+  if (!is.null(param_results$coeff_fixed)) {
+    std_fixed <- rep(NA, length(param_results$coeff_fixed))
+  }
+  
+  # Get standard error for measurement error (sigma_e) - always first parameter
+  if (estimate_params[1]) {
+    std_meas <- std_err[1]
+  } else {
+    std_meas <- NA
+  }
+  
+  # Get parameter names from the parameter results
+  par_names <- param_results$par_names
+  
+  # Fill in standard errors for estimated random effect parameters
+  # Track position in std_err vector
+  index <- 2  # Start after sigma_e
+  
+  # Get indices of estimated parameters (excluding sigma_e which is 1st)
+  est_param_indices <- which(estimate_params)[-1]
+  
+  # Map estimated parameters to their positions in std_random
+  for (i in 1:length(est_param_indices)) {
+    param_name <- names(estimate_params)[est_param_indices[i]]
+    
+    # Find the position of this parameter in coeff_random
+    pos <- which(param_name == names(std_random))
+    
+    # For parameters with special naming (like "Theta 1" vs "theta")
+    if (length(pos) == 0 && param_name == "theta") {
+      # Find positions that start with "Theta"
+      pos <- grep("^Theta", names(std_random))
+    }
+    
+    if (length(pos) > 0) {
+      if (length(pos) == 1) {
+        # Regular parameter
+        std_random[pos] <- std_err[index]
+      } else {
+        # Vector parameter (like theta or rho)
+        if (param_name == "rho" && inherits(model, "spacetimeobj")) {
+          for (j in 1:model$d) {
+            std_random[pos[j]] <- std_err[index]
+            index <- index + 1
+          }
+          next  # Skip the normal index increment
+        } else if (param_name == "theta" || param_name == "") {
+          # For theta parameters in non-stationary models
+          theta_length <- length(model$theta)
+          for (j in 1:min(theta_length, length(pos))) {
+            std_random[pos[j]] <- std_err[index]
+            index <- index + 1
+          }
+          next  # Skip the normal index increment
+        }
+      }
+    }
+    
+    index <- index + 1
+  }
+  
+  # Fill in standard errors for fixed effect parameters
+  n_fixed <- ncol(X_cov)
+  if (n_fixed > 0) {
+    std_fixed <- std_err[(1 + n_coeff_nonfixed):(1 + n_coeff_nonfixed + n_fixed)]
+  }
+  
+  # Return all standard errors
+  return(list(
+    std_err = std_err,
+    std_meas = std_meas,
+    std_random = std_random,
+    std_fixed = std_fixed,
+    inv_fisher = inv_fisher
+  ))
+}
+
+#' Process model fitting results to extract parameters and standard errors
+#'
+#' @param res Optimization result object
+#' @param observed_fisher Observed Fisher information matrix
+#' @param start_values Named starting values vector
+#' @param estimate_params Logical vector indicating which parameters to estimate
+#' @param model Original model object
+#' @param model_options Model options with fixed parameter values
+#' @param X_cov Covariate matrix
+#' @param n_coeff_nonfixed Number of non-fixed coefficients
+#' @return List containing extracted parameters and standard errors
+#' @noRd
+process_model_results <- function(res, observed_fisher, start_values, estimate_params, 
+                                model, model_options, X_cov, n_coeff_nonfixed) {
+  
+  # Extract parameters
+  param_results <- extract_and_organize_parameters(
+    res = res,
+    start_values = start_values,
+    estimate_params = estimate_params,
+    model = model,
+    model_options = model_options,
+    X_cov = X_cov,
+    n_coeff_nonfixed = n_coeff_nonfixed
+  )
+  
+  # Calculate standard errors
+  se_results <- calculate_standard_errors(
+    observed_fisher = observed_fisher,
+    res = res,
+    estimate_params = estimate_params,
+    model = model,
+    model_options = model_options,
+    X_cov = X_cov,
+    n_coeff_nonfixed = n_coeff_nonfixed,
+    param_results = param_results
+  )
+  
+  # Add "(fixed)" to parameter names for fixed parameters
+  # For measurement error parameter (sigma_e)
+  if (!estimate_params[1]) {
+    names(param_results$coeff_meas) <- paste0(names(param_results$coeff_meas), " (fixed)")
+  }
+  
+  # For random effects parameters
+  if (length(param_results$coeff_random) > 0) {
+    # Get parameter names from the parameter results
+    param_names <- names(param_results$coeff_random)
+    
+    # For each parameter in coeff_random, check if it was estimated
+    for (i in 1:length(param_names)) {
+      param_name <- param_names[i]
+      
+      # Find if this parameter was estimated
+      was_estimated <- FALSE
+      
+      # Check in standard param names
+      if (param_name %in% names(estimate_params)) {
+        was_estimated <- estimate_params[param_name]
+      } 
+      # Check for "Theta N" parameters
+      else if (startsWith(param_name, "Theta ")) {
+        # If theta was estimated or this was a non-stationary model with unnamed params
+        if ("theta" %in% names(estimate_params)) {
+          was_estimated <- estimate_params["theta"]
+        } else {
+          # Check unnamed parameters
+          was_estimated <- any(names(estimate_params) == "" & estimate_params)
+        }
+      }
+      
+      if (!was_estimated) {
+        # Rename the parameter to include "(fixed)"
+        names(param_results$coeff_random)[i] <- paste0(param_name, " (fixed)")
+        
+        # Also rename in param_names for consistency
+        param_results$par_names[i] <- paste0(param_name, " (fixed)")
+      }
+    }
+  }
+  
+  # Combine results
+  result <- c(
+    param_results,
+    list(
+      std_err = se_results$std_err,
+      std_meas = se_results$std_meas,
+      std_random = se_results$std_random,
+      std_fixed = se_results$std_fixed
+    )
+  )
+  
+  return(result)
+}
