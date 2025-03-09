@@ -1727,9 +1727,8 @@ convert_B_matrices <- function(B.sigma, B.range, n.spde, nu.nominal, d) {
 #' @noRd
 # Change parameterization in rspde_lme to matern
 
-change_parameterization_lme <- function(likelihood, d, nu, par, hessian
-                                        # , improve_gradient, gradient_args
-) {
+change_parameterization_lme <- function(likelihood, d, nu, par, hessian, 
+                                        fixed_params = c(tau = FALSE, kappa = FALSE)) {
   tau <- par[1]
   kappa <- par[2]
 
@@ -1739,12 +1738,22 @@ change_parameterization_lme <- function(likelihood, d, nu, par, hessian
   sigma <- C2 / (tau * kappa^nu)
   range <- C1 / kappa
 
+  # Initialize result vectors
+  coeff <- c(sigma, range)
+  std_random <- rep(NA, 2)  # Default to NA for fixed parameters
+
+  # If both parameters are fixed, we are done - return NAs for std errors
+  if (all(fixed_params)) {
+    return(list(coeff = coeff, std_random = std_random))
+  }
+
   grad_par <- matrix(c(
     -C2 / (kappa^nu * sigma^2), 0,
     nu * range^(nu - 1) * C2 / (sigma * C1^nu),
     -C1 / range^2
   ), nrow = 2, ncol = 2)
 
+  grad_par <- grad_par[!fixed_params, !fixed_params]
 
   new_observed_fisher <- t(grad_par) %*% hessian %*% (grad_par)
 
@@ -1772,7 +1781,13 @@ change_parameterization_lme <- function(likelihood, d, nu, par, hessian
 
   inv_fisher <- tryCatch(solve(new_observed_fisher), error = function(e) matrix(NA, nrow(new_observed_fisher), ncol(new_observed_fisher)))
 
-  std_err <- sqrt(diag(inv_fisher))
+  if (!any(is.na(inv_fisher))) {
+    std_random <- sqrt(diag(inv_fisher))
+    
+    # Set standard errors to NA for fixed parameters
+    if (fixed_params[1]) std_random[1] <- NA  # sigma
+    if (fixed_params[2]) std_random[2] <- NA  # range
+  }
 
   # new_lik <- function(theta){
   #       sigma <- exp(theta[1])
@@ -1787,7 +1802,7 @@ change_parameterization_lme <- function(likelihood, d, nu, par, hessian
 
   # hess_tmp <- diag(c(1/sigma, 1/range)) %*% hess_tmp %*% diag(c(1/sigma, 1/range))
 
-  return(list(coeff = c(sigma, range), std_random = std_err))
+  return(list(coeff = coeff, std_random = std_random))
 }
 
 
@@ -3538,22 +3553,38 @@ organize_parameters <- function(coeff, model, estimate_params, X_cov) {
     }
   } 
   else if (inherits(model, "CBrSPDEobj2d")) {
-    if (estimate_params["nu"]) {
+    if(!is.na(estimate_params["nu"])){
+      estimate_nu <- estimate_params["nu"]
+    } else if(!is.na(estimate_params["alpha"])){
+      estimate_nu <- estimate_params["alpha"]
+    } else{
+      estimate_nu <- FALSE
+    }
+
+    if (estimate_nu) {
       par_names <- c("nu", "sigma", "hx", "hy", "hxy")
     } else {
       par_names <- c("sigma", "hx", "hy", "hxy")
     }
   } 
   else if ((inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj"))) {
+    if(!is.na(estimate_params["nu"])){
+      estimate_nu <- estimate_params["nu"]
+    } else if(!is.na(estimate_params["alpha"])){
+      estimate_nu <- estimate_params["alpha"]
+    } else{
+      estimate_nu <- FALSE
+    }
+        
     if (model$stationary) {
-      if (estimate_params["nu"]) {
+      if (estimate_nu) {
         par_names <- c("nu", "tau", "kappa")
       } else {
         par_names <- c("tau", "kappa")
       }
     } else {
       # For non-stationary models, use B.tau to determine theta parameter names
-      if (estimate_params["nu"]) {
+      if (estimate_nu) {
         par_names <- c("nu")
       } else {
         par_names <- c()
@@ -3572,7 +3603,15 @@ organize_parameters <- function(coeff, model, estimate_params, X_cov) {
     }
   } 
   else if (inherits(model, "rSPDEobj1d")) {
-    if (estimate_params["nu"]) {
+    if(!is.na(estimate_params["nu"])){
+      estimate_nu <- estimate_params["nu"]
+    } else if(!is.na(estimate_params["alpha"])){
+      estimate_nu <- estimate_params["alpha"]
+    } else{
+      estimate_nu <- FALSE
+    }
+        
+    if (estimate_nu) {
       par_names <- c("nu", "tau", "kappa")
     } else {
       par_names <- c("tau", "kappa")
@@ -3594,6 +3633,16 @@ organize_parameters <- function(coeff, model, estimate_params, X_cov) {
   # First find which parameters in coeff correspond to par_names
   param_idx <- numeric(0)
   param_names <- names(coeff)
+
+  if(!model$stationary){
+    if(!is.na(estimate_params["nu"])){
+      estimate_nu <- estimate_params["nu"]
+    } else if(!is.na(estimate_params["alpha"])){
+      estimate_nu <- estimate_params["alpha"]
+    } else{
+      estimate_nu <- FALSE
+    }     
+  }
   
   for (name in par_names) {
     # For parameters like "Theta 1", we need to check for both the named parameter
@@ -3611,7 +3660,7 @@ organize_parameters <- function(coeff, model, estimate_params, X_cov) {
         # If we have unnamed parameters, attempt to find them by position
         theta_num <- as.numeric(substring(name, 7))
         # Start from position 2 (after sigma_e) and count
-        if (estimate_params["nu"]) {
+        if (estimate_nu) {
           pos <- 3 + theta_num - 1  # sigma_e, nu, then theta positions
         } else {
           pos <- 2 + theta_num - 1  # sigma_e, then theta positions
@@ -3625,7 +3674,7 @@ organize_parameters <- function(coeff, model, estimate_params, X_cov) {
   
   # If we couldn't match by name, use positions (theta is usually after sigma_e and nu)
   if (length(param_idx) == 0 && !model$stationary) {
-    if (estimate_params["nu"]) {
+    if (estimate_nu) {
       start_pos <- 3  # sigma_e, nu
     } else {
       start_pos <- 2  # sigma_e
@@ -3655,9 +3704,9 @@ organize_parameters <- function(coeff, model, estimate_params, X_cov) {
   # Extract fixed effects coefficients if any
   n_fixed <- ncol(X_cov)
   if (n_fixed > 0) {
-    if (length(coeff) >= length(names(coeff)) + n_fixed) {
+    if (length(coeff) >= length(estimate_params)) {
       # If coeff contains unnamed elements at the end (fixed effects)
-      result$coeff_fixed <- coeff[(length(names(coeff)) + 1):length(coeff)]
+      result$coeff_fixed <- coeff[(length(estimate_params) + 1):length(coeff)]
     }
   }
   
@@ -3815,6 +3864,59 @@ calculate_parameter_jacobian <- function(res, estimate_params, model, model_opti
 #' @noRd
 calculate_standard_errors <- function(observed_fisher, res, estimate_params, model, 
                                      model_options, X_cov, n_coeff_nonfixed, param_results) {
+  # Handle edge cases
+  all_fixed = all(!estimate_params)
+  only_sigma_e = sum(estimate_params) == 1 && estimate_params[1]
+  
+  # If all parameters are fixed, return NAs for all standard errors
+  if (all_fixed) {
+    std_err = rep(NA, length(estimate_params) + ncol(X_cov))
+    std_meas = NA
+    std_random = rep(NA, length(param_results$coeff_random))
+    names(std_random) = names(param_results$coeff_random)
+    std_fixed = NULL
+    if (!is.null(param_results$coeff_fixed)) {
+      std_fixed = rep(NA, length(param_results$coeff_fixed))
+    }
+    
+    return(list(
+      std_err = std_err,
+      std_meas = std_meas,
+      std_random = std_random,
+      std_fixed = std_fixed,
+      inv_fisher = matrix(NA, length(std_err), length(std_err))
+    ))
+  }
+  
+  # If only sigma_e is estimated (all latent parameters fixed), 
+  # we still need to calculate its standard error
+  if (only_sigma_e) {
+    # If we only have one parameter, observed_fisher is just a 1x1 matrix
+    if (is.null(dim(observed_fisher)) || (nrow(observed_fisher) == 1 && ncol(observed_fisher) == 1)) {
+      inv_fisher = 1/observed_fisher
+      std_err = sqrt(inv_fisher)
+      std_meas = std_err[1]
+      
+      std_random = rep(NA, length(param_results$coeff_random))
+      names(std_random) = names(param_results$coeff_random)
+      
+      std_fixed = NULL
+      if (ncol(X_cov) > 0) {
+        std_fixed = rep(NA, ncol(X_cov))
+      }
+      
+      return(list(
+        std_err = c(std_meas, rep(NA, length(param_results$coeff_random) + ncol(X_cov))),
+        std_meas = std_meas,
+        std_random = std_random,
+        std_fixed = std_fixed,
+        inv_fisher = matrix(inv_fisher, 1, 1)
+      ))
+    }
+  }
+  
+  # Regular case - calculate parameter Jacobian and standard errors
+  
   # Calculate the parameter transformation Jacobian
   par_change <- calculate_parameter_jacobian(
     res = res,
@@ -3853,60 +3955,78 @@ calculate_standard_errors <- function(observed_fisher, res, estimate_params, mod
     std_meas <- NA
   }
   
-  # Get parameter names from the parameter results
-  par_names <- param_results$par_names
-  
-  # Fill in standard errors for estimated random effect parameters
-  # Track position in std_err vector
-  index <- 2  # Start after sigma_e
-  
-  # Get indices of estimated parameters (excluding sigma_e which is 1st)
-  est_param_indices <- which(estimate_params)[-1]
-  
-  # Map estimated parameters to their positions in std_random
-  for (i in 1:length(est_param_indices)) {
-    param_name <- names(estimate_params)[est_param_indices[i]]
+  # If we have any estimated random effect parameters
+  if (sum(estimate_params) > 1 || (!estimate_params[1] && sum(estimate_params) > 0)) {
+    # Get parameter names from the parameter results
+    par_names <- param_results$par_names
     
-    # Find the position of this parameter in coeff_random
-    pos <- which(param_name == names(std_random))
-    
-    # For parameters with special naming (like "Theta 1" vs "theta")
-    if (length(pos) == 0 && param_name == "theta") {
-      # Find positions that start with "Theta"
-      pos <- grep("^Theta", names(std_random))
+    # Fill in standard errors for estimated random effect parameters
+    # Track position in std_err vector
+    index <- 2  # Start after sigma_e (or position 1 if sigma_e is not estimated)
+    if (!estimate_params[1]) {
+      index <- 1
     }
     
-    if (length(pos) > 0) {
-      if (length(pos) == 1) {
-        # Regular parameter
-        std_random[pos] <- std_err[index]
-      } else {
-        # Vector parameter (like theta or rho)
-        if (param_name == "rho" && inherits(model, "spacetimeobj")) {
-          for (j in 1:model$d) {
-            std_random[pos[j]] <- std_err[index]
-            index <- index + 1
+    # Get indices of estimated parameters (excluding sigma_e if it's estimated)
+    est_param_indices <- which(estimate_params)
+    if (estimate_params[1]) {
+      est_param_indices <- est_param_indices[-1]
+    }
+    
+    # Map estimated parameters to their positions in std_random
+    for (i in 1:length(est_param_indices)) {
+      param_name <- names(estimate_params)[est_param_indices[i]]
+      
+      # Find the position of this parameter in coeff_random
+      pos <- which(param_name == names(std_random))
+      
+      # For parameters with special naming (like "Theta 1" vs "theta")
+      if (length(pos) == 0 && param_name == "theta") {
+        # Find positions that start with "Theta"
+        pos <- grep("^Theta", names(std_random))
+      }
+      
+      if (length(pos) > 0) {
+        if (length(pos) == 1) {
+          # Regular parameter
+          std_random[pos] <- std_err[index]
+        } else {
+          # Vector parameter (like theta or rho)
+          if (param_name == "rho" && inherits(model, "spacetimeobj")) {
+            for (j in 1:model$d) {
+              if (j <= length(pos) && index <= length(std_err)) {
+                std_random[pos[j]] <- std_err[index]
+                index <- index + 1
+              }
+            }
+            next  # Skip the normal index increment
+          } else if (param_name == "theta" || param_name == "") {
+            # For theta parameters in non-stationary models
+            theta_length <- length(model$theta)
+            for (j in 1:min(theta_length, length(pos))) {
+              if (index <= length(std_err)) {
+                std_random[pos[j]] <- std_err[index]
+                index <- index + 1
+              }
+            }
+            next  # Skip the normal index increment
           }
-          next  # Skip the normal index increment
-        } else if (param_name == "theta" || param_name == "") {
-          # For theta parameters in non-stationary models
-          theta_length <- length(model$theta)
-          for (j in 1:min(theta_length, length(pos))) {
-            std_random[pos[j]] <- std_err[index]
-            index <- index + 1
-          }
-          next  # Skip the normal index increment
         }
       }
+      
+      index <- index + 1
     }
-    
-    index <- index + 1
   }
   
-  # Fill in standard errors for fixed effect parameters
+  # Fill in standard errors for fixed effect parameters (covariates)
   n_fixed <- ncol(X_cov)
   if (n_fixed > 0) {
-    std_fixed <- std_err[(1 + n_coeff_nonfixed):(1 + n_coeff_nonfixed + n_fixed)]
+    start_idx <- length(std_err) - n_fixed + 1
+    if (start_idx <= length(std_err)) {
+      std_fixed <- std_err[start_idx:length(std_err)]
+    } else {
+      std_fixed <- rep(NA, n_fixed)
+    }
   }
   
   # Return all standard errors

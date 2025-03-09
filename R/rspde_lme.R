@@ -95,6 +95,8 @@ rspde_lme <- function(formula,
 
   null_model <- TRUE
   spacetime <- inherits(model, "spacetimeobj")
+  anisotropic <- inherits(model, "CBrSPDEobj2d")
+  intrinsic <- inherits(model, "intrinsicCBrSPDEobj")
   
   if (lifecycle::is_present(starting_values_latent)) {
     lifecycle::deprecate_warn(
@@ -460,6 +462,13 @@ rspde_lme <- function(formula,
         A_list[[as.character(j)]] <- A_list[[as.character(j)]][!na_obs, , drop = FALSE]
 
         if (inherits(model, "CBrSPDEobj")) {
+          alpha <- NULL
+          if(!is.null(model_options$fix_alpha)){
+            alpha <- model_options$fix_alpha
+          }
+          if(!is.null(model_options$fix_nu)){
+            alpha <- model_options$fix_nu + model$d / 2
+          }
           if (!is.null(alpha)) {
             if (alpha %% 1 != 0) {
               A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
@@ -805,12 +814,10 @@ rspde_lme <- function(formula,
         }
       }
     }
-    
 
     loglik <- -res$value
 
-    n_fixed <- ncol(X_cov)
-    n_random <- length(coeff) - n_fixed - 1
+    print(estimate_pars)
 
     coeff_results <- process_model_results(res = res, observed_fisher = observed_fisher, 
                                                       start_values = start_values, estimate_params = estimate_pars,
@@ -829,7 +836,9 @@ rspde_lme <- function(formula,
 
     new_likelihood <- NULL
 
-    if (model$stationary && !spacetime && !anisotropic && !intrinsic) {
+    ## Handle all stationary cases that admit the classical matern parameterization
+
+    if (model$stationary && (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d"))) {
       time_matern_par_start <- Sys.time()
       new_likelihood <- function(theta) {
         new_par <- res$par
@@ -840,41 +849,190 @@ rspde_lme <- function(formula,
         }
         return(likelihood(new_par))
       }
+
+      # Get nu value
       if (estimate_nu) {
-         coeff_random_nonnu <- coeff_random[-1]
-         new_observed_fisher <- observed_fisher[3:4, 3:4]
+        nu <- coeff_random[1]
+        param_names <- c("nu", "tau", "kappa")
+        first_param_idx <- 2  # Position of tau in coeff_random
       } else {
-         coeff_random_nonnu <- coeff_random
-         new_observed_fisher <- observed_fisher[2:3, 2:3]
+        # Get nu value from options or model
+        if (!is.null(model_options$fix_nu)) {
+          nu <- model_options$fix_nu
+        } else if (!is.null(model_options$fix_alpha)) {
+          nu <- model_options$fix_alpha - model$d / 2
+        } else {
+          nu <- model$nu
+          if (is.null(nu)) {
+            stop("There was some error with processing nu.")
+          }
+        }
+        param_names <- c("tau", "kappa")
+        first_param_idx <- 1  # Position of tau in coeff_random
+      }      
+
+      # Determine which parameters are fixed
+      fixed_tau <- !estimate_pars[which(names(estimate_pars) == "tau")]
+      fixed_kappa <- !estimate_pars[which(names(estimate_pars) == "kappa")]      
+
+      # Extract tau and kappa values
+      tau <- coeff_random[first_param_idx]
+      kappa <- coeff_random[first_param_idx + 1]      
+
+      # If both parameters are fixed, we don't need Fisher information
+      if (fixed_tau && fixed_kappa) {
+        # Just transform the parameters directly
+        C1 <- sqrt(8 * nu)
+        C2 <- sqrt(gamma(nu) / ((4 * pi)^(model$d / 2) * gamma(nu + model$d / 2)))
+
+        # Calculate sigma and range
+        sigma <- C2 / (tau * kappa^nu)
+        range <- C1 / kappa
+
+        # Create result structure
+        matern_coeff <- list(
+          random_effects = c(coeff_random[1], sigma, range),
+          std_random = c(std_random[1], NA, NA)
+        )
+
+        # Adjust names
+        if (estimate_nu) {
+          names(matern_coeff$random_effects) <- c("nu", "sigma (fixed)", "range (fixed)")
+        } else {
+          # Add nu at the beginning
+          matern_coeff$random_effects <- matern_coeff$random_effects[1:2]
+          matern_coeff$std_random <- matern_coeff$std_random[1:2]
+          names(matern_coeff$random_effects) <- c("sigma (fixed)", "range (fixed)")
+        }
+      } else{
+          # Extract the appropriate submatrix of the Fisher information
+          # If sigma_e is estimated, it's at position 1
+          sigma_e_offset <- if (estimate_pars[1]) 1 else 0
+
+          # Find the positions of tau and kappa in the Fisher information matrix
+          est_params_indices <- which(estimate_pars)
+
+          # Find tau and kappa positions in the estimated parameters
+          tau_pos <- which(names(estimate_pars) == "tau")
+          kappa_pos <- which(names(estimate_pars) == "kappa")
+          # Find their positions in est_params_indices
+          tau_idx <- which(est_params_indices == tau_pos)
+          kappa_idx <- which(est_params_indices == kappa_pos)
+
+          # Create a submatrix of the Fisher information for estimated parameters
+          if (!fixed_tau && !fixed_kappa) {
+            # Both parameters estimated - use the 2x2 submatrix
+            new_observed_fisher <- observed_fisher[c(tau_idx, kappa_idx), 
+                                                  c(tau_idx, kappa_idx)]
+          } else if (!fixed_tau) {
+            # Only tau estimated - use the 1x1 submatrix
+            new_observed_fisher <- matrix(observed_fisher[tau_idx, tau_idx], 1, 1)
+          } else if (!fixed_kappa) {
+            # Only kappa estimated - use the 1x1 submatrix
+            new_observed_fisher <- matrix(observed_fisher[kappa_idx, kappa_idx], 1, 1)
+          } else {
+            # Both fixed - use a dummy matrix
+            new_observed_fisher <- matrix(0, 0, 0)
+          }
+
+          # Create the fixed_params vector for change_parameterization_lme
+          fixed_params <- c(tau = fixed_tau, kappa = fixed_kappa)
+
+          # Get Matern parameterization
+          change_par <- change_parameterization_lme(
+            likelihood = new_likelihood,
+            d = model$d,
+            nu = nu,
+            par = c(tau, kappa),
+            hessian = new_observed_fisher,
+            fixed_params = fixed_params
+          )
+
+          # Create result structure
+          matern_coeff <- list()
+
+          # Create the random effects vector with the correct structure
+          if (estimate_nu) {
+            # If nu is estimated, keep it and replace tau, kappa with sigma, range
+            matern_coeff$random_effects <- c(coeff_random[1], change_par$coeff)
+            names(matern_coeff$random_effects) <- c("nu", "sigma", "range")
+
+            # Mark fixed parameters
+            if (fixed_tau) {
+              names(matern_coeff$random_effects)[2] <- paste0(names(matern_coeff$random_effects)[2], " (fixed)")
+            }
+            if (fixed_kappa) {
+              names(matern_coeff$random_effects)[3] <- paste0(names(matern_coeff$random_effects)[3], " (fixed)")
+            }
+          } else {
+            # If nu is fixed, create a vector with sigma, range
+            matern_coeff$random_effects <- change_par$coeff
+            names(matern_coeff$random_effects) <- c("sigma", "range")
+
+            # Mark fixed parameters
+            if (fixed_tau) {
+              names(matern_coeff$random_effects)[1] <- paste0(names(matern_coeff$random_effects)[1], " (fixed)")
+            }
+            if (fixed_kappa) {
+              names(matern_coeff$random_effects)[2] <- paste0(names(matern_coeff$random_effects)[2], " (fixed)")
+            }
+          }
+
+          # Handle standard errors
+          if (estimate_nu) {
+            # Keep nu's standard error
+            matern_coeff$std_random <- c(std_random[1], change_par$std_random)
+          } else {
+            # Include NA for nu's standard error
+            matern_coeff$std_random <- change_par$std_random
+          }
       }
-      if (estimate_nu && !anisotropic) {
-          change_par <- change_parameterization_lme(new_likelihood, model$d, coeff_random[1], coeff_random_nonnu,
-                                                   hessian = new_observed_fisher # ,
-                                                   # improve_gradient = improve_gradient,
-                                                   # gradient_args = gradient_args
-         )
-      } else if(!anisotropic){
-          change_par <- change_parameterization_lme(new_likelihood, model$d, nu, coeff_random_nonnu,
-                                                   hessian = new_observed_fisher # ,
-                                                   # improve_gradient = improve_gradient,
-                                                   # gradient_args = gradient_args
-         )
-      }   
-      matern_coeff <- list()
-      matern_coeff$random_effects <- coeff_random
-      if (estimate_nu) {
-          names(matern_coeff$random_effects) <- c("nu", "sigma", "range")
-          matern_coeff$random_effects[2:3] <- change_par$coeff
-      } else {
-          matern_coeff$random_effects <- change_par$coeff
-          names(matern_coeff$random_effects) <- c("sigma", "range")
-      }
-      matern_coeff$std_random <- std_random
-      if (estimate_nu) {
-          matern_coeff$std_random[2:3] <- change_par$std_random
-      } else {
-          matern_coeff$std_random <- change_par$std_random
-      }
+
+
+
+
+      # if (estimate_nu) {
+      #    coeff_random_nonnu <- coeff_random[-1]
+      #    new_observed_fisher <- observed_fisher[3:4, 3:4]
+      # } else {
+      #    if(!is.null(model_options$fix_nu)){
+      #      nu <- model_options$fix_nu
+      #    } else if(!is.null(model_options$fix_alpha)){
+      #      nu <- model_options$fix_alpha - model$d / 2
+      #    } else{
+      #      stop("There was some error with processing nu.")
+      #    }
+      #    coeff_random_nonnu <- coeff_random
+      #    new_observed_fisher <- observed_fisher[2:3, 2:3]
+      # }
+      # if (estimate_nu) {
+      #     change_par <- change_parameterization_lme(new_likelihood, model$d, coeff_random[1], coeff_random_nonnu,
+      #                                              hessian = new_observed_fisher # ,
+      #                                              # improve_gradient = improve_gradient,
+      #                                              # gradient_args = gradient_args
+      #    )
+      # } else {
+      #     change_par <- change_parameterization_lme(new_likelihood, model$d, nu, coeff_random_nonnu,
+      #                                              hessian = new_observed_fisher # ,
+      #                                              # improve_gradient = improve_gradient,
+      #                                              # gradient_args = gradient_args
+      #    )
+      # }   
+      # matern_coeff <- list()
+      # matern_coeff$random_effects <- coeff_random
+      # if (estimate_nu) {
+      #     names(matern_coeff$random_effects) <- c("nu", "sigma", "range")
+      #     matern_coeff$random_effects[2:3] <- change_par$coeff
+      # } else {
+      #     matern_coeff$random_effects <- change_par$coeff
+      #     names(matern_coeff$random_effects) <- c("sigma", "range")
+      # }
+      # matern_coeff$std_random <- std_random
+      # if (estimate_nu) {
+      #     matern_coeff$std_random[2:3] <- change_par$std_random
+      # } else {
+      #     matern_coeff$std_random <- change_par$std_random
+      # }
       time_matern_par_end <- Sys.time()
       time_matern_par <- time_matern_par_end - time_matern_par_start
   } else {
