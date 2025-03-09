@@ -94,6 +94,7 @@ rspde_lme <- function(formula,
                       ) {
 
   null_model <- TRUE
+  spacetime <- inherits(model, "spacetimeobj")
   
   if (lifecycle::is_present(starting_values_latent)) {
     lifecycle::deprecate_warn(
@@ -304,6 +305,22 @@ rspde_lme <- function(formula,
 
   time_data <- time_data_end - time_data_start
 
+
+  ### To add new models in rspde_lme the main things to check are:
+  ### Does the new model use the spde/matern parameterization? if so, update the parameterization as below
+  ### Does it use a rational approximation, if so, use rspde_order as below
+  ### extract_starting_values should be robust in general and not be updated (it only differentiates between nonstationary and other models, because nonstationary models have parameters without name)
+  ### process_model_options might need to be updated depending on the model, if it does not have spde/matern parameterization, it needs to be excluded
+  ### general_checks_lme might need to be updated
+  ### get_model_starting_values this is one that most likely needs to be updated as it handles the names of the parameters as well
+  ### update_starting_values might need to be updated if some of the parameters need a more special transformation
+  ### It is possible get_starting_values_lme needs to be updated, depending on the new parameters
+  ### get_aux_likelihood_function must be updated by including the new model's auxiliary likelihood function
+  ### determine_estimate_params should be robust and most likely does not need to be updated
+  ### extract_model_update_args might need to be updated by including new parameter names
+  ### get_aux_lik_fun_args probably wont need to be updated, but if a novel argument appears in the auxiliary likelihood function, then it must be included there
+  ### create_likelihood is designed to be robust and not need any updates
+
   if (!null_model) {
     time_build_likelihood_start <- Sys.time()
 
@@ -314,9 +331,9 @@ rspde_lme <- function(formula,
     }
 
     if (!is.null(rspde_order) && !is.null(model)) {
-      if (!inherits(model, "spacetimeobj") && !inherits(model, "intrinsicCBrSPDEobj")) {
-        model <- update(model, m = rspde_order)      
-      }
+        if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
+          model <- update(model, m = rspde_order)      
+        }
     } else if (!is.null(model)) {
       rspde_order <- model$m
     } else {
@@ -325,25 +342,17 @@ rspde_lme <- function(formula,
 
     # General checks
 
-    if(!is.null(model_options$fix_alpha) && !is.null(model_options$fix_beta)) {
-        if(model_options$fix_alpha + model_options$fix_beta <= model$d/2) {
-            stop("One must have alpha + beta > d/2.")
-        }
-    }
+    general_checks_lme(model, model_options)
 
-    if (!inherits(model, "intrinsicCBrSPDEobj") && !is.null(model_options$fix_alpha) && model_options$fix_alpha <= model$d / 2) {
-      stop(paste("model_options$fix_alpha must be greater than dim/2 = ", model$d / 2))
-    }
+    # Process model_options
 
-    if (!inherits(model, "intrinsicCBrSPDEobj") && !is.null(model_options$start_alpha) && model_options$start_alpha <= model$d / 2) {
-      stop(paste("model_options$start_alpha must be greater than dim/2 = ", model$d / 2))
-    }
+    model_options <- process_model_options(model, model_options)
 
     # Getting auxiliary starting values
 
-    starting_values_aux <- get_starting_values_aux(model, model_options)
-
-
+    starting_values_tmp <- get_model_starting_values(model)
+    starting_values_aux <- update_starting_values(starting_values_tmp, model, model_options)
+    start_values <- get_starting_values_lme(model, model_options, y_resp, starting_values_aux)
 
     if (is.data.frame(loc) || is.matrix(loc)) {
       loc_df <- loc
@@ -430,6 +439,8 @@ rspde_lme <- function(formula,
             stop("loc_time should be a matrix, vector or character vector.")
         }
     }
+
+
     repl_val <- unique(repl)
     A_list <- list()
     
@@ -445,7 +456,7 @@ rspde_lme <- function(formula,
         na_obs <- is.na(y_tmp)
         A_list[[as.character(j)]] <- model$make_A(loc_df[ind_tmp, , drop = FALSE])
         A_list[[as.character(j)]] <- A_list[[as.character(j)]][!na_obs, , drop = FALSE]
-        
+
         if (inherits(model, "CBrSPDEobj")) {
           if (!is.null(alpha)) {
             if (alpha %% 1 != 0) {
@@ -467,301 +478,23 @@ rspde_lme <- function(formula,
         }
     } else if (!inherits(model, "rSPDEobj1d")){
         stop("When creating the model object using matern.operators() or spde.matern.operators(), you should either supply a graph, or a mesh, or mesh_loc (this last one only works for dimension 1).")
-    }
+    }  
 
     n_coeff_nonfixed <- length(start_values)
 
     model_tmp <- model
     model_tmp$graph <- NULL
-    if(!inherits(model, "rSPDEobj1d") && !spacetime && !anisotropic && !intrinsic) {
+    if(inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj")) {
         model_tmp$mesh <- NULL
         model_tmp$make_A <- NULL    
     }
-    
-    if(inherits(model, "intrinsicCBrSPDEobj")) {
-        likelihood <- function(theta) {
-            sigma_e <- exp(theta[1])
-            n_cov <- ncol(X_cov)
-            n_initial <- n_coeff_nonfixed
-            gap <- 0
-            
-            if (estimate_alpha) {
-                alpha <- exp(theta[2]) + model$d/2
-                if (alpha %% 1 == 0) {
-                    alpha <- alpha - 1e-5
-                }
-                #alpha <- min(alpha, 9.99)
-                gap <- gap + 1
-            }
-            if (estimate_beta) {
-                beta <- theta2beta(theta[2+gap], model$d)
-                if (beta %% 1 == 0) {
-                    beta <- beta - 1e-5
-                }
-                gap <- gap + 1
-            } 
-            
-            tau <- exp(theta[2 + gap])
-            if(!estimate_alpha && alpha == 0) {
-                kappa <- 0
-            } else {
-                kappa <- exp(theta[3 + gap])    
-            }
-            model_tmp <- update.intrinsicCBrSPDEobj(model_tmp, alpha = alpha, 
-                                                    tau = tau, kappa = kappa, 
-                                                    beta = beta)
-            
-            
-            if (n_cov > 0) {
-                beta_cov <- theta[(n_initial + 1):(n_initial + n_cov)]
-            } else {
-                beta_cov <- NULL
-            }
-            
-            loglik <- aux_lme_intrinsic.loglike(
-                object = model_tmp, y = y_resp, X_cov = X_cov, repl = repl,
-                A_list = A_list, sigma_e = sigma_e, beta_cov = beta_cov,
-                mean_correction = mean_correction
-            )
-            #cat("beta = ", beta, "alpha = ", alpha,"tau = ", tau,"kappa=",kappa, "sigma.e = ", sigma_e, "like = ", loglik, "\n")
-            return(-loglik)
-        }
-    } else if (inherits(model, "CBrSPDEobj")) {
-      likelihood <- function(theta) {
-        sigma_e <- exp(theta[1])
-        n_cov <- ncol(X_cov)
-        n_initial <- n_coeff_nonfixed
-        if (estimate_nu) {
-          nu <- exp(theta[2])
-          if (nu %% 1 == 0) {
-            nu <- nu - 1e-5
-          }
-          nu <- min(nu, 9.99)
-          gap <- 1
-        } else {
-          gap <- 0
-        }
 
-        if (model_tmp$stationary) {
-          # if(model_tmp$parameterization == "spde"){
-          alpha <- nu + model$d / 2
-          if (estimate_nu) {
-            alpha <- max(1e-5 + model$d / 2, alpha)
-          }
-          tau <- exp(theta[2 + gap])
-          kappa <- exp(theta[3 + gap])
-          model_tmp <- update.CBrSPDEobj(model_tmp,
-            alpha = alpha, tau = tau,
-            kappa = kappa, parameterization = "spde"
-          )
-        } else {
-          theta_model <- theta[(2 + gap):(n_initial)]
-          alpha <- nu + model$d / 2
-          if (estimate_nu) {
-            alpha <- max(1e-5 + model$d / 2, alpha)
-          }
-          model_tmp <- update.CBrSPDEobj(model_tmp,
-            theta = theta_model,
-            alpha = alpha,
-            parameterization = "spde"
-          )
-        }
-
-        if (n_cov > 0) {
-          beta_cov <- theta[(n_initial + 1):(n_initial + n_cov)]
-        } else {
-          beta_cov <- NULL
-        }
-
-        loglik <- aux_lme_CBrSPDE.matern.loglike(
-          object = model_tmp, y = y_resp, X_cov = X_cov, repl = repl,
-          A_list = A_list, sigma_e = sigma_e, beta_cov = beta_cov
-        )
-
-        return(-loglik)
-      }
-    } else if (inherits(model, "CBrSPDEobj2d")) {
-        likelihood <- function(theta) {
-            sigma_e <- exp(theta[1])
-            n_cov <- ncol(X_cov)
-            n_initial <- n_coeff_nonfixed
-            if (estimate_nu) {
-                nu <- exp(theta[2])
-                if (nu %% 1 == 0) {
-                    nu <- nu - 1e-5
-                }
-                nu <- min(nu, 9.99)
-                gap <- 1
-            } else {
-                gap <- 0
-            }
-            
-            sigma <- exp(theta[2 + gap])
-            hx <- exp(theta[3 + gap])
-            hy <- exp(theta[4 + gap])
-            hxy <- 2*exp(theta[5 + gap])/(1+exp(theta[5 + gap])) - 1
-            model_tmp <- update.CBrSPDEobj2d(model_tmp,
-                                             nu = nu, 
-                                             sigma = sigma,
-                                             hx = hx,
-                                             hy = hy,
-                                             hxy = hxy)
-        
-            
-            if (n_cov > 0) {
-                beta_cov <- theta[(n_initial + 1):(n_initial + n_cov)]
-            } else {
-                beta_cov <- NULL
-            }
-            
-            loglik <- aux_lme_CBrSPDE.matern2d.loglike(
-                object = model_tmp, y = y_resp, X_cov = X_cov, repl = repl,
-                A_list = A_list, sigma_e = sigma_e, beta_cov = beta_cov
-            )
-            #cat("nu = ", nu, ", sigma = ", sigma, ", h = (", hx, hy, hxy,"), beta = ", beta_cov, ", sigma_e = ", sigma_e, " : ", loglik, "\n")
-            return(-loglik)
-        }
-  } else if (inherits(model, "spacetimeobj")) { 
-      likelihood <- function(theta) {
-          n_cov <- ncol(X_cov)
-          n_initial <- n_coeff_nonfixed
-          bounded_rho <- model_tmp$is_bounded_rho
-          bound_rho <- model_tmp$bound_rho
-          
-          sigma_e <- exp(theta[1])
-          kappa <- exp(theta[2])
-          sigma <- exp(theta[3])
-          gamma <- exp(theta[4])
-          if(model_tmp$alpha >0) {
-              if(bounded_rho){
-                rho <- bound_rho * (2.0 / (1.0 + exp(-theta[5:(5+model_tmp$d-1)])) - 1.0)
-              } else{
-                rho <- theta[5:(5+model_tmp$d-1)]    
-              }
-          } else {
-              rho <- rep(0,model_tmp$d)
-          }
-          
-          model_tmp <- update.spacetimeobj(model_tmp,
-                                         kappa = kappa, sigma = sigma,
-                                         gamma = gamma, rho = rho)
-
-          if (n_cov > 0) {
-              beta_cov <- theta[(n_initial + 1):(n_initial + n_cov)]
-          } else {
-              beta_cov <- NULL
-          }
-          
-          loglik <- aux_lme_spacetime.loglike(
-              object = model_tmp, y = y_resp, X_cov = X_cov, repl = repl,
-              A_list = A_list, sigma_e = sigma_e, beta_cov = beta_cov
-          )
-          return(-loglik)
-      }
-      
-     } else if(inherits(model, "rSPDEobj1d")) {
-      likelihood <- function(theta) {
-          sigma_e <- exp(theta[1])
-          n_cov <- ncol(X_cov)
-          n_initial <- n_coeff_nonfixed
-          if (estimate_nu) {
-              nu <- exp(theta[2])
-              nu <- min(nu, nu_upper_bound)
-              gap <- 1
-          } else {
-              gap <- 0
-          }
-          if (nu == nu_upper_bound) {
-              return(-10^100)
-          }
-          alpha <- nu + model$d / 2
-          if (estimate_nu) {
-              alpha <- max(1e-5 + model$d / 2, alpha)
-          }
-          tau <- exp(theta[2 + gap])
-          kappa <- exp(theta[3 + gap])
-          model_tmp <- update.rSPDEobj1d(model_tmp,
-                                       alpha = alpha, tau = tau,
-                                       kappa = kappa, parameterization = "spde"
-              )
-          
-          
-          if (n_cov > 0) {
-              beta_cov <- theta[(n_initial + 1):(n_initial + n_cov)]
-          } else {
-              beta_cov <- NULL
-          }
-          
-          loglik <- aux_lme_rSPDE.matern.rational.loglike(
-              object = model_tmp, y = y_resp, X_cov = X_cov, repl = repl,
-              loc = loc_df, sigma_e = sigma_e, beta_cov = beta_cov
-          )
-          
-          return(-loglik)
-      }
-          
-  } else {
-      likelihood <- function(theta) {
-        sigma_e <- exp(theta[1])
-        n_cov <- ncol(X_cov)
-        n_initial <- n_coeff_nonfixed
-        if (estimate_nu) {
-          nu <- exp(theta[2])
-          if (nu %% 1 == 0) {
-            nu <- nu - 1e-5
-          }
-          nu <- min(nu, nu_upper_bound)
-          gap <- 1
-        } else {
-          gap <- 0
-        }
-
-        if (model$stationary) {
-          # if(model_tmp$parameterization == "spde"){
-          alpha <- nu + model$d / 2
-          if (estimate_nu) {
-            alpha <- max(1e-5 + model$d / 2, alpha)
-          }
-          tau <- exp(theta[2 + gap])
-          kappa <- exp(theta[3 + gap])
-          model_tmp <- update.rSPDEobj(model_tmp,
-            alpha = alpha, tau = tau,
-            kappa = kappa, parameterization = "spde"
-          )
-          # } else if(model_tmp$parameterization == "matern"){
-          #     sigma <- exp(theta[2+gap])
-          #     range <- exp(theta[3+gap])
-          #     model_tmp <- update.rSPDEobj(model_tmp,
-          #         nu = nu,
-          #         sigma = sigma, range = range,
-          #         parameterization = "matern")
-          # }
-        } else {
-          theta_model <- theta[(2 + gap):(n_initial)]
-          alpha <- nu + model$d / 2
-          if (estimate_nu) {
-            alpha <- max(1e-5 + model$d / 2, alpha)
-          }
-          model_tmp <- update.rSPDEobj(model_tmp,
-            theta = theta_model,
-            alpha = alpha, parameterization = "spde"
-          )
-        }
-
-        if (n_cov > 0) {
-          beta_cov <- theta[(n_initial + 1):(n_initial + n_cov)]
-        } else {
-          beta_cov <- NULL
-        }
-
-        loglik <- aux_lme_rSPDE.matern.loglike(
-          object = model_tmp, y = y_resp, X_cov = X_cov, repl = repl,
-          A_list = A_list, sigma_e = sigma_e, beta_cov = beta_cov
-        )
-
-        return(-loglik)
-      }
-    }
+    like_aux <- create_likelihood(model = model, model_options = model_options, y_resp = y_resp, X_cov = X_cov, A_list = A_list, repl = repl,
+                                    start_values = start_values, mean_correction = mean_correction, nu_upper_bound = nu_upper_bound,
+                                    loc_df = loc_df)
+    likelihood <- like_aux$likelihood
+    estimate_pars <- like_aux$estimate_params
+    n_coeff_nonfixed <- like_aux$n_coeff_nonfixed
 
     if (ncol(X_cov) > 0 && !is.null(model)) {
       names_tmp <- colnames(X_cov)
