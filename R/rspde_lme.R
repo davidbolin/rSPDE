@@ -1061,8 +1061,10 @@ rspde_lme <- function(formula,
 
   if(spacetime){
     beta <- model$beta
+    alpha <- model$alpha
   } else{
     beta <- model_options[["fix_beta"]]
+    alpha <- model_options[["fix_alpha"]]
   }
 
   object <- list()
