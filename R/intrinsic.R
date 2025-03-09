@@ -281,88 +281,104 @@ intrinsic.operators.internal <- function(C,
       }
   }
 
-  L <- G / scaling
-
-  CiL <- CiG / scaling
-
-  if (m_alpha == 0) {
-    aux_mat <- Diagonal(dim(L)[1])
-  } else {
-    aux_mat <- CiL
-  }
-
-
-  if (return_block_list) {
-    Q.int <- aux_mat
-
-    if (alpha %% 1 == 0) {
-      Q.frac <- Matrix::Diagonal(dim(L)[1])
+  if(alpha %% 1 == 0) {
       Q <- G
-
       if (alpha > 1) {
-        for (k in 1:(alpha - 1)) {
-          Q <- Q %*% CiG
-        }
-      }
-
-      Q.int <- Q
-    } else {
-      if (m == 0) {
-        stop("Return block list does not work with m = 0, either increase m or set return_block_list to FALSE.")
-      }
-      Q.frac <- intrinsic.precision(
-        alpha = alpha, rspde.order = m, dim = d,
-        fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
-        return_block_list = TRUE,
-        type_rational_approx = type_rational_approximation,
-        scaling = scaling
-      )
-
-      Q <- Q.frac
-
-      if (m_alpha > 0) {
-        for (j in seq_len(length(Q))) {
-          for (i in 1:m_alpha) {
-            Q[[j]] <- Q[[j]] %*% Q.int
+          for (k in 1:(alpha - 1)) {
+              Q <- Q %*% CiG
           }
-        }
       }
-      Q.int <- list(Q.int = Q.int, order = m_alpha)
-    }
-  } else {
-    Q.int <- list(Q.int = kronecker(Diagonal(m + 1), aux_mat), order = m_alpha)
-
-    if (alpha %% 1 == 0) {
-      Q.frac <- Matrix::Diagonal(dim(L)[1])
-      Q <- G
-
-      if (alpha > 1) {
-        for (k in 1:(alpha - 1)) {
-          Q <- Q %*% CiL
-        }
+      Q.frac <- Matrix::Diagonal(dim(G)[1])
+      Q.int <- Q
+      if (return_block_list) {
+          Q <- list(Q)
+      } else {
+          Q.int <- list(Q.int = Q, order = m_alpha)
       }
-
-      Q.int <- list(Q.int = Q, order = m_alpha)
-    } else if (m > 0) {
-      Q.frac <- intrinsic.precision(
-        alpha = alpha,
-        rspde.order = m, dim = d,
-        fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
-        type_rational_approx = type_rational_approximation,
-        scaling = scaling
-      )
-
-      Q <- Q.frac
-
-      if (m_alpha > 0) {
-        for (i in 1:m_alpha) {
-          Q <- Q %*% Q.int$Q.int
-        }
+  } else { # fractional case 
+      L <- G / scaling
+      
+      CiL <- CiG / scaling
+      
+      if (m_alpha == 0) {
+          aux_mat <- Diagonal(dim(L)[1])
+      } else {
+          aux_mat <- CiL
       }
-    } else {
-      stop("m > 0 required for intrinsic fields")
-    }
+      
+      
+      if (return_block_list) {
+          Q.int <- aux_mat
+          
+          if (alpha %% 1 == 0) {
+              Q.frac <- Matrix::Diagonal(dim(L)[1])
+              Q <- G
+              
+              if (alpha > 1) {
+                  for (k in 1:(alpha - 1)) {
+                      Q <- Q %*% CiG
+                  }
+              }
+              Q.int <- Q
+          } else {
+              if (m == 0) {
+                  stop("Return block list does not work with m = 0, either increase m or set return_block_list to FALSE.")
+              }
+              Q.frac <- intrinsic.precision(
+                  alpha = alpha, rspde.order = m, dim = d,
+                  fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
+                  return_block_list = TRUE,
+                  type_rational_approx = type_rational_approximation,
+                  scaling = scaling
+              )
+              
+              Q <- Q.frac
+              
+              if (m_alpha > 0) {
+                  for (j in seq_len(length(Q))) {
+                      for (i in 1:m_alpha) {
+                          Q[[j]] <- Q[[j]] %*% Q.int
+                      }
+                  }
+              }
+              Q.int <- list(Q.int = Q.int, order = m_alpha)
+          }
+      } else {
+          Q.int <- list(Q.int = kronecker(Diagonal(m + 1), aux_mat), order = m_alpha)
+          
+          if (alpha %% 1 == 0) {
+              Q.frac <- Matrix::Diagonal(dim(L)[1])
+              Q <- G
+              
+              if (alpha > 1) {
+                  for (k in 1:(alpha - 1)) {
+                      Q <- Q %*% CiL
+                  }
+              }
+              
+              Q.int <- list(Q.int = Q, order = m_alpha)
+          } else if (m > 0) {
+              Q.frac <- intrinsic.precision(
+                  alpha = alpha,
+                  rspde.order = m, dim = d,
+                  fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
+                  type_rational_approx = type_rational_approximation,
+                  scaling = scaling
+              )
+              
+              Q <- Q.frac
+              
+              if (m_alpha > 0) {
+                  for (i in 1:m_alpha) {
+                      Q <- Q %*% Q.int$Q.int
+                  }
+              }
+          } else {
+              stop("m > 0 required for intrinsic fields")
+          }
+      }    
   }
+  
 
   ## output
   output <- list(
@@ -398,7 +414,7 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
                                 type_rational_approx = "chebfun",
                                 scaling = NULL) {
   n_m <- rspde.order
-
+  
   mt <- get_rational_coefficients(n_m, type_rational_approx)
 
 
@@ -1223,6 +1239,7 @@ precision.intrinsicCBrSPDEobj <- function(object,
             det2 <- rep(1,m2)
             for(i in 1:m2) {
                 if(object$beta < 1 && object$alpha == 0) {
+                #if(0) {
                     Q.R <- Matrix::Cholesky(object$Q_list$Qintrinsic[[i]])
                     det2[i] <- 2 * c(determinant(Q.R, logarithm = TRUE, sqrt = TRUE)$modulus)
                 } else {
@@ -1605,14 +1622,19 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
         A_tmp <- A_list[[as.character(i)]]
         Q.p <- Q + t(A_tmp) %*% A_tmp / sigma_e^2
         
-        #ind <- 1 + seq(from = 0, to = (object$m-1)*object$n, by = object$n)
-        #R.p <- Matrix::Cholesky(forceSymmetric(Q.p[-ind,-ind]))
-        #posterior.ld <- c(determinant(R.p, logarithm = TRUE, sqrt = TRUE)$modulus)
-        posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
-        
-        if(is.na(posterior.ld)) {
-            ind <- 1 + seq(from = object$n, to = (object$m-1)*object$n, by = object$n)
-            posterior.ld <- 0.5*c(determinant(Q.p[-ind,-ind], logarithm = TRUE)$modulus)
+        if(object$beta < 1 && object$alpha == 0) {
+        #if(0) {
+            posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+        } else {
+            if(object$m == 1) {
+            #    if(0) {
+                posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+            } else {
+                ind <- 1 + seq(from = object$n, 
+                               to = (object$m-1)*object$n, by = object$n)
+                posterior.ld <- 0.5*(c(determinant(Q.p[-ind,-ind], logarithm = TRUE)$modulus) + (object$m-1)*log(dim(Q)[1]) - log(object$m))  
+                l <- l - log(2*pi)    
+            }
         }
         
         l <- l + prior.ld - posterior.ld - n.o * log(sigma_e)
