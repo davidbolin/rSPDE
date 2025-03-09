@@ -846,6 +846,12 @@ rspde_lme <- function(formula,
 
     loglik <- -res$value
 
+    tmp_test <- extract_parameters_from_optim(res, start_values, estimate_pars, model, model_options, X_cov, n_coeff_nonfixed)
+    print(organize_parameters(c(tmp_test$coeff_random, tmp_test$coeff_fixed),
+    model = model,
+    estimate_params =     tmp_test,
+    X_cov = X_cov))
+
     coeff_results <- process_model_results(res = res, observed_fisher = observed_fisher, 
                                                       start_values = start_values, estimate_params = estimate_pars,
                                                       model = model,
@@ -1128,7 +1134,7 @@ rspde_lme <- function(formula,
   object$nu <- nu
   object$alpha <- alpha
   object$beta <- beta
-  if(!intrinsic || !is.null(model_options[["fix_alpha"]])) {
+  if(!intrinsic || is.null(model_options[["fix_alpha"]])) {
       object$estimated_alpha <- estimated_alpha    
   }
   

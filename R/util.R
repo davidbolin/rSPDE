@@ -2909,10 +2909,18 @@ get_starting_values_lme <- function(model, model_options, y_resp, starting_value
   # Determine starting values based on model type and parameters
   if (intrinsic) {
     if (is.null(start_alpha)) {
-      start_alpha = 1
+      if(is.null(model$alpha)){
+        start_alpha = 1
+      } else{
+        start_alpha = model$alpha
+      }
     }
     if (is.null(start_beta)) {
-      start_beta = 0.9
+      if(is.null(model$beta)){
+        start_beta = 0.9
+      } else{
+        start_beta = model$beta
+      }
     }
     
     estimate_alpha <- is.null(model_options$fix_alpha)
@@ -2921,14 +2929,16 @@ get_starting_values_lme <- function(model, model_options, y_resp, starting_value
     if (estimate_alpha && estimate_beta) {
       start_values <- c(
         sigma_e = log(0.1 * sd(y_resp)), 
-        nu = log(start_alpha - model$d/2), # alpha > d/2, alpha = d/2 + exp(theta)
+        # alpha = log(start_alpha - model$d/2), # alpha > d/2, alpha = d/2 + exp(theta)
+        alpha = log(start_alpha), # It was the one in the line above, but I guess the correct one is this, as beta is already larger than d/2
         beta = beta2theta(start_beta, model$d)
       )
       start_values <- c(start_values, starting_values_aux)
     } else if (estimate_alpha) {
       start_values <- c(
         sigma_e = log(0.1 * sd(y_resp)), 
-        nu = log(start_alpha - model$d/2)
+        # alpha = log(start_alpha - model$d/2)
+        alpha = log(start_alpha)
       )
       start_values <- c(start_values, starting_values_aux)
     } else if (estimate_beta) {
