@@ -72,7 +72,7 @@ rspde_lme <- function(formula,
                       repl = NULL,
                       which_repl = NULL,
                       optim_method = "L-BFGS-B",
-                      possible_methods = c("Nelder-Mead", "L-BFGS-B"),
+                      possible_methods = c("L-BFGS-B", "Nelder-Mead"),
                       use_data_from_graph = TRUE,
                       nu_upper_bound = 4,
                       rspde_order = NULL,
@@ -85,14 +85,14 @@ rspde_lme <- function(formula,
                       optim_controls = list(),
                       improve_hessian = FALSE,
                       hessian_args = list(),
-                      alpha = deprecated(),
-                      nu = deprecated(),
-                      beta = deprecated(),
-                      starting_values_latent = deprecated(),
-                      start_sigma_e = deprecated(),
-                      start_alpha = deprecated(),
-                      start_nu = deprecated(),
-                      start_beta = deprecated()
+                      alpha = lifecycle::deprecated(),
+                      nu = lifecycle::deprecated(),
+                      beta = lifecycle::deprecated(),
+                      starting_values_latent = lifecycle::deprecated(),
+                      start_sigma_e = lifecycle::deprecated(),
+                      start_alpha = lifecycle::deprecated(),
+                      start_nu = lifecycle::deprecated(),
+                      start_beta = lifecycle::deprecated()
                       ) {
 
   null_model <- TRUE
@@ -662,8 +662,14 @@ rspde_lme <- function(formula,
           end_hessian <- Sys.time()
           time_hessian <- end_hessian - start_hessian
         }
-        eig_hes <- eigen(observed_fisher)$value
-        cond_pos_hes <- (min(eig_hes) > 1e-15)
+        if(nrow(observed_fisher) > 0) {
+            eig_hes <- eigen(observed_fisher)$value
+            cond_pos_hes <- (min(eig_hes) > 1e-15)
+        } else{
+          eig_hes <- 1
+          cond_pos_hes <- TRUE
+        }
+
       } else {
         stop("Could not fit the model. Please, try another method with 'parallel' set to FALSE.")
       }
@@ -707,8 +713,13 @@ rspde_lme <- function(formula,
           end_hessian <- Sys.time()
           time_hessian <- end_hessian - start_hessian
         }
-        eig_hes <- eigen(observed_fisher)$value
-        cond_pos_hes <- (min(eig_hes) > 1e-15)
+        if(nrow(observed_fisher) > 0) {
+          eig_hes <- eigen(observed_fisher)$value
+          cond_pos_hes <- (min(eig_hes) > 1e-15)
+        } else{
+          eig_hes <- 1
+          cond_pos_hes <- TRUE
+        }
       }
 
       problem_optim <- list()
@@ -779,8 +790,13 @@ rspde_lme <- function(formula,
               end_hessian <- Sys.time()
               time_hessian <- end_hessian - start_hessian
             }
-            eig_hes <- eigen(observed_fisher)$value
-            cond_pos_hes <- (min(eig_hes) > 1e-15)
+            if(nrow(observed_fisher) > 0) {
+              eig_hes <- eigen(observed_fisher)$value
+              cond_pos_hes <- (min(eig_hes) > 1e-15)
+            } else{
+              eig_hes <- 1
+              cond_pos_hes <- TRUE
+            }
 
             problem_optim[[tmp_method]][["lik"]] <- -res$value
             problem_optim[[tmp_method]][["res"]] <- res
@@ -830,7 +846,7 @@ rspde_lme <- function(formula,
     coeff_fixed <- coeff_results$coeff_fixed      
     estimated_alpha <- coeff_results$estimated_alpha
     estimated_beta <- coeff_results$estimated_beta
-    estimate_nu <- (is.null(model_options$fix_nu) && is.null(model_options$fix_alpha))
+    estimate_nu <- is.null(model_options$fix_nu) && is.null(model_options$fix_alpha) && !spacetime
     std_meas <- coeff_results$std_meas
     std_random <- coeff_results$std_random
     std_fixed <- coeff_results$std_fixed
@@ -988,52 +1004,6 @@ rspde_lme <- function(formula,
             matern_coeff$std_random <- change_par$std_random
           }
       }
-
-
-
-
-      # if (estimate_nu) {
-      #    coeff_random_nonnu <- coeff_random[-1]
-      #    new_observed_fisher <- observed_fisher[3:4, 3:4]
-      # } else {
-      #    if(!is.null(model_options$fix_nu)){
-      #      nu <- model_options$fix_nu
-      #    } else if(!is.null(model_options$fix_alpha)){
-      #      nu <- model_options$fix_alpha - model$d / 2
-      #    } else{
-      #      stop("There was some error with processing nu.")
-      #    }
-      #    coeff_random_nonnu <- coeff_random
-      #    new_observed_fisher <- observed_fisher[2:3, 2:3]
-      # }
-      # if (estimate_nu) {
-      #     change_par <- change_parameterization_lme(new_likelihood, model$d, coeff_random[1], coeff_random_nonnu,
-      #                                              hessian = new_observed_fisher # ,
-      #                                              # improve_gradient = improve_gradient,
-      #                                              # gradient_args = gradient_args
-      #    )
-      # } else {
-      #     change_par <- change_parameterization_lme(new_likelihood, model$d, nu, coeff_random_nonnu,
-      #                                              hessian = new_observed_fisher # ,
-      #                                              # improve_gradient = improve_gradient,
-      #                                              # gradient_args = gradient_args
-      #    )
-      # }   
-      # matern_coeff <- list()
-      # matern_coeff$random_effects <- coeff_random
-      # if (estimate_nu) {
-      #     names(matern_coeff$random_effects) <- c("nu", "sigma", "range")
-      #     matern_coeff$random_effects[2:3] <- change_par$coeff
-      # } else {
-      #     matern_coeff$random_effects <- change_par$coeff
-      #     names(matern_coeff$random_effects) <- c("sigma", "range")
-      # }
-      # matern_coeff$std_random <- std_random
-      # if (estimate_nu) {
-      #     matern_coeff$std_random[2:3] <- change_par$std_random
-      # } else {
-      #     matern_coeff$std_random <- change_par$std_random
-      # }
       time_matern_par_end <- Sys.time()
       time_matern_par <- time_matern_par_end - time_matern_par_start
   } else {
@@ -1075,6 +1045,26 @@ rspde_lme <- function(formula,
     stop("The model does not have either random nor fixed effects.")
   }
 
+  if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
+    if(!is.null(nu)){
+      alpha <- nu + model$d/2
+    }
+  }
+
+  if(!is.null(model_options$fix_alpha)){
+    alpha <- model_options$fix_alpha
+    nu <- alpha - model$d/2
+  } else if(!is.null(model_options$fix_nu)){
+    nu <- model_options$fix_nu
+    alpha <- nu + model$d/2
+  }
+
+  if(spacetime){
+    beta <- model$beta
+  } else{
+    beta <- model_options[["fix_beta"]]
+  }
+
   object <- list()
   object$coeff <- list(
     measurement_error = coeff_meas,
@@ -1082,7 +1072,7 @@ rspde_lme <- function(formula,
     random_effects = coeff_random
   )
   object$estimate_nu <- estimate_nu
-  if (object$estimate_nu && !null_model && !anisotropic && !intrinsic) {
+  if (object$estimate_nu && !null_model && (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d"))) {
     names(object$coeff$random_effects)[1] <- "alpha"
     object$coeff$random_effects[1] <- object$coeff$random_effects[1] + model$d / 2
   }
@@ -1516,7 +1506,7 @@ predict.rspde_lme <- function(object,
                               return_as_list = FALSE, 
                               return_original_order = TRUE,
                               ...,
-                              data = deprecated()) {
+                              data = lifecycle::deprecated()) {
   if (lifecycle::is_present(data)) {
     if (is.null(newdata)) {
       lifecycle::deprecate_warn("2.3.3", "predict(data)", "predict(newdata)",

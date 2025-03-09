@@ -2500,6 +2500,43 @@ transform_parameters_spacetime <- function(theta, st_model) {
   return(result)
 }
 
+#' Remove the "(fixed)" suffix from parameter names
+#'
+#' @param param_list A list containing parameter names that might have "(fixed)" suffix
+#' @return The same list with "(fixed)" removed from names
+#' @noRd
+
+clean_fixed_param_names <- function(param_list) {
+  # Function to clean a single name
+  clean_name <- function(name) {
+    gsub(" \\(fixed\\)$", "", name)
+  }
+  
+  # Process the list recursively
+  if (is.list(param_list)) {
+    # For each element in the list
+    for (i in seq_along(param_list)) {
+      if (is.list(param_list[[i]])) {
+        # If it's a nested list, process recursively
+        param_list[[i]] <- clean_fixed_param_names(param_list[[i]])
+      } else if (!is.null(names(param_list[[i]]))) {
+        # If it's a named vector, clean its names
+        names(param_list[[i]]) <- sapply(names(param_list[[i]]), clean_name)
+      }
+    }
+    
+    # Also clean the names of the list itself
+    if (!is.null(names(param_list))) {
+      names(param_list) <- sapply(names(param_list), clean_name)
+    }
+  } else if (!is.null(names(param_list))) {
+    # If it's a named vector, clean its names
+    names(param_list) <- sapply(names(param_list), clean_name)
+  }
+  
+  return(param_list)
+}
+
 #' Extracts starting values from previous_fit
 #'
 #' @noRd 
@@ -2575,7 +2612,7 @@ extract_starting_values <- function(previous_fit, fix_coeff = FALSE, model_optio
     }
   }
   
-  return(model_options_tmp)
+  return(clean_fixed_param_names(model_options_tmp))
 }
 
 #' @noRd 
@@ -2629,15 +2666,15 @@ process_model_options <- function(model, model_options) {
     
     # Process sigma/tau parameters - priority order for tau:
     # fix_sigma > start_sigma > fix_tau > start_tau > model$tau
-    if (!is.null(model_options$fix_sigma)) {
-      model_options$fix_tau <- sqrt(gamma(nu) / 
-                                   (model_options$fix_sigma^2 * kappa^(2 * nu) * 
+    if (!is.null(model_options[["fix_sigma"]])) {
+      model_options[["fix_tau"]] <- sqrt(gamma(nu) / 
+                                   (model_options[["fix_sigma"]]^2 * kappa^(2 * nu) * 
                                     (4 * pi)^(d / 2) * gamma(nu + d / 2)))
-    } else if (!is.null(model_options$start_sigma)) {
-      model_options$start_tau <- sqrt(gamma(nu) / 
-                                     (model_options$start_sigma^2 * kappa^(2 * nu) * 
+    } else if (!is.null(model_options[["start_sigma"]])) {
+      model_options[["start_tau"]] <- sqrt(gamma(nu) / 
+                                     (model_options[["start_sigma"]]^2 * kappa^(2 * nu) * 
                                       (4 * pi)^(d / 2) * gamma(nu + d / 2)))
-    } else if (is.null(model_options$fix_tau) && is.null(model_options$start_tau) && is.null(model$tau)) {
+    } else if (is.null(model_options[["fix_tau"]]) && is.null(model_options[["start_tau"]]) && is.null(model$tau)) {
       stop("There was some error processing model_options. Cannot determine 'tau' parameter.")
     }
   }
@@ -2649,14 +2686,15 @@ process_model_options <- function(model, model_options) {
 
 general_checks_lme <- function(model, model_options) {
   # Check alpha and beta combination for intrinsic models
-  if (!is.null(model_options$fix_alpha) && !is.null(model_options$fix_beta)) {
+  if (inherits(model, "intrinsicCBrSPDEobj") && !is.null(model_options$fix_alpha) && !is.null(model_options$fix_beta)) {
     if (model_options$fix_alpha + model_options$fix_beta <= model$d/2) {
       stop("One must have alpha + beta > d/2.")
     }
   }
   
-  # Check fix_alpha for non-intrinsic models
+  # Check fix_alpha for non-intrinsic models and non-space-time models
   if (!inherits(model, "intrinsicCBrSPDEobj") && 
+      !inherits(model, "spacetimeobj") && 
       !is.null(model_options$fix_alpha) && 
       model_options$fix_alpha <= model$d / 2) {
     stop(paste("model_options$fix_alpha must be greater than dim/2 =", model$d / 2))
@@ -2664,6 +2702,7 @@ general_checks_lme <- function(model, model_options) {
   
   # Check start_alpha for non-intrinsic models
   if (!inherits(model, "intrinsicCBrSPDEobj") && 
+      !inherits(model, "spacetimeobj") &&   
       !is.null(model_options$start_alpha) && 
       model_options$start_alpha <= model$d / 2) {
     stop(paste("model_options$start_alpha must be greater than dim/2 =", model$d / 2))
