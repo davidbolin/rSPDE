@@ -2484,3 +2484,379 @@ transform_parameters_spacetime <- function(theta, st_model) {
   
   return(result)
 }
+
+#' @noRd 
+extract_starting_values <- function(previous_fit, fix_coeff = FALSE, model_options = NULL) {
+  # Validate previous_fit
+  if (is.null(previous_fit) || !inherits(previous_fit, "rspde_lme")) {
+    return(model_options)
+  }
+  
+  # Determine prefix based on fix_coeff
+  prefix <- if (fix_coeff) "fix_" else "start_"
+  
+  # Initialize model_options_tmp
+  model_options_tmp <- list()
+  
+  # Check if it's a non-stationary model (previous_fit$stationary is FALSE and inherits from 'CBrSPDEobj' or 'rSPDEobj')
+  is_nonstationary <- !isTRUE(previous_fit$stationary) && 
+                     (inherits(previous_fit$latent_model, "CBrSPDEobj") || 
+                      inherits(previous_fit$latent_model, "rSPDEobj"))
+  
+  if (is_nonstationary) {
+    # Handle the non-stationary case with Theta parameters
+    random_effects <- previous_fit$coeff$random_effects
+    param_names <- names(random_effects)
+    
+    # Extract all Theta parameters and put them in a vector
+    theta_indices <- grep("^Theta", param_names)
+    if (length(theta_indices) > 0) {
+      theta_values <- random_effects[theta_indices]
+      model_options_tmp[[paste0(prefix, "theta")]] <- unname(theta_values)
+    }
+    
+    # Add other parameters (not Theta)
+    non_theta_indices <- setdiff(seq_along(random_effects), theta_indices)
+    for (i in non_theta_indices) {
+      param_name <- param_names[i]
+      model_options_tmp[[paste0(prefix, tolower(param_name))]] <- random_effects[[i]]
+    }
+  } else {
+    # Regular case - use original approach
+    model_options_tmp <- setNames(
+      as.list(previous_fit$coeff$random_effects),
+      paste0(prefix, names(previous_fit$coeff$random_effects))
+    )
+  }
+  
+  # Add sigma_e with appropriate prefix
+  model_options_tmp[[paste0(prefix, "sigma_e")]] <- previous_fit$coeff$measurement_error[[1]]
+  
+  # If fix_coeff is TRUE, check for additional parameters
+  if (fix_coeff) {
+    # Check and add alpha if non-NULL
+    if (!is.null(previous_fit$alpha)) {
+      model_options_tmp$fix_alpha <- previous_fit$alpha
+    }
+    
+    # Check and add beta if non-NULL
+    if (!is.null(previous_fit$beta)) {
+      model_options_tmp$fix_beta <- previous_fit$beta
+    }
+    
+    # Check and add nu if non-NULL
+    if (!is.null(previous_fit$nu)) {
+      model_options_tmp$fix_nu <- previous_fit$nu
+    }
+  }
+  
+  # If user provided model_options, combine them
+  if (!is.null(model_options)) {
+    # Overwrite extracted options with user-provided options
+    for (name in names(model_options)) {
+      model_options_tmp[[name]] <- model_options[[name]]
+    }
+  }
+  
+  return(model_options_tmp)
+}
+
+
+#' @noRd 
+
+get_starting_values_aux <- function(model, model_options) {
+  estimate_alpha <- TRUE
+  alpha <- NULL
+  if (!is.null(model_options$fix_alpha)) {
+    estimate_alpha <- FALSE
+    alpha <- model_options$fix_alpha
+  }
+
+  # Check model inheritance types
+  spacetime <- inherits(model, "spacetimeobj")
+  anisotropic <- inherits(model, "CBrSPDEobj2d")
+  intrinsic <- inherits(model, "intrinsicCBrSPDEobj")
+  
+  # Non-stationary, non-spacetime, non-intrinsic case
+  if (!model$stationary && !spacetime && !intrinsic) {
+    if (is.null(model$theta) && is.null(model_options$start_theta) && is.null(model_options$fix_theta)) {
+      stop("For models given by spde.matern.operators(), either model$theta must be non-null or model_options$start_theta or model_options$fix_theta must be non-NULL!")
+    }
+    
+    # Priority: fix_theta > start_theta > model$theta
+    if (!is.null(model_options$fix_theta)) {
+      # Check length based on parameterization
+      if (!is.null(parameterization) && parameterization == "spde") {
+        if (length(model_options$fix_theta) != ncol(model$B.tau) - 1) {
+          stop("Length of fix_theta must be equal to ncol(model$B.tau) - 1 when parameterization is 'spde'")
+        }
+      } else if (!is.null(parameterization)) {
+        if (length(model_options$fix_theta) != ncol(model$B.sigma) - 1) {
+          stop("Length of fix_theta must be equal to ncol(model$B.sigma) - 1 when parameterization is not 'spde'")
+        }
+      }
+      starting_values_aux <- model_options$fix_theta
+    } else if (!is.null(model_options$start_theta)) {
+      # Check length based on parameterization
+      if (!is.null(parameterization) && parameterization == "spde") {
+        if (length(model_options$start_theta) != ncol(model$B.tau) - 1) {
+          stop("Length of start_theta must be equal to ncol(model$B.tau) - 1 when parameterization is 'spde'")
+        }
+      } else if (!is.null(parameterization)) {
+        if (length(model_options$start_theta) != ncol(model$B.sigma) - 1) {
+          stop("Length of start_theta must be equal to ncol(model$B.sigma) - 1 when parameterization is not 'spde'")
+        }
+      }
+      starting_values_aux <- model_options$start_theta
+    } else {
+      starting_values_aux <- model$theta
+    }
+  
+  # Stationary, non-spacetime case
+  } else if (model$stationary && !spacetime) {
+    if (anisotropic) {
+      # Initialize anisotropic parameters
+      starting_values_aux <- c(
+        log(model$sigma), 
+        log(model$hx), 
+        log(model$hy), 
+        -log(2/(model$hxy+1) - 1)
+      )
+      
+      # Replace sigma if specified in options
+      if (!is.null(model_options$fix_sigma)) {
+        starting_values_aux[1] <- log(model_options$fix_sigma)
+      } else if (!is.null(model_options$start_sigma)) {
+        starting_values_aux[1] <- log(model_options$start_sigma)
+      }
+      
+      if (!is.null(model_options$fix_hx)) {
+        starting_values_aux[2] <- log(model_options$fix_hx)
+      } else if (!is.null(model_options$start_hx)) {
+        starting_values_aux[2] <- log(model_options$start_hx)
+      }
+      
+      if (!is.null(model_options$fix_hy)) {
+        starting_values_aux[3] <- log(model_options$fix_hy)
+      } else if (!is.null(model_options$start_hy)) {
+        starting_values_aux[3] <- log(model_options$start_hy)
+      }
+      
+      if (!is.null(model_options$fix_hxy)) {
+        starting_values_aux[4] <- -log(2/(model_options$fix_hxy+1) - 1)
+      } else if (!is.null(model_options$start_hxy)) {
+        starting_values_aux[4] <- -log(2/(model_options$start_hxy+1) - 1)
+      }
+    
+    } else if (intrinsic) {
+      if (!estimate_alpha && alpha == 0) {
+        starting_values_aux <- log(c(model$tau))
+        
+        if (!is.null(model_options$fix_tau)) {
+          starting_values_aux[1] <- log(model_options$fix_tau)
+        } else if (!is.null(model_options$start_tau)) {
+          starting_values_aux[1] <- log(model_options$start_tau)
+        }
+      } else {
+        starting_values_aux <- log(c(model$tau, max(c(model$kappa, 1e-5))))
+        
+        if (!is.null(model_options$fix_tau)) {
+          starting_values_aux[1] <- log(model_options$fix_tau)
+        } else if (!is.null(model_options$start_tau)) {
+          starting_values_aux[1] <- log(model_options$start_tau)
+        }
+        
+        if (!is.null(model_options$fix_kappa)) {
+          starting_values_aux[2] <- log(model_options$fix_kappa)
+        } else if (!is.null(model_options$start_kappa)) {
+          starting_values_aux[2] <- log(model_options$start_kappa)
+        }
+      }
+    } else {
+      starting_values_aux <- log(c(model$tau, max(c(model$kappa, 1e-5))))
+      
+      if (!is.null(model_options$fix_tau)) {
+        starting_values_aux[1] <- log(model_options$fix_tau)
+      } else if (!is.null(model_options$start_tau)) {
+        starting_values_aux[1] <- log(model_options$start_tau)
+      }
+      
+      if (!is.null(model_options$fix_kappa)) {
+        starting_values_aux[2] <- log(model_options$fix_kappa)
+      } else if (!is.null(model_options$start_kappa)) {
+        starting_values_aux[2] <- log(model_options$start_kappa)
+      }
+    }
+  
+  # Spacetime case
+  } else {
+    if (model$alpha == 0) {
+      starting_values_aux <- c(log(model$kappa), log(model$sigma), log(model$gamma))
+      
+      if (!is.null(model_options$fix_kappa)) {
+        starting_values_aux[1] <- log(model_options$fix_kappa)
+      } else if (!is.null(model_options$start_kappa)) {
+        starting_values_aux[1] <- log(model_options$start_kappa)
+      }
+      
+      if (!is.null(model_options$fix_sigma)) {
+        starting_values_aux[2] <- log(model_options$fix_sigma)
+      } else if (!is.null(model_options$start_sigma)) {
+        starting_values_aux[2] <- log(model_options$start_sigma)
+      }
+      
+      if (!is.null(model_options$fix_gamma)) {
+        starting_values_aux[3] <- log(model_options$fix_gamma)
+      } else if (!is.null(model_options$start_gamma)) {
+        starting_values_aux[3] <- log(model_options$start_gamma)
+      }
+    } else {
+      starting_values_aux <- c(log(model$kappa), log(model$sigma), log(model$gamma), model$rho)
+      
+      if (!is.null(model_options$fix_kappa)) {
+        starting_values_aux[1] <- log(model_options$fix_kappa)
+      } else if (!is.null(model_options$start_kappa)) {
+        starting_values_aux[1] <- log(model_options$start_kappa)
+      }
+      
+      if (!is.null(model_options$fix_sigma)) {
+        starting_values_aux[2] <- log(model_options$fix_sigma)
+      } else if (!is.null(model_options$start_sigma)) {
+        starting_values_aux[2] <- log(model_options$start_sigma)
+      }
+      
+      if (!is.null(model_options$fix_gamma)) {
+        starting_values_aux[3] <- log(model_options$fix_gamma)
+      } else if (!is.null(model_options$start_gamma)) {
+        starting_values_aux[3] <- log(model_options$start_gamma)
+      }
+      
+      if (!is.null(model_options$fix_rho)) {
+        starting_values_aux[4] <- model_options$fix_rho
+      } else if (!is.null(model_options$start_rho)) {
+        starting_values_aux[4] <- model_options$start_rho
+      }
+    }
+  }
+  
+  return(starting_values_aux)
+}
+
+
+#' @noRd
+
+get_starting_values_lme <- function(model, model_options, y_resp, starting_values_aux) {
+  # Check model inheritance types
+  intrinsic <- inherits(model, "intrinsicCBrSPDEobj")
+  spacetime <- inherits(model, "spacetimeobj")
+  
+  # Set up estimate_nu and nu based on fix_nu or fix_alpha
+  estimate_nu <- TRUE
+  nu <- NULL
+  if (!is.null(model_options$fix_nu)) {
+    estimate_nu <- FALSE
+    nu <- model_options$fix_nu
+  } else if (!is.null(model_options$fix_alpha)) {
+    estimate_nu <- FALSE
+    nu <- model_options$fix_alpha - model$d/2
+  }
+    
+  # Handle starting values for alpha and beta - prioritize fix_ values over start_ values
+  start_alpha <- if (!is.null(model_options$fix_alpha)) {
+    model_options$fix_alpha
+  } else {
+    model_options$start_alpha
+  }
+  
+  start_beta <- if (!is.null(model_options$fix_beta)) {
+    model_options$fix_beta
+  } else {
+    model_options$start_beta
+  }
+  
+  start_nu <- if (!is.null(model_options$fix_nu)) {
+    model_options$fix_nu
+  } else {
+    model_options$start_nu
+  }
+  
+  start_sigma_e <- if (!is.null(model_options$fix_sigma_e)) {
+    model_options$fix_sigma_e
+  } else {
+    model_options$start_sigma_e
+  }
+  
+  # Determine starting values based on model type and parameters
+  if (inherits(model, "intrinsicCBrSPDEobj")) {
+    if (is.null(start_alpha)) {
+      start_alpha = 1
+    }
+    if (is.null(start_beta)) {
+      start_beta = 0.9
+    }
+    
+    estimate_alpha <- is.null(model_options$fix_alpha)
+    estimate_beta <- is.null(model_options$fix_beta)
+    
+    if (estimate_alpha && estimate_beta) {
+      start_values <- c(
+        log(0.1 * sd(y_resp)), 
+        log(start_alpha - model$d/2), # alpha > d/2, alpha = d/2 + exp(theta)
+        beta2theta(start_beta, model$d),
+        starting_values_latent
+      )
+    } else if (estimate_alpha) {
+      start_values <- c(
+        log(0.1 * sd(y_resp)), 
+        log(start_alpha - model$d/2), 
+        starting_values_latent
+      )
+    } else if (estimate_beta) {
+      start_values <- c(
+        log(0.1 * sd(y_resp)), 
+        beta2theta(start_beta, model$d), 
+        starting_values_latent
+      )
+    } else {
+      start_values <- c(
+        log(0.1 * sd(y_resp)), 
+        starting_values_latent
+      )    
+    }
+  } else if (estimate_nu && !inherits(model, "spacetimeobj")) {
+    if (is.null(start_nu) && is.null(start_alpha)) {
+      start_values <- c(log(c(0.1 * sd(y_resp), model$nu)), starting_values_latent)
+    } else if (!is.null(start_nu)) {
+      if (!is.numeric(start_nu)) {
+        stop("start_nu must be numeric.")
+      }
+      if (length(start_nu) > 1) {
+        stop("start_nu must have length 1.")
+      }
+      if (start_nu <= 0) {
+        stop("start_nu must be positive")
+      }
+      start_values <- c(log(c(0.1 * sd(y_resp), start_nu)), starting_values_latent)
+    } else {
+      if (!is.numeric(start_alpha)) {
+        stop("start_alpha must be numeric.")
+      }
+      if (length(start_alpha) > 1) {
+        stop("start_alpha must have length 1.")
+      }
+      if (start_alpha <= model$d / 2) {
+        stop(paste("start_alpha must be greater than dim/2 =", model$d / 2))
+      }
+      start_values <- c(log(c(0.1 * sd(y_resp), start_alpha - model$d / 2)), starting_values_latent)
+    }
+  } else {
+    start_values <- c(log(0.1 * sd(y_resp)), starting_values_latent)
+  } 
+  
+  # Override sigma_e if specified
+  if (!is.null(start_sigma_e)) {
+    start_values[1] <- log(start_sigma_e)
+  }
+  
+  return(start_values)
+}
