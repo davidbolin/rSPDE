@@ -13,6 +13,7 @@ rspde_lme(
   repl = NULL,
   which_repl = NULL,
   optim_method = "L-BFGS-B",
+  possible_methods = c("L-BFGS-B", "Nelder-Mead"),
   use_data_from_graph = TRUE,
   nu_upper_bound = 4,
   rspde_order = NULL,
@@ -25,14 +26,14 @@ rspde_lme(
   optim_controls = list(),
   improve_hessian = FALSE,
   hessian_args = list(),
-  alpha = deprecated(),
-  nu = deprecated(),
-  beta = deprecated(),
-  starting_values_latent = deprecated(),
-  start_sigma_e = deprecated(),
-  start_alpha = deprecated(),
-  start_nu = deprecated(),
-  start_beta = deprecated()
+  alpha = lifecycle::deprecated(),
+  nu = lifecycle::deprecated(),
+  beta = lifecycle::deprecated(),
+  starting_values_latent = lifecycle::deprecated(),
+  start_sigma_e = lifecycle::deprecated(),
+  start_alpha = lifecycle::deprecated(),
+  start_nu = lifecycle::deprecated(),
+  start_beta = lifecycle::deprecated()
 )
 }
 \arguments{
@@ -69,6 +70,8 @@ one replicate.}
 \item{which_repl}{Which replicates to use? If \code{NULL} all replicates will be used.}
 
 \item{optim_method}{The method to be used with \code{optim} function.}
+
+\item{possible_methods}{The optimization methods to try if the model fitting fails.}
 
 \item{use_data_from_graph}{Logical. Only for models generated from graphs from
 \code{metric_graph} class. In this case, should the data, the locations and the

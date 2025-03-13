@@ -2992,9 +2992,17 @@ get_starting_values_lme <- function(model, model_options, y_resp, starting_value
       start_values <- c(start_values, starting_values_aux)
     }
   } else {
-    start_values <- c(
-      sigma_e = log(0.1 * sd(y_resp))
-    )
+    if(is.null(start_nu)){
+      start_values <- c(
+        sigma_e = log(0.1 * sd(y_resp))
+      )
+    } else {
+      start_values <- c(
+        sigma_e = log(0.1 * sd(y_resp)),
+        nu = log(start_nu)
+      )
+    }
+
     start_values <- c(start_values, starting_values_aux)
   } 
   
@@ -3361,9 +3369,15 @@ create_likelihood <- function(model, model_options, y_resp,
   
   # Get appropriate auxiliary likelihood function
   aux_lik_fun <- get_aux_likelihood_function(model)
+
+  print("start_values")
+  print(start_values)
   
   # Determine which parameters to estimate
   estimate_params <- determine_estimate_params(model, model_options, start_values)
+
+  print("estimate_params")
+  print(estimate_params)
   
   # Count number of non-fixed coefficients from model parameters
   n_coeff_nonfixed <- sum(estimate_params)
@@ -3391,6 +3405,11 @@ create_likelihood <- function(model, model_options, y_resp,
     
     # Update the model with the extracted parameters
     model_tmp <- do.call(update, c(list(object = model_tmp), result$args_list))
+
+    print("result$args_list")
+    print(result$args_list)
+
+    print(model_tmp)
     
     # Get arguments for auxiliary likelihood function
     aux_args <- get_aux_lik_fun_args(
@@ -3404,6 +3423,8 @@ create_likelihood <- function(model, model_options, y_resp,
       mean_correction = mean_correction,
       loc_df = loc_df
     )
+
+    print(paste("sigma_e = ", result$sigma_e))
     
     # Call the auxiliary likelihood function with the appropriate arguments
     loglik <- do.call(aux_lik_fun, aux_args)
@@ -4200,4 +4221,83 @@ process_model_results <- function(res, observed_fisher, start_values, estimate_p
   )
   
   return(result)
+}
+
+
+
+#' @noRd 
+
+extract_possible_parameters <- function(model) {
+  if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
+    return(c("alpha", "kappa", "tau", "nu", "range", "sigma", "theta"))
+  } else if (inherits(model, "spacetimeobj")) {
+    return(c("alpha", "beta", "kappa", "sigma", "gamma", "rho"))
+  } else if (inherits(model, "intrinsicCBrSPDEobj")) {
+    return(c("alpha", "beta", "kappa", "tau"))
+  } else if (inherits(model, "CBrSPDEobj2d")) {
+    return(c("nu", "hy", "hx", "hxy", "sigma"))
+  } else {
+    return(NULL)
+  }
+}
+
+#' @noRd
+
+general_checks_model_options <- function(model_options, model) {
+  possible_params <- extract_possible_parameters(model)
+  # Skip checks if model_options is NULL
+  if (is.null(model_options)) {
+    return(invisible(NULL))
+  }
+    
+  # Get all option names from model_options
+  option_names <- names(model_options)
+  
+  # Check for fix_* and start_* parameters
+  for (opt_name in option_names) {
+    # Extract parameter name from option name
+    if (startsWith(opt_name, "fix_") || startsWith(opt_name, "start_")) {
+      param_name <- substring(opt_name, nchar(regmatches(opt_name, regexpr("^(fix|start)_", opt_name))) + 1)
+      
+      # Check if parameter name is valid for this model type
+      if (!param_name %in% possible_params) {
+        stop(sprintf("'%s' is not a valid parameter for this model class. Valid parameters are: %s", 
+                     param_name, paste(possible_params, collapse = ", ")))
+      }
+    }
+  }
+
+  # Check for parameters that have both fix_* and start_* options
+  for (param_name in possible_params) {
+    fix_param <- paste0("fix_", param_name)
+    start_param <- paste0("start_", param_name)
+    
+    if (fix_param %in% option_names && start_param %in% option_names) {
+      warning(sprintf("Both '%s' and '%s' were provided in model_options. Since the parameter is fixed, '%s' will be ignored.", 
+                     fix_param, start_param, start_param))
+    }
+  }
+
+  # Check for mixing of parameterizations for specific model types
+  if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
+    # Define parameter groups
+    spde_params <- c("alpha", "kappa", "tau")
+    matern_params <- c("nu", "range", "sigma")
+    
+    # Check if any parameters from each group are present in model_options
+    has_spde_params <- any(sapply(spde_params, function(param) {
+      paste0("fix_", param) %in% option_names || paste0("start_", param) %in% option_names
+    }))
+    
+    has_matern_params <- any(sapply(matern_params, function(param) {
+      paste0("fix_", param) %in% option_names || paste0("start_", param) %in% option_names
+    }))
+    
+    # If both parameterization types are used, issue a warning
+    if (has_spde_params && has_matern_params) {
+      stop("Mixing parameterizations is not allowed. Use either SPDE parameterization (alpha, kappa, tau) or Matérn parameterization (nu, range, sigma), but not both.")
+    }
+  }
+
+  return(invisible(NULL))
 }

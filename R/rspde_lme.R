@@ -212,6 +212,8 @@ rspde_lme <- function(formula,
   if(!inherits(model,"spacetimeobj") && !is.null(loc_time)) {
       warning("loc_time should only be supplied for spatio-temporal models. loc_time will be ignored.")
   }
+
+  general_checks_model_options(model_options, model)
   
   model_options <- extract_starting_values(previous_fit, fix_coeff = fix_coeff, model_options = model_options)
 
@@ -365,6 +367,7 @@ rspde_lme <- function(formula,
     # Getting auxiliary starting values
 
     starting_values_tmp <- get_model_starting_values(model)
+
     starting_values_aux <- update_starting_values(starting_values_tmp, model, model_options)
     start_values <- get_starting_values_lme(model, model_options, y_resp, starting_values_aux)
 
@@ -846,12 +849,6 @@ rspde_lme <- function(formula,
 
     loglik <- -res$value
 
-    tmp_test <- extract_parameters_from_optim(res, start_values, estimate_pars, model, model_options, X_cov, n_coeff_nonfixed)
-    print(organize_parameters(c(tmp_test$coeff_random, tmp_test$coeff_fixed),
-    model = model,
-    estimate_params =     tmp_test,
-    X_cov = X_cov))
-
     coeff_results <- process_model_results(res = res, observed_fisher = observed_fisher, 
                                                       start_values = start_values, estimate_params = estimate_pars,
                                                       model = model,
@@ -1061,12 +1058,14 @@ rspde_lme <- function(formula,
     stop("The model does not have either random nor fixed effects.")
   }
 
-  if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
+  if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d") || inherits(model, "CBrSPDEobj2d")) {
     if(!is.null(nu)){
-      alpha <- nu + model$d/2
+      if(is.numeric(nu)) {
+        alpha <- nu + model$d/2
+      }
     }
   }
-
+  
   if(!is.null(model_options$fix_alpha)){
     alpha <- model_options$fix_alpha
     nu <- alpha - model$d/2
@@ -1079,8 +1078,12 @@ rspde_lme <- function(formula,
     beta <- model$beta
     alpha <- model$alpha
   } else{
-    beta <- model_options[["fix_beta"]]
-    alpha <- model_options[["fix_alpha"]]
+    if(!is.null(model_options[["fix_beta"]])) {
+      beta <- model_options[["fix_beta"]]
+    } 
+    if(!is.null(model_options[["fix_alpha"]])) {
+      alpha <- model_options[["fix_alpha"]]
+    } 
   }
 
   object <- list()
@@ -1131,9 +1134,11 @@ rspde_lme <- function(formula,
   object$has_graph <- model$has_graph
   object$which_repl <- which_repl
   object$stationary <- model$stationary
+  
   object$nu <- nu
   object$alpha <- alpha
   object$beta <- beta
+  object$start_val_lik <- start_values_aux
   if(!intrinsic || is.null(model_options[["fix_alpha"]])) {
       object$estimated_alpha <- estimated_alpha    
   }

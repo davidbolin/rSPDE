@@ -18,7 +18,7 @@
   return_as_list = FALSE,
   return_original_order = TRUE,
   ...,
-  data = deprecated()
+  data = lifecycle::deprecated()
 )
 }
 \arguments{

@@ -48,7 +48,95 @@ print.summary.rSPDEobj1d <- function(x, ...) {
 print.rSPDEobj1d <- function(x, ...) {
     print.summary.rSPDEobj1d(summary(x))
 }
+#' Summary method for class "intrinsicCBrSPDEobj"
+#'
+#' @param object an object of class "intrinsicCBrSPDEobj", usually, a result of a call
+#'   to [intrinsic.operators()].
+#' @param ... further arguments passed to or from other methods.
+#' @export
+#' @method summary intrinsicCBrSPDEobj
+summary.intrinsicCBrSPDEobj <- function(object, ...) {
+    out <- list()
+    class(out) <- "summary.intrinsicCBrSPDEobj"
+    
+    out$tau <- object$tau
+    out$beta <- object$beta
+    out$alpha <- object$alpha
+    out$kappa <- object$kappa
+    out$m <- object$m
+    out$d <- object$d
+    out$scaling <- object$scaling
+    out$type_rational_approximation <- object$type_rational_approximation
+    
+    return(out)
+}
 
+
+
+#' @param x an object of class "summary.intrinsicCBrSPDEobj", usually, a result of a call
+#'   to [summary.intrinsicCBrSPDEobj()].
+#' @export
+#' @method print summary.intrinsicCBrSPDEobj
+#' @rdname summary.intrinsicCBrSPDEobj
+print.summary.intrinsicCBrSPDEobj <- function(x, ...) {
+    cat("Intrinsic Whittle-Matern field\n")
+    
+    if (!is.null(x$parameterization)) {
+        cat("Parameterization: ", x$parameterization, "\n")
+    }
+    
+    if (!is.null(x$type_rational_approximation)) {
+        cat("Type of rational approximation: ", x$type_rational_approximation, "\n")
+    }
+    
+    # Print parameters in a more organized way
+    cat("Parameters of covariance function: ")
+    params <- character(0)
+    
+    if (!is.null(x$alpha)) {
+        params <- c(params, paste("alpha =", x$alpha))
+    }
+    if (!is.null(x$beta)) {
+        params <- c(params, paste("beta =", x$beta))
+    }
+    if (!is.null(x$tau)) {
+        params <- c(params, paste("tau =", x$tau))
+    }
+    if (!is.null(x$kappa)) {
+        params <- c(params, paste("kappa =", x$kappa))
+    }
+    
+    cat(paste(params, collapse = ", "), "\n")
+    
+    cat("Order of rational approximation: ", x$m, "\n")
+    
+    if (!is.null(x$n)) {
+        cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
+    }
+    
+    if (!is.null(x$d)) {
+        cat("Dimension: ", x$d, "\n")
+    }
+    
+    if (!is.null(x$scaling)) {
+        cat("Scaling factor: ", x$scaling, "\n")
+    }
+    
+    if (!is.null(x$stationary)) {
+        if (x$stationary) {
+            cat("Stationary Model\n")
+        } else {
+            cat("Non-Stationary Model\n")
+        }
+    }
+}
+
+#' @export
+#' @method print intrinsicCBrSPDEobj
+#' @rdname summary.intrinsicCBrSPDEobj
+print.intrinsicCBrSPDEobj <- function(x, ...) {
+    print.summary.intrinsicCBrSPDEobj(summary(x))
+}
 
 
 
