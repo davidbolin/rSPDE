@@ -350,7 +350,7 @@ rspde_lme <- function(formula,
     # General updates for the different models
 
     if (!inherits(model, "spacetimeobj") && !inherits(model, "CBrSPDEobj2d") && !inherits(model, "intrinsicCBrSPDEobj")) {
-        model <- update(model, parameterization = "spde")    
+        model <- update(model, parameterization = parameterization)    
     }
 
     if (!is.null(rspde_order) && !is.null(model)) {
@@ -365,8 +365,7 @@ rspde_lme <- function(formula,
 
     # Getting auxiliary starting values
 
-    starting_values_tmp <- get_model_starting_values(model)
-
+    starting_values_tmp <- get_model_starting_values(model, parameterization)
     starting_values_aux <- update_starting_values(starting_values_tmp, model, model_options)
     start_values <- get_starting_values_lme(model, model_options, y_resp, starting_values_aux)
 

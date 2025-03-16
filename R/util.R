@@ -2517,7 +2517,7 @@ extract_possible_parameters <- function(model) {
       if(n_theta == 0){
         stop("Non-stationary models must have a non-NULL theta parameter.")
       }
-      return(paste0("theta", 1:n_theta))
+      return(c("alpha", "nu", paste0("theta", 1:n_theta)))
     }
   } else if (inherits(model, "spacetimeobj")) {
     return(c("alpha", "beta", "kappa", "sigma", "gamma", "rho"))
@@ -2589,7 +2589,7 @@ general_checks_model_options <- function(model_options, model) {
   possible_params <- extract_possible_parameters(model)
   # Skip checks if model_options is NULL
   if (is.null(model_options)) {
-    return(invisible(NULL))
+    return(parameterization)
   }
     
   # Get all option names from model_options
@@ -2620,29 +2620,43 @@ general_checks_model_options <- function(model_options, model) {
     }
   }
 
-  # Check for mixing of parameterizations for specific model types
-  # Only check for stationary models
-  if ((inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) && 
-      !is.null(model$stationary) && model$stationary) {
-    # Define parameter groups
-    spde_params <- c("alpha", "kappa", "tau")
-    matern_params <- c("nu", "range", "sigma")
-    
-    # Check if any parameters from each group are present in model_options
-    has_spde_params <- any(sapply(spde_params, function(param) {
-      paste0("fix_", param) %in% option_names || paste0("start_", param) %in% option_names
-    }))
-    
-    has_matern_params <- any(sapply(matern_params, function(param) {
-      paste0("fix_", param) %in% option_names || paste0("start_", param) %in% option_names
-    }))
-    
-    # If both parameterization types are used, issue a warning
-    if (has_spde_params && has_matern_params) {
-      stop("Mixing parameterizations is not allowed. Use either SPDE parameterization (alpha, kappa, tau) or Matérn parameterization (nu, range, sigma), but not both.")
-    }
-    if(has_matern_params){
-      parameterization <- "matern"
+  # Define parameter groups
+  spde_params <- c("alpha", "kappa", "tau")
+  matern_params <- c("nu", "range", "sigma")
+  
+  # Check for mixing of parameterizations
+  if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
+    # For stationary models
+    if (!is.null(model$stationary) && model$stationary) {
+      # Check if any parameters from each group are present in model_options
+      has_spde_params <- any(sapply(spde_params, function(param) {
+        paste0("fix_", param) %in% option_names || paste0("start_", param) %in% option_names
+      }))
+      
+      has_matern_params <- any(sapply(matern_params, function(param) {
+        paste0("fix_", param) %in% option_names || paste0("start_", param) %in% option_names
+      }))
+      
+      # If both parameterization types are used, issue an error
+      if (has_spde_params && has_matern_params) {
+        stop("Mixing parameterizations is not allowed. Use either SPDE parameterization (alpha, kappa, tau) or Matérn parameterization (nu, range, sigma), but not both.")
+      }
+      
+      if (has_matern_params) {
+        parameterization <- "matern"
+      }
+    } else if (!is.null(model$stationary) && !model$stationary) {
+      # For nonstationary models, check based on alpha/nu parameters
+      has_spde_param <- "fix_alpha" %in% option_names || "start_alpha" %in% option_names
+      has_matern_param <- "fix_nu" %in% option_names || "start_nu" %in% option_names
+      
+      if (has_spde_param && has_matern_param) {
+        stop("Mixing parameterizations is not allowed. Use either SPDE parameterization (alpha) or Matérn parameterization (nu), but not both.")
+      }
+      
+      if (has_matern_param) {
+        parameterization <- "matern"
+      }
     }
   }
 
@@ -2825,9 +2839,13 @@ extract_starting_values <- function(previous_fit, fix_coeff = FALSE, model_optio
   return(clean_fixed_param_names(model_options_tmp))
 }
 
+#' Get Model Starting Values
+#' @description Extracts appropriate starting values for model parameters based on model type
+#' @param model The model object (can be spacetime, anisotropic, intrinsic, or standard SPDE model)
+#' @return A named vector of starting values for model parameters
 #' @noRd 
 
-get_model_starting_values <- function(model) {
+get_model_starting_values <- function(model, parameterization) {
   # Check model inheritance types
   spacetime <- inherits(model, "spacetimeobj")
   anisotropic <- inherits(model, "CBrSPDEobj2d")
@@ -2836,11 +2854,11 @@ get_model_starting_values <- function(model) {
   # Non-stationary, non-spacetime, non-intrinsic case
   if (!model$stationary && !spacetime && !intrinsic) {
     if (is.null(model$theta)) {
-      return(NULL)  # Will be handled by model_options in the second function
+      stop("There was an error processing the starting values. model$theta is NULL.")
     }
-    
     starting_values <- model$theta
-    
+    names(starting_values) <- paste0("theta", 1:length(starting_values))
+
   # Stationary, non-spacetime case
   } else if (model$stationary && !spacetime) {
     if (anisotropic) {
@@ -2862,8 +2880,13 @@ get_model_starting_values <- function(model) {
         names(starting_values) <- c("tau", "kappa")
       }
     } else {
-      starting_values <- log(c(model$tau, max(c(model$kappa, 1e-5))))
-      names(starting_values) <- c("tau", "kappa")
+      if(parameterization == "spde"){
+        starting_values <- log(c(model$tau, model$kappa))
+        names(starting_values) <- c("tau", "kappa")
+      } else {
+        starting_values <- log(c(model$sigma, model$range))
+        names(starting_values) <- c("sigma", "range")
+      }
     }
   
   # Spacetime case
@@ -2876,9 +2899,14 @@ get_model_starting_values <- function(model) {
       names(starting_values) <- c("kappa", "sigma", "gamma", "rho")
     }
   }
+
+  if(is.null(starting_values)){
+    stop("There was an error processing the starting values.")
+  }
   
   return(starting_values)
 }
+
 
 #' @noRd 
 
@@ -2887,77 +2915,36 @@ update_starting_values <- function(starting_values, model, model_options) {
   spacetime <- inherits(model, "spacetimeobj")
   anisotropic <- inherits(model, "CBrSPDEobj2d")
   intrinsic <- inherits(model, "intrinsicCBrSPDEobj")
-  
-  # For non-stationary models, handle theta specially
-  if (!model$stationary && !spacetime && !intrinsic) {
-    if (is.null(starting_values)) {
-      # No model$theta, must use model_options
-      if (is.null(model_options$start_theta) && is.null(model_options$fix_theta)) {
-        stop("For models given by spde.matern.operators(), either model$theta must be non-null or model_options$start_theta or model_options$fix_theta must be non-NULL!")
-      }
-      
-      if (!is.null(model_options$fix_theta)) {
-        # Check length if parameterization provided
-        if (!is.null(parameterization) && parameterization == "spde") {
-          if (length(model_options$fix_theta) != ncol(model$B.tau) - 1) {
-            stop("Length of fix_theta must be equal to ncol(model$B.tau) - 1 when parameterization is 'spde'")
-          }
-        } else if (!is.null(parameterization)) {
-          if (length(model_options$fix_theta) != ncol(model$B.sigma) - 1) {
-            stop("Length of fix_theta must be equal to ncol(model$B.sigma) - 1 when parameterization is not 'spde'")
-          }
-        }
-        starting_values <- model_options$fix_theta
-      } else {
-        # Use start_theta
-        if (!is.null(parameterization) && parameterization == "spde") {
-          if (length(model_options$start_theta) != ncol(model$B.tau) - 1) {
-            stop("Length of start_theta must be equal to ncol(model$B.tau) - 1 when parameterization is 'spde'")
-          }
-        } else if (!is.null(parameterization)) {
-          if (length(model_options$start_theta) != ncol(model$B.sigma) - 1) {
-            stop("Length of start_theta must be equal to ncol(model$B.sigma) - 1 when parameterization is not 'spde'")
-          }
-        }
-        starting_values <- model_options$start_theta
-      }
-      return(starting_values)
-    } else if (!is.null(model_options$fix_theta)) {
-      return(model_options$fix_theta)
-    } else if (!is.null(model_options$start_theta)) {
-      return(model_options$start_theta)
-    } else {
-      return(starting_values)
-    }
+
+  if(is.null(names(starting_values))){
+    stop("There was an error processing the names of the starting values.")
   }
   
-  # For all other models, loop through parameter names and update values
-  if (!is.null(names(starting_values))) {
-    for (param_name in names(starting_values)) {
-      fix_param <- paste0("fix_", param_name)
-      start_param <- paste0("start_", param_name)
-      
-      if (!is.null(model_options[[fix_param]])) {
-        # Special handling for hxy which has a transformation
-        if (param_name == "hxy") {
-          starting_values[param_name] <- -log(2/(model_options[[fix_param]]+1) - 1)
-        } else {
-          starting_values[param_name] <- log(model_options[[fix_param]])
-        }
-      } else if (!is.null(model_options[[start_param]])) {
-        if (param_name == "hxy") {
-          starting_values[param_name] <- -log(2/(model_options[[start_param]]+1) - 1)
-        } else {
-          starting_values[param_name] <- log(model_options[[start_param]])
-        }
+  # loop through parameter names and update values
+  for (param_name in names(starting_values)) {
+    fix_param <- paste0("fix_", param_name)
+    start_param <- paste0("start_", param_name)
+    
+    if (!is.null(model_options[[fix_param]])) {
+      # Special handling for hxy which has a transformation
+      if (param_name == "hxy") {
+        starting_values[param_name] <- -log(2/(model_options[[fix_param]]+1) - 1)
+      } else {
+        starting_values[param_name] <- log(model_options[[fix_param]])
       }
-      
-      # Special case: rho doesn't need log transformation
-      if (param_name == "rho" && !is.null(model_options[[fix_param]])) {
-        starting_values[param_name] <- model_options[[fix_param]]
-      } else if (param_name == "rho" && !is.null(model_options[[start_param]])) {
-        starting_values[param_name] <- model_options[[start_param]]
+    } else if (!is.null(model_options[[start_param]])) {
+      if (param_name == "hxy") {
+        starting_values[param_name] <- -log(2/(model_options[[start_param]]+1) - 1)
+      } else {
+        starting_values[param_name] <- log(model_options[[start_param]])
       }
+    }
+    
+    # Special case: rho doesn't need log transformation
+    if (param_name == "rho" && !is.null(model_options[[fix_param]])) {
+      starting_values[param_name] <- model_options[[fix_param]]
+    } else if (param_name == "rho" && !is.null(model_options[[start_param]])) {
+      starting_values[param_name] <- model_options[[start_param]]
     }
   }
   
