@@ -2529,12 +2529,17 @@ extract_possible_parameters <- function(model) {
     return(NULL)
   }
 }
-
 #' @title Process Model Options
 #' @description Processes the model options for a given model type, with special handling for nonstationary models
 #' @param model The model object
-#' @param model_options The model options
-#' @return The processed model options
+#' @param model_options The model options list containing parameter settings
+#' @return The processed model options list
+#' @details 
+#' For nonstationary models (when model$stationary is FALSE), this function handles
+#' the conversion of vector parameters (start_theta and fix_theta) into individual
+#' parameters (start_theta1, start_theta2, etc.) that can be used in the estimation.
+#' 
+#' For spacetime models, it ensures alpha and beta parameters are properly set.
 #' @noRd 
 
 process_model_options <- function(model, model_options) {
@@ -2571,6 +2576,15 @@ process_model_options <- function(model, model_options) {
         # Remove the original fix_theta
         model_options$fix_theta <- NULL
       }
+    }
+  }
+
+  if(inherits(model, "spacetimeobj")) {
+    if(is.null(model_options$fix_alpha)){
+      model_options$fix_alpha <- model$alpha
+    }
+    if(is.null(model_options$fix_beta)){
+      model_options$fix_beta <- model$beta
     }
   }
   
@@ -2962,8 +2976,8 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
         }
       }
 
-      starting_values["beta"] <- log(start_beta)
-      starting_values["alpha"] <- log(start_alpha - max(0, model$d/2 - start_beta))
+      starting_values["alpha"] <- log(start_alpha)
+      starting_values["beta"] <- log(start_beta - max(0, model$d/2 - start_alpha))
     } else {
       # Handle nu and alpha parameters for non-intrinsic models
       if (!is.null(start_nu)) {
@@ -3072,52 +3086,14 @@ determine_estimate_params <- function(model, model_options, start_values) {
   
   # For each parameter in start_values, check if it should be fixed
   for (param_name in names(start_values)) {
-    # Skip unnamed parameters (handled separately below)
     if (param_name == "") {
-      next
+      stop("Some parameters were not processed correctly when computing the starting values.")
     }
     
     # Check if there's a corresponding fix_param in model_options
     fix_param_name <- paste0("fix_", param_name)
     if (!is.null(model_options[[fix_param_name]])) {
       estimate_params[param_name] <- FALSE
-    }
-  }
-  
-  # Special case for spacetime models - nu is never estimated
-  if (inherits(model, "spacetimeobj") && "nu" %in% names(estimate_params)) {
-    estimate_params["nu"] <- FALSE
-  }
-
-  # Special case for spacetime models - alpha is never estimated
-  if (inherits(model, "spacetimeobj") && "alpha" %in% names(estimate_params)) {
-    estimate_params["alpha"] <- FALSE
-  }  
-  
-  # Handle overspecification
-  if ("alpha" %in% names(estimate_params) && "nu" %in% names(estimate_params)) {
-    stop("There was a processing error, alpha and nu were found at the same time at start_values.")
-  }
-  
-  # Handle non-stationary models with unnamed parameters (fix_theta case)
-  unnamed_params <- which(names(start_values) == "")
-  if (length(unnamed_params) > 0 && !is.null(model_options$fix_theta)) {
-    # Only apply for non-stationary models that could have theta parameters
-    if (!model$stationary && !inherits(model, "spacetimeobj") && 
-        !inherits(model, "CBrSPDEobj2d") && !inherits(model, "intrinsicCBrSPDEobj")) {
-      
-      # Find theta parameter if it exists in named parameters
-      if ("theta" %in% names(estimate_params)) {
-        estimate_params["theta"] <- FALSE
-      } else {
-        # Otherwise set all unnamed parameters to be fixed
-        for (i in unnamed_params) {
-          if (i <= length(estimate_params)) {
-            # Create a new entry (assuming unnamed params are indexed)
-            estimate_params[i] <- FALSE
-          }
-        }
-      }
     }
   }
   
@@ -3133,11 +3109,11 @@ determine_estimate_params <- function(model, model_options, start_values) {
 #' @param model_options Model options with fixed parameter values
 #' @param start_values Original starting values vector with names
 #' @param n_coeff_nonfixed Number of non-fixed coefficients
-#' @param nu_upper_bound Upper bound for nu parameter
+#' @param smoothness_upper_bound Upper bound for the smoothness parameter
 #' @return List containing update arguments and additional values
 #' @noRd
 extract_model_update_args <- function(model, theta, estimate_params, model_options, 
-                                      start_values, n_coeff_nonfixed, nu_upper_bound) {
+                                      start_values, n_coeff_nonfixed, smoothness_upper_bound) {
   # Initialize results
   args_list <- list()
   result <- list(
@@ -3149,15 +3125,25 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
   
   # Get parameter names from estimate_params
   param_names <- names(estimate_params)
+
+  # For non-stationary CBrSPDEobj or rSPDEobj models, initialize theta vector
+  if ((inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj")) && !model$stationary) {
+    # Initialize theta vector with the same length as model$theta
+    args_list$theta <- numeric(length(model$theta))
+  }
+
+  # For spacetime models, initialize rho vector with appropriate length
+  if (inherits(model, "spacetimeobj")) {
+    args_list$rho <- numeric(model$d)
+  }
   
   # Initialize index tracker
   index <- 1
   
   # Process parameters based on their names rather than model class
   for (param_name in param_names) {
-    # Skip unnamed parameters in start_values (handled specially)
     if (param_name == "") {
-      next
+      stop("Some parameters were not processed correctly when determining the parameters to estimate.")
     }
     
     # If parameter should be estimated, get from theta
@@ -3169,59 +3155,54 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
       }
       else if (param_name == "nu") {
         nu <- exp(theta[index])
-        if (nu %% 1 == 0) nu <- nu - 1e-5
-        nu <- min(nu, nu_upper_bound)
+        if ((nu + model$d/2) %% 1 == 0) nu <- nu - 1e-5
         args_list$nu <- nu
         
-        # Special check for rSPDEobj1d at upper bound
-        if (inherits(model, "rSPDEobj1d") && nu == nu_upper_bound) {
+        if (nu >= smoothness_upper_bound) {
           result$early_return <- -10^100
           return(result)
         }
         
-        # Also compute alpha if this is a model that uses alpha derived from nu
-        if (!inherits(model, "CBrSPDEobj2d") && !inherits(model, "spacetimeobj")) {
-          alpha <- nu + model$d/2
-          alpha <- max(1e-5 + model$d/2, alpha)
-          args_list$alpha <- alpha
-        }
-        
         index <- index + 1
       }
-      else if (param_name == "alpha") {
+      else if (param_name == "alpha" && !inherits(model, "intrinsicCBrSPDEobj")) {
         alpha <- exp(theta[index]) + model$d/2
         if (alpha %% 1 == 0) alpha <- alpha - 1e-5
         args_list$alpha <- alpha
+
+        if(alpha >= smoothness_upper_bound + model$d/2) {
+          result$early_return <- -10^100
+          return(result)
+        }
+
+        index <- index + 1
+      }
+      else if (param_name == "alpha" && inherits(model, "intrinsicCBrSPDEobj")) {
+        alpha <- exp(theta[index])
+        if (alpha %% 1 == 0) alpha <- max(alpha - 1e-5, 1e-5)
+        args_list$alpha <- alpha
+        if(alpha >= smoothness_upper_bound + model$d/2) {
+          result$early_return <- -10^100
+          return(result)
+        }
         index <- index + 1
       }
       else if (param_name == "beta") {
-        beta <- theta2beta(theta[index], model$d)
+        if(!inherits(model, "intrinsicCBrSPDEobj")) {
+          stop("Processing error. beta parameter should not be estimated for non-intrinsic models.")
+        }
+        # observe that by this point, alpha is already set, and this implies the model is intrinsic
+        beta <- max(model$d/2 - alpha,0) + exp(theta[index])
         if (beta %% 1 == 0) beta <- beta - 1e-5
         args_list$beta <- beta
+        if(beta >= smoothness_upper_bound + model$d/2) {
+          result$early_return <- -10^100
+          return(result)
+        }
         index <- index + 1
       }
-      else if (param_name == "tau") {
-        args_list$tau <- exp(theta[index])
-        index <- index + 1
-      }
-      else if (param_name == "kappa") {
-        args_list$kappa <- exp(theta[index])
-        index <- index + 1
-      }
-      else if (param_name == "sigma") {
-        args_list$sigma <- exp(theta[index])
-        index <- index + 1
-      }
-      else if (param_name == "gamma") {
-        args_list$gamma <- exp(theta[index])
-        index <- index + 1
-      }
-      else if (param_name == "hx") {
-        args_list$hx <- exp(theta[index])
-        index <- index + 1
-      }
-      else if (param_name == "hy") {
-        args_list$hy <- exp(theta[index])
+      else if (param_name %in% c("tau", "kappa", "sigma", "range", "gamma", "hx", "hy")) {
+        args_list[[param_name]] <- exp(theta[index])
         index <- index + 1
       }
       else if (param_name == "hxy") {
@@ -3229,24 +3210,42 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
         index <- index + 1
       }
       else if (param_name == "rho") {
-        # Handle rho parameter (vector) for spacetime models
+        # Handle first coordinate of rho parameter for spacetime models
         if (inherits(model, "spacetimeobj") && model$alpha > 0) {
           if (model$is_bounded_rho) {
-            args_list$rho <- model$bound_rho * (2.0 / (1.0 + exp(-theta[index:(index+model$d-1)])) - 1.0)
+            args_list$rho[1] <- model$bound_rho * (2.0 / (1.0 + exp(-theta[index])) - 1.0)
           } else {
-            args_list$rho <- theta[index:(index+model$d-1)]
+            args_list$rho[1] <- theta[index]
           }
-          index <- index + model$d
+          index <- index + 1
         } else {
-          args_list$rho <- rep(0, model$d)
+          args_list$rho[1] <- 0 # alpha = 0 implies rho = 0
         }
       }
-      else if (param_name == "theta") {
-        # Handle theta parameter for non-stationary models
+      else if (param_name == "rho2") {
+        # Handle second coordinate of rho parameter for spacetime models
+        if (inherits(model, "spacetimeobj") && model$alpha > 0 && model$d > 1) {
+          if (model$is_bounded_rho) {
+            args_list$rho[2] <- model$bound_rho * (2.0 / (1.0 + exp(-theta[index])) - 1.0)
+          } else {
+            args_list$rho[2] <- theta[index]
+          }
+          index <- index + 1
+        } else if (model$d == 2 && inherits(model, "spacetimeobj")) {
+          args_list$rho[2] <- 0 # alpha = 0 implies rho = 0
+        } else{
+          stop("Processing error. rho2 parameter should not be estimated for non-spacetime models.")
+        }
+      }
+      else if (startsWith(param_name, "theta")) {
+        # Handle individual theta parameters for non-stationary models
         if (!model$stationary) {
-          theta_length <- length(model$theta)
-          args_list$theta <- theta[index:(index + theta_length - 1)]
-          index <- index + theta_length
+          # Extract the index from the parameter name (e.g., "theta1" -> 1, "theta10" -> 10)
+          # Use regex to extract the numeric part after "theta"
+          theta_index <- as.integer(gsub("theta([0-9]+)", "\\1", param_name))
+                    # Update the specific theta element
+          args_list$theta[theta_index] <- theta[index]
+          index <- index + 1
         }
       }
     } else {
@@ -3256,42 +3255,21 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
       if (param_name == "sigma_e") {
         result$sigma_e <- model_options[[fix_param_name]]
       }
-      else if (param_name == "nu") {
-        if (!is.null(model_options[[fix_param_name]])) {
-          args_list$nu <- model_options[[fix_param_name]]
-        } else if (!is.null(model_options$fix_alpha)) {
-          args_list$nu <- model_options$fix_alpha - model$d/2
-        } else {
-          args_list$nu <- model$nu
-        }
-        
-        # Also compute alpha if this is a model that uses alpha derived from nu
-        if (!inherits(model, "CBrSPDEobj2d") && !inherits(model, "spacetimeobj")) {
-          args_list$alpha <- args_list$nu + model$d/2
-        }
-      }
-      else if (param_name == "alpha" && !is.null(model_options[[fix_param_name]])) {
-        args_list$alpha <- model_options[[fix_param_name]]
-      }
-      else if (param_name != "sigma_e" && param_name != "nu" && param_name != "alpha") {
+      else if (param_name != "sigma_e" && !startsWith(param_name, "theta")) {
         # For other parameters, just get from model_options or model
         if (!is.null(model_options[[fix_param_name]])) {
           args_list[[param_name]] <- model_options[[fix_param_name]]
-        } else if (!is.null(model[[param_name]])) {
-          args_list[[param_name]] <- model[[param_name]]
+        } else {
+          stop("Processing error. ", param_name, " is marked as fixed but no value is provided.")
+        }
+      } else if (startsWith(param_name, "theta")) {
+        # Handle theta parameters for non-stationary models
+        if (!model$stationary) {
+          # Extract the index from the parameter name (e.g., "theta1" -> 1, "theta10" -> 10)
+          theta_index <- as.integer(gsub("theta([0-9]+)", "\\1", param_name))
+          args_list$theta[theta_index] <- model_options[[fix_param_name]]
         }
       }
-    }
-  }
-  
-  # Special handling for non-stationary models with fix_theta
-  if (!model$stationary && !inherits(model, "spacetimeobj") && 
-      !inherits(model, "CBrSPDEobj2d") && !inherits(model, "intrinsicCBrSPDEobj")) {
-    
-    # Check if we have unnamed parameters in start_values
-    unnamed_indices <- which(names(start_values) == "")
-    if (length(unnamed_indices) > 0 && !is.null(model_options$fix_theta)) {
-      args_list$theta <- model_options$fix_theta
     }
   }
   
@@ -3370,14 +3348,14 @@ get_aux_lik_fun_args <- function(model, y_resp, X_cov, repl, A_list,
 #' @param repl Replication indicator 
 #' @param start_values Named vector of starting values
 #' @param mean_correction Apply mean correction 
-#' @param nu_upper_bound Upper bound for nu parameter 
+#' @param smoothness_upper_bound Upper bound for smoothness parameter 
 #' @param loc_df Location data frame
 #' @return List containing likelihood function and parameter estimation flags
 #' @noRd
 create_likelihood <- function(model, model_options, y_resp, 
                              X_cov, A_list,
                              repl, start_values,
-                             mean_correction, nu_upper_bound,
+                             mean_correction, smoothness_upper_bound,
                              loc_df) {
   
   # Initialize X_cov if NULL
@@ -3413,7 +3391,7 @@ create_likelihood <- function(model, model_options, y_resp,
       model_options = model_options,
       start_values = start_values,
       n_coeff_nonfixed = n_coeff_nonfixed,
-      nu_upper_bound = nu_upper_bound
+      smoothness_upper_bound = smoothness_upper_bound
     )
     
     # Check for early return (e.g., nu at upper bound for rSPDEobj1d)

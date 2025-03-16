@@ -39,6 +39,7 @@
 #' @param previous_fit An object of class `rspde_lme`. Use the fitted coefficients as starting values.
 #' @param fix_coeff If using a previous fit, should all coefficients be fixed at the starting values?
 #' @param model_options A list containing additional options to be used in the model. This will take preference over the values extracted from previous_fit. Currently, it is possible to fix parameters during the estimation or change the starting values of the parameters. The general structure of the elements of the list is `fix_parname` and `start_parname`, where `parname` stands for the name of the parameter. If `fix_parname` is not `NULL`, then the model will be fitted with the `parname` being fixed at the value that was passed. If `start_parname` is not `NULL`, the model will be fitted using the value passed as starting value for `parname`. For 'rSPDE' and 'rSPDE1d' models, the possible elements of the list are `fix_sigma_e`, `start_sigma_e`, `fix_nu`, `start_nu`, `fix_sigma`, `start_sigma`, `fix_range`, `start_range`. Alternatively, one can also use the elements `fix_sigma_e`, `start_sigma_e`, `fix_nu`, `start_nu`, `fix_tau`, `start_tau`, `fix_kappa`, `start_kappa`. For 'spacetime' models, the possible elements of the list are `fix_sigma_e`, `start_sigma_e`, `fix_kappa`, `start_kappa`, `fix_sigma`, `start_sigma`, `fix_gamma`, `start_gamma`, `fix_rho`, `start_rho`. For dimension 2, the second coordinate of `rho` has name `rho2` and must be passed as `start_rho2` and `fix_rho2`. For 'rSPDE2d' models, the possible elements of the list are `fix_sigma_e`, `start_sigma_e`, `fix_nu`, `start_nu`, `fix_sigma`, `start_sigma`, `fix_hx`, `start_hx`, `fix_hy`, `start_hy`, `fix_hxy`, `start_hxy`. For nonstationary models, we have two options: the first is to pass the starting values as a vector with name `start_theta` and a vector with the names of the parameters to be fixed with name    `fix_theta`; the second option is to handle the individual parameters, by passing the names `thetan` where `n` is the number of the parameter to pass the starting value or to be fixed. For example, to pass the starting value for `theta3` one simply pass `start_theta3`, and to fix `theta2`, one simply pass `fix_theta2`.
+#' @param smoothness_upper_bound Upper bound for `nu`, when `nu` is the smoothness parameter, or for `alpha - d/2` when `alpha` is the smoothness parameter, or for `max\{alpha - d/2, beta - d/2)` for intrinsic models.
 #' @param parallel logical. Indicating whether to use optimParallel or not.
 #' @param n_cores Number of cores to be used if parallel is true.
 #' @param optim_controls Additional controls to be passed to `optim` or `optimParallel`.
@@ -77,6 +78,7 @@ rspde_lme <- function(formula,
                       previous_fit = NULL,
                       fix_coeff = FALSE, 
                       model_options = list(),                      
+                      smoothness_upper_bound = 4,
                       parallel = FALSE,
                       n_cores = parallel::detectCores() - 1,
                       optim_controls = list(),
@@ -89,7 +91,8 @@ rspde_lme <- function(formula,
                       start_sigma_e = lifecycle::deprecated(),
                       start_alpha = lifecycle::deprecated(),
                       start_nu = lifecycle::deprecated(),
-                      start_beta = lifecycle::deprecated()
+                      start_beta = lifecycle::deprecated(),
+                      nu_upper_bound = lifecycle::deprecated()
                       ) {
 
   available_models <- c("CBrSPDEobj", 
@@ -201,6 +204,18 @@ rspde_lme <- function(formula,
     )
     if (!is.null(nu)) {
       model_options$fix_nu <- nu
+    }
+  }
+
+  if (lifecycle::is_present(nu_upper_bound)) {
+    lifecycle::deprecate_warn(
+      "2.5.0", 
+      what = "rspde_lme(nu_upper_bound)",
+      with = "rspde_lme(smoothness_upper_bound)",
+      details = "Upper bound for nu should now be specified in smoothness_upper_bound ."
+    )
+    if (!is.null(nu_upper_bound)) {
+      smoothness_upper_bound <- nu_upper_bound
     }
   }
 
@@ -363,7 +378,7 @@ rspde_lme <- function(formula,
       rspde_order <- NULL
     }
 
-    # Getting auxiliary starting values
+    # Getting starting values
 
     start_values <- get_model_starting_values(model = model, model_options = model_options, y_resp = y_resp, parameterization = parameterization) 
 
@@ -507,9 +522,11 @@ rspde_lme <- function(formula,
         model_tmp$make_A <- NULL    
     }
 
-    like_aux <- create_likelihood(model = model, model_options = model_options, y_resp = y_resp, X_cov = X_cov, A_list = A_list, repl = repl,
-                                    start_values = start_values, mean_correction = mean_correction, nu_upper_bound = nu_upper_bound,
+    like_aux <- create_likelihood(model = model, model_options = model_options, y_resp = y_resp, X_cov = X_cov, A_list = A_list, 
+                                    repl = repl, start_values = start_values, mean_correction = mean_correction, 
+                                    smoothness_upper_bound = smoothness_upper_bound,
                                     loc_df = loc_df)
+
     likelihood <- like_aux$likelihood
     estimate_pars <- like_aux$estimate_params
     n_coeff_nonfixed <- like_aux$n_coeff_nonfixed
@@ -631,9 +648,9 @@ rspde_lme <- function(formula,
         parallel::clusterExport(cl, "start_values", envir = environment())
       }
       
-      # Export nu_upper_bound
-      if (exists("nu_upper_bound")) {
-        parallel::clusterExport(cl, "nu_upper_bound", envir = environment())
+      # Export smoothness_upper_bound
+      if (exists("smoothness_upper_bound")) {
+        parallel::clusterExport(cl, "smoothness_upper_bound", envir = environment())
       }
 
       end_par <- Sys.time()
