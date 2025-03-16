@@ -2500,6 +2500,194 @@ transform_parameters_spacetime <- function(theta, st_model) {
   return(result)
 }
 
+
+
+#' @title Extract Possible Parameters
+#' @description Extracts the possible parameters for a given model type
+#' @param model The model object
+#' @return A character vector of possible parameters
+#' @noRd 
+
+extract_possible_parameters <- function(model) {
+  if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
+    if(model$stationary) {
+      return(c("alpha", "kappa", "tau", "nu", "range", "sigma", "theta"))
+    } else {
+      n_theta <- length(model$theta)
+      if(n_theta == 0){
+        stop("Non-stationary models must have a non-NULL theta parameter.")
+      }
+      return(paste0("theta", 1:n_theta))
+    }
+  } else if (inherits(model, "spacetimeobj")) {
+    return(c("alpha", "beta", "kappa", "sigma", "gamma", "rho"))
+  } else if (inherits(model, "intrinsicCBrSPDEobj")) {
+    return(c("alpha", "beta", "kappa", "tau"))
+  } else if (inherits(model, "CBrSPDEobj2d")) {
+    return(c("nu", "hy", "hx", "hxy", "sigma"))
+  } else {
+    return(NULL)
+  }
+}
+
+#' @title Process Model Options
+#' @description Processes the model options for a given model type, with special handling for nonstationary models
+#' @param model The model object
+#' @param model_options The model options
+#' @return The processed model options
+#' @noRd 
+
+process_model_options <- function(model, model_options) {
+  if(inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj")) {
+    if(!model$stationary && !is.null(model_options)) {
+      # Process start_theta vector if it exists
+      if(!is.null(model_options$start_theta)) {
+        if(length(model_options$start_theta) != length(model$theta)) {
+          stop(paste0("The length of start_theta (", length(model_options$start_theta), 
+                     ") must match the length of model$theta (", length(model$theta), ")."))
+        }
+        
+        # Create individual start_theta1, start_theta2, etc. parameters
+        for(i in seq_along(model_options$start_theta)) {
+          model_options[[paste0("start_theta", i)]] <- model_options$start_theta[i]
+        }
+        
+        # Remove the original start_theta
+        model_options$start_theta <- NULL
+      }
+      
+      # Process fix_theta vector if it exists
+      if(!is.null(model_options$fix_theta)) {
+        if(length(model_options$fix_theta) != length(model$theta)) {
+          stop(paste0("The length of fix_theta (", length(model_options$fix_theta), 
+                     ") must match the length of model$theta (", length(model$theta), ")."))
+        }
+        
+        # Create individual fix_theta1, fix_theta2, etc. parameters
+        for(i in seq_along(model_options$fix_theta)) {
+          model_options[[paste0("fix_theta", i)]] <- model_options$fix_theta[i]
+        }
+        
+        # Remove the original fix_theta
+        model_options$fix_theta <- NULL
+      }
+    }
+  }
+  
+  return(model_options)
+}
+
+
+#' @title General Checks Model Options
+#' @description Checks the model options for a given model type
+#' @param model_options The model options
+#' @param model The model object
+#' @noRd 
+
+general_checks_model_options <- function(model_options, model) {
+  parameterization <- "spde"
+  possible_params <- extract_possible_parameters(model)
+  # Skip checks if model_options is NULL
+  if (is.null(model_options)) {
+    return(invisible(NULL))
+  }
+    
+  # Get all option names from model_options
+  option_names <- names(model_options)
+  
+  # Check for fix_* and start_* parameters
+  for (opt_name in option_names) {
+    # Extract parameter name from option name
+    if (startsWith(opt_name, "fix_") || startsWith(opt_name, "start_")) {
+      param_name <- substring(opt_name, nchar(regmatches(opt_name, regexpr("^(fix|start)_", opt_name))) + 1)
+      
+      # Check if parameter name is valid for this model type
+      if (!param_name %in% possible_params) {
+        stop(sprintf("'%s' is not a valid parameter for this model class. Valid parameters are: %s", 
+                     param_name, paste(possible_params, collapse = ", ")))
+      }
+    }
+  }
+
+  # Check for parameters that have both fix_* and start_* options
+  for (param_name in possible_params) {
+    fix_param <- paste0("fix_", param_name)
+    start_param <- paste0("start_", param_name)
+    
+    if (fix_param %in% option_names && start_param %in% option_names) {
+      warning(sprintf("Both '%s' and '%s' were provided in model_options. Since the parameter is fixed, '%s' will be ignored.", 
+                     fix_param, start_param, start_param))
+    }
+  }
+
+  # Check for mixing of parameterizations for specific model types
+  # Only check for stationary models
+  if ((inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) && 
+      !is.null(model$stationary) && model$stationary) {
+    # Define parameter groups
+    spde_params <- c("alpha", "kappa", "tau")
+    matern_params <- c("nu", "range", "sigma")
+    
+    # Check if any parameters from each group are present in model_options
+    has_spde_params <- any(sapply(spde_params, function(param) {
+      paste0("fix_", param) %in% option_names || paste0("start_", param) %in% option_names
+    }))
+    
+    has_matern_params <- any(sapply(matern_params, function(param) {
+      paste0("fix_", param) %in% option_names || paste0("start_", param) %in% option_names
+    }))
+    
+    # If both parameterization types are used, issue a warning
+    if (has_spde_params && has_matern_params) {
+      stop("Mixing parameterizations is not allowed. Use either SPDE parameterization (alpha, kappa, tau) or Matérn parameterization (nu, range, sigma), but not both.")
+    }
+    if(has_matern_params){
+      parameterization <- "matern"
+    }
+  }
+
+  return(parameterization)
+}
+
+#' Perform general validation checks for model fitting
+#'
+#' This function performs validation checks on model parameters to ensure they satisfy
+#' mathematical requirements for the SPDE models.
+#'
+#' @param model A model object (e.g., "intrinsicCBrSPDEobj", "CBrSPDEobj")
+#' @param model_options A list of model options containing fixed and starting values for parameters
+#' @return NULL invisibly
+#' @noRd 
+
+general_checks_lme <- function(model, model_options) {
+  # Check alpha and beta combination for intrinsic models
+  if (inherits(model, "intrinsicCBrSPDEobj") && !is.null(model_options$fix_alpha) && !is.null(model_options$fix_beta)) {
+    if (model_options$fix_alpha + model_options$fix_beta <= model$d/2) {
+      stop("One must have alpha + beta > d/2.")
+    }
+  }
+  
+  # Check fix_alpha for non-intrinsic models and non-space-time models
+  if (!inherits(model, "intrinsicCBrSPDEobj") && 
+      !inherits(model, "spacetimeobj") && 
+      !is.null(model_options$fix_alpha) && 
+      model_options$fix_alpha <= model$d / 2) {
+    stop(paste("model_options$fix_alpha must be greater than dim/2 =", model$d / 2))
+  }
+  
+  # Check start_alpha for non-intrinsic models
+  if (!inherits(model, "intrinsicCBrSPDEobj") && 
+      !inherits(model, "spacetimeobj") &&   
+      !is.null(model_options$start_alpha) && 
+      model_options$start_alpha <= model$d / 2) {
+    stop(paste("model_options$start_alpha must be greater than dim/2 =", model$d / 2))
+  }
+  
+  invisible(NULL)
+}
+
+
+
 #' Remove the "(fixed)" suffix from parameter names
 #'
 #' @param param_list A list containing parameter names that might have "(fixed)" suffix
@@ -2536,10 +2724,17 @@ clean_fixed_param_names <- function(param_list) {
   
   return(param_list)
 }
-
 #' Extracts starting values from previous_fit
 #'
-#' @noRd 
+#' This function extracts parameter values from a previous model fit and 
+#' uses them as starting values or fixed values for a new model fit.
+#' For non-stationary models, it handles Theta parameters specially.
+#'
+#' @param previous_fit A previous model fit object of class "rspde_lme"
+#' @param fix_coeff Logical indicating whether to use extracted values as fixed parameters
+#' @param model_options List of model options that may override extracted values
+#' @return Updated model_options list with extracted starting or fixed values
+#' @noRd  
 extract_starting_values <- function(previous_fit, fix_coeff = FALSE, model_options = NULL) {
   # Validate previous_fit
   if (is.null(previous_fit) || !inherits(previous_fit, "rspde_lme")) {
@@ -2557,30 +2752,45 @@ extract_starting_values <- function(previous_fit, fix_coeff = FALSE, model_optio
                      (inherits(previous_fit$latent_model, "CBrSPDEobj") || 
                       inherits(previous_fit$latent_model, "rSPDEobj"))
   
+  # Get parameterization from previous_fit
+  parameterization <- previous_fit$parameterization_latent
+  
   if (is_nonstationary) {
     # Handle the non-stationary case with Theta parameters
     random_effects <- previous_fit$coeff$random_effects
     param_names <- names(random_effects)
     
-    # Extract all Theta parameters and put them in a vector
+    # Extract all Theta parameters individually
     theta_indices <- grep("^Theta", param_names)
     if (length(theta_indices) > 0) {
-      theta_values <- random_effects[theta_indices]
-      model_options_tmp[[paste0(prefix, "theta")]] <- unname(theta_values)
+      for (i in theta_indices) {
+        param_name <- param_names[i]
+        # Convert "Theta i" to "thetai"
+        new_name <- tolower(gsub(" ", "", param_name))
+        model_options_tmp[[paste0(prefix, new_name)]] <- random_effects[[param_name]]
+      }
     }
     
     # Add other parameters (not Theta)
     non_theta_indices <- setdiff(seq_along(random_effects), theta_indices)
     for (i in non_theta_indices) {
       param_name <- param_names[i]
-      model_options_tmp[[paste0(prefix, tolower(param_name))]] <- random_effects[[i]]
+      model_options_tmp[[paste0(prefix, tolower(param_name))]] <- random_effects[[param_name]]
     }
   } else {
-    # Regular case - use original approach
-    model_options_tmp <- setNames(
-      as.list(previous_fit$coeff$random_effects),
-      paste0(prefix, names(previous_fit$coeff$random_effects))
-    )
+    # Regular case for stationary models
+    if (!is.null(parameterization) && parameterization == "matern") {
+      # Use matern_coeff for matern parameterization
+      random_effects <- previous_fit$matern_coeff$random_effects
+    } else {
+      # Use coeff for other parameterizations
+      random_effects <- previous_fit$coeff$random_effects
+    }
+    
+    # Create named list with appropriate prefix
+    for (param_name in names(random_effects)) {
+      model_options_tmp[[paste0(prefix, tolower(param_name))]] <- random_effects[[param_name]]
+    }
   }
   
   # Add sigma_e with appropriate prefix
@@ -2613,102 +2823,6 @@ extract_starting_values <- function(previous_fit, fix_coeff = FALSE, model_optio
   }
   
   return(clean_fixed_param_names(model_options_tmp))
-}
-
-#' @noRd 
-
-process_model_options <- function(model, model_options) {
-  # Only process for standard non-spacetime/non-special models
-  if (!inherits(model, "spacetimeobj") && 
-      !inherits(model, "CBrSPDEobj2d") && 
-      !inherits(model, "intrinsicCBrSPDEobj")) {
-    
-    d <- model$d
-    
-    # Process nu parameter - priority order:
-    # fix_nu > fix_alpha > start_nu > start_alpha > model$nu
-    if (!is.null(model_options$fix_nu)) {
-      nu <- model_options$fix_nu
-      model_options$fix_alpha <- nu + d/2
-    } else if (!is.null(model_options$fix_alpha)) {
-      nu <- model_options$fix_alpha - d/2
-      model_options$fix_nu <- nu
-    } else if (!is.null(model_options$start_nu)) {
-      nu <- model_options$start_nu
-      model_options$start_alpha <- nu + d/2
-    } else if (!is.null(model_options$start_alpha)) {
-      nu <- model_options$start_alpha - d/2
-      model_options$start_nu <- nu
-    } else if (!is.null(model$nu)) {
-      nu <- model$nu
-    } else {
-      stop("There was some error processing model_options. Cannot determine 'nu' parameter.")
-    }
-    
-    # Process range/kappa parameters - priority order for kappa:
-    # fix_range > start_range > fix_kappa > start_kappa > model$kappa
-    if (!is.null(model_options$fix_range)) {
-      model_options$fix_kappa <- sqrt(8 * nu) / model_options$fix_range
-    } else if (!is.null(model_options$start_range)) {
-      model_options$start_kappa <- sqrt(8 * nu) / model_options$start_range
-    } else if (is.null(model_options$fix_kappa) && is.null(model_options$start_kappa) && is.null(model$kappa)) {
-      stop("There was some error processing model_options. Cannot determine 'kappa' parameter.")
-    }
-    
-    # Get final kappa for calculations
-    if (!is.null(model_options$fix_kappa)) {
-      kappa <- model_options$fix_kappa
-    } else if (!is.null(model_options$start_kappa)) {
-      kappa <- model_options$start_kappa
-    } else {
-      kappa <- model$kappa
-    }
-    
-    # Process sigma/tau parameters - priority order for tau:
-    # fix_sigma > start_sigma > fix_tau > start_tau > model$tau
-    if (!is.null(model_options[["fix_sigma"]])) {
-      model_options[["fix_tau"]] <- sqrt(gamma(nu) / 
-                                   (model_options[["fix_sigma"]]^2 * kappa^(2 * nu) * 
-                                    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
-    } else if (!is.null(model_options[["start_sigma"]])) {
-      model_options[["start_tau"]] <- sqrt(gamma(nu) / 
-                                     (model_options[["start_sigma"]]^2 * kappa^(2 * nu) * 
-                                      (4 * pi)^(d / 2) * gamma(nu + d / 2)))
-    } else if (is.null(model_options[["fix_tau"]]) && is.null(model_options[["start_tau"]]) && is.null(model$tau)) {
-      stop("There was some error processing model_options. Cannot determine 'tau' parameter.")
-    }
-  }
-  
-  return(model_options)
-}
-
-#' @noRd 
-
-general_checks_lme <- function(model, model_options) {
-  # Check alpha and beta combination for intrinsic models
-  if (inherits(model, "intrinsicCBrSPDEobj") && !is.null(model_options$fix_alpha) && !is.null(model_options$fix_beta)) {
-    if (model_options$fix_alpha + model_options$fix_beta <= model$d/2) {
-      stop("One must have alpha + beta > d/2.")
-    }
-  }
-  
-  # Check fix_alpha for non-intrinsic models and non-space-time models
-  if (!inherits(model, "intrinsicCBrSPDEobj") && 
-      !inherits(model, "spacetimeobj") && 
-      !is.null(model_options$fix_alpha) && 
-      model_options$fix_alpha <= model$d / 2) {
-    stop(paste("model_options$fix_alpha must be greater than dim/2 =", model$d / 2))
-  }
-  
-  # Check start_alpha for non-intrinsic models
-  if (!inherits(model, "intrinsicCBrSPDEobj") && 
-      !inherits(model, "spacetimeobj") &&   
-      !is.null(model_options$start_alpha) && 
-      model_options$start_alpha <= model$d / 2) {
-    stop(paste("model_options$start_alpha must be greater than dim/2 =", model$d / 2))
-  }
-  
-  invisible(NULL)
 }
 
 #' @noRd 
@@ -4223,81 +4337,3 @@ process_model_results <- function(res, observed_fisher, start_values, estimate_p
   return(result)
 }
 
-
-
-#' @noRd 
-
-extract_possible_parameters <- function(model) {
-  if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
-    return(c("alpha", "kappa", "tau", "nu", "range", "sigma", "theta"))
-  } else if (inherits(model, "spacetimeobj")) {
-    return(c("alpha", "beta", "kappa", "sigma", "gamma", "rho"))
-  } else if (inherits(model, "intrinsicCBrSPDEobj")) {
-    return(c("alpha", "beta", "kappa", "tau"))
-  } else if (inherits(model, "CBrSPDEobj2d")) {
-    return(c("nu", "hy", "hx", "hxy", "sigma"))
-  } else {
-    return(NULL)
-  }
-}
-
-#' @noRd
-
-general_checks_model_options <- function(model_options, model) {
-  possible_params <- extract_possible_parameters(model)
-  # Skip checks if model_options is NULL
-  if (is.null(model_options)) {
-    return(invisible(NULL))
-  }
-    
-  # Get all option names from model_options
-  option_names <- names(model_options)
-  
-  # Check for fix_* and start_* parameters
-  for (opt_name in option_names) {
-    # Extract parameter name from option name
-    if (startsWith(opt_name, "fix_") || startsWith(opt_name, "start_")) {
-      param_name <- substring(opt_name, nchar(regmatches(opt_name, regexpr("^(fix|start)_", opt_name))) + 1)
-      
-      # Check if parameter name is valid for this model type
-      if (!param_name %in% possible_params) {
-        stop(sprintf("'%s' is not a valid parameter for this model class. Valid parameters are: %s", 
-                     param_name, paste(possible_params, collapse = ", ")))
-      }
-    }
-  }
-
-  # Check for parameters that have both fix_* and start_* options
-  for (param_name in possible_params) {
-    fix_param <- paste0("fix_", param_name)
-    start_param <- paste0("start_", param_name)
-    
-    if (fix_param %in% option_names && start_param %in% option_names) {
-      warning(sprintf("Both '%s' and '%s' were provided in model_options. Since the parameter is fixed, '%s' will be ignored.", 
-                     fix_param, start_param, start_param))
-    }
-  }
-
-  # Check for mixing of parameterizations for specific model types
-  if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
-    # Define parameter groups
-    spde_params <- c("alpha", "kappa", "tau")
-    matern_params <- c("nu", "range", "sigma")
-    
-    # Check if any parameters from each group are present in model_options
-    has_spde_params <- any(sapply(spde_params, function(param) {
-      paste0("fix_", param) %in% option_names || paste0("start_", param) %in% option_names
-    }))
-    
-    has_matern_params <- any(sapply(matern_params, function(param) {
-      paste0("fix_", param) %in% option_names || paste0("start_", param) %in% option_names
-    }))
-    
-    # If both parameterization types are used, issue a warning
-    if (has_spde_params && has_matern_params) {
-      stop("Mixing parameterizations is not allowed. Use either SPDE parameterization (alpha, kappa, tau) or Matérn parameterization (nu, range, sigma), but not both.")
-    }
-  }
-
-  return(invisible(NULL))
-}

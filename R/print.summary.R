@@ -39,7 +39,7 @@ print.summary.rSPDEobj1d <- function(x, ...) {
             ", alpha = ", x$alpha, "\n")    
     }
     
-    cat("Order or rational approximation: ", x$order, "\n")
+    cat("Order or rational approximation: ", x$m, "\n")
 }
 
 #' @export

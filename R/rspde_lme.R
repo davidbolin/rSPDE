@@ -32,15 +32,13 @@
 #' @param use_data_from_graph Logical. Only for models generated from graphs from 
 #' `metric_graph` class. In this case, should the data, the locations and the 
 #' replicates be obtained from the graph object?
-#' @param nu_upper_bound A parameter that limits the maximum value that nu can 
-#' assume. Not used for spatio-temporal models. 
 #' @param rspde_order The order of the rational approximation to be used while 
 #' fitting the model. If not given, the order from the model object will be used.
 #' Not used for spatio-temporal models.
 #' @param mean_correction If TRUE, use mean correction for intrinsic models. Default FALSE. 
 #' @param previous_fit An object of class `rspde_lme`. Use the fitted coefficients as starting values.
 #' @param fix_coeff If using a previous fit, should all coefficients be fixed at the starting values?
-#' @param model_options A list containing additional options to be used in the model. This will take preference over the values extracted from previous_fit. Currently, it is possible to fix parameters during the estimation or change the starting values of the parameters. The general structure of the elements of the list is `fix_parname` and `start_parname`, where `parname` stands for the name of the parameter. If `fix_parname` is not `NULL`, then the model will be fitted with the `parname` being fixed at the value that was passed. If `start_parname` is not `NULL`, the model will be fitted using the value passed as starting value for `parname`. For 'rSPDE' and 'rSPDE1d' models, the possible elements of the list are `fix_sigma_e`, `start_sigma_e`, `fix_nu`, `start_nu`, `fix_sigma`, `start_sigma`, `fix_range`, `start_range`. Alternatively, one can also use the elements `fix_sigma_e`, `start_sigma_e`, `fix_nu`, `start_nu`, `fix_tau`, `start_tau`, `fix_kappa`, `start_kappa`. For 'spacetime' models, the possible elements of the list are `fix_sigma_e`, `start_sigma_e`, `fix_kappa`, `start_kappa`, `fix_sigma`, `start_sigma`, `fix_gamma`, `start_gamma`, `fix_rho`, `start_rho`. For 'rSPDE2d' models, the possible elements of the list are `fix_sigma_e`, `start_sigma_e`, `fix_nu`, `start_nu`, `fix_sigma`, `start_sigma`, `fix_hx`, `start_hx`, `fix_hy`, `start_hy`, `fix_hxy`, `start_hxy`. For nonstationary models, the name of the parameters are `start_theta` and `fix_theta`.
+#' @param model_options A list containing additional options to be used in the model. This will take preference over the values extracted from previous_fit. Currently, it is possible to fix parameters during the estimation or change the starting values of the parameters. The general structure of the elements of the list is `fix_parname` and `start_parname`, where `parname` stands for the name of the parameter. If `fix_parname` is not `NULL`, then the model will be fitted with the `parname` being fixed at the value that was passed. If `start_parname` is not `NULL`, the model will be fitted using the value passed as starting value for `parname`. For 'rSPDE' and 'rSPDE1d' models, the possible elements of the list are `fix_sigma_e`, `start_sigma_e`, `fix_nu`, `start_nu`, `fix_sigma`, `start_sigma`, `fix_range`, `start_range`. Alternatively, one can also use the elements `fix_sigma_e`, `start_sigma_e`, `fix_nu`, `start_nu`, `fix_tau`, `start_tau`, `fix_kappa`, `start_kappa`. For 'spacetime' models, the possible elements of the list are `fix_sigma_e`, `start_sigma_e`, `fix_kappa`, `start_kappa`, `fix_sigma`, `start_sigma`, `fix_gamma`, `start_gamma`, `fix_rho`, `start_rho`. For 'rSPDE2d' models, the possible elements of the list are `fix_sigma_e`, `start_sigma_e`, `fix_nu`, `start_nu`, `fix_sigma`, `start_sigma`, `fix_hx`, `start_hx`, `fix_hy`, `start_hy`, `fix_hxy`, `start_hxy`. For nonstationary models, we have two options: the first is to pass the starting values as a vector with name `start_theta` and a vector with the names of the parameters to be fixed with name    `fix_theta`; the second option is to handle the individual parameters, by passing the names `thetan` where `n` is the number of the parameter to pass the starting value or to be fixed. For example, to pass the starting value for `theta3` one simply pass `start_theta3`, and to fix `theta2`, one simply pass `fix_theta2`.
 #' @param parallel logical. Indicating whether to use optimParallel or not.
 #' @param n_cores Number of cores to be used if parallel is true.
 #' @param optim_controls Additional controls to be passed to `optim` or `optimParallel`.
@@ -74,7 +72,6 @@ rspde_lme <- function(formula,
                       optim_method = "L-BFGS-B",
                       possible_methods = c("L-BFGS-B", "Nelder-Mead"),
                       use_data_from_graph = TRUE,
-                      nu_upper_bound = 4,
                       rspde_order = NULL,
                       mean_correction = FALSE,
                       previous_fit = NULL,
@@ -95,10 +92,21 @@ rspde_lme <- function(formula,
                       start_beta = lifecycle::deprecated()
                       ) {
 
+  available_models <- c("CBrSPDEobj", 
+                        "rSPDEobj", 
+                        "rSPDEobj1d", 
+                        "spacetimeobj", 
+                        "CBrSPDEobj2d",
+                        "intrinsicCBrSPDEobj")
+  
   null_model <- TRUE
   spacetime <- inherits(model, "spacetimeobj")
   anisotropic <- inherits(model, "CBrSPDEobj2d")
   intrinsic <- inherits(model, "intrinsicCBrSPDEobj")
+  stationary <- model$stationary
+  if(is.null(stationary)) {
+    stationary <- TRUE
+  }
 
   if (lifecycle::is_present(starting_values_latent)) {
     lifecycle::deprecate_warn(
@@ -197,14 +205,8 @@ rspde_lme <- function(formula,
   }
 
   if (!is.null(model)) {
-    if (!inherits(model, c("CBrSPDEobj", 
-                           "rSPDEobj", 
-                           "rSPDEobj1d", 
-                           "spacetimeobj", 
-                           "CBrSPDEobj2d",
-                           "intrinsicCBrSPDEobj"))) {
-      stop("The model should be an object of class 'CBrSPDEobj', 'CBrSPDEobj2d', 'rSPDEobj', 
-           'rSPDEobj1d', 'intrinsicCBrSPDEobj' or 'spacetimeobj'.")
+    if (!inherits(model, available_models)) {
+      stop(paste0("The model should be an object of class '", paste(available_models, collapse = "', '"), "'."))
     }
     null_model <- FALSE
   }
@@ -213,8 +215,13 @@ rspde_lme <- function(formula,
       warning("loc_time should only be supplied for spatio-temporal models. loc_time will be ignored.")
   }
 
-  general_checks_model_options(model_options, model)
-  
+  # Process model_options for nonstationary models
+  model_options <- process_model_options(model, model_options)
+
+  # General checks
+  parameterization <- general_checks_model_options(model_options, model)
+  general_checks_lme(model, model_options)
+
   model_options <- extract_starting_values(previous_fit, fix_coeff = fix_coeff, model_options = model_options)
 
   if (is.null(formula)) {
@@ -289,7 +296,7 @@ rspde_lme <- function(formula,
       if(repl %in% colnames(data)) {
           repl <- data[[repl]]    
       } else {
-          stop("repl provides as a name of a column in data, but the column does not exist.")
+        stop(paste("repl provides as a name of a column in data, but the data does not contain the column:", repl, ". The column names in data are:", paste(colnames(data), collapse = ", ")))
       }   
   }
 
@@ -355,14 +362,6 @@ rspde_lme <- function(formula,
     } else {
       rspde_order <- NULL
     }
-
-    # General checks
-
-    general_checks_lme(model, model_options)
-
-    # Process model_options
-
-    model_options <- process_model_options(model, model_options)
 
     # Getting auxiliary starting values
 
