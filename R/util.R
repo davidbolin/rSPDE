@@ -3100,6 +3100,140 @@ determine_estimate_params <- function(model, model_options, start_values) {
   return(estimate_params)
 }
 
+#' Convert theta parameter to alpha
+#'
+#' Transforms the internal optimization parameter theta_alpha to the model parameter alpha
+#' based on the model options and dimension.
+#'
+#' @param theta_alpha Optimization parameter for alpha
+#' @param d Dimension of the domain (optional)
+#' @param model_options List of model options that may contain fixed parameters
+#' @return The alpha parameter value
+#' @noRd
+theta2alpha <- function(theta_alpha, d = NULL, model_options = NULL) {
+    # Check if fix_alpha is provided in model_options
+    if (!is.null(model_options) && !is.null(model_options$fix_alpha)) {
+        return(model_options$fix_alpha)
+    }
+    
+    # Check if fix_beta is provided in model_options
+    if (!is.null(model_options) && !is.null(model_options$fix_beta) && !is.null(d)) {
+        return(max(0, d/2 - model_options$fix_beta) + exp(theta_alpha))
+    }
+    
+    # Default case: simple exponential transformation
+    return(exp(theta_alpha))
+}
+
+#' Convert alpha parameter to theta
+#'
+#' Transforms the model parameter alpha to the internal optimization parameter theta_alpha
+#' based on the model options and dimension.
+#'
+#' @param alpha Model parameter alpha
+#' @param d Dimension of the domain (optional)
+#' @param model_options List of model options that may contain fixed parameters
+#' @return The optimization parameter theta_alpha or NULL if alpha is fixed
+#' @noRd
+alpha2theta <- function(alpha, d = NULL, model_options = NULL) {
+    # Check if fix_alpha is provided in model_options
+    if (!is.null(model_options) && !is.null(model_options$fix_alpha)) {
+        return(NULL)  # No theta_alpha needed if alpha is fixed
+    }
+    
+    # Check if fix_beta is provided in model_options
+    if (!is.null(model_options) && !is.null(model_options$fix_beta) && !is.null(d)) {
+        return(log(alpha - max(0, d/2 - model_options$fix_beta)))
+    }
+    
+    # Default case: simple log transformation
+    return(log(alpha))
+}
+
+#' Convert theta parameter to beta
+#'
+#' Transforms the internal optimization parameter theta_beta to the model parameter beta
+#' based on the model options, dimension, and alpha.
+#'
+#' @param theta_beta Optimization parameter for beta
+#' @param d Dimension of the domain
+#' @param alpha Alpha parameter value (optional)
+#' @param model_options List of model options that may contain fixed parameters
+#' @return The beta parameter value
+#' @noRd
+theta2beta <- function(theta_beta, d, alpha = NULL, model_options = NULL) {
+    # Check if fix_alpha is provided in model_options
+    if (!is.null(model_options) && !is.null(model_options$fix_alpha)) {
+        alpha <- model_options$fix_alpha
+        return(max(0, d/2 - alpha) + exp(theta_beta))
+    }
+    
+    # Check if fix_beta is provided in model_options
+    if (!is.null(model_options) && !is.null(model_options$fix_beta)) {
+        return(model_options$fix_beta)
+    }
+    
+    # Use alpha if provided
+    if (!is.null(alpha)) {
+        return(max(0, d/2 - alpha) + exp(theta_beta))
+    }
+    
+    # If we get here, alpha must be provided
+    stop("Either alpha or model_options$fix_alpha must be provided")
+}
+
+#' Convert beta parameter to theta
+#'
+#' Transforms the model parameter beta to the internal optimization parameter theta_beta
+#' based on the model options, dimension, and alpha.
+#'
+#' @param beta Model parameter beta
+#' @param d Dimension of the domain
+#' @param alpha Alpha parameter value (optional)
+#' @param model_options List of model options that may contain fixed parameters
+#' @return The optimization parameter theta_beta or NULL if beta is fixed
+#' @noRd
+beta2theta <- function(beta, d, alpha = NULL, model_options = NULL) {
+    # Check if fix_beta is provided in model_options
+    if (!is.null(model_options) && !is.null(model_options$fix_beta)) {
+        return(NULL)  # No theta_beta needed if beta is fixed
+    }
+    
+    # Check if fix_alpha is provided in model_options
+    if (!is.null(model_options) && !is.null(model_options$fix_alpha)) {
+        alpha <- model_options$fix_alpha
+        return(log(beta - max(0, d/2 - alpha)))
+    }
+    
+    # Default case: use alpha if provided
+    if (!is.null(alpha)) {
+        return(log(beta - max(0, d/2 - alpha)))
+    }
+    
+    # Fallback to original implementation
+    return(log(beta - d/2))
+}
+#' Compute derivative of beta with respect to theta_beta
+#'
+#' @param theta_beta Optimization parameter for beta
+#' @return The derivative of beta with respect to theta_beta
+#' @noRd
+dbetadtheta <- function(theta_beta) {
+    # The derivative should match the parameterization in theta2beta
+    # beta = max(0, d/2 - alpha) + exp(theta_beta)
+    # So the derivative is just the derivative of the exp(theta_beta) term
+    return(exp(theta_beta))
+}
+
+#' Compute derivative of alpha with respect to theta_alpha
+#'
+#' @param theta_alpha Optimization parameter for alpha
+#' @return The derivative of alpha with respect to theta_alpha
+#' @noRd
+dalphadtheta <- function(theta_alpha) {
+    return(exp(theta_alpha))
+}
+
 
 #' Extract model update parameters from theta vector
 #'
@@ -3178,7 +3312,7 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
         index <- index + 1
       }
       else if (param_name == "alpha" && inherits(model, "intrinsicCBrSPDEobj")) {
-        alpha <- exp(theta[index])
+        alpha <- theta2alpha(theta[index], model$d, model_options)
         if (alpha %% 1 == 0) alpha <- max(alpha - 1e-5, 1e-5)
         args_list$alpha <- alpha
         if(alpha >= smoothness_upper_bound + model$d/2) {
@@ -3192,7 +3326,7 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
           stop("Processing error. beta parameter should not be estimated for non-intrinsic models.")
         }
         # observe that by this point, alpha is already set, and this implies the model is intrinsic
-        beta <- max(model$d/2 - alpha,0) + exp(theta[index])
+        beta <- theta2beta(theta[index], model$d, alpha, model_options)
         if (beta %% 1 == 0) beta <- beta - 1e-5
         args_list$beta <- beta
         if(beta >= smoothness_upper_bound + model$d/2) {
@@ -3473,42 +3607,33 @@ extract_parameters_from_optim <- function(res, start_values, estimate_params, mo
     if (estimate_params[i]) {
       if (param_name == "sigma_e" || param_name == "tau" || 
           param_name == "kappa" || param_name == "sigma" || 
-          param_name == "gamma" || param_name == "hx" || param_name == "hy") {
+          param_name == "gamma" || param_name == "hx" || param_name == "hy" || param_name == "nu") {
         # Parameters with exponential transformation
         coeff[i] <- exp(res$par[index])
         index <- index + 1
       }
-      else if (param_name == "nu") {
-        # Nu parameter
-        nu_value <- exp(res$par[index])
-        if (nu_value %% 1 == 0) nu_value <- nu_value - 1e-5
-        coeff[i] <- min(nu_value, 10)
-        index <- index + 1
-        
-        # Also calculate estimated_alpha if we have nu
-        if (!inherits(model, "spacetimeobj") && !inherits(model, "CBrSPDEobj2d")) {
-          result$estimated_alpha <- coeff[i] + model$d/2
-        }
-      }
-      else if (param_name == "alpha") {
+      else if (param_name == "alpha" && !inherits(model, "intrinsicCBrSPDEobj")) {
         # Alpha parameter
-        alpha_value <- exp(res$par[index]) + model$d/2
-        if (alpha_value %% 1 == 0) alpha_value <- alpha_value - 1e-5
-        coeff[i] <- alpha_value
+        coeff[i] <- exp(res$par[index]) + model$d/2
         index <- index + 1
-        
-        # Store estimated alpha
-        result$estimated_alpha <- alpha_value
+      }
+      else if (param_name == "alpha" && inherits(model, "intrinsicCBrSPDEobj")) {
+        # Alpha parameter
+        alpha <- theta2alpha(res$par[index], model$d, model_options)
+        coeff[i] <- alpha
+        index <- index + 1
       }
       else if (param_name == "beta") {
+        # at this point either alpha is already set or alpha is fixed
         # Beta parameter
-        beta_value <- theta2beta(res$par[index], model$d)
-        if (beta_value %% 1 == 0) beta_value <- beta_value - 1e-5
-        coeff[i] <- beta_value
+        # check if alpha is fixed
+
+        if (!is.null(model_options$fix_alpha)) {
+          alpha <- model_options$fix_alpha
+        }  # else alpha is already set
+
+        coeff[i] <- theta2beta(res$par[index], model$d, alpha, model_options)
         index <- index + 1
-        
-        # Store estimated beta
-        result$estimated_beta <- beta_value
       }
       else if (param_name == "hxy") {
         # hxy parameter (correlation)
@@ -3516,26 +3641,45 @@ extract_parameters_from_optim <- function(res, start_values, estimate_params, mo
         index <- index + 1
       }
       else if (param_name == "rho") {
-        # Handle rho parameter (vector) for spacetime models
+        # Handle first coordinate of rho parameter for spacetime models
         if (inherits(model, "spacetimeobj") && model$alpha > 0) {
           if (model$is_bounded_rho) {
             bound_rho <- model$bound_rho
-            coeff[i] <- bound_rho * (2.0 / (1.0 + exp(-res$par[index:(index+model$d-1)])) - 1.0)
+            coeff[i] <- bound_rho * (2.0 / (1.0 + exp(-res$par[index])) - 1.0)
           } else {
-            coeff[i] <- res$par[index:(index+model$d-1)]
+            coeff[i] <- res$par[index]
           }
-          index <- index + model$d
+          index <- index + 1
         } else {
-          coeff[i] <- rep(0, model$d)
+          coeff[i] <- 0 # alpha = 0 implies rho = 0
         }
       }
-      else if (param_name == "theta" || param_name == "") {
-        # Handle theta parameter for non-stationary models
-        if (!model$stationary) {
-          theta_length <- length(model$theta)
-          coeff[i] <- res$par[index:(index + theta_length - 1)]
-          index <- index + theta_length
+      else if (param_name == "rho2") {
+        # Handle second coordinate of rho parameter for spacetime models
+        if (inherits(model, "spacetimeobj") && model$alpha > 0 && model$d > 1) {
+          if (model$is_bounded_rho) {
+            bound_rho <- model$bound_rho
+            coeff[i] <- bound_rho * (2.0 / (1.0 + exp(-res$par[index])) - 1.0)
+          } else {
+            coeff[i] <- res$par[index]
+          }
+          index <- index + 1
+        } else if (model$d == 2 && inherits(model, "spacetimeobj")) {
+          coeff[i] <- 0 # alpha = 0 implies rho = 0
+        } else {
+          stop("Processing error. rho2 parameter should not be processed for non-spacetime models or 1D models.")
         }
+      }
+      else if (startsWith(param_name, "theta")) {
+        # Handle individual theta parameters for non-stationary models
+        if (!model$stationary) {
+          coeff[i] <- res$par[index]
+          index <- index + 1
+        }
+      }
+      else if (param_name == "") {
+        # Handle case where parameter name is empty
+        stop("Parameter name is empty. This should not happen.")
       }
       else {
         # Generic parameter with no transformation
@@ -3550,28 +3694,12 @@ extract_parameters_from_optim <- function(res, start_values, estimate_params, mo
       if (param_name == "sigma_e") {
         coeff[i] <- model_options[[fix_param_name]]
       }
-      else if (param_name == "nu") {
-        if (!is.null(model_options[[fix_param_name]])) {
-          coeff[i] <- model_options[[fix_param_name]]
-        } else if (!is.null(model_options$fix_alpha)) {
-          coeff[i] <- model_options$fix_alpha - model$d/2
-        } else {
-          coeff[i] <- model$nu
-        }
-      }
-      else if (param_name == "alpha") {
-        if (!is.null(model_options[[fix_param_name]])) {
-          coeff[i] <- model_options[[fix_param_name]]
-        } else {
-          coeff[i] <- model$alpha
-        }
-      }
-      else if (param_name != "sigma_e" && param_name != "nu" && param_name != "alpha") {
+      else if (param_name != "sigma_e") {
         # For other parameters, just get from model_options or model
         if (!is.null(model_options[[fix_param_name]])) {
           coeff[i] <- model_options[[fix_param_name]]
         } else if (!is.null(model[[param_name]])) {
-          coeff[i] <- model[[param_name]]
+          stop(paste("Processing error. ", param_name, " parameter is fixed but cannot be found in model_options."))
         }
       }
     }

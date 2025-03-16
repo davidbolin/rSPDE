@@ -2149,31 +2149,3 @@ augment.rspde_lme <- function(x,
 
   newdata
 }
-
-theta2beta <- function(theta, d) {
-    upper_bound <- FALSE
-    if(upper_bound) {
-        return(d/2 + 1/(1+exp(-theta)))    
-    } else {
-        return(d/2 + exp(theta))    
-    }
-    
-}
-
-beta2theta <- function(beta, d) {
-    upper_bound <- FALSE
-    if(upper_bound) {
-        return(-log(1/(beta - d/2) - 1))
-    } else {
-        return(log(beta - d/2))
-    }
-}
-
-dbetadtheta <- function(theta) { 
-    upper_bound <- FALSE
-    if(upper_bound) {
-        return(exp(theta)+2+exp(-theta))
-    } else {
-        return(exp(-theta))
-    }
-}
