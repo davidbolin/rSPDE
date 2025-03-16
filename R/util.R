@@ -2532,7 +2532,7 @@ transform_parameters_spacetime <- function(theta, st_model) {
 extract_possible_parameters <- function(model) {
   if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
     if(model$stationary) {
-      return(c("tau", "kappa", "nu", "sigma", "range", "alpha", "theta"))
+      return(c("alpha", "tau", "kappa", "nu", "sigma", "range", "theta"))
     } else {
       n_theta <- length(model$theta)
       if(n_theta == 0){
@@ -2622,6 +2622,7 @@ process_model_options <- function(model, model_options) {
 general_checks_model_options <- function(model_options, model) {
   parameterization <- "spde"
   possible_params <- extract_possible_parameters(model)
+  possible_params <- c(possible_params, "sigma_e")
   # Skip checks if model_options is NULL
   if (is.null(model_options)) {
     return(parameterization)
@@ -3736,7 +3737,6 @@ extract_parameters_from_optim <- function(res, start_values, estimate_params, mo
   
   return(result)
 }
-
 #' Organize extracted parameters into appropriate categories
 #'
 #' @param coeff Full coefficient vector
@@ -3753,36 +3753,30 @@ organize_parameters <- function(coeff, model, estimate_params, X_cov) {
     par_names = NULL
   )
   
-  # Set measurement error coefficient (always the first parameter)
-  result$coeff_meas <- coeff[1]
+  # Find the position of sigma_e in estimate_params
+  sigma_e_pos <- which(names(estimate_params) == "sigma_e")
+  
+  # Set measurement error coefficient (sigma_e)
+  result$coeff_meas <- coeff[sigma_e_pos]
   names(result$coeff_meas) <- "std. dev"
   
-  
-  # Get parameter names directly from estimate_params, excluding sigma_e
-  par_names <- setdiff(names(estimate_params), "sigma_e")
+  # Get parameter names from estimate_params
+  par_names <- names(estimate_params)
   
   # Set parameter names in result
   result$par_names <- par_names
   
-  # Extract random effects coefficients (all parameters except sigma_e)
-  # Start from position 2 (after sigma_e) and go through all parameters
-  param_idx <- 2:(length(par_names) + 1)
+  # Extract random effects coefficients (all parameters except sigma_e and fixed effects)
+  # Create a logical vector to exclude sigma_e
+  random_indices <- setdiff(1:length(estimate_params), sigma_e_pos)
+  result$coeff_random <- coeff[random_indices]
+  names(result$coeff_random) <- par_names[random_indices]
   
-  # Check if param_idx exceeds the length of coeff
-  if (any(param_idx > length(coeff))) {
-    stop("Error: Not enough coefficients available. This may indicate a problem with parameter extraction.")
-  }
-  
-  # Get the random effect coefficients
-  result$coeff_random <- coeff[param_idx]
-  
-  # Assign parameter names to coefficients
-  names(result$coeff_random) <- par_names[1:length(param_idx)]
   # Extract fixed effects coefficients if any
   n_fixed <- ncol(X_cov)
   if (n_fixed > 0) {
-    if (length(coeff) >= length(estimate_params)) {
-      # If coeff contains unnamed elements at the end (fixed effects)
+    if (length(coeff) > length(estimate_params)) {
+      # Fixed effects are after all the random effects
       result$coeff_fixed <- coeff[(length(estimate_params) + 1):length(coeff)]
     }
   }

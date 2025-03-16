@@ -867,12 +867,12 @@ rspde_lme <- function(formula,
                                                       model = model,
                                                       model_options = model_options, X_cov = X_cov, n_coeff_nonfixed = n_coeff_nonfixed)
 
+
+    print(coeff_results)
+
     coeff_meas <- coeff_results$coeff_meas
     coeff_random <- coeff_results$coeff_random
     coeff_fixed <- coeff_results$coeff_fixed      
-    estimated_alpha <- coeff_results$estimated_alpha
-    estimated_beta <- coeff_results$estimated_beta
-    estimate_nu <- is.null(model_options$fix_nu) && is.null(model_options$fix_alpha) && !spacetime
     std_meas <- coeff_results$std_meas
     std_random <- coeff_results$std_random
     std_fixed <- coeff_results$std_fixed
@@ -1179,10 +1179,6 @@ print.summary_rspde_lme <- function(x, ...) {
 
   cat("\n")
   cat(call_name)
-
-  if (!x$estimate_nu && !x$spacetime && !x$intrinsic) {
-    cat(" with fixed smoothness")
-  }
   
   if(x$spacetime) { 
       cat(" with alpha = ", x$alpha, ", beta = ", x$beta)
@@ -1351,12 +1347,6 @@ predict.rspde_lme <- function(object,
   coeff_fixed <- object$coeff$fixed_effects
   coeff_random <- object$coeff$random_effects
   coeff_meas <- object$coeff$measurement_error
-
-  if (inherits(object, "graph_lme")) {
-    if (object$estimate_nu) {
-      coeff_random[1] <- coeff_random[1] - 0.5
-    }
-  }
 
   if (object$has_graph) {
     loc <- cbind(data[[edge_number]], data[[distance_on_edge]])

@@ -15,12 +15,12 @@ rspde_lme(
   optim_method = "L-BFGS-B",
   possible_methods = c("L-BFGS-B", "Nelder-Mead"),
   use_data_from_graph = TRUE,
-  nu_upper_bound = 4,
   rspde_order = NULL,
   mean_correction = FALSE,
   previous_fit = NULL,
   fix_coeff = FALSE,
   model_options = list(),
+  smoothness_upper_bound = 4,
   parallel = FALSE,
   n_cores = parallel::detectCores() - 1,
   optim_controls = list(),
@@ -33,7 +33,8 @@ rspde_lme(
   start_sigma_e = lifecycle::deprecated(),
   start_alpha = lifecycle::deprecated(),
   start_nu = lifecycle::deprecated(),
-  start_beta = lifecycle::deprecated()
+  start_beta = lifecycle::deprecated(),
+  nu_upper_bound = lifecycle::deprecated()
 )
 }
 \arguments{
@@ -77,9 +78,6 @@ one replicate.}
 \code{metric_graph} class. In this case, should the data, the locations and the
 replicates be obtained from the graph object?}
 
-\item{nu_upper_bound}{A parameter that limits the maximum value that nu can
-assume. Not used for spatio-temporal models.}
-
 \item{rspde_order}{The order of the rational approximation to be used while
 fitting the model. If not given, the order from the model object will be used.
 Not used for spatio-temporal models.}
@@ -90,7 +88,9 @@ Not used for spatio-temporal models.}
 
 \item{fix_coeff}{If using a previous fit, should all coefficients be fixed at the starting values?}
 
-\item{model_options}{A list containing additional options to be used in the model. This will take preference over the values extracted from previous_fit. Currently, it is possible to fix parameters during the estimation or change the starting values of the parameters. The general structure of the elements of the list is \code{fix_parname} and \code{start_parname}, where \code{parname} stands for the name of the parameter. If \code{fix_parname} is not \code{NULL}, then the model will be fitted with the \code{parname} being fixed at the value that was passed. If \code{start_parname} is not \code{NULL}, the model will be fitted using the value passed as starting value for \code{parname}. For 'rSPDE' and 'rSPDE1d' models, the possible elements of the list are \code{fix_sigma_e}, \code{start_sigma_e}, \code{fix_nu}, \code{start_nu}, \code{fix_sigma}, \code{start_sigma}, \code{fix_range}, \code{start_range}. Alternatively, one can also use the elements \code{fix_sigma_e}, \code{start_sigma_e}, \code{fix_nu}, \code{start_nu}, \code{fix_tau}, \code{start_tau}, \code{fix_kappa}, \code{start_kappa}. For 'spacetime' models, the possible elements of the list are \code{fix_sigma_e}, \code{start_sigma_e}, \code{fix_kappa}, \code{start_kappa}, \code{fix_sigma}, \code{start_sigma}, \code{fix_gamma}, \code{start_gamma}, \code{fix_rho}, \code{start_rho}. For 'rSPDE2d' models, the possible elements of the list are \code{fix_sigma_e}, \code{start_sigma_e}, \code{fix_nu}, \code{start_nu}, \code{fix_sigma}, \code{start_sigma}, \code{fix_hx}, \code{start_hx}, \code{fix_hy}, \code{start_hy}, \code{fix_hxy}, \code{start_hxy}. For nonstationary models, the name of the parameters are \code{start_theta} and \code{fix_theta}.}
+\item{model_options}{A list containing additional options to be used in the model. This will take preference over the values extracted from previous_fit. Currently, it is possible to fix parameters during the estimation or change the starting values of the parameters. The general structure of the elements of the list is \code{fix_parname} and \code{start_parname}, where \code{parname} stands for the name of the parameter. If \code{fix_parname} is not \code{NULL}, then the model will be fitted with the \code{parname} being fixed at the value that was passed. If \code{start_parname} is not \code{NULL}, the model will be fitted using the value passed as starting value for \code{parname}. For 'rSPDE' and 'rSPDE1d' models, the possible elements of the list are \code{fix_sigma_e}, \code{start_sigma_e}, \code{fix_nu}, \code{start_nu}, \code{fix_sigma}, \code{start_sigma}, \code{fix_range}, \code{start_range}. Alternatively, one can also use the elements \code{fix_sigma_e}, \code{start_sigma_e}, \code{fix_nu}, \code{start_nu}, \code{fix_tau}, \code{start_tau}, \code{fix_kappa}, \code{start_kappa}. For 'spacetime' models, the possible elements of the list are \code{fix_sigma_e}, \code{start_sigma_e}, \code{fix_kappa}, \code{start_kappa}, \code{fix_sigma}, \code{start_sigma}, \code{fix_gamma}, \code{start_gamma}, \code{fix_rho}, \code{start_rho}. For dimension 2, the second coordinate of \code{rho} has name \code{rho2} and must be passed as \code{start_rho2} and \code{fix_rho2}. For 'rSPDE2d' models, the possible elements of the list are \code{fix_sigma_e}, \code{start_sigma_e}, \code{fix_nu}, \code{start_nu}, \code{fix_sigma}, \code{start_sigma}, \code{fix_hx}, \code{start_hx}, \code{fix_hy}, \code{start_hy}, \code{fix_hxy}, \code{start_hxy}. For nonstationary models, we have two options: the first is to pass the starting values as a vector with name \code{start_theta} and a vector with the names of the parameters to be fixed with name    \code{fix_theta}; the second option is to handle the individual parameters, by passing the names \code{thetan} where \code{n} is the number of the parameter to pass the starting value or to be fixed. For example, to pass the starting value for \code{theta3} one simply pass \code{start_theta3}, and to fix \code{theta2}, one simply pass \code{fix_theta2}.}
+
+\item{smoothness_upper_bound}{Upper bound for \code{nu}, when \code{nu} is the smoothness parameter, or for \code{alpha - d/2} when \code{alpha} is the smoothness parameter, or for \verb{max\\\{alpha - d/2, beta - d/2)} for intrinsic models.}
 
 \item{parallel}{logical. Indicating whether to use optimParallel or not.}
 
