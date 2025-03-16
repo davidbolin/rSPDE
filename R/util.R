@@ -2511,7 +2511,7 @@ transform_parameters_spacetime <- function(theta, st_model) {
 extract_possible_parameters <- function(model) {
   if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
     if(model$stationary) {
-      return(c("alpha", "kappa", "tau", "nu", "range", "sigma", "theta"))
+      return(c("tau", "kappa", "nu", "sigma", "range", "alpha", "theta"))
     } else {
       n_theta <- length(model$theta)
       if(n_theta == 0){
@@ -2520,11 +2520,11 @@ extract_possible_parameters <- function(model) {
       return(c("alpha", "nu", paste0("theta", 1:n_theta)))
     }
   } else if (inherits(model, "spacetimeobj")) {
-    return(c("alpha", "beta", "kappa", "sigma", "gamma", "rho"))
+    return(c("kappa", "sigma", "gamma", "rho", "rho2", "alpha", "beta"))
   } else if (inherits(model, "intrinsicCBrSPDEobj")) {
-    return(c("alpha", "beta", "kappa", "tau"))
+    return(c("tau", "kappa", "alpha", "beta"))
   } else if (inherits(model, "CBrSPDEobj2d")) {
-    return(c("nu", "hy", "hx", "hxy", "sigma"))
+    return(c("nu", "sigma", "hx", "hy", "hxy"))
   } else {
     return(NULL)
   }
@@ -2660,6 +2660,10 @@ general_checks_model_options <- function(model_options, model) {
     }
   }
 
+  if (inherits(model, "spacetimeobj") && model$d == 1 && (!is.null(model_options$start_rho2) || !is.null(model_options$fix_rho2))) {
+    stop("For 1d spacetime models, start_rho2 and fix_rho2 are not allowed.")
+  }
+  
   return(parameterization)
 }
 
@@ -2838,282 +2842,195 @@ extract_starting_values <- function(previous_fit, fix_coeff = FALSE, model_optio
   
   return(clean_fixed_param_names(model_options_tmp))
 }
-
 #' Get Model Starting Values
 #' @description Extracts appropriate starting values for model parameters based on model type
 #' @param model The model object (can be spacetime, anisotropic, intrinsic, or standard SPDE model)
-#' @return A named vector of starting values for model parameters
+#' @param model_options Options including fixed or starting values
+#' @param y_resp Response variable (optional, used for sigma_e initialization)
+#' @param parameterization The parameterization to use ("spde" or "matern")
+#' @return A named vector of starting values for optimization
 #' @noRd 
 
-get_model_starting_values <- function(model, parameterization) {
+get_model_starting_values <- function(model, model_options, y_resp, parameterization) {
+  # Get possible parameters for this model type
+  possible_params <- extract_possible_parameters(model)
+  
   # Check model inheritance types
   spacetime <- inherits(model, "spacetimeobj")
   anisotropic <- inherits(model, "CBrSPDEobj2d")
   intrinsic <- inherits(model, "intrinsicCBrSPDEobj")
   
-  # Non-stationary, non-spacetime, non-intrinsic case
-  if (!model$stationary && !spacetime && !intrinsic) {
+  # Initialize starting values
+  starting_values <- numeric(0)
+  
+  # For non-stationary models, handle theta parameters
+  if (!is.null(model$stationary) && !model$stationary && !spacetime && !intrinsic) {
     if (is.null(model$theta)) {
       stop("There was an error processing the starting values. model$theta is NULL.")
     }
     starting_values <- model$theta
     names(starting_values) <- paste0("theta", 1:length(starting_values))
-
-  # Stationary, non-spacetime case
-  } else if (model$stationary && !spacetime) {
-    if (anisotropic) {
-      # Initialize anisotropic parameters
-      starting_values <- c(
-        log(model$sigma), 
-        log(model$hx), 
-        log(model$hy), 
-        -log(2/(model$hxy+1) - 1)
-      )
-      names(starting_values) <- c("sigma", "hx", "hy", "hxy")
-      
-    } else if (intrinsic) {
-      if (model$alpha == 0) {
-        starting_values <- log(c(model$tau))
-        names(starting_values) <- c("tau")
-      } else {
-        starting_values <- log(c(model$tau, max(c(model$kappa, 1e-5))))
-        names(starting_values) <- c("tau", "kappa")
-      }
-    } else {
-      if(parameterization == "spde"){
-        starting_values <- log(c(model$tau, model$kappa))
-        names(starting_values) <- c("tau", "kappa")
-      } else {
-        starting_values <- log(c(model$sigma, model$range))
-        names(starting_values) <- c("sigma", "range")
-      }
-    }
-  
-  # Spacetime case
   } else {
-    if (model$alpha == 0) {
-      starting_values <- c(log(model$kappa), log(model$sigma), log(model$gamma))
-      names(starting_values) <- c("kappa", "sigma", "gamma")
-    } else {
-      starting_values <- c(log(model$kappa), log(model$sigma), log(model$gamma), model$rho)
-      names(starting_values) <- c("kappa", "sigma", "gamma", "rho")
+    # For stationary models, extract parameters based on model type
+    for (param in possible_params) {
+      # Skip theta parameters for stationary models
+      if (grepl("^theta", param)) next
+      
+      # Skip parameters not relevant to current parameterization
+      if (parameterization == "matern" && param %in% c("alpha", "kappa", "tau")) next
+      if (parameterization == "spde" && param %in% c("nu", "range", "sigma")) next
+      
+      # Get parameter value from model
+      if (!is.null(model[[param]])) {
+        # Special transformations for certain parameters
+        if (param == "hxy") {
+          starting_values[param] <- -log(2/(model[[param]]+1) - 1)
+        } else if (param == "rho" || param == "rho2") {
+          # Check if rho is bounded
+          if (!is.null(model$is_bounded_rho) && model$is_bounded_rho) {
+            bound_rho <- model$bound_rho
+            # Transform from bounded value to unbounded parameter
+            # Inverse of: bound_rho * (2.0 / (1.0 + exp(-theta)) - 1.0)
+            if (param == "rho" && is.vector(model$rho) && length(model$rho) > 1) {
+              # For vector rho, use first element when param is "rho"
+              starting_values[param] <- log((model$rho[1]/bound_rho + 1) / (1 - model$rho[1]/bound_rho))
+            } else if (param == "rho2" && is.vector(model$rho) && length(model$rho) > 1) {
+              # For vector rho, use second element when param is "rho2"
+              starting_values[param] <- log((model$rho[2]/bound_rho + 1) / (1 - model$rho[2]/bound_rho))
+            } else {
+              # Handle scalar case
+              starting_values[param] <- log((model[[param]]/bound_rho + 1) / (1 - model[[param]]/bound_rho))
+            }
+          } else {
+            # No transformation needed for unbounded rho
+            if (param == "rho" && is.vector(model$rho) && length(model$rho) > 1) {
+              # For vector rho, use first element when param is "rho"
+              starting_values[param] <- model$rho[1]
+            } else if (param == "rho2" && is.vector(model$rho) && length(model$rho) > 1) {
+              # For vector rho, use second element when param is "rho2"
+              starting_values[param] <- model$rho[2]
+            } else {
+              # Handle scalar case
+              starting_values[param] <- model[[param]]
+            }
+          }
+        } else {
+          # Default log transformation for most parameters
+          starting_values[param] <- log(max(model[[param]], 1e-5))
+        }
+      }
     }
   }
 
-  if(is.null(starting_values)){
+  starting_values["sigma_e"] <- log(0.1 * sd(y_resp))
+  
+  # Update starting values with model_options if provided
+  if (!is.null(model_options)) {        
+    # Get starting values for alpha, beta, nu
+    start_alpha <- if (!is.null(model_options$fix_alpha)) {
+      model_options$fix_alpha
+    } else {
+      model_options$start_alpha
+    }
+    
+    start_beta <- if (!is.null(model_options$fix_beta)) {
+      model_options$fix_beta
+    } else {
+      model_options$start_beta
+    }
+    
+    start_nu <- if (!is.null(model_options$fix_nu)) {
+      model_options$fix_nu
+    } else {
+      model_options$start_nu
+    }
+    
+    # Handle intrinsic models
+    if (intrinsic) {
+      if (is.null(start_alpha)) {
+        if (is.null(model$alpha)) {
+          start_alpha = 1
+        } else {
+          start_alpha = model$alpha
+        }
+      }
+      if (is.null(start_beta)) {
+        if (is.null(model$beta)) {
+          start_beta = 0.9
+        } else {
+          start_beta = model$beta
+        }
+      }
+
+      starting_values["beta"] <- log(start_beta)
+      starting_values["alpha"] <- log(start_alpha - max(0, model$d/2 - start_beta))
+    } else {
+      # Handle nu and alpha parameters for non-intrinsic models
+      if (!is.null(start_nu)) {
+        starting_values["nu"] <- log(start_nu)
+      } 
+      if (!is.null(start_alpha)) {
+        starting_values["alpha"] <- log(start_alpha)
+      }
+    }
+    
+    # Update all parameters from model_options
+    for (param_name in names(starting_values)) {
+      fix_param <- paste0("fix_", param_name)
+      start_param <- paste0("start_", param_name)
+      
+      if (!is.null(model_options[[fix_param]])) {
+        # Special handling for parameters with transformations
+        if (param_name == "hxy") {
+          starting_values[param_name] <- -log(2/(model_options[[fix_param]]+1) - 1)
+        } else if ((param_name == "rho" || param_name == "rho2") && 
+                   inherits(model, "spacetimeobj") && model$is_bounded_rho) {
+          # Apply logit transformation for bounded rho parameters
+          bound <- model$bound_rho
+          starting_values[param_name] <- log((model_options[[fix_param]]/bound + 1)/
+                                            (1 - model_options[[fix_param]]/bound))
+        } else if (param_name == "rho" || param_name == "rho2") {
+          # For unbounded rho parameters, use as-is
+          starting_values[param_name] <- model_options[[fix_param]]
+        } else {
+          starting_values[param_name] <- log(model_options[[fix_param]])
+        }
+      } else if (!is.null(model_options[[start_param]])) {
+        if (param_name == "hxy") {
+          starting_values[param_name] <- -log(2/(model_options[[start_param]]+1) - 1)
+        } else if ((param_name == "rho" || param_name == "rho2") && 
+                   inherits(model, "spacetimeobj") && model$is_bounded) {
+          # Apply logit transformation for bounded rho parameters
+          bound <- model$bound_rho
+          starting_values[param_name] <- log((model_options[[start_param]]/bound + 1)/
+                                            (1 - model_options[[start_param]]/bound))
+        } else if (param_name == "rho" || param_name == "rho2") {
+          # For unbounded rho parameters, use as-is
+          starting_values[param_name] <- model_options[[start_param]]
+        } else {
+          starting_values[param_name] <- log(model_options[[start_param]])
+        }
+      }
+    }
+    # Handle sigma_e separately
+    start_sigma_e <- if (!is.null(model_options$fix_sigma_e)) {
+      model_options$fix_sigma_e
+    } else {
+      model_options$start_sigma_e
+    }
+    
+    if (!is.null(start_sigma_e)) {
+      starting_values["sigma_e"] <- log(start_sigma_e)
+    }
+  }
+    
+  if (is.null(starting_values) || length(starting_values) == 0) {
     stop("There was an error processing the starting values.")
   }
   
   return(starting_values)
 }
 
-
-#' @noRd 
-
-update_starting_values <- function(starting_values, model, model_options) {
-  # Check model inheritance types
-  spacetime <- inherits(model, "spacetimeobj")
-  anisotropic <- inherits(model, "CBrSPDEobj2d")
-  intrinsic <- inherits(model, "intrinsicCBrSPDEobj")
-
-  if(is.null(names(starting_values))){
-    stop("There was an error processing the names of the starting values.")
-  }
-  
-  # loop through parameter names and update values
-  for (param_name in names(starting_values)) {
-    fix_param <- paste0("fix_", param_name)
-    start_param <- paste0("start_", param_name)
-    
-    if (!is.null(model_options[[fix_param]])) {
-      # Special handling for hxy which has a transformation
-      if (param_name == "hxy") {
-        starting_values[param_name] <- -log(2/(model_options[[fix_param]]+1) - 1)
-      } else {
-        starting_values[param_name] <- log(model_options[[fix_param]])
-      }
-    } else if (!is.null(model_options[[start_param]])) {
-      if (param_name == "hxy") {
-        starting_values[param_name] <- -log(2/(model_options[[start_param]]+1) - 1)
-      } else {
-        starting_values[param_name] <- log(model_options[[start_param]])
-      }
-    }
-    
-    # Special case: rho doesn't need log transformation
-    if (param_name == "rho" && !is.null(model_options[[fix_param]])) {
-      starting_values[param_name] <- model_options[[fix_param]]
-    } else if (param_name == "rho" && !is.null(model_options[[start_param]])) {
-      starting_values[param_name] <- model_options[[start_param]]
-    }
-  }
-  
-  return(starting_values)
-}
-
-#' Get starting values for LME model
-#'
-#' @param model The model object
-#' @param model_options Options including fixed or starting values
-#' @param y_resp Response variable
-#' @param starting_values_aux Auxiliary starting values for latent field parameters
-#' @return Named vector of starting values for optimization
-#' @noRd
-#' 
-get_starting_values_lme <- function(model, model_options, y_resp, starting_values_aux) {
-  # Check model inheritance types
-  intrinsic <- inherits(model, "intrinsicCBrSPDEobj")
-  spacetime <- inherits(model, "spacetimeobj")
-  
-  # Set up estimate_nu and nu based on fix_nu or fix_alpha
-  estimate_nu <- TRUE
-  nu <- NULL
-  if (!is.null(model_options$fix_nu)) {
-    estimate_nu <- FALSE
-    nu <- model_options$fix_nu
-  } else if (!is.null(model_options$fix_alpha)) {
-    estimate_nu <- FALSE
-    nu <- model_options$fix_alpha - model$d/2
-  }
-
-  if(spacetime){
-    estimate_nu <- FALSE
-  } else if(!is.null(model_options$fix_nu) || !is.null(model_options$fix_alpha)){
-    estimate_nu <- FALSE
-  }
-    
-  # Handle starting values for alpha and beta - prioritize fix_ values over start_ values
-  start_alpha <- if (!is.null(model_options$fix_alpha)) {
-    model_options$fix_alpha
-  } else {
-    model_options$start_alpha
-  }
-  
-  start_beta <- if (!is.null(model_options$fix_beta)) {
-    model_options$fix_beta
-  } else {
-    model_options$start_beta
-  }
-  
-  start_nu <- if (!is.null(model_options$fix_nu)) {
-    model_options$fix_nu
-  } else {
-    model_options$start_nu
-  }
-  
-  start_sigma_e <- if (!is.null(model_options$fix_sigma_e)) {
-    model_options$fix_sigma_e
-  } else {
-    model_options$start_sigma_e
-  }
-  
-  # Determine starting values based on model type and parameters
-  if (intrinsic) {
-    if (is.null(start_alpha)) {
-      if(is.null(model$alpha)){
-        start_alpha = 1
-      } else{
-        start_alpha = model$alpha
-      }
-    }
-    if (is.null(start_beta)) {
-      if(is.null(model$beta)){
-        start_beta = 0.9
-      } else{
-        start_beta = model$beta
-      }
-    }
-    
-    estimate_alpha <- is.null(model_options$fix_alpha)
-    estimate_beta <- is.null(model_options$fix_beta)
-    
-    if (estimate_alpha && estimate_beta) {
-      start_values <- c(
-        sigma_e = log(0.1 * sd(y_resp)), 
-        # alpha = log(start_alpha - model$d/2), # alpha > d/2, alpha = d/2 + exp(theta)
-        alpha = log(start_alpha), # It was the one in the line above, but I guess the correct one is this, as beta is already larger than d/2
-        beta = beta2theta(start_beta, model$d)
-      )
-      start_values <- c(start_values, starting_values_aux)
-    } else if (estimate_alpha) {
-      start_values <- c(
-        sigma_e = log(0.1 * sd(y_resp)), 
-        # alpha = log(start_alpha - model$d/2)
-        alpha = log(start_alpha)
-      )
-      start_values <- c(start_values, starting_values_aux)
-    } else if (estimate_beta) {
-      start_values <- c(
-        sigma_e = log(0.1 * sd(y_resp)), 
-        beta = beta2theta(start_beta, model$d)
-      )
-      start_values <- c(start_values, starting_values_aux)
-    } else {
-      start_values <- c(
-        sigma_e = log(0.1 * sd(y_resp))
-      )
-      start_values <- c(start_values, starting_values_aux)
-    }
-  } else if (estimate_nu) {
-    if (is.null(start_nu) && is.null(start_alpha)) {
-      start_values <- c(
-        sigma_e = log(0.1 * sd(y_resp)),
-        nu = log(model$nu)
-      )
-      start_values <- c(start_values, starting_values_aux)
-    } else if (!is.null(start_nu)) {
-      if (!is.numeric(start_nu)) {
-        stop("start_nu must be numeric.")
-      }
-      if (length(start_nu) > 1) {
-        stop("start_nu must have length 1.")
-      }
-      if (start_nu <= 0) {
-        stop("start_nu must be positive")
-      }
-      start_values <- c(
-        sigma_e = log(0.1 * sd(y_resp)),
-        nu = log(start_nu)
-      )
-      start_values <- c(start_values, starting_values_aux)
-    } else {
-      if (!is.numeric(start_alpha)) {
-        stop("start_alpha must be numeric.")
-      }
-      if (length(start_alpha) > 1) {
-        stop("start_alpha must have length 1.")
-      }
-      if (start_alpha <= model$d / 2) {
-        stop(paste("start_alpha must be greater than dim/2 =", model$d / 2))
-      }
-      start_values <- c(
-        sigma_e = log(0.1 * sd(y_resp)),
-        nu = log(start_alpha - model$d / 2)
-      )
-      start_values <- c(start_values, starting_values_aux)
-    }
-  } else {
-    if(is.null(start_nu)){
-      start_values <- c(
-        sigma_e = log(0.1 * sd(y_resp))
-      )
-    } else {
-      start_values <- c(
-        sigma_e = log(0.1 * sd(y_resp)),
-        nu = log(start_nu)
-      )
-    }
-
-    start_values <- c(start_values, starting_values_aux)
-  } 
-  
-  # Override sigma_e if specified
-  if (!is.null(start_sigma_e)) {
-    start_values["sigma_e"] <- log(start_sigma_e)
-  }
-  
-  return(start_values)
-}
 
 
 #' Get appropriate auxiliary likelihood function based on model type
