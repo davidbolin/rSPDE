@@ -876,166 +876,14 @@ rspde_lme <- function(formula,
     std_meas <- coeff_results$std_meas
     std_random <- coeff_results$std_random
     std_fixed <- coeff_results$std_fixed
+    observed_fisher <- coeff_results$inv_fisher
 
     new_likelihood <- NULL
 
-    ## Handle all stationary cases that admit the classical matern parameterization
+    start_time_alt_par <- Sys.time()
+    coeff_alt_par_result <- convert_parameterization_matern_spde(model, parameterization, res$par, model_options, observed_fisher, estimate_pars, std_random)
+    time_alt_par <- Sys.time() - start_time_alt_par
 
-    if (model$stationary && (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d"))) {
-      time_matern_par_start <- Sys.time()
-      new_likelihood <- function(theta) {
-        new_par <- res$par
-        if (estimate_nu) {
-          new_par[3:4] <- theta
-        } else {
-          new_par[2:3] <- theta
-        }
-        return(likelihood(new_par))
-      }
-
-      # Get nu value
-      if (estimate_nu) {
-        nu <- coeff_random[1]
-        param_names <- c("nu", "tau", "kappa")
-        first_param_idx <- 2  # Position of tau in coeff_random
-      } else {
-        # Get nu value from options or model
-        if (!is.null(model_options$fix_nu)) {
-          nu <- model_options$fix_nu
-        } else if (!is.null(model_options$fix_alpha)) {
-          nu <- model_options$fix_alpha - model$d / 2
-        } else {
-          nu <- model$nu
-          if (is.null(nu)) {
-            stop("There was some error with processing nu.")
-          }
-        }
-        param_names <- c("tau", "kappa")
-        first_param_idx <- 1  # Position of tau in coeff_random
-      }      
-
-      # Determine which parameters are fixed
-      fixed_tau <- !estimate_pars[which(names(estimate_pars) == "tau")]
-      fixed_kappa <- !estimate_pars[which(names(estimate_pars) == "kappa")]      
-
-      # Extract tau and kappa values
-      tau <- coeff_random[first_param_idx]
-      kappa <- coeff_random[first_param_idx + 1]      
-
-      # If both parameters are fixed, we don't need Fisher information
-      if (fixed_tau && fixed_kappa) {
-        # Just transform the parameters directly
-        C1 <- sqrt(8 * nu)
-        C2 <- sqrt(gamma(nu) / ((4 * pi)^(model$d / 2) * gamma(nu + model$d / 2)))
-
-        # Calculate sigma and range
-        sigma <- C2 / (tau * kappa^nu)
-        range <- C1 / kappa
-
-        # Create result structure
-        matern_coeff <- list(
-          random_effects = c(coeff_random[1], sigma, range),
-          std_random = c(std_random[1], NA, NA)
-        )
-
-        # Adjust names
-        if (estimate_nu) {
-          names(matern_coeff$random_effects) <- c("nu", "sigma (fixed)", "range (fixed)")
-        } else {
-          # Add nu at the beginning
-          matern_coeff$random_effects <- matern_coeff$random_effects[1:2]
-          matern_coeff$std_random <- matern_coeff$std_random[1:2]
-          names(matern_coeff$random_effects) <- c("sigma (fixed)", "range (fixed)")
-        }
-      } else{
-          # Extract the appropriate submatrix of the Fisher information
-          # If sigma_e is estimated, it's at position 1
-          sigma_e_offset <- if (estimate_pars[1]) 1 else 0
-
-          # Find the positions of tau and kappa in the Fisher information matrix
-          est_params_indices <- which(estimate_pars)
-
-          # Find tau and kappa positions in the estimated parameters
-          tau_pos <- which(names(estimate_pars) == "tau")
-          kappa_pos <- which(names(estimate_pars) == "kappa")
-          # Find their positions in est_params_indices
-          tau_idx <- which(est_params_indices == tau_pos)
-          kappa_idx <- which(est_params_indices == kappa_pos)
-
-          # Create a submatrix of the Fisher information for estimated parameters
-          if (!fixed_tau && !fixed_kappa) {
-            # Both parameters estimated - use the 2x2 submatrix
-            new_observed_fisher <- observed_fisher[c(tau_idx, kappa_idx), 
-                                                  c(tau_idx, kappa_idx)]
-          } else if (!fixed_tau) {
-            # Only tau estimated - use the 1x1 submatrix
-            new_observed_fisher <- matrix(observed_fisher[tau_idx, tau_idx], 1, 1)
-          } else if (!fixed_kappa) {
-            # Only kappa estimated - use the 1x1 submatrix
-            new_observed_fisher <- matrix(observed_fisher[kappa_idx, kappa_idx], 1, 1)
-          } else {
-            # Both fixed - use a dummy matrix
-            new_observed_fisher <- matrix(0, 0, 0)
-          }
-
-          # Create the fixed_params vector for change_parameterization_lme
-          fixed_params <- c(tau = fixed_tau, kappa = fixed_kappa)
-
-          # Get Matern parameterization
-          change_par <- change_parameterization_lme(
-            likelihood = new_likelihood,
-            d = model$d,
-            nu = nu,
-            par = c(tau, kappa),
-            hessian = new_observed_fisher,
-            fixed_params = fixed_params
-          )
-
-          # Create result structure
-          matern_coeff <- list()
-
-          # Create the random effects vector with the correct structure
-          if (estimate_nu) {
-            # If nu is estimated, keep it and replace tau, kappa with sigma, range
-            matern_coeff$random_effects <- c(coeff_random[1], change_par$coeff)
-            names(matern_coeff$random_effects) <- c("nu", "sigma", "range")
-
-            # Mark fixed parameters
-            if (fixed_tau) {
-              names(matern_coeff$random_effects)[2] <- paste0(names(matern_coeff$random_effects)[2], " (fixed)")
-            }
-            if (fixed_kappa) {
-              names(matern_coeff$random_effects)[3] <- paste0(names(matern_coeff$random_effects)[3], " (fixed)")
-            }
-          } else {
-            # If nu is fixed, create a vector with sigma, range
-            matern_coeff$random_effects <- change_par$coeff
-            names(matern_coeff$random_effects) <- c("sigma", "range")
-
-            # Mark fixed parameters
-            if (fixed_tau) {
-              names(matern_coeff$random_effects)[1] <- paste0(names(matern_coeff$random_effects)[1], " (fixed)")
-            }
-            if (fixed_kappa) {
-              names(matern_coeff$random_effects)[2] <- paste0(names(matern_coeff$random_effects)[2], " (fixed)")
-            }
-          }
-
-          # Handle standard errors
-          if (estimate_nu) {
-            # Keep nu's standard error
-            matern_coeff$std_random <- c(std_random[1], change_par$std_random)
-          } else {
-            # Include NA for nu's standard error
-            matern_coeff$std_random <- change_par$std_random
-          }
-      }
-      time_matern_par_end <- Sys.time()
-      time_matern_par <- time_matern_par_end - time_matern_par_start
-  } else {
-      matern_coeff <- NULL
-      time_matern_par <- NULL
-    }
   } else { # If model is NULL
     coeff_random <- NULL
     time_matern_par <- NULL
@@ -1069,35 +917,7 @@ rspde_lme <- function(formula,
 
   if (is.null(coeff_fixed) && is.null(coeff_random)) {
     stop("The model does not have either random nor fixed effects.")
-  }
-
-  if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d") || inherits(model, "CBrSPDEobj2d")) {
-    if(!is.null(nu)){
-      if(is.numeric(nu)) {
-        alpha <- nu + model$d/2
-      }
-    }
-  }
-  
-  if(!is.null(model_options$fix_alpha)){
-    alpha <- model_options$fix_alpha
-    nu <- alpha - model$d/2
-  } else if(!is.null(model_options$fix_nu)){
-    nu <- model_options$fix_nu
-    alpha <- nu + model$d/2
-  }
-
-  if(spacetime){
-    beta <- model$beta
-    alpha <- model$alpha
-  } else{
-    if(!is.null(model_options[["fix_beta"]])) {
-      beta <- model_options[["fix_beta"]]
-    } 
-    if(!is.null(model_options[["fix_alpha"]])) {
-      alpha <- model_options[["fix_alpha"]]
-    } 
-  }
+  } 
 
   object <- list()
   object$coeff <- list(
@@ -1105,11 +925,6 @@ rspde_lme <- function(formula,
     fixed_effects = coeff_fixed, 
     random_effects = coeff_random
   )
-  object$estimate_nu <- estimate_nu
-  if (object$estimate_nu && !null_model && (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d"))) {
-    names(object$coeff$random_effects)[1] <- "alpha"
-    object$coeff$random_effects[1] <- object$coeff$random_effects[1] + model$d / 2
-  }
 
   object$std_errors <- list(
     std_meas = std_meas,
@@ -1119,9 +934,9 @@ rspde_lme <- function(formula,
   object$terms <- list(fixed_effects = X_cov)
   object$response_data <- list(y = y_resp)
   object$formula <- formula
-  object$matern_coeff <- matern_coeff
+  object$alt_par_coeff <- coeff_alt_par_result
   object$estimation_method <- optim_method
-  object$parameterization_latent <- model$parameterization
+  object$parameterization_latent <- parameterization
   object$repl <- repl
   object$idx_repl <- idx_repl
   object$optim_controls <- optim_controls
@@ -1135,7 +950,7 @@ rspde_lme <- function(formula,
   object$covariates <- cov_term
   object$fitting_time <- time_fit
   object$rspde_order <- rspde_order
-  object$time_matern_par <- time_matern_par
+  object$time_alt_par <- time_alt_par
   object$improve_hessian <- improve_hessian
   object$time_hessian <- time_hessian
   object$parallel <- parallel
@@ -1148,18 +963,10 @@ rspde_lme <- function(formula,
   object$which_repl <- which_repl
   object$stationary <- model$stationary
   
-  object$nu <- nu
-  object$alpha <- alpha
-  object$beta <- beta
   object$start_val_lik <- start_values_aux
-  if(!intrinsic || is.null(model_options[["fix_alpha"]])) {
-      object$estimated_alpha <- estimated_alpha    
-  }
-  
 
   object$df.residual <- object$nobs - (1 + length(object$coeff$fixed_effects) + length(object$coeff$random_effects))
   object$lik_fun <- likelihood_new
-  object$par_lik_fun <- new_likelihood
   object$mle_par_orig <- res$par
   object$loc <- loc_df
   object$spacetime <- spacetime
@@ -1169,12 +976,6 @@ rspde_lme <- function(formula,
   if(spacetime) { 
       object$time <- time_df
   }
-  if(intrinsic) {
-      object$estimated_beta <- estimated_beta
-      object$estimate_beta <- is.null(model_options$fix_beta)
-      object$estimate_alpha <- is.null(model_options$fix_alpha)
-  }
-  
 
   if (ncol(X_cov) > 0) {
     object$model_matrix <- cbind(y_resp, X_cov)
@@ -1220,20 +1021,8 @@ print.rspde_lme <- function(x, ...) {
 
     cat("\n")
     cat(call_name)
-    if (!x$estimate_nu && !is.null(x$latent_model) && !x$spacetime && !x$intrinsic) {
-        cat(" with fixed smoothness")
-    }
     if(x$spacetime) {
         cat(" with alpha = ", x$latent_model$alpha, ", beta = ", x$latent_model$beta)
-    }
-    if(x$intrinsic) {
-        if(!x$estimate_alpha && !x$estimate_beta) {
-            cat(" with alpha = ", x$latent_model$alpha, ", beta = ", x$latent_model$beta)
-        } else if(!x$estimate_alpha) {
-            cat(" with alpha = ", x$latent_model$alpha)
-        } else if(!x$estimate_beta) {
-            cat(" with beta = ", x$latent_model$beta)
-        }
     }
     cat("\n\n")
     cat("Call:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
@@ -1245,19 +1034,16 @@ print.rspde_lme <- function(x, ...) {
         message("No fixed effects")
     }
     cat("\n")
-    if (!x$estimate_nu && !x$spacetime && !x$intrinsic) {
-        cat("Smoothness parameter:\n")
-        smooth <- c(x$alpha, x$nu)
-        names(smooth) <- c("alpha", "nu")
-        print(smooth)
-        cat("\n")
-    }
     cat(paste0("Random effects:", "\n"))
     if (!is.null(coeff_random)) {
         print(coeff_random)
         if (x$stationary && !x$spacetime && !x$anisotropic && !x$intrinsic) {
-            cat(paste0("\n", "Random effects (Matern parameterization):", "\n"))
-            print(x$matern_coeff$random_effects)
+            if (x$parameterization_latent == "spde") {
+                cat(paste0("\n", "Random effects (Matern parameterization):", "\n"))
+            } else {
+                cat(paste0("\n", "Random effects (SPDE parameterization):", "\n"))
+            }
+            print(x$alt_par_coeff$coeff)
         }
     } else {
         message("No random effects")
@@ -1309,8 +1095,8 @@ summary.rspde_lme <- function(object, all_times = FALSE, ...) {
   SEr_meas <- object$std_errors$std_meas
 
   if (object$stationary && !object$spacetime && !object$anisotropic && !object$intrinsic) {
-    coeff <- c(coeff_fixed, coeff_random, object$matern_coeff$random_effects, coeff_meas)
-    SEr <- c(SEr_fixed, SEr_random, object$matern_coeff$std_random, SEr_meas)
+    coeff <- c(coeff_fixed, coeff_random, object$alt_par_coeff$coeff, coeff_meas)
+    SEr <- c(SEr_fixed, SEr_random, object$alt_par_coeff$std_random, SEr_meas)
   } else {
     coeff <- c(coeff_fixed, coeff_random, coeff_meas)
     SEr <- c(SEr_fixed, SEr_random, SEr_meas)
@@ -1324,7 +1110,7 @@ summary.rspde_lme <- function(object, all_times = FALSE, ...) {
       tab <- list(
         fixed_effects = tab[seq.int(length.out = nfixed), , drop = FALSE], 
         random_effects = tab[seq.int(length.out = nrandom) + nfixed, , drop = FALSE],
-        random_effects_matern = tab[seq.int(length.out = nrandom) + nrandom + nfixed, , drop = FALSE],
+        random_effects_alt_par = tab[seq.int(length.out = nrandom) + nrandom + nfixed, , drop = FALSE],
         meas_error = tab[seq.int(length.out = 1) + nfixed + 2 * nrandom, , drop = FALSE]
       )
     } else {
@@ -1352,12 +1138,6 @@ summary.rspde_lme <- function(object, all_times = FALSE, ...) {
 
   ans$niter <- object$niter
 
-  ans$estimate_nu <- object$estimate_nu
-
-  ans$nu <- object[["nu"]]
-
-  ans$alpha <- object$alpha
-  
   if(object$spacetime) {
       ans$alpha <- object$latent_model$alpha
       ans$beta <- object$latent_model$beta
@@ -1373,12 +1153,8 @@ summary.rspde_lme <- function(object, all_times = FALSE, ...) {
   ans$parallel <- object$parallel
   ans$time_par <- object$time_par
   ans$time_data <- object$time_data
-  ans$time_matern_par <- object$time_matern_par
+  ans$time_alt_par <- object$time_alt_par
   ans$time_likelihood <- object$time_likelihood
-  if(object$intrinsic) {
-      ans$estimate_alpha <- object$estimate_alpha
-      ans$estimate_beta <- object$estimate_beta
-  }
   class(ans) <- "summary_rspde_lme"
   ans
 }
@@ -1410,17 +1186,7 @@ print.summary_rspde_lme <- function(x, ...) {
   
   if(x$spacetime) { 
       cat(" with alpha = ", x$alpha, ", beta = ", x$beta)
-  }
-  if(x$intrinsic) {
-      if(!x$estimate_alpha && !x$estimate_beta) {
-          cat(" with alpha = ", x$latent_model$alpha, ", beta = ", x$latent_model$beta)
-      } else if(!x$estimate_alpha) {
-          cat(" with alpha = ", x$latent_model$alpha)
-      } else if(!x$estimate_beta) {
-          cat(" with beta = ", x$latent_model$beta)
-      }    
-  }
-  
+  }  
   
   cat("\n\n")
   cat("Call:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
@@ -1440,11 +1206,6 @@ print.summary_rspde_lme <- function(x, ...) {
       message("\nNo fixed effects. \n")
     }
     #
-    if (!x$estimate_nu && !x$spacetime && !x$intrinsic) {
-      cat("\nSmoothness parameter: \n")
-      cat("\t alpha =", x$alpha, "\n")
-      cat("\t nu =", x$nu, "(Matern parameterization)\n")
-    }
     if (NROW(tab$random_effects)) {
       cat(paste0("\nRandom effects:\n"))
       stats::printCoefmat(tab[["random_effects"]][, 1:3, drop = FALSE], digits = digits, signif.legend = FALSE)
@@ -1452,9 +1213,13 @@ print.summary_rspde_lme <- function(x, ...) {
       cat(paste0("\nRandom effects:\n"))
       message("No random effects. \n")
     }
-    if (NROW(tab$random_effects_matern)) {
-      cat(paste0("\nRandom effects (Matern parameterization):\n"))
-      stats::printCoefmat(tab[["random_effects_matern"]][, 1:3], digits = digits, signif.legend = FALSE)
+    if (NROW(tab$random_effects_alt_par)) {
+      if (x$parameterization_latent == "spde") {
+        cat(paste0("\nRandom effects (Matern parameterization):\n"))
+      } else {
+        cat(paste0("\nRandom effects (SPDE parameterization):\n"))
+      }
+      stats::printCoefmat(tab[["random_effects_alt_par"]][, 1:3], digits = digits, signif.legend = FALSE)
     }
     #
     cat(paste0("\nMeasurement error:\n"))
@@ -1482,7 +1247,7 @@ print.summary_rspde_lme <- function(x, ...) {
     if (x$all_times) {
       cat("\t prepare the data = ", paste(trunc(x$time_data[[1]] * 10^5) / 10^5, attr(x$time_data, "units"), "\n"))
       cat("\t build the likelihood = ", paste(trunc(x$time_likelihood[[1]] * 10^5) / 10^5, attr(x$time_likelihood, "units"), "\n"))
-      cat("\t compute Matern parameterization = ", paste(trunc(x$time_matern_par[[1]] * 10^5) / 10^5, attr(x$time_likelihood, "units"), "\n"))
+      cat("\t compute alternative parameterization = ", paste(trunc(x$time_alt_par[[1]] * 10^5) / 10^5, attr(x$time_likelihood, "units"), "\n"))
     }
     cat("\t fit the model = ", paste(trunc(x$fitting_time[[1]] * 10^5) / 10^5, attr(x$fitting_time, "units"), "\n"))
     if (x$improve_hessian) {
