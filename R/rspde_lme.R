@@ -60,6 +60,7 @@
 #' @param start_alpha `r lifecycle::badge("deprecated")` Use `model_options` instead.
 #' @param start_nu `r lifecycle::badge("deprecated")` Use `model_options` instead.
 #' @param start_beta `r lifecycle::badge("deprecated")` Use `model_options` instead.
+#' @param nu_upper_bound `r lifecycle::badge("deprecated")` Use `smoothness_upper_bound` instead.
 #' @return A list containing the fitted model.
 #' @rdname rspde_lme
 #' @export
