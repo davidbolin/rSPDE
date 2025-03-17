@@ -2608,7 +2608,15 @@ process_model_options <- function(model, model_options) {
       model_options$fix_beta <- model$beta
     }
   }
-  
+
+  if(inherits(model, "intrinsicCBrSPDEobj")) {
+    if(!is.null(model_options$fix_alpha)){
+      if(abs(model_options$fix_alpha) < 1e-5){
+        model_options$fix_alpha <- 0
+        model_options$fix_kappa <- 0
+      }
+    }
+  }
   return(model_options)
 }
 
@@ -2832,14 +2840,7 @@ extract_starting_values <- function(previous_fit, fix_coeff = FALSE, model_optio
       model_options_tmp[[paste0(prefix, tolower(param_name))]] <- random_effects[[param_name]]
     }
   } else {
-    # Regular case for stationary models
-    if (!is.null(parameterization) && parameterization == "matern") {
-      # Use matern_coeff for matern parameterization
-      random_effects <- previous_fit$matern_coeff$random_effects
-    } else {
-      # Use coeff for other parameterizations
-      random_effects <- previous_fit$coeff$random_effects
-    }
+    random_effects <- previous_fit$coeff$random_effects
     
     # Create named list with appropriate prefix
     for (param_name in names(random_effects)) {
@@ -2849,25 +2850,7 @@ extract_starting_values <- function(previous_fit, fix_coeff = FALSE, model_optio
   
   # Add sigma_e with appropriate prefix
   model_options_tmp[[paste0(prefix, "sigma_e")]] <- previous_fit$coeff$measurement_error[[1]]
-  
-  # If fix_coeff is TRUE, check for additional parameters
-  if (fix_coeff) {
-    # Check and add alpha if non-NULL
-    if (!is.null(previous_fit$alpha)) {
-      model_options_tmp$fix_alpha <- previous_fit$alpha
-    }
     
-    # Check and add beta if non-NULL
-    if (!is.null(previous_fit$beta)) {
-      model_options_tmp$fix_beta <- previous_fit$beta
-    }
-    
-    # Check and add nu if non-NULL
-    if (!is.null(previous_fit$nu)) {
-      model_options_tmp$fix_nu <- previous_fit$nu
-    }
-  }
-  
   # If user provided model_options, combine them
   if (!is.null(model_options)) {
     # Overwrite extracted options with user-provided options
@@ -2895,6 +2878,13 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
   spacetime <- inherits(model, "spacetimeobj")
   anisotropic <- inherits(model, "CBrSPDEobj2d")
   intrinsic <- inherits(model, "intrinsicCBrSPDEobj")
+
+  cond_gen <- !spacetime && !intrinsic && !anisotropic
+
+  # For spacetime models with d=2, set rho2 
+  if (spacetime && model$d == 2) {
+    model[["rho2"]] <- model[["rho"]]
+  }
   
   # Initialize starting values
   starting_values <- numeric(0)
@@ -2919,12 +2909,13 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
   } else {
     # For stationary models, extract parameters based on model type
     for (param in possible_params) {
+
       # Skip theta parameters for stationary models
       if (grepl("^theta", param)) next
       
       # Skip parameters not relevant to current parameterization
-      if (parameterization == "matern" && param %in% c("alpha", "kappa", "tau")) next
-      if (parameterization == "spde" && param %in% c("nu", "range", "sigma")) next
+      if (cond_gen && parameterization == "matern" && param %in% c("alpha", "kappa", "tau")) next
+      if (cond_gen && parameterization == "spde" && param %in% c("nu", "range", "sigma")) next
       
       # Get parameter value from model
       if (!is.null(model[[param]])) {
@@ -2972,54 +2963,7 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
   
   # Update starting values with model_options if provided
   if (!is.null(model_options)) {        
-    # Get starting values for alpha, beta, nu
-    start_alpha <- if (!is.null(model_options$fix_alpha)) {
-      model_options$fix_alpha
-    } else {
-      model_options$start_alpha
-    }
-    
-    start_beta <- if (!is.null(model_options$fix_beta)) {
-      model_options$fix_beta
-    } else {
-      model_options$start_beta
-    }
-    
-    start_nu <- if (!is.null(model_options$fix_nu)) {
-      model_options$fix_nu
-    } else {
-      model_options$start_nu
-    }
-    
-    # Handle intrinsic models
-    if (intrinsic) {
-      if (is.null(start_alpha)) {
-        if (is.null(model$alpha)) {
-          start_alpha = 1
-        } else {
-          start_alpha = model$alpha
-        }
-      }
-      if (is.null(start_beta)) {
-        if (is.null(model$beta)) {
-          start_beta = 0.9
-        } else {
-          start_beta = model$beta
-        }
-      }
-
-      starting_values["alpha"] <- log(start_alpha)
-      starting_values["beta"] <- log(start_beta - max(0, model$d/2 - start_alpha))
-    } else {
-      # Handle nu and alpha parameters for non-intrinsic models
-      if (!is.null(start_nu)) {
-        starting_values["nu"] <- log(start_nu)
-      } 
-      if (!is.null(start_alpha)) {
-        starting_values["alpha"] <- log(start_alpha)
-      }
-    }
-    
+        
     # Update all parameters from model_options
     for (param_name in names(starting_values)) {
       fix_param <- paste0("fix_", param_name)
@@ -3058,6 +3002,40 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
         }
       }
     }
+
+    # Handle intrinsic models
+    if (intrinsic) {
+      start_alpha <- if (!is.null(model_options$fix_alpha)) {
+        model_options$fix_alpha
+      } else {
+        model_options$start_alpha
+      }
+
+      start_beta <- if (!is.null(model_options$fix_beta)) {
+        model_options$fix_beta
+      } else {
+        model_options$start_beta
+      }      
+      
+      if (is.null(start_alpha)) {
+        if (is.null(model$alpha)) {
+          start_alpha = 1
+        } else {
+          start_alpha = model$alpha
+        }
+      }
+      if (is.null(start_beta)) {
+        if (is.null(model$beta)) {
+          start_beta = 0.9
+        } else {
+          start_beta = model$beta
+        }
+      }
+
+      starting_values["alpha"] <- log(start_alpha)
+      starting_values["beta"] <- log(start_beta - max(0, model$d/2 - start_alpha))
+    } 
+    
     # Handle sigma_e separately
     start_sigma_e <- if (!is.null(model_options$fix_sigma_e)) {
       model_options$fix_sigma_e
@@ -3073,7 +3051,7 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
   if (is.null(starting_values) || length(starting_values) == 0) {
     stop("There was an error processing the starting values.")
   }
-  
+
   return(starting_values)
 }
 

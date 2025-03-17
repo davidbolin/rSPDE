@@ -549,7 +549,11 @@ matern.operators <- function(kappa = NULL,
     }
 
     if (is.null(nu)) {
-      nu <- 1
+      if(d == 1){
+        nu <- 0.5
+      } else {
+        nu <- 1
+      }
     } else {
       nu <- rspde_check_user_input(nu, "nu", 0)
     }
@@ -1270,7 +1274,11 @@ spde.matern.operators <- function(kappa = NULL,
       B.kappa <- B_matrices[["B.kappa"]]
 
       if (is.null(nu)) {
-        nu <- 1
+        if(d == 1){
+          nu <- 0.5
+        } else {
+          nu <- 1
+        }
       } else {
         nu <- rspde_check_user_input(nu, "nu", 0)
       }
@@ -1327,7 +1335,11 @@ spde.matern.operators <- function(kappa = NULL,
 
     if (parameterization == "matern") {
       if (is.null(nu)) {
-        nu <- 1
+        if(d == 1){
+          nu <- 0.5
+        } else {
+          nu <- 1
+        }
       } else {
         nu <- rspde_check_user_input(nu, "nu", 0)
       }
@@ -1336,7 +1348,11 @@ spde.matern.operators <- function(kappa = NULL,
       B.kappa <- B_matrices[["B.kappa"]]
 
       if (is.null(nu)) {
-        nu <- 1
+        if(d == 1){
+          nu <- 0.5
+        } else {
+          nu <- 1
+        }
       } else {
         nu <- rspde_check_user_input(nu, "nu", 0)
       }
@@ -1392,7 +1408,11 @@ spde.matern.operators <- function(kappa = NULL,
   } else {
     if (parameterization == "matern") {
       if (is.null(nu)) {
-        nu <- 1
+        if(d == 1){
+          nu <- 0.5
+        } else {
+          nu <- 1
+        }
       } else {
         nu <- rspde_check_user_input(nu, "nu", 0)
       }
