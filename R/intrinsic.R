@@ -282,6 +282,7 @@ intrinsic.operators.internal <- function(C,
   }
 
   if(alpha %% 1 == 0) {
+      L <- G / scaling
       Q <- G
       if (alpha > 1) {
           for (k in 1:(alpha - 1)) {
@@ -347,7 +348,7 @@ intrinsic.operators.internal <- function(C,
           Q.int <- list(Q.int = kronecker(Diagonal(m + 1), aux_mat), order = m_alpha)
           
           if (alpha %% 1 == 0) {
-              Q.frac <- Matrix::Diagonal(dim(L)[1])
+              Q.frac <- Matrix::Diagonal(dim(G)[1])
               Q <- G
               
               if (alpha > 1) {

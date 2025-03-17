@@ -567,7 +567,7 @@ drift <- op$mean_correction()
 u <- u + matrix(rep(drift, times = n.rep), nrow = op$n, ncol= n.rep)
 
 sigma.e <- 0.01
-n.obs <- 100
+n.obs <- 300
 obs.loc <- runif(n = n.obs, min = 0, max = L)
 A <- rSPDE.A1d(x, obs.loc)
 Y <- as.matrix(A %*% u + sigma.e * matrix(rnorm(n.obs*n.rep),n.obs,n.rep))
@@ -598,13 +598,92 @@ lines(x, u.krig$mean - 2 * sqrt(u.krig$variance), col = 2)
 ```
 
 
-We now use `rspde_lme` to fit the parameters based on this data. As we here generated data with `alpha=0`, we specify this in the function to indicate that this parameter should not be fitted but kept fixed at `alpha=0`. We also specify `mean_correction=TRUE` to indicate that we should use the mean value correction when fitting.
+We now use `rspde_lme` to fit the parameters based on this data. Since we generated data with `alpha=0`, we specify this in the function to indicate that this parameter should not be fitted but kept fixed at `alpha=0` by setting `fix_alpha=0` in `model_options`. We also specify `mean_correction=TRUE` to indicate that we should use the mean value correction when fitting.
 ```{r}
 data = data.frame(y = c(Y), loc = rep(obs.loc, n.rep), rep  = rep(1:n.rep, each = n.obs))
 
 fit <- rspde_lme(y ~ -1, loc = "loc", repl  = "rep", data = data,
-                 model = op, alpha = 0, mean_correction = TRUE)
+                 model = op, mean_correction = TRUE, parallel = TRUE,
+                 model_options = list(fix_alpha = 0))
 
-rbind(c(fit$coeff$random_effects, fit$coeff$measurement_error), 
-      c(beta, tau,sigma.e))
+rbind(c(fit$coeff$random_effects[c("beta", "tau")], fit$coeff$measurement_error), 
+      c(beta, tau, sigma.e))
 ```
+
+## An example with estimated alpha and beta parameters
+
+In the previous example, we fixed the alpha parameter and only estimated beta. Now, let us demonstrate how to estimate both alpha and beta simultaneously. We will set up a new model with different parameter values:
+
+```{r}
+L = 20
+x <- seq(from = 0, to = L, length.out = 101)
+mesh <- fm_mesh_1d(x)
+beta <- 1.2
+alpha <- 0.3
+kappa <- 15
+tau <- 7
+op <- intrinsic.matern.operators(kappa = kappa, tau = tau, alpha = alpha,
+                                 beta = beta, mesh = mesh, d = 1)
+
+vario <- variogram.intrinsic.spde(c(L/2), mesh$loc, tau = tau,
+                                  beta = beta, alpha = alpha, kappa = kappa, L = L, d = 1)
+plot(x, vario, type = "l", col = 2, lwd = 2)
+points(x, op$variogram(L/2), col = 1)
+```
+
+Similar to the previous example, we will generate data with the mean value correction for extremes models:
+
+```{r}
+n.rep <- 100
+u <- simulate(op, nsim = n.rep, integral.constraint = FALSE, use_kl = TRUE)
+
+drift <- op$mean_correction()
+u <- u + matrix(rep(drift, times = n.rep), nrow = op$n, ncol = n.rep)
+
+sigma.e <- 0.015
+n.obs <- 300
+obs.loc <- runif(n = n.obs, min = 0, max = L)
+A <- rSPDE.A1d(x, obs.loc)
+Y <- as.matrix(A %*% u + sigma.e * matrix(rnorm(n.obs*n.rep), n.obs, n.rep))
+```
+
+Let's visualize the data and predictions for this model:
+
+```{r}
+A <- op$make_A(obs.loc)
+A.krig <- op$make_A(x)
+u.krig <- predict(op,
+  A = A, Aprd = A.krig, Y = Y[,1], sigma.e = sigma.e,
+  compute.variances = TRUE
+)
+
+plot(obs.loc, Y[,1],
+  ylab = "u(x)", xlab = "x", main = "Data and prediction with fractional alpha and beta",
+  ylim = c(
+    min(c(min(u.krig$mean - 2 * sqrt(u.krig$variance)), min(u[,1]))),
+    max(c(max(u.krig$mean + 2 * sqrt(u.krig$variance)), max(u[,1])))
+  )
+)
+lines(x, u[,1], col = 3)
+lines(x, u.krig$mean)
+lines(x, u.krig$mean + 2 * sqrt(u.krig$variance), col = 2)
+lines(x, u.krig$mean - 2 * sqrt(u.krig$variance), col = 2)
+```
+
+Now, we will use `rspde_lme` to fit the parameters but this time we will not fix alpha, allowing both alpha and beta to be estimated. Unlike the previous example where we set `fix_alpha=0`, we do not include this constraint:
+
+```{r}
+data = data.frame(y = c(Y), loc = rep(obs.loc, n.rep), rep = rep(1:n.rep, each = n.obs))
+
+fit <- rspde_lme(y ~ -1, loc = "loc", repl = "rep", data = data,
+                 model = op, mean_correction = TRUE, parallel = TRUE)
+
+# Compare estimated and true parameter values
+rbind(c(fit$coeff$random_effects[c("alpha", "beta", "tau", "kappa")], fit$coeff$measurement_error), 
+      c(alpha, beta, tau, kappa, sigma.e))
+```
+
+
+
+
+

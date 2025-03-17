@@ -430,9 +430,9 @@ glance(fit_2d)
 Let us compare the estimated results with the true values:
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_2d$matern_coeff$random_effects[2]), 
-  range = c(range, fit_2d$matern_coeff$random_effects[3]),
-  nu = c(nu, fit_2d$matern_coeff$random_effects[1]),
+  sigma = c(sigma, fit_2d$alt_par_coeff$coeff["sigma"]), 
+  range = c(range, fit_2d$alt_par_coeff$coeff["range"]),
+  nu = c(nu, fit_2d$alt_par_coeff$coeff["nu"]),
   row.names = c("Truth", "Estimates")
 ))
 
@@ -450,13 +450,13 @@ rational.order(op_obj)
 rational.order(op_obj) <- 2
 ```
 
-Let us fit again and check the results:
+Let us fit again and check the results. We use the previous fit to speed up the computation.
 
 ```{r}
 fit_2d <- rspde_lme(y ~ -1, model = op_obj, 
           data = df_data_2d, repl = repl,
           loc = c("x_coord", "y_coord"), 
-          parallel = TRUE)
+          parallel = TRUE, previous_fit = fit_2d)
 ```
 
 Let us check the summary:
@@ -466,9 +466,9 @@ summary(fit_2d)
 Let us compare the estimated results with the true values:
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_2d$matern_coeff$random_effects[2]), 
-  range = c(range, fit_2d$matern_coeff$random_effects[3]),
-  nu = c(nu, fit_2d$matern_coeff$random_effects[1]),
+  sigma = c(sigma, fit_2d$alt_par_coeff$coeff["sigma"]), 
+  range = c(range, fit_2d$alt_par_coeff$coeff["range"]),
+  nu = c(nu, fit_2d$alt_par_coeff$coeff["nu"]),
   row.names = c("Truth", "Estimates")
 ))
 

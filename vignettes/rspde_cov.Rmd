@@ -363,6 +363,8 @@ x1 <- obs.loc
 
 Y <- 2 - x1 + as.vector(A %*% u + sigma.e * rnorm(n.obs))
 
+Y <- as.vector(A%*% u + sigma.e * rnorm(n.obs))
+
 df_data <- data.frame(y = Y, loc = obs.loc, x1 = x1)
 ```
 
@@ -370,7 +372,8 @@ Let us create a new object to fit the model:
 
 ```{r}
 op_cov_est <- matern.operators(
-  loc_mesh = s, d = 1, m = 2
+  loc_mesh = s, d = 1, m = 2,
+  parameterization = "matern"
 )
 ```
 
@@ -391,9 +394,9 @@ summary(fit)
 Let us compare the parameters of the latent model:
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit$matern_coeff$random_effects[2]), 
-  range = c(r, fit$matern_coeff$random_effects[3]),
-  nu = c(nu, fit$matern_coeff$random_effects[1]),
+  nu = c(nu, fit$coeff$random_effects["nu"]),
+  sigma = c(sigma, fit$coeff$random_effects["sigma"]), 
+  range = c(r, fit$coeff$random_effects["range"]),
   row.names = c("Truth", "Estimates")
 ))
 
@@ -425,9 +428,9 @@ Let us compare with the true values and compare the time:
 
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_par$matern_coeff$random_effects[2]), 
-  range = c(r, fit_par$matern_coeff$random_effects[3]),
-  nu = c(nu, fit_par$matern_coeff$random_effects[1]),
+  sigma = c(sigma, fit_par$coeff$random_effects["sigma"]), 
+  range = c(r, fit_par$coeff$random_effects["range"]),
+  nu = c(nu, fit_par$coeff$random_effects["nu"]),
   row.names = c("Truth", "Estimates")
 ))
 
@@ -533,12 +536,12 @@ glance(fit_repl)
 Let us compare with the true values:
 
 ```{r}
-print(data.frame(
-  sigma = c(sigma, fit_repl$matern_coeff$random_effects[2]), 
-  range = c(r, fit_repl$matern_coeff$random_effects[3]),
-  nu = c(nu, fit_repl$matern_coeff$random_effects[1]),
-  row.names = c("Truth", "Estimates")
-))
+  print(data.frame(
+    sigma = c(sigma, fit_repl$coeff$random_effects["sigma"]), 
+    range = c(r, fit_repl$coeff$random_effects["range"]),
+    nu = c(nu, fit_repl$coeff$random_effects["nu"]),
+    row.names = c("Truth", "Estimates")
+  ))
 
 # Total time
 print(fit_repl$fitting_time)
@@ -697,9 +700,9 @@ glance(fit_2d)
 Let us compare the estimated results with the true values:
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_2d$matern_coeff$random_effects[2]), 
-  range = c(range, fit_2d$matern_coeff$random_effects[3]),
-  nu = c(nu, fit_2d$matern_coeff$random_effects[1]),
+  sigma = c(sigma, fit_2d$alt_par_coeff$coeff["sigma"]), 
+  range = c(range, fit_2d$alt_par_coeff$coeff["range"]),
+  nu = c(nu, fit_2d$alt_par_coeff$coeff["nu"]),
   row.names = c("Truth", "Estimates")
 ))
 
@@ -718,6 +721,84 @@ df_pred <- data.frame(x = proj$lattice$loc[,1],
 augment(fit_2d, newdata = df_pred, loc = c("x","y"), which_repl = 3) %>% ggplot() +
               geom_raster(aes(x=x, y=y, fill = .fitted)) + xlim(0,1) + ylim(0,1) + 
               scale_fill_viridis()
+```
+
+## Further details on rspde_lme
+
+The `rspde_lme` function provides flexibility in model fitting by allowing users to fix certain parameters at specific values or set custom starting values for the optimization process. This can be useful when you have prior knowledge about some parameters or when you want to improve convergence by providing better starting points.
+
+### Fixing parameters
+Parameters can be fixed by using the `model_options` argument with elements of the form `fix_parname = value`, where `parname` is the name of the parameter you want to fix. For stationary models, the parameters that can be fixed in the `model_options` list are:
+
+- `fix_nu`: Fix the smoothness parameter ν
+- `fix_sigma`: Fix the standard deviation parameter σ
+- `fix_range`: Fix the range parameter
+- `fix_tau`: Fix the precision parameter τ (when using the SPDE parameterization)
+- `fix_kappa`: Fix the scale parameter κ (when using the SPDE parameterization)
+- `fix_alpha`: Fix the fractional power α (when using the SPDE parameterization)
+
+### Setting starting values
+
+Similarly, you can set starting values for parameters using elements of the form `start_parname = value` in the `model_options` list. This is particularly useful when the default starting values might be far from the optimal values, which could lead to slow convergence or convergence to a local minimum. For example, to set a starting value for the range parameter, you would use `model_options = list(start_range = 0.15)`.
+
+- `start_nu`: Starting value for the smoothness parameter ν
+- `start_sigma`: Starting value for the standard deviation parameter σ
+- `start_range`: Starting value for the range parameter
+- `start_tau`: Starting value for the precision parameter τ (when using the SPDE parameterization)
+- `start_kappa`: Starting value for the scale parameter κ (when using the SPDE parameterization)
+- `start_alpha`: Starting value for the fractional power α (when using the SPDE parameterization)
+
+### Example: Fixing and setting starting values
+
+Let us demonstrate how to use these parameters with our 2D spatial example. We will fix the smoothness parameter ν to 0.8, fix the standard deviation σ to 1, and set the starting value for the range parameter to 0.15.
+
+```{r}
+# Create a new model fit with fixed ν and σ, and a starting value for range
+fit_2d_fixed <- rspde_lme(y ~ -1, model = op_cov_2d_est, 
+                         data = df_data_2d, repl = repl,
+                         loc = c("x_coord", "y_coord"),, 
+                         model_options = list(
+                           fix_nu = 0.8,      # Fix ν to 0.8
+                           fix_sigma = 1,     # Fix σ to 1
+                           start_range = 0.15 # Set starting value for range
+                         ),
+                         parallel = TRUE)
+```
+
+Let us get a summary of the fit:
+
+```{r}
+summary(fit_2d_fixed)
+```
+
+Notice in the summary that ν and σ are fixed at the specified values, and only the range parameter is estimated. When parameters are fixed, they do not appear in the parameter estimates section, but rather are treated as constants.
+
+Let us compare this fit with our previous fit where all parameters were estimated:
+
+```{r}
+# Compare the log-likelihoods
+logLik_full <- logLik(fit_2d)
+logLik_fixed <- logLik(fit_2d_fixed)
+
+cat("Log-likelihood with all parameters estimated:", logLik_full, "\n")
+cat("Log-likelihood with fixed nu and sigma:", logLik_fixed, "\n")
+```
+
+### Using a previous fit to initialize the optimization
+
+You can use a previous fit to initialize the optimization by using the `start_from_previous` argument. For example, to use the previous fit to initialize the optimization, you would use `start_from_previous = fit_2d`.
+
+```{r}
+fit_2d_start <- rspde_lme(y ~ -1, model = op_cov_2d_est, 
+                         data = df_data_2d, repl = repl,
+                         loc = c("x_coord", "y_coord"),, 
+                         previous_fit = fit_2d)
+```
+
+Let us get a summary of the fit:
+
+```{r}
+summary(fit_2d_start)
 ```
 
 ## An example with a non-stationary model
@@ -848,11 +929,52 @@ print(data.frame(
   theta1 = c(true_theta[1], fit_ns$coeff$random_effects[2]), 
   theta2 = c(true_theta[2], fit_ns$coeff$random_effects[3]),
   theta3 = c(true_theta[3], fit_ns$coeff$random_effects[4]), 
-  alpha = c(alpha, fit_ns$coeff$random_effects[1])),
-  row.names = c("Truth", "Estimates")
-)
+  nu = c(alpha-1, fit_ns$coeff$random_effects[1])),
+  row.names = c("Truth", "Estimates"))
 ```
 
+### Fixing parameters in non-stationary models
+
+In non-stationary models, the parameters are labeled as theta1, theta2, etc., corresponding to the coefficients in the B matrices. Similar to the stationary case, we can fix individual parameters or set starting values, but these options must be set in the `model_options` list argument using `fix_theta1`, `fix_theta2`, etc., or `start_theta1`, `start_theta2`, etc.
+
+For example, if we want to fix the first coefficient theta1 to 0:
+
+```{r}
+fit_ns_fixed_theta1 <- rspde_lme(y ~ -1, model = op_cov_ns_est, 
+          data = df_data_ns, loc = c("x_coord", "y_coord"), 
+          model_options = list(fix_theta1 = 0),  # Fix theta1 to 0
+          parallel = TRUE)
+```
+
+```{r}
+summary(fit_ns_fixed_theta1)
+```
+
+We can also fix the entire theta vector at once using the `fix_theta` parameter. This is particularly useful when we have strong prior knowledge about all the parameters:
+
+```{r}
+fit_ns_fixed_all <- rspde_lme(y ~ -1, model = op_cov_ns_est, 
+          data = df_data_ns, loc = c("x_coord", "y_coord"), 
+          model_options = list(fix_theta = c(0, 1, 1)),  # Fix the entire theta vector
+          parallel = TRUE)
+```
+
+```{r}
+summary(fit_ns_fixed_all)
+```
+
+Similarly, we can provide starting values for the entire theta vector with `start_theta`:
+
+```{r}
+fit_ns_start <- rspde_lme(y ~ -1, model = op_cov_ns_est, 
+          data = df_data_ns, loc = c("x_coord", "y_coord"), 
+          model_options = list(start_theta = c(0, 1, 1)),  # Starting values for theta vector
+          parallel = TRUE)
+```
+
+```{r}
+summary(fit_ns_start)
+```
 
 ## Changing the type and the order of the rational approximation
 
@@ -903,9 +1025,9 @@ Let us compare with the true values:
 
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_order1$matern_coeff$random_effects[2]), 
-  range = c(range, fit_order1$matern_coeff$random_effects[3]),
-  nu = c(nu, fit_order1$matern_coeff$random_effects[1]),
+  sigma = c(sigma, fit_order1$alt_par_coeff$coeff["sigma"]), 
+  range = c(range, fit_order1$alt_par_coeff$coeff["range"]),
+  nu = c(nu, fit_order1$alt_par_coeff$coeff["nu"]),
   row.names = c("Truth", "Estimates")
 ))
 ```
@@ -935,9 +1057,9 @@ Let us compare with the true values:
 
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_brasil$matern_coeff$random_effects[2]), 
-  range = c(range, fit_brasil$matern_coeff$random_effects[3]),
-  nu = c(nu, fit_brasil$matern_coeff$random_effects[1]),
+  sigma = c(sigma, fit_brasil$alt_par_coeff$coeff["sigma"]), 
+  range = c(range, fit_brasil$alt_par_coeff$coeff["range"]),
+  nu = c(nu, fit_brasil$alt_par_coeff$coeff["nu"]),
   row.names = c("Truth", "Estimates")
 ))
 ```
