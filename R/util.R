@@ -4125,7 +4125,9 @@ process_model_results <- function(res, observed_fisher, start_values, estimate_p
   
   # Add "(fixed)" to parameter names for fixed parameters
   # For measurement error parameter (sigma_e)
-  if (!estimate_params[1]) {
+  # Find the position of sigma_e in estimate_params
+  sigma_e_pos <- which(names(estimate_params) == "sigma_e")
+  if (length(sigma_e_pos) > 0 && !estimate_params[sigma_e_pos]) {
     names(param_results$coeff_meas) <- paste0(names(param_results$coeff_meas), " (fixed)")
   }
   

@@ -881,7 +881,7 @@ rspde_lme <- function(formula,
     new_likelihood <- NULL
 
     start_time_alt_par <- Sys.time()
-    coeff_alt_par_result <- convert_parameterization_matern_spde(model, parameterization, res$par, model_options, observed_fisher, estimate_pars, std_random)
+    coeff_alt_par_result <- convert_parameterization_matern_spde(model, parameterization, coeff_random, model_options, observed_fisher, estimate_pars, std_random)
     time_alt_par <- Sys.time() - start_time_alt_par
 
   } else { # If model is NULL
