@@ -3512,16 +3512,9 @@ create_likelihood <- function(model, model_options, y_resp,
   }
   
   # Get appropriate auxiliary likelihood function
-  aux_lik_fun <- get_aux_likelihood_function(model)
-
-  print("start_values")
-  print(start_values)
-  
+  aux_lik_fun <- get_aux_likelihood_function(model) 
   # Determine which parameters to estimate
   estimate_params <- determine_estimate_params(model, model_options, start_values)
-
-  print("estimate_params")
-  print(estimate_params)
   
   # Count number of non-fixed coefficients from model parameters
   n_coeff_nonfixed <- sum(estimate_params)
@@ -3544,17 +3537,11 @@ create_likelihood <- function(model, model_options, y_resp,
     
     # Check for early return (e.g., nu at upper bound for rSPDEobj1d)
     if(!is.null(result$early_return)) {
-      print("Doing early return")
       return(result$early_return)
     }
     
     # Update the model with the extracted parameters
     model_tmp <- do.call(update, c(list(object = model_tmp), result$args_list))
-
-    print("result$args_list")
-    print(result$args_list)
-
-    print(model_tmp)
     
     # Get arguments for auxiliary likelihood function
     aux_args <- get_aux_lik_fun_args(
@@ -3568,8 +3555,6 @@ create_likelihood <- function(model, model_options, y_resp,
       mean_correction = mean_correction,
       loc_df = loc_df
     )
-
-    print(paste("sigma_e = ", result$sigma_e))
     
     # Call the auxiliary likelihood function with the appropriate arguments
     loglik <- do.call(aux_lik_fun, aux_args)

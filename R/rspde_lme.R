@@ -875,8 +875,6 @@ rspde_lme <- function(formula,
                                                       model_options = model_options, X_cov = X_cov, n_coeff_nonfixed = n_coeff_nonfixed)
 
 
-    print(coeff_results)
-
     coeff_meas <- coeff_results$coeff_meas
     coeff_random <- coeff_results$coeff_random
     coeff_fixed <- coeff_results$coeff_fixed      
