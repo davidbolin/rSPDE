@@ -2567,35 +2567,35 @@ process_model_options <- function(model, model_options) {
   if(inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj")) {
     if(!model$stationary && !is.null(model_options)) {
       # Process start_theta vector if it exists
-      if(!is.null(model_options$start_theta)) {
-        if(length(model_options$start_theta) != length(model$theta)) {
-          stop(paste0("The length of start_theta (", length(model_options$start_theta), 
+      if(!is.null(model_options[["start_theta"]])) {
+        if(length(model_options[["start_theta"]]) != length(model$theta)) {
+          stop(paste0("The length of start_theta (", length(model_options[["start_theta"]]), 
                      ") must match the length of model$theta (", length(model$theta), ")."))
         }
         
         # Create individual start_theta1, start_theta2, etc. parameters
-        for(i in seq_along(model_options$start_theta)) {
-          model_options[[paste0("start_theta", i)]] <- model_options$start_theta[i]
+        for(i in seq_along(model_options[["start_theta"]])) {
+          model_options[[paste0("start_theta", i)]] <- model_options[["start_theta"]][i]
         }
         
         # Remove the original start_theta
-        model_options$start_theta <- NULL
+        model_options[["start_theta"]] <- NULL
       }
       
       # Process fix_theta vector if it exists
-      if(!is.null(model_options$fix_theta)) {
-        if(length(model_options$fix_theta) != length(model$theta)) {
-          stop(paste0("The length of fix_theta (", length(model_options$fix_theta), 
+      if(!is.null(model_options[["fix_theta"]])) {
+        if(length(model_options[["fix_theta"]]) != length(model$theta)) {
+          stop(paste0("The length of fix_theta (", length(model_options[["fix_theta"]]), 
                      ") must match the length of model$theta (", length(model$theta), ")."))
         }
         
         # Create individual fix_theta1, fix_theta2, etc. parameters
-        for(i in seq_along(model_options$fix_theta)) {
-          model_options[[paste0("fix_theta", i)]] <- model_options$fix_theta[i]
+        for(i in seq_along(model_options[["fix_theta"]])) {
+          model_options[[paste0("fix_theta", i)]] <- model_options[["fix_theta"]][i]
         }
         
         # Remove the original fix_theta
-        model_options$fix_theta <- NULL
+        model_options[["fix_theta"]] <- NULL
       }
     }
   }
@@ -2904,8 +2904,18 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
     if (is.null(model$theta)) {
       stop("There was an error processing the starting values. model$theta is NULL.")
     }
-    starting_values <- model$theta
-    names(starting_values) <- paste0("theta", 1:length(starting_values))
+    
+    # Initialize starting values with alpha/nu first
+    if(model$parameterization == "matern") {
+      starting_values <- c(nu = log(model$nu))
+    } else {
+      starting_values <- c(alpha = log(model$alpha)) 
+    }
+    
+    # Add theta parameters
+    theta_values <- model$theta
+    names(theta_values) <- paste0("theta", 1:length(theta_values))
+    starting_values <- c(starting_values, theta_values)
   } else {
     # For stationary models, extract parameters based on model type
     for (param in possible_params) {
