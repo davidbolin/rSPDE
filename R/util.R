@@ -3871,53 +3871,143 @@ calculate_standard_errors <- function(observed_fisher, res, estimate_params, mod
                                      model_options, X_cov, n_coeff_nonfixed, param_results) {
   # Handle edge cases
   all_fixed = all(!estimate_params)
-  only_sigma_e = sum(estimate_params) == 1 && estimate_params[1]
-  
-  # If all parameters are fixed, return NAs for all standard errors
-  if (all_fixed) {
-    std_err = rep(NA, length(estimate_params) + ncol(X_cov))
-    std_meas = NA
-    std_random = rep(NA, length(param_results$coeff_random))
-    names(std_random) = names(param_results$coeff_random)
-    std_fixed = NULL
-    if (!is.null(param_results$coeff_fixed)) {
-      std_fixed = rep(NA, length(param_results$coeff_fixed))
-    }
-    
-    return(list(
-      std_err = std_err,
-      std_meas = std_meas,
-      std_random = std_random,
-      std_fixed = std_fixed,
-      inv_fisher = matrix(NA, length(std_err), length(std_err))
-    ))
+  # Find the position of sigma_e in the parameter vector
+  sigma_e_pos <- which(names(estimate_params) == "sigma_e")
+  if (length(sigma_e_pos) == 0) {
+    stop("Processing error. sigma_e parameter could not be found in estimate_params.")
   }
   
-  # If only sigma_e is estimated (all latent parameters fixed), 
-  # we still need to calculate its standard error
-  if (only_sigma_e) {
-    # If we only have one parameter, observed_fisher is just a 1x1 matrix
-    if (is.null(dim(observed_fisher)) || (nrow(observed_fisher) == 1 && ncol(observed_fisher) == 1)) {
-      inv_fisher = 1/observed_fisher
-      std_err = sqrt(inv_fisher)
-      std_meas = std_err[1]
+  # Check if only sigma_e is estimated
+  only_sigma_e = sum(estimate_params) == 1 && estimate_params[sigma_e_pos]
+  
+  # Number of fixed effects
+  n_fixed <- ncol(X_cov)
+  
+  # Initialize standard error vectors
+  std_random <- rep(NA, length(param_results$coeff_random))
+  names(std_random) <- names(param_results$coeff_random)
+  
+  std_fixed <- NULL
+  if (n_fixed > 0) {
+    std_fixed <- rep(NA, n_fixed)
+    if (!is.null(param_results$coeff_fixed)) {
+      names(std_fixed) <- names(param_results$coeff_fixed)
+    }
+  }
+  
+  # If all parameters are fixed but we have fixed effects
+  if (all_fixed && n_fixed > 0) {
+    # We still need to calculate standard errors for fixed effects
+    if (!is.null(observed_fisher) && nrow(observed_fisher) == n_fixed) {
+      inv_fisher <- tryCatch(
+        solve(observed_fisher),
+        error = function(e) matrix(NA, n_fixed, n_fixed)
+      )
       
-      std_random = rep(NA, length(param_results$coeff_random))
-      names(std_random) = names(param_results$coeff_random)
-      
-      std_fixed = NULL
-      if (ncol(X_cov) > 0) {
-        std_fixed = rep(NA, ncol(X_cov))
+      if (!all(is.na(inv_fisher))) {
+        std_fixed <- sqrt(diag(inv_fisher))
       }
       
       return(list(
-        std_err = c(std_meas, rep(NA, length(param_results$coeff_random) + ncol(X_cov))),
-        std_meas = std_meas,
+        std_err = c(rep(NA, length(estimate_params)), std_fixed),
+        std_meas = NA,
         std_random = std_random,
         std_fixed = std_fixed,
-        inv_fisher = matrix(inv_fisher, 1, 1)
+        inv_fisher = inv_fisher,
+        observed_fisher = observed_fisher
+      ))
+    } else {
+      # If observed_fisher is not available or incorrect size
+      return(list(
+        std_err = rep(NA, length(estimate_params) + n_fixed),
+        std_meas = NA,
+        std_random = std_random,
+        std_fixed = std_fixed,
+        inv_fisher = matrix(NA, length(estimate_params) + n_fixed, length(estimate_params) + n_fixed)
       ))
     }
+  }
+  
+  # If all parameters are fixed and no fixed effects
+  if (all_fixed && n_fixed == 0) {
+    return(list(
+      std_err = rep(NA, length(estimate_params)),
+      std_meas = NA,
+      std_random = std_random,
+      std_fixed = std_fixed,
+      inv_fisher = matrix(NA, length(estimate_params), length(estimate_params))
+    ))
+  }
+  
+  # If only sigma_e is estimated (all other latent parameters fixed)
+  if (only_sigma_e) {
+    # Extract the part of observed_fisher for sigma_e
+    sigma_e_fisher <- NULL
+    if (!is.null(observed_fisher)) {
+      if (is.null(dim(observed_fisher)) || (nrow(observed_fisher) == 1 && ncol(observed_fisher) == 1)) {
+        sigma_e_fisher <- observed_fisher
+      } else if (nrow(observed_fisher) >= 1) {
+        # Find position of sigma_e in the estimated parameters
+        est_param_indices <- which(estimate_params)
+        sigma_e_idx <- which(est_param_indices == sigma_e_pos)
+        
+        if (length(sigma_e_idx) > 0 && sigma_e_idx <= nrow(observed_fisher)) {
+          sigma_e_fisher <- observed_fisher[sigma_e_idx, sigma_e_idx, drop = FALSE]
+        }
+      }
+    }
+    
+    # Calculate standard error for sigma_e
+    if (!is.null(sigma_e_fisher) && !is.na(sigma_e_fisher) && sigma_e_fisher != 0) {
+      inv_fisher_sigma_e <- 1/sigma_e_fisher
+      std_meas <- sqrt(inv_fisher_sigma_e)
+    } else {
+      inv_fisher_sigma_e <- NA
+      std_meas <- NA
+    }
+    
+    # Handle fixed effects if present
+    if (n_fixed > 0 && nrow(observed_fisher) > 1) {
+      # Extract fixed effects part of the Fisher information
+      fixed_effects_idx <- (sum(estimate_params) + 1):(sum(estimate_params) + n_fixed)
+      if (max(fixed_effects_idx) <= nrow(observed_fisher)) {
+        fixed_effects_fisher <- observed_fisher[fixed_effects_idx, fixed_effects_idx, drop = FALSE]
+        
+        inv_fisher_fixed <- tryCatch(
+          solve(fixed_effects_fisher),
+          error = function(e) matrix(NA, n_fixed, n_fixed)
+        )
+        
+        if (!all(is.na(inv_fisher_fixed))) {
+          std_fixed <- sqrt(diag(inv_fisher_fixed))
+        }
+      }
+    }
+    
+    # Construct full inverse Fisher matrix
+    full_size <- sum(estimate_params) + n_fixed
+    full_inv_fisher <- matrix(NA, full_size, full_size)
+    
+    # Fill in sigma_e part
+    if (!is.na(inv_fisher_sigma_e)) {
+      full_inv_fisher[1, 1] <- inv_fisher_sigma_e
+    }
+    
+    # Fill in fixed effects part if available
+    if (n_fixed > 0 && exists("inv_fisher_fixed") && !all(is.na(inv_fisher_fixed))) {
+      start_idx <- sum(estimate_params) + 1
+      end_idx <- sum(estimate_params) + n_fixed
+      full_inv_fisher[start_idx:end_idx, start_idx:end_idx] <- inv_fisher_fixed
+    }
+    
+    return(list(
+      std_err = c(std_meas, rep(NA, length(param_results$coeff_random) - 1), std_fixed),
+      std_meas = std_meas,
+      std_random = std_random,
+      std_fixed = std_fixed,
+      inv_fisher = full_inv_fisher,
+      observed_fisher = observed_fisher
+    ))
   }
   
   # Regular case - calculate parameter Jacobian and standard errors
@@ -3932,55 +4022,43 @@ calculate_standard_errors <- function(observed_fisher, res, estimate_params, mod
   )
   
   # Apply parameter transformation to observed Fisher information
-  observed_fisher <- par_change %*% observed_fisher %*% par_change
+  transformed_fisher <- par_change %*% observed_fisher %*% par_change
   
   # Attempt to invert the Fisher information matrix
   inv_fisher <- tryCatch(
-    solve(observed_fisher), 
-    error = function(e) matrix(NA, nrow(observed_fisher), ncol(observed_fisher))
+    solve(transformed_fisher), 
+    error = function(e) matrix(NA, nrow(transformed_fisher), ncol(transformed_fisher))
   )
   
   # Calculate standard errors from inverse Fisher information
   std_err <- sqrt(diag(inv_fisher))
   
-  # Create standard error vectors with same structure as parameter vectors
-  # Initialize with NA
-  std_random <- rep(NA, length(param_results$coeff_random))
-  names(std_random) <- names(param_results$coeff_random)
-  
-  std_fixed <- NULL
-  if (!is.null(param_results$coeff_fixed)) {
-    std_fixed <- rep(NA, length(param_results$coeff_fixed))
-  }
-  
-  # Get standard error for measurement error (sigma_e) - always first parameter
-  if (estimate_params[1]) {
-    std_meas <- std_err[1]
-  } else {
-    std_meas <- NA
-  }
-  
-  # If we have any estimated random effect parameters
-  if (sum(estimate_params) > 1 || (!estimate_params[1] && sum(estimate_params) > 0)) {
-    # Get parameter names from the parameter results
-    par_names <- param_results$par_names
-    
-    # Fill in standard errors for estimated random effect parameters
-    # Track position in std_err vector
-    index <- 2  # Start after sigma_e (or position 1 if sigma_e is not estimated)
-    if (!estimate_params[1]) {
-      index <- 1
-    }
-    
-    # Get indices of estimated parameters (excluding sigma_e if it's estimated)
+  # Get standard error for measurement error (sigma_e)
+  std_meas <- NA
+  if (estimate_params[sigma_e_pos]) {
+    # Find the position of sigma_e in the estimated parameters
     est_param_indices <- which(estimate_params)
-    if (estimate_params[1]) {
-      est_param_indices <- est_param_indices[-1]
+    sigma_e_idx <- which(est_param_indices == sigma_e_pos)
+    
+    if (length(sigma_e_idx) > 0 && sigma_e_idx <= length(std_err)) {
+      std_meas <- std_err[sigma_e_idx]
     }
+  }
+  
+  # Process standard errors for random effect parameters
+  if (sum(estimate_params) > 0) {
+    # Get indices of estimated parameters
+    est_param_indices <- which(estimate_params)
     
     # Map estimated parameters to their positions in std_random
     for (i in 1:length(est_param_indices)) {
-      param_name <- names(estimate_params)[est_param_indices[i]]
+      param_idx <- est_param_indices[i]
+      param_name <- names(estimate_params)[param_idx]
+      
+      # Skip sigma_e as it's handled separately
+      if (param_name == "sigma_e") {
+        next
+      }
       
       # Find the position of this parameter in coeff_random
       pos <- which(param_name == names(std_random))
@@ -3992,45 +4070,42 @@ calculate_standard_errors <- function(observed_fisher, res, estimate_params, mod
       }
       
       if (length(pos) > 0) {
-        if (length(pos) == 1) {
+        # Find position in std_err vector (position in estimated parameters)
+        std_err_idx <- which(est_param_indices == param_idx)
+        
+        if (length(pos) == 1 && length(std_err_idx) == 1 && std_err_idx <= length(std_err)) {
           # Regular parameter
-          std_random[pos] <- std_err[index]
-        } else {
+          std_random[pos] <- std_err[std_err_idx]
+        } else if (length(pos) > 1) {
           # Vector parameter (like theta or rho)
           if (param_name == "rho" && inherits(model, "spacetimeobj")) {
-            for (j in 1:model$d) {
-              if (j <= length(pos) && index <= length(std_err)) {
-                std_random[pos[j]] <- std_err[index]
-                index <- index + 1
+            for (j in 1:min(model$d, length(pos))) {
+              if (std_err_idx + j - 1 <= length(std_err)) {
+                std_random[pos[j]] <- std_err[std_err_idx + j - 1]
               }
             }
-            next  # Skip the normal index increment
           } else if (param_name == "theta" || param_name == "") {
             # For theta parameters in non-stationary models
             theta_length <- length(model$theta)
             for (j in 1:min(theta_length, length(pos))) {
-              if (index <= length(std_err)) {
-                std_random[pos[j]] <- std_err[index]
-                index <- index + 1
+              if (std_err_idx + j - 1 <= length(std_err)) {
+                std_random[pos[j]] <- std_err[std_err_idx + j - 1]
               }
             }
-            next  # Skip the normal index increment
           }
         }
       }
-      
-      index <- index + 1
     }
   }
   
   # Fill in standard errors for fixed effect parameters (covariates)
-  n_fixed <- ncol(X_cov)
   if (n_fixed > 0) {
     start_idx <- length(std_err) - n_fixed + 1
     if (start_idx <= length(std_err)) {
       std_fixed <- std_err[start_idx:length(std_err)]
-    } else {
-      std_fixed <- rep(NA, n_fixed)
+      if (!is.null(param_results$coeff_fixed)) {
+        names(std_fixed) <- names(param_results$coeff_fixed)
+      }
     }
   }
   
@@ -4041,7 +4116,7 @@ calculate_standard_errors <- function(observed_fisher, res, estimate_params, mod
     std_random = std_random,
     std_fixed = std_fixed,
     inv_fisher = inv_fisher,
-    observed_fisher = observed_fisher
+    observed_fisher = transformed_fisher
   ))
 }
 
@@ -4079,26 +4154,16 @@ process_model_results <- function(res, observed_fisher, start_values, estimate_p
     X_cov = X_cov
   )
   
-  # # Calculate standard errors
-  # se_results <- calculate_standard_errors(
-  #   observed_fisher = observed_fisher,
-  #   res = res,
-  #   estimate_params = estimate_params,
-  #   model = model,
-  #   model_options = model_options,
-  #   X_cov = X_cov,
-  #   n_coeff_nonfixed = n_coeff_nonfixed,
-  #   param_results = param_results
-  # )
-  
-  # Temporarily return NA
-  se_results <- list(
-    std_err = NA,
-    std_meas = NA,
-    std_random = NA,
-    std_fixed = NA,
-    inv_fisher = NA,
-    observed_fisher = NULL
+  # Calculate standard errors
+  se_results <- calculate_standard_errors(
+    observed_fisher = observed_fisher,
+    res = res,
+    estimate_params = estimate_params,
+    model = model,
+    model_options = model_options,
+    X_cov = X_cov,
+    n_coeff_nonfixed = n_coeff_nonfixed,
+    param_results = param_results
   )
   
   # Add "(fixed)" to parameter names for fixed parameters
