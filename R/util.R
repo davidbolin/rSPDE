@@ -2731,7 +2731,7 @@ general_checks_model_options <- function(model_options, model) {
       
       # If both parameterization types are used, issue an error
       if (has_spde_params && has_matern_params) {
-        stop("Mixing parameterizations is not allowed. Use either SPDE parameterization (alpha, kappa, tau) or Matérn parameterization (nu, range, sigma), but not both.")
+        stop("Mixing parameterizations is not allowed. Use either SPDE parameterization (alpha, kappa, tau) or Matern parameterization (nu, range, sigma), but not both.")
       }
       
       if (has_matern_params) {
@@ -2743,7 +2743,7 @@ general_checks_model_options <- function(model_options, model) {
       has_matern_param <- "fix_nu" %in% option_names || "start_nu" %in% option_names
       
       if (has_spde_param && has_matern_param) {
-        stop("Mixing parameterizations is not allowed. Use either SPDE parameterization (alpha) or Matérn parameterization (nu), but not both.")
+        stop("Mixing parameterizations is not allowed. Use either SPDE parameterization (alpha) or Matern parameterization (nu), but not both.")
       }
       
       if (has_matern_param) {
