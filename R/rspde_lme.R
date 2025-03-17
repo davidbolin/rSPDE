@@ -1457,87 +1457,36 @@ predict.rspde_lme <- function(object,
   sigma_e <- sigma.e
 
   ## construct Q
-  if(object$intrinsic) {
-      tau_est <- object$coeff$random_effects[["tau"]]
-      beta_est <- object$estimated_beta
-      alpha_est <- object$estimated_alpha
-      if(!object$estimate_alpha && object$estimated_alpha == 0) { 
-          kappa_est <- 1
-      } else  {
-          kappa_est <- object$coeff$random_effects[["tau"]]
-      }
-      new_rspde_obj <- update(object$latent_model,
-                              beta = beta_est,
-                              alpha = alpha_est,
-                              kappa = kappa_est,
-                              tau = tau_est)   
-  } else if (object$latent_model$stationary && !object$spacetime && !object$anisotropic) {
-      if (object$estimate_nu) {
-          alpha_est <- coeff_random[1]
-          tau_est <- coeff_random[2]
-          kappa_est <- coeff_random[3]
-      } else {
-          tau_est <- coeff_random[1]
-          kappa_est <- coeff_random[2]
-          alpha_est <- NULL
-      }
-      
-      new_rspde_obj <- update(object$latent_model,
-                              alpha = alpha_est,
-                              kappa = kappa_est,
-                              tau = tau_est,
-                              parameterization = "spde"
-      )    
-  } else if(object$anisotropic) {
-      if (object$estimate_nu) {
-          nu_est <- coeff_random[1]
-          sigma_est <- coeff_random[2]
-          hx_est <- coeff_random[3]
-          hy_est <- coeff_random[4]
-          hxy_est <- coeff_random[5]
-      } else {
-          nu_est <- NULL
-          sigma_est <- coeff_random[1]
-          hx_est <- coeff_random[2]
-          hy_est <- coeff_random[3]
-          hxy_est <- coeff_random[4]
-      }
-      
-      new_rspde_obj <- update(object$latent_model,
-                              sigma = sigma_est,
-                              hx = hx_est,
-                              hy = hy_est,
-                              hxy = hxy_est,
-                              nu = nu_est
-      )
-  } else if(!object$spacetime) {
-      if (object$estimate_nu) {
-          alpha_est <- coeff_random[1]
-          theta_model <- coeff_random[-1]
-      } else {
-          theta_model <- coeff_random
-          alpha_est <- NULL
-      }
-      new_rspde_obj <- update(object$latent_model,
-                              alpha = alpha_est,
-                              theta = theta_model,
-                              parameterization = "spde"
-                              )    
-  } else {
-      kappa_est <- coeff_random[1]
-      sigma_est <- coeff_random[2]
-      gamma_est <- coeff_random[3]
-      rho_est <- coeff_random[4]
-      new_rspde_obj <- update(object$latent_model,
-                              kappa = kappa_est,
-                              sigma = sigma_est,
-                              gamma = gamma_est,
-                              rho = rho_est)    
+  # Get parameters from object$coeff$random_effects or object$alt_par_coeff$coeff
+  # based on model type and parameterization
+  
+  # Create a list of parameters to pass to update
+  update_params <- list()
+  
+  # Add parameters based on what's available in coeff_random
+  for (param_name in names(coeff_random)) {
+    param_name_cleaned <- gsub(" \\(fixed\\)$", "", param_name)
+    update_params[[param_name_cleaned]] <- coeff_random[[param_name]]
   }
   
-
-
-
+  # # If alt_par_coeff exists, also consider those parameters
+  # if (!is.null(object$alt_par_coeff) && !is.null(object$alt_par_coeff$coeff)) {
+  #   for (param_name in names(object$alt_par_coeff$coeff)) {
+  #     if (!(param_name %in% names(update_params))) {
+  #       update_params[[param_name]] <- object$alt_par_coeff$coeff[[param_name]]
+  #     }
+  #   }
+  # }
+  
+  # Update the model with all available parameters
+  new_rspde_obj <- do.call(update, c(list(object$latent_model), update_params))
+  
+  if(object$mean_correction) {
+      mu_corr <- new_rspde_obj$mean_correction(full=TRUE)
+  } else {
+      mu_corr <- 0
+  }
+  
   idx_obs_full <- as.vector(!is.na(Y))
 
   if(!inherits(object$latent_model, "rSPDEobj1d") && !inherits(object$latent_model, "spacetimeobj")) {
@@ -1547,12 +1496,6 @@ predict.rspde_lme <- function(object,
       }
   } else if(inherits(object$latent_model, "spacetimeobj")) {
       Q <- new_rspde_obj$Q
-  }
-  
-  if(object$mean_correction) {
-      mu_corr <- new_rspde_obj$mean_correction(full=TRUE)
-  } else {
-      mu_corr <- 0
   }
   
   for (repl_y in u_repl) {
@@ -1672,8 +1615,6 @@ predict.rspde_lme <- function(object,
 
   return(out)
 }
-
-
 
 
 #' @name logLik.rspde_lme
