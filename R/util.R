@@ -4312,6 +4312,8 @@ convert_parameterization_matern_spde <- function(model, parameterization, params
       # alpha/nu is fixed
       if (!is.null(model_options$fix_alpha)) {
         nu <- model_options$fix_alpha - model$d / 2
+      } else if (!is.null(model_options$fix_nu)) {
+        nu <- model_options$fix_nu
       } else {
         stop("Processing error. Could not determine nu value.")
       }
@@ -4344,34 +4346,48 @@ convert_parameterization_matern_spde <- function(model, parameterization, params
     # Extract the appropriate submatrix of the Fisher information
     new_observed_fisher <- NULL
     if (!is.null(estimate_pars) && !is.null(observed_fisher) && nrow(observed_fisher) > 0) {
-      # Use safer approach to find tau and kappa positions in the estimated parameters
+      # Get indices of parameters that are being estimated
+      est_params_indices <- which(estimate_pars)
+      
+      # Find positions of tau and kappa in the names vector
       tau_pos <- which(grepl("^tau", names(estimate_pars)))
       kappa_pos <- which(grepl("^kappa", names(estimate_pars)))
       
-      # Find the indices of these parameters in the observation fisher matrix
-      est_params_indices <- which(estimate_pars)
+      # Check if both parameters are being estimated
+      tau_estimated <- length(tau_pos) > 0 && any(est_params_indices == tau_pos)
+      kappa_estimated <- length(kappa_pos) > 0 && any(est_params_indices == kappa_pos)
       
-      # Only proceed if we found both parameters
-      if (length(tau_pos) > 0 && length(kappa_pos) > 0) {
-        # Find their positions in est_params_indices
-        tau_idx <- which(est_params_indices == tau_pos)
-        kappa_idx <- which(est_params_indices == kappa_pos)
-        
-        # Make sure the indices are valid
-        if (length(tau_idx) > 0 && length(kappa_idx) > 0 && 
-            tau_idx <= nrow(observed_fisher) && kappa_idx <= nrow(observed_fisher)) {
-          # Create a submatrix of the Fisher information
-          if (!fixed_tau && !fixed_kappa) {
-            # Both parameters estimated - use the 2x2 submatrix
-            new_observed_fisher <- observed_fisher[c(tau_idx, kappa_idx), c(tau_idx, kappa_idx)]
-          } else if (!fixed_tau) {
-            # Only tau estimated - use the 1x1 submatrix
-            new_observed_fisher <- matrix(observed_fisher[tau_idx, tau_idx], 1, 1)
-          } else if (!fixed_kappa) {
-            # Only kappa estimated - use the 1x1 submatrix
-            new_observed_fisher <- matrix(observed_fisher[kappa_idx, kappa_idx], 1, 1)
+      # Find the positions of tau and kappa in the Fisher information matrix
+      if (tau_estimated) {
+        # Find the position in est_params_indices (and thus in the Fisher matrix)
+        for (i in 1:length(est_params_indices)) {
+          if (est_params_indices[i] == tau_pos) {
+            tau_idx <- i
+            break
           }
         }
+      }
+      
+      if (kappa_estimated) {
+        # Find the position in est_params_indices (and thus in the Fisher matrix)
+        for (i in 1:length(est_params_indices)) {
+          if (est_params_indices[i] == kappa_pos) {
+            kappa_idx <- i
+            break
+          }
+        }
+      }
+      
+      # Create a submatrix of the Fisher information based on which parameters are estimated
+      if (tau_estimated && kappa_estimated) {
+        # Both parameters estimated - use the 2x2 submatrix
+        new_observed_fisher <- observed_fisher[c(tau_idx, kappa_idx), c(tau_idx, kappa_idx)]
+      } else if (tau_estimated) {
+        # Only tau estimated - use the 1x1 submatrix
+        new_observed_fisher <- matrix(observed_fisher[tau_idx, tau_idx], 1, 1)
+      } else if (kappa_estimated) {
+        # Only kappa estimated - use the 1x1 submatrix
+        new_observed_fisher <- matrix(observed_fisher[kappa_idx, kappa_idx], 1, 1)
       }
     }
     
@@ -4413,6 +4429,8 @@ convert_parameterization_matern_spde <- function(model, parameterization, params
     } else {
       if (!is.null(model_options$fix_nu)) {
         nu <- model_options$fix_nu
+      } else if (!is.null(model_options$fix_alpha)) {
+        nu <- model_options$fix_alpha - model$d / 2
       } else {
         stop("Processing error. Could not determine nu value.")
       }
@@ -4446,34 +4464,57 @@ convert_parameterization_matern_spde <- function(model, parameterization, params
     # Extract the appropriate submatrix of the Fisher information
     new_observed_fisher <- NULL
     if (!is.null(estimate_pars) && !is.null(observed_fisher) && nrow(observed_fisher) > 0) {
-      # Use safer approach to find sigma and range positions
-      sigma_pos <- which(grepl("^sigma", names(estimate_pars)))
-      range_pos <- which(grepl("^range", names(estimate_pars)))
-      
-      # Find the indices of estimated parameters
+      # Get indices of parameters that are being estimated
       est_params_indices <- which(estimate_pars)
       
-      # Only proceed if we found both parameters
-      if (length(sigma_pos) > 0 && length(range_pos) > 0) {
-        # Find their positions in est_params_indices
-        sigma_idx <- which(est_params_indices == sigma_pos)
-        range_idx <- which(est_params_indices == range_pos)
-        
-        # Make sure the indices are valid
-        if (length(sigma_idx) > 0 && length(range_idx) > 0 && 
-            sigma_idx <= nrow(observed_fisher) && range_idx <= nrow(observed_fisher)) {
-          # Create a submatrix of the Fisher information for estimated parameters
-          if (!fixed_sigma && !fixed_range) {
-            # Both parameters estimated - use the 2x2 submatrix
-            new_observed_fisher <- observed_fisher[c(sigma_idx, range_idx), c(sigma_idx, range_idx)]
-          } else if (!fixed_sigma) {
-            # Only sigma estimated - use the 1x1 submatrix
-            new_observed_fisher <- matrix(observed_fisher[sigma_idx, sigma_idx], 1, 1)
-          } else if (!fixed_range) {
-            # Only range estimated - use the 1x1 submatrix
-            new_observed_fisher <- matrix(observed_fisher[range_idx, range_idx], 1, 1)
+      # Find positions of sigma and range in the names vector
+      # pattern to match "sigma" or "sigma (fixed)" but not "sigma_e"
+      sigma_pos <- which(grepl("^sigma($| \\(fixed\\))", names(estimate_pars)))
+      range_pos <- which(grepl("^range($| \\(fixed\\))", names(estimate_pars)))
+      
+      # Check if both parameters are being estimated - using strict equality to enforce single match
+      sigma_estimated <- FALSE
+      range_estimated <- FALSE
+      
+      if (length(sigma_pos) == 1) {
+        sigma_estimated <- any(est_params_indices == sigma_pos)
+      }
+      
+      if (length(range_pos) == 1) {
+        range_estimated <- any(est_params_indices == range_pos)
+      }
+      
+      # Find the positions of sigma and range in the Fisher information matrix
+      if (sigma_estimated) {
+        # Find the position in est_params_indices (and thus in the Fisher matrix)
+        for (i in 1:length(est_params_indices)) {
+          if (est_params_indices[i] == sigma_pos) {
+            sigma_idx <- i
+            break
           }
         }
+      }
+      
+      if (range_estimated) {
+        # Find the position in est_params_indices (and thus in the Fisher matrix)
+        for (i in 1:length(est_params_indices)) {
+          if (est_params_indices[i] == range_pos) {
+            range_idx <- i
+            break
+          }
+        }
+      }
+      
+      # Create a submatrix of the Fisher information for estimated parameters
+      if (sigma_estimated && range_estimated) {
+        # Both parameters estimated - use the 2x2 submatrix
+        new_observed_fisher <- observed_fisher[c(sigma_idx, range_idx), c(sigma_idx, range_idx)]
+      } else if (sigma_estimated) {
+        # Only sigma estimated - use the 1x1 submatrix
+        new_observed_fisher <- matrix(observed_fisher[sigma_idx, sigma_idx], 1, 1)
+      } else if (range_estimated) {
+        # Only range estimated - use the 1x1 submatrix
+        new_observed_fisher <- matrix(observed_fisher[range_idx, range_idx], 1, 1)
       }
     }
     
