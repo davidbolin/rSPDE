@@ -277,25 +277,25 @@ To estimate the model parameters based on this data, we can use the `rspde_lme` 
 
 ```{r}
 df_2d <- data.frame(Y = as.matrix(Y), x = obs.loc$x, y = obs.loc$y, t = obs.loc$t)
-res <- rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df_2d, model = op, parallel = TRUE)
+res_2d <- rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df_2d, model = op, parallel = TRUE)
 ```
 
 Let us see a summary of the fitted model:
 
 ```{r}
-summary(res)
+summary(res_2d)
 ```
 
 
 Let us compare the estimated results with the true values:
 ```{r}
-results <- data.frame(kappa = c(kappa, res$coeff$random_effects[1]), 
-                      sigma = c(sigma, res$coeff$random_effects[2]),
-                      gamma = c(gamma, res$coeff$random_effects[3]), 
-                      rho_1 = c(rho_2d[1], res$coeff$random_effects[4]),
-                      rho_2 = c(rho_2d[2], res$coeff$random_effects[5]),
-                      sigma.e = c(sigma.e, res$coeff$measurement_error),
-                      intercept = c(0, res$coeff$fixed_effects),
+results <- data.frame(kappa = c(kappa, res_2d$coeff$random_effects[1]), 
+                      sigma = c(sigma, res_2d$coeff$random_effects[2]),
+                      gamma = c(gamma, res_2d$coeff$random_effects[3]), 
+                      rho_1 = c(rho_2d[1], res_2d$coeff$random_effects[4]),
+                      rho_2 = c(rho_2d[2], res_2d$coeff$random_effects[5]),
+                      sigma.e = c(sigma.e, res_2d$coeff$measurement_error),
+                      intercept = c(0, res_2d$coeff$fixed_effects),
                       row.names = c("True", "Estimate"))
                       
 print(results)
@@ -357,7 +357,7 @@ In cases where the estimated value of \(\rho\) approaches the upper bound (avail
 
 ### 1D Example with `bounded_rho = FALSE`
 
-Let us first start with the `rspde_lme()` example:
+Let us first start with the `rspde_lme()` example. We will use the previous fit as a starting point for the new fit to improve the convergence of the optimization.
 
 ```{r}
 op_1d_unbounded <- spacetime.operators(space_loc = s, time_loc = t,
@@ -366,7 +366,8 @@ op_1d_unbounded <- spacetime.operators(space_loc = s, time_loc = t,
                           bounded_rho = FALSE)
 
 res_unbounded <- rspde_lme(y ~ 1, loc = "space", loc_time = "time", 
-                      data = df_1d, model = op_1d_unbounded, parallel = TRUE)
+                      data = df_1d, model = op_1d_unbounded, parallel = TRUE,
+                      previous_fit = res)
 
 results <- data.frame(kappa = c(kappa, res_unbounded$coeff$random_effects[1]), 
                       sigma = c(sigma, res_unbounded$coeff$random_effects[2]),

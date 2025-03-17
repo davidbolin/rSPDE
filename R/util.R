@@ -3030,6 +3030,9 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
         } else if (param_name == "rho" || param_name == "rho2") {
           # For unbounded rho parameters, use as-is
           starting_values[param_name] <- model_options[[fix_param]]
+        } else if (grepl("^theta[0-9]+$", param_name)) {
+          # For theta parameters (theta1, theta2, etc.), use as-is without log transformation
+          starting_values[param_name] <- model_options[[fix_param]]
         } else {
           starting_values[param_name] <- log(model_options[[fix_param]])
         }
@@ -3037,13 +3040,16 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
         if (param_name == "hxy") {
           starting_values[param_name] <- -log(2/(model_options[[start_param]]+1) - 1)
         } else if ((param_name == "rho" || param_name == "rho2") && 
-                   inherits(model, "spacetimeobj") && model$is_bounded) {
+                   inherits(model, "spacetimeobj") && model$is_bounded_rho) {
           # Apply logit transformation for bounded rho parameters
           bound <- model$bound_rho
           starting_values[param_name] <- log((model_options[[start_param]]/bound + 1)/
                                             (1 - model_options[[start_param]]/bound))
         } else if (param_name == "rho" || param_name == "rho2") {
           # For unbounded rho parameters, use as-is
+          starting_values[param_name] <- model_options[[start_param]]
+        } else if (grepl("^theta[0-9]+$", param_name)) {
+          # For theta parameters (theta1, theta2, etc.), use as-is without log transformation
           starting_values[param_name] <- model_options[[start_param]]
         } else {
           starting_values[param_name] <- log(model_options[[start_param]])
