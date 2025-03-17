@@ -1151,6 +1151,7 @@ summary.rspde_lme <- function(object, all_times = FALSE, ...) {
   ans$improve_hessian <- object$improve_hessian
   ans$time_hessian <- object$time_hessian
   ans$parallel <- object$parallel
+  ans$parameterization_latent <- object$parameterization_latent
   ans$time_par <- object$time_par
   ans$time_data <- object$time_data
   ans$time_alt_par <- object$time_alt_par

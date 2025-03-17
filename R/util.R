@@ -3626,7 +3626,7 @@ extract_parameters_from_optim <- function(res, start_values, estimate_params, mo
     # If parameter is estimated, get from res$par
     if (estimate_params[i]) {
       if (param_name == "sigma_e" || param_name == "tau" || 
-          param_name == "kappa" || param_name == "sigma" || 
+          param_name == "kappa" || param_name == "sigma" || param_name == "range" ||
           param_name == "gamma" || param_name == "hx" || param_name == "hy" || param_name == "nu") {
         # Parameters with exponential transformation
         coeff[i] <- exp(res$par[index])
