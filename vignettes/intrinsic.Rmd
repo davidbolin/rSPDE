@@ -544,10 +544,10 @@ Let us start with generating the model
 L = 20
 x <- seq(from = 0, to = L, length.out = 101)
 mesh <- fm_mesh_1d(x)
-beta <- 1.2
-alpha <- 0.25
-kappa <- 15
-tau <- 7
+beta <- 1.1
+alpha <- 0
+kappa <- 10
+tau <- 10
 op <- intrinsic.matern.operators(kappa = kappa, tau = tau, alpha = alpha,
                                  beta = beta, mesh = mesh, d = 1)
 
@@ -567,7 +567,7 @@ drift <- op$mean_correction()
 u <- u + matrix(rep(drift, times = n.rep), nrow = op$n, ncol= n.rep)
 
 sigma.e <- 0.01
-n.obs <- 100
+n.obs <- 300
 obs.loc <- runif(n = n.obs, min = 0, max = L)
 A <- rSPDE.A1d(x, obs.loc)
 Y <- as.matrix(A %*% u + sigma.e * matrix(rnorm(n.obs*n.rep),n.obs,n.rep))
@@ -598,13 +598,14 @@ lines(x, u.krig$mean - 2 * sqrt(u.krig$variance), col = 2)
 ```
 
 
-We now use `rspde_lme` to fit the parameters based on this data. As we here generated data with `alpha=0`, we specify this in the function to indicate that this parameter should not be fitted but kept fixed at `alpha=0`. We also specify `mean_correction=TRUE` to indicate that we should use the mean value correction when fitting.
+We now use `rspde_lme` to fit the parameters based on this data. Since we generated data with `alpha=0`, we specify this in the function to indicate that this parameter should not be fitted but kept fixed at `alpha=0` by setting `fix_alpha=0` in `model_options`. We also specify `mean_correction=TRUE` to indicate that we should use the mean value correction when fitting.
 ```{r}
 data = data.frame(y = c(Y), loc = rep(obs.loc, n.rep), rep  = rep(1:n.rep, each = n.obs))
 
 fit <- rspde_lme(y ~ -1, loc = "loc", repl  = "rep", data = data,
-                 model = op, mean_correction = TRUE, parallel = TRUE)
+                 model = op, mean_correction = TRUE, parallel = TRUE,
+                 model_options = list(fix_alpha = 0))
 
-rbind(c(fit$coeff$random_effects, fit$coeff$measurement_error), 
-      c(beta, tau,sigma.e))
+rbind(c(fit$coeff$random_effects[c("beta", "tau")], fit$coeff$measurement_error), 
+      c(beta, tau, sigma.e))
 ```
