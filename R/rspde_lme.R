@@ -568,299 +568,306 @@ rspde_lme <- function(formula,
       return(l_tmp)
     }
 
+    if(length(start_values_aux) > 0){
 
-
-    if (parallel) {
-      start_par <- Sys.time()
-      n_cores_lim <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-
-      if (nzchar(n_cores_lim) && n_cores_lim == "TRUE") {
-        n_cores <- 2L
-      }
-      cl <- parallel::makeCluster(n_cores)
-      parallel::setDefaultCluster(cl = cl)
-
-      parallel::clusterExport(cl, "y_resp", envir = environment())
-      parallel::clusterExport(cl, "model_tmp", envir = environment())
-      parallel::clusterExport(cl, "A_list", envir = environment())
-      parallel::clusterExport(cl, "X_cov", envir = environment())
-      if (exists("loc_df")) {
-        parallel::clusterExport(cl, "loc_df", envir = environment())
-      }
-      if (exists("mean_correction")) {
-        parallel::clusterExport(cl, "mean_correction", envir = environment())
-      }
-      if (exists("repl")) {
-        parallel::clusterExport(cl, "repl", envir = environment())
-      }
-      
-      # Export auxiliary likelihood functions from rSPDE namespace
-      parallel::clusterExport(cl, "aux_lme_CBrSPDE.matern.loglike",
-        envir = as.environment(asNamespace("rSPDE"))
-      )
-      parallel::clusterExport(cl, "aux_lme_CBrSPDE.matern2d.loglike",
-        envir = as.environment(asNamespace("rSPDE"))
-      )
-      parallel::clusterExport(cl, "aux_lme_rSPDE.matern.loglike",
-        envir = as.environment(asNamespace("rSPDE"))
-      )
-      parallel::clusterExport(cl, "aux_lme_rSPDE.matern.rational.loglike",
-        envir = as.environment(asNamespace("rSPDE"))
-      )
-      parallel::clusterExport(cl, "aux_lme_spacetime.loglike",
-        envir = as.environment(asNamespace("rSPDE"))
-      )
-      parallel::clusterExport(cl, "aux_lme_intrinsic.loglike",
-        envir = as.environment(asNamespace("rSPDE"))
-      )
-      
-      # Export helper functions
-      parallel::clusterExport(cl, "get_aux_likelihood_function",
-        envir = environment()
-      )
-      parallel::clusterExport(cl, "determine_estimate_params",
-        envir = environment()
-      )
-      parallel::clusterExport(cl, "extract_model_update_args",
-        envir = environment()
-      )
-      parallel::clusterExport(cl, "get_aux_lik_fun_args",
-        envir = environment()
-      )
-      parallel::clusterExport(cl, "create_likelihood",
-        envir = environment()
-      )
-      
-      # If theta2beta is used in the code
-      if (inherits(model_tmp, "intrinsicCBrSPDEobj")) {
-        parallel::clusterExport(cl, "theta2beta",
+      if (parallel) {
+        start_par <- Sys.time()
+        n_cores_lim <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+  
+        if (nzchar(n_cores_lim) && n_cores_lim == "TRUE") {
+          n_cores <- 2L
+        }
+        cl <- parallel::makeCluster(n_cores)
+        parallel::setDefaultCluster(cl = cl)
+  
+        parallel::clusterExport(cl, "y_resp", envir = environment())
+        parallel::clusterExport(cl, "model_tmp", envir = environment())
+        parallel::clusterExport(cl, "A_list", envir = environment())
+        parallel::clusterExport(cl, "X_cov", envir = environment())
+        if (exists("loc_df")) {
+          parallel::clusterExport(cl, "loc_df", envir = environment())
+        }
+        if (exists("mean_correction")) {
+          parallel::clusterExport(cl, "mean_correction", envir = environment())
+        }
+        if (exists("repl")) {
+          parallel::clusterExport(cl, "repl", envir = environment())
+        }
+        
+        # Export auxiliary likelihood functions from rSPDE namespace
+        parallel::clusterExport(cl, "aux_lme_CBrSPDE.matern.loglike",
           envir = as.environment(asNamespace("rSPDE"))
         )
-      }
-      
-      # Export model_options 
-      if (exists("model_options")) {
-        parallel::clusterExport(cl, "model_options", envir = environment())
-      }
-      
-      # Export start_values 
-      if (exists("start_values")) {
-        parallel::clusterExport(cl, "start_values", envir = environment())
-      }
-      
-      # Export smoothness_upper_bound
-      if (exists("smoothness_upper_bound")) {
-        parallel::clusterExport(cl, "smoothness_upper_bound", envir = environment())
-      }
-
-      end_par <- Sys.time()
-      time_par <- end_par - start_par
-
-      start_fit <- Sys.time()
-      res <- optimParallel::optimParallel(start_values_aux,
-        likelihood_new,
-        method = optim_method,
-        control = optim_controls,
-        hessian = hessian,
-        parallel = list(
-          forward = FALSE, cl = cl,
-          loginfo = FALSE
+        parallel::clusterExport(cl, "aux_lme_CBrSPDE.matern2d.loglike",
+          envir = as.environment(asNamespace("rSPDE"))
         )
-      )
-      end_fit <- Sys.time()
-      time_fit <- end_fit - start_fit
-      parallel::stopCluster(cl)
-
-      time_hessian <- NULL
-
-      if (!is.na(res[1])) {
-        if (!improve_hessian) {
-          observed_fisher <- res$hessian
-        } else {
-          if (!is.list(hessian_args)) {
-            stop("hessian_controls must be a list")
-          }
-
-          start_hessian <- Sys.time()
-          observed_fisher <- numDeriv::hessian(likelihood_new, res$par,
-            method.args = hessian_args
+        parallel::clusterExport(cl, "aux_lme_rSPDE.matern.loglike",
+          envir = as.environment(asNamespace("rSPDE"))
+        )
+        parallel::clusterExport(cl, "aux_lme_rSPDE.matern.rational.loglike",
+          envir = as.environment(asNamespace("rSPDE"))
+        )
+        parallel::clusterExport(cl, "aux_lme_spacetime.loglike",
+          envir = as.environment(asNamespace("rSPDE"))
+        )
+        parallel::clusterExport(cl, "aux_lme_intrinsic.loglike",
+          envir = as.environment(asNamespace("rSPDE"))
+        )
+        
+        # Export helper functions
+        parallel::clusterExport(cl, "get_aux_likelihood_function",
+          envir = environment()
+        )
+        parallel::clusterExport(cl, "determine_estimate_params",
+          envir = environment()
+        )
+        parallel::clusterExport(cl, "extract_model_update_args",
+          envir = environment()
+        )
+        parallel::clusterExport(cl, "get_aux_lik_fun_args",
+          envir = environment()
+        )
+        parallel::clusterExport(cl, "create_likelihood",
+          envir = environment()
+        )
+        
+        # If theta2beta is used in the code
+        if (inherits(model_tmp, "intrinsicCBrSPDEobj")) {
+          parallel::clusterExport(cl, "theta2beta",
+            envir = as.environment(asNamespace("rSPDE"))
           )
-          end_hessian <- Sys.time()
-          time_hessian <- end_hessian - start_hessian
         }
-        if(nrow(observed_fisher) > 0) {
-            eig_hes <- eigen(observed_fisher)$value
-            cond_pos_hes <- (min(eig_hes) > 1e-15)
-        } else{
-          eig_hes <- 1
-          cond_pos_hes <- TRUE
+        
+        # Export model_options 
+        if (exists("model_options")) {
+          parallel::clusterExport(cl, "model_options", envir = environment())
         }
-
-      } else {
-        stop("Could not fit the model. Please, try another method with 'parallel' set to FALSE.")
-      }
-      if (min(eig_hes) < 1e-15) {
-        warning("The optimization failed to provide a numerically positive-definite Hessian. You can try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which allows other optimization methods to be used.")
-      }
-    } else {
-
-      start_fit <- Sys.time()
-      res <- withCallingHandlers(
-        tryCatch(optim(start_values_aux,
+        
+        # Export start_values 
+        if (exists("start_values")) {
+          parallel::clusterExport(cl, "start_values", envir = environment())
+        }
+        
+        # Export smoothness_upper_bound
+        if (exists("smoothness_upper_bound")) {
+          parallel::clusterExport(cl, "smoothness_upper_bound", envir = environment())
+        }
+  
+        end_par <- Sys.time()
+        time_par <- end_par - start_par
+  
+        start_fit <- Sys.time()
+        res <- optimParallel::optimParallel(start_values_aux,
           likelihood_new,
           method = optim_method,
           control = optim_controls,
-          hessian = hessian
-        ), error = function(e) {
-          return(NA)
-        }),
-        warning = function(w) {
-          invokeRestart("muffleWarning")
-        }
-      )
-      end_fit <- Sys.time()
-      time_fit <- end_fit - start_fit
-
-      cond_pos_hes <- FALSE
-      time_hessian <- NULL
-
-      if (!is.na(res[1])) {
-        if (!improve_hessian) {
-          observed_fisher <- res$hessian
-        } else {
-          if (!is.list(hessian_args)) {
-            stop("hessian_controls must be a list")
-          }
-
-          start_hessian <- Sys.time()
-          observed_fisher <- numDeriv::hessian(likelihood_new, res$par,
-            method.args = hessian_args
+          hessian = hessian,
+          parallel = list(
+            forward = FALSE, cl = cl,
+            loginfo = FALSE
           )
-          end_hessian <- Sys.time()
-          time_hessian <- end_hessian - start_hessian
-        }
-        if(nrow(observed_fisher) > 0) {
-          eig_hes <- eigen(observed_fisher)$value
-          cond_pos_hes <- (min(eig_hes) > 1e-15)
-        } else{
-          eig_hes <- 1
-          cond_pos_hes <- TRUE
-        }
-      }
-
-      problem_optim <- list()
-
-      if (is.na(res[1]) || !cond_pos_hes) {
-        problem_optim[[optim_method]] <- list()
-        if (is.na(res[1])) {
-          problem_optim[[optim_method]][["lik"]] <- NA
-          problem_optim[[optim_method]][["res"]] <- res
-          problem_optim[[optim_method]][["hess"]] <- NA
-          problem_optim[[optim_method]][["time_hessian"]] <- NA
-          problem_optim[[optim_method]][["time_fit"]] <- NA
-        } else {
-          problem_optim[[optim_method]][["lik"]] <- -res$value
-          problem_optim[[optim_method]][["res"]] <- res
-          problem_optim[[optim_method]][["hess"]] <- observed_fisher
-          problem_optim[[optim_method]][["time_hessian"]] <- time_hessian
-          problem_optim[[optim_method]][["time_fit"]] <- time_fit
-        }
-      }
-
-      ok_optim <- FALSE
-      orig_optim_method <- optim_method
-      test_other_optim <- (is.na(res[1]) || !cond_pos_hes)
-
-      if (test_other_optim) {
-        tmp_method <- optim_method
-        while (length(possible_methods) > 1) {
-          possible_methods <- setdiff(possible_methods, tmp_method)
-          new_method <- possible_methods[1]
-          time_fit <- NULL
-          start_fit <- Sys.time()
-          res <- withCallingHandlers(
-            tryCatch(optim(start_values_aux,
-              likelihood_new,
-              method = new_method,
-              control = optim_controls,
-              hessian = hessian
-            ), error = function(e) {
-              return(NA)
-            }),
-            warning = function(w) {
-              invokeRestart("muffleWarning")
-            }
-          )
-          end_fit <- Sys.time()
-          time_fit <- end_fit - start_fit
-          tmp_method <- new_method
-          cond_pos_hes <- FALSE
-          if (is.na(res[1])) {
-            problem_optim[[tmp_method]][["lik"]] <- NA
-            problem_optim[[tmp_method]][["res"]] <- res
-            problem_optim[[tmp_method]][["hess"]] <- NA
-            problem_optim[[tmp_method]][["time_hessian"]] <- NA
-            problem_optim[[tmp_method]][["time_fit"]] <- NA
+        )
+        end_fit <- Sys.time()
+        time_fit <- end_fit - start_fit
+        parallel::stopCluster(cl)
+  
+        time_hessian <- NULL
+  
+        if (!is.na(res[1])) {
+          if (!improve_hessian) {
+            observed_fisher <- res$hessian
           } else {
-            if (!improve_hessian) {
-              observed_fisher <- res$hessian
-            } else {
-              if (!is.list(hessian_args)) {
-                stop("hessian_controls must be a list")
-              }
-
-              start_hessian <- Sys.time()
-              observed_fisher <- numDeriv::hessian(likelihood_new, res$par,
-                method.args = hessian_args
-              )
-              end_hessian <- Sys.time()
-              time_hessian <- end_hessian - start_hessian
+            if (!is.list(hessian_args)) {
+              stop("hessian_controls must be a list")
             }
-            if(nrow(observed_fisher) > 0) {
+  
+            start_hessian <- Sys.time()
+            observed_fisher <- numDeriv::hessian(likelihood_new, res$par,
+              method.args = hessian_args
+            )
+            end_hessian <- Sys.time()
+            time_hessian <- end_hessian - start_hessian
+          }
+          if(nrow(observed_fisher) > 0) {
               eig_hes <- eigen(observed_fisher)$value
               cond_pos_hes <- (min(eig_hes) > 1e-15)
-            } else{
-              eig_hes <- 1
-              cond_pos_hes <- TRUE
-            }
-
-            problem_optim[[tmp_method]][["lik"]] <- -res$value
-            problem_optim[[tmp_method]][["res"]] <- res
-            problem_optim[[tmp_method]][["hess"]] <- observed_fisher
-            problem_optim[[tmp_method]][["time_hessian"]] <- time_hessian
-            problem_optim[[tmp_method]][["time_fit"]] <- time_fit
+          } else{
+            eig_hes <- 1
+            cond_pos_hes <- TRUE
           }
-
-          cond_ok <- ((!is.na(res[1])) && cond_pos_hes)
-          if (cond_ok) {
-            optim_method <- new_method
-            ok_optim <- TRUE
-            break
-          }
-        }
-      }
-
-      if (test_other_optim) {
-        lik_val <- lapply(problem_optim, function(dat) {
-          dat[["lik"]]
-        })
-        if (all(is.na(lik_val))) {
-          stop("The model could not be fitted. All optimizations method failed.")
-        } else if (ok_optim) {
-          warning(paste("optim method", orig_optim_method, "failed to provide a positive-definite Hessian. Another optimization method was used."))
-          rm(problem_optim)
+  
         } else {
-          max_method <- which.max(lik_val)
-          res <- problem_optim[[max_method]][["res"]]
-          observed_fisher <- problem_optim[[max_method]][["hess"]]
-          time_hessian <- problem_optim[[max_method]][["time_hessian"]]
-          time_fit <- problem_optim[[max_method]][["time_fit"]]
-          warning("All optimization methods failed to provide a numerically positive-definite Hessian. The optimization method with largest likelihood was chosen. You can try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE.")
+          stop("Could not fit the model. Please, try another method with 'parallel' set to FALSE.")
+        }
+        if (min(eig_hes) < 1e-15) {
+          warning("The optimization failed to provide a numerically positive-definite Hessian. You can try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which allows other optimization methods to be used.")
+        }
+      } else {
+      
+        start_fit <- Sys.time()
+        res <- withCallingHandlers(
+          tryCatch(optim(start_values_aux,
+            likelihood_new,
+            method = optim_method,
+            control = optim_controls,
+            hessian = hessian
+          ), error = function(e) {
+            return(NA)
+          }),
+          warning = function(w) {
+            invokeRestart("muffleWarning")
+          }
+        )
+        end_fit <- Sys.time()
+        time_fit <- end_fit - start_fit
+  
+        cond_pos_hes <- FALSE
+        time_hessian <- NULL
+  
+        if (!is.na(res[1])) {
+          if (!improve_hessian) {
+            observed_fisher <- res$hessian
+          } else {
+            if (!is.list(hessian_args)) {
+              stop("hessian_controls must be a list")
+            }
+  
+            start_hessian <- Sys.time()
+            observed_fisher <- numDeriv::hessian(likelihood_new, res$par,
+              method.args = hessian_args
+            )
+            end_hessian <- Sys.time()
+            time_hessian <- end_hessian - start_hessian
+          }
+          if(nrow(observed_fisher) > 0) {
+            eig_hes <- eigen(observed_fisher)$value
+            cond_pos_hes <- (min(eig_hes) > 1e-15)
+          } else{
+            eig_hes <- 1
+            cond_pos_hes <- TRUE
+          }
+        }
+  
+        problem_optim <- list()
+  
+        if (is.na(res[1]) || !cond_pos_hes) {
+          problem_optim[[optim_method]] <- list()
+          if (is.na(res[1])) {
+            problem_optim[[optim_method]][["lik"]] <- NA
+            problem_optim[[optim_method]][["res"]] <- res
+            problem_optim[[optim_method]][["hess"]] <- NA
+            problem_optim[[optim_method]][["time_hessian"]] <- NA
+            problem_optim[[optim_method]][["time_fit"]] <- NA
+          } else {
+            problem_optim[[optim_method]][["lik"]] <- -res$value
+            problem_optim[[optim_method]][["res"]] <- res
+            problem_optim[[optim_method]][["hess"]] <- observed_fisher
+            problem_optim[[optim_method]][["time_hessian"]] <- time_hessian
+            problem_optim[[optim_method]][["time_fit"]] <- time_fit
+          }
+        }
+  
+        ok_optim <- FALSE
+        orig_optim_method <- optim_method
+        test_other_optim <- (is.na(res[1]) || !cond_pos_hes)
+  
+        if (test_other_optim) {
+          tmp_method <- optim_method
+          while (length(possible_methods) > 1) {
+            possible_methods <- setdiff(possible_methods, tmp_method)
+            new_method <- possible_methods[1]
+            time_fit <- NULL
+            start_fit <- Sys.time()
+            res <- withCallingHandlers(
+              tryCatch(optim(start_values_aux,
+                likelihood_new,
+                method = new_method,
+                control = optim_controls,
+                hessian = hessian
+              ), error = function(e) {
+                return(NA)
+              }),
+              warning = function(w) {
+                invokeRestart("muffleWarning")
+              }
+            )
+            end_fit <- Sys.time()
+            time_fit <- end_fit - start_fit
+            tmp_method <- new_method
+            cond_pos_hes <- FALSE
+            if (is.na(res[1])) {
+              problem_optim[[tmp_method]][["lik"]] <- NA
+              problem_optim[[tmp_method]][["res"]] <- res
+              problem_optim[[tmp_method]][["hess"]] <- NA
+              problem_optim[[tmp_method]][["time_hessian"]] <- NA
+              problem_optim[[tmp_method]][["time_fit"]] <- NA
+            } else {
+              if (!improve_hessian) {
+                observed_fisher <- res$hessian
+              } else {
+                if (!is.list(hessian_args)) {
+                  stop("hessian_controls must be a list")
+                }
+  
+                start_hessian <- Sys.time()
+                observed_fisher <- numDeriv::hessian(likelihood_new, res$par,
+                  method.args = hessian_args
+                )
+                end_hessian <- Sys.time()
+                time_hessian <- end_hessian - start_hessian
+              }
+              if(nrow(observed_fisher) > 0) {
+                eig_hes <- eigen(observed_fisher)$value
+                cond_pos_hes <- (min(eig_hes) > 1e-15)
+              } else{
+                eig_hes <- 1
+                cond_pos_hes <- TRUE
+              }
+  
+              problem_optim[[tmp_method]][["lik"]] <- -res$value
+              problem_optim[[tmp_method]][["res"]] <- res
+              problem_optim[[tmp_method]][["hess"]] <- observed_fisher
+              problem_optim[[tmp_method]][["time_hessian"]] <- time_hessian
+              problem_optim[[tmp_method]][["time_fit"]] <- time_fit
+            }
+  
+            cond_ok <- ((!is.na(res[1])) && cond_pos_hes)
+            if (cond_ok) {
+              optim_method <- new_method
+              ok_optim <- TRUE
+              break
+            }
+          }
+        }
+  
+        if (test_other_optim) {
+          lik_val <- lapply(problem_optim, function(dat) {
+            dat[["lik"]]
+          })
+          if (all(is.na(lik_val))) {
+            stop("The model could not be fitted. All optimizations method failed.")
+          } else if (ok_optim) {
+            warning(paste("optim method", orig_optim_method, "failed to provide a positive-definite Hessian. Another optimization method was used."))
+            rm(problem_optim)
+          } else {
+            max_method <- which.max(lik_val)
+            res <- problem_optim[[max_method]][["res"]]
+            observed_fisher <- problem_optim[[max_method]][["hess"]]
+            time_hessian <- problem_optim[[max_method]][["time_hessian"]]
+            time_fit <- problem_optim[[max_method]][["time_fit"]]
+            warning("All optimization methods failed to provide a numerically positive-definite Hessian. The optimization method with largest likelihood was chosen. You can try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE.")
+          }
         }
       }
+    loglik <- -res$value
+    } else {
+      res <- NULL
+      observed_fisher <- NULL
+      time_hessian <- NULL
+      time_fit <- NULL
+      loglik <- - likelihood_new()
     }
 
-    loglik <- -res$value
 
     coeff_results <- process_model_results(res = res, observed_fisher = observed_fisher, 
                                                       start_values = start_values, estimate_params = estimate_pars,

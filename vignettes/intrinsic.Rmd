@@ -544,10 +544,10 @@ Let us start with generating the model
 L = 20
 x <- seq(from = 0, to = L, length.out = 101)
 mesh <- fm_mesh_1d(x)
-beta <- 1.1
-alpha <- 0
-kappa <- 10
-tau <- 10
+beta <- 1.2
+alpha <- 0.25
+kappa <- 15
+tau <- 7
 op <- intrinsic.matern.operators(kappa = kappa, tau = tau, alpha = alpha,
                                  beta = beta, mesh = mesh, d = 1)
 
@@ -603,7 +603,7 @@ We now use `rspde_lme` to fit the parameters based on this data. As we here gene
 data = data.frame(y = c(Y), loc = rep(obs.loc, n.rep), rep  = rep(1:n.rep, each = n.obs))
 
 fit <- rspde_lme(y ~ -1, loc = "loc", repl  = "rep", data = data,
-                 model = op, alpha = 0, mean_correction = TRUE)
+                 model = op, mean_correction = TRUE, parallel = TRUE)
 
 rbind(c(fit$coeff$random_effects, fit$coeff$measurement_error), 
       c(beta, tau,sigma.e))

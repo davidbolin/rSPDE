@@ -550,7 +550,7 @@ matern.operators <- function(kappa = NULL,
 
     if (is.null(nu)) {
       if(d == 1){
-        nu <- 0.5
+        nu <- 0.75
       } else {
         nu <- 1
       }
@@ -1275,7 +1275,7 @@ spde.matern.operators <- function(kappa = NULL,
 
       if (is.null(nu)) {
         if(d == 1){
-          nu <- 0.5
+          nu <- 0.75
         } else {
           nu <- 1
         }
@@ -1336,7 +1336,7 @@ spde.matern.operators <- function(kappa = NULL,
     if (parameterization == "matern") {
       if (is.null(nu)) {
         if(d == 1){
-          nu <- 0.5
+          nu <- 0.75
         } else {
           nu <- 1
         }
@@ -1349,7 +1349,7 @@ spde.matern.operators <- function(kappa = NULL,
 
       if (is.null(nu)) {
         if(d == 1){
-          nu <- 0.5
+          nu <- 0.75
         } else {
           nu <- 1
         }
@@ -1409,7 +1409,7 @@ spde.matern.operators <- function(kappa = NULL,
     if (parameterization == "matern") {
       if (is.null(nu)) {
         if(d == 1){
-          nu <- 0.5
+          nu <- 0.75
         } else {
           nu <- 1
         }

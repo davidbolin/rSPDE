@@ -2628,7 +2628,11 @@ process_model_options <- function(model, model_options) {
 #' @noRd 
 
 general_checks_model_options <- function(model_options, model) {
-  parameterization <- "spde"
+  if(!is.null(model$parameterization)){
+    parameterization <- model$parameterization
+  } else {
+    parameterization <- "spde"
+  }
   possible_params <- extract_possible_parameters(model)
   possible_params <- c(possible_params, "sigma_e")
   # Skip checks if model_options is NULL
@@ -3035,7 +3039,7 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
       starting_values["alpha"] <- log(start_alpha)
       starting_values["beta"] <- log(start_beta - max(0, model$d/2 - start_alpha))
     } 
-    
+
     # Handle sigma_e separately
     start_sigma_e <- if (!is.null(model_options$fix_sigma_e)) {
       model_options$fix_sigma_e
@@ -3303,7 +3307,7 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
         args_list$nu <- nu
         
         if (nu >= smoothness_upper_bound) {
-          result$early_return <- -10^100
+          result$early_return <- 10^100
           return(result)
         }
         
@@ -3315,7 +3319,7 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
         args_list$alpha <- alpha
 
         if(alpha >= smoothness_upper_bound + model$d/2) {
-          result$early_return <- -10^100
+          result$early_return <- 10^100
           return(result)
         }
 
@@ -3326,7 +3330,7 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
         if (alpha %% 1 == 0) alpha <- max(alpha - 1e-5, 1e-5)
         args_list$alpha <- alpha
         if(alpha >= smoothness_upper_bound + model$d/2) {
-          result$early_return <- -10^100
+          result$early_return <- 10^100
           return(result)
         }
         index <- index + 1
@@ -3340,7 +3344,7 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
         if (beta %% 1 == 0) beta <- beta - 1e-5
         args_list$beta <- beta
         if(beta >= smoothness_upper_bound + model$d/2) {
-          result$early_return <- -10^100
+          result$early_return <- 10^100
           return(result)
         }
         index <- index + 1
@@ -3540,6 +3544,7 @@ create_likelihood <- function(model, model_options, y_resp,
     
     # Check for early return (e.g., nu at upper bound for rSPDEobj1d)
     if(!is.null(result$early_return)) {
+      print("Doing early return")
       return(result$early_return)
     }
     
