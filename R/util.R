@@ -1723,6 +1723,7 @@ convert_B_matrices <- function(B.sigma, B.range, n.spde, nu.nominal, d) {
 
   return(list(B.tau = B.tau, B.kappa = B.kappa))
 }
+
 #' Change parameterization between SPDE and Matern
 #'
 #' This function converts parameters between SPDE parameterization (tau, kappa) 
@@ -1753,35 +1754,54 @@ change_parameterization_lme <- function(d, nu, par, hessian,
 
     # Initialize result vectors
     coeff <- c(sigma, range)
-    std_random <- rep(NA, 2)  # Default to NA for fixed parameters
-
+    names(coeff) <- c("sigma", "range")
+    std_random <- rep(NA, 2)
+    names(std_random) <- c("sigma", "range")
     # If both parameters are fixed or hessian is NULL, we are done - return NAs for std errors
     if (all(fixed_params) || is.null(hessian)) {
       return(list(coeff = coeff, std_random = std_random))
     }
 
+    # Calculate gradient matrix for parameter transformation
     grad_par <- matrix(c(
       -C2 / (kappa^nu * sigma^2), 0,
       nu * range^(nu - 1) * C2 / (sigma * C1^nu),
       -C1 / range^2
     ), nrow = 2, ncol = 2)
 
-    grad_par <- grad_par[!fixed_params, , drop=FALSE]
-
-    new_observed_fisher <- t(grad_par) %*% hessian %*% (grad_par)
-
-    # No need to include the additional term as the gradient is approximately zero.
-    # from some numerical experiments, the approximation without the additional term
-    # seems to be better in general.
-
-    inv_fisher <- tryCatch(solve(new_observed_fisher), error = function(e) matrix(NA, nrow(new_observed_fisher), ncol(new_observed_fisher)))
-
-    if (!any(is.na(inv_fisher))) {
-      std_random <- sqrt(diag(inv_fisher))
+    # Only proceed if we have non-fixed parameters and a valid hessian
+    if (sum(!fixed_params) > 0 && !is.null(hessian) && nrow(hessian) > 0 && ncol(hessian) > 0) {
+      # Filter grad_par for non-fixed parameters
+      grad_par <- grad_par[!fixed_params, , drop=FALSE]
       
-      # Set standard errors to NA for fixed parameters
-      if (fixed_params[1]) std_random[1] <- NA  # sigma
-      if (fixed_params[2]) std_random[2] <- NA  # range
+      # Check dimension compatibility
+      if (ncol(grad_par) == nrow(hessian) && nrow(hessian) == ncol(hessian)) {
+        # Transform fisher information matrix
+        new_observed_fisher <- t(grad_par) %*% hessian %*% (grad_par)
+        
+        # Try to invert the fisher information
+        inv_fisher <- tryCatch(solve(new_observed_fisher), 
+                              error = function(e) matrix(NA, nrow(new_observed_fisher), ncol(new_observed_fisher)))
+        
+        # Calculate standard errors if inversion succeeded
+        if (!any(is.na(inv_fisher))) {
+          # Get diagonal elements for standard errors
+          if (nrow(inv_fisher) == 1) {
+            # Special case for 1x1 matrix
+            std_err_values <- sqrt(inv_fisher[1,1])
+            # Assign to the correct position
+            if (!fixed_params["tau"]) {
+              std_random["sigma"] <- std_err_values
+            } else {
+              std_random["range"] <- std_err_values
+            }
+          } else {
+            # Normal case for 2x2 matrix
+            std_random <- sqrt(diag(inv_fisher))
+            names(std_random) <- c("sigma", "range")
+          }
+        }
+      }
     }
 
     return(list(coeff = coeff, std_random = std_random))
@@ -1798,30 +1818,54 @@ change_parameterization_lme <- function(d, nu, par, hessian,
 
     # Initialize result vectors
     coeff <- c(tau, kappa)
-    std_random <- rep(NA, 2)  # Default to NA for fixed parameters
+    names(coeff) <- c("tau", "kappa")
+    std_random <- rep(NA, 2)
+    names(std_random) <- c("tau", "kappa")
 
     # If both parameters are fixed or hessian is NULL, we are done - return NAs for std errors
     if (all(fixed_params) || is.null(hessian)) {
       return(list(coeff = coeff, std_random = std_random))
     }
 
+    # Calculate gradient matrix for parameter transformation
     grad_par <- matrix(c(
       -sigma / tau, 0,
-      -nu * kappa / range, -kappa^2 / C1
+      -sigma * nu  / kappa, -C1/kappa^2
     ), nrow = 2, ncol = 2)
 
-    grad_par <- grad_par[!fixed_params, , drop=FALSE]
-
-    new_observed_fisher <- t(grad_par) %*% hessian %*% (grad_par)
-
-    inv_fisher <- tryCatch(solve(new_observed_fisher), error = function(e) matrix(NA, nrow(new_observed_fisher), ncol(new_observed_fisher)))
-
-    if (!any(is.na(inv_fisher))) {
-      std_random <- sqrt(diag(inv_fisher))
+    # Only proceed if we have non-fixed parameters and a valid hessian
+    if (sum(!fixed_params) > 0 && !is.null(hessian) && nrow(hessian) > 0 && ncol(hessian) > 0) {
+      # Filter grad_par for non-fixed parameters
+      grad_par <- grad_par[!fixed_params, , drop=FALSE]
       
-      # Set standard errors to NA for fixed parameters
-      if (fixed_params[1]) std_random[1] <- NA  # tau
-      if (fixed_params[2]) std_random[2] <- NA  # kappa
+      # Check dimension compatibility
+      if (ncol(grad_par) == nrow(hessian) && nrow(hessian) == ncol(hessian)) {
+        # Transform fisher information matrix
+        new_observed_fisher <- t(grad_par) %*% hessian %*% (grad_par)
+        
+        # Try to invert the fisher information
+        inv_fisher <- tryCatch(solve(new_observed_fisher), 
+                              error = function(e) matrix(NA, nrow(new_observed_fisher), ncol(new_observed_fisher)))
+        
+        # Calculate standard errors if inversion succeeded
+        if (!any(is.na(inv_fisher))) {
+          # Get diagonal elements for standard errors
+          if (nrow(inv_fisher) == 1) {
+            # Special case for 1x1 matrix
+            std_err_values <- sqrt(inv_fisher[1,1])
+            # Assign to the correct position
+            if (!fixed_params["sigma"]) {
+              std_random["tau"] <- std_err_values
+            } else {
+              std_random["kappa"] <- std_err_values
+            }
+          } else {
+            # Normal case for 2x2 matrix
+            std_random <- sqrt(diag(inv_fisher))
+            names(std_random) <- c("tau", "kappa")
+          }
+        }
+      }
     }
 
     return(list(coeff = coeff, std_random = std_random))
@@ -3236,7 +3280,7 @@ dbetadtheta <- function(theta_beta) {
     # The derivative should match the parameterization in theta2beta
     # beta = max(0, d/2 - alpha) + exp(theta_beta)
     # So the derivative is just the derivative of the exp(theta_beta) term
-    return(exp(theta_beta))
+    return(exp(-theta_beta))
 }
 
 #' Compute derivative of alpha with respect to theta_alpha
@@ -3245,7 +3289,7 @@ dbetadtheta <- function(theta_beta) {
 #' @return The derivative of alpha with respect to theta_alpha
 #' @noRd
 dalphadtheta <- function(theta_alpha) {
-    return(exp(theta_alpha))
+    return(exp(-theta_alpha))
 }
 
 
@@ -3790,15 +3834,15 @@ calculate_parameter_jacobian <- function(res, estimate_params, model, model_opti
     
     if (estimate_params[i]) {
       # Parameter is estimated, get transformation from res$par
-      if (param_name == "sigma_e" || param_name == "tau" || 
-          param_name == "kappa" || param_name == "sigma" || 
+      if (param_name == "sigma_e" || param_name == "tau" || param_name == "nu" ||
+          param_name == "kappa" || param_name == "sigma" || param_name == "range" ||
           param_name == "gamma" || param_name == "hx" || param_name == "hy") {
         # Parameters with exp transformation
         par_change[index, index] <- exp(-res$par[index])
         index <- index + 1
       }
-      else if (param_name == "nu" || param_name == "alpha") {
-        # Nu/alpha parameters
+      else if (param_name == "alpha") {
+        # alpha parameters
         par_change[index, index] <- exp(-res$par[index])
         index <- index + 1
       }
@@ -4218,7 +4262,8 @@ process_model_results <- function(res, observed_fisher, start_values, estimate_p
       std_err = se_results$std_err,
       std_meas = se_results$std_meas,
       std_random = se_results$std_random,
-      std_fixed = se_results$std_fixed
+      std_fixed = se_results$std_fixed,
+      observed_fisher = se_results$observed_fisher
     )
   )
   
@@ -4268,10 +4313,7 @@ convert_parameterization_matern_spde <- function(model, parameterization, params
       if (!is.null(model_options$fix_alpha)) {
         nu <- model_options$fix_alpha - model$d / 2
       } else {
-        nu <- model$nu
-        if (is.null(nu)) {
-          stop("Processing error. Could not determine nu value.")
-        }
+        stop("Processing error. Could not determine nu value.")
       }
     }
     
@@ -4300,34 +4342,37 @@ convert_parameterization_matern_spde <- function(model, parameterization, params
     }
             
     # Extract the appropriate submatrix of the Fisher information
-    if (!is.null(estimate_pars) && !is.null(observed_fisher)) {
-      # Find the positions of tau and kappa in the Fisher information matrix
+    new_observed_fisher <- NULL
+    if (!is.null(estimate_pars) && !is.null(observed_fisher) && nrow(observed_fisher) > 0) {
+      # Use safer approach to find tau and kappa positions in the estimated parameters
+      tau_pos <- which(grepl("^tau", names(estimate_pars)))
+      kappa_pos <- which(grepl("^kappa", names(estimate_pars)))
+      
+      # Find the indices of these parameters in the observation fisher matrix
       est_params_indices <- which(estimate_pars)
       
-      # Find tau and kappa positions in the estimated parameters
-      tau_pos <- which(names(estimate_pars) == "tau")
-      kappa_pos <- which(names(estimate_pars) == "kappa")
-      
-      # Find their positions in est_params_indices
-      tau_idx <- which(est_params_indices == tau_pos)
-      kappa_idx <- which(est_params_indices == kappa_pos)
-      
-      # Create a submatrix of the Fisher information for estimated parameters
-      if (!fixed_tau && !fixed_kappa) {
-        # Both parameters estimated - use the 2x2 submatrix
-        new_observed_fisher <- observed_fisher[c(tau_idx, kappa_idx), c(tau_idx, kappa_idx)]
-      } else if (!fixed_tau) {
-        # Only tau estimated - use the 1x1 submatrix
-        new_observed_fisher <- matrix(observed_fisher[tau_idx, tau_idx], 1, 1)
-      } else if (!fixed_kappa) {
-        # Only kappa estimated - use the 1x1 submatrix
-        new_observed_fisher <- matrix(observed_fisher[kappa_idx, kappa_idx], 1, 1)
-      } else {
-        # Both fixed - use NULL
-        new_observed_fisher <- NULL
+      # Only proceed if we found both parameters
+      if (length(tau_pos) > 0 && length(kappa_pos) > 0) {
+        # Find their positions in est_params_indices
+        tau_idx <- which(est_params_indices == tau_pos)
+        kappa_idx <- which(est_params_indices == kappa_pos)
+        
+        # Make sure the indices are valid
+        if (length(tau_idx) > 0 && length(kappa_idx) > 0 && 
+            tau_idx <= nrow(observed_fisher) && kappa_idx <= nrow(observed_fisher)) {
+          # Create a submatrix of the Fisher information
+          if (!fixed_tau && !fixed_kappa) {
+            # Both parameters estimated - use the 2x2 submatrix
+            new_observed_fisher <- observed_fisher[c(tau_idx, kappa_idx), c(tau_idx, kappa_idx)]
+          } else if (!fixed_tau) {
+            # Only tau estimated - use the 1x1 submatrix
+            new_observed_fisher <- matrix(observed_fisher[tau_idx, tau_idx], 1, 1)
+          } else if (!fixed_kappa) {
+            # Only kappa estimated - use the 1x1 submatrix
+            new_observed_fisher <- matrix(observed_fisher[kappa_idx, kappa_idx], 1, 1)
+          }
+        }
       }
-    } else {
-      new_observed_fisher <- observed_fisher
     }
     
     # Create the fixed_params vector for change_parameterization_lme
@@ -4345,9 +4390,20 @@ convert_parameterization_matern_spde <- function(model, parameterization, params
     result$coeff <- c(nu, change_par$coeff)
     names(result$coeff) <- c("nu", "sigma", "range")
     
-    # Standard errors only for sigma and range (not for nu)
-    result$std_random <- std_random
-    result$std_random[2:3] <- change_par$std_random
+    # Handle standard errors correctly
+    result$std_random <- rep(NA, 3)
+    names(result$std_random) <- c("nu", "sigma", "range")
+    
+    # Copy nu standard error if it exists in std_random
+    if (!is.null(std_random) && "alpha" %in% names(std_random) && !is.na(std_random["alpha"])) {
+      result$std_random["nu"] <- std_random["alpha"]
+    }
+    
+    # Copy sigma and range standard errors from change_par
+    if (!is.null(change_par$std_random)) {
+      result$std_random[c("sigma", "range")] <- change_par$std_random
+    }
+    
   } else if (parameterization == "matern") {
     # Converting from Matern to SPDE
     # Extract parameters from the Matern parameterization
@@ -4358,10 +4414,7 @@ convert_parameterization_matern_spde <- function(model, parameterization, params
       if (!is.null(model_options$fix_nu)) {
         nu <- model_options$fix_nu
       } else {
-        nu <- model$nu
-        if (is.null(nu)) {
-          stop("Processing error. Could not determine nu value.")
-        }
+        stop("Processing error. Could not determine nu value.")
       }
       alpha <- nu + model$d / 2
     }
@@ -4391,34 +4444,37 @@ convert_parameterization_matern_spde <- function(model, parameterization, params
     }
     
     # Extract the appropriate submatrix of the Fisher information
-    if (!is.null(estimate_pars) && !is.null(observed_fisher)) {
-      # Find the positions of sigma and range in the Fisher information matrix
+    new_observed_fisher <- NULL
+    if (!is.null(estimate_pars) && !is.null(observed_fisher) && nrow(observed_fisher) > 0) {
+      # Use safer approach to find sigma and range positions
+      sigma_pos <- which(grepl("^sigma", names(estimate_pars)))
+      range_pos <- which(grepl("^range", names(estimate_pars)))
+      
+      # Find the indices of estimated parameters
       est_params_indices <- which(estimate_pars)
       
-      # Find sigma and range positions in the estimated parameters
-      sigma_pos <- which(names(estimate_pars) == "sigma")
-      range_pos <- which(names(estimate_pars) == "range")
-      
-      # Find their positions in est_params_indices
-      sigma_idx <- which(est_params_indices == sigma_pos)
-      range_idx <- which(est_params_indices == range_pos)
-      
-      # Create a submatrix of the Fisher information for estimated parameters
-      if (!fixed_sigma && !fixed_range) {
-        # Both parameters estimated - use the 2x2 submatrix
-        new_observed_fisher <- observed_fisher[c(sigma_idx, range_idx), c(sigma_idx, range_idx)]
-      } else if (!fixed_sigma) {
-        # Only sigma estimated - use the 1x1 submatrix
-        new_observed_fisher <- matrix(observed_fisher[sigma_idx, sigma_idx], 1, 1)
-      } else if (!fixed_range) {
-        # Only range estimated - use the 1x1 submatrix
-        new_observed_fisher <- matrix(observed_fisher[range_idx, range_idx], 1, 1)
-      } else {
-        # Both fixed - use NULL
-        new_observed_fisher <- NULL
+      # Only proceed if we found both parameters
+      if (length(sigma_pos) > 0 && length(range_pos) > 0) {
+        # Find their positions in est_params_indices
+        sigma_idx <- which(est_params_indices == sigma_pos)
+        range_idx <- which(est_params_indices == range_pos)
+        
+        # Make sure the indices are valid
+        if (length(sigma_idx) > 0 && length(range_idx) > 0 && 
+            sigma_idx <= nrow(observed_fisher) && range_idx <= nrow(observed_fisher)) {
+          # Create a submatrix of the Fisher information for estimated parameters
+          if (!fixed_sigma && !fixed_range) {
+            # Both parameters estimated - use the 2x2 submatrix
+            new_observed_fisher <- observed_fisher[c(sigma_idx, range_idx), c(sigma_idx, range_idx)]
+          } else if (!fixed_sigma) {
+            # Only sigma estimated - use the 1x1 submatrix
+            new_observed_fisher <- matrix(observed_fisher[sigma_idx, sigma_idx], 1, 1)
+          } else if (!fixed_range) {
+            # Only range estimated - use the 1x1 submatrix
+            new_observed_fisher <- matrix(observed_fisher[range_idx, range_idx], 1, 1)
+          }
+        }
       }
-    } else {
-      new_observed_fisher <- observed_fisher
     }
     
     # Create the fixed_params vector for change_parameterization_lme
@@ -4438,9 +4494,19 @@ convert_parameterization_matern_spde <- function(model, parameterization, params
     result$coeff <- c(alpha, change_par$coeff)
     names(result$coeff) <- c("alpha", "tau", "kappa")
     
-    # Standard errors only for tau and kappa (not for alpha)
-    result$std_random <- std_random
-    result$std_random[2:3] <- change_par$std_random
+    # Handle standard errors correctly
+    result$std_random <- rep(NA, 3)
+    names(result$std_random) <- c("alpha", "tau", "kappa")
+    
+    # Copy nu standard error if it exists in std_random
+    if (!is.null(std_random) && "nu" %in% names(std_random) && !is.na(std_random["nu"])) {
+      result$std_random["alpha"] <- std_random["nu"]
+    }
+    
+    # Copy tau and kappa standard errors from change_par
+    if (!is.null(change_par$std_random)) {
+      result$std_random[c("tau", "kappa")] <- change_par$std_random
+    }
   }
   
   result$time <- Sys.time() - time_start

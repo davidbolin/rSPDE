@@ -868,23 +868,19 @@ rspde_lme <- function(formula,
       loglik <- - likelihood_new(start_values_aux)
     }
 
-
     coeff_results <- process_model_results(res = res, observed_fisher = observed_fisher, 
                                                       start_values = start_values, estimate_params = estimate_pars,
                                                       model = model,
                                                       model_options = model_options, X_cov = X_cov, n_coeff_nonfixed = n_coeff_nonfixed)
 
     
-    print("coeff_results")
-    print(coeff_results)
-
     coeff_meas <- coeff_results$coeff_meas
     coeff_random <- coeff_results$coeff_random
     coeff_fixed <- coeff_results$coeff_fixed      
     std_meas <- coeff_results$std_meas
     std_random <- coeff_results$std_random
     std_fixed <- coeff_results$std_fixed
-    observed_fisher <- coeff_results$inv_fisher
+    observed_fisher <- coeff_results$observed_fisher
 
     new_likelihood <- NULL
 
