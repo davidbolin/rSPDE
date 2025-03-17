@@ -861,11 +861,11 @@ rspde_lme <- function(formula,
       }
     loglik <- -res$value
     } else {
-      res <- NULL
+      res <- list(counts = 0)
       observed_fisher <- NULL
       time_hessian <- NULL
-      time_fit <- NULL
-      loglik <- - likelihood_new()
+      time_fit <- as.difftime(0, units="secs") 
+      loglik <- - likelihood_new(start_values_aux)
     }
 
 

@@ -363,6 +363,8 @@ x1 <- obs.loc
 
 Y <- 2 - x1 + as.vector(A %*% u + sigma.e * rnorm(n.obs))
 
+Y <- as.vector(A%*% u + sigma.e * rnorm(n.obs))
+
 df_data <- data.frame(y = Y, loc = obs.loc, x1 = x1)
 ```
 
