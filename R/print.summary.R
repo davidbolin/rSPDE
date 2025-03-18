@@ -374,7 +374,6 @@ print.CBrSPDEobj2d <- function(x, ...) {
 #' @param name Name of the parameter
 #' @return A data frame containing a basic summary
 #' @noRd
-
 create_summary_from_density <- function(density_df, name) {
     min_x <- min(density_df[, "x"])
     max_x <- max(density_df[, "x"])
@@ -398,29 +397,23 @@ create_summary_from_density <- function(density_df, name) {
             } else if (v >= max_x) {
                 return(1)
             } else {
-                stats::integrate(
-                    f = denstemp, lower = min_x, upper = v,
-                    stop.on.error = FALSE
-                )$value
+                safe_integrate(denstemp, min_x, v)
             }
         })
         return(prob_temp)
     }
     
-    mean_temp <- stats::integrate(
-        f = function(z) {
-            denstemp(z) * z
-        }, lower = min_x, upper = max_x,
-        subdivisions = nrow(density_df),
-        stop.on.error = FALSE
-    )$value
+    mean_temp <- safe_integrate(
+        function(z) { denstemp(z) * z }, 
+        min_x, max_x, 
+        subdivisions = nrow(density_df)
+    )
     
-    sd_temp <- sqrt(stats::integrate(
-        f = function(z) {
-            denstemp(z) * (z - mean_temp)^2
-        }, lower = min_x, upper = max_x,
-        stop.on.error = FALSE
-    )$value)
+    sd_temp <- sqrt(safe_integrate(
+        function(z) { denstemp(z) * (z - mean_temp)^2 }, 
+        min_x, max_x, 
+        subdivisions = nrow(density_df)
+    ))
     
     mode_temp <- density_df[which.max(density_df[, "y"]), "x"]
     
@@ -429,9 +422,19 @@ create_summary_from_density <- function(density_df, name) {
             if (x < 0 | x > 1) {
                 return(NaN)
             } else {
-                return(stats::uniroot(function(y) {
-                    ptemp(y) - x
-                }, lower = min_x, upper = max_x)$root)
+                # Use tryCatch to handle potential errors in uniroot
+                tryCatch({
+                    stats::uniroot(function(y) {
+                        ptemp(y) - x
+                    }, lower = min_x, upper = max_x, 
+                    tol = 1e-6, maxiter = 1000)$root
+                }, error = function(e) {
+                    warning(paste("Error in quantile calculation:", e$message))
+                    # Fallback: linear interpolation on CDF
+                    cdf_points <- seq(min_x, max_x, length.out = 200)
+                    cdf_values <- ptemp(cdf_points)
+                    approx(x = cdf_values, y = cdf_points, xout = x)$y
+                })
             }
         })
         return(quant_temp)
