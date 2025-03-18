@@ -279,8 +279,8 @@ and
 <span><span class="co">## Number of function calls by 'optim' = 42</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.29395 mins </span></span>
-<span><span class="co">##   set up the parallelization = 2.68815 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.16299 mins </span></span>
+<span><span class="co">##   set up the parallelization = 2.5929 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -296,7 +296,7 @@ and
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 140.3253 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 132.3723 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -385,8 +385,8 @@ index vector) is <code>field</code>.</p>
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">res</span>, <span class="st">"field"</span>, <span class="va">inla_model</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span> </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##            mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## std.dev 1.02857 0.343982   0.574395 0.950952    1.88360 0.836723</span></span>
-<span><span class="co">## range   2.96701 2.380860   0.761954 2.272050    9.27163 1.551090</span></span></code></pre>
+<span><span class="co">## std.dev 1.02835 0.343732   0.574472 0.950791    1.88272 0.836495</span></span>
+<span><span class="co">## range   2.96541 2.378170   0.762269 2.271280    9.26720 1.549410</span></span></code></pre>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">posterior_df_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gg_df.html">gg_df</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span></span>
