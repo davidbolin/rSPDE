@@ -308,7 +308,7 @@ rspde_lme <- function(formula,
     repl <- rep(1, length(y_resp))
   }
 
-  if(is.character(repl)) {
+  if(is.character(repl) && length(repl) == 1) {
       if(repl %in% colnames(data)) {
           repl <- data[[repl]]    
       } else {

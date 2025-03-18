@@ -730,6 +730,7 @@ The `rspde_lme` function provides flexibility in model fitting by allowing users
 ### Fixing parameters
 Parameters can be fixed by using the `model_options` argument with elements of the form `fix_parname = value`, where `parname` is the name of the parameter you want to fix. For stationary models, the parameters that can be fixed in the `model_options` list are:
 
+- `fix_sigma_e`: Fix the standard deviation of the noise parameter $\sigma_\varepsilon$
 - `fix_nu`: Fix the smoothness parameter ν
 - `fix_sigma`: Fix the standard deviation parameter σ
 - `fix_range`: Fix the range parameter
@@ -741,6 +742,7 @@ Parameters can be fixed by using the `model_options` argument with elements of t
 
 Similarly, you can set starting values for parameters using elements of the form `start_parname = value` in the `model_options` list. This is particularly useful when the default starting values might be far from the optimal values, which could lead to slow convergence or convergence to a local minimum. For example, to set a starting value for the range parameter, you would use `model_options = list(start_range = 0.15)`.
 
+- `start_sigma_e`: Starting value for the standard deviation of the noise parameter $\sigma_\varepsilon$
 - `start_nu`: Starting value for the smoothness parameter ν
 - `start_sigma`: Starting value for the standard deviation parameter σ
 - `start_range`: Starting value for the range parameter
