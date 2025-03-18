@@ -1493,7 +1493,23 @@ predict.rspde_lme <- function(object,
   if(!inherits(object$latent_model, "rSPDEobj1d") && !inherits(object$latent_model, "spacetimeobj")) {
       Q <- new_rspde_obj$Q
       if(!inherits(object$latent_model, "CBrSPDEobj2d") && !inherits(object$latent_model, "intrinsicCBrSPDEobj")) {
-          Aprd <- kronecker(matrix(1, 1, object$rspde_order + 1), Aprd)        
+          # Extract alpha or nu from random effects
+          alpha_param <- grep("^alpha", names(coeff_random), value = TRUE)
+          nu_param <- grep("^nu", names(coeff_random), value = TRUE)
+          
+          if (length(alpha_param) > 0) {
+            alpha <- coeff_random[[alpha_param]]
+          } else if (length(nu_param) > 0) {
+            nu <- coeff_random[[nu_param]]
+            alpha <- nu + object$latent_model$d/2
+          } else {
+            stop("Neither alpha nor nu parameter found in random effects")
+          }
+          
+          # Check if alpha is integer
+          if (alpha %% 1 != 0) {
+            Aprd <- kronecker(matrix(1, 1, object$rspde_order + 1), Aprd)        
+          }
       }
   } else if(inherits(object$latent_model, "spacetimeobj")) {
       Q <- new_rspde_obj$Q
@@ -1541,6 +1557,7 @@ predict.rspde_lme <- function(object,
     
     Q_xgiveny <- t(A_repl) %*% A_repl / sigma_e^2 + Q
     mu_krig <- solve(Q_xgiveny, as.vector(t(A_repl) %*% y_repl / sigma_e^2))
+
     mu_krig <- Aprd %*% mu_krig
     
     mu_re <- mu_krig
