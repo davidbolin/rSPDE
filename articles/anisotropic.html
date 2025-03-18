@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.5.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-10-23. Last
-modified: 2025-02-11.</h4>
+modified: 2025-03-18.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/anisotropic.Rmd" class="external-link"><code>vignettes/anisotropic.Rmd</code></a></small>
       <div class="d-none name"><code>anisotropic.Rmd</code></div>
@@ -256,8 +256,8 @@ us see a summary of the fitted model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 51</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  28.05529 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 4.56901 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  28.10763 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 5.09302 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span>
@@ -272,7 +272,7 @@ us see a summary of the fitted model:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
 <span><span class="co">#&gt;              sigma         hx         hy       hxy        nu   sigma.e</span></span>
 <span><span class="co">#&gt; True     1.0000000 0.08000000 0.08000000 0.5000000 0.5000000 0.1000000</span></span>
-<span><span class="co">#&gt; Estimate 0.9675335 0.09254768 0.09426337 0.5562763 0.4529577 0.1005883</span></span>
+<span><span class="co">#&gt; Estimate 0.9675333 0.09254769 0.09426338 0.5562763 0.4529579 0.1005883</span></span>
 <span><span class="co">#&gt;           intercept</span></span>
 <span><span class="co">#&gt; True      0.0000000</span></span>
 <span><span class="co">#&gt; Estimate -0.1590023</span></span></code></pre></div>

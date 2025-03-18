@@ -13,7 +13,7 @@ $$(-\Delta)^{\beta/2}(\kappa^2-\Delta)^{\alpha/2} (\tau u) = \mathcal{W}$$"><met
 
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.5.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -76,7 +76,7 @@ $$(-\Delta)^{\beta/2}(\kappa^2-\Delta)^{\alpha/2} (\tau u) = \mathcal{W}$$</p>
 <span>  m_beta <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  compute_higher_order <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_block_list <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  type_rational_approximation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chebfun"</span>, <span class="st">"brasil"</span>, <span class="st">"chebfunLB"</span><span class="op">)</span>,</span>
+<span>  type_rational_approximation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"brasil"</span>, <span class="st">"chebfun"</span>, <span class="st">"chebfunLB"</span><span class="op">)</span>,</span>
 <span>  fem_mesh_matrices <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  scaling <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  opts <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -172,7 +172,7 @@ The list should contain elements c0, g1, g2, g3, etc.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p><code>intrinsic.matern.operators</code> returns an object of
-class "intrinsicCBrSPDEobj". This object is a list containing the
+class "intrinsicCBrSPDEobj". This object is a list including the
 following quantities:</p>
 <dl><dt>C</dt>
 <dd><p>The mass lumped mass matrix.</p></dd>
@@ -183,20 +183,11 @@ following quantities:</p>
 <dt>GCi</dt>
 <dd><p>The stiffness matrix G times <code>Ci</code></p></dd>
 
-<dt>Gk</dt>
-<dd><p>The stiffness matrix G along with the higher-order
-FEM-related matrices G2, G3, etc.</p></dd>
+<dt>Q</dt>
+<dd><p>The precision matrix.</p></dd>
 
-<dt>fem_mesh_matrices</dt>
-<dd><p>A list containing the mass lumped mass
-matrix, the stiffness matrix and
-the higher-order FEM-related matrices.</p></dd>
-
-<dt>m_alpha</dt>
-<dd><p>The order of the rational approximation for the Matérn part.</p></dd>
-
-<dt>m_beta</dt>
-<dd><p>The order of the rational approximation for the intrinsic part.</p></dd>
+<dt>Q_list</dt>
+<dd><p>A list containing the blocks required to assemble the precision matrix.</p></dd>
 
 <dt>alpha</dt>
 <dd><p>The fractional power of the Matérn part of the operator.</p></dd>
@@ -204,23 +195,53 @@ the higher-order FEM-related matrices.</p></dd>
 <dt>beta</dt>
 <dd><p>The fractional power of the intrinsic part of the operator.</p></dd>
 
-<dt>type</dt>
-<dd><p>String indicating the type of approximation.</p></dd>
-
-<dt>d</dt>
-<dd><p>The dimension of the domain.</p></dd>
-
-<dt>A</dt>
-<dd><p>Matrix that sums the components in the approximation to the mesh nodes.</p></dd>
-
 <dt>kappa</dt>
 <dd><p>Range parameter of the covariance function</p></dd>
 
 <dt>tau</dt>
 <dd><p>Scale parameter of the covariance function.</p></dd>
 
-<dt>type</dt>
-<dd><p>String indicating the type of approximation.</p></dd>
+<dt>m_alpha</dt>
+<dd><p>The order of the rational approximation for the Matérn part.</p></dd>
+
+<dt>m_beta</dt>
+<dd><p>The order of the rational approximation for the intrinsic part.</p></dd>
+
+<dt>m</dt>
+<dd><p>The total number of blocks in the precision matrix.</p></dd>
+
+<dt>n</dt>
+<dd><p>The number of mesh nodes.</p></dd>
+
+<dt>d</dt>
+<dd><p>The dimension of the domain.</p></dd>
+
+<dt>type_rational_approximation</dt>
+<dd><p>String indicating the type of rational approximation.</p></dd>
+
+<dt>higher_order</dt>
+<dd><p>Boolean indicating if higher order FEM-related matrices are computed.</p></dd>
+
+<dt>return_block_list</dt>
+<dd><p>Boolean indicating if the precision matrix is returned as
+a list with the blocks.</p></dd>
+
+<dt>fem_mesh_matrices</dt>
+<dd><p>A list containing the mass lumped mass
+matrix, the stiffness matrix and
+the higher-order FEM-related matrices.</p></dd>
+
+<dt>make_A</dt>
+<dd><p>A function to compute the projection matrix which links the field to observation locations.</p></dd>
+
+<dt>variogram</dt>
+<dd><p>A function to compute the variogram of the model at a specified node.</p></dd>
+
+<dt>A</dt>
+<dd><p>Matrix that sums the components in the approximation to the mesh nodes.</p></dd>
+
+<dt>scaling</dt>
+<dd><p>The scaling used in the intrinsic part of the model.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -229,9 +250,8 @@ the higher-order FEM-related matrices.</p></dd>
 $$\tau^{-2}(-\Delta)^{\beta}(\kappa^2-\Delta)^{\alpha}$$
 is approximated based on rational approximations of the two fractional
 components. The Laplacians are equipped with homogeneous Neumann boundary
-conditions and a zero-mean constraint is additionally imposed to obtained
-a non-intrinsic model. The scaling is computed as the lowest positive eigenvalue of
-sqrt(solve(c0))%*%g1sqrt(solve(c0)). opts provides a list of options for the
+conditions. Unless supplied, the scaling is computed as the lowest positive eigenvalue of
+<code>sqrt(solve(c0))%*%g1%*%sqrt(solve(c0))</code>. opts provides a list of options for the
 numerical calculation of the scaling factor, which is done using <code>Rspectra::eigs_sym</code>.
 See the help of that function for details.</p>
     </div>

@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.5.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-10-23. Last
-modified: 2025-02-11.</h4>
+modified: 2025-03-18.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/spacetime.Rmd" class="external-link"><code>vignettes/spacetime.Rmd</code></a></small>
       <div class="d-none name"><code>spacetime.Rmd</code></div>
@@ -268,27 +268,29 @@ model:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Fixed effects:</span></span>
 <span><span class="co">#&gt;             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
-<span><span class="co">#&gt; (Intercept)   0.0419    0.1137   0.369    0.712</span></span>
+<span><span class="co">#&gt; (Intercept)  0.01309   0.11368   0.115    0.908</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
-<span><span class="co">#&gt;       Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; kappa 4.678250  0.388209  12.051</span></span>
-<span><span class="co">#&gt; sigma 9.117339  0.875866  10.410</span></span>
-<span><span class="co">#&gt; gamma 0.054523  0.009569   5.698</span></span>
-<span><span class="co">#&gt; rho   1.164626  0.042404  27.465</span></span>
+<span><span class="co">#&gt;               Estimate Std.error z-value</span></span>
+<span><span class="co">#&gt; kappa          4.67864   0.38827  12.050</span></span>
+<span><span class="co">#&gt; sigma          9.11857   0.87608  10.408</span></span>
+<span><span class="co">#&gt; gamma          0.05452   0.00957   5.697</span></span>
+<span><span class="co">#&gt; rho            1.16454   0.04241  27.462</span></span>
+<span><span class="co">#&gt; alpha (fixed)  1.00000        NA      NA</span></span>
+<span><span class="co">#&gt; beta (fixed)   1.00000        NA      NA</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Measurement error:</span></span>
 <span><span class="co">#&gt;          Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; std. dev  0.01704   0.01306   1.304</span></span>
+<span><span class="co">#&gt; std. dev  0.01704   0.01306   1.305</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Log-Likelihood:  -568.7374 </span></span>
-<span><span class="co">#&gt; Number of function calls by 'optim' = 39</span></span>
+<span><span class="co">#&gt; Number of function calls by 'optim' = 36</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  18.17679 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 4.57263 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  18.32253 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 5.08988 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
@@ -300,9 +302,9 @@ model:</p>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;            kappa     sigma     gamma      rho    sigma.e  intercept</span></span>
-<span><span class="co">#&gt; True     5.00000 10.000000 0.0500000 1.000000 0.01000000 0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 4.67825  9.117339 0.0545233 1.164626 0.01703642 0.04189725</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa     sigma      gamma      rho    sigma.e  intercept</span></span>
+<span><span class="co">#&gt; True     5.000000 10.000000 0.05000000 1.000000 0.01000000 0.00000000</span></span>
+<span><span class="co">#&gt; Estimate 4.678638  9.118565 0.05452511 1.164538 0.01704212 0.01309101</span></span></code></pre></div>
 <p>Finally, we can also do prediction based on the fitted model as</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred.data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">s</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">t</span><span class="op">)</span><span class="op">)</span>, t <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">t</span>,each<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -453,7 +455,7 @@ frame, that also contanis the spatial locations, and we fit the
 model:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, x <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">x</span>, y <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">y</span>, t <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">t</span><span class="op">)</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span>, loc_time <span class="op">=</span> <span class="st">"t"</span>, data <span class="op">=</span> <span class="va">df_2d</span>, model <span class="op">=</span> <span class="va">op</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">res_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span>, loc_time <span class="op">=</span> <span class="st">"t"</span>, data <span class="op">=</span> <span class="va">df_2d</span>, model <span class="op">=</span> <span class="va">op</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df_2d, :</span></span>
 <span><span class="co">#&gt; The optimization failed to provide a numerically positive-definite Hessian. You</span></span>
 <span><span class="co">#&gt; can try to obtain a positive-definite Hessian by setting 'improve_hessian' to</span></span>
@@ -462,7 +464,7 @@ model:</p>
 <span><span class="co">#&gt; Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre></div>
 <p>Let us see a summary of the fitted model:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_2d</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Latent model - Spatio-temporal with alpha =  1 , beta =  1</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -472,43 +474,48 @@ model:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Fixed effects:</span></span>
 <span><span class="co">#&gt;             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
-<span><span class="co">#&gt; (Intercept)   0.1502    0.3159   0.476    0.634</span></span>
+<span><span class="co">#&gt; (Intercept)   0.6265    0.5910    1.06    0.289</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
-<span><span class="co">#&gt;        Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; kappa 11.178757  1.059719  10.549</span></span>
-<span><span class="co">#&gt; sigma 11.419295  1.408109   8.110</span></span>
-<span><span class="co">#&gt; gamma  0.005183  0.001050   4.934</span></span>
-<span><span class="co">#&gt; rho    0.164721  0.949677   0.173</span></span>
-<span><span class="co">#&gt; NA     0.190030  1.140014   0.167</span></span>
+<span><span class="co">#&gt;                Estimate Std.error z-value</span></span>
+<span><span class="co">#&gt; kappa         11.179186  1.059760  10.549</span></span>
+<span><span class="co">#&gt; sigma         11.420017  1.408363   8.109</span></span>
+<span><span class="co">#&gt; gamma          0.005182  0.001051   4.932</span></span>
+<span><span class="co">#&gt; rho            0.164709  0.950122   0.173</span></span>
+<span><span class="co">#&gt; rho2           0.190088  1.141729   0.166</span></span>
+<span><span class="co">#&gt; alpha (fixed)  1.000000        NA      NA</span></span>
+<span><span class="co">#&gt; beta (fixed)   1.000000        NA      NA</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Measurement error:</span></span>
 <span><span class="co">#&gt;           Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; std. dev 0.0002992       NaN     NaN</span></span>
+<span><span class="co">#&gt; std. dev 0.0004466       NaN     NaN</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Log-Likelihood:  -644.4856 </span></span>
-<span><span class="co">#&gt; Number of function calls by 'optim' = 78</span></span>
+<span><span class="co">#&gt; Number of function calls by 'optim' = 95</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  2.98267 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 5.63708 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  3.5222 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 6.09413 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
-<span>                      sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>                      gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">gamma</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>, </span>
-<span>                      rho_1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho_2d</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>                      rho_2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho_2d</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>                      sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">measurement_error</span><span class="op">)</span>,</span>
-<span>                      intercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">res</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">fixed_effects</span><span class="op">)</span>,</span>
+<code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res_2d</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
+<span>                      sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">res_2d</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>                      gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">gamma</span>, <span class="va">res_2d</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>, </span>
+<span>                      rho_1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho_2d</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">res_2d</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>                      rho_2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rho_2d</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">res_2d</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>                      sigma.e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma.e</span>, <span class="va">res_2d</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">measurement_error</span><span class="op">)</span>,</span>
+<span>                      intercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">res_2d</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">fixed_effects</span><span class="op">)</span>,</span>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa    sigma       gamma     rho_1   rho_2      sigma.e intercept</span></span>
-<span><span class="co">#&gt; True     10.00000 10.00000 0.005000000 0.3000000 0.30000 0.0100000000 0.0000000</span></span>
-<span><span class="co">#&gt; Estimate 11.17876 11.41929 0.005182506 0.1647205 0.19003 0.0002992413 0.1502212</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa    sigma       gamma     rho_1     rho_2     sigma.e</span></span>
+<span><span class="co">#&gt; True     10.00000 10.00000 0.005000000 0.3000000 0.3000000 0.010000000</span></span>
+<span><span class="co">#&gt; Estimate 11.17919 11.42002 0.005182418 0.1647091 0.1900884 0.000446635</span></span>
+<span><span class="co">#&gt;          intercept</span></span>
+<span><span class="co">#&gt; True     0.0000000</span></span>
+<span><span class="co">#&gt; Estimate 0.6265039</span></span></code></pre></div>
 <p>Let us now use our <code>inlabru</code> implementation. We first
 define the model. To this end we need to create a mesh for the time
 object:</p>
@@ -562,7 +569,9 @@ Below, we demonstrate this for both the 1D and spatial examples.</p>
 <div class="section level3">
 <h3 id="d-example-with-bounded_rho-false">1D Example with <code>bounded_rho = FALSE</code><a class="anchor" aria-label="anchor" href="#d-example-with-bounded_rho-false"></a>
 </h3>
-<p>Let us first start with the <code><a href="../reference/rspde_lme.html">rspde_lme()</a></code> example:</p>
+<p>Let us first start with the <code><a href="../reference/rspde_lme.html">rspde_lme()</a></code> example. We will
+use the previous fit as a starting point for the new fit to improve the
+convergence of the optimization.</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">op_1d_unbounded</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spacetime.operators.html">spacetime.operators</a></span><span class="op">(</span>space_loc <span class="op">=</span> <span class="va">s</span>, time_loc <span class="op">=</span> <span class="va">t</span>,</span>
 <span>                          kappa <span class="op">=</span> <span class="va">kappa</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, alpha <span class="op">=</span> <span class="va">alpha</span>,</span>
@@ -570,7 +579,8 @@ Below, we demonstrate this for both the 1D and spatial examples.</p>
 <span>                          bounded_rho <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">res_unbounded</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, loc <span class="op">=</span> <span class="st">"space"</span>, loc_time <span class="op">=</span> <span class="st">"time"</span>, </span>
-<span>                      data <span class="op">=</span> <span class="va">df_1d</span>, model <span class="op">=</span> <span class="va">op_1d_unbounded</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>                      data <span class="op">=</span> <span class="va">df_1d</span>, model <span class="op">=</span> <span class="va">op_1d_unbounded</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                      previous_fit <span class="op">=</span> <span class="va">res</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">kappa</span>, <span class="va">res_unbounded</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>                      sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">res_unbounded</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span>
@@ -581,9 +591,9 @@ Below, we demonstrate this for both the 1D and spatial examples.</p>
 <span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Estimate"</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              kappa    sigma      gamma      rho   sigma.e    intercept</span></span>
-<span><span class="co">#&gt; True     10.000000 10.00000 0.00500000 1.000000 0.0100000  0.000000000</span></span>
-<span><span class="co">#&gt; Estimate  5.939571 13.06381 0.04256791 1.521502 0.3809751 -0.005708659</span></span></code></pre></div>
+<span><span class="co">#&gt;              kappa    sigma      gamma  rho   sigma.e    intercept</span></span>
+<span><span class="co">#&gt; True     10.000000 10.00000 0.00500000 1.00 0.0100000  0.000000000</span></span>
+<span><span class="co">#&gt; Estimate  5.938692 13.05859 0.04256774 1.52 0.3809821 -0.005743534</span></span></code></pre></div>
 <p>Now, the <code>inlabru</code> implementation:</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">### Fit with bounded_rho = FALSE</span></span>

@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.5.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-07-20. Last
-modified: 2025-02-11.</h4>
+modified: 2025-03-18.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rspde_nofem.Rmd" class="external-link"><code>vignettes/rspde_nofem.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_nofem.Rmd</code></div>
@@ -254,49 +254,49 @@ and
 <span><span class="co">## </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##             Estimate Std.error z-value Pr(&gt;|z|)    </span></span>
-<span><span class="co">## (Intercept)   2.0140    0.2957   6.811 9.68e-12 ***</span></span>
-<span><span class="co">## x1           -1.1955    0.4970  -2.406   0.0161 *  </span></span>
+<span><span class="co">## (Intercept)   2.0141    0.2957   6.812 9.59e-12 ***</span></span>
+<span><span class="co">## x1           -1.1960    0.4969  -2.407   0.0161 *  </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.41381   0.10804   13.09</span></span>
-<span><span class="co">## tau    0.02485   0.01249    1.99</span></span>
-<span><span class="co">## kappa 21.51541   3.79491    5.67</span></span>
+<span><span class="co">## nu     0.91411   0.10863   8.415</span></span>
+<span><span class="co">## sigma  1.41325   0.08782  16.093</span></span>
+<span><span class="co">## range  0.12563   0.01633   7.694</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Random effects (Matern parameterization):</span></span>
-<span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu     0.91381   0.10804   8.458</span></span>
-<span><span class="co">## sigma  1.41331   0.08741  16.168</span></span>
-<span><span class="co">## range  0.12567   0.01120  11.220</span></span>
+<span><span class="co">## Random effects (SPDE parameterization):</span></span>
+<span><span class="co">##        Estimate Std.error z-value</span></span>
+<span><span class="co">## alpha  1.414114  0.108634   13.02</span></span>
+<span><span class="co">## tau    0.024819  0.001191   20.84</span></span>
+<span><span class="co">## kappa 21.525744  1.917908   11.22</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev  0.29204   0.01444   20.23</span></span>
+<span><span class="co">## std. dev  0.29205   0.01446    20.2</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -876.9438 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 61</span></span>
+<span><span class="co">## Log-Likelihood:  -876.9437 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 42</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.78263 mins </span></span>
-<span><span class="co">##   set up the parallelization = 2.28826 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.29395 mins </span></span>
+<span><span class="co">##   set up the parallelization = 2.68815 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">fit</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, </span>
-<span>  range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">r</span>, <span class="va">fit</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="va">fit</span><span class="op">$</span><span class="va">matern_coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">fit</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, </span>
+<span>  range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">r</span>, <span class="va">fit</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="va">fit</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##              sigma     range       nu</span></span>
-<span><span class="co">## Truth     1.300000 0.1264911 0.800000</span></span>
-<span><span class="co">## Estimates 1.413308 0.1256677 0.913812</span></span></code></pre>
+<pre><code><span><span class="co">##             sigma     range        nu</span></span>
+<span><span class="co">## Truth     1.30000 0.1264911 0.8000000</span></span>
+<span><span class="co">## Estimates 1.41325 0.1256281 0.9141135</span></span></code></pre>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 169.2462 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 140.3253 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -369,7 +369,7 @@ in the function. The default name of the model component (set in the
 index vector) is <code>field</code>.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## This is INLA_25.02.10 built 2025-02-09 19:59:04 UTC.</span></span>
+<pre><code><span><span class="co">## This is INLA_25.03.13 built 2025-03-12 21:15:52 UTC.</span></span>
 <span><span class="co">##  - See www.r-inla.org/contact-us for how to get help.</span></span>
 <span><span class="co">##  - List available models/likelihoods/etc with inla.list.models()</span></span>
 <span><span class="co">##  - Use inla.doc(&lt;NAME&gt;) to access documentation</span></span></code></pre>
@@ -385,8 +385,8 @@ index vector) is <code>field</code>.</p>
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">res</span>, <span class="st">"field"</span>, <span class="va">inla_model</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span> </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##            mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## std.dev 1.02833 0.343708   0.574487 0.950783    1.88264 0.836466</span></span>
-<span><span class="co">## range   2.96529 2.377910   0.762284 2.271240    9.26619 1.549220</span></span></code></pre>
+<span><span class="co">## std.dev 1.02857 0.343982   0.574395 0.950952    1.88360 0.836723</span></span>
+<span><span class="co">## range   2.96701 2.380860   0.761954 2.272050    9.27163 1.551090</span></span></code></pre>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">posterior_df_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gg_df.html">gg_df</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span></span>
@@ -430,9 +430,9 @@ model component, and fit the model:</p>
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">bru_fit</span>, <span class="st">"field"</span>, <span class="va">bru_model</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span> </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##             mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## std.dev 1.070500 0.322373   0.595008 1.016870    1.82164 0.925785</span></span>
-<span><span class="co">## range   0.809721 0.264487   0.411499 0.772501    1.44315 0.707700</span></span>
-<span><span class="co">## nu      0.974057 0.199421   0.600190 0.968781    1.37195 0.948607</span></span></code></pre>
+<span><span class="co">## std.dev 1.070500 0.322373   0.595008 1.016860    1.82164 0.925785</span></span>
+<span><span class="co">## range   0.809721 0.264487   0.411480 0.772476    1.44316 0.707700</span></span>
+<span><span class="co">## nu      0.974057 0.199421   0.600163 0.968782    1.37197 0.948607</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="kriging-with-the-inlabru-implementation">Kriging with the inlabru implementation<a class="anchor" aria-label="anchor" href="#kriging-with-the-inlabru-implementation"></a>

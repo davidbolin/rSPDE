@@ -9,7 +9,7 @@ covariance-based rational SPDE approximation."><meta property="og:image" content
 
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.5.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,7 +56,18 @@ covariance-based rational SPDE approximation.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'intrinsicCBrSPDEobj'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">object</span>, nsim <span class="op">=</span> <span class="fl">1</span>, seed <span class="op">=</span> <span class="cn">NULL</span>, integral.constraint <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  nsim <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  kappa <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tau <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  alpha <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  beta <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  integral.constraint <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  use_kl <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -76,8 +87,28 @@ computed using <code><a href="intrinsic.matern.operators.html">intrinsic.matern.
 <dd><p>An object specifying if and how the random number generator should be initialized (‘seeded’).</p></dd>
 
 
+<dt id="arg-kappa">kappa<a class="anchor" aria-label="anchor" href="#arg-kappa"></a></dt>
+<dd><p>new value of kappa to use</p></dd>
+
+
+<dt id="arg-tau">tau<a class="anchor" aria-label="anchor" href="#arg-tau"></a></dt>
+<dd><p>new value of tau to use</p></dd>
+
+
+<dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
+<dd><p>new value of alpha to use</p></dd>
+
+
+<dt id="arg-beta">beta<a class="anchor" aria-label="anchor" href="#arg-beta"></a></dt>
+<dd><p>new value of beta to use</p></dd>
+
+
 <dt id="arg-integral-constraint">integral.constraint<a class="anchor" aria-label="anchor" href="#arg-integral-constraint"></a></dt>
 <dd><p>Should the contraint on the integral be done?</p></dd>
+
+
+<dt id="arg-use-kl">use_kl<a class="anchor" aria-label="anchor" href="#arg-use-kl"></a></dt>
+<dd><p>Simulate based on a KL expansion?</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
