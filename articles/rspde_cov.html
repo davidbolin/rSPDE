@@ -614,7 +614,7 @@ method:</p>
 <span><span class="co">## Number of function calls by 'optim' = 501</span></span>
 <span><span class="co">## Optimization method used in 'optim' = Nelder-Mead</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  7.86681 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  7.61082 secs</span></span></code></pre>
 <p>Let us compare the parameters of the latent model:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -629,7 +629,7 @@ method:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 7.86682 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 7.61083 secs</span></span></code></pre>
 <p>Let us take a glance at the fit:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
@@ -680,8 +680,8 @@ method:</p>
 <span><span class="co">## Number of function calls by 'optim' = 73</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  11.23322 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.52251 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  10.97254 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.44257 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -697,7 +697,7 @@ method:</p>
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 13.75574 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 13.41512 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -813,8 +813,8 @@ need to turn <code>y</code> into a vector and create an auxiliary vector
 <span><span class="co">## Number of function calls by 'optim' = 63</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  22.9931 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.63462 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  22.39388 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.5323 secs</span></span></code></pre>
 <p>and glance:</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">)</span></span></code></pre></div>
@@ -836,7 +836,7 @@ need to turn <code>y</code> into a vector and create an auxiliary vector
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 22.99311 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 22.39388 secs</span></span></code></pre>
 <p>We can obtain better estimates of the Hessian by setting
 <code>improve_hessian</code> to <code>TRUE</code>, however this might
 make the process take longer:</p>
@@ -878,9 +878,9 @@ make the process take longer:</p>
 <span><span class="co">## Number of function calls by 'optim' = 63</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  20.09484 secs </span></span>
-<span><span class="co">##   compute the Hessian = 6.33585 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.5706 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  19.95741 secs </span></span>
+<span><span class="co">##   compute the Hessian = 6.22177 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.54613 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -1050,8 +1050,8 @@ observation, and then we fit the model:</p>
 <span><span class="co">## Number of function calls by 'optim' = 30</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  1.43228 mins </span></span>
-<span><span class="co">##   set up the parallelization = 2.63431 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.41853 mins </span></span>
+<span><span class="co">##   set up the parallelization = 2.55389 secs</span></span></code></pre>
 <p>and glance:</p>
 <div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">)</span></span></code></pre></div>
@@ -1073,7 +1073,7 @@ observation, and then we fit the model:</p>
 <div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 1.432288 mins</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 1.418533 mins</span></span></code></pre>
 <p>Let us now plot the prediction for replicate 3 by using the
 <code>augment</code> function. We begin by creating the
 <code>data.frame</code> we want to do prediction:</p>
@@ -1216,8 +1216,8 @@ deviation σ to 1, and set the starting value for the range parameter to
 <span><span class="co">## Number of function calls by 'optim' = 8</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  15.67833 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.56853 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  15.52889 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.44395 secs</span></span></code></pre>
 <p>Notice in the summary that ν and σ are fixed at the specified values,
 and only the range parameter is estimated. When parameters are fixed,
 they do not appear in the parameter estimates section, but rather are
@@ -1281,7 +1281,7 @@ previous fit to initialize the optimization, you would use
 <span><span class="co">## Number of function calls by 'optim' = 33</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  3.02721 mins</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  3.01426 mins</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -1435,8 +1435,8 @@ data and the locations:</p>
 <span><span class="co">## Number of function calls by 'optim' = 74</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  16.945 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.64943 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  16.27031 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.60352 secs</span></span></code></pre>
 <p>Let us now compare with the true values:</p>
 <div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1500,8 +1500,8 @@ starting values, but these options must be set in the
 <span><span class="co">## Number of function calls by 'optim' = 42</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  7.71669 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.71621 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  7.64782 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.61209 secs</span></span></code></pre>
 <p>We can also fix the entire theta vector at once using the
 <code>fix_theta</code> parameter. This is particularly useful when we
 have strong prior knowledge about all the parameters:</p>
@@ -1539,8 +1539,8 @@ have strong prior knowledge about all the parameters:</p>
 <span><span class="co">## Number of function calls by 'optim' = 110</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  10.79898 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.68585 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  10.68059 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.60634 secs</span></span></code></pre>
 <p>Similarly, we can provide starting values for the entire theta vector
 with <code>start_theta</code>:</p>
 <div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
@@ -1583,8 +1583,8 @@ with <code>start_theta</code>:</p>
 <span><span class="co">## Number of function calls by 'optim' = 11</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  3.96254 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.58902 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  3.86912 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.57771 secs</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -1661,8 +1661,8 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <span><span class="co">## Number of function calls by 'optim' = 74</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  1.21698 mins </span></span>
-<span><span class="co">##   set up the parallelization = 2.51847 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.21406 mins </span></span>
+<span><span class="co">##   set up the parallelization = 2.5189 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1721,8 +1721,8 @@ with <code>brasil</code> rational approximation:</p>
 <span><span class="co">## Number of function calls by 'optim' = 27</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  34.03965 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.54676 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  33.26976 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.54863 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
