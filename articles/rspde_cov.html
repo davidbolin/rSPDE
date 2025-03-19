@@ -77,7 +77,7 @@
 Alexandre B. Simas, Zhen Xiong</h4>
             
             <h4 data-toc-skip class="date">Created: 2021-12-04. Last
-modified: 2025-03-18.</h4>
+modified: 2025-03-19.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rspde_cov.Rmd" class="external-link"><code>vignettes/rspde_cov.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_cov.Rmd</code></div>
@@ -486,7 +486,7 @@ different
 <span>  <span class="va">errors</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/norm-methods.html" class="external-link">norm</a></span><span class="op">(</span><span class="va">c.true</span> <span class="op">-</span> <span class="va">c_cov.approx</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">errors</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.977500618 0.086659189 0.017335545 0.008432137</span></span></code></pre>
+<pre><code><span><span class="co">## [1] 2.72288321 0.58558875 0.16311776 0.05787784</span></span></code></pre>
 <p>We see that the error decreases very fast when we increase
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
 from
@@ -589,32 +589,32 @@ method:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
-<span><span class="co">## (Intercept)  -0.8912    1.1634  -0.766    0.444</span></span>
-<span><span class="co">## x1            0.7755    2.0005   0.388    0.698</span></span>
+<span><span class="co">## (Intercept)  -0.6116    1.0479  -0.584    0.559</span></span>
+<span><span class="co">## x1            0.1310    1.8206   0.072    0.943</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu     0.68639   0.05961  11.514</span></span>
-<span><span class="co">## sigma  1.48549   0.29432   5.047</span></span>
-<span><span class="co">## range  0.14957   0.05090   2.939</span></span>
+<span><span class="co">## nu     0.75447   0.02009   37.56</span></span>
+<span><span class="co">## sigma  1.40599   0.25378    5.54</span></span>
+<span><span class="co">## range  0.12996   0.03703    3.51</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (SPDE parameterization):</span></span>
-<span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.18640   0.05961  19.902</span></span>
-<span><span class="co">## tau    0.06473   0.00710   9.116</span></span>
-<span><span class="co">## kappa 15.66668   5.20857   3.008</span></span>
+<span><span class="co">##        Estimate Std.error z-value</span></span>
+<span><span class="co">## alpha  1.254474  0.020085  62.457</span></span>
+<span><span class="co">## tau    0.047723  0.005287   9.026</span></span>
+<span><span class="co">## kappa 18.904397  5.182850   3.647</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev  0.31081   0.02411   12.89</span></span>
+<span><span class="co">## std. dev   0.3108    0.0231   13.46</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -153.4661 </span></span>
+<span><span class="co">## Log-Likelihood:  -152.0273 </span></span>
 <span><span class="co">## Number of function calls by 'optim' = 501</span></span>
 <span><span class="co">## Optimization method used in 'optim' = Nelder-Mead</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  7.61082 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  8.36756 secs</span></span></code></pre>
 <p>Let us compare the parameters of the latent model:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -625,18 +625,18 @@ method:</p>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                  nu    sigma     range</span></span>
 <span><span class="co">## Truth     0.8000000 1.300000 0.1264911</span></span>
-<span><span class="co">## Estimates 0.6863948 1.485491 0.1495736</span></span></code></pre>
+<span><span class="co">## Estimates 0.7544743 1.405989 0.1299584</span></span></code></pre>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 7.61083 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 8.367562 secs</span></span></code></pre>
 <p>Let us take a glance at the fit:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 8</span></span></span>
 <span><span class="co">##    nobs sigma logLik   AIC   BIC deviance df.residual model                     </span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span>   200 0.311  -<span style="color: #BB0000;">153.</span>  319.  339.     307.         194 Covariance-Based Matern S…</span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>   200 0.311  -<span style="color: #BB0000;">152.</span>  316.  336.     304.         194 Covariance-Based Matern S…</span></span></code></pre>
 <p>We can also speed up the optimization by setting
 <code>parallel=TRUE</code> (which uses implicitly the
 <code>optimParallel</code> function):</p>
@@ -655,33 +655,33 @@ method:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
-<span><span class="co">## (Intercept)  -0.7905    1.1853  -0.667    0.505</span></span>
-<span><span class="co">## x1            0.6039    2.0375   0.296    0.767</span></span>
+<span><span class="co">## (Intercept)  -0.9356    1.0700  -0.874    0.382</span></span>
+<span><span class="co">## x1            0.8143    1.8434   0.442    0.659</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu     0.68610       NaN     NaN</span></span>
-<span><span class="co">## sigma  1.50510   0.30660   4.909</span></span>
-<span><span class="co">## range  0.15259   0.04822   3.164</span></span>
+<span><span class="co">## nu      0.7429       NaN     NaN</span></span>
+<span><span class="co">## sigma   1.4509    0.2718   5.337</span></span>
+<span><span class="co">## range   0.1318       NaN     NaN</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (SPDE parameterization):</span></span>
 <span><span class="co">##        Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.186105        NA      NA</span></span>
-<span><span class="co">## tau    0.064832  0.007116   9.111</span></span>
-<span><span class="co">## kappa 15.354072  5.269959   2.914</span></span>
+<span><span class="co">## alpha  1.242855        NA      NA</span></span>
+<span><span class="co">## tau    0.048891  0.005413   9.032</span></span>
+<span><span class="co">## kappa 18.490777  5.445846   3.395</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev  0.31036   0.02326   13.34</span></span>
+<span><span class="co">## std. dev  0.30979   0.01949    15.9</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -153.4595 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 73</span></span>
+<span><span class="co">## Log-Likelihood:  -151.9017 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 119</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  10.97254 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.44257 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  17.22836 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.56607 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -692,12 +692,12 @@ method:</p>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##              sigma     range        nu</span></span>
 <span><span class="co">## Truth     1.300000 0.1264911 0.8000000</span></span>
-<span><span class="co">## Estimates 1.505099 0.1525867 0.6861048</span></span></code></pre>
+<span><span class="co">## Estimates 1.450857 0.1318384 0.7428554</span></span></code></pre>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 13.41512 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 19.79443 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -793,35 +793,35 @@ need to turn <code>y</code> into a vector and create an auxiliary vector
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu    0.717041       NaN     NaN</span></span>
-<span><span class="co">## sigma 1.277173  0.053718   23.78</span></span>
-<span><span class="co">## range 0.137381  0.008463   16.23</span></span>
+<span><span class="co">## nu    0.715847       NaN     NaN</span></span>
+<span><span class="co">## sigma 1.283286  0.054241   23.66</span></span>
+<span><span class="co">## range 0.139788  0.007767   18.00</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (SPDE parameterization):</span></span>
 <span><span class="co">##        Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.217041        NA      NA</span></span>
-<span><span class="co">## tau    0.063184  0.001612   39.19</span></span>
-<span><span class="co">## kappa 17.433727  1.192473   14.62</span></span>
+<span><span class="co">## alpha  1.215847        NA      NA</span></span>
+<span><span class="co">## tau    0.063960  0.001625   39.36</span></span>
+<span><span class="co">## kappa 17.119289  1.179470   14.51</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev 0.299305  0.004785   62.55</span></span>
+<span><span class="co">## std. dev  0.29920   0.00469    63.8</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -2757.289 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 63</span></span>
+<span><span class="co">## Log-Likelihood:  -2760.392 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 54</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  22.39388 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.5323 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  19.96475 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.76778 secs</span></span></code></pre>
 <p>and glance:</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 8</span></span></span>
 <span><span class="co">##    nobs sigma logLik   AIC   BIC deviance df.residual model                     </span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span>  <span style="text-decoration: underline;">4</span>000 0.299 -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">757.</span> <span style="text-decoration: underline;">5</span>523. <span style="text-decoration: underline;">5</span>548.    <span style="text-decoration: underline;">5</span>515.        <span style="text-decoration: underline;">3</span>996 Covariance-Based Matern S…</span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>  <span style="text-decoration: underline;">4</span>000 0.299 -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">760.</span> <span style="text-decoration: underline;">5</span>529. <span style="text-decoration: underline;">5</span>554.    <span style="text-decoration: underline;">5</span>521.        <span style="text-decoration: underline;">3</span>996 Covariance-Based Matern S…</span></span></code></pre>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -832,11 +832,11 @@ need to turn <code>y</code> into a vector and create an auxiliary vector
 <span>  <span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##              sigma     range        nu</span></span>
 <span><span class="co">## Truth     1.300000 0.1264911 0.8000000</span></span>
-<span><span class="co">## Estimates 1.277173 0.1373810 0.7170413</span></span></code></pre>
+<span><span class="co">## Estimates 1.283286 0.1397878 0.7158468</span></span></code></pre>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 22.39388 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 19.96475 secs</span></span></code></pre>
 <p>We can obtain better estimates of the Hessian by setting
 <code>improve_hessian</code> to <code>TRUE</code>, however this might
 make the process take longer:</p>
@@ -858,29 +858,29 @@ make the process take longer:</p>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu     0.71704   0.04493   15.96</span></span>
-<span><span class="co">## sigma  1.27717   0.05382   23.73</span></span>
-<span><span class="co">## range  0.13738   0.01278   10.75</span></span>
+<span><span class="co">## nu     0.71585   0.04549   15.74</span></span>
+<span><span class="co">## sigma  1.28329   0.05437   23.61</span></span>
+<span><span class="co">## range  0.13979   0.01344   10.40</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (SPDE parameterization):</span></span>
 <span><span class="co">##        Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.217041  0.044932   27.09</span></span>
-<span><span class="co">## tau    0.063184  0.001612   39.19</span></span>
-<span><span class="co">## kappa 17.433727  1.192476   14.62</span></span>
+<span><span class="co">## alpha  1.215847  0.045492   26.73</span></span>
+<span><span class="co">## tau    0.063960  0.001625   39.36</span></span>
+<span><span class="co">## kappa 17.119289  1.179473   14.51</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev 0.299305  0.005531   54.12</span></span>
+<span><span class="co">## std. dev 0.299198  0.005509   54.31</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -2757.289 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 63</span></span>
+<span><span class="co">## Log-Likelihood:  -2760.392 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 54</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  19.95741 secs </span></span>
-<span><span class="co">##   compute the Hessian = 6.22177 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.54613 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  17.5997 secs </span></span>
+<span><span class="co">##   compute the Hessian = 6.45824 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.53725 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -1010,14 +1010,8 @@ observation, and then we fit the model:</p>
 <span><span class="va">fit_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_2d_est</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_2d</span>, repl <span class="op">=</span> <span class="va">repl</span>,</span>
 <span>          loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning in rspde_lme(y ~ -1, model = op_cov_2d_est, data = df_data_2d, repl =</span></span>
-<span><span class="co">## repl, : The optimization failed to provide a numerically positive-definite</span></span>
-<span><span class="co">## Hessian. You can try to obtain a positive-definite Hessian by setting</span></span>
-<span><span class="co">## 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which allows other</span></span>
-<span><span class="co">## optimization methods to be used.</span></span></code></pre>
-<pre><code><span><span class="co">## Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre>
 <p>Let us get a summary:</p>
-<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Whittle-Matern</span></span>
@@ -1029,38 +1023,38 @@ observation, and then we fit the model:</p>
 <span><span class="co">## No fixed effects.</span></span></code></pre>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
-<span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.61190       NaN     NaN</span></span>
-<span><span class="co">## tau    0.05287       NaN     NaN</span></span>
-<span><span class="co">## kappa 14.40370   0.42599   33.81</span></span>
+<span><span class="co">##        Estimate Std.error z-value</span></span>
+<span><span class="co">## alpha  1.597605  0.004863  328.52</span></span>
+<span><span class="co">## tau    0.055376  0.001267   43.71</span></span>
+<span><span class="co">## kappa 14.381421  0.458797   31.35</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (Matern parameterization):</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu    0.611898        NA      NA</span></span>
-<span><span class="co">## sigma 1.333569  0.014179   94.05</span></span>
-<span><span class="co">## range 0.153607  0.004628   33.19</span></span>
+<span><span class="co">## nu    0.597605  0.004863  122.89</span></span>
+<span><span class="co">## sigma 1.339541  0.014051   95.33</span></span>
+<span><span class="co">## range 0.152037  0.004815   31.58</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##           Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev 0.1003312 0.0008779   114.3</span></span>
+<span><span class="co">## std. dev 0.1004194 0.0008793   114.2</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -5658.758 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 30</span></span>
+<span><span class="co">## Log-Likelihood:  -5657.679 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 69</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  1.41853 mins </span></span>
-<span><span class="co">##   set up the parallelization = 2.55389 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.87476 mins </span></span>
+<span><span class="co">##   set up the parallelization = 2.48852 secs</span></span></code></pre>
 <p>and glance:</p>
-<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 8</span></span></span>
 <span><span class="co">##    nobs sigma logLik    AIC    BIC deviance df.residual model                   </span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                   </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> <span style="text-decoration: underline;">15</span>000 0.100 -<span style="color: #BB0000; text-decoration: underline;">5</span><span style="color: #BB0000;">659.</span> <span style="text-decoration: underline;">11</span>326. <span style="text-decoration: underline;">11</span>356.   <span style="text-decoration: underline;">11</span>318.       <span style="text-decoration: underline;">14</span>996 Covariance-Based Matern…</span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> <span style="text-decoration: underline;">15</span>000 0.100 -<span style="color: #BB0000; text-decoration: underline;">5</span><span style="color: #BB0000;">658.</span> <span style="text-decoration: underline;">11</span>323. <span style="text-decoration: underline;">11</span>354.   <span style="text-decoration: underline;">11</span>315.       <span style="text-decoration: underline;">14</span>996 Covariance-Based Matern…</span></span></code></pre>
 <p>Let us compare the estimated results with the true values:</p>
-<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">fit_2d</span><span class="op">$</span><span class="va">alt_par_coeff</span><span class="op">$</span><span class="va">coeff</span><span class="op">[</span><span class="st">"sigma"</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>  range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">range</span>, <span class="va">fit_2d</span><span class="op">$</span><span class="va">alt_par_coeff</span><span class="op">$</span><span class="va">coeff</span><span class="op">[</span><span class="st">"range"</span><span class="op">]</span><span class="op">)</span>,</span>
@@ -1069,18 +1063,18 @@ observation, and then we fit the model:</p>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##              sigma     range        nu</span></span>
 <span><span class="co">## Truth     1.300000 0.1500000 0.7000000</span></span>
-<span><span class="co">## Estimates 1.333569 0.1536069 0.6118984</span></span></code></pre>
-<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<span><span class="co">## Estimates 1.339541 0.1520373 0.5976046</span></span></code></pre>
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 1.418533 mins</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 2.874761 mins</span></span></code></pre>
 <p>Let us now plot the prediction for replicate 3 by using the
 <code>augment</code> function. We begin by creating the
 <code>data.frame</code> we want to do prediction:</p>
-<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">proj</span><span class="op">$</span><span class="va">lattice</span><span class="op">$</span><span class="va">loc</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>,</span>
 <span>                        y <span class="op">=</span> <span class="va">proj</span><span class="op">$</span><span class="va">lattice</span><span class="op">$</span><span class="va">loc</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/augment.rspde_lme.html">augment</a></span><span class="op">(</span><span class="va">fit_2d</span>, newdata <span class="op">=</span> <span class="va">df_pred</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>,<span class="st">"y"</span><span class="op">)</span>, which_repl <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>              <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_raster</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">x</span>, y<span class="op">=</span><span class="va">y</span>, fill <span class="op">=</span> <span class="va">.fitted</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">xlim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>              <span class="fu"><a href="https://sjmgarnier.github.io/viridis/reference/scale_viridis.html" class="external-link">scale_fill_viridis</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -1170,7 +1164,7 @@ parameter</li>
 example. We will fix the smoothness parameter ν to 0.8, fix the standard
 deviation σ to 1, and set the starting value for the range parameter to
 0.15.</p>
-<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create a new model fit with fixed ν and σ, and a starting value for range</span></span>
 <span><span class="va">fit_2d_fixed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_2d_est</span>, </span>
 <span>                         data <span class="op">=</span> <span class="va">df_data_2d</span>, repl <span class="op">=</span> <span class="va">repl</span>,</span>
@@ -1182,7 +1176,7 @@ deviation σ to 1, and set the starting value for the range parameter to
 <span>                         <span class="op">)</span>,</span>
 <span>                         parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Let us get a summary of the fit:</p>
-<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_2d_fixed</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Whittle-Matern</span></span>
@@ -1198,42 +1192,42 @@ deviation σ to 1, and set the starting value for the range parameter to
 <span><span class="co">##               Estimate Std.error z-value</span></span>
 <span><span class="co">## nu (fixed)    0.800000        NA      NA</span></span>
 <span><span class="co">## sigma (fixed) 1.000000        NA      NA</span></span>
-<span><span class="co">## range         0.120128  0.001596   75.28</span></span>
+<span><span class="co">## range         0.119443  0.001593      75</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (SPDE parameterization):</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
 <span><span class="co">## alpha  1.80000        NA      NA</span></span>
-<span><span class="co">## tau    0.02755        NA      NA</span></span>
-<span><span class="co">## kappa 21.05937        NA      NA</span></span>
+<span><span class="co">## tau    0.02742        NA      NA</span></span>
+<span><span class="co">## kappa 21.18021        NA      NA</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##           Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev 0.1016867 0.0009018   112.8</span></span>
+<span><span class="co">## std. dev 0.1016883 0.0009017   112.8</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -6105.471 </span></span>
+<span><span class="co">## Log-Likelihood:  -6104.864 </span></span>
 <span><span class="co">## Number of function calls by 'optim' = 8</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  15.52889 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.44395 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  16.33175 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.63943 secs</span></span></code></pre>
 <p>Notice in the summary that ν and σ are fixed at the specified values,
 and only the range parameter is estimated. When parameters are fixed,
 they do not appear in the parameter estimates section, but rather are
 treated as constants.</p>
 <p>Let us compare this fit with our previous fit where all parameters
 were estimated:</p>
-<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compare the log-likelihoods</span></span>
 <span><span class="va">logLik_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">)</span></span>
 <span><span class="va">logLik_fixed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik</a></span><span class="op">(</span><span class="va">fit_2d_fixed</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Log-likelihood with all parameters estimated:"</span>, <span class="va">logLik_full</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Log-likelihood with all parameters estimated: -5658.758</span></span></code></pre>
-<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
+<pre><code><span><span class="co">## Log-likelihood with all parameters estimated: -5657.679</span></span></code></pre>
+<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Log-likelihood with fixed nu and sigma:"</span>, <span class="va">logLik_fixed</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Log-likelihood with fixed nu and sigma: -6105.471</span></span></code></pre>
+<pre><code><span><span class="co">## Log-likelihood with fixed nu and sigma: -6104.864</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="using-a-previous-fit-to-initialize-the-optimization">Using a previous fit to initialize the optimization<a class="anchor" aria-label="anchor" href="#using-a-previous-fit-to-initialize-the-optimization"></a>
@@ -1242,13 +1236,16 @@ were estimated:</p>
 the <code>start_from_previous</code> argument. For example, to use the
 previous fit to initialize the optimization, you would use
 <code>start_from_previous = fit_2d</code>.</p>
-<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_2d_start</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_2d_est</span>, </span>
 <span>                         data <span class="op">=</span> <span class="va">df_data_2d</span>, repl <span class="op">=</span> <span class="va">repl</span>,</span>
 <span>                         loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>,, </span>
 <span>                         previous_fit <span class="op">=</span> <span class="va">fit_2d</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning in rspde_lme(y ~ -1, model = op_cov_2d_est, data = df_data_2d, repl =</span></span>
+<span><span class="co">## repl, : optim method L-BFGS-B failed to provide a positive-definite Hessian.</span></span>
+<span><span class="co">## Another optimization method was used.</span></span></code></pre>
 <p>Let us get a summary of the fit:</p>
-<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_2d_start</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Whittle-Matern</span></span>
@@ -1261,27 +1258,27 @@ previous fit to initialize the optimization, you would use
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##        Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.649224  0.005417  304.48</span></span>
-<span><span class="co">## tau    0.045733  0.001111   41.15</span></span>
-<span><span class="co">## kappa 14.934089  0.440754   33.88</span></span>
+<span><span class="co">## alpha 1.712e+00 5.722e-03  299.13</span></span>
+<span><span class="co">## tau   3.554e-02 9.076e-04   39.16</span></span>
+<span><span class="co">## kappa 1.602e+01 4.561e-01   35.13</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (Matern parameterization):</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu    0.649224  0.005417  119.86</span></span>
-<span><span class="co">## sigma 1.323302  0.014127   93.67</span></span>
-<span><span class="co">## range 0.152603  0.004460   34.22</span></span>
+<span><span class="co">## nu    0.711696  0.005722  124.37</span></span>
+<span><span class="co">## sigma 1.306607  0.013810   94.61</span></span>
+<span><span class="co">## range 0.148917  0.004209   35.38</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##           Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev 0.1003587 0.0008784   114.3</span></span>
+<span><span class="co">## std. dev 0.1004172 0.0008793   114.2</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -5658.698 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 33</span></span>
-<span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
+<span><span class="co">## Log-Likelihood:  -5657.875 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 125</span></span>
+<span><span class="co">## Optimization method used in 'optim' = Nelder-Mead</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  3.01426 mins</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.66321 mins</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -1324,7 +1321,7 @@ we have</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>ε</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">\varepsilon_1,\ldots,\varepsilon_{m}</annotation></semantics></math>
 are iid normally distributed with mean 0 and standard deviation 0.1.</p>
 <p>We begin by defining the domain and creating the mesh:</p>
-<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rec_domain</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span> <span class="op">*</span> <span class="fl">10</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span> <span class="op">*</span> <span class="fl">5</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">mesh</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/fmesher/reference/fm_mesh_2d.html" class="external-link">fm_mesh_2d</a></span><span class="op">(</span>loc.domain <span class="op">=</span> <span class="va">rec_domain</span>, cutoff <span class="op">=</span> <span class="fl">0.1</span>, </span>
@@ -1355,7 +1352,7 @@ and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mn>3</mn></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\theta_3=1</annotation></semantics></math>.
 Let us now build the model with the <code><a href="../reference/spde.matern.operators.html">spde.matern.operators()</a></code>
 function:</p>
-<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span>
 <span><span class="va">true_theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">B.sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="op">(</span><span class="va">mesh</span><span class="op">$</span><span class="va">loc</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">-</span> <span class="fl">5</span><span class="op">)</span> <span class="op">/</span> <span class="fl">10</span><span class="op">)</span></span>
@@ -1371,13 +1368,13 @@ function:</p>
 <span>  parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span></code></pre></div>
 <p>Let us now sample the data with the <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code>
 method:</p>
-<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op_cov_ns</span>, seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Let us now obtain 600 random locations on the rectangle and compute
 the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
 matrix:</p>
-<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m</span> <span class="op">&lt;-</span><span class="fl">600</span></span>
 <span><span class="va">loc_mesh</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="op">*</span> <span class="fl">10</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="op">*</span> <span class="fl">5</span><span class="op">)</span></span>
 <span></span>
@@ -1386,28 +1383,28 @@ matrix:</p>
 <span>  loc <span class="op">=</span> <span class="va">loc_mesh</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>We can now generate the response vector <code>y</code>:</p>
-<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">u</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="op">*</span> <span class="fl">0.3</span></span></code></pre></div>
 <p>Let us now create the object to fit the data:</p>
-<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">op_cov_ns_est</span> <span class="op">&lt;-</span> <span class="va">op_cov_ns</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spde.matern.operators.html">spde.matern.operators</a></span><span class="op">(</span>mesh <span class="op">=</span> <span class="va">mesh</span>, </span>
 <span>  B.sigma <span class="op">=</span> <span class="va">B.sigma</span>, </span>
 <span>  B.range <span class="op">=</span> <span class="va">B.range</span>,</span>
 <span>  parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span></span></code></pre></div>
 <p>Let us also create the <code><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame()</a></code> that contains the
 data and the locations:</p>
-<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_data_ns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y<span class="op">=</span> <span class="va">y</span>, x_coord <span class="op">=</span> <span class="va">loc_mesh</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, y_coord <span class="op">=</span> <span class="va">loc_mesh</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="fitting-the-non-stationary-rspde-model">Fitting the non-stationary rSPDE model<a class="anchor" aria-label="anchor" href="#fitting-the-non-stationary-rspde-model"></a>
 </h3>
-<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_ns</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_ns_est</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_ns</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, </span>
 <span>          parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Let us get the summary:</p>
-<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_ns</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Generalized Whittle-Matern</span></span>
@@ -1419,35 +1416,35 @@ data and the locations:</p>
 <span><span class="co">## No fixed effects.</span></span></code></pre>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
-<span><span class="co">##         Estimate Std.error z-value</span></span>
-<span><span class="co">## nu      0.816489  0.009498  85.967</span></span>
-<span><span class="co">## theta1 -0.214568  0.141435  -1.517</span></span>
-<span><span class="co">## theta2  1.038712  0.382340   2.717</span></span>
-<span><span class="co">## theta3  1.569593  0.376597   4.168</span></span>
+<span><span class="co">##        Estimate Std.error z-value</span></span>
+<span><span class="co">## nu      0.87846   0.02253  38.988</span></span>
+<span><span class="co">## theta1 -0.23610   0.10187  -2.318</span></span>
+<span><span class="co">## theta2  0.79453   0.26150   3.038</span></span>
+<span><span class="co">## theta3  1.78561   0.36328   4.915</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev  0.30540   0.01378   22.16</span></span>
+<span><span class="co">## std. dev  0.30996   0.01358   22.83</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -410.3911 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 74</span></span>
+<span><span class="co">## Log-Likelihood:  -379.6413 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 42</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  16.27031 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.60352 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  10.50368 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.65976 secs</span></span></code></pre>
 <p>Let us now compare with the true values:</p>
-<div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  theta1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">true_theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>  theta2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">true_theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  theta3 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">true_theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">alpha</span><span class="op">-</span><span class="fl">1</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##              theta1   theta2   theta3        nu</span></span>
-<span><span class="co">## Truth      0.000000 1.000000 1.000000 0.8000000</span></span>
-<span><span class="co">## Estimates -0.214568 1.038712 1.569593 0.8164893</span></span></code></pre>
+<pre><code><span><span class="co">##              theta1    theta2   theta3        nu</span></span>
+<span><span class="co">## Truth      0.000000 1.0000000 1.000000 0.8000000</span></span>
+<span><span class="co">## Estimates -0.236097 0.7945311 1.785615 0.8784613</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="fixing-parameters-in-non-stationary-models">Fixing parameters in non-stationary models<a class="anchor" aria-label="anchor" href="#fixing-parameters-in-non-stationary-models"></a>
@@ -1460,18 +1457,12 @@ starting values, but these options must be set in the
 <code>fix_theta2</code>, etc., or <code>start_theta1</code>,
 <code>start_theta2</code>, etc.</p>
 <p>For example, if we want to fix the first coefficient theta1 to 0:</p>
-<div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_ns_fixed_theta1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_ns_est</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_ns</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, </span>
 <span>          model_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fix_theta1 <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,  <span class="co"># Fix theta1 to 0</span></span>
 <span>          parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning in rspde_lme(y ~ -1, model = op_cov_ns_est, data = df_data_ns, loc =</span></span>
-<span><span class="co">## c("x_coord", : The optimization failed to provide a numerically</span></span>
-<span><span class="co">## positive-definite Hessian. You can try to obtain a positive-definite Hessian by</span></span>
-<span><span class="co">## setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which</span></span>
-<span><span class="co">## allows other optimization methods to be used.</span></span></code></pre>
-<pre><code><span><span class="co">## Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre>
-<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_ns_fixed_theta1</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Generalized Whittle-Matern</span></span>
@@ -1485,32 +1476,32 @@ starting values, but these options must be set in the
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##                Estimate Std.error z-value</span></span>
-<span><span class="co">## nu              0.59996       NaN     NaN</span></span>
-<span><span class="co">## theta1 (fixed)  0.00000        NA      NA</span></span>
-<span><span class="co">## theta2          1.21481   0.28264   4.298</span></span>
-<span><span class="co">## theta3          0.80226   0.08776   9.142</span></span>
+<span><span class="co">## nu             0.627515  0.007208  87.054</span></span>
+<span><span class="co">## theta1 (fixed) 0.000000        NA      NA</span></span>
+<span><span class="co">## theta2         1.155768  0.233188   4.956</span></span>
+<span><span class="co">## theta3         1.017623  0.185325   5.491</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev  0.30295   0.01313   23.06</span></span>
+<span><span class="co">## std. dev  0.30425   0.01284    23.7</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -413.3194 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 42</span></span>
+<span><span class="co">## Log-Likelihood:  -382.8119 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 69</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  7.64782 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.61209 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  12.19805 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.71383 secs</span></span></code></pre>
 <p>We can also fix the entire theta vector at once using the
 <code>fix_theta</code> parameter. This is particularly useful when we
 have strong prior knowledge about all the parameters:</p>
-<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_ns_fixed_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_ns_est</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_ns</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, </span>
 <span>          model_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fix_theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,  <span class="co"># Fix the entire theta vector</span></span>
 <span>          parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb115"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_ns_fixed_all</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Generalized Whittle-Matern</span></span>
@@ -1524,37 +1515,31 @@ have strong prior knowledge about all the parameters:</p>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##                Estimate Std.error z-value</span></span>
-<span><span class="co">## nu             0.725508  0.006906     105</span></span>
-<span><span class="co">## theta1 (fixed) 0.000000        NA      NA</span></span>
-<span><span class="co">## theta2 (fixed) 1.000000        NA      NA</span></span>
-<span><span class="co">## theta3 (fixed) 1.000000        NA      NA</span></span>
+<span><span class="co">## nu               0.6605    0.0067   98.59</span></span>
+<span><span class="co">## theta1 (fixed)   0.0000        NA      NA</span></span>
+<span><span class="co">## theta2 (fixed)   1.0000        NA      NA</span></span>
+<span><span class="co">## theta3 (fixed)   1.0000        NA      NA</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev  0.30388   0.01278   23.78</span></span>
+<span><span class="co">## std. dev  0.30295   0.01228   24.66</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -412.579 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 110</span></span>
+<span><span class="co">## Log-Likelihood:  -382.8519 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 94</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  10.68059 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.60634 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  9.37727 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.70013 secs</span></span></code></pre>
 <p>Similarly, we can provide starting values for the entire theta vector
 with <code>start_theta</code>:</p>
-<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_ns_start</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_ns_est</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_ns</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, </span>
 <span>          model_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>start_theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,  <span class="co"># Starting values for theta vector</span></span>
 <span>          parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning in rspde_lme(y ~ -1, model = op_cov_ns_est, data = df_data_ns, loc =</span></span>
-<span><span class="co">## c("x_coord", : The optimization failed to provide a numerically</span></span>
-<span><span class="co">## positive-definite Hessian. You can try to obtain a positive-definite Hessian by</span></span>
-<span><span class="co">## setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which</span></span>
-<span><span class="co">## allows other optimization methods to be used.</span></span></code></pre>
-<pre><code><span><span class="co">## Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre>
-<div class="sourceCode" id="cb122"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb117"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_ns_start</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Generalized Whittle-Matern</span></span>
@@ -1568,23 +1553,23 @@ with <code>start_theta</code>:</p>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##        Estimate Std.error z-value</span></span>
-<span><span class="co">## nu       0.6467       NaN     NaN</span></span>
-<span><span class="co">## theta1  -0.2324    0.1075  -2.162</span></span>
-<span><span class="co">## theta2   0.9573    0.3456   2.770</span></span>
-<span><span class="co">## theta3   1.1473    0.3058   3.752</span></span>
+<span><span class="co">## nu      0.87947   0.01740  50.550</span></span>
+<span><span class="co">## theta1 -0.24668   0.09975  -2.473</span></span>
+<span><span class="co">## theta2  0.78163   0.26468   2.953</span></span>
+<span><span class="co">## theta3  1.79631   0.37894   4.740</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev  0.31369   0.01401   22.38</span></span>
+<span><span class="co">## std. dev  0.31015   0.01362   22.77</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -412.3899 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 11</span></span>
+<span><span class="co">## Log-Likelihood:  -379.649 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 46</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  3.86912 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.57771 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  11.84827 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.70961 secs</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -1602,7 +1587,7 @@ zero lower bound and non-zero lower bounds are given, respectively, by
 the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <p>For instance, we can create an <code>rSPDE</code> object with a
 <code>chebfunLB</code> rational approximation by</p>
-<div class="sourceCode" id="cb126"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb121"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">op_cov_2d_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/matern.operators.html">matern.operators</a></span><span class="op">(</span></span>
 <span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
 <span>  m <span class="op">=</span> <span class="fl">2</span>,</span>
@@ -1612,13 +1597,13 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <p>We can check the order of the rational approximation with the
 <code><a href="../reference/rational.order.html">rational.order()</a></code> function and assign a new order with the
 <code>rational.order&lt;-()</code> function:</p>
-<div class="sourceCode" id="cb127"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb122"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.order.html">rational.order</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 2</span></span></code></pre>
-<div class="sourceCode" id="cb129"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb124"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.order.html">rational.order</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fl">1</span></span></code></pre></div>
 <p>Let us fit a model using the data from the previous example:</p>
-<div class="sourceCode" id="cb130"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb125"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_order1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_2d_type</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_2d</span>,repl <span class="op">=</span> <span class="va">repl</span>,</span>
 <span>          loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -1628,7 +1613,7 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <span><span class="co">## or by setting 'parallel' to FALSE, which allows other optimization methods to</span></span>
 <span><span class="co">## be used.</span></span></code></pre>
 <pre><code><span><span class="co">## Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre>
-<div class="sourceCode" id="cb133"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb128"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_order1</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Whittle-Matern</span></span>
@@ -1641,54 +1626,60 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha   1.5999       NaN     NaN</span></span>
-<span><span class="co">## tau     0.0527       NaN     NaN</span></span>
-<span><span class="co">## kappa  15.0851    0.4252   35.48</span></span>
+<span><span class="co">## alpha  1.61193       NaN     NaN</span></span>
+<span><span class="co">## tau    0.05022       NaN     NaN</span></span>
+<span><span class="co">## kappa 15.36259   0.42734   35.95</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (Matern parameterization):</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu    0.599900        NA      NA</span></span>
-<span><span class="co">## sigma 1.356754  0.014574    93.1</span></span>
-<span><span class="co">## range 0.145223  0.004162    34.9</span></span>
+<span><span class="co">## nu    0.611925        NA      NA</span></span>
+<span><span class="co">## sigma 1.349526  0.014388   93.79</span></span>
+<span><span class="co">## range 0.144022  0.004072   35.37</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##           Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev 0.1003717 0.0008786   114.2</span></span>
+<span><span class="co">## std. dev 0.1003691 0.0008785   114.3</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -5658.602 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 74</span></span>
+<span><span class="co">## Log-Likelihood:  -5657.867 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 42</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  1.21406 mins </span></span>
-<span><span class="co">##   set up the parallelization = 2.5189 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  49.14744 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.65148 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
-<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb132"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">fit_order1</span><span class="op">$</span><span class="va">alt_par_coeff</span><span class="op">$</span><span class="va">coeff</span><span class="op">[</span><span class="st">"sigma"</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>  range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">range</span>, <span class="va">fit_order1</span><span class="op">$</span><span class="va">alt_par_coeff</span><span class="op">$</span><span class="va">coeff</span><span class="op">[</span><span class="st">"range"</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="va">fit_order1</span><span class="op">$</span><span class="va">alt_par_coeff</span><span class="op">$</span><span class="va">coeff</span><span class="op">[</span><span class="st">"nu"</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##              sigma    range        nu</span></span>
-<span><span class="co">## Truth     1.300000 0.150000 0.8000000</span></span>
-<span><span class="co">## Estimates 1.356754 0.145223 0.5998999</span></span></code></pre>
+<pre><code><span><span class="co">##              sigma     range        nu</span></span>
+<span><span class="co">## Truth     1.300000 0.1500000 0.8000000</span></span>
+<span><span class="co">## Estimates 1.349526 0.1440223 0.6119254</span></span></code></pre>
 <p>Finally, we can check the type of rational approximation with the
 <code><a href="../reference/rational.type.html">rational.type()</a></code> function and assign a new type by using the
 <code>rational.type&lt;-()</code> function:</p>
-<div class="sourceCode" id="cb139"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb134"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.type.html">rational.type</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "chebfunLB"</span></span></code></pre>
-<div class="sourceCode" id="cb141"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb136"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.type.html">rational.type</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"brasil"</span></span></code></pre></div>
 <p>Let us now fit this model, with the data from the previous example,
 with <code>brasil</code> rational approximation:</p>
-<div class="sourceCode" id="cb142"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_brasil</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_2d_type</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_2d</span>,repl <span class="op">=</span> <span class="va">repl</span>,</span>
 <span>          loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
+<pre><code><span><span class="co">## Warning in rspde_lme(y ~ -1, model = op_cov_2d_type, data = df_data_2d, : The</span></span>
+<span><span class="co">## optimization failed to provide a numerically positive-definite Hessian. You can</span></span>
+<span><span class="co">## try to obtain a positive-definite Hessian by setting 'improve_hessian' to TRUE</span></span>
+<span><span class="co">## or by setting 'parallel' to FALSE, which allows other optimization methods to</span></span>
+<span><span class="co">## be used.</span></span></code></pre>
+<pre><code><span><span class="co">## Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre>
+<div class="sourceCode" id="cb140"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_brasil</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Whittle-Matern</span></span>
@@ -1701,30 +1692,30 @@ with <code>brasil</code> rational approximation:</p>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.51671   0.05007  30.294</span></span>
-<span><span class="co">## tau    0.07370   0.01404   5.249</span></span>
-<span><span class="co">## kappa 13.87268   0.79479  17.455</span></span>
+<span><span class="co">## alpha  1.62691       NaN     NaN</span></span>
+<span><span class="co">## tau    0.04809       NaN     NaN</span></span>
+<span><span class="co">## kappa 15.53015   0.39376   39.44</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (Matern parameterization):</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu    0.516708  0.050067   10.32</span></span>
-<span><span class="co">## sigma 1.368135  0.014792   92.49</span></span>
-<span><span class="co">## range 0.146557  0.004064   36.07</span></span>
+<span><span class="co">## nu    0.626906        NA      NA</span></span>
+<span><span class="co">## sigma 1.327274  0.014232   93.26</span></span>
+<span><span class="co">## range 0.144202  0.003721   38.75</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##           Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev 0.1003723 0.0008786   114.2</span></span>
+<span><span class="co">## std. dev 0.1003903 0.0008789   114.2</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -5658.995 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 27</span></span>
+<span><span class="co">## Log-Likelihood:  -5659.434 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 55</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  33.26976 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.54863 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.01996 mins </span></span>
+<span><span class="co">##   set up the parallelization = 2.66862 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
-<div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb144"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">fit_brasil</span><span class="op">$</span><span class="va">alt_par_coeff</span><span class="op">$</span><span class="va">coeff</span><span class="op">[</span><span class="st">"sigma"</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>  range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">range</span>, <span class="va">fit_brasil</span><span class="op">$</span><span class="va">alt_par_coeff</span><span class="op">$</span><span class="va">coeff</span><span class="op">[</span><span class="st">"range"</span><span class="op">]</span><span class="op">)</span>,</span>
@@ -1733,7 +1724,7 @@ with <code>brasil</code> rational approximation:</p>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##              sigma     range        nu</span></span>
 <span><span class="co">## Truth     1.300000 0.1500000 0.8000000</span></span>
-<span><span class="co">## Estimates 1.368135 0.1465572 0.5167081</span></span></code></pre>
+<span><span class="co">## Estimates 1.327274 0.1442017 0.6269057</span></span></code></pre>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
