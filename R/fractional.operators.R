@@ -232,7 +232,7 @@ fractional.operators <- function(L,
 #' separately as a list?
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
-#' "chebfun", "brasil" or "chebfunLB".
+#' "brasil", "chebfun" or "chebfunLB".
 #' @param compute_logdet Should log determinants be computed while building the model? (For covariance-based models)
 #' @return If `type` is "covariance", then `matern.operators`
 #' returns an object of class "CBrSPDEobj".
@@ -395,8 +395,9 @@ matern.operators <- function(kappa = NULL,
                              compute_higher_order = FALSE,
                              return_block_list = FALSE,
                              type_rational_approximation = c(
+                               "brasil",
                                "chebfun",
-                               "brasil", "chebfunLB"
+                               "chebfunLB"
                              ),
                              compute_logdet = FALSE) {
   type <- type[[1]]
@@ -1094,7 +1095,7 @@ CBrSPDE.matern.operators <- function(C,
 #' "covariance" and "operator". The default is "covariance".
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
-#' "chebfun", "brasil" or "chebfunLB".
+#' "brasil", "chebfun" or "chebfunLB".
 #'
 #'
 #' @details The approximation is based on a rational approximation of the
@@ -1167,8 +1168,9 @@ spde.matern.operators <- function(kappa = NULL,
                                   m = 1,
                                   type = c("covariance", "operator"),
                                   type_rational_approximation = c(
+                                    "brasil",
                                     "chebfun",
-                                    "brasil", "chebfunLB"
+                                    "chebfunLB"
                                   )) {
   type <- type[[1]]
   if (!type %in% c("covariance", "operator")) {
@@ -1661,7 +1663,7 @@ spde.matern.operators <- function(kappa = NULL,
 #' positive integer. The default value is 1.
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
-#' "chebfun", "brasil" or "chebfunLB".
+#' "brasil", "chebfun" or "chebfunLB".
 #' @param return_fem_matrices Should the FEM matrices be returned?
 #' @return An object of type `CBrSPDEobj2d`
 #'
@@ -1685,8 +1687,9 @@ matern2d.operators <- function(hx = NULL,
                              fem = NULL,
                              m = 1,
                              type_rational_approximation = c(
+                                 "brasil",
                                  "chebfun",
-                                 "brasil", "chebfunLB"
+                                 "chebfunLB"
                              ),
                              return_fem_matrices = FALSE) {
 

@@ -2755,6 +2755,16 @@ general_checks_model_options <- function(model_options, model) {
   if (inherits(model, "spacetimeobj") && model$d == 1 && (!is.null(model_options$start_rho2) || !is.null(model_options$fix_rho2))) {
     stop("For 1d spacetime models, start_rho2 and fix_rho2 are not allowed.")
   }
+
+  # Check for intrinsic models with fix_alpha > 0 and fix_kappa
+  if (inherits(model, "intrinsicCBrSPDEobj") && 
+      !is.null(model_options$fix_alpha) && 
+      model_options$fix_alpha > 0 && 
+      !is.null(model_options$fix_kappa)) {
+    if (model_options$fix_kappa <= 0) {
+      stop("For intrinsic models with fix_alpha > 0, fix_kappa must be positive.")
+    }
+  }
   
   return(parameterization)
 }

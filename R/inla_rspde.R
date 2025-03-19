@@ -49,7 +49,7 @@
 #' @param nu.prec.inc Amount to increase the precision in the beta prior
 #' distribution. Check details below.
 #' @param type.rational.approx Which type of rational approximation
-#' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#' should be used? The current types are "brasil", "chebfun" or "chebfunLB".
 #' @param debug INLA debug argument
 #' @param shared_lib Which shared lib to use for the cgeneric implementation?
 #' If "detect", it will check if the shared lib exists locally, in which case it will
@@ -87,8 +87,9 @@ rspde.matern <- function(mesh,
                          prior.nu.dist = c("beta", "lognormal"),
                          nu.prec.inc = 1,
                          type.rational.approx = c(
+                           "brasil",
                            "chebfun",
-                           "brasil", "chebfunLB"
+                           "chebfunLB"
                          ),
                          debug = FALSE,
                          shared_lib = "detect",
@@ -112,7 +113,7 @@ rspde.matern <- function(mesh,
     stop("parameterization should be either 'matern', 'spde' or 'matern2'!")
   }
 
-  if (!type.rational.approx %in% c("chebfun", "brasil", "chebfunLB")) {
+  if (!type.rational.approx %in% c("brasil", "chebfun", "chebfunLB")) {
     stop("type.rational.approx should be either 'chebfun', 'brasil' or 'chebfunLB'!")
   }
 
@@ -2720,7 +2721,7 @@ rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
 #' @param sharp The sparsity graph should have the correct sparsity (costs
 #' more to perform a sparsity analysis) or an upper bound for the sparsity?
 #' @param type_rational_approx Which type of rational approximation
-#' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#' should be used? The current types are "brasil", "chebfun" or "chebfunLB".
 #' @return The precision matrix
 #' @export
 
@@ -2887,7 +2888,7 @@ rspde.matern.precision.opt <- function(
 #' @param return_block_list Logical. For `type = "covariance"`, should the
 #' block parts of the precision matrix be returned separately as a list?
 #' @param type_rational_approx Which type of rational approximation should be
-#' used? The current types are "chebfun", "brasil" or "chebfunLB".
+#' used? The current types are "brasil", "chebfun" or "chebfunLB".
 #'
 #' @return The precision matrix
 #' @export
@@ -2929,7 +2930,7 @@ rspde.matern.precision <- function(
     kappa, nu, tau = NULL, sigma = NULL,
     rspde.order, dim, fem_mesh_matrices,
     only_fractional = FALSE, return_block_list = FALSE,
-    type_rational_approx = "chebfun") {
+    type_rational_approx = "brasil") {
   if (is.null(tau) && is.null(sigma)) {
     stop("You should provide either tau or sigma!")
   }
@@ -3288,7 +3289,7 @@ rspde.matern.precision.integer <- function(
 #' @param nu.prec.inc Amount to increase the precision in the beta prior
 #' distribution. Check details below.
 #' @param type.rational.approx Which type of rational approximation
-#' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#' should be used? The current types are "brasil", "chebfun" or "chebfunLB".
 #' @param debug INLA debug argument
 #' @param shared_lib Which shared lib to use for the cgeneric implementation?
 #' If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
@@ -3325,8 +3326,9 @@ rspde.metric_graph <- function(graph_obj,
                                prior.nu.dist = c("lognormal", "beta"),
                                nu.prec.inc = 1,
                                type.rational.approx = c(
+                                 "brasil",
                                  "chebfun",
-                                 "brasil", "chebfunLB"
+                                 "chebfunLB"
                                ),
                                shared_lib = "INLA") {
   if (!inherits(graph_obj, "metric_graph")) {
@@ -3352,8 +3354,8 @@ rspde.metric_graph <- function(graph_obj,
     stop("parameterization should be either matern or spde!")
   }
 
-  if (!type.rational.approx %in% c("chebfun", "brasil", "chebfunLB")) {
-    stop("type.rational.approx should be either chebfun, brasil or chebfunLB!")
+  if (!type.rational.approx %in% c("brasil", "chebfun", "chebfunLB")) {
+    stop("type.rational.approx should be either brasil, chebfun or chebfunLB!")
   }
   if (is.null(graph_obj$mesh)) {
     if (is.null(h)) {
