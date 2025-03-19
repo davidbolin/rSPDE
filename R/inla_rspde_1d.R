@@ -43,7 +43,7 @@
 #' @param nu.prec.inc Amount to increase the precision in the beta prior
 #' distribution.
 #' @param type.rational.approx Which type of rational approximation
-#' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#' should be used? The current types are "brasil", "chebfun" or "chebfunLB".
 #' @param debug INLA debug argument
 #' @param shared_lib Which shared lib to use for the cgeneric implementation?
 #' If "detect", it will check if the shared lib exists locally, in which case it will
@@ -77,8 +77,9 @@ rspde.matern1d <- function(loc,
                          prior.nu.dist = c("beta", "lognormal"),
                          nu.prec.inc = 1,
                          type.rational.approx = c(
+                             "brasil",
                              "chebfun",
-                             "brasil", "chebfunLB"
+                             "chebfunLB"
                          ),
                          debug = FALSE,
                          shared_lib = "detect",
@@ -102,7 +103,7 @@ rspde.matern1d <- function(loc,
         stop("parameterization should be either 'matern', 'spde' or 'matern2'!")
     }
     
-    if (!type.rational.approx %in% c("chebfun", "brasil", "chebfunLB")) {
+    if (!type.rational.approx %in% c("brasil", "chebfun", "chebfunLB")) {
         stop("type.rational.approx should be either 'chebfun', 'brasil' or 'chebfunLB'!")
     }
     

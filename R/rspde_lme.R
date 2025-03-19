@@ -1413,7 +1413,26 @@ predict.rspde_lme <- function(object,
       } else {
           Aprd <- Matrix::Diagonal(nrow(object$latent_model$C))
           if(inherits(object$latent_model, "intrinsicCBrSPDEobj")) {
-              Aprd <- kronecker(matrix(1, 1, object$m), Aprd)  
+              # Extract alpha or beta from random effects
+              alpha_param <- grep("^alpha", names(object$coeff$random_effects), value = TRUE)
+              beta_param <- grep("^beta", names(object$coeff$random_effects), value = TRUE)
+              
+              if (length(alpha_param) > 0) {
+                alpha <- object$coeff$random_effects[[alpha_param]]
+              } else {
+                stop("alpha parameter not found in random effects")
+              }
+              
+              if (length(beta_param) > 0) {
+                beta <- object$coeff$random_effects[[beta_param]]
+              } else {
+                stop("beta parameter not found in random effects")
+              }
+              
+              # Apply kronecker product only if alpha or beta is non-integer
+              if (alpha %% 1 != 0 || beta %% 1 != 0) {
+                Aprd <- kronecker(matrix(1, 1, object$m), Aprd)
+              }
           } 
       }    
   } else {

@@ -23,7 +23,7 @@
 #' separately as a list?
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
-#' "chebfun", "brasil" or "chebfunLB".
+#' "brasil", "chebfun" or "chebfunLB".
 #' @param fem_mesh_matrices A list containing FEM-related matrices.
 #' The list should contain elements c0, g1, g2, g3, etc.
 #' @param scaling scaling factor, see details. 
@@ -71,8 +71,9 @@ intrinsic.operators <- function(tau = NULL,
                                 compute_higher_order = FALSE,
                                 return_block_list = FALSE,
                                 type_rational_approximation = c(
+                                           "brasil",
                                            "chebfun",
-                                           "brasil", "chebfunLB"
+                                           "chebfunLB"
                                            ),
                                 fem_mesh_matrices = NULL,
                                 scaling = NULL,
@@ -122,7 +123,7 @@ intrinsic.operators <- function(tau = NULL,
 #' separately as a list?
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
-#' "chebfun", "brasil" or "chebfunLB".
+#' "brasil", "chebfun" or "chebfunLB".
 #' @param fem_mesh_matrices A list containing FEM-related matrices.
 #' The list should contain elements c0, g1, g2, g3, etc.
 #' @param scaling scaling factor.
@@ -157,8 +158,8 @@ intrinsic.operators.internal <- function(C,
                                 compute_higher_order = FALSE,
                                 return_block_list = FALSE,
                                 type_rational_approximation = c(
-                                  "chebfun",
                                   "brasil",
+                                  "chebfun",
                                   "chebfunLB"
                                 ),
                                 fem_mesh_matrices = NULL,
@@ -541,7 +542,7 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 #' separately as a list?
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
-#' "chebfun", "brasil" or "chebfunLB".
+#' "brasil", "chebfun" or "chebfunLB".
 #' @param fem_mesh_matrices A list containing FEM-related matrices.
 #' The list should contain elements c0, g1, g2, g3, etc.
 #' @param scaling scaling factor, see details. 
