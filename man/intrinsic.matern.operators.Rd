@@ -63,7 +63,7 @@ separately as a list?}
 
 \item{type_rational_approximation}{Which type of rational
 approximation should be used? The current types are
-"chebfun", "brasil" or "chebfunLB".}
+"brasil", "chebfun" or "chebfunLB".}
 
 \item{fem_mesh_matrices}{A list containing FEM-related matrices.
 The list should contain elements c0, g1, g2, g3, etc.}

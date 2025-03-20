@@ -39,7 +39,7 @@ be returned.}
 more to perform a sparsity analysis) or an upper bound for the sparsity?}
 
 \item{type_rational_approx}{Which type of rational approximation
-should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
+should be used? The current types are "brasil", "chebfun" or "chebfunLB".}
 }
 \value{
 The precision matrix
