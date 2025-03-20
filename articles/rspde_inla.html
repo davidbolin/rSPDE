@@ -426,7 +426,7 @@ of the RW1, and the parameters of the spatial field):</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.412, Running = 7.36, Post = 0.0532, Total = 7.83 </span></span>
+<span><span class="co">##     Pre = 0.414, Running = 7.25, Post = 0.0514, Total = 7.72 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.944 0.047      1.851    1.944      2.037 1.944   0</span></span>
@@ -862,7 +862,7 @@ some meaningless model.</p>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.235, Running = 52.8, Post = 1.35, Total = 54.3 </span></span>
+<span><span class="co">##     Pre = 0.238, Running = 52.7, Post = 1.4, Total = 54.3 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
@@ -999,7 +999,7 @@ us then update the formula and fit the model:</p>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit_2</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.228, Running = 10, Post = 0.036, Total = 10.3 </span></span>
+<span><span class="co">##     Pre = 0.23, Running = 9.7, Post = 0.0361, Total = 9.96 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.943 0.048      1.849    1.943      2.038 1.943   0</span></span>
@@ -1033,12 +1033,12 @@ value of <code>nu.upper.bound</code> of 2:</p>
 <code class="sourceCode R"><span><span class="co"># nu.upper.bound = 2</span></span>
 <span><span class="va">rspde_fit</span><span class="op">$</span><span class="va">cpu.used</span></span></code></pre></div>
 <pre><code><span><span class="co">##        Pre    Running       Post      Total </span></span>
-<span><span class="co">## 0.41188097 7.36355448 0.05322313 7.82865858</span></span></code></pre>
+<span><span class="co">## 0.41362333 7.25330257 0.05143523 7.71836114</span></span></code></pre>
 <div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># nu.upper.bound = 4</span></span>
 <span><span class="va">rspde_fit_2</span><span class="op">$</span><span class="va">cpu.used</span></span></code></pre></div>
-<pre><code><span><span class="co">##         Pre     Running        Post       Total </span></span>
-<span><span class="co">##  0.22762012 10.01731420  0.03596449 10.28089881</span></span></code></pre>
+<pre><code><span><span class="co">##        Pre    Running       Post      Total </span></span>
+<span><span class="co">## 0.22977233 9.69890356 0.03608179 9.96475768</span></span></code></pre>
 <p>We can see that the fit for <code>nu.upper.bound</code> equal to 2
 was considerably faster.</p>
 <p>Finally, let us get the result results for the field and see the
@@ -1125,7 +1125,7 @@ matrix:</li>
 <div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit_order_3</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.238, Running = 21.6, Post = 0.077, Total = 21.9 </span></span>
+<span><span class="co">##     Pre = 0.233, Running = 20.5, Post = 0.0733, Total = 20.8 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.943 0.047      1.852    1.943      2.035 1.943   0</span></span>
@@ -1161,12 +1161,12 @@ significantly increased. Let us compare the cost of having
 <code class="sourceCode R"><span><span class="co"># order = 1</span></span>
 <span><span class="va">rspde_fit</span><span class="op">$</span><span class="va">cpu.used</span></span></code></pre></div>
 <pre><code><span><span class="co">##        Pre    Running       Post      Total </span></span>
-<span><span class="co">## 0.41188097 7.36355448 0.05322313 7.82865858</span></span></code></pre>
+<span><span class="co">## 0.41362333 7.25330257 0.05143523 7.71836114</span></span></code></pre>
 <div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># order = 3</span></span>
 <span><span class="va">rspde_fit_order_3</span><span class="op">$</span><span class="va">cpu.used</span></span></code></pre></div>
-<pre><code><span><span class="co">##         Pre     Running        Post       Total </span></span>
-<span><span class="co">##  0.23818469 21.58064556  0.07704878 21.89587903</span></span></code></pre>
+<pre><code><span><span class="co">##        Pre    Running       Post      Total </span></span>
+<span><span class="co">##  0.2334843 20.5131202  0.0732522 20.8198566</span></span></code></pre>
 <p>One can check the order of the rational approximation by using the
 <code><a href="../reference/rational.order.html">rational.order()</a></code> function. It also allows another way to
 change the order of the rational order, by using the corresponding
@@ -1233,7 +1233,7 @@ be 2:</p>
 <div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit_order_2</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.249, Running = 16.5, Post = 0.0446, Total = 16.8 </span></span>
+<span><span class="co">##     Pre = 0.234, Running = 15, Post = 0.0439, Total = 15.3 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.944 0.047      1.852    1.944      2.036 1.944   0</span></span>
@@ -1366,7 +1366,7 @@ matrix and the index of the first fitted model, which is also of order
 <div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fix</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.242, Running = 4.19, Post = 0.0347, Total = 4.47 </span></span>
+<span><span class="co">##     Pre = 0.23, Running = 4.02, Post = 0.0348, Total = 4.28 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.944 0.046      1.853    1.944      2.034 1.944   0</span></span>
@@ -1471,7 +1471,7 @@ matrix:</p>
 <div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fix_int_1</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.231, Running = 1.35, Post = 0.026, Total = 1.61 </span></span>
+<span><span class="co">##     Pre = 0.234, Running = 1.36, Post = 0.0275, Total = 1.62 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.944 0.047      1.852    1.944      2.036 1.944   0</span></span>
@@ -1847,7 +1847,7 @@ model:</p>
 <div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit_beta</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.233, Running = 5.1, Post = 0.0351, Total = 5.37 </span></span>
+<span><span class="co">##     Pre = 0.234, Running = 5.01, Post = 0.0363, Total = 5.28 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.944 0.048       1.85    1.944      2.038 1.944   0</span></span>
@@ -1948,7 +1948,7 @@ is to update the formula and fit:</p>
 <div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit_order_3_start</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.24, Running = 15.3, Post = 0.0538, Total = 15.6 </span></span>
+<span><span class="co">##     Pre = 0.235, Running = 14.6, Post = 0.0541, Total = 14.9 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.943 0.046      1.854    1.943      2.033 1.943   0</span></span>
@@ -2011,7 +2011,7 @@ approximation being 1:</p>
 <div class="sourceCode" id="cb117"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit_order_1_brasil</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.259, Running = 7.69, Post = 0.0361, Total = 7.98 </span></span>
+<span><span class="co">##     Pre = 0.255, Running = 7.24, Post = 0.0361, Total = 7.54 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.944 0.047      1.851    1.944      2.037 1.944   0</span></span>
@@ -2068,7 +2068,7 @@ with rational approximation of order 3:</p>
 <div class="sourceCode" id="cb124"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit_order_3_brasil</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.239, Running = 21.7, Post = 0.0544, Total = 22 </span></span>
+<span><span class="co">##     Pre = 0.241, Running = 20.7, Post = 0.053, Total = 21 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.943 0.047      1.852    1.943      2.035 1.943   0</span></span>
