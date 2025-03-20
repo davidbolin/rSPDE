@@ -15,7 +15,7 @@ rspde.intrinsic(
   prior.nu.dist = "lognormal",
   nu.prec.inc = 0.01,
   diagonal = 1e-05,
-  type.rational.approx = "chebfun",
+  type.rational.approx = "brasil",
   shared_lib = "detect",
   debug = FALSE,
   cache = TRUE,
@@ -57,7 +57,7 @@ distribution. Check details below.}
 \item{diagonal}{Number added to diagonal of Q for increased stability.}
 
 \item{type.rational.approx}{Which type of rational approximation
-should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
+should be used? The current types are "brasil", "chebfun" or "chebfunLB".}
 
 \item{shared_lib}{String specifying which shared library to use for the Cgeneric
 implementation. Options are "detect", "INLA", or "rSPDE". You may also specify the

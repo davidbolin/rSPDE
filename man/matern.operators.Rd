@@ -23,7 +23,7 @@ matern.operators(
   parameterization = c("spde", "matern"),
   compute_higher_order = FALSE,
   return_block_list = FALSE,
-  type_rational_approximation = c("chebfun", "brasil", "chebfunLB"),
+  type_rational_approximation = c("brasil", "chebfun", "chebfunLB"),
   compute_logdet = FALSE
 )
 }
@@ -74,7 +74,7 @@ separately as a list?}
 
 \item{type_rational_approximation}{Which type of rational
 approximation should be used? The current types are
-"chebfun", "brasil" or "chebfunLB".}
+"brasil", "chebfun" or "chebfunLB".}
 
 \item{compute_logdet}{Should log determinants be computed while building the model? (For covariance-based models)}
 }

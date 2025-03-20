@@ -17,7 +17,7 @@ rspde.anistropic2d(
   prior.nu = NULL,
   prior.nu.dist = "lognormal",
   nu.prec.inc = 0.01,
-  type.rational.approx = "chebfun",
+  type.rational.approx = "brasil",
   shared_lib = "detect",
   debug = FALSE,
   ...
@@ -62,7 +62,7 @@ The current options are "beta" or "lognormal". The default is "lognormal".}
 distribution. Check details below.}
 
 \item{type.rational.approx}{Which type of rational approximation
-should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
+should be used? The current types are "brasil", "chebfun" or "chebfunLB".}
 
 \item{shared_lib}{String specifying which shared library to use for the Cgeneric
 implementation. Options are "detect", "INLA", or "rSPDE". You may also specify the
