@@ -61,6 +61,10 @@ jobs:
           cd cran_vignettes
           cp * ../vignettes
           cd ..
+          cd man
+          git rm -rf figures
+          rm -rf figures
+          cd ..
           git rm -rf cran_vignettes
           git add vignettes
           sed -i .bak 's/#devel\.tag/#stable\.tag/' R/inla_rspde.R
