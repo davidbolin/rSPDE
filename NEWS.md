@@ -1,3 +1,5 @@
+# rSPDE (development version)
+
 # rSPDE 2.5.1
 
 * Added `model_options` argument to `rspde_lme()` function, which allows users to set starting values for different parameters and also to fix parameters during estimation.
