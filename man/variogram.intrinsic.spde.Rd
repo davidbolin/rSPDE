@@ -7,13 +7,14 @@
 variogram.intrinsic.spde(
   s0 = NULL,
   s = NULL,
-  kappa = NULL,
-  alpha = NULL,
+  kappa = 0,
+  alpha = 0,
   beta = NULL,
   tau = 1,
   L = NULL,
   N = 100,
-  d = NULL
+  d = NULL,
+  semi = FALSE
 )
 }
 \arguments{
@@ -36,6 +37,8 @@ variogram is computed}
 \item{N}{The number of terms in the Karhunen-Loeve expansion.}
 
 \item{d}{The dimension (1 or 2).}
+
+\item{semi}{Compute the semi variogram? Default FALSE.}
 }
 \description{
 Variogram \eqn{\gamma(s_0,s)}{\gamma(s_0,s)} of intrinsic SPDE

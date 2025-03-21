@@ -16,6 +16,7 @@ spacetime.operators(
   rho = NULL,
   alpha = NULL,
   beta = NULL,
+  graph_dirichlet = TRUE,
   bounded_rho = TRUE
 )
 }
@@ -44,11 +45,13 @@ one-dimensional spatial domains, a vector with two number on 2d domains.}
 
 \item{beta}{Integer smoothness parameter beta.}
 
-\item{bounded_rho}{Logical. Specifies whether \code{rho} should be bounded to ensure the existence, uniqueness, and well-posedness of the solution. Defaults to \code{TRUE}.
-Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties.
+\item{graph_dirichlet}{For models on metric graphs, use Dirichlet vertex conditions at vertices of degree 1?
 When \code{bounded_rho = TRUE}, the \code{rspde_lme} models enforce bounded \code{rho} for consistency.
 If the estimated value of \code{rho} approaches the upper bound too closely, we recommend refitting the model with \code{bounded_rho = FALSE}. However, this should be done with caution, as it may lead to instability in some cases, though it can also result in a better model fit.
 The actual bound used for \code{rho} can be accessed from the \code{bound_rho} element of the returned object.}
+
+\item{bounded_rho}{Logical. Specifies whether \code{rho} should be bounded to ensure the existence, uniqueness, and well-posedness of the solution. Defaults to \code{TRUE}.
+Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties.}
 }
 \value{
 An object of type spacetimeobj.

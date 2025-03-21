@@ -21,6 +21,7 @@
 #' @param beta Integer smoothness parameter beta.
 #' @param bounded_rho Logical. Specifies whether `rho` should be bounded to ensure the existence, uniqueness, and well-posedness of the solution. Defaults to `TRUE`. 
 #' Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties. 
+#' @param graph_dirichlet For models on metric graphs, use Dirichlet vertex conditions at vertices of degree 1?
 #' When `bounded_rho = TRUE`, the `rspde_lme` models enforce bounded `rho` for consistency. 
 #' If the estimated value of `rho` approaches the upper bound too closely, we recommend refitting the model with `bounded_rho = FALSE`. However, this should be done with caution, as it may lead to instability in some cases, though it can also result in a better model fit. 
 #' The actual bound used for `rho` can be accessed from the `bound_rho` element of the returned object.
@@ -52,6 +53,7 @@ spacetime.operators <- function(mesh_space = NULL,
                                 rho = NULL,
                                 alpha = NULL,
                                 beta = NULL,
+                                graph_dirichlet = TRUE,
                                 bounded_rho = TRUE) {
     
     
@@ -132,6 +134,17 @@ spacetime.operators <- function(mesh_space = NULL,
         G <- graph$mesh$G
         B <- graph$mesh$B
         has_graph <- TRUE
+        if(graph_dirichlet) { 
+            ns <- dim(C)[1]
+            d1.ind <- which(graph$get_degrees()==1)
+            ind.field <- setdiff(1:dim(C)[1], d1.ind)
+            C <- C[ind.field,ind.field]
+            Ci <- Ci[ind.field,ind.field]
+            G <- G[ind.field,ind.field]
+            B <- B[ind.field,ind.field]
+        } else {
+            ns <- dim(C)[1]
+        }
     } else if (!is.null(mesh_space)) {
         mesh <- mesh_space
         d <- fmesher::fm_manifold_dim(mesh)
@@ -152,6 +165,7 @@ spacetime.operators <- function(mesh_space = NULL,
             stop("Only supported for 1d and 2d meshes.")
         }
         has_mesh <- TRUE
+        ns <- dim(C)[1]
     } else {
         space_loc <- as.matrix(space_loc)
         if(min(dim(space_loc))>1) {
@@ -164,6 +178,7 @@ spacetime.operators <- function(mesh_space = NULL,
         B <- fem$B
         d <- 1
         mesh_space <- fm_mesh_1d(space_loc)
+        ns <- dim(C)[1]
     }
     if(alpha+beta<d/2){
         stop("You must have alpha+beta >= d, where d is the dimension of the spatial domain")
@@ -302,13 +317,17 @@ spacetime.operators <- function(mesh_space = NULL,
     }
     
     Q <- Q/sigma^2
-    if (!is.null(graph)) {
-        make_A <- function(loc, time) {
-            return(rSPDE.Ast(graph = graph, mesh_time = mesh_time, 
-                             obs.s = loc, obs.t = time))
-        }
-    } else {
-        make_A <- function(loc, time) {
+    make_A <- function(loc, time, dirichlet = TRUE, include_deg1 = FALSE) {
+        if (!is.null(graph)) {
+            if (graph_dirichlet && dirichlet && !include_deg1) {
+                return(rSPDE.Ast(graph = graph, mesh_time = mesh_time, 
+                                 obs.s = loc, obs.t = time, 
+                                 ind.field = ind.field))    
+            } else {
+                return(rSPDE.Ast(graph = graph, mesh_time = mesh_time, 
+                                 obs.s = loc, obs.t = time))
+            }
+        } else {
             return(rSPDE.Ast(mesh_space = mesh_space, mesh_time = mesh_time, 
                              obs.s = loc, obs.t = time))
         }
@@ -348,7 +367,14 @@ spacetime.operators <- function(mesh_space = NULL,
             plots <- list()
             for(j in 1:length(t.shift)) {
                 ind <- ((t.ind-t.shift[j]-1)*n+1):((t.ind-t.shift[j])*n)
-                plots[[j]] <- graph$plot_function(as.vector(tmp[ind]), vertex_size = 0)
+                if(graph_dirichlet) {
+                    f <- rep(0,dim(C)[1])
+                    f[ind.field] <- as.vector(tmp[ind])    
+                } else {
+                    f <- as.vector(tmp[ind])
+                }
+                
+                plots[[j]] <- graph$plot_function(f, vertex_size = 0)
             }
             
             pt <- ggplot2::ggplot(data.frame(t=mesh_time$loc, y=ct)) + 
@@ -484,12 +510,24 @@ spacetime.operators <- function(mesh_space = NULL,
     out$plot_covariances <- plot_covariances
     out$stationary <- TRUE
     out$bound_rho <- bound_rho
+    out$graph_dirichlet <- graph_dirichlet
+    if(has_graph && graph_dirichlet) {
+        out$ind.space <- ind.field
+        ind.st <- c()
+        for(i in 1:nt) {
+            ind.st <- c(ind.st, ind.field + (i-1)*ns)
+        }
+        out$ind.st <- ind.st
+    } 
+    out$ns <- ns
+    out$nt <- nt    
     out$is_bounded_rho <- bounded_rho
     
     class(out) <- "spacetimeobj"
     return(out)
 
 }
+
 
 
 #' @name update.spacetimeobj
@@ -514,8 +552,7 @@ spacetime.operators <- function(mesh_space = NULL,
 #'                              kappa = 5, sigma = 10, alpha = 1,
 #'                              beta = 2, rho = 1, gamma = 0.05)
 #'op_cov <- update(op_cov, kappa = 4, 
-#'                              sigma = 2, gamma = 0.1)      
-                        
+#'                              sigma = 2, gamma = 0.1)                              
 update.spacetimeobj <- function(object, 
                                 kappa = NULL,
                                 sigma = NULL,
@@ -633,8 +670,13 @@ simulate.spacetimeobj <- function(object, nsim = 1,
         
     LQ <- chol(forceSymmetric(object$Q))
     X <- solve(LQ, Z)
-    
-    return(as.matrix(X))
+    if(object$has_graph && object$graph_dirichlet) {
+        Xout <- matrix(0,object$ns*object$nt, nsim)
+        Xout[object$ind.st,] <- as.matrix(X)
+        return(Xout)
+    } else {
+        return(as.matrix(X))
+    }
 }
 
 
@@ -1030,6 +1072,7 @@ aux2_lme_spacetime.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, 
 #' @param graph MetricGraph object for models on metric graphs
 #' @param obs.s spatial locations of observations
 #' @param obs.t time points for observations
+#' @param ind.field indices for field (if Dirichlet conditions are used)
 #'
 #' @return Observation matrix linking observation locations to mesh nodes
 #' @export
@@ -1048,7 +1091,8 @@ rSPDE.Ast <- function(mesh_space = NULL,
                       time_loc = NULL,
                       graph = NULL,
                       obs.s = NULL, 
-                      obs.t = NULL) {
+                      obs.t = NULL,
+                      ind.field = NULL) {
     
     if ((!is.null(mesh_space) && !is.null(graph)) || (!is.null(mesh_space) && !is.null(space_loc)) || (!is.null(graph) && !is.null(space_loc))){
         stop("You should provide only one of mesh_space, space_loc or graph.")
@@ -1080,8 +1124,14 @@ rSPDE.Ast <- function(mesh_space = NULL,
     At <- rSPDE.A1d(time, obs.t)
     if(!is.null(graph)) {
         As <- graph$fem_basis(obs.s)
+        if(!is.null(ind.field)) {
+            As <- As[,ind.field]
+        }
     } else if (!is.null(mesh_space)){
         As <- fm_basis(mesh_space, obs.s)    
+        if(!is.null(ind.field)) {
+            As <- As[,ind.field]
+        }
     } else {
         space_loc <- as.matrix(space_loc)
         if(min(dim(space_loc))>1) {
@@ -1089,6 +1139,9 @@ rSPDE.Ast <- function(mesh_space = NULL,
         }
         mesh_space <- fm_mesh_1d(space_loc)
         As <- fm_basis(mesh_space, obs.s)    
+        if(!is.null(ind.field)) {
+            As <- As[,ind.field]
+        }
     }
     
     As.bar <- kronecker(matrix(1,nrow=1, ncol=length(time)),As)

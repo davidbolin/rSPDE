@@ -39,7 +39,7 @@ print.summary.rSPDEobj1d <- function(x, ...) {
             ", alpha = ", x$alpha, "\n")    
     }
     
-    cat("Order or rational approximation: ", x$order, "\n")
+    cat("Order or rational approximation: ", x$m, "\n")
 }
 
 #' @export
@@ -48,7 +48,95 @@ print.summary.rSPDEobj1d <- function(x, ...) {
 print.rSPDEobj1d <- function(x, ...) {
     print.summary.rSPDEobj1d(summary(x))
 }
+#' Summary method for class "intrinsicCBrSPDEobj"
+#'
+#' @param object an object of class "intrinsicCBrSPDEobj", usually, a result of a call
+#'   to [intrinsic.operators()].
+#' @param ... further arguments passed to or from other methods.
+#' @export
+#' @method summary intrinsicCBrSPDEobj
+summary.intrinsicCBrSPDEobj <- function(object, ...) {
+    out <- list()
+    class(out) <- "summary.intrinsicCBrSPDEobj"
+    
+    out$tau <- object$tau
+    out$beta <- object$beta
+    out$alpha <- object$alpha
+    out$kappa <- object$kappa
+    out$m <- object$m
+    out$d <- object$d
+    out$scaling <- object$scaling
+    out$type_rational_approximation <- object$type_rational_approximation
+    
+    return(out)
+}
 
+
+
+#' @param x an object of class "summary.intrinsicCBrSPDEobj", usually, a result of a call
+#'   to [summary.intrinsicCBrSPDEobj()].
+#' @export
+#' @method print summary.intrinsicCBrSPDEobj
+#' @rdname summary.intrinsicCBrSPDEobj
+print.summary.intrinsicCBrSPDEobj <- function(x, ...) {
+    cat("Intrinsic Whittle-Matern field\n")
+    
+    if (!is.null(x$parameterization)) {
+        cat("Parameterization: ", x$parameterization, "\n")
+    }
+    
+    if (!is.null(x$type_rational_approximation)) {
+        cat("Type of rational approximation: ", x$type_rational_approximation, "\n")
+    }
+    
+    # Print parameters in a more organized way
+    cat("Parameters of covariance function: ")
+    params <- character(0)
+    
+    if (!is.null(x$alpha)) {
+        params <- c(params, paste("alpha =", x$alpha))
+    }
+    if (!is.null(x$beta)) {
+        params <- c(params, paste("beta =", x$beta))
+    }
+    if (!is.null(x$tau)) {
+        params <- c(params, paste("tau =", x$tau))
+    }
+    if (!is.null(x$kappa)) {
+        params <- c(params, paste("kappa =", x$kappa))
+    }
+    
+    cat(paste(params, collapse = ", "), "\n")
+    
+    cat("Order of rational approximation: ", x$m, "\n")
+    
+    if (!is.null(x$n)) {
+        cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
+    }
+    
+    if (!is.null(x$d)) {
+        cat("Dimension: ", x$d, "\n")
+    }
+    
+    if (!is.null(x$scaling)) {
+        cat("Scaling factor: ", x$scaling, "\n")
+    }
+    
+    if (!is.null(x$stationary)) {
+        if (x$stationary) {
+            cat("Stationary Model\n")
+        } else {
+            cat("Non-Stationary Model\n")
+        }
+    }
+}
+
+#' @export
+#' @method print intrinsicCBrSPDEobj
+#' @rdname summary.intrinsicCBrSPDEobj
+print.intrinsicCBrSPDEobj <- function(x, ...) {
+    print.summary.intrinsicCBrSPDEobj(summary(x))
+}
 
 
 
@@ -286,7 +374,6 @@ print.CBrSPDEobj2d <- function(x, ...) {
 #' @param name Name of the parameter
 #' @return A data frame containing a basic summary
 #' @noRd
-
 create_summary_from_density <- function(density_df, name) {
     min_x <- min(density_df[, "x"])
     max_x <- max(density_df[, "x"])
@@ -310,29 +397,23 @@ create_summary_from_density <- function(density_df, name) {
             } else if (v >= max_x) {
                 return(1)
             } else {
-                stats::integrate(
-                    f = denstemp, lower = min_x, upper = v,
-                    stop.on.error = FALSE
-                )$value
+                safe_integrate(denstemp, min_x, v)
             }
         })
         return(prob_temp)
     }
     
-    mean_temp <- stats::integrate(
-        f = function(z) {
-            denstemp(z) * z
-        }, lower = min_x, upper = max_x,
-        subdivisions = nrow(density_df),
-        stop.on.error = FALSE
-    )$value
+    mean_temp <- safe_integrate(
+        function(z) { denstemp(z) * z }, 
+        min_x, max_x, 
+        subdivisions = nrow(density_df)
+    )
     
-    sd_temp <- sqrt(stats::integrate(
-        f = function(z) {
-            denstemp(z) * (z - mean_temp)^2
-        }, lower = min_x, upper = max_x,
-        stop.on.error = FALSE
-    )$value)
+    sd_temp <- sqrt(safe_integrate(
+        function(z) { denstemp(z) * (z - mean_temp)^2 }, 
+        min_x, max_x, 
+        subdivisions = nrow(density_df)
+    ))
     
     mode_temp <- density_df[which.max(density_df[, "y"]), "x"]
     
@@ -341,9 +422,19 @@ create_summary_from_density <- function(density_df, name) {
             if (x < 0 | x > 1) {
                 return(NaN)
             } else {
-                return(stats::uniroot(function(y) {
-                    ptemp(y) - x
-                }, lower = min_x, upper = max_x)$root)
+                # Use tryCatch to handle potential errors in uniroot
+                tryCatch({
+                    stats::uniroot(function(y) {
+                        ptemp(y) - x
+                    }, lower = min_x, upper = max_x, 
+                    tol = 1e-6, maxiter = 1000)$root
+                }, error = function(e) {
+                    warning(paste("Error in quantile calculation:", e$message))
+                    # Fallback: linear interpolation on CDF
+                    cdf_points <- seq(min_x, max_x, length.out = 200)
+                    cdf_values <- ptemp(cdf_points)
+                    approx(x = cdf_values, y = cdf_points, xout = x)$y
+                })
             }
         })
         return(quant_temp)

@@ -30,7 +30,7 @@ rspde.matern(
   prior.theta.param = c("theta", "spde"),
   prior.nu.dist = c("beta", "lognormal"),
   nu.prec.inc = 1,
-  type.rational.approx = c("chebfun", "brasil", "chebfunLB"),
+  type.rational.approx = c("brasil", "chebfun", "chebfunLB"),
   debug = FALSE,
   shared_lib = "detect",
   ...
@@ -100,7 +100,7 @@ The current options are "beta" or "lognormal". The default is "lognormal".}
 distribution. Check details below.}
 
 \item{type.rational.approx}{Which type of rational approximation
-should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
+should be used? The current types are "brasil", "chebfun" or "chebfunLB".}
 
 \item{debug}{INLA debug argument}
 

@@ -21,6 +21,9 @@ jobs:
         config:
           - {os: macOS-latest, r: 'release'}
 
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}    
+          
     steps:
       - uses: actions/checkout@v3
 
@@ -61,7 +64,7 @@ jobs:
           options(width = 100)
           pkgs <- installed.packages()[, "Package"]
           sessioninfo::session_info(pkgs, include_base = TRUE)
-        shell: Rscript {0}
+        shell: Rscript {0}         
       - uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false

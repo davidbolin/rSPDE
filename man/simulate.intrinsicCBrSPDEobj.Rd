@@ -5,7 +5,18 @@
 \title{Simulation of a fractional intrinsic SPDE using the
 covariance-based rational SPDE approximation}
 \usage{
-\method{simulate}{intrinsicCBrSPDEobj}(object, nsim = 1, seed = NULL, integral.constraint = TRUE, ...)
+\method{simulate}{intrinsicCBrSPDEobj}(
+  object,
+  nsim = 1,
+  seed = NULL,
+  kappa = NULL,
+  tau = NULL,
+  alpha = NULL,
+  beta = NULL,
+  integral.constraint = TRUE,
+  use_kl = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{The covariance-based rational SPDE approximation,
@@ -15,7 +26,17 @@ computed using \code{\link[=intrinsic.matern.operators]{intrinsic.matern.operato
 
 \item{seed}{An object specifying if and how the random number generator should be initialized (‘seeded’).}
 
+\item{kappa}{new value of kappa to use}
+
+\item{tau}{new value of tau to use}
+
+\item{alpha}{new value of alpha to use}
+
+\item{beta}{new value of beta to use}
+
 \item{integral.constraint}{Should the contraint on the integral be done?}
+
+\item{use_kl}{Simulate based on a KL expansion?}
 
 \item{...}{Currently not used.}
 }

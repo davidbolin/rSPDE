@@ -39,6 +39,7 @@
 #' default values will be used. The `mean` value is also used as starting value for gamma.
 #' @param prior.precision A precision matrix for \eqn{\log(\kappa), \log(\sigma), \log(\gamma), \rho}. This matrix replaces the precision
 #' element from `prior.kappa`, `prior.sigma`, `prior.gamma`, and `prior.rho` respectively. For dimension 1 `prior.precision` must be a 4x4 matrix. For dimension 2, \eqn{\rho} is a vector of length 2, so in this case `prior.precision` must be a 5x5 matrix. If `NULL`, a diagonal precision matrix with default values will be used.
+#' @param graph_dirichlet For models on metric graphs, use Dirichlet vertex conditions at vertices of degree 1?
 #' @param bounded_rho Logical. Should `rho` be bounded to ensure the existence, uniqueness, and well-posedness of the solution? Defaults to `TRUE`. 
 #' Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties. 
 #' When `bounded_rho = TRUE`, the `rspde_lme` models enforce bounded `rho` for consistency. 
@@ -64,6 +65,7 @@ rspde.spacetime <- function(mesh_space = NULL,
                             prior.rho = NULL,
                             prior.gamma = NULL,
                             prior.precision = NULL,
+                            graph_dirichlet = TRUE,
                             bounded_rho = TRUE,
                             shared_lib = "detect",
                             debug = FALSE,
@@ -101,7 +103,8 @@ rspde.spacetime <- function(mesh_space = NULL,
     rho = prior.rho$mean,
     alpha = alpha,
     beta = beta,
-    bounded_rho = bounded_rho
+    bounded_rho = bounded_rho,
+    graph_dirichlet = graph_dirichlet
   )
 
   default_precision <- 0.1
@@ -216,6 +219,9 @@ rspde.spacetime <- function(mesh_space = NULL,
     model$mesh <- op$mesh_space
   } else{
     model$mesh <- graph
+    if(graph_dirichlet) {
+        class(model$mesh) <- c("metric_graph_dirichlet", class(model$mesh))
+    }
   }
   model$time_mesh <- op$mesh_time
   model$rspde_version <- as.character(packageVersion("rSPDE"))
@@ -238,6 +244,11 @@ rspde.spacetime <- function(mesh_space = NULL,
 #'   S3method(inlabru::ibm_n, bru_mapper_metric_graph)
 #'   S3method(inlabru::ibm_values, bru_mapper_metric_graph)
 #'   S3method(inlabru::ibm_jacobian, bru_mapper_metric_graph)
+#'   S3method(inlabru::bru_mapper, metric_graph_dirichlet)
+#'   S3method(inlabru::ibm_n, bru_mapper_metric_graph_dirichlet)
+#'   S3method(inlabru::ibm_values, bru_mapper_metric_graph_dirichlet)
+#'   S3method(inlabru::ibm_jacobian, bru_mapper_metric_graph_dirichlet)
+
 #' }
 #'
 
@@ -275,4 +286,32 @@ ibm_jacobian.bru_mapper_metric_graph <- function(mapper, input, ...) {
     return(Matrix::Matrix(0, 0, inlabru::ibm_n(mapper)))
   }
   mapper[["mesh"]][["fem_basis"]](input)
+}
+
+## Dirichlet mappers 
+#' @noRd
+bru_mapper.metric_graph_dirichlet <- function(mesh, ...) {
+    mapper <- list(mesh = mesh)
+    inlabru::bru_mapper_define(mapper, new_class = "bru_mapper_metric_graph_dirichlet")
+}
+
+#' @noRd
+ibm_n.bru_mapper_metric_graph_dirichlet <- function(mapper, ...) {
+    nrow(mapper[["mesh"]][["mesh"]][["VtE"]]) - sum(mapper[["mesh"]]$get_degrees()==1)
+}
+
+#' @noRd
+ibm_values.bru_mapper_metric_graph_dirichlet <- function(mapper, ...) {
+    seq_len(nrow(mapper[["mesh"]][["mesh"]][["VtE"]]) - sum(mapper[["mesh"]]$get_degrees()==1))
+}
+
+#' @noRd
+ibm_jacobian.bru_mapper_metric_graph_dirichlet <- function(mapper, input, ...) {
+    if (is.null(input)) {
+        return(Matrix::Matrix(0, 0, inlabru::ibm_n(mapper)))
+    }
+    
+    ind.field <- setdiff(1:nrow(mapper[["mesh"]][["mesh"]][["VtE"]]), 
+                         which(mapper[["mesh"]]$get_degrees()==1))
+    mapper[["mesh"]][["fem_basis"]](input)[,ind.field]
 }

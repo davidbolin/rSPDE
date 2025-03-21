@@ -15,7 +15,7 @@ rspde.matern.precision(
   fem_mesh_matrices,
   only_fractional = FALSE,
   return_block_list = FALSE,
-  type_rational_approx = "chebfun"
+  type_rational_approx = "brasil"
 )
 }
 \arguments{
@@ -43,7 +43,7 @@ the precision matrix be returned?}
 block parts of the precision matrix be returned separately as a list?}
 
 \item{type_rational_approx}{Which type of rational approximation should be
-used? The current types are "chebfun", "brasil" or "chebfunLB".}
+used? The current types are "brasil", "chebfun" or "chebfunLB".}
 }
 \value{
 The precision matrix

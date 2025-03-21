@@ -1912,6 +1912,10 @@ spde.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' @param compute.variances Set to also TRUE to compute the kriging variances.
 #' @param posterior_samples If `TRUE`, posterior samples will be returned.
 #' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
+#' @param compute_var_method Method to compute the variances. Options are:
+#' "direct", "loop", and "selected_inv". The "direct" method computes the variance directly,
+#' which is faster but can be memory intensive. The "loop" method computes the variance by looping
+#' over the elements, which is more memory efficient but slower.
 #' @param only_latent Should the posterior samples be only given to the laten model?
 #' @param ... further arguments passed to or from other methods.
 #' @return A list with elements
@@ -1969,8 +1973,9 @@ spde.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
 #' lines(x, u.krig$mean - 2 * sqrt(u.krig$variance), col = 2)
 predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
                                compute.variances = FALSE, posterior_samples = FALSE,
-                               n_samples = 100, only_latent = FALSE,
+                               n_samples = 100, only_latent = FALSE, compute_var_method = c("direct", "loop"),
                                ...) {
+  compute_var_method <- match.arg(compute_var_method)
   Y <- as.matrix(Y)
   if (dim(Y)[1] != dim(A)[1]) {
     stop("the dimensions of A does not match the number of observations")
@@ -2003,6 +2008,16 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
   }
 
   alpha <- nu + d / 2
+  
+  if(length(mu) == 1) {
+      mu <- rep(mu, dim(object$Q)[1])
+  } else {
+      if(length(mu) == dim(object$C)[1] && dim(object$C)[1] < dim(object$Q)[1]) {
+          mu <- rep(mu,object$m+1) / (object$m+1)
+      } else if (length(mu) != dim(object$Q)[1]) {
+          stop("the length of mu is wrong.")
+      }
+  }
 
   if (!no_nugget) {
     if (alpha %% 1 == 0) { # loglikelihood in integer case
@@ -2011,7 +2026,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
       ## compute Q_x|y
       Q_xgiveny <- (t(A) %*% Q.e %*% A) + Q
       ## construct mu_x|y
-      mu_xgiveny <- t(A) %*% Q.e %*% Y
+      mu_xgiveny <- t(A) %*% Q.e %*% (Y - A%*%mu)
 
       R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
       mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
@@ -2030,7 +2045,8 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
       Q_xgiveny <- kronecker(matrix(1, m + 1, m + 1), t(A) %*% Q.e %*% A) + Q
       ## construct mu_x|y
       Abar <- kronecker(matrix(1, 1, m + 1), A)
-      mu_xgiveny <- t(Abar) %*% Q.e %*% Y
+      
+      mu_xgiveny <- t(Abar) %*% Q.e %*% (Y - Abar%*%mu)
       # upper triangle with reordering
       R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
 
@@ -2043,7 +2059,18 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
       out$mean <- Aprd_bar %*% mu_xgiveny
 
       if (compute.variances) {
-        out$variance <- diag(Aprd_bar %*% solve(Q_xgiveny, t(Aprd_bar)))
+        if(compute_var_method == "direct"){
+          out$variance <- diag(Aprd_bar %*% solve(Q_xgiveny, t(Aprd_bar)))
+        } else if (compute_var_method == "loop"){
+          out$variance <- rep(0, nrow(Aprd_bar))
+          for (i in 1:nrow(Aprd_bar)) {
+            out$variance[i] <- Aprd_bar[i, ] %*% solve(Q_xgiveny, Aprd_bar[i, ])
+          }
+        } 
+        # else{
+        #   sel_inv_Qxgiveny <- MetricGraph::selected_inv(Q_xgiveny)
+        #   out$variance <- diag(Aprd_bar %*% sel_inv_Qxgiveny %*% t(Aprd_bar))
+        # }
       }
     }
   } else {
@@ -2071,29 +2098,34 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
 
 
   if (posterior_samples) {
-    if (!no_nugget) {
-      if (alpha %% 1 == 0) {
-        post_cov <- Aprd %*% solve(Q_xgiveny, t(Aprd))
+      if (!no_nugget) {
+          Z <- rnorm(dim(object$Q)[1] * n_samples)
+          dim(Z) <- c(dim(object$Q)[1], n_samples)
+          LQ <-  chol(forceSymmetric(Q_xgiveny))
+          X <- as.matrix(solve(LQ, Z)) + kronecker(as.matrix(mu_xgiveny), 
+                                                   matrix(rep(1,n_samples),1,n_samples))
+          X <- Aprd %*% X
+          if (!only_latent) {
+              X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
+          }
+          return(X)
       } else {
-        post_cov <- Aprd_bar %*% solve(Q_xgiveny, t(Aprd_bar))
+          M <- Q - QiAt %*% solve(AQiA, t(QiAt))
+          post_cov <- Aprd %*% M %*% t(Aprd)
+          Y_tmp <- as.matrix(Y)
+          mean_tmp <- as.matrix(out$mean)
+          out$samples <- lapply(1:ncol(Y_tmp), function(i) {
+              Z <- rnorm(dim(post_cov)[1] * n_samples)
+              dim(Z) <- c(dim(post_cov)[1], n_samples)
+              LQ <-  Matrix::Cholesky(forceSymmetric(post_cov))
+              X <- LQ %*% Z
+              X <- X + mean_tmp[, i]
+              if (!only_latent) {
+                  X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
+              }
+              return(X)
+          })
       }
-    } else {
-      M <- Q - QiAt %*% solve(AQiA, t(QiAt))
-      post_cov <- Aprd_bar %*% M %*% t(Aprd_bar)
-    }
-    Y_tmp <- as.matrix(Y)
-    mean_tmp <- as.matrix(out$mean)
-    out$samples <- lapply(1:ncol(Y_tmp), function(i) {
-      Z <- rnorm(dim(post_cov)[1] * n_samples)
-      dim(Z) <- c(dim(post_cov)[1], n_samples)
-      LQ <- chol(forceSymmetric(post_cov))
-      X <- LQ %*% Z
-      X <- X + mean_tmp[, i]
-      if (!only_latent) {
-        X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
-      }
-      return(X)
-    })
   }
 
 

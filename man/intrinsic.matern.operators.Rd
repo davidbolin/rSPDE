@@ -19,9 +19,10 @@ intrinsic.matern.operators(
   m_beta = 2,
   compute_higher_order = FALSE,
   return_block_list = FALSE,
-  type_rational_approximation = c("chebfun", "brasil", "chebfunLB"),
+  type_rational_approximation = c("brasil", "chebfun", "chebfunLB"),
   fem_mesh_matrices = NULL,
-  scaling = NULL
+  scaling = NULL,
+  opts = NULL
 )
 }
 \arguments{
@@ -62,35 +63,44 @@ separately as a list?}
 
 \item{type_rational_approximation}{Which type of rational
 approximation should be used? The current types are
-"chebfun", "brasil" or "chebfunLB".}
+"brasil", "chebfun" or "chebfunLB".}
 
 \item{fem_mesh_matrices}{A list containing FEM-related matrices.
 The list should contain elements c0, g1, g2, g3, etc.}
 
-\item{scaling}{second lowest eigenvalue of g1}
+\item{scaling}{scaling factor, see details.}
+
+\item{opts}{options for numerical calulcation of the scaling, see details.}
 }
 \value{
 \code{intrinsic.matern.operators} returns an object of
-class "intrinsicCBrSPDEobj". This object is a list containing the
+class "intrinsicCBrSPDEobj". This object is a list including the
 following quantities:
 \item{C}{The mass lumped mass matrix.}
 \item{Ci}{The inverse of \code{C}.}
 \item{GCi}{The stiffness matrix G times \code{Ci}}
-\item{Gk}{The stiffness matrix G along with the higher-order
-FEM-related matrices G2, G3, etc.}
+\item{Q}{The precision matrix.}
+\item{Q_list}{A list containing the blocks required to assemble the precision matrix.}
+\item{alpha}{The fractional power of the Matérn part of the operator.}
+\item{beta}{The fractional power of the intrinsic part of the operator.}
+\item{kappa}{Range parameter of the covariance function}
+\item{tau}{Scale parameter of the covariance function.}
+\item{m_alpha}{The order of the rational approximation for the Matérn part.}
+\item{m_beta}{The order of the rational approximation for the intrinsic part.}
+\item{m}{The total number of blocks in the precision matrix.}
+\item{n}{The number of mesh nodes.}
+\item{d}{The dimension of the domain.}
+\item{type_rational_approximation}{String indicating the type of rational approximation.}
+\item{higher_order}{Boolean indicating if higher order FEM-related matrices are computed.}
+\item{return_block_list}{Boolean indicating if the precision matrix is returned as
+a list with the blocks.}
 \item{fem_mesh_matrices}{A list containing the mass lumped mass
 matrix, the stiffness matrix and
 the higher-order FEM-related matrices.}
-\item{m_alpha}{The order of the rational approximation for the Matérn part.}
-\item{m_beta}{The order of the rational approximation for the intrinsic part.}
-\item{alpha}{The fractional power of the Matérn part of the operator.}
-\item{beta}{The fractional power of the intrinsic part of the operator.}
-\item{type}{String indicating the type of approximation.}
-\item{d}{The dimension of the domain.}
+\item{make_A}{A function to compute the projection matrix which links the field to observation locations.}
+\item{variogram}{A function to compute the variogram of the model at a specified node.}
 \item{A}{Matrix that sums the components in the approximation to the mesh nodes.}
-\item{kappa}{Range parameter of the covariance function}
-\item{tau}{Scale parameter of the covariance function.}
-\item{type}{String indicating the type of approximation.}
+\item{scaling}{The scaling used in the intrinsic part of the model.}
 }
 \description{
 \code{intrinsic.matern.operators} is used for computing a
@@ -103,8 +113,10 @@ The covariance operator
 \deqn{\tau^{-2}(-\Delta)^{\beta}(\kappa^2-\Delta)^{\alpha}}{\tau^{-2}(-\Delta)^{\beta}(\kappa^2-\Delta)^{\alpha}}
 is approximated based on rational approximations of the two fractional
 components. The Laplacians are equipped with homogeneous Neumann boundary
-conditions and a zero-mean constraint is additionally imposed to obtained
-a non-intrinsic model.
+conditions. Unless supplied, the scaling is computed as the lowest positive eigenvalue of
+\code{sqrt(solve(c0))\%*\%g1\%*\%sqrt(solve(c0))}. opts provides a list of options for the
+numerical calculation of the scaling factor, which is done using \code{Rspectra::eigs_sym}.
+See the help of that function for details.
 }
 \examples{
 if (requireNamespace("RSpectra", quietly = TRUE)) {

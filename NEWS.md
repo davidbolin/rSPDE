@@ -1,3 +1,16 @@
+# rSPDE 2.5.1
+
+* Added `model_options` argument to `rspde_lme()` function, which allows users to set starting values for different parameters and also to fix parameters during estimation.
+* Added `previous_fit` argument to `rspde_lme()`, which allows users to provide a previously fitted model as input to obtain starting values for a new fit.
+
+# rSPDE 2.5.0
+
+* Improved the `cross_validation` function to allow for multiple likelihoods. 
+* General adjusts on `rspde.intrinsic` for stability. 
+* inlabru implementation for `rspde.intrinsic`. 
+* Improved warning messages when calling inla-related functions. 
+* Added `wCRPS` and `swCRPS` scores on `cross_validation`.
+
 # rSPDE 2.4.0
 
 * Created the `group_predict` function, to obtain predictions on a testing set based on observations on a training set.

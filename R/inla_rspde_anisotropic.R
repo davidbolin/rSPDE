@@ -39,7 +39,7 @@
 #' @param nu.prec.inc Amount to increase the precision in the beta prior
 #' distribution. Check details below.
 #' @param type.rational.approx Which type of rational approximation
-#' should be used? The current types are "chebfun", "brasil" or "chebfunLB".
+#' should be used? The current types are "brasil", "chebfun" or "chebfunLB".
 #' @param shared_lib String specifying which shared library to use for the Cgeneric
 #' implementation. Options are "detect", "INLA", or "rSPDE". You may also specify the
 #' direct path to a .so (or .dll) file.
@@ -61,7 +61,7 @@ rspde.anistropic2d <- function(mesh,
                                prior.nu = NULL,
                                prior.nu.dist = "lognormal",
                                nu.prec.inc = 0.01,
-                               type.rational.approx = "chebfun",
+                               type.rational.approx = "brasil",
                                shared_lib = "detect",
                                debug = FALSE,
                                ...) {

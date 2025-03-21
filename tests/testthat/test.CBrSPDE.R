@@ -12,7 +12,8 @@ test_that("Checking covariances of CBrSPDE", {
     op2 <- matern.operators(loc_mesh = s, 
     nu = nu, range = range, sigma = sigma,
       d = 1, m = 2,
-      parameterization = "matern"
+      parameterization = "matern",
+      type_rational_approximation = "chebfun"
     )
     v <- t(rSPDE.A1d(s, 0.5))
     c.true <- folded.matern.covariance.1d(s, rep(0.5,length(s)), kappa = sqrt(8*nu)/range, nu, sigma)
@@ -37,7 +38,8 @@ test_that("Checking loglike of CBrSPDE", {
   for (nu in c(0.8, 1.7, 2.6)) {
     op2 <- matern.operators(loc_mesh = s, nu = nu, range = range, sigma = sigma,
       d = 1, m = 2,
-      parameterization = "matern"
+      parameterization = "matern",
+      type_rational_approximation = "chebfun"
     )
     A <- Diagonal(nobs)
     sim_data <- A %*% simulate(op2) + rnorm(dim(A)[1], sd = 0.1)
@@ -51,7 +53,8 @@ test_that("Checking loglike of CBrSPDE", {
     op1 <- matern.operators(
       range = range, sigma = sigma, nu = nu,
       loc_mesh = s, d = 1, type = "operator",
-      parameterization = "matern"
+      parameterization = "matern",
+      type_rational_approximation = "chebfun"
     )
     loglike1 <- rSPDE.matern.loglike(op1, sim_data, A, sigma.e = 0.1)
 
@@ -72,7 +75,7 @@ test_that("Checking Predict of CBrSPDE", {
     op2 <- matern.operators(
       C = fem$C, G = fem$G, nu = nu, range = range, sigma = sigma,
       d = 1, m = 2,
-      parameterization = "matern"
+      parameterization = "matern",
     )
     A <- Diagonal(nobs)
     sim_data <- A %*% simulate(op2) + rnorm(dim(A)[1], sd = 0.1)
