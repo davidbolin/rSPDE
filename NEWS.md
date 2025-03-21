@@ -1,3 +1,8 @@
+# rSPDE 2.5.1
+
+* Added `model_options` argument to `rspde_lme()` function, which allows users to set starting values for different parameters and also to fix parameters during estimation.
+* Added `previous_fit` argument to `rspde_lme()`, which allows users to provide a previously fitted model as input to obtain starting values for a new fit.
+
 # rSPDE 2.5.0
 
 * Improved the `cross_validation` function to allow for multiple likelihoods. 

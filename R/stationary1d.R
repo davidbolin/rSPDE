@@ -165,7 +165,7 @@ matern.rational = function(graph = NULL,
         }
         
         if (is.null(nu)) {
-            nu <- 1
+            nu <- 0.75
         } else {
             nu <- rspde_check_user_input(nu, "nu", 0)
         }

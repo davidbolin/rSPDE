@@ -23,7 +23,7 @@
 #' separately as a list?
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
-#' "chebfun", "brasil" or "chebfunLB".
+#' "brasil", "chebfun" or "chebfunLB".
 #' @param fem_mesh_matrices A list containing FEM-related matrices.
 #' The list should contain elements c0, g1, g2, g3, etc.
 #' @param scaling scaling factor, see details. 
@@ -71,8 +71,9 @@ intrinsic.operators <- function(tau = NULL,
                                 compute_higher_order = FALSE,
                                 return_block_list = FALSE,
                                 type_rational_approximation = c(
+                                           "brasil",
                                            "chebfun",
-                                           "brasil", "chebfunLB"
+                                           "chebfunLB"
                                            ),
                                 fem_mesh_matrices = NULL,
                                 scaling = NULL,
@@ -122,7 +123,7 @@ intrinsic.operators <- function(tau = NULL,
 #' separately as a list?
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
-#' "chebfun", "brasil" or "chebfunLB".
+#' "brasil", "chebfun" or "chebfunLB".
 #' @param fem_mesh_matrices A list containing FEM-related matrices.
 #' The list should contain elements c0, g1, g2, g3, etc.
 #' @param scaling scaling factor.
@@ -157,8 +158,8 @@ intrinsic.operators.internal <- function(C,
                                 compute_higher_order = FALSE,
                                 return_block_list = FALSE,
                                 type_rational_approximation = c(
-                                  "chebfun",
                                   "brasil",
+                                  "chebfun",
                                   "chebfunLB"
                                 ),
                                 fem_mesh_matrices = NULL,
@@ -281,88 +282,105 @@ intrinsic.operators.internal <- function(C,
       }
   }
 
-  L <- G / scaling
-
-  CiL <- CiG / scaling
-
-  if (m_alpha == 0) {
-    aux_mat <- Diagonal(dim(L)[1])
-  } else {
-    aux_mat <- CiL
-  }
-
-
-  if (return_block_list) {
-    Q.int <- aux_mat
-
-    if (alpha %% 1 == 0) {
-      Q.frac <- Matrix::Diagonal(dim(L)[1])
+  if(alpha %% 1 == 0) {
+      L <- G / scaling
       Q <- G
-
       if (alpha > 1) {
-        for (k in 1:(alpha - 1)) {
-          Q <- Q %*% CiG
-        }
-      }
-
-      Q.int <- Q
-    } else {
-      if (m == 0) {
-        stop("Return block list does not work with m = 0, either increase m or set return_block_list to FALSE.")
-      }
-      Q.frac <- intrinsic.precision(
-        alpha = alpha, rspde.order = m, dim = d,
-        fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
-        return_block_list = TRUE,
-        type_rational_approx = type_rational_approximation,
-        scaling = scaling
-      )
-
-      Q <- Q.frac
-
-      if (m_alpha > 0) {
-        for (j in seq_len(length(Q))) {
-          for (i in 1:m_alpha) {
-            Q[[j]] <- Q[[j]] %*% Q.int
+          for (k in 1:(alpha - 1)) {
+              Q <- Q %*% CiG
           }
-        }
       }
-      Q.int <- list(Q.int = Q.int, order = m_alpha)
-    }
-  } else {
-    Q.int <- list(Q.int = kronecker(Diagonal(m + 1), aux_mat), order = m_alpha)
-
-    if (alpha %% 1 == 0) {
-      Q.frac <- Matrix::Diagonal(dim(L)[1])
-      Q <- G
-
-      if (alpha > 1) {
-        for (k in 1:(alpha - 1)) {
-          Q <- Q %*% CiL
-        }
+      Q.frac <- Matrix::Diagonal(dim(G)[1])
+      Q.int <- Q
+      if (return_block_list) {
+          Q <- list(Q)
+      } else {
+          Q.int <- list(Q.int = Q, order = m_alpha)
       }
-
-      Q.int <- list(Q.int = Q, order = m_alpha)
-    } else if (m > 0) {
-      Q.frac <- intrinsic.precision(
-        alpha = alpha,
-        rspde.order = m, dim = d,
-        fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
-        type_rational_approx = type_rational_approximation,
-        scaling = scaling
-      )
-
-      Q <- Q.frac
-
-      if (m_alpha > 0) {
-        for (i in 1:m_alpha) {
-          Q <- Q %*% Q.int$Q.int
-        }
+  } else { # fractional case 
+      L <- G / scaling
+      
+      CiL <- CiG / scaling
+      
+      if (m_alpha == 0) {
+          aux_mat <- Diagonal(dim(L)[1])
+      } else {
+          aux_mat <- CiL
       }
-    } else {
-      stop("m > 0 required for intrinsic fields")
-    }
+      
+      
+      if (return_block_list) {
+          Q.int <- aux_mat
+          
+          if (alpha %% 1 == 0) {
+              Q.frac <- Matrix::Diagonal(dim(L)[1])
+              Q <- G
+              
+              if (alpha > 1) {
+                  for (k in 1:(alpha - 1)) {
+                      Q <- Q %*% CiG
+                  }
+              }
+              Q.int <- Q
+          } else {
+              if (m == 0) {
+                  stop("Return block list does not work with m = 0, either increase m or set return_block_list to FALSE.")
+              }
+              Q.frac <- intrinsic.precision(
+                  alpha = alpha, rspde.order = m, dim = d,
+                  fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
+                  return_block_list = TRUE,
+                  type_rational_approx = type_rational_approximation,
+                  scaling = scaling
+              )
+              
+              Q <- Q.frac
+              
+              if (m_alpha > 0) {
+                  for (j in seq_len(length(Q))) {
+                      for (i in 1:m_alpha) {
+                          Q[[j]] <- Q[[j]] %*% Q.int
+                      }
+                  }
+              }
+              Q.int <- list(Q.int = Q.int, order = m_alpha)
+          }
+      } else {
+          Q.int <- list(Q.int = kronecker(Diagonal(m + 1), aux_mat), order = m_alpha)
+          
+          if (alpha %% 1 == 0) {
+              Q.frac <- Matrix::Diagonal(dim(G)[1])
+              Q <- G
+              
+              if (alpha > 1) {
+                  for (k in 1:(alpha - 1)) {
+                      Q <- Q %*% CiL
+                  }
+              }
+              
+              Q.int <- list(Q.int = Q, order = m_alpha)
+          } else if (m > 0) {
+              Q.frac <- intrinsic.precision(
+                  alpha = alpha,
+                  rspde.order = m, dim = d,
+                  fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
+                  type_rational_approx = type_rational_approximation,
+                  scaling = scaling
+              )
+              
+              Q <- Q.frac
+              
+              if (m_alpha > 0) {
+                  for (i in 1:m_alpha) {
+                      Q <- Q %*% Q.int$Q.int
+                  }
+              }
+          } else {
+              stop("m > 0 required for intrinsic fields")
+          }
+      }    
   }
+  
 
   ## output
   output <- list(
@@ -398,7 +416,7 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
                                 type_rational_approx = "chebfun",
                                 scaling = NULL) {
   n_m <- rspde.order
-
+  
   mt <- get_rational_coefficients(n_m, type_rational_approx)
 
 
@@ -524,7 +542,7 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 #' separately as a list?
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
-#' "chebfun", "brasil" or "chebfunLB".
+#' "brasil", "chebfun" or "chebfunLB".
 #' @param fem_mesh_matrices A list containing FEM-related matrices.
 #' The list should contain elements c0, g1, g2, g3, etc.
 #' @param scaling scaling factor, see details. 
@@ -874,26 +892,47 @@ intrinsic.matern.operators <- function(kappa,
       return(Gamma)
     }
   }
-  mean_correction <- function() {
-      out <- rep(0,n)
+  mean_correction <- function(full = FALSE, index = 1) {
+      if(index < 1 || index > n) {
+          stop("Index out of bounds.")
+      }
+      if(!full) {
+          out <- rep(0,n)    
+      }
+      
       for(i in 1:m) {
           if(return_block_list) { 
-              QQ <- Q[[i]][-1,-1]
+              QQ <- Q[[i]][-index,-index]
           } else {
-              ind <- (2+n*(i-1)) : (n*i)
+              ind <- setdiff((1+n*(i-1)) : (n*i), n*(i-1) + index)
               QQ <- Q[ind,ind]
           }
           
-          if(require(MetricGraph, quietly = TRUE)) {
+          
+          if(full) {
+              vec <- rep(0,n)
               tryCatch(
-                  expr = {out[-1] <- out[-1] - diag(MetricGraph::selected_inv(QQ))/2},
+                  expr = {
+                      vec[-index] <- -diag(MetricGraph::selected_inv(QQ))/2},
                   error = function(e) {
-                      out[-1] <- out[-1] - diag(solve(QQ))/2
+                      vec[-index] = -diag(solve(QQ))/2
                   }
-              )
+              ) 
+              if(i == 1) {
+                  out <- vec 
+              } else {
+                  out <- c(out,vec)    
+              }
           } else {
-              out[-1] <- out[-1] - diag(solve(QQ))/2    
+              tryCatch(
+                  expr = {out[-index] <- out[-index] - diag(MetricGraph::selected_inv(QQ))/2},
+                  error = function(e) {
+                      out[-index] <- out[-index] - diag(solve(QQ))/2
+                  }
+              )    
           }
+          
+          
       }
       return(out)
   }
@@ -1202,6 +1241,7 @@ precision.intrinsicCBrSPDEobj <- function(object,
             det2 <- rep(1,m2)
             for(i in 1:m2) {
                 if(object$beta < 1 && object$alpha == 0) {
+                #if(0) {
                     Q.R <- Matrix::Cholesky(object$Q_list$Qintrinsic[[i]])
                     det2[i] <- 2 * c(determinant(Q.R, logarithm = TRUE, sqrt = TRUE)$modulus)
                 } else {
@@ -1321,14 +1361,24 @@ predict.intrinsicCBrSPDEobj <- function(object,
         Q.e <- Diagonal(length(sigma.e), 1 / sigma.e^2)
     }
     
+    if(length(mu) == 1) {
+        mu <- rep(mu, dim(object$Q)[1])
+    } else {
+        if(length(mu) == dim(object$C)[1] && dim(object$C)[1] < dim(object$Q)[1]) {
+            mu <- rep(mu,object$m) / object$m
+        } else if (length(mu) != dim(object$Q)[1]) {
+            stop("the length of mu is wrong.")
+        }
+    }
     
     if (!no_nugget) {
         ## construct Q
         Q <- object$Q
         ## compute Q_x|y
         Q_xgiveny <- (t(A) %*% Q.e %*% A) + Q
+        
         ## construct mu_x|y
-        mu_xgiveny <- t(A) %*% Q.e %*% Y
+        mu_xgiveny <- t(A) %*% Q.e %*% (Y - A%*%mu)    
         
         R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
         mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
@@ -1356,24 +1406,33 @@ predict.intrinsicCBrSPDEobj <- function(object,
     
     if (posterior_samples) {
         if (!no_nugget) {
-            post_cov <- Aprd %*% solve(Q_xgiveny, t(Aprd))
-        } else {
-            M <- Q - QiAt %*% solve(AQiA, t(QiAt))
-            post_cov <- Aprd %*% M %*% t(Aprd)
-        }
-        Y_tmp <- as.matrix(Y)
-        mean_tmp <- as.matrix(out$mean)
-        out$samples <- lapply(1:ncol(Y_tmp), function(i) {
-            Z <- rnorm(dim(post_cov)[1] * n_samples)
-            dim(Z) <- c(dim(post_cov)[1], n_samples)
-            LQ <-  Matrix::Cholesky(forceSymmetric(post_cov))
-            X <- LQ %*% Z
-            X <- X + mean_tmp[, i]
+            Z <- rnorm(dim(object$Q)[1] * n_samples)
+            dim(Z) <- c(dim(object$Q)[1], n_samples)
+            LQ <-  chol(forceSymmetric(Q_xgiveny))
+            X <- as.matrix(solve(LQ, Z)) + kronecker(as.matrix(mu_xgiveny), 
+                                                     matrix(rep(1,n_samples),1,n_samples))
+            X <- Aprd %*% X
             if (!only_latent) {
                 X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
             }
             return(X)
-        })
+        } else {
+            M <- Q - QiAt %*% solve(AQiA, t(QiAt))
+            post_cov <- Aprd %*% M %*% t(Aprd)
+            Y_tmp <- as.matrix(Y)
+            mean_tmp <- as.matrix(out$mean)
+            out$samples <- lapply(1:ncol(Y_tmp), function(i) {
+                Z <- rnorm(dim(post_cov)[1] * n_samples)
+                dim(Z) <- c(dim(post_cov)[1], n_samples)
+                LQ <-  Matrix::Cholesky(forceSymmetric(post_cov))
+                X <- LQ %*% Z
+                X <- X + mean_tmp[, i]
+                if (!only_latent) {
+                    X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
+                }
+                return(X)
+            })
+        }
     }
     return(out)
 }
@@ -1565,14 +1624,19 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
         A_tmp <- A_list[[as.character(i)]]
         Q.p <- Q + t(A_tmp) %*% A_tmp / sigma_e^2
         
-        #ind <- 1 + seq(from = 0, to = (object$m-1)*object$n, by = object$n)
-        #R.p <- Matrix::Cholesky(forceSymmetric(Q.p[-ind,-ind]))
-        #posterior.ld <- c(determinant(R.p, logarithm = TRUE, sqrt = TRUE)$modulus)
-        posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
-        
-        if(is.na(posterior.ld)) {
-            ind <- 1 + seq(from = n, to = (object$m-1)*object$n, by = object$n)
-            posterior.ld <- 0.5*c(determinant(Q.p[-ind,-ind], logarithm = TRUE)$modulus)
+        if(object$beta < 1 && object$alpha == 0) {
+        #if(0) {
+            posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+        } else {
+            if(object$m == 1) {
+            #    if(0) {
+                posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+            } else {
+                ind <- 1 + seq(from = object$n, 
+                               to = (object$m-1)*object$n, by = object$n)
+                posterior.ld <- 0.5*(c(determinant(Q.p[-ind,-ind], logarithm = TRUE)$modulus) + (object$m-1)*log(dim(Q)[1]) - log(object$m))  
+                l <- l - log(2*pi)    
+            }
         }
         
         l <- l + prior.ld - posterior.ld - n.o * log(sigma_e)
@@ -1616,6 +1680,7 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
 #' @param L The side length of the square domain.
 #' @param N The number of terms in the Karhunen-Loeve expansion.
 #' @param d The dimension (1 or 2).
+#' @param semi Compute the semi variogram? Default FALSE.
 #' @details The variogram is computed based on a Karhunen-Loeve expansion of the
 #' covariance function.
 #'

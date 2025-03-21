@@ -32,7 +32,7 @@ rspde.metric_graph(
   prior.theta.param = c("theta", "spde"),
   prior.nu.dist = c("lognormal", "beta"),
   nu.prec.inc = 1,
-  type.rational.approx = c("chebfun", "brasil", "chebfunLB"),
+  type.rational.approx = c("brasil", "chebfun", "chebfunLB"),
   shared_lib = "INLA"
 )
 }
@@ -103,7 +103,7 @@ The current options are "beta" or "lognormal". The default is "beta".}
 distribution. Check details below.}
 
 \item{type.rational.approx}{Which type of rational approximation
-should be used? The current types are "chebfun", "brasil" or "chebfunLB".}
+should be used? The current types are "brasil", "chebfun" or "chebfunLB".}
 
 \item{shared_lib}{Which shared lib to use for the cgeneric implementation?
 If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then

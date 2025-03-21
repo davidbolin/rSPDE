@@ -24,7 +24,7 @@ spde.matern.operators(
   loc_mesh = NULL,
   m = 1,
   type = c("covariance", "operator"),
-  type_rational_approximation = c("chebfun", "brasil", "chebfunLB")
+  type_rational_approximation = c("brasil", "chebfun", "chebfunLB")
 )
 }
 \arguments{
@@ -79,7 +79,7 @@ positive integer. The default value is 1.}
 
 \item{type_rational_approximation}{Which type of rational
 approximation should be used? The current types are
-"chebfun", "brasil" or "chebfunLB".}
+"brasil", "chebfun" or "chebfunLB".}
 }
 \value{
 \code{spde.matern.operators} returns an object of

@@ -544,9 +544,9 @@ summary(fit_rspde)
 Let us compare with the true values:
 ```{r}
 print(data.frame(
-  sigma = c(sigma, fit_rspde$matern_coeff$random_effects[2]), 
-  range = c(range, fit_rspde$matern_coeff$random_effects[3]),
-  nu = c(nu, fit_rspde$matern_coeff$random_effects[1]),
+  sigma = c(sigma, fit_rspde$alt_par_coeff$coeff["sigma"]), 
+  range = c(range, fit_rspde$alt_par_coeff$coeff["range"]),
+  nu = c(nu, fit_rspde$alt_par_coeff$coeff["nu"]),
   row.names = c("Truth", "Estimates")
 ))
 
