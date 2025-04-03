@@ -21,6 +21,7 @@
 #' @param beta Integer smoothness parameter beta.
 #' @param bounded_rho Logical. Specifies whether `rho` should be bounded to ensure the existence, uniqueness, and well-posedness of the solution. Defaults to `TRUE`. 
 #' Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties. 
+#' @param bound_rho A positive number specifying the bound for `rho`. If `NULL`, the default bound will be used.
 #' @param graph_dirichlet For models on metric graphs, use Dirichlet vertex conditions at vertices of degree 1?
 #' When `bounded_rho = TRUE`, the `rspde_lme` models enforce bounded `rho` for consistency. 
 #' If the estimated value of `rho` approaches the upper bound too closely, we recommend refitting the model with `bounded_rho = FALSE`. However, this should be done with caution, as it may lead to instability in some cases, though it can also result in a better model fit. 
@@ -54,7 +55,8 @@ spacetime.operators <- function(mesh_space = NULL,
                                 alpha = NULL,
                                 beta = NULL,
                                 graph_dirichlet = TRUE,
-                                bounded_rho = TRUE) {
+                                bounded_rho = TRUE,
+                                bound_rho = NULL) {
     
     
     if ((!is.null(mesh_space) && !is.null(graph)) || (!is.null(mesh_space) && !is.null(space_loc)) || (!is.null(graph) && !is.null(space_loc))){
@@ -95,6 +97,15 @@ spacetime.operators <- function(mesh_space = NULL,
     if(!is.null(mesh_space)){
         if(!inherits(mesh_space, c("fm_mesh_2d", "fm_mesh_1d"))){
             stop("mesh_space should be a mesh generated from fmesher::fm_mesh_1d() or fmesher::fm_mesh_2d().")
+        }
+    }
+
+    if(!is.null(bound_rho)){
+        if(length(bound_rho) != 1){
+            stop("bound_rho must be a positive number")
+        }
+        if(bound_rho <= 0){
+            stop("bound_rho must be a positive number")
         }
     }
 
@@ -211,13 +222,19 @@ spacetime.operators <- function(mesh_space = NULL,
 
     if(has_graph){
         edge_lengths <- graph$get_edge_lengths()
-        bound_rho <- max(edge_lengths)/pi
+        if(is.null(bound_rho)){
+            bound_rho <- max(edge_lengths)/pi
+        } 
     } else if(d == 1){
         bbox_mesh <- fmesher::fm_bbox(mesh_space)
-        bound_rho <- (bbox_mesh[[1]][2] - bbox_mesh[[1]][1])/pi
+        if(is.null(bound_rho)){
+            bound_rho <- (bbox_mesh[[1]][2] - bbox_mesh[[1]][1])/pi
+        } 
     } else{
         bbox_mesh <- fmesher::fm_bbox(mesh_space)
-        bound_rho <- min(bbox_mesh[[1]][2] - bbox_mesh[[1]][1], bbox_mesh[[2]][2] - bbox_mesh[[2]][1])/pi
+        if(is.null(bound_rho)){
+            bound_rho <- min(bbox_mesh[[1]][2] - bbox_mesh[[1]][1], bbox_mesh[[2]][2] - bbox_mesh[[2]][1])/pi
+        } 
     }
 
 
