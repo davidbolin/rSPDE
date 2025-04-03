@@ -77,7 +77,8 @@ where C is a Whittle-Matern covariance operator with smoothness parameter
 <span>  alpha <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  beta <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  graph_dirichlet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  bounded_rho <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  bounded_rho <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  bound_rho <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -141,6 +142,10 @@ The actual bound used for <code>rho</code> can be accessed from the <code>bound_
 <dt id="arg-bounded-rho">bounded_rho<a class="anchor" aria-label="anchor" href="#arg-bounded-rho"></a></dt>
 <dd><p>Logical. Specifies whether <code>rho</code> should be bounded to ensure the existence, uniqueness, and well-posedness of the solution. Defaults to <code>TRUE</code>.
 Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties.</p></dd>
+
+
+<dt id="arg-bound-rho">bound_rho<a class="anchor" aria-label="anchor" href="#arg-bound-rho"></a></dt>
+<dd><p>A positive number specifying the bound for <code>rho</code>. If <code>NULL</code>, the default bound will be used.</p></dd>
 
 </dl></div>
     <div class="section level2">

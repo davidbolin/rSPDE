@@ -88,6 +88,7 @@ FEM-based approaches.</p>
 <span>  prior.precision <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  graph_dirichlet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  bounded_rho <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  bound_rho <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  shared_lib <span class="op">=</span> <span class="st">"detect"</span>,</span>
 <span>  debug <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -176,6 +177,10 @@ If the estimated value of <code>rho</code> approaches the upper bound too closel
 The actual bound used for <code>rho</code> can be accessed from the <code>bound_rho</code> element of the returned object.</p></dd>
 
 
+<dt id="arg-bound-rho">bound_rho<a class="anchor" aria-label="anchor" href="#arg-bound-rho"></a></dt>
+<dd><p>A positive number specifying the bound for <code>rho</code>. If <code>NULL</code>, the default bound will be used.</p></dd>
+
+
 <dt id="arg-shared-lib">shared_lib<a class="anchor" aria-label="anchor" href="#arg-shared-lib"></a></dt>
 <dd><p>String specifying which shared library to use for the Cgeneric
 implementation. Options are "detect", "INLA", or "rSPDE". You may also specify the
@@ -220,7 +225,7 @@ the space-time Gaussian random field.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Setup edges and merge close vertices</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Computing the relative positions of the edges...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Snap vertices to close edges</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Total construction time: 1.42 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Total construction time: 1.45 secs</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Creating and updating vertices...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Storing the initial graph...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Computing the relative positions of the edges...</span>
