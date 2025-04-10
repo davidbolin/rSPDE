@@ -332,6 +332,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
     stop("orientation_results must be either 'positive' or 'negative'!")
   }
 
+  scores <- tolower(scores)
+
   if(any(scores %in% c("wcrps", "swcrps")) && is.null(weight_thr)){
     stop("weight_thr must be supplied if 'wcrps' or 'swcrps' are requested!")
   }
