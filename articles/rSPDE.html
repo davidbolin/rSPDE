@@ -76,7 +76,7 @@
                         <h4 data-toc-skip class="author">David Bolin and
 Alexandre B. Simas</h4>
             
-            <h4 data-toc-skip class="date">2025-04-03</h4>
+            <h4 data-toc-skip class="date">2025-04-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rSPDE.Rmd" class="external-link"><code>vignettes/rSPDE.Rmd</code></a></small>
       <div class="d-none name"><code>rSPDE.Rmd</code></div>
@@ -247,7 +247,7 @@ rational SPDE approach</a>.</p>
 matrix, the index, and the <code>inla.stack</code> object.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span>
-<span><span class="co">#&gt; This is INLA_25.03.24 built 2025-03-24 16:12:01 UTC.</span></span>
+<span><span class="co">#&gt; This is INLA_25.04.09 built 2025-04-09 18:21:55 UTC.</span></span>
 <span><span class="co">#&gt;  - See www.r-inla.org/contact-us for how to get help.</span></span>
 <span><span class="co">#&gt;  - List available models/likelihoods/etc with inla.list.models()</span></span>
 <span><span class="co">#&gt;  - Use inla.doc(&lt;NAME&gt;) to access documentation</span></span>
@@ -294,7 +294,7 @@ details.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 0.57, Running = 4.22, Post = 0.0639, Total = 4.86 </span></span>
+<span><span class="co">#&gt;     Pre = 0.565, Running = 4.18, Post = 0.0616, Total = 4.81 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
@@ -513,7 +513,7 @@ form the stack manually, but can simply collect the required data in a
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_bru_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; inlabru version: 2.12.0</span></span>
-<span><span class="co">#&gt; INLA version: 25.03.24</span></span>
+<span><span class="co">#&gt; INLA version: 25.04.09</span></span>
 <span><span class="co">#&gt; Components:</span></span>
 <span><span class="co">#&gt; field: main = cgeneric(geometry), group = exchangeable(1L), replicate = iid(1L), NULL</span></span>
 <span><span class="co">#&gt; Likelihoods:</span></span>
@@ -524,7 +524,7 @@ form the stack manually, but can simply collect the required data in a
 <span><span class="co">#&gt;     Predictor: y ~ .</span></span>
 <span><span class="co">#&gt;     Used components: effects[field], latent[]</span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 0.218, Running = 4.32, Post = 0.139, Total = 4.68 </span></span>
+<span><span class="co">#&gt;     Pre = 0.231, Running = 4.3, Post = 0.137, Total = 4.66 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
@@ -714,8 +714,8 @@ function.</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 106</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  29.09427 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 2.5565 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  28.76217 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 2.52978 secs</span></span></code></pre></div>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -730,7 +730,7 @@ function.</p>
 <span></span>
 <span><span class="co"># Time to fit</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_rspde</span><span class="op">$</span><span class="va">fitting_tim</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 29.09428 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 28.76217 secs</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kriging-with-rspde">Kriging with <code>rSPDE</code><a class="anchor" aria-label="anchor" href="#kriging-with-rspde"></a>
