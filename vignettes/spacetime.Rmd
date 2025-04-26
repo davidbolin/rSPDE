@@ -55,10 +55,10 @@ t <- seq(from = 0, to = 10, length.out = 21)
 ```
 We can now use `spacetime.operators()` to construct the model
 ```{r}
-kappa <- 5
-sigma <- 10
-gamma <- 1/20
-rho_1d <- 1
+kappa <- 0.7
+sigma <- 1.25
+gamma <- 1
+rho_1d <- 0.1
 alpha <- 1
 beta <- 1
 
@@ -115,7 +115,7 @@ ggplot(df_plot) + aes(x = space, y = time, fill = field) +
 
 ```
 
-## Parameter estimation
+## Setting up a data frame
 
 To estimate the model parameters based on this data, we can use the our `rspde_lme` function or our `inlabru` implementation. For this, we collect the data in a data frame, that also contains the spatial locations and the time points.
 
@@ -123,11 +123,26 @@ To estimate the model parameters based on this data, we can use the our `rspde_l
 df_1d <- data.frame(y = as.matrix(Y), space = obs.loc$x, time = obs.loc$t)
 ```
 
+Let us create a mesh for the spatial and temporal domains for the model fitting:
+
+```{r}
+mesh_1d_time <- fmesher::fm_mesh_1d(df_1d$time)
+mesh_1d_space <- fmesher::fm_mesh_1d(df_1d$space)
+```
+
+
+## Parameter estimation
+
 ### `rspde_lme` implementation
+We begin by creating an `rspde` operator:
+```{r}
+op_lme1d <- spacetime.operators(mesh_space = mesh_1d_space, mesh_time = mesh_1d_time, alpha = 1, beta = 1)
+```
+
 We now fit the model:
 
 ```{r}
-res <- rspde_lme(y ~ 1, loc = "space", loc_time = "time", data = df_1d, model = op, parallel = TRUE)
+res <- rspde_lme(y ~ 1, loc = "space", loc_time = "time", data = df_1d, model = op_lme1d, parallel = TRUE)
 
 ```
 
@@ -171,7 +186,7 @@ ggplot(df_plot) + aes(x = space, y = time, fill = field) +
 Let us now fit the model using our `inlabru` implementation. We start by creating the model object with the `rspde.spacetime()` function:
 ```{r}
 library(inlabru)
-st_bru <- rspde.spacetime(space_loc = s, time_loc = t, alpha = 1, beta=1)
+st_bru <- rspde.spacetime(mesh_space = mesh_1d_space, mesh_time = mesh_1d_time, alpha = 1, beta=1)
 ```
 
 We now create the model component, which requires the user to pass the index as a list containing the elements `space` with the spatial indices and `time` with the temporal indices:
@@ -183,7 +198,7 @@ cmp <- y ~ -1 + Intercept(1) + field(list(space=space, time = time), model = st_
 We are now in a position to fit the model:
 
 ```{r}
-bru_fit <- bru(cmp, data = df_1d, options = list(num.threads = "1:1"))
+bru_fit <- bru(cmp, data = df_1d, options = list(num.threads = "15:1"))
 ```
 
 Let us now compare the estimated results (the means of the parameters) with the true values:
@@ -273,11 +288,38 @@ sigma.e <- 0.01
 Y <- as.vector(A%*%u + sigma.e*rnorm(n.obs))
 ```
 
+## Setting up a data frame
+
 To estimate the model parameters based on this data, we can use the `rspde_lme` function. For this, we collect the data in a data frame, that also contanis the spatial locations, and we fit the model:
 
 ```{r}
 df_2d <- data.frame(Y = as.matrix(Y), x = obs.loc$x, y = obs.loc$y, t = obs.loc$t)
-res_2d <- rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df_2d, model = op, parallel = TRUE)
+```
+
+Let us also create spatial and temporal meshes for the model fitting:
+
+```{r}
+mesh_2d_spatial <- fm_mesh_2d(
+  loc = df_2d[,c("x", "y")],
+  cutoff = 0.07,
+  max.edge = c(0.2, 0.6)
+)
+
+mesh_2d_time <- fmesher::fm_mesh_1d(df_2d$t)
+```
+
+
+### `rspde_lme` implementation
+
+We begin by creating an `rspde` operator:
+```{r}
+op_lme2d <- spacetime.operators(mesh_space = mesh_2d_spatial, mesh_time = mesh_2d_time, alpha = 1, beta = 1)
+```
+
+Let us now fit the model:
+
+```{r}
+res_2d <- rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df_2d, model = op_lme2d, parallel = TRUE)
 ```
 
 Let us see a summary of the fitted model:
@@ -301,33 +343,24 @@ results <- data.frame(kappa = c(kappa, res_2d$coeff$random_effects[1]),
 print(results)
 ```
 
-Let us now use our `inlabru` implementation. We first define the model. To this end we need to create a mesh for the time object:
+Let us now use our `inlabru` implementation. We first define the model.
 
 ```{r}
-mesh_time <- fmesher::fm_mesh_1d(t)
+st_bru_field <- rspde.spacetime(mesh_space = mesh_2d_spatial,
+        mesh_time = mesh_2d_time, alpha = 1, beta = 1)
 ```
 
-```{r}
-st_bru_field <- rspde.spacetime(mesh_space = mesh_2d,
-        mesh_time = mesh_time, alpha = alpha, beta = beta)
-```
-
-Let us now prepare the `data.frame` object:
-
-```{r}
-df_bru <- data.frame(y = Y, coord_x = obs.loc$x, coord_y = obs.loc$y, time = obs.loc$t)
-```
 
 Now, the component:
 ```{r}
-cmp <- y ~ -1 + Intercept(1) + field(list(space=cbind(coord_x, coord_y), 
-                time = time), model = st_bru_field)
+cmp <- y ~ -1 + Intercept(1) + field(list(space=cbind(x, y), 
+                time = t), model = st_bru_field)
 ```
 
 We are now in a position to fit the model:
 
 ```{r}
-bru_fit_field <- bru(cmp, data = df_bru, options = list(num.threads = "1:1"))
+bru_fit_field <- bru(cmp, data = df_2d, options = list(num.threads = "15:1"))
 ```
 
 Let us now compare the estimated results (the means of the parameters) with the true values:
@@ -360,9 +393,8 @@ In cases where the estimated value of \(\rho\) approaches the upper bound (avail
 Let us first start with the `rspde_lme()` example. We will use the previous fit as a starting point for the new fit to improve the convergence of the optimization.
 
 ```{r}
-op_1d_unbounded <- spacetime.operators(space_loc = s, time_loc = t,
-                          kappa = kappa, sigma = sigma, alpha = alpha,
-                          beta = beta, rho = rho_1d, gamma = gamma,
+op_1d_unbounded <- spacetime.operators(space_loc = df_1d$space, time_loc = df_1d$time,
+                           alpha = 1, beta = 1, 
                           bounded_rho = FALSE)
 
 res_unbounded <- rspde_lme(y ~ 1, loc = "space", loc_time = "time", 
@@ -383,14 +415,14 @@ print(results)
 Now, the `inlabru` implementation:
 ```{r}
 ### Fit with bounded_rho = FALSE
-st_bru_unbounded <- rspde.spacetime(space_loc = s, time_loc = t, alpha = 1, 
+st_bru_unbounded <- rspde.spacetime(space_loc = df_1d$space, time_loc = df_1d$time, alpha = 1, 
             beta = 1, bounded_rho = FALSE)
 
 ### Fitting the Model
 cmp_unbounded <- y ~ -1 + Intercept(1) + field(list(space = space, time = time), 
                                           model = st_bru_unbounded)
 
-bru_fit_unbounded <- bru(cmp_unbounded, data = df_1d, options = list(num.threads = "1:1", verbose=TRUE))
+bru_fit_unbounded <- bru(cmp_unbounded, data = df_1d, options = list(num.threads = "15:1", verbose=TRUE))
 
 ### Extract and Compare Results
 param_unbounded <- transform_parameters_spacetime(
