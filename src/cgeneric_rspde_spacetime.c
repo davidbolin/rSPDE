@@ -86,7 +86,7 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
         if(drift == 1){
             assert(prior_precision->nrow == 5 && prior_precision->ncol == 5);
         } else{
-            assert(prior_precision->nrow == 4 && prior_precision->ncol == 4);
+            assert(prior_precision->nrow == 3 && prior_precision->ncol == 3);
         }
     } else if (d == 1) {
         if(drift == 1){
