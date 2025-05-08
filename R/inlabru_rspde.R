@@ -194,16 +194,21 @@ process_link <- function(link_name) {
 
 #' @noRd
 
-bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose) {
+bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose, model_options_bru) {
   stopifnot(inherits(result, "bru"))
+
+  if(is.null(model_options_bru)){
+    model_options_bru <- list()
+  }
+
+  options <- model_options_bru
+
   if (!true_CV) {
-    options <- list(control.mode = list(
+    options$control.mode <- list(
       theta = result$mode$theta,
       fixed=TRUE
-    ))
-  } else {
-    options <- list()
-  }
+    )
+  } 
 
   if (fit_verbose) {
     options$verbose <- TRUE
@@ -308,6 +313,7 @@ get_post_var <- function(density_df) {
 #' @param n_cores_RP Number of cores to be used if `parallelize_rp` is `TRUE`.
 #' @param true_CV Should a `TRUE` cross-validation be performed? If `TRUE` the models will be fitted on the training dataset. If `FALSE`, the parameters will be kept fixed at the ones obtained in the result object.
 #' @param save_settings Logical. If `TRUE`, the settings used in the cross-validation will also be returned.
+#' @param model_options_inla A list of options to be passed to inlabru.
 #' @param print Should partial results be printed throughout the computation?
 #' @param fit_verbose Should INLA's run during cross-validation be verbose?
 #' @return A data.frame with the fitted models and the corresponding scores.
@@ -325,6 +331,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
                              return_true_test_values = FALSE,
                              parallelize_RP = FALSE, n_cores_RP = parallel::detectCores() - 1,
                              true_CV = TRUE, save_settings = FALSE,
+                             model_options_bru = list(),
                              print = TRUE,
                              fit_verbose = FALSE) {
   orientation_results <- orientation_results[[1]]
@@ -529,7 +536,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
       train_list <- train_test_indexes[[fold]][["train"]]
       test_list <- train_test_indexes[[fold]][["test"]]
 
-      new_model <- bru_rerun_with_data(models[[model_number]], train_list, true_CV = true_CV, fit_verbose = fit_verbose)
+      new_model <- bru_rerun_with_data(models[[model_number]], train_list, true_CV = true_CV, fit_verbose = fit_verbose, model_options_bru = model_options_bru)
 
       for(i_lik in 1:n_likelihoods){
 
