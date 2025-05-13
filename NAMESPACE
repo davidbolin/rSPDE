@@ -156,6 +156,12 @@ if (getRversion() >= "3.6.0") {
   S3method(inlabru::ibm_jacobian, bru_mapper_metric_graph_dirichlet)
 }
 
+if (getRversion() >= "3.6.0") {
+  S3method(inlabru::bru_get_mapper, intrinsic_matern)
+  S3method(inlabru::ibm_n, bru_mapper_intrinsic_matern)
+  S3method(inlabru::ibm_values, bru_mapper_intrinsic_matern)
+  S3method(inlabru::ibm_jacobian, bru_mapper_intrinsic_matern)
+}
 import(Matrix)
 importFrom(broom,augment)
 importFrom(broom,glance)
