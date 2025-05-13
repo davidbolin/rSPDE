@@ -25,6 +25,7 @@ cross_validation(
   n_cores_RP = parallel::detectCores() - 1,
   true_CV = TRUE,
   save_settings = FALSE,
+  model_options_bru = list(),
   print = TRUE,
   fit_verbose = FALSE
 )
@@ -83,6 +84,8 @@ When supplying \code{train_test_indexes}, the \code{cv_type}, \code{k}, \code{pe
 \item{print}{Should partial results be printed throughout the computation?}
 
 \item{fit_verbose}{Should INLA's run during cross-validation be verbose?}
+
+\item{model_options_inla}{A list of options to be passed to inlabru.}
 }
 \value{
 A data.frame with the fitted models and the corresponding scores.
