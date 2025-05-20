@@ -465,7 +465,7 @@ rspde.intrinsic.matern <- function(mesh,
 
     rspde_check_cgeneric_symbol(model)
 
-    class(model) <- c("intrinsic_matern", class(model))
+    class(model) <- c("intrinsic_matern", "inla_rspde", class(model))
     model$parameterization <- "spde"
     model$stationary <- TRUE
     model$est_nu <- FALSE
