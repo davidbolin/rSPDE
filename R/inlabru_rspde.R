@@ -313,7 +313,7 @@ get_post_var <- function(density_df) {
 #' @param n_cores_RP Number of cores to be used if `parallelize_rp` is `TRUE`.
 #' @param true_CV Should a `TRUE` cross-validation be performed? If `TRUE` the models will be fitted on the training dataset. If `FALSE`, the parameters will be kept fixed at the ones obtained in the result object.
 #' @param save_settings Logical. If `TRUE`, the settings used in the cross-validation will also be returned.
-#' @param model_options_inla A list of options to be passed to inlabru.
+#' @param model_options_bru A list of options to be passed to inlabru.
 #' @param print Should partial results be printed throughout the computation?
 #' @param fit_verbose Should INLA's run during cross-validation be verbose?
 #' @return A data.frame with the fitted models and the corresponding scores.
