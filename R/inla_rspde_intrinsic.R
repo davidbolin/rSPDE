@@ -82,6 +82,13 @@ rspde.intrinsic <- function(mesh,
     C <- fem_mesh$c0
     Ci <- Diagonal(dim(C)[1],1/diag(C))
     
+    #Adjust integer case to avoid special case
+    if(!is.null(nu)) {
+        if((nu + d/2) %% 1 == 0){
+            nu <- nu + 0.01
+        }
+    }
+    
     if (nu.upper.bound - floor(nu.upper.bound) == 0) {
         nu.upper.bound <- nu.upper.bound - 1e-5
     }

@@ -1038,7 +1038,7 @@ CBrSPDE.matern.operators <- function(C,
   output <- list(
     C = C, G = G, L = L, Ci = Ci, GCi = GCi, Gk = Gk,
     fem_mesh_matrices = fem_mesh_matrices,
-    alpha = alpha, nu = nu, kappa = kappa, range = sqrt(8 * nu) / kappa,
+    alpha = alpha, nu = nu, kappa = kappa, range = sqrt(8 * max(nu,0)) / kappa,
     tau = tau, m = m, d = d,
     # sigma = sigma,
     logdetL = logdetL, logdetC = logdetC,
