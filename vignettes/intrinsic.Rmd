@@ -623,7 +623,8 @@ alpha <- 0.3
 kappa <- 15
 tau <- 7
 op <- intrinsic.matern.operators(kappa = kappa, tau = tau, alpha = alpha,
-                                 beta = beta, mesh = mesh, d = 1)
+                                 beta = beta, mesh = mesh, d = 1, m_alpha = 8, 
+                                 m_beta = 1)
 
 vario <- variogram.intrinsic.spde(c(L/2), mesh$loc, tau = tau,
                                   beta = beta, alpha = alpha, kappa = kappa, L = L, d = 1)
@@ -631,6 +632,19 @@ plot(x, vario, type = "l", col = 2, lwd = 2)
 points(x, op$variogram(L/2), col = 1)
 ```
 
+We can note here that the variogram of the approximate model is not particularly close to the variogram of the true continuous model. The reason for this is that the value of `alpha` is very small, and we therefore need a larger order of the rational approximation than the default value of 2. We can adjust the orders of the rational approximations through the `m_alpha` and `m_beta` values in `intrinsic.matern.operators`. Let us increase the value of `m_alpha` and decrease the value of `m_beta`.
+```{r}
+op <- intrinsic.matern.operators(kappa = kappa, tau = tau, alpha = alpha,
+                                 beta = beta, mesh = mesh, d = 1, m_alpha = 6, 
+                                 m_beta = 1)
+
+vario <- variogram.intrinsic.spde(c(L/2), mesh$loc, tau = tau,
+                                  beta = beta, alpha = alpha, kappa = kappa, L = L, d = 1)
+plot(x, vario, type = "l", col = 2, lwd = 2)
+points(x, op$variogram(L/2), col = 1)
+```
+
+We now have a better approximation. 
 Similar to the previous example, we will generate data with the mean value correction for extremes models:
 
 ```{r}

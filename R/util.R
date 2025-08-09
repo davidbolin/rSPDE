@@ -2392,9 +2392,6 @@ rspde_check_cgeneric_symbol <- function(model) {
     # Restore original environment variables
     if (.Platform$OS.type == "windows") {
         Sys.setenv(PATH = current_path)
-    } else if (Sys.info()["sysname"] == "Darwin") {
-        Sys.setenv(DYLD_LIBRARY_PATH = current_lib_path)
-        Sys.setenv(LD_LIBRARY_PATH = current_lib_path)        
     } else {
         Sys.setenv(LD_LIBRARY_PATH = current_lib_path)
     }

@@ -65,7 +65,7 @@
 #' }
 bru_get_mapper.inla_rspde <- function(model, ...) {
   stopifnot(requireNamespace("inlabru"))
-  inlabru_version <- utils::packageVersion("inlabru")
+  inlabru_version <- as.character(packageVersion("inlabru"))
   if(inlabru_version >= "2.11.1.9022"){
       n_rep <- model[["rspde.order"]] + 1
       if((model[["est_nu"]] == 0L) && (model[["integer.nu"]])){
@@ -208,29 +208,46 @@ bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose, model_op
       theta = result$mode$theta,
       fixed=TRUE
     )
-  }
+  } 
 
-  options$verbose <- isTRUE(fit_verbose)
-
-  if (utils::packageVersion("inlabru") >= "2.12.0.9024") {
-    ## Until rSPDE depends on inlabru 2.13.0, need to shield it from
-    ## the namespace mismatch.
-    ## bru_set_missing() handles all known inla response object types as of
-    ## inlabru 2.13.0, including inla.mdata and inla.surv (with bugfixes for
-    ## inla.surv in `2.13.0.9002`.
-    # result <- inlabru::bru_set_missing(result, keep = idx_data)
-    result <- eval(
-      parse(text = "inlabru::bru_set_missing(result, keep = idx_data)")
-    )
+  if (fit_verbose) {
+    options$verbose <- TRUE
   } else {
-    for(i_like in seq_along(result[["bru_info"]][["lhoods"]])){
-      result[["bru_info"]][["lhoods"]][[i_like]][[
-        "response_data"]][["BRU_response"]][-idx_data[[i_like]]] <- NA
-    }
+    options$verbose <- FALSE
   }
 
-  result <- inlabru::bru_rerun(result, options = options)
+  info <- result[["bru_info"]]
+  info[["options"]] <- inlabru::bru_call_options(
+    inlabru::bru_options(
+      info[["options"]],
+      inlabru::as.bru_options(options)
+    )
+  )
 
+  original_timings <- result[["bru_timings"]]
+
+  for(i_like in seq_along(info[["lhoods"]])){
+    info[["lhoods"]][[i_like]]$response_data$BRU_response[-idx_data[[i_like]]] <- NA
+  }
+
+  result <- inlabru::iinla(
+      model = info[["model"]],
+      lhoods = info[["lhoods"]],
+      initial = result,
+      options = info[["options"]]
+    )
+
+  new_timings <- result[["bru_iinla"]][["timings"]]$Iteration >
+    max(original_timings$Iteration)
+  result$bru_timings <-
+    rbind(
+      original_timings,
+      result[["bru_iinla"]][["timings"]][new_timings, , drop = FALSE]
+    )
+
+  # Add bru information to the result
+  result$bru_info <- info
+  class(result) <- c("bru", class(result))
   return(result)
 }
 
@@ -268,9 +285,9 @@ get_post_var <- function(density_df) {
 #' @title Perform cross-validation on a list of fitted models.
 #' @description Obtain several scores for a list of fitted models according
 #' to a folding scheme.
-#' @param models A fitted model obtained from calling the `bru()` function or a list of fitted models.
-#'        All models in the list must have the same number of likelihoods and must be fitted to
-#'        identical datasets.
+#' @param models A fitted model obtained from calling the `bru()` function or a list of fitted models. 
+#'        All models in the list must have the same number of likelihoods and must be fitted to 
+#'        identical datasets. 
 #' @param model_names A vector containing the names of the models to appear in the returned `data.frame`. If `NULL`, the names will be of the form `Model 1`, `Model 2`, and so on. By default, it will try to obtain the name from the models list.
 #' @param scores A vector containing the scores to be computed. The options are "mse", "crps", "scrps", "dss", "wcrps" and "swcrps". By default, all scores are computed.
 #' @param cv_type The type of the folding to be carried out. The options are `k-fold` for `k`-fold cross-validation, in which case the parameter `k` should be provided,
@@ -287,9 +304,9 @@ get_post_var <- function(density_df) {
 #' @param train_test_indexes A list where each element corresponds to a fold. Each fold contains:
 #' - `train`: A list of training index vectors, one for each likelihood.
 #' - `test`: A list of test index vectors, one for each likelihood, with the same length as `train`.
-#' This list is typically obtained by setting the argument `return_train_test` to `TRUE`.
+#' This list is typically obtained by setting the argument `return_train_test` to `TRUE`. 
 #' When supplying `train_test_indexes`, the `cv_type`, `k`, `percentage` and `number_folds` arguments are ignored.
-#' @param return_train_test Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list.
+#' @param return_train_test Logical. Should the training and test indexes be returned? If 'TRUE' the train and test indexes will the 'train_test' element of the returned list. 
 #' @param return_post_samples If `TRUE` the posterior samples will be included in the returned list.
 #' @param return_true_test_values If `TRUE` the true test values will be included in the returned list.
 #' @param parallelize_RP Logical. Should the computation of CRPS and SCRPS (and for some cases, DSS) be parallelized?
@@ -476,12 +493,12 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
     post_samples[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_test_indexes))
     if(return_true_test_values){
       true_test_values[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_test_indexes))
-    }
+    }    
     for(j in seq_along(train_test_indexes)){
       post_samples[[model_names[[model_number]]]][[j]] <- vector(mode = "list", length = n_likelihoods)
       if(return_true_test_values){
         true_test_values[[model_names[[model_number]]]][[j]] <- vector(mode = "list", length = n_likelihoods)
-      }
+      }    
     }
   }
   # Perform the cross-validation
@@ -490,7 +507,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
 
   n_folds <- length(train_test_indexes)
   n_models <- length(models)
-
+  
   dss <- lapply(1:n_likelihoods, function(i) matrix(numeric(n_folds * n_models), ncol = n_models))
   mse <- lapply(1:n_likelihoods, function(i) matrix(numeric(n_folds * n_models), ncol = n_models))
   mae <- lapply(1:n_likelihoods, function(i) matrix(numeric(n_folds * n_models), ncol = n_models))
@@ -528,15 +545,15 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
           post_linear_predictors <- sample_posterior_linear_predictor(new_model, i_lik, test_list, new_n_samples, print)
 
           post_samples[[model_names[[model_number]]]][[fold]][[i_lik]] <- get_posterior_samples(
-                      post_linear_predictors = post_linear_predictors, new_model = new_model,
-                      i_lik = i_lik, new_n_samples = new_n_samples,
-                      full_model = models[[model_number]],
+                      post_linear_predictors = post_linear_predictors, new_model = new_model, 
+                      i_lik = i_lik, new_n_samples = new_n_samples, 
+                      full_model = models[[model_number]], 
                       true_CV = true_CV, print = print)
 
           post_samples[[model_names[[model_number]]]][[fold]][[i_lik]] <-  do.call(rbind, post_samples[[model_names[[model_number]]]][[fold]][[i_lik]])
-
+          
           test_data <- models[[model_number]]$bru_info$lhoods[[i_lik]]$response_data$BRU_response[test_list[[i_lik]]]
-
+          
           if(return_true_test_values){
             true_test_values[[model_names[[model_number]]]][[fold]] <- test_data
           }
@@ -561,16 +578,16 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
               if (print) {
                 cat(paste0("MAE - Likelihood ",i_lik,": ", mae[[i_lik]][fold, model_number], "\n"))
               }
-            }
+            }            
           }
-
+        
           if ("dss" %in% scores) {
             post_var <- rowMeans(post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, 1:n_samples, drop=FALSE]^2) - (rowMeans(post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, 1:n_samples, drop=FALSE]))^2
 
             dss[[i_lik]][fold, model_number] <- mean((test_data - rowMeans(post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, (n_samples + 1):(2 * n_samples), drop=FALSE]))^2 / post_var + log(post_var))
             if (print) {
               cat(paste("DSS - Likelihood ",i_lik,": ", dss[[i_lik]][fold, model_number], "\n"))
-            }
+            }            
           }
 
         if(any(c("crps", "scrps", "wcrps", "swcrps") %in% scores)){
@@ -593,7 +610,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
             E2_tmp <- lapply(1:length(test_data), function(i) {
               mean(abs(Y1_sample[i,] - Y2_sample[i,]))
             })
-          }
+          }          
         }
 
         if(any(c("wcrps", "swcrps") %in% scores)){
@@ -611,7 +628,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
             E2_tmp_thr <- lapply(1:length(test_data), function(i) {
               mean(abs((Y1_sample[i,]>weight_thr)*(Y1_sample[i,]-weight_thr)-(Y2_sample[i,]>weight_thr)*(Y2_sample[i,]-weight_thr)))
             })
-          }
+          }    
         }
 
         if ("crps" %in% scores) {
@@ -643,21 +660,21 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
           if (print) {
             cat(paste("SCRPS: - Likelihood ",i_lik,": ", scrps[[i_lik]][fold, model_number], "\n"))
           }
-        }
+        }     
 
         if("wcrps" %in% scores){
             wcrps_temp <- lapply(1:length(test_data), function(i){
                 return(0.5*E2_tmp_thr[[i]]-E1_tmp_thr[[i]])
             })
             wcrps_temp <- unlist(wcrps_temp)
-            wcrps[[i_lik]][fold, model_number] <- mean(wcrps_temp)
+            wcrps[[i_lik]][fold, model_number] <- mean(wcrps_temp)  
             if(orientation_results == "negative"){
                 wcrps[[i_lik]][fold, model_number] <- - wcrps[[i_lik]][fold, model_number]
-            }
+            }    
 
             if (print) {
               cat(paste0("wCRPS - Likelihood ",i_lik,": ", wcrps[[i_lik]][fold, model_number], "\n"))
-            }
+            }  
         }
 
         if("swcrps" %in% scores){
@@ -669,17 +686,17 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
                 return(-E1_tmp_thr[[i]]/E2_tmp_thr[[i]] - 0.5*log(E2_tmp_thr[[i]]))
             })
             swcrps_temp <- unlist(swcrps_temp)
-            swcrps[[i_lik]][fold, model_number] <- mean(swcrps_temp)
+            swcrps[[i_lik]][fold, model_number] <- mean(swcrps_temp)  
           }
 
             if(orientation_results == "negative"){
                 swcrps[[i_lik]][fold, model_number] <- - swcrps[[i_lik]][fold, model_number]
-            }
-
+            }   
+            
             if (print) {
               cat(paste0("swCRPS - Likelihood ",i_lik,": ", swcrps[[i_lik]][fold, model_number], "\n"))
-            }
-        }
+            }                                               
+        }        
       }
      }
     }
@@ -843,7 +860,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
    if ("swcrps" %in% scores) {
      swcrps_mean <- colMeans(swcrps[[1]])
      result_df <- data.frame(result_df, swcrps = swcrps_mean)
-   }
+   }   
   }
 
   if (save_settings) {
@@ -863,7 +880,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
   if (include_best) {
    n_fit_scores <- ncol(result_df) - 1
    final_row <- c("Best")
-
+  
    for (j in 2:ncol(result_df)) {
      colname <- names(result_df)[j]
      # Skip if it's not a metric column
@@ -918,7 +935,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
      out <- list(scores_df = result_df, train_test = train_test_indexes)
      if(return_true_test_values){
        out[["true_test_values"]] <- true_test_values
-     }
+     }      
    } else if(return_true_test_values){
      out <- list(scores_df = result_df, true_test_values = true_test_values)
    } else {
@@ -932,7 +949,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
        return(mat)
      })
    }
-
+  
    scores_folds <- list()
    if ("dss" %in% scores) scores_folds$dss <- add_model_names(dss)
    if ("mse" %in% scores) scores_folds$mse <- add_model_names(mse)
@@ -940,13 +957,13 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
    if ("crps" %in% scores) scores_folds$crps <- add_model_names(crps)
    if ("scrps" %in% scores) scores_folds$scrps <- add_model_names(scrps)
    if ("wcrps" %in% scores) scores_folds$wcrps <- add_model_names(wcrps)
-   if ("swcrps" %in% scores) scores_folds$swcrps <- add_model_names(swcrps)
-
+   if ("swcrps" %in% scores) scores_folds$swcrps <- add_model_names(swcrps)   
+  
    out <- list(
      scores_df = result_df,
      scores_folds = scores_folds
    )
-
+  
    if (save_settings) {
      out[["settings"]] <- settings_list
    }
@@ -964,7 +981,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
 }
 
 
-#' @noRd
+#' @noRd 
 
 sample_posterior_linear_predictor <- function(model, i_lik, test_list, n_samples, print){
         link_name <- model$.args$control.family[[i_lik]]$link
@@ -992,7 +1009,7 @@ sample_posterior_linear_predictor <- function(model, i_lik, test_list, n_samples
         }
 
         formula_tmp <- process_formula_lhoods(model, i_lik)
-
+        
         env_tmp <- environment(formula_tmp)
         assign("linkfuninv", linkfuninv, envir = env_tmp)
         if (model_family %in% c("stochvol", "stochvolln", "stochvolnig", "stochvolt")) {
@@ -1015,7 +1032,7 @@ sample_posterior_linear_predictor <- function(model, i_lik, test_list, n_samples
 
 get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_n_samples, full_model, true_CV, print){
     model_family <- new_model$.args$family[[i_lik]]
-
+    
     if(true_CV){
       model_sample <- new_model
     } else{
@@ -1034,7 +1051,7 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
       sd_sample <- 1 / sqrt(as.vector(meas_err_par[[1]]))
       Y_sample <- lapply(1:nrow(post_linear_predictors), function(i) {
               post_linear_predictors[i, ] + sd_sample * rnorm(new_n_samples)
-            })
+            }) 
     } else if(model_family == "gamma"){
       phi_sample <- as.vector(meas_err_par[[1]])
       Y_sample <-  lapply(1:nrow(post_linear_predictors), function(i) {
@@ -1045,7 +1062,7 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
       sd_sample <- 1 / sqrt(as.vector(meas_err_par[[1]]))
       deg_sample <- as.vector(meas_err_par[[2]])
       Y_sample <-  lapply(1:nrow(post_linear_predictors), function(i) {
-        scale_temp <- post_linear_predictors[i,] +
+        scale_temp <- post_linear_predictors[i,] + 
         sd_sample + rt(new_n_samples, df = deg_sample)
       })
     } else if(model_family == "poisson"){
@@ -1066,7 +1083,7 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
         mu_sample <- as.vector(meas_err_par[[2]])
         Y_sample <- lapply(1:nrow(post_linear_predictors), function(i) {
            var <- post_linear_predictors[i, ] + 1 / phi_sample
-           mean <- mu_sample - 0.5 * var
+           mean <- mu_sample - 0.5 * var          
            mean + sqrt(var) * rnorm(new_n_samples)
           })
     } else if(model_family == "stochvolnig"){
@@ -1083,17 +1100,17 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
 
                                    beta = skewness * gamma   # beta = mu_old / sigma^2 = skewness_1 * gamma_1
                               )
-                              })
+                              })        
     } else if(model_family == "stochvolt"){
       degree <- as.vector(meas_err_par[[1]])
       Y_sample <- lapply(1:nrow(post_linear_predictors), function(i) {
         sqrt(post_linear_predictors[i, ]) * rt(new_n_samples, degree)
-      })
+      })      
     }
     if (print) {
       cat("Samples generated!\n")
     }
-
+    
     return(Y_sample)
 }
 
@@ -1101,11 +1118,11 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
 map_models_to_strings <- function(models) {
  # Extract families from models
  families <- models$.args$family
-
+ 
  # Define base mappings
  mapping <- list(
    "gaussian" = "Precision for the Gaussian observations",
-   "gamma" = "Precision-parameter for the Gamma observations",
+   "gamma" = "Precision-parameter for the Gamma observations", 
    "poisson" = ".none",
    "binomial" = ".none",
    "stochvol" = "Offset precision for stochvol",
@@ -1114,15 +1131,15 @@ map_models_to_strings <- function(models) {
    "stochvolt" = "degrees of freedom for stochvol student-t",
    "t" = c("precision for the student-t observations", "degrees of freedom for student-t")
  )
-
+ 
  # Initialize result list
  result <- vector("list", length(families))
-
+ 
  # Process each family
  for (i in seq_along(families)) {
    family <- families[i]
    base_string <- mapping[[family]]
-
+   
    # If it's first occurrence or .none, use base string
    if (i == 1 || base_string[1] == ".none") {
      result[[i]] <- base_string
@@ -1135,7 +1152,7 @@ map_models_to_strings <- function(models) {
      }
    }
  }
-
+ 
  return(result)
 }
 
