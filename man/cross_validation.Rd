@@ -81,11 +81,11 @@ When supplying \code{train_test_indexes}, the \code{cv_type}, \code{k}, \code{pe
 
 \item{save_settings}{Logical. If \code{TRUE}, the settings used in the cross-validation will also be returned.}
 
+\item{model_options_bru}{A list of options to be passed to inlabru.}
+
 \item{print}{Should partial results be printed throughout the computation?}
 
 \item{fit_verbose}{Should INLA's run during cross-validation be verbose?}
-
-\item{model_options_inla}{A list of options to be passed to inlabru.}
 }
 \value{
 A data.frame with the fitted models and the corresponding scores.
