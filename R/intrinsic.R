@@ -746,15 +746,31 @@ intrinsic.matern.operators <- function(kappa,
     }
     Q_list <- list(Qproper = Q.list1,
                    Qintrinsic = Q.list2)
+    #check for K parts 
+    fix_alpha <- FALSE
+    if(!(alpha %% 1 == 0) && floor(alpha) == 0) {
+        fix_alpha = TRUE
+    }
+    fix_beta <- FALSE
+    if(!(beta %% 1 == 0) && floor(beta) == 0) {
+        fix_beta = TRUE
+    }
     for (i in 1:m1) {
       for (j in 1:m2) {
+          if(fix_alpha && i==m1) {
+              Qij <- op1$C %*% Q.list1[[i]] %*% Q.list2[[j]] 
+          } else if(fix_beta && j==m2) {
+              Qij <-  Q.list1[[i]] %*% Q.list2[[j]] %*% op1$C
+          } else {
+              Qij <- Q.list1[[i]] %*% op1$Ci %*% Q.list2[[j]]
+          }
         if (return_block_list) {
-          Q[[k]] <- Q.list1[[i]] %*% op1$Ci %*% Q.list2[[j]]
+          Q[[k]] <- Qij
         } else {
           if (i == 1 && j == 1) {
-            Q <- Q.list1[[i]] %*% op1$Ci %*% Q.list2[[j]]
+            Q <- Qij
           } else {
-            Q <- bdiag(Q, Q.list1[[i]] %*% op1$Ci %*% Q.list2[[j]])
+            Q <- bdiag(Q, Qij)
           }
         }
         k <- k + 1
@@ -1597,8 +1613,12 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
     #compute prior log determinant
     Q <- object$Q
     prior.ld <- 0.5*precision(object, ld = TRUE)
+    #ind <- seq(from = 1, to = (object$m-1)*object$n, by = object$n)
+    #Qi <- Q[-ind,-ind]
+    #Ri <- chol(Qi)
+    #prior.ld <- sum(log(diag(Ri))) #+ log(object$m*object$n)
     if(mean_correction) {
-        mean_latent <- object$mean_correction()
+        mean_latent <- object$mean_correction(full=TRUE)
     } else {
         mean_latent <- rep(0,dim(Q)[1])
     }
@@ -1621,23 +1641,47 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
         y_ <- y_tmp[!na_obs]
         
         n.o <- length(y_)
-        A_tmp <- A_list[[as.character(i)]]
-        Q.p <- Q + t(A_tmp) %*% A_tmp / sigma_e^2
-        
-        if(object$beta < 1 && object$alpha == 0) {
-        #if(0) {
-            posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+        if(i==repl_val[1]) {
+            A_tmp <- A_list[[as.character(i)]]
+            A1 <- A_tmp
+            update_chol <- TRUE
         } else {
-            if(object$m == 1) {
-            #    if(0) {
-                posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+            A_tmp <- A_list[[as.character(i)]]
+            if(all.equal(A1,A_tmp)) {
+                update_chol <- FALSE
             } else {
-                ind <- 1 + seq(from = object$n, 
-                               to = (object$m-1)*object$n, by = object$n)
-                posterior.ld <- 0.5*(c(determinant(Q.p[-ind,-ind], logarithm = TRUE)$modulus) + (object$m-1)*log(dim(Q)[1]) - log(object$m))  
-                l <- l - log(2*pi)    
+                update_chol <- TRUE
             }
         }
+        #cat("i = ", repl_val, ", update_chol = ", update_chol, "\n")
+        proper.post <- TRUE
+        if(update_chol) {
+            Q.p <- Q + t(A_tmp) %*% A_tmp / sigma_e^2
+            R.p <- Matrix::Cholesky(Q.p)
+            
+            if(object$beta < 1 && object$alpha == 0 || object$beta == 0) {
+                posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+            } else {
+                if(object$m == 1) {
+                    posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+                } else {
+                    proper.post <- FALSE
+                    ind <- 1 + seq(from = object$n, to = (object$m-1)*object$n, by = object$n)
+                    Qi <- Q[-ind,-ind]
+                    Q.pi <- Qi + t(A_tmp[,-ind]) %*% A_tmp[,-ind] / sigma_e^2
+                    R.pi <- Matrix::Cholesky(Q.pi)
+                    #posterior.ld <- sum(log(diag(R.pi)))
+                    #R.pi <- Matrix::Cholesky(Q.p[-ind,-ind])
+                    #posterior.ld <- 0.5*(c(determinant(Qi, logarithm = TRUE)$modulus) + (object$m-1)*log(dim(Q)[1]) - log(object$m))  + log(2*pi)    
+                    posterior.ld <- 0.5*(sum(log(diag(R.pi)))) # + (object$m-1)*log(dim(Q)[1]) - log(object$m))  + log(2*pi)    
+                    #cat("Rpi = ", sum(log(diag(R.pi))),"\n")
+                    #posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+                    #posterior.ld <- sum(log(diag(R.p)))
+                    #cat(posterior.ld, posterior.ld1,"\n")
+                }
+            }      
+        }
+        
         
         l <- l + prior.ld - posterior.ld - n.o * log(sigma_e)
         
@@ -1646,17 +1690,27 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
         if (ncol(X_cov) > 0) {
             X_cov_tmp <- X_cov_tmp[!na_obs, , drop = FALSE]
             # X_cov_tmp <- X_cov_list[[as.character(i)]]
-            v <- v - X_cov_tmp %*% beta_cov - A_tmp %*% mean_latent
+            v <- v - X_cov_tmp %*% beta_cov 
         }
-        R.p <- Matrix::Cholesky(Q.p)
-        mu.p <- solve(R.p, as.vector(t(A_tmp) %*% v / sigma_e^2), system = "A")
+        v <- v - A_tmp %*% mean_latent
         
+        if(proper.post) {
+            mu.p <- solve(R.p, as.vector(t(A_tmp) %*% v / sigma_e^2), system = "A")   
+        } else {
+            inds <- rep(TRUE,dim(Q.p)[1])
+            inds[ind] <- FALSE
+            mu.p <- rep(0,dim(Q.p)[1])
+            mu.p[inds] <- solve(R.pi, as.vector(t(A_tmp[,-ind]) %*% v / sigma_e^2), system = "A")    
+        }
+        
+        #cat(dim(A_tmp), ", ", length(mu.p), ", ", dim(Q.p))
         v <- v - A_tmp %*% mu.p
         
         l <- l - 0.5 * (t(mu.p) %*% Q %*% mu.p + t(v) %*% v / sigma_e^2) -
             0.5 * n.o * log(2 * pi)
     }
-    
+    #cat(as.double(l),", ", prior.ld,", ", posterior.ld,"\n")
+    cat(as.double(l),"\n")
     return(as.double(l))
 }
 
@@ -1740,6 +1794,10 @@ variogram.intrinsic.spde <- function(s0 = NULL,
       lambda <- (i * pi / L)^(-2 * beta) * ((i * pi / L)^2 + kappa^2)^(-alpha)
       vario <- vario + 0.5 * (2 / L) * lambda * (cos(i * pi * s / L) - cos(i * pi * s0 / L))^2
     }
+    #if(beta == 0) {
+    #    lambda <- (kappa^2)^(-alpha)
+    #    vario <- vario + 0.5 * (2 / L) * lambda * (cos(0 * pi * s / L) - cos(0 * pi * s0 / L))^2
+    #}
   } else if (d == 2) {
     if (!is.matrix(s)) {
       stop("s should be a matrix if d=2")
@@ -1768,6 +1826,12 @@ variogram.intrinsic.spde <- function(s0 = NULL,
         vario <- vario + 0.5 * lambda * (e1 - e2)^2
       }
     }
+    #if(beta == 0) {
+    #    lambda <- (kappa^2)^(-alpha)
+    #    e1 <- (1 / L) * cos(0 * pi * s[, 1] / L) * cos(0 * pi * s[, 2] / L)
+    #    e2 <- (1 / L) * cos(0 * pi * s0[1] / L) * cos(0 * pi * s0[2] / L)
+    #    vario <- vario + 0.5 * lambda * (e1 - e2)^2
+    #}
   } else {
     stop("d should be 1 or 2.")
   }
