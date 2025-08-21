@@ -14,7 +14,7 @@ covariance-based rational SPDE approximation}
   alpha = NULL,
   beta = NULL,
   integral.constraint = TRUE,
-  use_kl = NULL,
+  use_kl = FALSE,
   ...
 )
 }
