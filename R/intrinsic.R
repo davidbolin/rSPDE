@@ -745,8 +745,7 @@ intrinsic.matern.operators <- function(kappa,
       Q <- list()
     }
     Q_list <- list(Qproper = Q.list1,
-                   Qintrinsic = Q.list2,
-                   Q = list())
+                   Qintrinsic = Q.list2)
     #check for K parts 
     fix_alpha <- FALSE
     if(!(alpha %% 1 == 0) && floor(alpha) == 0) {
@@ -765,7 +764,6 @@ intrinsic.matern.operators <- function(kappa,
           } else {
               Qij <- Q.list1[[i]] %*% op1$Ci %*% Q.list2[[j]]
           }
-          Q_list$Q[[k]] <- Qij
         if (return_block_list) {
           Q[[k]] <- Qij
         } else {
@@ -778,13 +776,6 @@ intrinsic.matern.operators <- function(kappa,
         k <- k + 1
       }
     }
-    if(beta < 1) {
-        fullrank = rep(TRUE,length(Q_list$Q))
-    } else {
-        fullrank = rep(FALSE,length(Q_list$Q))
-    }
-    Q_list$fullrank <- fullrank
-    
     n <- dim(op1$C)[1]
     A <- kronecker(matrix(rep(1, m1 * m2), 1, m1 * m2), Diagonal(n))    
   } else if (alpha > 0 && kappa > 0) {
@@ -813,9 +804,7 @@ intrinsic.matern.operators <- function(kappa,
       Q <- Q.list1
     }
     Q_list <- list(Qproper = Q.list1,
-                   Qintrinsic = NULL,
-                   Q = Q.list1,
-                   fullrank = rep(TRUE,length(Q.list1)))
+                   Qintrinsic = NULL)
     
     n <- dim(op1$C)[1]
     A <- kronecker(matrix(rep(1, m1), 1, m1), Diagonal(n))
@@ -851,14 +840,7 @@ intrinsic.matern.operators <- function(kappa,
       Q <- Q.list1
     }
     Q_list <- list(Qintrinsic = Q.list1,
-                   Qproper = NULL,
-                   Q = Q.list1)
-    if(beta < 1) {
-        fullrank = rep(TRUE,length(Q.list1))
-    } else {
-        fullrank = rep(FALSE,length(Q.list1))
-    }
-    Q_list$fullrank <- fullrank
+                   Qproper = NULL)
     n <- dim(op1$C)[1]
 
     A <- kronecker(matrix(rep(1, m1), 1, m1), Diagonal(n))    
@@ -1035,7 +1017,7 @@ simulate.intrinsicCBrSPDEobj <- function(object, nsim = 1,
                                          alpha = NULL,
                                          beta = NULL,
                                          integral.constraint = TRUE, 
-                                         use_kl = FALSE, ...) {
+                                         use_kl = NULL, ...) {
     
     if(!is.null(kappa) || !is.null(tau) || !is.null(alpha) || !is.null(beta)) {
         object <- update(object, kappa = kappa, tau = tau, 
@@ -1045,36 +1027,80 @@ simulate.intrinsicCBrSPDEobj <- function(object, nsim = 1,
     if (!is.null(seed)) {
         set.seed(seed)
     }
-
-    n <- object$n
-    m <- object$m
-        
-    X <- matrix(0,n,nsim)
-    for(i in 1:m){
-        if(object$Q_list$fullrank[i]) {
-            Q <- object$Q_list$Q[[i]]
-            Z <- rnorm(n * nsim)
-            dim(Z) <- c(n, nsim)
-            LQ <-  chol(forceSymmetric(Q))
-            X <- X + as.matrix(solve(LQ, Z))  
+    if(is.null(use_kl)) {
+        if(object$alpha == 0) {
+            use_kl <- FALSE
         } else {
-            if(!use_kl) {
-                Q <- object$Q_list$Q[[i]]
-                R <- Cholesky(Q, LDL = TRUE)
-                tmp <- expand2(R)
+            use_kl <- TRUE
+        }
+    }
+    
+    if (object$return_block_list) {
+        n <- object$n
+        m <- object$m
+        
+        X <- matrix(0,n,nsim)
+        for(i in 1:m){
+            if(object$beta < 1 && object$alpha == 0) {
+                Q <- object$Q[[i]]
                 Z <- rnorm(n * nsim)
                 dim(Z) <- c(n, nsim)
-                Di <- Diagonal(n,c(1/sqrt(diag(tmp$D)[-n]),0))
-                X <- X + as.matrix(tmp$P1.%*%solve(tmp$L1., Di%*%Z))    
+                LQ <-  Matrix::Cholesky(forceSymmetric(Q))
+                X <- X + as.matrix(solve(LQ, Z))  
             } else {
-                ev <- eigen(object$Q_list$Q[[i]])
-                V <- ev$vectors[,-n]
-                lambda <- ev$values[-n]
-                for(j in 1:(n-1)) {
-                    Z <- kronecker(matrix(rnorm(nsim),1,nsim), rep(1,n))
-                    X <- X + Z * kronecker(matrix(rep(1,nsim),1,nsim), V[,j]) / sqrt(lambda[j])
+                if(!use_kl) {
+                    Q <- object$Q[[i]]
+                    R <- Cholesky(Q, LDL = TRUE)
+                    tmp <- expand2(R)
+                    Z <- rnorm(n * nsim)
+                    dim(Z) <- c(n, nsim)
+                    Di <- Diagonal(n,c(1/sqrt(diag(tmp$D)[-n]),0))
+                    X <- X + as.matrix(solve(tmp$P1, solve(t(tmp$L1), Di%*%Z)))
+                } else {
+                    ev <- eigen(object$Q[[i]])
+                    V <- ev$vectors[,-n]
+                    lambda <- ev$values[-n]
+                    for(j in 1:(n-1)) {
+                        Z <- kronecker(matrix(rnorm(nsim),1,nsim), rep(1,n))
+                        X <- X + Z * kronecker(matrix(rep(1,nsim),1,nsim), V[,j]) / sqrt(lambda[j])
+                    }
                 }
             }
+        }
+    } else {
+      n <- object$n
+      m <- object$m
+      
+      X <- matrix(0,n,nsim)
+      for(i in 1:m){
+          if(object$beta < 1 && object$alpha == 0) {
+              ind <- (1+n*(i-1)) : (n*i)
+              Q <- object$Q[ind,ind]
+              Z <- rnorm(n * nsim)
+              dim(Z) <- c(n, nsim)
+              LQ <-  chol(forceSymmetric(Q))
+              X <- X + as.matrix(solve(LQ, Z))      
+          } else {
+              if(!use_kl) {
+                  ind <- (1+n*(i-1)) : (n*i)
+                  Q <- object$Q[ind,ind]
+                  R <- Cholesky(Q, LDL = TRUE)
+                  tmp <- expand2(R)
+                  Z <- rnorm(n * nsim)
+                  dim(Z) <- c(n, nsim)
+                  Di <- Diagonal(n,c(1/sqrt(diag(tmp$D)[-n]),0))
+                  X <- X + as.matrix(solve(tmp$P1, solve(t(tmp$L1), Di%*%Z)))
+              } else {
+                  ind <- (1+n*(i-1)) : (n*i)
+                  ev <- eigen(object$Q[ind,ind])
+                  V <- ev$vectors[,-n]
+                  lambda <- ev$values[-n]
+                  for(j in 1:(n-1)) {
+                      Z <- kronecker(matrix(rnorm(nsim),1,nsim), rep(1,n))
+                      X <- X + Z * kronecker(matrix(rep(1,nsim),1,nsim), V[,j]) / sqrt(lambda[j])
+                  }
+              }
+          }  
         }
     }
     #Add zero integral constraint
@@ -1084,6 +1110,7 @@ simulate.intrinsicCBrSPDEobj <- function(object, nsim = 1,
             X[,i] <- X[,i] - sum(h*X[,i])/sum(h)
         }    
     }
+    
     return(X)
 }
 
@@ -1177,7 +1204,6 @@ update.intrinsicCBrSPDEobj <- function(object,
 #' @param beta If non-null, update the beta parameter.
 #' @param ld If TRUE, return the log determinant of the precision matrix instead 
 #' of the precision matrix. By default FALSE.
-#' @param adjust Internally used parameter.
 #' @param ... Currently not used.
 #' @return The precision matrix.
 #' @method precision intrinsicCBrSPDEobj
@@ -1201,7 +1227,6 @@ precision.intrinsicCBrSPDEobj <- function(object,
                                    alpha = NULL,
                                    beta = NULL,
                                    ld = FALSE,
-                                   adjust = FALSE,
                                    ...) {
     object <- update.intrinsicCBrSPDEobj(
         object = object,
@@ -1212,27 +1237,45 @@ precision.intrinsicCBrSPDEobj <- function(object,
     )
     if(ld) {
         n <- dim(object$C)[1]
-        dets <- rep(1,object$m)
-        for(i in 1:object$m) {
-            if(object$Q_list$fullrank[i]) {
-                Q.R <- Matrix::Cholesky(object$Q_list$Q[[i]])
-                dets[i] <- 2*determinant(Q.R,logarithm = TRUE, sqrt = TRUE)$modulus
-            } else {
-                Q.R <- Matrix::Cholesky(object$Q_list$Q[[i]][-1,-1])
-                if(adjust) {
-                    if(i==1) {
-                        dets[i] <- 2*determinant(Q.R,logarithm = TRUE, sqrt = TRUE)$modulus + log(n)    
-                    } else {
-                        dets[i] <- 2*determinant(Q.R,logarithm = TRUE, sqrt = TRUE)$modulus
-                    }
-                    
-                } else {
-                    dets[i] <- 2*determinant(Q.R,logarithm = TRUE, sqrt = TRUE)$modulus + log(n)    
-                }
-                
+        if(!is.null(object$Q_list$Qproper) && !is.null(object$Q_list$Qintrinsic)) {
+            m1 <- length(object$Q_list$Qproper)
+            m2 <- length(object$Q_list$Qintrinsic)
+            detCi <- sum(log(diag(object$Ci)))
+            det1 <- rep(1,m1)
+            det2 <- rep(1,m2)
+            for(i in 1:m1) {
+                Q.R <- Matrix::Cholesky(object$Q_list$Qproper[[i]])
+                det1[i] <- 2 * c(determinant(Q.R, logarithm = TRUE, sqrt = TRUE)$modulus)
             }
+            for(i in 1:m2) {
+                Q.R <- Matrix::Cholesky(object$Q_list$Qintrinsic[[i]][-1,-1])
+                det2[i] <- 2 * c(determinant(Q.R, logarithm = TRUE, sqrt = TRUE)$modulus)
+            }
+            logQ <- m1*m2*detCi + m1*(sum(det2) + m2*log(n)) + m2*sum(det1)
+        } else if (!is.null(object$Q_list$Qintrinsic)){
+            m2 <- length(object$Q_list$Qintrinsic)
+            det2 <- rep(1,m2)
+            for(i in 1:m2) {
+                if(object$beta < 1 && object$alpha == 0) {
+                #if(0) {
+                    Q.R <- Matrix::Cholesky(object$Q_list$Qintrinsic[[i]])
+                    det2[i] <- 2 * c(determinant(Q.R, logarithm = TRUE, sqrt = TRUE)$modulus)
+                } else {
+                    Q.R <- Matrix::Cholesky(object$Q_list$Qintrinsic[[i]][-1,-1])    
+                    det2[i] <- 2 * c(determinant(Q.R, logarithm = TRUE, sqrt = TRUE)$modulus) + log(n)
+                }
+            }
+            logQ <- sum(det2) 
+        } else {
+            m1 <- length(object$Q_list$Qproper)
+            det1 <- rep(1,m1)
+            for(i in 1:m1) {
+                Q.R <- Matrix::Cholesky(object$Q_list$Qproper[[i]])
+                det1[i] <- 2 * c(determinant(Q.R, logarithm = TRUE, sqrt = TRUE)$modulus)
+            }
+            logQ <- sum(det1)
         }
-        return(sum(dets))
+        return(logQ)
     } else {
         return(object$Q)    
     }
@@ -1557,7 +1600,7 @@ aux_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
             return(NULL)
         }
     )
-    if (is.null(l_tmp) || is.na(l_tmp)) {
+    if (is.null(l_tmp)) {
         return(-10^100)
     }
     return(l_tmp)
@@ -1569,14 +1612,7 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
     
     #compute prior log determinant
     Q <- object$Q
-    #prior.ld <- 0.5*precision(object, ld = TRUE)
-    if(sum(object$Q_list$fullrank) >= length(object$Q_list$fullrank) - 1) {
-        proper.post <- TRUE
-    } else {
-        proper.post <- FALSE
-    }
-    prior.ld <- 0.5*precision(object, ld = TRUE, adjust = !proper.post)
-    
+    prior.ld <- 0.5*precision(object, ld = TRUE)
     if(mean_correction) {
         mean_latent <- object$mean_correction(full=TRUE)
     } else {
@@ -1607,27 +1643,39 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
             update_chol <- TRUE
         } else {
             A_tmp <- A_list[[as.character(i)]]
-            if(all.equal(A1,A_tmp)) {
+            if(all.equal(A1,A_tmp) == TRUE) {
                 update_chol <- FALSE
             } else {
                 update_chol <- TRUE
             }
         }
         #cat("i = ", repl_val, ", update_chol = ", update_chol, "\n")
+        
         if(update_chol) {
             Q.p <- Q + t(A_tmp) %*% A_tmp / sigma_e^2
             R.p <- Matrix::Cholesky(Q.p)
-            if(proper.post) {
-                posterior.ld <- determinant(R.p,logarithm = TRUE, sqrt = TRUE)$modulus
+            
+            if(object$beta < 1 && object$alpha == 0 || object$beta == 0) {
+                posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
             } else {
-                ind <- 1 + seq(from = object$n, to = (object$m-1)*object$n, by = object$n)
-                Qi <- Q[-ind,-ind]
-                Q.pi <- Qi + t(A_tmp[,-ind]) %*% A_tmp[,-ind] / sigma_e^2
-                R.pi <- Matrix::Cholesky(Q.pi)
-                #R.pi <- Matrix::Cholesky(Q.p[-ind,-ind])
-                posterior.ld <- determinant(R.pi,logarithm = TRUE, sqrt = TRUE)$modulus
-            }
+                if(object$m == 1) {
+                     posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+                } else {
+                    ind <- 1 + seq(from = object$n, to = (object$m-1)*object$n, by = object$n)
+                    Qi <- Q[-ind,-ind]
+                    Q.pi <- Qi + t(A_tmp[,-ind]) %*% A_tmp[,-ind] / sigma_e^2
+                    R.pi <- Matrix::Cholesky(Q.pi)
+                    posterior.ld <- sum(log(diag(R.pi)))
+                    #R.pi <- Matrix::Cholesky(Q.p[-ind,-ind])
+                    #posterior.ld <- 0.5*(c(determinant(Q.p[-ind,-ind], logarithm = TRUE)$modulus) + (object$m-1)*log(dim(Q)[1]) - log(object$m))  + log(2*pi)    
+                    #posterior.ld <- 0.5*(sum(log(diag(R.pi)))  + (object$m-1)*log(dim(Q)[1]) - log(object$m))  + log(2*pi)    
+                    #posterior.ld1 <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+                    #posterior.ld <- sum(log(diag(R.p)))
+                    #cat(posterior.ld, posterior.ld1,"\n")
+                }
+            }      
         }
+      
         
         l <- l + prior.ld - posterior.ld - n.o * log(sigma_e)
         
@@ -1638,23 +1686,20 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
             # X_cov_tmp <- X_cov_list[[as.character(i)]]
             v <- v - X_cov_tmp %*% beta_cov 
         }
-        v <- v - A_tmp %*% mean_latent
+        v <- v + A_tmp %*% mean_latent
         
-        if(proper.post) {
-            mu.p <- solve(R.p, as.vector(t(A_tmp) %*% v / sigma_e^2), system = "A")   
-        } else {
-            inds <- rep(TRUE,dim(Q.p)[1])
-            inds[ind] <- FALSE
-            mu.p <- rep(0,dim(Q.p)[1])
-            mu.p[inds] <- solve(R.pi, as.vector(t(A_tmp[,-ind]) %*% v / sigma_e^2), system = "A")    
-        }
+        #inds <- rep(TRUE,dim(Q.p)[1])
+        #inds[ind] <- FALSE
+        #mu.p <- rep(0,dim(Q.p)[1])
+        #mu.p[inds] <- solve(R.pi, as.vector(t(A_tmp[,inds]) %*% v / sigma_e^2), system = "A")
+        mu.p <- solve(R.p, as.vector(t(A_tmp) %*% v / sigma_e^2), system = "A")
         
-        #cat(dim(A_tmp), ", ", length(mu.p), ", ", dim(Q.p))
         v <- v - A_tmp %*% mu.p
         
         l <- l - 0.5 * (t(mu.p) %*% Q %*% mu.p + t(v) %*% v / sigma_e^2) -
             0.5 * n.o * log(2 * pi)
     }
+    cat(as.double(l),"\n")
     return(as.double(l))
 }
 
