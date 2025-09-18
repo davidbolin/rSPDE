@@ -589,7 +589,7 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 #' if (requireNamespace("RSpectra", quietly = TRUE)) {
 #'   x <- seq(from = 0, to = 10, length.out = 201)
 #'   beta <- 1
-#'   alpha <- 1
+#'   alpha <- 1  
 #'   kappa <- 1
 #'   op <- intrinsic.matern.operators(
 #'     kappa = kappa, tau = 1, alpha = alpha,
@@ -1088,7 +1088,11 @@ simulate.intrinsicCBrSPDEobj <- function(object, nsim = 1,
                   tmp <- expand2(R)
                   Z <- rnorm(n * nsim)
                   dim(Z) <- c(n, nsim)
-                  Di <- Diagonal(n,c(1/sqrt(diag(tmp$D)[-n]),0))
+                  D.diag <- diag(tmp$D)
+                  v <- rep(0,length(D.diag))
+                  ind.d <- (D.diag  > .Machine$double.eps^0.5)
+                  v[ind.d] <- 1/sqrt(D.diag[ind.d])
+                  Di <- Diagonal(n,v)
                   X <- X + as.matrix(solve(tmp$P1, solve(t(tmp$L1), Di%*%Z)))
               } else {
                   ind <- (1+n*(i-1)) : (n*i)
@@ -1606,15 +1610,33 @@ aux_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
     return(l_tmp)
 }
 
+
 #' @noRd
 aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, 
                                        beta_cov, mean_correction) {
     
     #compute prior log determinant
     Q <- object$Q
-    prior.ld <- 0.5*precision(object, ld = TRUE)
+    R <- Cholesky(Q, perm = TRUE, LDL = TRUE)
+    diag_L <- diag(R)
+    if(object$beta >= 1) {
+        ind.Q <- diag_L > sort(diag_L)[object$m]      
+    } else {
+        ind.Q <- rep(TRUE, length(diag_L))
+    }
+    
+    nz <- sum(!ind.Q)
+    prior.ld <- 0.5*(sum(log(diag_L[ind.Q])) + nz*log(object$n))
+    
+    #ev <- eigen(Q)$values
+    #prior.ld2 <- 0.5*sum(log(ev[ev > .Machine$double.eps^0.5]))
+    #cat("ld diff : ", prior.ld - prior.ld2,"\n")
+    
+    #prior.ld <- 0.5*sum(log(diag_L[diag_L > .Machine$double.eps^0.5]))
+    
+    #prior.ld <- 0.5*precision(object, ld = TRUE)
     if(mean_correction) {
-        mean_latent <- object$mean_correction(full=TRUE)
+        mean_latent <- -0.5*sigma_e^2 + object$mean_correction(full=TRUE, index = 1)
     } else {
         mean_latent <- rep(0,dim(Q)[1])
     }
@@ -1653,30 +1675,31 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
         
         if(update_chol) {
             Q.p <- Q + t(A_tmp) %*% A_tmp / sigma_e^2
-            R.p <- Matrix::Cholesky(Q.p)
-            
-            if(object$beta < 1 && object$alpha == 0 || object$beta == 0) {
-                posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+            R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
+            #D <- expand1(R.p, which = "D")
+            diag_L <- diag(R.p)
+            #ind <- diag_L > .Machine$double.eps^0.5
+            if(nz>1){
+                ind <- diag_L > sort(diag_L)[nz-1]    
             } else {
-                if(object$m == 1) {
-                     posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
-                } else {
-                    ind <- 1 + seq(from = object$n, to = (object$m-1)*object$n, by = object$n)
-                    Qi <- Q[-ind,-ind]
-                    Q.pi <- Qi + t(A_tmp[,-ind]) %*% A_tmp[,-ind] / sigma_e^2
-                    R.pi <- Matrix::Cholesky(Q.pi)
-                    posterior.ld <- sum(log(diag(R.pi)))
-                    #R.pi <- Matrix::Cholesky(Q.p[-ind,-ind])
-                    #posterior.ld <- 0.5*(c(determinant(Q.p[-ind,-ind], logarithm = TRUE)$modulus) + (object$m-1)*log(dim(Q)[1]) - log(object$m))  + log(2*pi)    
-                    #posterior.ld <- 0.5*(sum(log(diag(R.pi)))  + (object$m-1)*log(dim(Q)[1]) - log(object$m))  + log(2*pi)    
-                    #posterior.ld1 <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
-                    #posterior.ld <- sum(log(diag(R.p)))
-                    #cat(posterior.ld, posterior.ld1,"\n")
-                }
-            }      
-        }
-      
+                ind <- rep(TRUE,length(diag_L))
+            }
+            
+            nz.p <- sum(!ind)
+            posterior.ld <- 0.5*(sum(log(diag_L[ind])) + log(object$m*object$n^nz.p))
+            
+            #ev <- eigen(Q.p)$values
+            #posterior.ld2 <- 0.5*sum(log(ev[ev > .Machine$double.eps^0.5]))
+            #cat("ld post diff : ", posterior.ld - posterior.ld2,"\n")
+            
         
+            P <- expand1(R.p, which = "P1")
+            L <- expand1(R.p, which = "L1")
+            di <- rep(0,length(ind))
+            di[ind] <- 1/diag_L[ind]
+            Di<- Diagonal(length(ind),di)
+        }
+     
         l <- l + prior.ld - posterior.ld - n.o * log(sigma_e)
         
         v <- y_
@@ -1686,20 +1709,16 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
             # X_cov_tmp <- X_cov_list[[as.character(i)]]
             v <- v - X_cov_tmp %*% beta_cov 
         }
-        v <- v + A_tmp %*% mean_latent
         
-        #inds <- rep(TRUE,dim(Q.p)[1])
-        #inds[ind] <- FALSE
-        #mu.p <- rep(0,dim(Q.p)[1])
-        #mu.p[inds] <- solve(R.pi, as.vector(t(A_tmp[,inds]) %*% v / sigma_e^2), system = "A")
-        mu.p <- solve(R.p, as.vector(t(A_tmp) %*% v / sigma_e^2), system = "A")
+        #mu.p <- mean_latent + solve(R.p, as.vector(t(A_tmp) %*% (v - A_tmp %*% mean_latent) / sigma_e^2), system = "A")
+        mu.p <- 0*mean_latent + t(P)%*%solve(t(L), Di %*% solve(L, P %*% (as.vector(t(A_tmp) %*% (v - A_tmp %*% mean_latent) / sigma_e^2) )))
         
-        v <- v - A_tmp %*% mu.p
+        v <- v - A_tmp %*% mean_latent - A_tmp %*% mu.p
         
-        l <- l - 0.5 * (t(mu.p) %*% Q %*% mu.p + t(v) %*% v / sigma_e^2) -
-            0.5 * n.o * log(2 * pi)
+        l <- l - 0.5 * (t(mu.p - 0*mean_latent) %*% Q %*% (mu.p - 0*mean_latent) + t(v) %*% v / sigma_e^2) -
+            0.5 * (n.o + nz - nz.p) * log(2 * pi)
     }
-    cat(as.double(l),"\n")
+    cat("alpha = ", object$alpha, ", tau = ", object$tau, ", beta =", object$beta, ", sigma_e = ", sigma_e, ", lik = ", as.double(l), "nz = ", nz, ", nz.p = ", nz.p,"\n")
     return(as.double(l))
 }
 
