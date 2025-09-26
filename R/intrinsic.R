@@ -1308,6 +1308,7 @@ precision.intrinsicCBrSPDEobj <- function(object,
 #' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
 #' @param only_latent Should the posterior samples be only given to the laten model?
 #' @param mean_correction Should mean correction be used for extreme value models?
+#' @param ind_mean Index of the mesh node to condition on for the mean correction.
 #' @param ... further arguments passed to or from other methods.
 #' @return A list with elements
 #' \item{mean }{The kriging predictor (the posterior mean of u|Y).}
@@ -1360,6 +1361,7 @@ predict.intrinsicCBrSPDEobj <- function(object,
                                         n_samples = 100, 
                                         only_latent = FALSE,
                                         mean_correction = FALSE,
+                                        ind_mean = 1,
                                         ...) {
     Y <- as.matrix(Y)
     if (dim(Y)[1] != dim(A)[1]) {
@@ -1394,7 +1396,7 @@ predict.intrinsicCBrSPDEobj <- function(object,
         }
     }
     if(mean_correction) {
-        mu <- mu  - 0.5*sigma.e^2 + object$mean_correction(full=TRUE, index = 1)
+        mu <- mu  - 0.5*sigma.e^2 + object$mean_correction(full=TRUE, index = ind_mean)
     } 
      
     if (!no_nugget) {
