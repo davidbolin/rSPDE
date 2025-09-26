@@ -1307,6 +1307,7 @@ precision.intrinsicCBrSPDEobj <- function(object,
 #' @param posterior_samples If `TRUE`, posterior samples will be returned.
 #' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
 #' @param only_latent Should the posterior samples be only given to the laten model?
+#' @param mean_correction Should mean correction be used for extreme value models?
 #' @param ... further arguments passed to or from other methods.
 #' @return A list with elements
 #' \item{mean }{The kriging predictor (the posterior mean of u|Y).}
@@ -1356,7 +1357,9 @@ predict.intrinsicCBrSPDEobj <- function(object,
                                         mu = 0,
                                         compute.variances = FALSE, 
                                         posterior_samples = FALSE,
-                                        n_samples = 100, only_latent = FALSE,
+                                        n_samples = 100, 
+                                        only_latent = FALSE,
+                                        mean_correction = FALSE,
                                         ...) {
     Y <- as.matrix(Y)
     if (dim(Y)[1] != dim(A)[1]) {
@@ -1390,24 +1393,30 @@ predict.intrinsicCBrSPDEobj <- function(object,
             stop("the length of mu is wrong.")
         }
     }
-    
+    if(mean_correction) {
+        mu <- mu  - 0.5*sigma.e^2 + object$mean_correction(full=TRUE, index = 1)
+    } 
+     
     if (!no_nugget) {
-        ## construct Q
         Q <- object$Q
-        ## compute Q_x|y
-        Q_xgiveny <- (t(A) %*% Q.e %*% A) + Q
         
-        ## construct mu_x|y
-        mu_xgiveny <- t(A) %*% Q.e %*% (Y - A%*%mu)    
+        Q.p <- (t(A) %*% Q.e %*% A) + Q
         
-        R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
-        mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
-        
-        mu_xgiveny <- mu + mu_xgiveny
-        out$mean <- Aprd %*% mu_xgiveny
+        R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
+        diag_L <- diag(R.p)
+        ind <- diag_L > .Machine$double.eps^0.5
+        P <- expand1(R.p, which = "P1")
+        L <- expand1(R.p, which = "L1")
+        di <- rep(0,length(ind))
+        di[ind] <- 1/diag_L[ind]
+        Di<- Diagonal(length(ind),di)
+    
+        mu_xgiveny <- mu + t(P)%*%solve(t(L), Di %*% solve(L, P %*% (as.vector(t(A) %*% (Y - A %*% mu) / sigma.e^2) )))
+    
+        out$mean <- as.vector(Aprd %*% mu_xgiveny)
         
         if (compute.variances) {
-            out$variance <- diag(Aprd %*% solve(R, t(Aprd), system = "A"))
+            out$variance <- diag(Aprd %*% t(P)%*%solve(t(L), Di %*% solve(L, P %*% t(Aprd)) ))
         }
     } else {
         Q <- object$Q
@@ -1423,14 +1432,18 @@ predict.intrinsicCBrSPDEobj <- function(object,
         }
     }
     
-    
     if (posterior_samples) {
         if (!no_nugget) {
             Z <- rnorm(dim(object$Q)[1] * n_samples)
             dim(Z) <- c(dim(object$Q)[1], n_samples)
-            LQ <-  chol(forceSymmetric(Q_xgiveny))
-            X <- as.matrix(solve(LQ, Z)) + kronecker(as.matrix(mu_xgiveny), 
-                                                     matrix(rep(1,n_samples),1,n_samples))
+            
+            di <- rep(0,length(ind))
+            di[ind] <- 1/sqrt(diag_L[ind])
+            Di.sqrt <- Diagonal(length(ind),di)
+            
+            X <- as.matrix(t(P)%*%solve(t(L), Di.sqrt %*% Z))
+            
+            X <- X + kronecker(as.matrix(mu_xgiveny), matrix(rep(1,n_samples),1,n_samples))
             X <- Aprd %*% X
             if (!only_latent) {
                 X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
