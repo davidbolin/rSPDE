@@ -416,16 +416,17 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
                                 type_rational_approx = "chebfun",
                                 scaling = NULL) {
   n_m <- rspde.order
-  
-  mt <- get_rational_coefficients(n_m, type_rational_approx)
-
-
   m_alpha <- floor(alpha)
-
-  row_nu <- round(1000 * cut_decimals(alpha))
-  r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
-  p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
-  k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
+  #mt <- get_rational_coefficients(n_m, type_rational_approx)
+  #row_nu <- round(1000 * cut_decimals(alpha))
+  #r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
+  #p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
+  #k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
+  coef <- interp_rational_coefficients(order = n_m, type_interp = "spline", alpha = alpha,
+                                       type_rational_approx = type_rational_approx)
+  r <- coef$r
+  p <- coef$p
+  k <- coef$k
 
   if (!only_fractional) {
     if (m_alpha == 0) {
@@ -760,7 +761,7 @@ intrinsic.matern.operators <- function(kappa,
           if(fix_alpha && i==m1) {
               Qij <- op1$C %*% Q.list1[[i]] %*% Q.list2[[j]] 
           } else if(fix_beta && j==m2) {
-              Qij <-  Q.list1[[i]] %*% Q.list2[[j]] %*% op1$C
+              Qij <-  op1$Ci %*% Q.list1[[i]] %*% Q.list2[[j]] #Q.list1[[i]] %*% Q.list2[[j]] %*% op1$C
           } else {
               Qij <- Q.list1[[i]] %*% op1$Ci %*% Q.list2[[j]]
           }
@@ -1639,7 +1640,7 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
     } else {
         ind.Q <- rep(TRUE, length(diag_L))
     }
-    
+    #ind.Q <- diag_L > 1e-10
     nz <- sum(!ind.Q)
     prior.ld <- 0.5*(sum(log(diag_L[ind.Q])) + nz*log(object$n))
     
