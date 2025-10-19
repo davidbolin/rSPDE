@@ -967,7 +967,48 @@ interp_rational_coefficients <- function(order,
                                          alpha){
     mt <- get_rational_coefficients(order = order,
                                     type_rational_approx=type_rational_approx)
-    alpha <- cut_decimals(alpha)
+    #add 0 and 1 cases
+    if(order ==1) {
+        mt <- data.frame(alpha = c(0, mt$alpha,1),
+                         r1 = c(0,mt$r1, max(2*mt$r1[999]-mt$r1[998],0)), 
+                         p1 = c(2*mt$p1[1] - mt$p1[2], mt$p1, min(2*mt$p1[999]-mt$p1[998],0)), 
+                         k = c(1, mt$k, max(2*mt$k[999]-mt$k[998],0)))
+        alpha <- alpha - floor(alpha)
+    } else if(order == 2) {
+        mt <- data.frame(alpha = c(0, mt$alpha,1),
+                         r1 = c(0,mt$r1, max(2*mt$r1[999]-mt$r1[998],0)), 
+                         r2 = c(0,mt$r2, max(2*mt$r2[999]-mt$r2[998],0)), 
+                         p1 = c(2*mt$p1[1] - mt$p1[2], mt$p1, min(2*mt$p1[999]-mt$p1[998],0)), 
+                         p2 = c(2*mt$p2[1] - mt$p2[2], mt$p2, min(2*mt$p2[999]-mt$p2[998],0)), 
+                         k = c(1, mt$k, max(2*mt$k[999]-mt$k[998],0)))
+        alpha <- alpha - floor(alpha)
+    } else if(order == 3) {
+        mt <- data.frame(alpha = c(0, mt$alpha,1),
+                         r1 = c(0,mt$r1, max(2*mt$r1[999]-mt$r1[998],0)), 
+                         r2 = c(0,mt$r2, max(2*mt$r2[999]-mt$r2[998],0)), 
+                         r3 = c(0,mt$r3, max(2*mt$r3[999]-mt$r3[998],0)),
+                         p1 = c(2*mt$p1[1] - mt$p1[2], mt$p1, min(2*mt$p1[999]-mt$p1[998],0)), 
+                         p2 = c(2*mt$p2[1] - mt$p2[2], mt$p2, min(2*mt$p2[999]-mt$p2[998],0)), 
+                         p3 = c(2*mt$p3[1] - mt$p3[2], mt$p3, min(2*mt$p3[999]-mt$p3[998],0)),
+                         k = c(1, mt$k, max(2*mt$k[999]-mt$k[998],0)))
+        alpha <- alpha - floor(alpha)
+    } else if (order == 4) {
+        mt <- data.frame(alpha = c(0, mt$alpha,1),
+                         r1 = c(0,mt$r1, max(2*mt$r1[999]-mt$r1[998],0)), 
+                         r2 = c(0,mt$r2, max(2*mt$r2[999]-mt$r2[998],0)), 
+                         r3 = c(0,mt$r3, max(2*mt$r3[999]-mt$r3[998],0)),
+                         r4 = c(0,mt$r4, max(2*mt$r4[999]-mt$r4[998],0)),
+                         p1 = c(2*mt$p1[1] - mt$p1[2], mt$p1, min(2*mt$p1[999]-mt$p1[998],0)), 
+                         p2 = c(2*mt$p2[1] - mt$p2[2], mt$p2, min(2*mt$p2[999]-mt$p2[998],0)), 
+                         p3 = c(2*mt$p3[1] - mt$p3[2], mt$p3, min(2*mt$p3[999]-mt$p3[998],0)),
+                         p4 = c(2*mt$p4[1] - mt$p4[2], mt$p4, min(2*mt$p4[999]-mt$p4[998],0)),
+                         k = c(1, mt$k, max(2*mt$k[999]-mt$k[998],0)))
+        alpha <- alpha - floor(alpha)
+    } else {
+        alpha <- cut_decimals(alpha)   
+    }
+    
+    
     if(type_interp == "linear"){
         r = sapply(1:order, function(i) {
             approx(mt$alpha, mt[[paste0("r", i)]], alpha)$y
@@ -975,7 +1016,7 @@ interp_rational_coefficients <- function(order,
         p = sapply(1:order, function(i) {
             approx(mt$alpha, mt[[paste0("p", i)]], alpha)$y
         })
-        k = approx(mt$alpha, mt$k, cut_decimals(alpha))$y
+        k = approx(mt$alpha, mt$k, alpha)$y
     } else if (type_interp == "log"){
         r = sapply(1:order, function(i) {
             exp(approx(mt$alpha, log(mt[[paste0("r", i)]]), alpha)$y)
