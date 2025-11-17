@@ -122,7 +122,7 @@ See the help of that function for details.
 if (requireNamespace("RSpectra", quietly = TRUE)) {
   x <- seq(from = 0, to = 10, length.out = 201)
   beta <- 1
-  alpha <- 1  
+  alpha <- 1
   kappa <- 1
   op <- intrinsic.matern.operators(
     kappa = kappa, tau = 1, alpha = alpha,

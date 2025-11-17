@@ -422,7 +422,7 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
   #r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
   #p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
   #k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
-  coef <- interp_rational_coefficients(order = n_m, type_interp = "linear", alpha = alpha,
+  coef <- interp_rational_coefficients(order = n_m, type_interp = "spline", alpha = alpha,
                                        type_rational_approx = type_rational_approx)
   r <- coef$r
   p <- coef$p
@@ -759,9 +759,9 @@ intrinsic.matern.operators <- function(kappa,
     for (i in 1:m1) {
       for (j in 1:m2) {
           if(fix_alpha && i==m1) {
-              Qij <-  Q.list2[[j]] * (diag(op1$C %*% Q.list1[[i]])[1])
+              Qij <- op1$C %*% Q.list1[[i]] %*% Q.list2[[j]] 
           } else if(fix_beta && j==m2) {
-              Qij <-  Q.list1[[i]] * (diag(op1$C %*% Q.list2[[j]])[1])#op1$Ci %*% Q.list1[[i]] %*% Q.list2[[j]]
+              Qij <-  op1$Ci %*% Q.list1[[i]] %*% Q.list2[[j]] #Q.list1[[i]] %*% Q.list2[[j]] %*% op1$C
           } else {
               Qij <- Q.list1[[i]] %*% op1$Ci %*% Q.list2[[j]]
           }
@@ -804,7 +804,8 @@ intrinsic.matern.operators <- function(kappa,
     } else {
       Q <- Q.list1
     }
-    Q_list <- list(Qproper = Q.list1, Qintrinsic = NULL)
+    Q_list <- list(Qproper = Q.list1,
+                   Qintrinsic = NULL)
     
     n <- dim(op1$C)[1]
     A <- kronecker(matrix(rep(1, m1), 1, m1), Diagonal(n))
@@ -839,7 +840,8 @@ intrinsic.matern.operators <- function(kappa,
     } else {
       Q <- Q.list1
     }
-    Q_list <- list(Qintrinsic = Q.list1, Qproper = NULL)
+    Q_list <- list(Qintrinsic = Q.list1,
+                   Qproper = NULL)
     n <- dim(op1$C)[1]
 
     A <- kronecker(matrix(rep(1, m1), 1, m1), Diagonal(n))    
@@ -871,7 +873,7 @@ intrinsic.matern.operators <- function(kappa,
       make_A <- NULL
   }
   
-  variogram <- function(loc, semi = FALSE, correction = TRUE) {
+  variogram <- function(loc, semi = FALSE) {
     if(return_block_list) { 
         QQ <- Q[[1]]
         if(m>1) {
@@ -882,17 +884,8 @@ intrinsic.matern.operators <- function(kappa,
     } else {
         QQ <- Q
     }
-    if(beta < 1 && correction) {
-        if(correction) {
-            H <- kronecker(diag(m),matrix(rep(1,dim(C)[1]),dim(C)[1],1))
-            HQH <- t(H)%*%Q%*%H
-            U <- Q%*%H%*%chol(solve(HQH))
-            QQ <- QQ - U%*%t(U)
-            ind.fix <- 1 + seq(from=0,to= m * n, by = n)
-            Sigma <- A[,-ind.fix] %*% solve(QQ[-ind.fix,-ind.fix], t(A[,-ind.fix]))       
-        } else {
-            Sigma <- A%*% solve(QQ, t(A))      
-        }
+    if(beta < 1) {
+      Sigma <- A%*% solve(QQ, t(A))
     } else {
       ind.fix <- 1 + seq(from=0,to= m * n, by = n)
       Sigma <- A[,-ind.fix] %*% solve(QQ[-ind.fix,-ind.fix], t(A[,-ind.fix]))    
@@ -923,45 +916,23 @@ intrinsic.matern.operators <- function(kappa,
       if(!full) {
           out <- rep(0,n)    
       }
+      
       for(i in 1:m) {
           if(return_block_list) { 
-              
-              if(beta < 1 && beta > 0) {
-                  H <- kronecker(diag(m),matrix(rep(1,dim(C)[1]),dim(C)[1],1))
-                  HQH <- t(H)%*%Q[[i]]%*%H
-                  U <- (Q[[i]]%*%H%*%chol(solve(HQH)))[-index,]
-              }
-              QQ <- Q[[i]][-index,-index]    
+              QQ <- Q[[i]][-index,-index]
           } else {
               ind <- setdiff((1+n*(i-1)) : (n*i), n*(i-1) + index)
-               
-              if(beta < 1 && beta > 0) {
-                  H <- kronecker(diag(m),matrix(rep(1,dim(C)[1]),dim(C)[1],1))
-                  HQH <- t(H)%*%Q%*%H
-                  U <- (Q%*%H%*%chol(solve(HQH)))[ind,]
-              } 
-              QQ <- Q[ind,ind]  
+              QQ <- Q[ind,ind]
           }
+          
+          
           if(full) {
               vec <- rep(0,n)
               tryCatch(
                   expr = {
-                      vec[-index] <- -diag(MetricGraph::selected_inv(QQ))/2
-                      if(beta < 1 && beta > 0) {
-                          QU <- solve(QQ,U)
-                          M <- diag(m) - t(U)%*%QU
-                          V <- t(solve(M,t(QU)))
-                          vec[-index] <- vec[-index] - rowSums(QU*V)/2
-                      }
-                      },
+                      vec[-index] <- -diag(MetricGraph::selected_inv(QQ))/2},
                   error = function(e) {
                       vec[-index] = -diag(solve(QQ))/2
-                      if(beta < 1 && beta > 0) { #add correction
-                          QU <- as.matrix(solve(QQ,U))
-                          M <- diag(m) - t(U)%*%QU
-                          V <- t(as.matrix(solve(M,t(QU))))
-                          vec[-index] <- vec[-index] - rowSums(QU*V)/2
-                      }
                   }
               ) 
               if(i == 1) {
@@ -971,27 +942,15 @@ intrinsic.matern.operators <- function(kappa,
               }
           } else {
               tryCatch(
-                  expr = {
-                      out[-index] <- out[-index] - diag(MetricGraph::selected_inv(QQ))/2
-                      if(beta < 1 && beta > 0) {
-                          QU <- solve(QQ,U)
-                          M <- diag(m) - t(U)%*%QU
-                          V <- t(solve(M,t(QU)))
-                          out[-index] <- out[-index] - rowSums(QU*V)/2
-                      }
-                      },
+                  expr = {out[-index] <- out[-index] - diag(MetricGraph::selected_inv(QQ))/2},
                   error = function(e) {
                       out[-index] <- out[-index] - diag(solve(QQ))/2
-                      if(beta < 1 && beta > 0) {
-                          QU <- solve(QQ,U)
-                          M <- diag(m) - t(U)%*%QU
-                          V <- t(solve(M,t(QU)))
-                          out[-index] <- out[-index] - rowSums(QU*V)/2
-                      }
                   }
               )    
           }
-      }    
+          
+          
+      }
       return(out)
   }
   out <- list(
@@ -1438,71 +1397,24 @@ predict.intrinsicCBrSPDEobj <- function(object,
         }
     }
     if(mean_correction) {
-        mu <- mu  - sigma.e^2 + object$mean_correction(full=TRUE, index = ind_mean)
+        mu <- mu  - 0.5*sigma.e^2 + object$mean_correction(full=TRUE, index = ind_mean)
     } 
      
     if (!no_nugget) {
         Q <- object$Q
+        
         Q.p <- (t(A) %*% Q.e %*% A) + Q
         
-        
-        if(object$beta == 0) {
-            R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
-            diag_L <- diag(R.p)
-            di <- 1/diag_L
-            nz.p <- 0
-            Di<- Diagonal(length(diag_L),di)
-        } else if(object$beta < 1) {
-            nz.p <- object$m-1
-            R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
-            diag_L <- diag(R.p)
-            di <- 1/diag_L
-            Di<- Diagonal(length(diag_L),di)
-        } else {
-            R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
-            diag_L <- diag(R.p)
-            if(object$m>1){
-                ind <- diag_L > sort(diag_L)[nz-1]    
-                di <- rep(0,length(ind))
-                di[ind] <- 1/diag_L[ind]
-            } else {
-                di <- 1/diag_L
-            }
-            nz.p <- object$m-1
-            Di<- Diagonal(length(diag_L),di)
-        }
-
-        rhs <- as.vector(t(A_tmp) %*% (Y - A %*% mean_latent) / sigma_e^2)
+        R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
+        diag_L <- diag(R.p)
+        ind <- diag_L > .Machine$double.eps^0.5
+        P <- expand1(R.p, which = "P1")
+        L <- expand1(R.p, which = "L1")
+        di <- rep(0,length(ind))
+        di[ind] <- 1/diag_L[ind]
+        Di<- Diagonal(length(ind),di)
     
-        mu.p <- solve(R.p,solve(R.p, Di %*% solve(R.p, solve(R.p, rhs, system = "P"), system = "L"), system = "Lt"), system = "Pt")
-        if(object$beta < 1 && object$beta > 0) { 
-            #add corrector
-            H <- kronecker(diag(object$m),matrix(rep(1,dim(object$C)[1]),dim(object$C)[1],1))
-            HQH <- t(H)%*%Q%*%H
-            U <- Q%*%H%*%chol(solve(HQH))
-            Qu <- solve(R.p,solve(R.p, Di %*% solve(R.p, solve(R.p, U, system = "P"), system = "L"), system = "Lt"), system = "Pt")
-            tU <- t(U)
-            M <-  diag(object$m) - tU%*%Qu
-            evM <- eigen(M)
-            ind <- evM$values > 0
-            di <- rep(0,length(ind))
-            di[ind] <- 1/evM$values[ind]
-            Di2<- Diagonal(length(ind),di)
-            rhs2 <- U%*%(evM$vectors%*% Di2 %*% solve(evM$vectors, tU%*%mu.p))
-            mu.p <- mu.p + solve(R.p,solve(R.p, Di %*% solve(R.p, solve(R.p, rhs2, system = "P"), system = "L"), system = "Lt"), system = "Pt")
-        } 
-        
-        mu_xgiveny <- mu + mu.p
-        
-        #R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
-        #diag_L <- diag(R.p)
-        #ind <- diag_L > .Machine$double.eps^0.5
-        #P <- expand1(R.p, which = "P1")
-        #L <- expand1(R.p, which = "L1")
-        #di <- rep(0,length(ind))
-        #di[ind] <- 1/diag_L[ind]
-        #Di<- Diagonal(length(ind),di)
-        #mu_xgiveny <- mu + t(P)%*%solve(t(L), Di %*% solve(L, P %*% (as.vector(t(A) %*% (Y - A %*% mu) / sigma.e^2) )))
+        mu_xgiveny <- mu + t(P)%*%solve(t(L), Di %*% solve(L, P %*% (as.vector(t(A) %*% (Y - A %*% mu) / sigma.e^2) )))
     
         out$mean <- as.vector(Aprd %*% mu_xgiveny)
         
@@ -1721,48 +1633,30 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
     
     #compute prior log determinant
     Q <- object$Q
-    
-    n <- dim(Q)[1]
-    if(object$beta == 0) {
-        R <- Cholesky(Q)
-        prior.ld <- 0.5*sum(log(diag(R)))
-        nz <- 0
-    } else if(object$beta < 1) {
-        H <- kronecker(diag(object$m),matrix(rep(1,dim(object$C)[1]),dim(object$C)[1],1))
-        HQH <- t(H)%*%Q%*%H
-        U <- Q%*%H%*%chol(solve(HQH))
-        ind <- object$n*(0:(object$m-1)) + 1
-        Qr <- Q[-ind,-ind]
-        
-        Rr <- Cholesky(Qr)
-        Ui <- U[-ind,]
-        QrU <- solve(Rr,Ui, system = "A")
-        Qr.det <- sum(log(diag(Rr)))#c(determinant(Qpr,logarithm = TRUE)$modulus) 
-        q.form <- c(determinant(diag(object$m) - t(Ui)%*%QrU, logarithm = TRUE)$modulus)
-        prior.ld <- 0.5*(Qr.det + q.form)
-        nz = object$m
-    } else {
-        R <- Cholesky(Q, perm = TRUE, LDL = TRUE)
-        #R <- Matrix::Cholesky(Q+Diagonal(dim(Q)[1],1e-10), perm = TRUE, LDL = TRUE)
-        diag_L <- diag(R)
+    R <- Cholesky(Q, perm = TRUE, LDL = TRUE)
+    diag_L <- diag(R)
+    if(object$beta >= 1) {
         ind.Q <- diag_L > sort(diag_L)[object$m]      
-        nz <- sum(!ind.Q)
-        prior.ld <- 0.5*sum(log(diag_L[ind.Q])) 
-        nz = object$m
+    } else {
+        ind.Q <- rep(TRUE, length(diag_L))
     }
+    #ind.Q <- diag_L > 1e-10
+    nz <- sum(!ind.Q)
+    prior.ld <- 0.5*(sum(log(diag_L[ind.Q])) + nz*log(object$n))
     
+    #ev <- eigen(Q)$values
+    #prior.ld2 <- 0.5*sum(log(ev[ev > .Machine$double.eps^0.5]))
+    #cat("ld diff : ", prior.ld - prior.ld2,"\n")
     
-    repl_val <- unique(repl)
+    #prior.ld <- 0.5*sum(log(diag_L[diag_L > .Machine$double.eps^0.5]))
+    
+    #prior.ld <- 0.5*precision(object, ld = TRUE)
     if(mean_correction) {
-        ind_mean <- which(A_list[[as.character(1)]][1,]>0)[1] 
-        mean_latent <- -sigma_e^2 + object$mean_correction(full=TRUE, index = ind_mean)
+        mean_latent <- -0.5*sigma_e^2 + object$mean_correction(full=TRUE, index = 1)
     } else {
         mean_latent <- rep(0,dim(Q)[1])
     }
-    #if(object$beta >0 && object$beta < 1) { #project mean
-    #    mean_latent <- mean_latent - solve(Q, H%*%solve(t(H)%*%solve(Q,H),t(H)%*%mean_latent))
-    #}
-    
+    repl_val <- unique(repl)
     
     l <- 0
     
@@ -1777,113 +1671,72 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
         }
         
         na_obs <- is.na(y_tmp)
+        
         y_ <- y_tmp[!na_obs]
+        
         n.o <- length(y_)
-        A_tmp <- A_list[[as.character(i)]]
         if(i==repl_val[1]) {
+            A_tmp <- A_list[[as.character(i)]]
             A1 <- A_tmp
             update_chol <- TRUE
         } else {
+            A_tmp <- A_list[[as.character(i)]]
             if(all.equal(A1,A_tmp) == TRUE) {
                 update_chol <- FALSE
             } else {
                 update_chol <- TRUE
             }
         }
+        #cat("i = ", repl_val, ", update_chol = ", update_chol, "\n")
         
         if(update_chol) {
             Q.p <- Q + t(A_tmp) %*% A_tmp / sigma_e^2
-            if(object$beta == 0) {
-                
-                R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
-                diag_L <- diag(R.p)
-                di <- 1/diag_L
-                posterior.ld <- 0.5*sum(log(diag_L))  
-                nz.p <- 0
-                Di<- Diagonal(length(diag_L),di)
-            } else if(object$beta < 1) {
-                ind <- object$n*(1:(object$m-1)) + 1
-                Qpr <- Q.p[-ind,-ind]
-                Rr <- Matrix::Cholesky(Qpr)
-                Ui <- U[-ind,]
-                QprU <- solve(Rr,Ui, system = "A")
-                Qr.det <- sum(log(diag(Rr)))#c(determinant(Qpr,logarithm = TRUE)$modulus) 
-                q.form <- c(determinant(diag(object$m) - t(Ui)%*%QprU, logarithm = TRUE)$modulus)
-                posterior.ld <- 0.5*(Qr.det + q.form)
-                nz.p <- nz-1
-                #cat("post.ld = ", posterior.ld + log(object$m*object$n^(object$m-1)), "\n")
-                
-                R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
-                diag_L <- diag(R.p)
-                #if(nz>1){
-                #    ind <- diag_L > sort(diag_L)[nz-1]    
-                #    di <- rep(0,length(ind))
-                #    di[ind] <- 1/diag_L[ind]
-                #} else {
-                di <- 1/diag_L
-                #}
-                Di<- Diagonal(length(diag_L),di)
+            R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
+            #D <- expand1(R.p, which = "D")
+            diag_L <- diag(R.p)
+            #ind <- diag_L > .Machine$double.eps^0.5
+            if(nz>1){
+                ind <- diag_L > sort(diag_L)[nz-1]    
             } else {
-                R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
-                #R.p <- Matrix::Cholesky(Q.p+0*Diagonal(dim(Q.p)[1],1e-10), perm = TRUE, LDL = TRUE)
-                diag_L <- diag(R.p)
-                if(nz>1){
-                    ind <- diag_L > sort(diag_L)[nz-1]    
-                    di <- rep(0,length(ind))
-                    di[ind] <- 1/diag_L[ind]
-                    posterior.ld <- 0.5*sum(log(diag_L[ind]))  
-                } else {
-                    di <- 1/diag_L
-                    posterior.ld <- 0.5*sum(log(diag_L))  
-                }
-                nz.p <- nz-1
-                Di<- Diagonal(length(diag_L),di)
+                ind <- rep(TRUE,length(diag_L))
             }
-        }
+            
+            nz.p <- sum(!ind)
+            posterior.ld <- 0.5*(sum(log(diag_L[ind])) + log(object$m*object$n^nz.p))
+            
+            #ev <- eigen(Q.p)$values
+            #posterior.ld2 <- 0.5*sum(log(ev[ev > .Machine$double.eps^0.5]))
+            #cat("ld post diff : ", posterior.ld - posterior.ld2,"\n")
+            
         
+            P <- expand1(R.p, which = "P1")
+            L <- expand1(R.p, which = "L1")
+            di <- rep(0,length(ind))
+            di[ind] <- 1/diag_L[ind]
+            Di<- Diagonal(length(ind),di)
+        }
+     
         l <- l + prior.ld - posterior.ld - n.o * log(sigma_e)
         
         v <- y_
         
         if (ncol(X_cov) > 0) {
             X_cov_tmp <- X_cov_tmp[!na_obs, , drop = FALSE]
+            # X_cov_tmp <- X_cov_list[[as.character(i)]]
             v <- v - X_cov_tmp %*% beta_cov 
         }
-        rhs <- as.vector(t(A_tmp) %*% (v - A_tmp %*% mean_latent) / sigma_e^2)
         
-        mu.p <- solve(R.p,solve(R.p, Di %*% solve(R.p, solve(R.p, rhs, system = "P"), system = "L"), system = "Lt"), system = "Pt")
-        if(object$beta < 1 && object$beta > 0) { 
-            #add corrector
-            Qu <- solve(R.p,solve(R.p, Di %*% solve(R.p, solve(R.p, U, system = "P"), system = "L"), system = "Lt"), system = "Pt")
-            tU <- t(U)
-            M <-  diag(object$m) - tU%*%Qu
-            evM <- eigen(M)
-            ind <- evM$values > 0
-            di <- rep(0,length(ind))
-            di[ind] <- 1/evM$values[ind]
-            Di2<- Diagonal(length(ind),di)
-            rhs2 <- U%*%(evM$vectors%*% Di2 %*% solve(evM$vectors, tU%*%mu.p))
-            mu.p <- mu.p + solve(R.p,solve(R.p, Di %*% solve(R.p, solve(R.p, rhs2, system = "P"), system = "L"), system = "Lt"), system = "Pt")
-        } 
+        #mu.p <- mean_latent + solve(R.p, as.vector(t(A_tmp) %*% (v - A_tmp %*% mean_latent) / sigma_e^2), system = "A")
+        mu.p <- 0*mean_latent + t(P)%*%solve(t(L), Di %*% solve(L, P %*% (as.vector(t(A_tmp) %*% (v - A_tmp %*% mean_latent) / sigma_e^2) )))
         
         v <- v - A_tmp %*% mean_latent - A_tmp %*% mu.p
         
-        l <- l - 0.5 * (t(mu.p) %*% Q %*% mu.p + t(v) %*% v / sigma_e^2) -
-            0.5 * (n.o - nz + nz.p)  * log(2 * pi) 
-        if(object$beta < 1 && object$beta > 0) {
-            tmp <- t(U) %*% mu.p
-            l <- l + 0.5*t(tmp)%*%tmp
-        }
-        
+        l <- l - 0.5 * (t(mu.p - 0*mean_latent) %*% Q %*% (mu.p - 0*mean_latent) + t(v) %*% v / sigma_e^2) -
+            0.5 * (n.o + nz - nz.p) * log(2 * pi)
     }
-    #cat("alpha = ", object$alpha, ", beta =", object$beta, ", tau = ", object$tau,", kappa =", object$kappa,", sigma_e = ", sigma_e, 
-    #    ", lik = ", as.double(l), "\n")
+    cat("alpha = ", object$alpha, ", tau = ", object$tau, ", beta =", object$beta, ", sigma_e = ", sigma_e, ", lik = ", as.double(l), "nz = ", nz, ", nz.p = ", nz.p,"\n")
     return(as.double(l))
-    
 }
-
-
-
 
 
 
@@ -1944,71 +1797,71 @@ variogram.intrinsic.spde <- function(s0 = NULL,
                                      N = 100,
                                      d = NULL,
                                      semi = FALSE) {
-    if (is.null(kappa) || is.null(alpha) || is.null(beta)) {
-        stop("All model parameters must be provided.")
-    }
-    if (is.null(s0) || is.null(s) || is.null(d) || is.null(L)) {
-        stop("s0, s, L and d must be provided.")
-    }
-    
-    if (d == 1) {
-        if (is.matrix(s)) {
-            n <- max(dim(s))
-            if (min(dim(s)) > 1) {
-                stop("s has wrong dimensions for d = 1")
-            }
-        } else {
-            n <- length(s)
-        }
-        vario <- rep(0, n)
-        for (i in 1:N) {
-            lambda <- (i * pi / L)^(-2 * beta) * ((i * pi / L)^2 + kappa^2)^(-alpha)
-            vario <- vario + 0.5 * (2 / L) * lambda * (cos(i * pi * s / L) - cos(i * pi * s0 / L))^2
-        }
-        #if(beta == 0) {
-        #    lambda <- (kappa^2)^(-alpha)
-        #    vario <- vario + 0.5 * (2 / L) * lambda * (cos(0 * pi * s / L) - cos(0 * pi * s0 / L))^2
-        #}
-    } else if (d == 2) {
-        if (!is.matrix(s)) {
-            stop("s should be a matrix if d=2")
-        }
-        vario <- rep(0, dim(s)[1])
-        for (i in 1:N) {
-            f <- i^2 * pi^2 / L^2
-            lambda <- f^(-beta) * (f + kappa^2)^(-alpha)
-            e1 <- (sqrt(2) / L) * cos(i * pi * s[, 1] / L)
-            e2 <- (sqrt(2) / L) * cos(i * pi * s0[1] / L)
-            vario <- vario + 0.5 * lambda * (e1 - e2)^2
-        }
-        for (i in 1:N) {
-            f <- i^2 * pi^2 / L^2
-            lambda <- f^(-beta) * (f + kappa^2)^(-alpha)
-            e1 <- (sqrt(2) / L) * cos(i * pi * s[, 2] / L)
-            e2 <- (sqrt(2) / L) * cos(i * pi * s0[2] / L)
-            vario <- vario + 0.5 * lambda * (e1 - e2)^2
-        }
-        for (i in 1:N) {
-            for (j in 1:N) {
-                f <- (i^2 + j^2) * pi^2 / L^2
-                lambda <- f^(-beta) * (f + kappa^2)^(-alpha)
-                e1 <- (2 / L) * cos(i * pi * s[, 1] / L) * cos(j * pi * s[, 2] / L)
-                e2 <- (2 / L) * cos(i * pi * s0[1] / L) * cos(j * pi * s0[2] / L)
-                vario <- vario + 0.5 * lambda * (e1 - e2)^2
-            }
-        }
-        #if(beta == 0) {
-        #    lambda <- (kappa^2)^(-alpha)
-        #    e1 <- (1 / L) * cos(0 * pi * s[, 1] / L) * cos(0 * pi * s[, 2] / L)
-        #    e2 <- (1 / L) * cos(0 * pi * s0[1] / L) * cos(0 * pi * s0[2] / L)
-        #    vario <- vario + 0.5 * lambda * (e1 - e2)^2
-        #}
+  if (is.null(kappa) || is.null(alpha) || is.null(beta)) {
+    stop("All model parameters must be provided.")
+  }
+  if (is.null(s0) || is.null(s) || is.null(d) || is.null(L)) {
+    stop("s0, s, L and d must be provided.")
+  }
+
+  if (d == 1) {
+    if (is.matrix(s)) {
+      n <- max(dim(s))
+      if (min(dim(s)) > 1) {
+        stop("s has wrong dimensions for d = 1")
+      }
     } else {
-        stop("d should be 1 or 2.")
+      n <- length(s)
     }
-    if(semi) {
-        return(vario / tau^2)    
-    } else {
-        return(2 * vario / tau^2)    
+    vario <- rep(0, n)
+    for (i in 1:N) {
+      lambda <- (i * pi / L)^(-2 * beta) * ((i * pi / L)^2 + kappa^2)^(-alpha)
+      vario <- vario + 0.5 * (2 / L) * lambda * (cos(i * pi * s / L) - cos(i * pi * s0 / L))^2
     }
+    #if(beta == 0) {
+    #    lambda <- (kappa^2)^(-alpha)
+    #    vario <- vario + 0.5 * (2 / L) * lambda * (cos(0 * pi * s / L) - cos(0 * pi * s0 / L))^2
+    #}
+  } else if (d == 2) {
+    if (!is.matrix(s)) {
+      stop("s should be a matrix if d=2")
+    }
+    vario <- rep(0, dim(s)[1])
+    for (i in 1:N) {
+      f <- i^2 * pi^2 / L^2
+      lambda <- f^(-beta) * (f + kappa^2)^(-alpha)
+      e1 <- (sqrt(2) / L) * cos(i * pi * s[, 1] / L)
+      e2 <- (sqrt(2) / L) * cos(i * pi * s0[1] / L)
+      vario <- vario + 0.5 * lambda * (e1 - e2)^2
+    }
+    for (i in 1:N) {
+      f <- i^2 * pi^2 / L^2
+      lambda <- f^(-beta) * (f + kappa^2)^(-alpha)
+      e1 <- (sqrt(2) / L) * cos(i * pi * s[, 2] / L)
+      e2 <- (sqrt(2) / L) * cos(i * pi * s0[2] / L)
+      vario <- vario + 0.5 * lambda * (e1 - e2)^2
+    }
+    for (i in 1:N) {
+      for (j in 1:N) {
+        f <- (i^2 + j^2) * pi^2 / L^2
+        lambda <- f^(-beta) * (f + kappa^2)^(-alpha)
+        e1 <- (2 / L) * cos(i * pi * s[, 1] / L) * cos(j * pi * s[, 2] / L)
+        e2 <- (2 / L) * cos(i * pi * s0[1] / L) * cos(j * pi * s0[2] / L)
+        vario <- vario + 0.5 * lambda * (e1 - e2)^2
+      }
+    }
+    #if(beta == 0) {
+    #    lambda <- (kappa^2)^(-alpha)
+    #    e1 <- (1 / L) * cos(0 * pi * s[, 1] / L) * cos(0 * pi * s[, 2] / L)
+    #    e2 <- (1 / L) * cos(0 * pi * s0[1] / L) * cos(0 * pi * s0[2] / L)
+    #    vario <- vario + 0.5 * lambda * (e1 - e2)^2
+    #}
+  } else {
+    stop("d should be 1 or 2.")
+  }
+  if(semi) {
+      return(vario / tau^2)    
+  } else {
+      return(2 * vario / tau^2)    
+  }
 }

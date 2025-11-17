@@ -15,8 +15,6 @@
   posterior_samples = FALSE,
   n_samples = 100,
   only_latent = FALSE,
-  mean_correction = FALSE,
-  ind_mean = 1,
   ...
 )
 }
@@ -45,10 +43,6 @@ Put to zero if the model does not have measurement noise.}
 \item{n_samples}{Number of samples to be returned. Will only be used if \code{sampling} is \code{TRUE}.}
 
 \item{only_latent}{Should the posterior samples be only given to the laten model?}
-
-\item{mean_correction}{Should mean correction be used for extreme value models?}
-
-\item{ind_mean}{Index of the mesh node to condition on for the mean correction.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
