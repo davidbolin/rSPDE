@@ -37,10 +37,10 @@ ifeq ($(shell uname -s), Linux)
     LINK_FLAGS = -L$(R_HOME)/lib -lR -ldl -lm
 else ifeq ($(shell uname -s), Darwin)
     ifeq ($(ARCH), arm64)
-        flags = -Wl,-ld_classic -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp -arch arm64
+        flags = -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp -arch arm64
         LINK_FLAGS = -L$(R_HOME)/lib -lR -ldl -lm -arch arm64
     else ifeq ($(ARCH), x86_64)
-        flags = -Wl,-ld_classic -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp -arch x86_64
+        flags = -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp -arch x86_64
         LINK_FLAGS = -L$(R_HOME)/lib -lR -ldl -lm -arch x86_64
     endif
 endif
