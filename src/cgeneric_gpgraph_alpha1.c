@@ -17,8 +17,8 @@ double *inla_cgeneric_gpgraph_alpha1_model(inla_cgeneric_cmd_tp cmd, double *the
   // the size of the model
   assert(data->n_ints == 7);
 
-  // the number of doubles
-  assert(data->n_doubles == 9);
+  // the number of doubles (updated to include bounds and beta prior params)
+  assert(data->n_doubles == 17);
 
   assert(!strcasecmp(data->ints[0]->name, "n"));       // this will always be the case
   N = data->ints[0]->ints[0];			       // this will always be the case
@@ -82,22 +82,87 @@ double *inla_cgeneric_gpgraph_alpha1_model(inla_cgeneric_cmd_tp cmd, double *the
   assert(!strcasecmp(data->doubles[8]->name, "prior_sigma_sdlog"));
   double prior_sigma_sdlog = data->doubles[8]->doubles[0];
 
+  // Beta prior parameters for theta (kappa/range)
+  assert(!strcasecmp(data->doubles[9]->name, "prior_theta_mean"));
+  double prior_theta_mean = data->doubles[9]->doubles[0];
+
+  assert(!strcasecmp(data->doubles[10]->name, "prior_theta_prec"));
+  double prior_theta_prec = data->doubles[10]->doubles[0];
+
+  // Beta prior parameters for sigma (tau/sigma)
+  assert(!strcasecmp(data->doubles[11]->name, "prior_sigma_mean"));
+  double prior_sigma_mean = data->doubles[11]->doubles[0];
+
+  assert(!strcasecmp(data->doubles[12]->name, "prior_sigma_prec"));
+  double prior_sigma_prec = data->doubles[12]->doubles[0];
+
+  // Bounds for theta (kappa/range)
+  assert(!strcasecmp(data->doubles[13]->name, "theta_lower_bound"));
+  double theta_lower_bound = data->doubles[13]->doubles[0];
+
+  assert(!strcasecmp(data->doubles[14]->name, "theta_upper_bound"));
+  double theta_upper_bound = data->doubles[14]->doubles[0];
+
+  // Bounds for sigma (tau/sigma)
+  assert(!strcasecmp(data->doubles[15]->name, "sigma_lower_bound"));
+  double sigma_lower_bound = data->doubles[15]->doubles[0];
+
+  assert(!strcasecmp(data->doubles[16]->name, "sigma_upper_bound"));
+  double sigma_upper_bound = data->doubles[16]->doubles[0];
+
   assert(!strcasecmp(data->chars[2]->name, "parameterization"));
   parameterization = &data->chars[2]->chars[0];
 
   if (theta) {
-    // interpretable parameters 
+    // interpretable parameters
+    double theta_val, sigma_val;
+
+    // Transform theta (kappa/range) based on bounds
+    if(theta_upper_bound > 0){
+      // Upper bound exists, use logit transformation
+      // theta_internal = log(x - lower) - log(upper - x)
+      // => x = lower + (upper - lower) * exp(theta_internal) / (1 + exp(theta_internal))
+      double exp_theta = exp(theta[1]);
+      theta_val = theta_lower_bound + (theta_upper_bound - theta_lower_bound) * exp_theta / (1.0 + exp_theta);
+    } else if(theta_lower_bound > 0){
+      // Only lower bound, use shifted exponential
+      // theta_internal = log(x - lower)
+      // => x = lower + exp(theta_internal)
+      theta_val = theta_lower_bound + exp(theta[1]);
+    } else{
+      // No bounds (or lower bound is 0), standard log transformation
+      theta_val = exp(theta[1]);
+    }
+
+    // Transform sigma based on bounds
+    if(sigma_upper_bound > 0){
+      // Upper bound exists, use logit transformation
+      double exp_sigma = exp(theta[0]);
+      sigma_val = sigma_lower_bound + (sigma_upper_bound - sigma_lower_bound) * exp_sigma / (1.0 + exp_sigma);
+    } else if(sigma_lower_bound > 0){
+      // Only lower bound, use shifted exponential
+      sigma_val = sigma_lower_bound + exp(theta[0]);
+    } else{
+      // No bounds (or lower bound is 0), standard log transformation
+      sigma_val = exp(theta[0]);
+    }
 
     if(!strcasecmp(parameterization, "matern")){
-      lkappa = log(2.0) - theta[1];
+      // theta_val is range, sigma_val is sigma
+      lkappa = log(2.0) - log(theta_val);
+      kappa = exp(lkappa);
+      sigma = sigma_val;
+      lsigma = log(sigma);
     } else {
-      lkappa = theta[1];
+      // theta_val is kappa, sigma_val is tau
+      kappa = theta_val;
+      lkappa = log(kappa);
+      // sigma_val is tau, need to convert to sigma
+      lsigma = log(sigma_val);
+      sigma = sigma_val;
     }
-    lsigma = theta[0];
-    kappa = exp(lkappa);
-    sigma = exp(lsigma);
   }
-  else {   
+  else {
     lsigma = lkappa = sigma = kappa = NAN;
   }
   
@@ -248,11 +313,53 @@ double *inla_cgeneric_gpgraph_alpha1_model(inla_cgeneric_cmd_tp cmd, double *the
 
       ret[0] = 0.0;
 
-      ret[0] += -0.5 * SQR(theta[1] - prior_theta_meanlog)/(SQR(prior_theta_sdlog)) - 
-      log(prior_theta_sdlog) - 0.5 * log(2.0 * M_PI); 
+      // Prior for theta (kappa/range)
+      if(theta_upper_bound > 0){
+        // Beta prior for bounded parameter
+        double theta_val;
+        double exp_theta = exp(theta[1]);
+        theta_val = theta_lower_bound + (theta_upper_bound - theta_lower_bound) * exp_theta / (1.0 + exp_theta);
 
-      ret[0] += -0.5 * SQR(lsigma - prior_sigma_meanlog)/(SQR(prior_sigma_sdlog)) - 
-      log(prior_sigma_sdlog) - 0.5 * log(2.0 * M_PI);
+        double s_1 = (prior_theta_mean - theta_lower_bound) / (theta_upper_bound - theta_lower_bound) * prior_theta_prec;
+        double s_2 = (1 - (prior_theta_mean - theta_lower_bound) / (theta_upper_bound - theta_lower_bound)) * prior_theta_prec;
+        double x_scaled = (theta_val - theta_lower_bound) / (theta_upper_bound - theta_lower_bound);
+
+        ret[0] += logdbeta(x_scaled, s_1, s_2) - log(theta_upper_bound - theta_lower_bound);
+        // Add Jacobian adjustment for logit transformation
+        ret[0] += theta[1] - 2.0 * log(1.0 + exp_theta);
+      } else if(theta_lower_bound > 0){
+        // Shifted exponential, use normal prior on log scale
+        ret[0] += -0.5 * SQR(theta[1] - prior_theta_meanlog)/(SQR(prior_theta_sdlog)) -
+          log(prior_theta_sdlog) - 0.5 * log(2.0 * M_PI);
+      } else{
+        // Standard log transformation, use normal prior
+        ret[0] += -0.5 * SQR(theta[1] - prior_theta_meanlog)/(SQR(prior_theta_sdlog)) -
+          log(prior_theta_sdlog) - 0.5 * log(2.0 * M_PI);
+      }
+
+      // Prior for sigma (tau/sigma)
+      if(sigma_upper_bound > 0){
+        // Beta prior for bounded parameter
+        double sigma_val;
+        double exp_sigma = exp(theta[0]);
+        sigma_val = sigma_lower_bound + (sigma_upper_bound - sigma_lower_bound) * exp_sigma / (1.0 + exp_sigma);
+
+        double s_1 = (prior_sigma_mean - sigma_lower_bound) / (sigma_upper_bound - sigma_lower_bound) * prior_sigma_prec;
+        double s_2 = (1 - (prior_sigma_mean - sigma_lower_bound) / (sigma_upper_bound - sigma_lower_bound)) * prior_sigma_prec;
+        double x_scaled = (sigma_val - sigma_lower_bound) / (sigma_upper_bound - sigma_lower_bound);
+
+        ret[0] += logdbeta(x_scaled, s_1, s_2) - log(sigma_upper_bound - sigma_lower_bound);
+        // Add Jacobian adjustment for logit transformation
+        ret[0] += theta[0] - 2.0 * log(1.0 + exp_sigma);
+      } else if(sigma_lower_bound > 0){
+        // Shifted exponential, use normal prior on log scale
+        ret[0] += -0.5 * SQR(theta[0] - prior_sigma_meanlog)/(SQR(prior_sigma_sdlog)) -
+          log(prior_sigma_sdlog) - 0.5 * log(2.0 * M_PI);
+      } else{
+        // Standard log transformation, use normal prior
+        ret[0] += -0.5 * SQR(lsigma - prior_sigma_meanlog)/(SQR(prior_sigma_sdlog)) -
+          log(prior_sigma_sdlog) - 0.5 * log(2.0 * M_PI);
+      }
 	    break;
     }
     
