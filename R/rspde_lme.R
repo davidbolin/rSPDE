@@ -478,12 +478,14 @@ rspde_lme <- function(formula,
         time_df <- time_df[idx_repl]    
     }
     
-    if (!is.null(model$make_A) && !spacetime) {
+    has_make_A <- is.function(model$make_A) ||
+      inherits(model, c("matern_operator", "spde_matern_operator", "matern2d_operator", "intrinsicCBrSPDEobj"))
+    if (has_make_A && !spacetime) {
       for (j in repl_val) {
         ind_tmp <- (repl %in% j)
         y_tmp <- y_resp[ind_tmp]
         na_obs <- is.na(y_tmp)
-        A_list[[as.character(j)]] <- model$make_A(loc_df[ind_tmp, , drop = FALSE])
+        A_list[[as.character(j)]] <- make_A(model, loc_df[ind_tmp, , drop = FALSE])
         A_list[[as.character(j)]] <- A_list[[as.character(j)]][!na_obs, , drop = FALSE]
 
         if (inherits(model, "CBrSPDEobj")) {
@@ -508,8 +510,8 @@ rspde_lme <- function(formula,
             ind_tmp <- (repl %in% j)
             y_tmp <- y_resp[ind_tmp]
             na_obs <- is.na(y_tmp)
-            A_list[[as.character(j)]] <- model$make_A(loc = loc_df[ind_tmp, , drop = FALSE], 
-                                                      time = time_df[ind_tmp])
+            A_list[[as.character(j)]] <- make_A(model, loc = loc_df[ind_tmp, , drop = FALSE], 
+                                                time = time_df[ind_tmp])
             A_list[[as.character(j)]] <- A_list[[as.character(j)]][!na_obs, , drop = FALSE]
         }
     } else if (!inherits(model, "rSPDEobj1d")){
@@ -1405,9 +1407,9 @@ predict.rspde_lme <- function(object,
               if(length(time) != n_prd) {
                   stop("loc and time should have the same length.")
               }
-              Aprd <- object$latent_model$make_A(loc = loc, time = time)    
+              Aprd <- make_A(object$latent_model, loc = loc, time = time)    
           } else {
-              Aprd <- object$latent_model$make_A(loc)
+              Aprd <- make_A(object$latent_model, loc)
           }
           
       } else {

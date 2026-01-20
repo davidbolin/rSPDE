@@ -409,9 +409,13 @@ matern.operators <- function(kappa = NULL,
     stop("You should give either the dimension d, the mesh or graph!")
   }
 
+  mesh_1d <- NULL
+
   if ((is.null(C) || is.null(G)) && is.null(mesh) && is.null(graph) && (is.null(loc_mesh) || d != 1)) {
     stop("You should either provide mesh, graph, or provide both C *and* G!")
   }
+
+  mesh_1d <- NULL
 
   if (!is.null(loc_mesh) && d != 1) {
     stop("loc_mesh only works with dimension 1.")
@@ -587,26 +591,6 @@ matern.operators <- function(kappa = NULL,
   #   tau <- 1 / sigma
   # }
 
-  if (!is.null(mesh)) {
-    make_A <- function(loc) {
-      # return(INLA::inla.spde.make.A(mesh = mesh, loc = loc))
-      # return(fmesher::fm_basis(x = mesh, loc = loc))
-      return(fm_basis(x = mesh, loc = loc))
-    }
-  } else if (!is.null(graph)) {
-    make_A <- function(loc) {
-      return(graph$fem_basis(loc))
-    }
-  } else if (!is.null(loc_mesh) && d == 1) {
-    make_A <- function(loc) {
-      # return(rSPDE::rSPDE.A1d(x = loc_mesh, loc = loc))
-      # return(fmesher::fm_basis(x = mesh_1d, loc = loc))
-      return(fm_basis(x = mesh_1d, loc = loc))
-    }
-  } else {
-    make_A <- NULL
-  }
-
   if (type == "operator") {
     beta <- (nu + d / 2) / 2
     operators <- fractional.operators(
@@ -631,26 +615,13 @@ matern.operators <- function(kappa = NULL,
     output$parameterization <- parameterization
     output$has_mesh <- has_mesh
     output$has_graph <- has_graph
-    output$make_A <- make_A
     output$alpha <- 2 * beta
     output$mesh <- mesh
     output$range_mesh <- range_mesh
     output$graph <- graph
     output$loc_mesh <- loc_mesh
-    output$cov_function_mesh <- function(p, direct = FALSE) {
-      if (is.null(output$make_A)) {
-        stop("Please, create the object using the mesh.")
-      }
-      v <- output$make_A(loc = p)
-      if (direct) {
-        return(output$Pr %*% solve(output$Q, output$Pr %*% t(v)))
-      } else {
-        return(Sigma.mult(output, t(v)))
-      }
-    }
-    output$covariance_mesh <- function() {
-      return(output$Pr %*% solve(output$Q, output$Pr))
-    }
+    output$mesh_1d <- mesh_1d
+    class(output) <- c("matern_operator", class(output))
     return(output)
   } else {
     C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
@@ -669,35 +640,12 @@ matern.operators <- function(kappa = NULL,
     out$parameterization <- parameterization
     out$has_mesh <- has_mesh
     out$has_graph <- has_graph
-    out$make_A <- make_A
     out$mesh <- mesh
     out$range_mesh <- range_mesh
     out$graph <- graph
     out$loc_mesh <- loc_mesh
-    out$cov_function_mesh <- function(p) {
-      if (is.null(out$make_A)) {
-        stop("Please, create the object using the mesh.")
-      }
-      v <- t(out$make_A(loc = p))
-      A <- Matrix::Diagonal(dim(C)[1])
-      if (out$alpha %% 1 == 0) {
-        return((A) %*% solve(out$Q, v))
-      } else {
-        v_bar <- kronecker(matrix(1, nrow = m + 1), v)
-        A_bar <- kronecker(matrix(1, ncol = m + 1), A)
-        return((A_bar) %*% solve(out$Q, v_bar))
-      }
-    }
-
-    out$covariance_mesh <- function() {
-      A <- Matrix::Diagonal(dim(C)[1])
-      if (out$alpha %% 1 == 0) {
-        return((A) %*% solve(out$Q, t(A)))
-      } else {
-        A_bar <- kronecker(matrix(1, ncol = m + 1), A)
-        return((A_bar) %*% solve(out$Q, t(A_bar)))
-      }
-    }
+    out$mesh_1d <- mesh_1d
+    class(out) <- c("matern_operator", class(out))
     return(out)
   }
 }
@@ -1431,24 +1379,6 @@ spde.matern.operators <- function(kappa = NULL,
     }
   }
 
-  if (!is.null(mesh)) {
-    make_A <- function(loc) {
-      # return(INLA::inla.spde.make.A(mesh = mesh, loc = loc))
-      # return(fmesher::fm_basis(x = mesh, loc=loc))
-      return(fm_basis(x = mesh, loc = loc))
-    }
-  } else if (!is.null(graph)) {
-    make_A <- function(loc) {
-      return(graph$fem_basis(loc))
-    }
-  } else if (!is.null(loc_mesh) && d == 1) {
-    make_A <- function(loc) {
-      return(rspde.make.A(mesh = loc_mesh, loc = loc))
-    }
-  } else {
-    make_A <- NULL
-  }
-
   if (nu < 0) {
     stop("nu must be positive")
   }
@@ -1478,28 +1408,15 @@ spde.matern.operators <- function(kappa = NULL,
     output$type <- "Matern SPDE approximation"
     output$has_mesh <- has_mesh
     output$has_graph <- has_graph
-    output$make_A <- make_A
     output$mesh <- mesh
     output$range_mesh <- range_mesh
     output$graph <- graph
     output$loc_mesh <- loc_mesh
+    output$mesh_1d <- mesh_1d
     output$B.sigma <- B.sigma
     output$B.range <- B.range
     output$parameterization <- parameterization
-    output$cov_function_mesh <- function(p, direct = FALSE) {
-      if (is.null(output$make_A)) {
-        stop("Please, create the object using the mesh.")
-      }
-      v <- output$make_A(loc = p)
-      if (direct) {
-        return(output$Pr %*% solve(output$Q, output$Pr %*% t(v)))
-      } else {
-        return(Sigma.mult(output, t(v)))
-      }
-    }
-    output$covariance_mesh <- function() {
-      return(output$Pr %*% solve(output$Q, output$Pr))
-    }
+    class(output) <- c("spde_matern_operator", class(output))
   } else {
     type_rational_approximation <- type_rational_approximation[[1]]
     m_alpha <- floor(alpha)
@@ -1597,7 +1514,6 @@ spde.matern.operators <- function(kappa = NULL,
     output$type <- "Covariance-Based Matern SPDE Approximation"
     output$has_mesh <- has_mesh
     output$has_graph <- has_graph
-    output$make_A <- make_A
     output$mesh <- mesh
     output$range_mesh <- range_mesh
     output$graph <- graph
@@ -1605,31 +1521,8 @@ spde.matern.operators <- function(kappa = NULL,
     output$B.sigma <- B.sigma
     output$B.range <- B.range
     output$parameterization <- parameterization
-    output$cov_function_mesh <- function(p) {
-      if (is.null(output$make_A)) {
-        stop("Please, create the object using the mesh.")
-      }
-      v <- t(output$make_A(loc = p))
-      A <- Matrix::Diagonal(dim(C)[1])
-      if (output$alpha %% 1 == 0) {
-        return((A) %*% solve(output$Q, v))
-      } else {
-        v_bar <- kronecker(matrix(1, nrow = m + 1), v)
-        A_bar <- kronecker(matrix(1, ncol = m + 1), A)
-        return((A_bar) %*% solve(output$Q, v_bar))
-      }
-    }
-    class(output) <- "CBrSPDEobj"
-  }
-
-  output$covariance_mesh <- function() {
-    A <- Matrix::Diagonal(dim(C)[1])
-    if (output$alpha %% 1 == 0) {
-      return((A) %*% solve(output$Q, t(A)))
-    } else {
-      A_bar <- kronecker(matrix(1, ncol = m + 1), A)
-      return((A_bar) %*% solve(output$Q, t(A_bar)))
-    }
+    output$mesh_1d <- mesh_1d
+    class(output) <- c("spde_matern_operator", "CBrSPDEobj")
   }
 
   return(output)
@@ -1803,35 +1696,7 @@ matern2d.operators <- function(hx = NULL,
         out$Hxy <- fem$Hxy
     }
 
-    out$make_A <- function(loc) {
-        A <- fm_basis(x = mesh, loc = loc)
-        if(out$alpha %% 1 == 0) {
-            return(A)
-        } else {
-            return(kronecker(matrix(1, ncol = m + 1), A))
-        }
-    }
-
-    out$cov_function_mesh <- function(p) {
-        v <- t(out$make_A(loc = p))
-        A <- Matrix::Diagonal(dim(fem$C)[1])
-        if(out$alpha %% 1 != 0) {
-            A <- kronecker(matrix(1, ncol = m + 1), A)
-        }
-        return((A) %*% solve(out$Q, v))
-    }
-
-    out$covariance_mesh <- function() {
-        A <- Matrix::Diagonal(dim(C)[1])
-        if (out$alpha %% 1 == 0) {
-            return((A) %*% solve(out$Q, t(A)))
-        } else {
-            A_bar <- kronecker(matrix(1, ncol = m + 1), A)
-            return((A_bar) %*% solve(out$Q, t(A_bar)))
-        }
-    }
-
-    class(out) <- "CBrSPDEobj2d"
+    class(out) <- c("matern2d_operator", "CBrSPDEobj2d")
 
     return(out)
 }
@@ -1890,4 +1755,181 @@ CBrSPDE.L.precision <- function(L, tau = 1,
     Q <- Q * scale_factor^(2 * beta) * tau^2
 
     return(Q)
+}
+
+#' @export
+make_A <- function(object, ...) {
+  UseMethod("make_A")
+}
+
+#' @export
+#' @method make_A default
+make_A.default <- function(object, ...) {
+  if (is.function(object$make_A)) {
+    return(object$make_A(...))
+  }
+  stop("make_A is not available for this object.")
+}
+
+#' @export
+#' @method make_A matern_operator
+make_A.matern_operator <- function(object, loc) {
+  if (!is.null(object$mesh)) {
+    return(fm_basis(x = object$mesh, loc = loc))
+  }
+  if (!is.null(object$graph)) {
+    return(object$graph$fem_basis(loc))
+  }
+  if (!is.null(object$loc_mesh) && object$d == 1) {
+    mesh_1d <- object$mesh_1d
+    if (is.null(mesh_1d)) {
+      mesh_1d <- fm_mesh_1d(object$loc_mesh)
+    }
+    return(fm_basis(x = mesh_1d, loc = loc))
+  }
+  stop("Please, create the object using the mesh.")
+}
+
+#' @export
+#' @method make_A spde_matern_operator
+make_A.spde_matern_operator <- function(object, loc) {
+  if (!is.null(object$mesh)) {
+    return(fm_basis(x = object$mesh, loc = loc))
+  }
+  if (!is.null(object$graph)) {
+    return(object$graph$fem_basis(loc))
+  }
+  if (!is.null(object$loc_mesh) && object$d == 1) {
+    return(rspde.make.A(mesh = object$loc_mesh, loc = loc))
+  }
+  stop("Please, create the object using the mesh.")
+}
+
+#' @export
+#' @method make_A matern2d_operator
+make_A.matern2d_operator <- function(object, loc) {
+  A <- fm_basis(x = object$mesh, loc = loc)
+  if (object$alpha %% 1 == 0) {
+    return(A)
+  }
+  return(kronecker(matrix(1, ncol = object$m + 1), A))
+}
+
+#' @export
+cov_function_mesh <- function(object, ...) {
+  UseMethod("cov_function_mesh")
+}
+
+#' @export
+#' @method cov_function_mesh default
+cov_function_mesh.default <- function(object, ...) {
+  if (is.function(object$cov_function_mesh)) {
+    return(object$cov_function_mesh(...))
+  }
+  stop("cov_function_mesh is not available for this object.")
+}
+
+#' @export
+#' @method cov_function_mesh matern_operator
+cov_function_mesh.matern_operator <- function(object, p, direct = FALSE) {
+  if (inherits(object, "rSPDEobj")) {
+    v <- make_A(object, loc = p)
+    if (direct) {
+      return(object$Pr %*% solve(object$Q, object$Pr %*% t(v)))
+    }
+    return(Sigma.mult(object, t(v)))
+  }
+  v <- t(make_A(object, loc = p))
+  A <- Matrix::Diagonal(dim(object$C)[1])
+  if (object$alpha %% 1 == 0) {
+    return(A %*% solve(object$Q, v))
+  }
+  v_bar <- kronecker(matrix(1, nrow = object$m + 1), v)
+  A_bar <- kronecker(matrix(1, ncol = object$m + 1), A)
+  return(A_bar %*% solve(object$Q, v_bar))
+}
+
+#' @export
+#' @method cov_function_mesh spde_matern_operator
+cov_function_mesh.spde_matern_operator <- function(object, p, direct = FALSE) {
+  if (inherits(object, "rSPDEobj")) {
+    v <- make_A(object, loc = p)
+    if (direct) {
+      return(object$Pr %*% solve(object$Q, object$Pr %*% t(v)))
+    }
+    return(Sigma.mult(object, t(v)))
+  }
+  v <- t(make_A(object, loc = p))
+  A <- Matrix::Diagonal(dim(object$C)[1])
+  if (object$alpha %% 1 == 0) {
+    return(A %*% solve(object$Q, v))
+  }
+  v_bar <- kronecker(matrix(1, nrow = object$m + 1), v)
+  A_bar <- kronecker(matrix(1, ncol = object$m + 1), A)
+  return(A_bar %*% solve(object$Q, v_bar))
+}
+
+#' @export
+#' @method cov_function_mesh matern2d_operator
+cov_function_mesh.matern2d_operator <- function(object, p) {
+  v <- t(make_A(object, loc = p))
+  A <- Matrix::Diagonal(dim(object$fem$C)[1])
+  if (object$alpha %% 1 != 0) {
+    A <- kronecker(matrix(1, ncol = object$m + 1), A)
+  }
+  return(A %*% solve(object$Q, v))
+}
+
+#' @export
+covariance_mesh <- function(object, ...) {
+  UseMethod("covariance_mesh")
+}
+
+#' @export
+#' @method covariance_mesh default
+covariance_mesh.default <- function(object, ...) {
+  if (is.function(object$covariance_mesh)) {
+    return(object$covariance_mesh(...))
+  }
+  stop("covariance_mesh is not available for this object.")
+}
+
+#' @export
+#' @method covariance_mesh matern_operator
+covariance_mesh.matern_operator <- function(object) {
+  if (inherits(object, "rSPDEobj")) {
+    return(object$Pr %*% solve(object$Q, object$Pr))
+  }
+  A <- Matrix::Diagonal(dim(object$C)[1])
+  if (object$alpha %% 1 == 0) {
+    return(A %*% solve(object$Q, t(A)))
+  }
+  A_bar <- kronecker(matrix(1, ncol = object$m + 1), A)
+  return(A_bar %*% solve(object$Q, t(A_bar)))
+}
+
+#' @export
+#' @method covariance_mesh spde_matern_operator
+covariance_mesh.spde_matern_operator <- function(object) {
+  if (inherits(object, "rSPDEobj")) {
+    return(object$Pr %*% solve(object$Q, object$Pr))
+  }
+  A <- Matrix::Diagonal(dim(object$C)[1])
+  if (object$alpha %% 1 == 0) {
+    return(A %*% solve(object$Q, t(A)))
+  }
+  A_bar <- kronecker(matrix(1, ncol = object$m + 1), A)
+  return(A_bar %*% solve(object$Q, t(A_bar)))
+}
+
+#' @export
+#' @method covariance_mesh matern2d_operator
+covariance_mesh.matern2d_operator <- function(object) {
+  C <- Matrix::Diagonal(dim(object$fem$C)[1], rowSums(object$fem$C))
+  A <- Matrix::Diagonal(dim(C)[1])
+  if (object$alpha %% 1 == 0) {
+    return(A %*% solve(object$Q, t(A)))
+  }
+  A_bar <- kronecker(matrix(1, ncol = object$m + 1), A)
+  return(A_bar %*% solve(object$Q, t(A_bar)))
 }

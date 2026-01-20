@@ -11,7 +11,6 @@
   alpha = NULL,
   beta = NULL,
   ld = FALSE,
-  adjust = FALSE,
   ...
 )
 }
@@ -28,8 +27,6 @@
 
 \item{ld}{If TRUE, return the log determinant of the precision matrix instead
 of the precision matrix. By default FALSE.}
-
-\item{adjust}{Internally used parameter.}
 
 \item{...}{Currently not used.}
 }

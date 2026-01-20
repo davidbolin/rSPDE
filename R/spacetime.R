@@ -335,22 +335,6 @@ spacetime.operators <- function(mesh_space = NULL,
     }
     
     Q <- Q/sigma^2
-    make_A <- function(loc, time, dirichlet = TRUE, include_deg1 = FALSE) {
-        if (!is.null(graph)) {
-            if (graph_dirichlet && dirichlet && !include_deg1) {
-                return(rSPDE.Ast(graph = graph, mesh_time = mesh_time, 
-                                 obs.s = loc, obs.t = time, 
-                                 ind.field = ind.field))    
-            } else {
-                return(rSPDE.Ast(graph = graph, mesh_time = mesh_time, 
-                                 obs.s = loc, obs.t = time))
-            }
-        } else {
-            return(rSPDE.Ast(mesh_space = mesh_space, mesh_time = mesh_time, 
-                             obs.s = loc, obs.t = time))
-        }
-    }
-    
     if(has_graph) { 
         plot_covariances <- function(t.ind, s.ind, t.shift=NULL) {
             if(is.null(t.shift)){
@@ -524,7 +508,6 @@ spacetime.operators <- function(mesh_space = NULL,
     out$mesh_space <- mesh_space
     out$graph <- graph
     out$d <- d
-    out$make_A <- make_A
     out$plot_covariances <- plot_covariances
     out$stationary <- TRUE
     out$bound_rho <- bound_rho
@@ -544,6 +527,22 @@ spacetime.operators <- function(mesh_space = NULL,
     class(out) <- "spacetimeobj"
     return(out)
 
+}
+
+#' @export
+#' @method make_A spacetimeobj
+make_A.spacetimeobj <- function(object, loc, time, dirichlet = TRUE, include_deg1 = FALSE) {
+    if (!is.null(object$graph)) {
+        if (object$graph_dirichlet && dirichlet && !include_deg1) {
+            return(rSPDE.Ast(graph = object$graph, mesh_time = object$mesh_time, 
+                             obs.s = loc, obs.t = time, 
+                             ind.field = object$ind.space))    
+        }
+        return(rSPDE.Ast(graph = object$graph, mesh_time = object$mesh_time, 
+                         obs.s = loc, obs.t = time))
+    }
+    return(rSPDE.Ast(mesh_space = object$mesh_space, mesh_time = object$mesh_time, 
+                     obs.s = loc, obs.t = time))
 }
 
 
@@ -1228,4 +1227,3 @@ kron.Glist <- function(M,Glist, left = TRUE){
     }
     return(Mlist)
 }
-

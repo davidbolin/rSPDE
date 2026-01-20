@@ -851,28 +851,6 @@ intrinsic.matern.operators <- function(kappa,
   m1 <- max(c(length(Q_list$Qproper),1))
   m2 <- max(c(length(Q_list$Qintrinsic),1))
   m <- m1*m2
-  if (!is.null(mesh)) {
-      make_A <- function(loc) {
-        Ai <- fmesher::fm_basis(x = mesh, loc = loc)
-        A <- kronecker(matrix(rep(1, m), 1, m), Ai)   
-        return(A)
-      }
-  } else if (!is.null(graph)) {
-      make_A <- function(loc) {
-          Ai <- graph$fem_basis(loc)
-          A <- kronecker(matrix(rep(1, m), 1, m), Ai)   
-          return(A)
-      }
-  } else if (!is.null(loc_mesh) && d == 1) {
-      make_A <- function(loc) {
-          Ai <- rSPDE::rSPDE.A1d(x = loc_mesh, loc = loc)
-          A <- kronecker(matrix(rep(1, m), 1, m), Ai)   
-          return(A)
-      }
-  } else {
-      make_A <- NULL
-  }
-  
   variogram <- function(loc, semi = FALSE) {
     if(return_block_list) { 
         QQ <- Q[[1]]
@@ -951,7 +929,7 @@ intrinsic.matern.operators <- function(kappa,
           
           
       }
-      return(out)
+    return(out)
   }
   out <- list(
     C = op1$C, 
@@ -975,7 +953,6 @@ intrinsic.matern.operators <- function(kappa,
     stationary = TRUE,
     has_mesh = has_mesh,
     has_graph = has_graph,
-    make_A = make_A,
     variogram = variogram,
     mean_correction = mean_correction,
     A = A,
@@ -988,6 +965,25 @@ intrinsic.matern.operators <- function(kappa,
   class(out) <- "intrinsicCBrSPDEobj"
 
   return(out)
+}
+
+#' @export
+#' @method make_A intrinsicCBrSPDEobj
+make_A.intrinsicCBrSPDEobj <- function(object, loc) {
+  m <- object$m
+  if (!is.null(object$mesh)) {
+    Ai <- fmesher::fm_basis(x = object$mesh, loc = loc)
+    return(kronecker(matrix(rep(1, m), 1, m), Ai))
+  }
+  if (!is.null(object$graph)) {
+    Ai <- object$graph$fem_basis(loc)
+    return(kronecker(matrix(rep(1, m), 1, m), Ai))
+  }
+  if (!is.null(object$loc_mesh) && object$d == 1) {
+    Ai <- rSPDE::rSPDE.A1d(x = object$loc_mesh, loc = loc)
+    return(kronecker(matrix(rep(1, m), 1, m), Ai))
+  }
+  stop("Please, create the object using the mesh.")
 }
 
 
