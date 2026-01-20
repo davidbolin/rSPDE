@@ -1018,7 +1018,8 @@ CBrSPDE.matern.operators <- function(C,
 #' parameter evaluated at the locations
 #' of the mesh used for the finite element discretization of the SPDE.
 #' @param theta Theta parameter that connects B.tau and B.kappa to tau and kappa through a log-linear regression, in case the parameterization is `spde`,
-#' and that connects B.sigma and B.range to tau and kappa in case the parameterization is `matern`.
+#' and that connects B.sigma and B.range to tau and kappa in case the parameterization is `matern`. When both tau and kappa are constant after this
+#' transformation, `spde.matern.operators()` delegates to `matern.operators()`.
 #' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if `parameterization = 'matern'`.
 #' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'`.
 #' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
@@ -1120,6 +1121,11 @@ spde.matern.operators <- function(kappa = NULL,
                                     "chebfun",
                                     "chebfunLB"
                                   )) {
+  is_constant_param <- function(x) {
+    x <- as.numeric(x)
+    length(unique(x)) == 1
+  }
+
   type <- type[[1]]
   if (!type %in% c("covariance", "operator")) {
     stop("The type should be 'covariance' or 'operator'!")
@@ -1272,20 +1278,17 @@ spde.matern.operators <- function(kappa = NULL,
     #   B.tau <- -B.sigma
     # }
 
-    new_theta <- c(1, theta)
+    if (is.null(tau) || is.null(kappa)) {
+      new_theta <- c(1, theta)
 
-    tau <- c(exp(B.tau %*% new_theta))
-    kappa <- c(exp(B.kappa %*% new_theta))
+      tau <- c(exp(B.tau %*% new_theta))
+      kappa <- c(exp(B.kappa %*% new_theta))
+    }
   } else if (is.null(kappa) || is.null(tau)) {
-    if (any(dim(B.tau) != dim(B.kappa))) {
-      stop("B.tau and B.kappa must have the same dimensions!")
-    }
-    if (any(dim(B.sigma) != dim(B.range))) {
-      stop("B.sigma and B.range must have the same dimensions!")
-    }
-
-
     if (parameterization == "matern") {
+      if (any(dim(B.sigma) != dim(B.range))) {
+        stop("B.sigma and B.range must have the same dimensions!")
+      }
       if (is.null(nu)) {
         if(d == 1){
           nu <- 0.75
@@ -1311,6 +1314,9 @@ spde.matern.operators <- function(kappa = NULL,
 
       alpha <- nu + d / 2
     } else {
+      if (any(dim(B.tau) != dim(B.kappa))) {
+        stop("B.tau and B.kappa must have the same dimensions!")
+      }
       B.tau <- prepare_B_matrices(
         B.tau, ncol(C),
         ncol(B.tau) - 1
@@ -1379,6 +1385,47 @@ spde.matern.operators <- function(kappa = NULL,
 
       nu <- alpha - d / 2
     }
+  }
+
+  if (!is.null(tau) && !is.null(kappa) &&
+      is_constant_param(tau) && is_constant_param(kappa)) {
+    if (parameterization == "spde") {
+      return(matern.operators(
+        kappa = as.numeric(kappa)[1],
+        tau = as.numeric(tau)[1],
+        alpha = alpha,
+        G = G,
+        C = C,
+        d = d,
+        mesh = mesh,
+        graph = graph,
+        range_mesh = range_mesh,
+        loc_mesh = loc_mesh,
+        m = m,
+        type = type,
+        parameterization = "spde",
+        type_rational_approximation = type_rational_approximation
+      ))
+    }
+    range <- sqrt(8 * nu) / as.numeric(kappa)[1]
+    sigma <- sqrt(gamma(nu) / (as.numeric(tau)[1]^2 * as.numeric(kappa)[1]^(2 * nu) *
+      (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+    return(matern.operators(
+      range = range,
+      sigma = sigma,
+      nu = nu,
+      G = G,
+      C = C,
+      d = d,
+      mesh = mesh,
+      graph = graph,
+      range_mesh = range_mesh,
+      loc_mesh = loc_mesh,
+      m = m,
+      type = type,
+      parameterization = "matern",
+      type_rational_approximation = type_rational_approximation
+    ))
   }
 
   if (nu < 0) {

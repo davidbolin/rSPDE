@@ -148,3 +148,69 @@ test_that("rspde_lme uses make_A S3 methods with a small model", {
   expect_true(inherits(fit, "rspde_lme"))
   expect_true(inherits(fit$latent_model, "matern_operator"))
 })
+
+test_that("spde.matern.operators delegates to matern.operators for constant parameters", {
+  x <- seq(0, 1, length.out = 6)
+  tau <- 1
+  kappa <- 2
+  alpha <- 1.2
+
+  op_spde <- spde.matern.operators(
+    kappa = kappa, tau = tau, alpha = alpha,
+    loc_mesh = x, d = 1,
+    type = "operator",
+    parameterization = "spde"
+  )
+
+  expect_true(inherits(op_spde, "matern_operator"))
+  expect_equal(op_spde$kappa, kappa)
+  expect_equal(op_spde$tau, tau)
+})
+
+test_that("spde.matern.operators computes tau/kappa from theta with spde parameterization", {
+  x <- seq(0, 1, length.out = 6)
+  B.tau <- matrix(c(log(2), 0, 0), 1, 3)
+  B.kappa <- matrix(c(log(3), 0, 0), 1, 3)
+
+  theta <- c(0, 0)
+  tau_exp <- as.numeric(exp(B.tau %*% c(1, theta)))
+  kappa_exp <- as.numeric(exp(B.kappa %*% c(1, theta)))
+  op_theta <- spde.matern.operators(
+    theta = theta,
+    B.tau = B.tau,
+    B.kappa = B.kappa,
+    alpha = 1.2,
+    loc_mesh = x, d = 1,
+    type = "operator",
+    parameterization = "spde"
+  )
+
+  expect_true(inherits(op_theta, "matern_operator"))
+  expect_equal(op_theta$tau, tau_exp)
+  expect_equal(op_theta$kappa, kappa_exp)
+})
+
+test_that("spde.matern.operators computes tau/kappa from theta with matern parameterization", {
+  x <- seq(0, 1, length.out = 6)
+  B.sigma <- matrix(c(log(1.5), 0, 0), 1, 3)
+  B.range <- matrix(c(log(2.5), 0, 0), 1, 3)
+
+  theta <- c(0, 0)
+  sigma_exp <- as.numeric(exp(B.sigma %*% c(1, theta)))
+  range_exp <- as.numeric(exp(B.range %*% c(1, theta)))
+  op_theta <- spde.matern.operators(
+    theta = theta,
+    B.sigma = B.sigma,
+    B.range = B.range,
+    nu = 0.7,
+    loc_mesh = x, d = 1,
+    type = "operator",
+    parameterization = "matern"
+  )
+
+  expect_true(inherits(op_theta, "matern_operator"))
+  expect_equal(op_theta$parameterization, "matern")
+  expect_equal(op_theta$range, range_exp)
+  expect_equal(op_theta$sigma, sigma_exp)
+  expect_equal(op_theta$kappa, sqrt(8 * 0.7) / range_exp)
+})
