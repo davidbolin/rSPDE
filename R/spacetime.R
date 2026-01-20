@@ -531,8 +531,8 @@ spacetime.operators <- function(mesh_space = NULL,
 
 #' @export
 #' @method make_A spacetimeobj
-make_A.spacetimeobj <- function(object, loc, time, dirichlet = TRUE, include_deg1 = FALSE) {
-    if (!is.null(object$graph)) {
+make_A.spacetimeobj <- function(object, loc, time, dirichlet = TRUE, include_deg1 = FALSE, ...) {
+    if (isTRUE(object$has_graph) && !is.null(object$graph)) {
         if (object$graph_dirichlet && dirichlet && !include_deg1) {
             return(rSPDE.Ast(graph = object$graph, mesh_time = object$mesh_time, 
                              obs.s = loc, obs.t = time, 

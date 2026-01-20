@@ -222,7 +222,9 @@ rspde.spacetime <- function(mesh_space = NULL,
 
   model <- do.call(INLA::inla.cgeneric.define, list_args)
 
-  model$A <- op$make_A
+  model$A <- function(...) {
+    make_A(op, ...)
+  }
   model$drift <- drift
   model$prior.kappa <- prior.kappa
   model$prior.sigma <- prior.sigma

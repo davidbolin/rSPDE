@@ -1164,6 +1164,8 @@ spde.matern.operators <- function(kappa = NULL,
     stop("You should either provide mesh, graph, or provide both C *and* G!")
   }
 
+  mesh_1d <- NULL
+
   if (!is.null(loc_mesh) && d != 1) {
     stop("loc_mesh only works with dimension 1.")
   } else if (!is.null(loc_mesh)) {
@@ -1757,6 +1759,13 @@ CBrSPDE.L.precision <- function(L, tau = 1,
     return(Q)
 }
 
+#' Projection matrix for model objects
+#'
+#' Generic for computing the projection matrix that links observation locations
+#' to model mesh nodes.
+#'
+#' @param object A model object.
+#' @param ... Additional arguments passed to methods.
 #' @export
 make_A <- function(object, ...) {
   UseMethod("make_A")
@@ -1773,7 +1782,7 @@ make_A.default <- function(object, ...) {
 
 #' @export
 #' @method make_A matern_operator
-make_A.matern_operator <- function(object, loc) {
+make_A.matern_operator <- function(object, loc, ...) {
   if (!is.null(object$mesh)) {
     return(fm_basis(x = object$mesh, loc = loc))
   }
@@ -1792,7 +1801,7 @@ make_A.matern_operator <- function(object, loc) {
 
 #' @export
 #' @method make_A spde_matern_operator
-make_A.spde_matern_operator <- function(object, loc) {
+make_A.spde_matern_operator <- function(object, loc, ...) {
   if (!is.null(object$mesh)) {
     return(fm_basis(x = object$mesh, loc = loc))
   }
@@ -1807,7 +1816,7 @@ make_A.spde_matern_operator <- function(object, loc) {
 
 #' @export
 #' @method make_A matern2d_operator
-make_A.matern2d_operator <- function(object, loc) {
+make_A.matern2d_operator <- function(object, loc, ...) {
   A <- fm_basis(x = object$mesh, loc = loc)
   if (object$alpha %% 1 == 0) {
     return(A)
@@ -1815,6 +1824,13 @@ make_A.matern2d_operator <- function(object, loc) {
   return(kronecker(matrix(1, ncol = object$m + 1), A))
 }
 
+#' Covariance between mesh nodes and locations
+#'
+#' Generic for computing the covariance between mesh nodes and locations for
+#' model objects.
+#'
+#' @param object A model object.
+#' @param ... Additional arguments passed to methods.
 #' @export
 cov_function_mesh <- function(object, ...) {
   UseMethod("cov_function_mesh")
@@ -1831,7 +1847,7 @@ cov_function_mesh.default <- function(object, ...) {
 
 #' @export
 #' @method cov_function_mesh matern_operator
-cov_function_mesh.matern_operator <- function(object, p, direct = FALSE) {
+cov_function_mesh.matern_operator <- function(object, p, direct = FALSE, ...) {
   if (inherits(object, "rSPDEobj")) {
     v <- make_A(object, loc = p)
     if (direct) {
@@ -1851,7 +1867,7 @@ cov_function_mesh.matern_operator <- function(object, p, direct = FALSE) {
 
 #' @export
 #' @method cov_function_mesh spde_matern_operator
-cov_function_mesh.spde_matern_operator <- function(object, p, direct = FALSE) {
+cov_function_mesh.spde_matern_operator <- function(object, p, direct = FALSE, ...) {
   if (inherits(object, "rSPDEobj")) {
     v <- make_A(object, loc = p)
     if (direct) {
@@ -1871,7 +1887,7 @@ cov_function_mesh.spde_matern_operator <- function(object, p, direct = FALSE) {
 
 #' @export
 #' @method cov_function_mesh matern2d_operator
-cov_function_mesh.matern2d_operator <- function(object, p) {
+cov_function_mesh.matern2d_operator <- function(object, p, ...) {
   v <- t(make_A(object, loc = p))
   A <- Matrix::Diagonal(dim(object$fem$C)[1])
   if (object$alpha %% 1 != 0) {
@@ -1880,6 +1896,12 @@ cov_function_mesh.matern2d_operator <- function(object, p) {
   return(A %*% solve(object$Q, v))
 }
 
+#' Covariance between mesh nodes
+#'
+#' Generic for computing the covariance between mesh nodes for model objects.
+#'
+#' @param object A model object.
+#' @param ... Additional arguments passed to methods.
 #' @export
 covariance_mesh <- function(object, ...) {
   UseMethod("covariance_mesh")
@@ -1896,7 +1918,7 @@ covariance_mesh.default <- function(object, ...) {
 
 #' @export
 #' @method covariance_mesh matern_operator
-covariance_mesh.matern_operator <- function(object) {
+covariance_mesh.matern_operator <- function(object, ...) {
   if (inherits(object, "rSPDEobj")) {
     return(object$Pr %*% solve(object$Q, object$Pr))
   }
@@ -1910,7 +1932,7 @@ covariance_mesh.matern_operator <- function(object) {
 
 #' @export
 #' @method covariance_mesh spde_matern_operator
-covariance_mesh.spde_matern_operator <- function(object) {
+covariance_mesh.spde_matern_operator <- function(object, ...) {
   if (inherits(object, "rSPDEobj")) {
     return(object$Pr %*% solve(object$Q, object$Pr))
   }
@@ -1924,7 +1946,7 @@ covariance_mesh.spde_matern_operator <- function(object) {
 
 #' @export
 #' @method covariance_mesh matern2d_operator
-covariance_mesh.matern2d_operator <- function(object) {
+covariance_mesh.matern2d_operator <- function(object, ...) {
   C <- Matrix::Diagonal(dim(object$fem$C)[1], rowSums(object$fem$C))
   A <- Matrix::Diagonal(dim(C)[1])
   if (object$alpha %% 1 == 0) {

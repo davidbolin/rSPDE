@@ -572,7 +572,7 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 #' \item{fem_mesh_matrices}{A list containing the mass lumped mass
 #' matrix, the stiffness matrix and
 #' the higher-order FEM-related matrices.}
-#' \item{make_A}{A function to compute the projection matrix which links the field to observation locations.}
+#' \item{make_A}{Use [make_A()] to compute the projection matrix linking the field to observation locations.}
 #' \item{variogram}{A function to compute the variogram of the model at a specified node.}
 #' \item{A}{Matrix that sums the components in the approximation to the mesh nodes.}
 #' \item{scaling}{The scaling used in the intrinsic part of the model.}
@@ -969,7 +969,7 @@ intrinsic.matern.operators <- function(kappa,
 
 #' @export
 #' @method make_A intrinsicCBrSPDEobj
-make_A.intrinsicCBrSPDEobj <- function(object, loc) {
+make_A.intrinsicCBrSPDEobj <- function(object, loc, ...) {
   m <- object$m
   if (!is.null(object$mesh)) {
     Ai <- fmesher::fm_basis(x = object$mesh, loc = loc)
