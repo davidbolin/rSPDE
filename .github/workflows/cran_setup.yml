@@ -93,10 +93,10 @@ jobs:
           git add DESCRIPTION
           git add R/inla_rspde.R
           git add R/inlabru_rspde.R
-          git fetch origin cran
-          git rebase origin/cran || git rebase --abort
           if ! git diff-index --quiet HEAD --; then
             git commit -m "Doing the setup"
+            git fetch origin cran
+            git rebase origin/cran || git rebase --abort
             git push origin cran || git push origin cran --force-with-lease
           fi
         shell: bash
