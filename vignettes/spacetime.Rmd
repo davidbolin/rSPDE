@@ -85,7 +85,7 @@ There is also built-in support for kriging prediction. To illustrate this, we us
 n.obs <- 500
 
 obs.loc <- data.frame(x = max(s)*runif(n.obs), t = max(t)*runif(n.obs))
-A <- op$make_A(obs.loc$x, obs.loc$t)
+A <- make_A(op, loc = obs.loc$x, time = obs.loc$t)
 ```
 
 We now generate the observations as $Y_i = u(s_i) + \varepsilon_i$, where $\varepsilon_i \sim N(0,\sigma_e^2)$ is Gaussian measurement noise. 
@@ -97,7 +97,7 @@ Y <- as.vector(A%*%x + sigma.e*rnorm(n.obs))
 
 Finally, we compute the kriging prediction of the process $u$ at the locations in `s` based on these observations. To specify which locations that should be predicted, the argument `Aprd` is used. This argument should be an observation matrix that links the mesh locations to the prediction locations.  
 ```{r, fig.show='hold',fig.align = "center"}
-Aprd <- op$make_A(rep(s, length(t)), rep(t, each = length(s)))
+Aprd <- make_A(op, loc = rep(s, length(t)), time = rep(t, each = length(s)))
 u.krig <- predict(op, A = A, Aprd = Aprd, Y = Y, sigma.e = sigma.e)
 ```
 The process simulation,  and the kriging prediction are shown in the following figure.
@@ -283,7 +283,7 @@ We now generate the observations as $Y_i = u(s_i) + \varepsilon_i$, where $\vare
 ```{r}
 n.obs <- 500
 obs.loc <- data.frame(x = runif(n.obs),y = runif(n.obs), t = max(t)*runif(n.obs))
-A <- op$make_A(cbind(obs.loc$x,obs.loc$y), obs.loc$t)
+A <- make_A(op, loc = cbind(obs.loc$x, obs.loc$y), time = obs.loc$t)
 sigma.e <- 0.01
 Y <- as.vector(A%*%u + sigma.e*rnorm(n.obs))
 ```
@@ -443,4 +443,3 @@ print(results_unbounded)
 ```
 
 ## References
-

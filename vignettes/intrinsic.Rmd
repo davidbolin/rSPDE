@@ -576,8 +576,8 @@ Y <- as.matrix(A %*% u + sigma.e * matrix(rnorm(n.obs*n.rep),n.obs,n.rep))
 Let us now show how to do kriging prediction for this model. 
 
 ```{r}
-A <- op$make_A(obs.loc)
-A.krig <- op$make_A(x)
+A <- make_A(op, loc = obs.loc)
+A.krig <- make_A(op, loc = x)
 u.krig <- predict(op,
   A = A, Aprd = A.krig, Y = Y[,1], sigma.e = sigma.e,
   compute.variances = TRUE
@@ -663,8 +663,8 @@ Y <- as.matrix(A %*% u + sigma.e * matrix(rnorm(n.obs*n.rep), n.obs, n.rep))
 Let's visualize the data and predictions for this model:
 
 ```{r}
-A <- op$make_A(obs.loc)
-A.krig <- op$make_A(x)
+A <- make_A(op, loc = obs.loc)
+A.krig <- make_A(op, loc = x)
 u.krig <- predict(op,
   A = A, Aprd = A.krig, Y = Y[,1], sigma.e = sigma.e,
   compute.variances = TRUE
@@ -695,7 +695,6 @@ fit <- rspde_lme(y ~ -1, loc = "loc", repl = "rep", data = data,
 rbind(c(fit$coeff$random_effects[c("alpha", "beta", "tau", "kappa")], fit$coeff$measurement_error), 
       c(alpha, beta, tau, kappa, sigma.e))
 ```
-
 
 
 
