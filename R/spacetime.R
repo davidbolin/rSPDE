@@ -209,13 +209,13 @@ spacetime.operators <- function(mesh_space = NULL,
         }
     }
     if (is.null(kappa)) {
-        kappa <- exp(param[2])
+        kappa <- 10 * exp(param[2])
     } else {
         kappa <- rspde_check_user_input(kappa, "kappa", 0, 1)
     }
     
     if (is.null(sigma)) {
-        sigma <- exp(-param[1])
+        sigma <- 10 * exp(-param[1])
     } else {
         sigma <- rspde_check_user_input(sigma, "sigma", 0, 1)
     }

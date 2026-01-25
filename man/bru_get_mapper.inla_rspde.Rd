@@ -10,19 +10,19 @@
 \alias{ibm_jacobian.bru_mapper_inla_rspde}
 \title{rSPDE inlabru mapper}
 \usage{
-ibm_n.bru_mapper_inla_rspde_fintrinsic(mapper, ...)
+\method{ibm_n}{bru_mapper_inla_rspde_fintrinsic}(mapper, ...)
 
-ibm_values.bru_mapper_inla_rspde_fintrinsic(mapper, ...)
+\method{ibm_values}{bru_mapper_inla_rspde_fintrinsic}(mapper, ...)
 
-ibm_jacobian.bru_mapper_inla_rspde_fintrinsic(mapper, input, ...)
+\method{ibm_jacobian}{bru_mapper_inla_rspde_fintrinsic}(mapper, input, ...)
 
-bru_get_mapper.inla_rspde(model, ...)
+\method{bru_get_mapper}{inla_rspde}(model, ...)
 
-ibm_n.bru_mapper_inla_rspde(mapper, ...)
+\method{ibm_n}{bru_mapper_inla_rspde}(mapper, ...)
 
-ibm_values.bru_mapper_inla_rspde(mapper, ...)
+\method{ibm_values}{bru_mapper_inla_rspde}(mapper, ...)
 
-ibm_jacobian.bru_mapper_inla_rspde(mapper, input, ...)
+\method{ibm_jacobian}{bru_mapper_inla_rspde}(mapper, input, ...)
 }
 \arguments{
 \item{mapper}{A \code{bru_mapper_inla_rspde} object}

@@ -1,6 +1,7 @@
 context("inlabru_rspde")
 
 test_that("Inlabru predict method works for rspde.matern1d with nu = 0.7", {
+    testthat::skip_on_cran()
     skip_if_not_installed("INLA")
     skip_if_not_installed("inlabru")
 
@@ -37,7 +38,7 @@ test_that("Inlabru predict method works for rspde.matern1d with nu = 0.7", {
 
     field_pred <- predict(bru_model, cmp, bru_fit,
         newdata = pred_loc,
-        formula = ~ field
+        formula = ~field
     )
 
     # Get predicted mean
@@ -52,6 +53,7 @@ test_that("Inlabru predict method works for rspde.matern1d with nu = 0.7", {
 
 
 test_that("Inlabru predict method works for rspde.matern1d with Intercept and nu = 1.1", {
+    testthat::skip_on_cran()
     skip_if_not_installed("INLA")
     skip_if_not_installed("inlabru")
 

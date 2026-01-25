@@ -50,14 +50,14 @@ The function `spacetime.operators()` can be used to define the model. The functi
 
 Assume that we want to define a model on the spatial interval $[0,20]$ and the temporal domain $[0,10]$. We can then simply specify the mesh nodes as  
 ```{r}
-s <- seq(from = 0, to = 100, length.out = 101)
-t <- seq(from = 0, to = 50, length.out = 21)
+s <- seq(from = 0, to = 20, length.out = 101)
+t <- seq(from = 0, to = 10, length.out = 21)
 ```
 We can now use `spacetime.operators()` to construct the model
 ```{r}
-kappa <- 0.7
-sigma <- 1.25
-gamma <- 1
+kappa <- 7
+sigma <- 12
+gamma <- 0.1
 rho_1d <- 0.1
 alpha <- 1
 beta <- 1
@@ -255,10 +255,10 @@ plot(mesh_2d, main = "")
 We now proceed as previously by defining a temporal region and the model
 ```{r}
 t <- seq(from = 0, to = 10, length.out = 11)
-kappa <- 10
-sigma <- 10
-gamma <- 1 / 200
-rho_2d <- 0.3 * c(1, 1)
+kappa <- 9.9
+sigma <- 29
+gamma <- 0.11
+rho_2d <- c(0, 0)
 alpha <- 1
 beta <- 1
 
