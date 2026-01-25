@@ -60,8 +60,12 @@ jobs:
             rm -rf vignettes
           fi
           mkdir -p vignettes
+          if [ ! -d cran_vignettes ]; then
+            git fetch origin stable
+            git checkout origin/stable -- cran_vignettes || true
+          fi
           if [ -d cran_vignettes ]; then
-            cp cran_vignettes/* vignettes/ || true
+            cp -R cran_vignettes/. vignettes/ || true
             git rm -rf cran_vignettes
           fi
           if [ -d man/figures ]; then
