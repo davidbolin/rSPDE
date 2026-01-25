@@ -5,13 +5,17 @@ on:
 
 name: pkgdown
 
+permissions:
+  contents: write
+
+
 jobs:
   pkgdown:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -23,6 +27,7 @@ jobs:
       - name: Install system dependencies on Linux (GL)
         if: runner.os == 'Linux'
         run: |
+          set -euo pipefail
           sudo apt-get update -y && sudo apt-get install -y libglu1-mesa-dev libeigen3-dev
           sudo ln -s /usr/bin/gcc /usr/local/bin/gcc
           sudo ln -s /usr/bin/g++ /usr/local/bin/g++          
@@ -44,6 +49,7 @@ jobs:
 
       - name: Deploy package
         run: |
+          set -euo pipefail
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           Rscript -e 'library(rmarkdown); rmarkdown::render("index.Rmd", "md_document")'     

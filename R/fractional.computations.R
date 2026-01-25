@@ -2174,10 +2174,10 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
 #'  A <- fm_basis(mesh_2d,obs.loc)
 #'  sigma.e <- 0.1
 #'  Y <- as.vector(A%*%u + sigma.e*rnorm(n.obs))
-#'  A <- op$make_A(obs.loc)
+#'  A <- make_A(op, obs.loc)
 #'  proj <- fm_evaluator(mesh_2d, dims = c(100, 100),
 #'              xlim = c(0,1), ylim = c(0,1))
-#'  Aprd <- op$make_A(proj$lattice$loc)
+#'  Aprd <- make_A(op, proj$lattice$loc)
 #'  u.krig <- predict(op, A = A, Aprd = Aprd, Y = Y, sigma.e = sigma.e)
 predict.CBrSPDEobj2d <- function(object, A, Aprd, Y, sigma.e, mu = 0,
                                  compute.variances = FALSE, posterior_samples = FALSE,
@@ -3041,4 +3041,3 @@ aux_lme_rSPDE.matern.loglike <- function(object, y, X_cov, repl, A_list, sigma_e
   }
   return(l_tmp)
 }
-

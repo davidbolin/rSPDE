@@ -97,7 +97,7 @@ a list with the blocks.}
 \item{fem_mesh_matrices}{A list containing the mass lumped mass
 matrix, the stiffness matrix and
 the higher-order FEM-related matrices.}
-\item{make_A}{A function to compute the projection matrix which links the field to observation locations.}
+\item{make_A}{Use \code{\link[=make_A]{make_A()}} to compute the projection matrix linking the field to observation locations.}
 \item{variogram}{A function to compute the variogram of the model at a specified node.}
 \item{A}{Matrix that sums the components in the approximation to the mesh nodes.}
 \item{scaling}{The scaling used in the intrinsic part of the model.}
@@ -122,7 +122,7 @@ See the help of that function for details.
 if (requireNamespace("RSpectra", quietly = TRUE)) {
   x <- seq(from = 0, to = 10, length.out = 201)
   beta <- 1
-  alpha <- 1
+  alpha <- 1  
   kappa <- 1
   op <- intrinsic.matern.operators(
     kappa = kappa, tau = 1, alpha = alpha,

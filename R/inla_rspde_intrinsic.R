@@ -73,6 +73,13 @@ rspde.intrinsic <- function(mesh,
     C <- fem_mesh$c0
     Ci <- Diagonal(dim(C)[1],1/diag(C))
     
+    #Adjust integer case to avoid special case
+    if(!is.null(nu)) {
+        if((nu + d/2) %% 1 == 0){
+            nu <- nu + 0.01
+        }
+    }
+    
     if (nu.upper.bound - floor(nu.upper.bound) == 0) {
         nu.upper.bound <- nu.upper.bound - 1e-5
     }
@@ -456,7 +463,7 @@ rspde.intrinsic.matern <- function(mesh,
 
     rspde_check_cgeneric_symbol(model)
 
-    class(model) <- c("inla_rspde", "intrinsic", class(model))
+    class(model) <- c("intrinsic_matern", "inla_rspde", class(model))
     model$parameterization <- "spde"
     model$stationary <- TRUE
     model$est_nu <- FALSE
@@ -679,5 +686,57 @@ ibm_jacobian.bru_mapper_inla_rspde_fintrinsic <- function(mapper, input, ...) {
         mesh = model$mesh, loc = input,
         rspde.order = rspde_order,
         nu = nu
+    )
+}
+
+
+
+#'
+#' @title rSPDE inlabru mapper
+#' @name bru_get_mapper.intrinsic_matern
+#' @param model An `intrinsic_matern` object for which to construct or extract a mapper
+#' @param \dots Arguments passed on to other methods
+#' @rdname bru_get_mapper.intrinsic_matern
+#' @rawNamespace if (getRversion() >= "3.6.0") {
+#'   S3method(inlabru::bru_get_mapper, intrinsic_matern)
+#'   S3method(inlabru::ibm_n, bru_mapper_intrinsic_matern)
+#'   S3method(inlabru::ibm_values, bru_mapper_intrinsic_matern)
+#'   S3method(inlabru::ibm_jacobian, bru_mapper_intrinsic_matern)
+#' }
+bru_get_mapper.intrinsic_matern <- function(model, ...) {
+    stopifnot(requireNamespace("inlabru"))
+    inlabru_version <- as.character(packageVersion("inlabru"))
+    if(inlabru_version >= "2.11.1.9022"){
+        n_rep <- 1
+        inlabru::bru_mapper_repeat(inlabru::bru_mapper(model[["mesh"]]), n_rep = n_rep)
+    } else{
+        mapper <- list(model = model)
+        inlabru::bru_mapper_define(mapper, new_class = "bru_mapper_intrinsic_matern")
+    }
+}
+
+#' @param mapper A `bru_mapper_intrinsic_matern` object
+#' @rdname bru_get_mapper.intrinsic_matern
+ibm_n.bru_mapper_intrinsic_matern <- function(mapper, ...) {
+    model <- mapper[["model"]]
+    factor_rspde <- 1
+    factor_rspde * model$n.spde
+}
+#' @rdname bru_get_mapper.intrinsic_matern
+ibm_values.bru_mapper_intrinsic_matern <- function(mapper, ...) {
+    seq_len(inlabru::ibm_n(mapper))
+}
+#' @param input The values for which to produce a mapping matrix
+#' @rdname bru_get_mapper.intrinsic_matern
+ibm_jacobian.bru_mapper_intrinsic_matern <- function(mapper, input, ...) {
+    model <- mapper[["model"]]
+    if (!is.null(input) && !is.matrix(input) && !inherits(input, "Spatial")) {
+        input <- as.matrix(input)
+    }
+    
+    rSPDE::rspde.make.A(
+        mesh = model$mesh, loc = input,
+        rspde.order = 0,
+        nu = model$alpha - model$dim/2
     )
 }

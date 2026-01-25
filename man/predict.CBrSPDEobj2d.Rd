@@ -71,9 +71,9 @@ a SPDE as described in \code{\link[=matern2d.operators]{matern2d.operators()}}.
  A <- fm_basis(mesh_2d,obs.loc)
  sigma.e <- 0.1
  Y <- as.vector(A\%*\%u + sigma.e*rnorm(n.obs))
- A <- op$make_A(obs.loc)
+ A <- make_A(op, obs.loc)
  proj <- fm_evaluator(mesh_2d, dims = c(100, 100),
              xlim = c(0,1), ylim = c(0,1))
- Aprd <- op$make_A(proj$lattice$loc)
+ Aprd <- make_A(op, proj$lattice$loc)
  u.krig <- predict(op, A = A, Aprd = Aprd, Y = Y, sigma.e = sigma.e)
 }

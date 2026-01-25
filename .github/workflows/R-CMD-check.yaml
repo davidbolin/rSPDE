@@ -5,12 +5,12 @@ on:
   push:
     branches:
       - devel-src
-  pull_request:
-    branches:
-      - devel
-      - devel-src
 
 name: R-CMD-check
+
+permissions:
+  contents: write
+
 
 jobs:
   R-CMD-check:
@@ -28,10 +28,9 @@ jobs:
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       R_KEEP_PKG_SOURCE: yes
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}     
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -45,6 +44,7 @@ jobs:
       - name: Install system dependencies on MacOS (X11, gdal)
         if: runner.os == 'macOS'
         run: |
+          set -euo pipefail
           brew install --cask xquartz
           brew install pkg-config
           brew install proj@9
@@ -54,6 +54,7 @@ jobs:
       - name: Install system dependencies on Linux (GL)
         if: runner.os == 'Linux'
         run: |
+          set -euo pipefail
           sudo apt-get update -y && sudo apt-get install -y libglu1-mesa-dev libeigen3-dev
           sudo ln -s /usr/bin/gcc /usr/local/bin/gcc
           sudo ln -s /usr/bin/g++ /usr/local/bin/g++
@@ -81,5 +82,5 @@ jobs:
     steps:
       - env:
           GH_REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh workflow run retry-workflow.yml -F run_id=${{ github.run_id }}

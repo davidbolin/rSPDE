@@ -17,7 +17,8 @@ spacetime.operators(
   alpha = NULL,
   beta = NULL,
   graph_dirichlet = TRUE,
-  bounded_rho = TRUE
+  bounded_rho = TRUE,
+  bound_rho = NULL
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ The actual bound used for \code{rho} can be accessed from the \code{bound_rho} e
 
 \item{bounded_rho}{Logical. Specifies whether \code{rho} should be bounded to ensure the existence, uniqueness, and well-posedness of the solution. Defaults to \code{TRUE}.
 Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties.}
+
+\item{bound_rho}{A positive number specifying the bound for \code{rho}. If \code{NULL}, the default bound will be used.}
 }
 \value{
 An object of type spacetimeobj.

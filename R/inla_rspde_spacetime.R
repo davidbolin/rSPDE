@@ -45,6 +45,7 @@
 #' When `bounded_rho = TRUE`, the `rspde_lme` models enforce bounded `rho` for consistency. 
 #' If the estimated value of `rho` approaches the upper bound too closely, we recommend refitting the model with `bounded_rho = FALSE`. However, this should be done with caution, as it may lead to instability in some cases, though it can also result in a better model fit. 
 #' The actual bound used for `rho` can be accessed from the `bound_rho` element of the returned object.
+#' @param bound_rho A positive number specifying the bound for `rho`. If `NULL`, the default bound will be used.
 #' @param shared_lib String specifying which shared library to use for the Cgeneric
 #' implementation. Options are "detect", "INLA", or "rSPDE". You may also specify the
 #' direct path to a .so (or .dll) file.
@@ -67,6 +68,7 @@ rspde.spacetime <- function(mesh_space = NULL,
                             prior.precision = NULL,
                             graph_dirichlet = TRUE,
                             bounded_rho = TRUE,
+                            bound_rho = NULL,
                             shared_lib = "detect",
                             debug = FALSE,
                             ...) {
@@ -104,6 +106,7 @@ rspde.spacetime <- function(mesh_space = NULL,
     alpha = alpha,
     beta = beta,
     bounded_rho = bounded_rho,
+    bound_rho = bound_rho,
     graph_dirichlet = graph_dirichlet
   )
 
@@ -201,7 +204,9 @@ rspde.spacetime <- function(mesh_space = NULL,
 
   model <- do.call(INLA::inla.cgeneric.define, list_args)
 
-  model$A <- op$make_A
+  model$A <- function(...) {
+    make_A(op, ...)
+  }
   model$drift <- drift
   model$prior.kappa <- prior.kappa
   model$prior.sigma <- prior.sigma
