@@ -4,28 +4,32 @@ on:
       - devel
 
 name: devel_setup
-  
+
 jobs:
-    devel_setup:
-      runs-on: ubuntu-latest
-      env:
-        GITHUB_PAT: ${{ secrets.ACTIONS_SECRET }}
-      steps:
-        - uses: actions/checkout@v2    
-          with:
-            token: ${{secrets.ACTIONS_SECRET}}
-        - run: |
-            git config --local user.email "actions@github.com"
-            git config --local user.name "GitHub Actions"     
-            git config pull.rebase true                    
-            git fetch origin
-            git checkout devel-src
-            git merge devel -X theirs --no-edit --no-commit --no-ff --allow-unrelated-histories 
-            git checkout --theirs .
-            git add . 
-            git reset -- src/
-            sed -i 's/NeedsCompilation: no/NeedsCompilation: yes/' DESCRIPTION
-            git add DESCRIPTION
-            git commit -m "Doing the setup"
-            git push origin devel-src --force
-          shell: bash
+  devel_setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACTIONS_SECRET }}
+          fetch-depth: 0 
+
+      - name: Run Setup Logic
+        run: |
+          git config --global --unset-all http.https://github.com/.extraheader || true
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git remote set-url origin https://x-access-token:${{ secrets.ACTIONS_SECRET }}@github.com/davidbolin/rSPDE.git
+          git fetch origin
+          git checkout devel-src
+          git merge origin/devel -X theirs --no-edit --no-commit --no-ff --allow-unrelated-histories
+          
+          git checkout --theirs .
+          git add . 
+          git reset -- src/
+          sed -i 's/NeedsCompilation: no/NeedsCompilation: yes/' DESCRIPTION
+          git add DESCRIPTION
+          
+          git commit -m "Doing the setup"
+          git push origin devel-src --force
+        shell: bash
