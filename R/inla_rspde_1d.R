@@ -513,6 +513,13 @@ predict.inla_rspde_matern1d <- function(object,
   }
 
   name_locations <- bru_fit$bru_info$model$effects$field$main$input$input
+  if (!is.character(name_locations) || length(name_locations) != 1) {
+    # Handle symbols/calls from different inlabru versions
+    name_locations <- all.vars(name_locations)
+  }
+  if (length(name_locations) != 1) {
+    stop("Could not determine location column name from fitted model.")
+  }
   
   original_data <- bru_fit$bru_info$lhoods[[1]]$data
 
