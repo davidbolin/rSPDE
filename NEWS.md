@@ -1,4 +1,10 @@
-# rSPDE (development version)
+# rSPDE 2.5.2
+
+* Added intrinsic Matern mapper support and related documentation.
+* Added `covariance_mesh`, `cov_function_mesh`, and `make_A` documentation.
+* Improved intrinsic and fractional operator implementations and stability.
+* Updated INLA/inlabru interfaces and examples.
+* Expanded unit tests and vignette updates (spacetime/anisotropic/intrinsic).
 
 # rSPDE 2.5.1
 
