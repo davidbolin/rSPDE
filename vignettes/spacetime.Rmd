@@ -50,8 +50,8 @@ The function `spacetime.operators()` can be used to define the model. The functi
 
 Assume that we want to define a model on the spatial interval $[0,20]$ and the temporal domain $[0,10]$. We can then simply specify the mesh nodes as  
 ```{r}
-s <- seq(from = 0, to = 20, length.out = 101)
-t <- seq(from = 0, to = 10, length.out = 21)
+s <- s_1d <- seq(from = 0, to = 20, length.out = 101)
+t <- t_1d <- seq(from = 0, to = 10, length.out = 21)
 ```
 We can now use `spacetime.operators()` to construct the model
 ```{r}
@@ -434,7 +434,7 @@ Let us first start with the `rspde_lme()` example. We will use the previous fit 
 
 ```{r}
 op_1d_unbounded <- spacetime.operators(
-  space_loc = df_1d$space, time_loc = df_1d$time,
+  space_loc = s_1d, time_loc = t_1d,
   alpha = 1, beta = 1,
   bounded_rho = FALSE
 )
@@ -462,7 +462,7 @@ Now, the `inlabru` implementation:
 ```{r}
 ### Fit with bounded_rho = FALSE
 st_bru_unbounded <- rspde.spacetime(
-  space_loc = df_1d$space, time_loc = df_1d$time, alpha = 1,
+  space_loc = s_1d, time_loc = t_1d, alpha = 1,
   beta = 1, bounded_rho = FALSE
 )
 
