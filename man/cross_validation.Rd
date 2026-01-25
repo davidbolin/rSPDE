@@ -25,6 +25,7 @@ cross_validation(
   n_cores_RP = parallel::detectCores() - 1,
   true_CV = TRUE,
   save_settings = FALSE,
+  model_options_bru = list(),
   print = TRUE,
   fit_verbose = FALSE
 )
@@ -79,6 +80,8 @@ When supplying \code{train_test_indexes}, the \code{cv_type}, \code{k}, \code{pe
 \item{true_CV}{Should a \code{TRUE} cross-validation be performed? If \code{TRUE} the models will be fitted on the training dataset. If \code{FALSE}, the parameters will be kept fixed at the ones obtained in the result object.}
 
 \item{save_settings}{Logical. If \code{TRUE}, the settings used in the cross-validation will also be returned.}
+
+\item{model_options_bru}{A list of options to be passed to inlabru.}
 
 \item{print}{Should partial results be printed throughout the computation?}
 

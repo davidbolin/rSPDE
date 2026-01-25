@@ -4,28 +4,53 @@ on:
       - stable
 
 name: stable_setup
+
+permissions:
+  contents: write
+
   
 jobs:
     stable_setup:
-      runs-on: ubuntu-20.04
+      runs-on: ubuntu-latest
       env:
         GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       steps:
-        - uses: actions/checkout@v2      
+        - uses: actions/checkout@v6      
         
         - name: Merge with stable-src and accept all incoming changes
           run: |
+            set -euo pipefail
             git config --local user.email "actions@github.com"
-            git config --local user.name "GitHub Actions"              
-            git config pull.rebase true
-            git fetch origin
+            git config --local user.name "GitHub Actions"
+            if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+              echo "Event is push; pushing updates"
+              if [ -z "${GITHUB_PAT:-}" ]; then
+                echo "GITHUB_PAT is empty; cannot push"
+                exit 1
+              fi
+              git remote set-url origin https://x-access-token:${GITHUB_PAT}@github.com/${{ github.repository }}.git
+            fi
+            git fetch origin stable stable-src
             git checkout stable-src
-            git merge -X theirs stable --no-edit --no-commit --no-ff --allow-unrelated-histories    
-            git checkout --theirs .
-            git add . 
-            git reset -- src/
-            sed -i 's/NeedsCompilation: no/NeedsCompilation: yes/' DESCRIPTION
-            git add DESCRIPTION
-            git commit -m "Doing the setup"
-            git push origin stable-src --force
+
+            git reset --hard origin/stable
+            if git ls-tree -d --name-only origin/stable-src src | grep -q '^src$'; then
+              git checkout origin/stable-src -- src/
+            fi
+            git add -A
+
+            if [ -f DESCRIPTION ]; then
+              sed -i 's/NeedsCompilation: no/NeedsCompilation: yes/' DESCRIPTION
+              git add DESCRIPTION
+            fi
+
+            if ! git diff-index --quiet HEAD --; then
+              git commit -m "Doing the setup"
+              if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+                echo "Event is push; pushing updates"
+                if ! git push origin stable-src; then
+                  git push origin stable-src --force-with-lease
+                fi
+              fi
+            fi
           shell: bash

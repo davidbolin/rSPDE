@@ -57,14 +57,16 @@ We can now use `spacetime.operators()` to construct the model
 ```{r}
 kappa <- 5
 sigma <- 10
-gamma <- 1/20
+gamma <- 0.1
 rho_1d <- 1
 alpha <- 1
 beta <- 1
 
-op <- spacetime.operators(space_loc = s, time_loc = t,
-                          kappa = kappa, sigma = sigma, alpha = alpha,
-                          beta = beta, rho = rho_1d, gamma = gamma)
+op <- spacetime.operators(
+  space_loc = s, time_loc = t,
+  kappa = kappa, sigma = sigma, alpha = alpha,
+  beta = beta, rho = rho_1d, gamma = gamma
+)
 ```
 
 The `spacetime.operators` object has a `plot_covariances` method which for univariate spatial domains simply plots the covariance 
@@ -84,38 +86,44 @@ There is also built-in support for kriging prediction. To illustrate this, we us
 ```{r}
 n.obs <- 500
 
-obs.loc <- data.frame(x = max(s)*runif(n.obs), t = max(t)*runif(n.obs))
-A <- op$make_A(obs.loc$x, obs.loc$t)
+obs.loc <- data.frame(x = max(s) * runif(n.obs), t = max(t) * runif(n.obs))
+A <- make_A(op, loc = obs.loc$x, time = obs.loc$t)
 ```
 
 We now generate the observations as $Y_i = u(s_i) + \varepsilon_i$, where $\varepsilon_i \sim N(0,\sigma_e^2)$ is Gaussian measurement noise. 
 ```{r}
-x <- simulate(op, nsim = 1) 
+x <- simulate(op, nsim = 1)
 sigma.e <- 0.01
-Y <- as.vector(A%*%x + sigma.e*rnorm(n.obs))
+Y <- as.vector(A %*% x + sigma.e * rnorm(n.obs))
 ```
 
 Finally, we compute the kriging prediction of the process $u$ at the locations in `s` based on these observations. To specify which locations that should be predicted, the argument `Aprd` is used. This argument should be an observation matrix that links the mesh locations to the prediction locations.  
 ```{r, fig.show='hold',fig.align = "center"}
-Aprd <- op$make_A(rep(s, length(t)), rep(t, each = length(s)))
+Aprd <- make_A(op, loc = rep(s, length(t)), time = rep(t, each = length(s)))
 u.krig <- predict(op, A = A, Aprd = Aprd, Y = Y, sigma.e = sigma.e)
 ```
 The process simulation,  and the kriging prediction are shown in the following figure.
 
 ```{r, fig.show='hold', fig.align = "center",echo=TRUE}
 data.df <- data.frame(space = obs.loc$x, time = obs.loc$t, field = Y, type = "Data")
-krig.df <- data.frame(space = rep(s, length(t)), time = rep(t, each = length(s)),
-                      field = as.vector(u.krig$mean), type = "Prediction")
+krig.df <- data.frame(
+  space = rep(s, length(t)), time = rep(t, each = length(s)),
+  field = as.vector(u.krig$mean), type = "Prediction"
+)
 df_plot <- rbind(data.df, krig.df)
-ggplot(df_plot) + aes(x = space, y = time, fill = field) +
-        facet_wrap(~type) + geom_raster(data = krig.df) +
-        geom_point(data = data.df, aes(colour = field),
-        show.legend = FALSE) + 
-        scale_fill_viridis() + scale_colour_viridis()
-
+ggplot(df_plot) +
+  aes(x = space, y = time, fill = field) +
+  facet_wrap(~type) +
+  geom_raster(data = krig.df) +
+  geom_point(
+    data = data.df, aes(colour = field),
+    show.legend = FALSE
+  ) +
+  scale_fill_viridis() +
+  scale_colour_viridis()
 ```
 
-## Parameter estimation
+## Setting up a data frame
 
 To estimate the model parameters based on this data, we can use the our `rspde_lme` function or our `inlabru` implementation. For this, we collect the data in a data frame, that also contains the spatial locations and the time points.
 
@@ -123,12 +131,26 @@ To estimate the model parameters based on this data, we can use the our `rspde_l
 df_1d <- data.frame(y = as.matrix(Y), space = obs.loc$x, time = obs.loc$t)
 ```
 
+Let us create a mesh for the spatial and temporal domains for the model fitting:
+
+```{r}
+mesh_1d_time <- fmesher::fm_mesh_1d(t)
+mesh_1d_space <- fmesher::fm_mesh_1d(s)
+```
+
+
+## Parameter estimation
+
 ### `rspde_lme` implementation
+We begin by creating an `rspde` operator:
+```{r}
+op_lme1d <- spacetime.operators(mesh_space = mesh_1d_space, mesh_time = mesh_1d_time, alpha = 1, beta = 1)
+```
+
 We now fit the model:
 
 ```{r}
-res <- rspde_lme(y ~ 1, loc = "space", loc_time = "time", data = df_1d, model = op, parallel = TRUE)
-
+res <- rspde_lme(y ~ 1, loc = "space", loc_time = "time", data = df_1d, model = op_lme1d, parallel = TRUE)
 ```
 
 In the call, `y~1` indicates that we also want to estimate a mean value of the model, and the arguments `loc` and `loc_time` provide the names of the spatial and temporal coordinates in the data frame. 
@@ -140,30 +162,38 @@ summary(res)
 
 Let us compare the estimated results with the true values:
 ```{r}
-results <- data.frame(kappa = c(kappa, res$coeff$random_effects[1]), 
-                      sigma = c(sigma, res$coeff$random_effects[2]),
-                      gamma = c(gamma, res$coeff$random_effects[3]), 
-                      rho = c(rho_1d, res$coeff$random_effects[4]),
-                      sigma.e = c(sigma.e, res$coeff$measurement_error),
-                      intercept = c(0, res$coeff$fixed_effects),
-                      row.names = c("True", "Estimate"))
-                      
+results <- data.frame(
+  kappa = c(kappa, res$coeff$random_effects[1]),
+  sigma = c(sigma, res$coeff$random_effects[2]),
+  gamma = c(gamma, res$coeff$random_effects[3]),
+  rho = c(rho_1d, res$coeff$random_effects[4]),
+  sigma.e = c(sigma.e, res$coeff$measurement_error),
+  intercept = c(0, res$coeff$fixed_effects),
+  row.names = c("True", "Estimate")
+)
+
 print(results)
 ```
 Finally, we can also do prediction based on the fitted model as 
 ```{r}
-pred.data <- data.frame(x = rep(s,length(t)), t = rep(t,each=length(s)))
+pred.data <- data.frame(x = rep(s, length(t)), t = rep(t, each = length(s)))
 pred <- predict(res, newdata = pred.data, loc = "x", time = "t")
 data.df <- data.frame(space = obs.loc$x, time = obs.loc$t, field = Y, type = "Data")
-krig.df <- data.frame(space = rep(s, length(t)), time = rep(t, each = length(s)),
-                      field = as.vector(pred$mean), type = "Prediction")
+krig.df <- data.frame(
+  space = rep(s, length(t)), time = rep(t, each = length(s)),
+  field = as.vector(pred$mean), type = "Prediction"
+)
 df_plot <- rbind(data.df, krig.df)
-ggplot(df_plot) + aes(x = space, y = time, fill = field) +
-        facet_wrap(~type) + geom_raster(data = krig.df) +
-        geom_point(data = data.df, aes(colour = field),
-        show.legend = FALSE) + 
-        scale_fill_viridis() + scale_colour_viridis()
-
+ggplot(df_plot) +
+  aes(x = space, y = time, fill = field) +
+  facet_wrap(~type) +
+  geom_raster(data = krig.df) +
+  geom_point(
+    data = data.df, aes(colour = field),
+    show.legend = FALSE
+  ) +
+  scale_fill_viridis() +
+  scale_colour_viridis()
 ```
 
 ### `inlabru` Implementation
@@ -171,13 +201,13 @@ ggplot(df_plot) + aes(x = space, y = time, fill = field) +
 Let us now fit the model using our `inlabru` implementation. We start by creating the model object with the `rspde.spacetime()` function:
 ```{r}
 library(inlabru)
-st_bru <- rspde.spacetime(space_loc = s, time_loc = t, alpha = 1, beta=1)
+st_bru <- rspde.spacetime(mesh_space = mesh_1d_space, mesh_time = mesh_1d_time, alpha = 1, beta = 1)
 ```
 
 We now create the model component, which requires the user to pass the index as a list containing the elements `space` with the spatial indices and `time` with the temporal indices:
 
 ```{r}
-cmp <- y ~ -1 + Intercept(1) + field(list(space=space, time = time), model = st_bru)
+cmp <- y ~ -1 + Intercept(1) + field(list(space = space, time = time), model = st_bru)
 ```
 
 We are now in a position to fit the model:
@@ -190,17 +220,20 @@ Let us now compare the estimated results (the means of the parameters) with the 
 
 ```{r}
 param_st_1d <- transform_parameters_spacetime(
-                        bru_fit$summary.hyperpar$mean[2:5], 
-                                            st_bru)
+  bru_fit$summary.hyperpar$mean[2:5],
+  st_bru
+)
 
-results <- data.frame(kappa = c(kappa,  param_st_1d[[1]]), 
-                      sigma = c(sigma,  param_st_1d[[2]]),
-                      gamma = c(gamma,  param_st_1d[[3]]), 
-                      rho = c(rho_1d, param_st_1d[[4]]),
-                      sigma.e = c(sigma.e, sqrt(1/bru_fit$summary.hyperpar$mean[1])),
-                      intercept = c(0, bru_fit$summary.fixed$mean),
-                      row.names = c("True", "Estimate"))
-                      
+results <- data.frame(
+  kappa = c(kappa, param_st_1d[[1]]),
+  sigma = c(sigma, param_st_1d[[2]]),
+  gamma = c(gamma, param_st_1d[[3]]),
+  rho = c(rho_1d, param_st_1d[[4]]),
+  sigma.e = c(sigma.e, sqrt(1 / bru_fit$summary.hyperpar$mean[1])),
+  intercept = c(0, bru_fit$summary.fixed$mean),
+  row.names = c("True", "Estimate")
+)
+
 print(results)
 ```
 
@@ -222,17 +255,19 @@ plot(mesh_2d, main = "")
 We now proceed as previously by defining a temporal region and the model
 ```{r}
 t <- seq(from = 0, to = 10, length.out = 11)
-kappa <- 10
-sigma <- 10
-gamma <- 1/200
-rho_2d <- 0.3*c(1,1)
+kappa <- 9.9
+sigma <- 29
+gamma <- 0.11
+rho_2d <- c(0.2, 0.3)
 alpha <- 1
 beta <- 1
 
-op <- spacetime.operators(mesh_space = mesh_2d, time_loc = t,
-                          kappa = kappa, sigma = sigma, alpha = alpha,
-                          beta = beta, rho = rho_2d, gamma = gamma)
-op$plot_covariances(s.ind = 100, t.ind = 5, t.shift = c(-2,0,2))
+op <- spacetime.operators(
+  mesh_space = mesh_2d, time_loc = t,
+  kappa = kappa, sigma = sigma, alpha = alpha,
+  beta = beta, rho = rho_2d, gamma = gamma
+)
+op$plot_covariances(s.ind = 100, t.ind = 5, t.shift = c(-2, 0, 2))
 ```
 
 The `spacetime.operators` object has a `plot_covariances` method which can be used to vizualise marginal spatial and 
@@ -248,36 +283,73 @@ Let us plot the simulation for a few time points
 ```{r}
 proj <- fm_evaluator(mesh_2d, dims = c(100, 100))
 U <- matrix(u, nrow = mesh_2d$n, ncol = length(t))
-field1 <- fm_evaluate(proj, field = as.vector(U[,2]))
-field2 <- fm_evaluate(proj, field = as.vector(U[,3]))
-field3 <- fm_evaluate(proj, field = as.vector(U[,4]))
+field1 <- fm_evaluate(proj, field = as.vector(U[, 2]))
+field2 <- fm_evaluate(proj, field = as.vector(U[, 3]))
+field3 <- fm_evaluate(proj, field = as.vector(U[, 4]))
 
-field1.df <- data.frame(x1 = proj$lattice$loc[,1], x2 = proj$lattice$loc[,2], 
-                       u = as.vector(field1), type = "u1")
-field2.df <- data.frame(x1 = proj$lattice$loc[,1], x2 = proj$lattice$loc[,2], 
-                       u = as.vector(field2), type = "u2")
-field3.df <- data.frame(x1 = proj$lattice$loc[,1], x2 = proj$lattice$loc[,2], 
-                       u = as.vector(field3), type = "u3")
+field1.df <- data.frame(
+  x1 = proj$lattice$loc[, 1], x2 = proj$lattice$loc[, 2],
+  u = as.vector(field1), type = "u1"
+)
+field2.df <- data.frame(
+  x1 = proj$lattice$loc[, 1], x2 = proj$lattice$loc[, 2],
+  u = as.vector(field2), type = "u2"
+)
+field3.df <- data.frame(
+  x1 = proj$lattice$loc[, 1], x2 = proj$lattice$loc[, 2],
+  u = as.vector(field3), type = "u3"
+)
 field.df <- rbind(field1.df, field2.df, field3.df)
-ggplot(field.df) + aes(x = x1, y = x2, fill = u) + facet_wrap(~type) + geom_raster() + xlim(0,1) + ylim(0,1) + scale_fill_viridis()
-
-
+ggplot(field.df) +
+  aes(x = x1, y = x2, fill = u) +
+  facet_wrap(~type) +
+  geom_raster() +
+  xlim(0, 1) +
+  ylim(0, 1) +
+  scale_fill_viridis()
 ```
 
 We now generate the observations as $Y_i = u(s_i) + \varepsilon_i$, where $\varepsilon_i \sim N(0,\sigma_e^2)$ is Gaussian measurement noise. 
 ```{r}
 n.obs <- 500
-obs.loc <- data.frame(x = runif(n.obs),y = runif(n.obs), t = max(t)*runif(n.obs))
-A <- op$make_A(cbind(obs.loc$x,obs.loc$y), obs.loc$t)
+obs.loc <- data.frame(x = runif(n.obs), y = runif(n.obs), t = max(t) * runif(n.obs))
+A <- make_A(op, loc = cbind(obs.loc$x, obs.loc$y), time = obs.loc$t)
 sigma.e <- 0.01
-Y <- as.vector(A%*%u + sigma.e*rnorm(n.obs))
+Y <- as.vector(A %*% u + sigma.e * rnorm(n.obs))
 ```
+
+## Setting up a data frame
 
 To estimate the model parameters based on this data, we can use the `rspde_lme` function. For this, we collect the data in a data frame, that also contanis the spatial locations, and we fit the model:
 
 ```{r}
 df_2d <- data.frame(Y = as.matrix(Y), x = obs.loc$x, y = obs.loc$y, t = obs.loc$t)
-res_2d <- rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df_2d, model = op, parallel = TRUE)
+```
+
+Let us also create spatial and temporal meshes for the model fitting:
+
+```{r}
+mesh_2d_spatial <- fm_mesh_2d(
+  loc = df_2d[, c("x", "y")],
+  cutoff = 0.07,
+  max.edge = c(0.2, 0.6)
+)
+
+mesh_2d_time <- fmesher::fm_mesh_1d(t)
+```
+
+
+### `rspde_lme` implementation
+
+We begin by creating an `rspde` operator:
+```{r}
+op_lme2d <- spacetime.operators(mesh_space = mesh_2d_spatial, mesh_time = mesh_2d_time, alpha = 1, beta = 1)
+```
+
+Let us now fit the model:
+
+```{r}
+res_2d <- rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df_2d, model = op_lme2d, parallel = TRUE)
 ```
 
 Let us see a summary of the fitted model:
@@ -289,62 +361,63 @@ summary(res_2d)
 
 Let us compare the estimated results with the true values:
 ```{r}
-results <- data.frame(kappa = c(kappa, res_2d$coeff$random_effects[1]), 
-                      sigma = c(sigma, res_2d$coeff$random_effects[2]),
-                      gamma = c(gamma, res_2d$coeff$random_effects[3]), 
-                      rho_1 = c(rho_2d[1], res_2d$coeff$random_effects[4]),
-                      rho_2 = c(rho_2d[2], res_2d$coeff$random_effects[5]),
-                      sigma.e = c(sigma.e, res_2d$coeff$measurement_error),
-                      intercept = c(0, res_2d$coeff$fixed_effects),
-                      row.names = c("True", "Estimate"))
-                      
+results <- data.frame(
+  kappa = c(kappa, res_2d$coeff$random_effects[1]),
+  sigma = c(sigma, res_2d$coeff$random_effects[2]),
+  gamma = c(gamma, res_2d$coeff$random_effects[3]),
+  rho_1 = c(rho_2d[1], res_2d$coeff$random_effects[4]),
+  rho_2 = c(rho_2d[2], res_2d$coeff$random_effects[5]),
+  sigma.e = c(sigma.e, res_2d$coeff$measurement_error),
+  intercept = c(0, res_2d$coeff$fixed_effects),
+  row.names = c("True", "Estimate")
+)
+
 print(results)
 ```
 
-Let us now use our `inlabru` implementation. We first define the model. To this end we need to create a mesh for the time object:
+Let us now use our `inlabru` implementation. We first define the model.
 
 ```{r}
-mesh_time <- fmesher::fm_mesh_1d(t)
+st_bru_field <- rspde.spacetime(
+  mesh_space = mesh_2d_spatial,
+  mesh_time = mesh_2d_time, alpha = 1, beta = 1
+)
 ```
 
-```{r}
-st_bru_field <- rspde.spacetime(mesh_space = mesh_2d,
-        mesh_time = mesh_time, alpha = alpha, beta = beta)
-```
-
-Let us now prepare the `data.frame` object:
-
-```{r}
-df_bru <- data.frame(y = Y, coord_x = obs.loc$x, coord_y = obs.loc$y, time = obs.loc$t)
-```
 
 Now, the component:
 ```{r}
-cmp <- y ~ -1 + Intercept(1) + field(list(space=cbind(coord_x, coord_y), 
-                time = time), model = st_bru_field)
+cmp <- y ~ -1 + Intercept(1) + field(list(
+  space = cbind(x, y),
+  time = t
+), model = st_bru_field)
 ```
 
 We are now in a position to fit the model:
 
 ```{r}
-bru_fit_field <- bru(cmp, data = df_bru, options = list(num.threads = "1:1"))
+bru_fit_field <- bru(cmp, data = df_2d, options = list(num.threads = "1:1"))
 ```
 
 Let us now compare the estimated results (the means of the parameters) with the true values:
 
 ```{r}
-param_st <- transform_parameters_spacetime(bru_fit_field$summary.hyperpar$mean[2:6], 
-                                            st_bru_field)
+param_st <- transform_parameters_spacetime(
+  bru_fit_field$summary.hyperpar$mean[2:6],
+  st_bru_field
+)
 
-results <- data.frame(kappa = c(kappa,  param_st[[1]]), 
-                      sigma = c(sigma,  param_st[[2]]),
-                      gamma = c(gamma,  param_st[[3]]), 
-                      rho_1 = c(rho_2d[1], param_st[[4]]),
-                      rho_2 = c(rho_2d[2], param_st[[5]]),
-                      sigma.e = c(sigma.e, sqrt(1/bru_fit_field$summary.hyperpar$mean[1])),
-                      intercept = c(0, bru_fit_field$summary.fixed$mean),
-                      row.names = c("True", "Estimate"))
-                      
+results <- data.frame(
+  kappa = c(kappa, param_st[[1]]),
+  sigma = c(sigma, param_st[[2]]),
+  gamma = c(gamma, param_st[[3]]),
+  rho_1 = c(rho_2d[1], param_st[[4]]),
+  rho_2 = c(rho_2d[2], param_st[[5]]),
+  sigma.e = c(sigma.e, sqrt(1 / bru_fit_field$summary.hyperpar$mean[1])),
+  intercept = c(0, bru_fit_field$summary.fixed$mean),
+  row.names = c("True", "Estimate")
+)
+
 print(results)
 ```
 
@@ -360,42 +433,51 @@ In cases where the estimated value of \(\rho\) approaches the upper bound (avail
 Let us first start with the `rspde_lme()` example. We will use the previous fit as a starting point for the new fit to improve the convergence of the optimization.
 
 ```{r}
-op_1d_unbounded <- spacetime.operators(space_loc = s, time_loc = t,
-                          kappa = kappa, sigma = sigma, alpha = alpha,
-                          beta = beta, rho = rho_1d, gamma = gamma,
-                          bounded_rho = FALSE)
+op_1d_unbounded <- spacetime.operators(
+  space_loc = df_1d$space, time_loc = df_1d$time,
+  alpha = 1, beta = 1,
+  bounded_rho = FALSE
+)
 
-res_unbounded <- rspde_lme(y ~ 1, loc = "space", loc_time = "time", 
-                      data = df_1d, model = op_1d_unbounded, parallel = TRUE,
-                      previous_fit = res)
+res_unbounded <- rspde_lme(y ~ 1,
+  loc = "space", loc_time = "time",
+  data = df_1d, model = op_1d_unbounded, parallel = TRUE,
+  previous_fit = res
+)
 
-results <- data.frame(kappa = c(kappa, res_unbounded$coeff$random_effects[1]), 
-                      sigma = c(sigma, res_unbounded$coeff$random_effects[2]),
-                      gamma = c(gamma, res_unbounded$coeff$random_effects[3]), 
-                      rho = c(rho_1d, res_unbounded$coeff$random_effects[4]),
-                      sigma.e = c(sigma.e, res_unbounded$coeff$measurement_error),
-                      intercept = c(0, res_unbounded$coeff$fixed_effects),
-                      row.names = c("True", "Estimate"))
-                      
+results <- data.frame(
+  kappa = c(kappa, res_unbounded$coeff$random_effects[1]),
+  sigma = c(sigma, res_unbounded$coeff$random_effects[2]),
+  gamma = c(gamma, res_unbounded$coeff$random_effects[3]),
+  rho = c(rho_1d, res_unbounded$coeff$random_effects[4]),
+  sigma.e = c(sigma.e, res_unbounded$coeff$measurement_error),
+  intercept = c(0, res_unbounded$coeff$fixed_effects),
+  row.names = c("True", "Estimate")
+)
+
 print(results)
 ```
 
 Now, the `inlabru` implementation:
 ```{r}
 ### Fit with bounded_rho = FALSE
-st_bru_unbounded <- rspde.spacetime(space_loc = s, time_loc = t, alpha = 1, 
-            beta = 1, bounded_rho = FALSE)
+st_bru_unbounded <- rspde.spacetime(
+  space_loc = df_1d$space, time_loc = df_1d$time, alpha = 1,
+  beta = 1, bounded_rho = FALSE
+)
 
 ### Fitting the Model
-cmp_unbounded <- y ~ -1 + Intercept(1) + field(list(space = space, time = time), 
-                                          model = st_bru_unbounded)
+cmp_unbounded <- y ~ -1 + Intercept(1) + field(list(space = space, time = time),
+  model = st_bru_unbounded
+)
 
-bru_fit_unbounded <- bru(cmp_unbounded, data = df_1d, options = list(num.threads = "1:1", verbose=TRUE))
+bru_fit_unbounded <- bru(cmp_unbounded, data = df_1d, options = list(num.threads = "1:1", verbose = TRUE))
 
 ### Extract and Compare Results
 param_unbounded <- transform_parameters_spacetime(
-                bru_fit_unbounded$summary.hyperpar$mean[2:5], 
-                st_bru_unbounded)
+  bru_fit_unbounded$summary.hyperpar$mean[2:5],
+  st_bru_unbounded
+)
 
 results_unbounded <- data.frame(
   kappa = c(kappa, param_unbounded$kappa),
@@ -411,4 +493,3 @@ print(results_unbounded)
 ```
 
 ## References
-

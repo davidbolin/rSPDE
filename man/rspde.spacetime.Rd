@@ -19,6 +19,7 @@ rspde.spacetime(
   prior.precision = NULL,
   graph_dirichlet = TRUE,
   bounded_rho = TRUE,
+  bound_rho = NULL,
   shared_lib = "detect",
   debug = FALSE,
   ...
@@ -74,6 +75,8 @@ Note that this bounding is not a strict condition; there may exist values of rho
 When \code{bounded_rho = TRUE}, the \code{rspde_lme} models enforce bounded \code{rho} for consistency.
 If the estimated value of \code{rho} approaches the upper bound too closely, we recommend refitting the model with \code{bounded_rho = FALSE}. However, this should be done with caution, as it may lead to instability in some cases, though it can also result in a better model fit.
 The actual bound used for \code{rho} can be accessed from the \code{bound_rho} element of the returned object.}
+
+\item{bound_rho}{A positive number specifying the bound for \code{rho}. If \code{NULL}, the default bound will be used.}
 
 \item{shared_lib}{String specifying which shared library to use for the Cgeneric
 implementation. Options are "detect", "INLA", or "rSPDE". You may also specify the

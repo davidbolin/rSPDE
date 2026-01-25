@@ -193,7 +193,7 @@ Here, $\boldsymbol{\mathrm{Q}}$ is the precision matrix obtained from the covari
 -->
 
 ```{r}
-c_cov.approx <- op_cov$cov_function_mesh(0.5)
+c_cov.approx <- cov_function_mesh(op_cov, 0.5)
 ```
 
 Let us now compute the true Matérn covariance function on the interval $(0,1)$,
@@ -241,7 +241,7 @@ op_cov2 <- matern.operators(
   parameterization = "matern"
 )
 
-c_cov.approx2 <- op_cov2$cov_function_mesh(0.5)
+c_cov.approx2 <- cov_function_mesh(op_cov2, 0.5)
 
 s2 <- seq(from = 0, to = 1, length.out = 501)
 
@@ -256,7 +256,7 @@ mesh_s2 <- fm_mesh_1d(s2)
 # Map the mesh s2 to s
 A2 <- fm_basis(mesh_s2, s)
 
-c_cov.approx3 <- A2 %*% op_cov$cov_function_mesh(0.5)
+c_cov.approx3 <- A2 %*% cov_function_mesh(op_cov, 0.5)
 
 op_cov <- matern.operators(
   range = r, sigma = sigma, nu = nu,
@@ -264,7 +264,7 @@ op_cov <- matern.operators(
   parameterization = "matern"
 )
 
-c_cov.approx4 <- A2 %*% op_cov$cov_function_mesh(0.5)
+c_cov.approx4 <- A2 %*% cov_function_mesh(op_cov, 0.5)
 ```
 
 The resulting errors are shown in the following figure. 
@@ -301,7 +301,7 @@ for (i in 1:4) {
     loc_mesh = s2, d = 1, m = i,
     parameterization = "matern"
   )
-  c_cov.approx <- A2 %*% op_cov$cov_function_mesh(0.5)
+  c_cov.approx <- A2 %*% cov_function_mesh(op_cov, 0.5)
   errors[i] <- norm(c.true - c_cov.approx)
 }
 print(errors)

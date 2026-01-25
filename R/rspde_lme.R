@@ -478,12 +478,14 @@ rspde_lme <- function(formula,
         time_df <- time_df[idx_repl]    
     }
     
-    if (!is.null(model$make_A) && !spacetime) {
+    has_make_A <- is.function(model$make_A) ||
+      inherits(model, c("matern_operator", "spde_matern_operator", "matern2d_operator", "intrinsicCBrSPDEobj"))
+    if (has_make_A && !spacetime) {
       for (j in repl_val) {
         ind_tmp <- (repl %in% j)
         y_tmp <- y_resp[ind_tmp]
         na_obs <- is.na(y_tmp)
-        A_list[[as.character(j)]] <- model$make_A(loc_df[ind_tmp, , drop = FALSE])
+        A_list[[as.character(j)]] <- make_A(model, loc_df[ind_tmp, , drop = FALSE])
         A_list[[as.character(j)]] <- A_list[[as.character(j)]][!na_obs, , drop = FALSE]
 
         if (inherits(model, "CBrSPDEobj")) {
@@ -508,8 +510,8 @@ rspde_lme <- function(formula,
             ind_tmp <- (repl %in% j)
             y_tmp <- y_resp[ind_tmp]
             na_obs <- is.na(y_tmp)
-            A_list[[as.character(j)]] <- model$make_A(loc = loc_df[ind_tmp, , drop = FALSE], 
-                                                      time = time_df[ind_tmp])
+            A_list[[as.character(j)]] <- make_A(model, loc = loc_df[ind_tmp, , drop = FALSE], 
+                                                time = time_df[ind_tmp])
             A_list[[as.character(j)]] <- A_list[[as.character(j)]][!na_obs, , drop = FALSE]
         }
     } else if (!inherits(model, "rSPDEobj1d")){
@@ -557,10 +559,48 @@ rspde_lme <- function(formula,
 
     time_par <- NULL
 
+    issue_env <- new.env(parent = emptyenv())
+    issue_env$recent <- list()
+    issue_env$max <- 5L
+
+    record_issue <- function(type, condition) {
+      entry <- list(
+        type = type,
+        message = conditionMessage(condition),
+        call = conditionCall(condition)
+      )
+      issue_env$recent <- c(issue_env$recent, list(entry))
+      if (length(issue_env$recent) > issue_env$max) {
+        issue_env$recent <- tail(issue_env$recent, issue_env$max)
+      }
+      NULL
+    }
+
+    format_recent_issues <- function() {
+      if (length(issue_env$recent) == 0L) {
+        return(NULL)
+      }
+      entries <- vapply(issue_env$recent, function(entry) {
+        paste0(entry$type, ": ", entry$message)
+      }, character(1))
+      paste0("Last likelihood issues: ", paste(entries, collapse = " | "))
+    }
+
+    get_recent_issues <- function() {
+      issue_env$recent
+    }
+
     likelihood_new <- function(theta) {
-      l_tmp <- tryCatch(likelihood(theta),
-        error = function(e) {
-          return(NULL)
+      l_tmp <- withCallingHandlers(
+        tryCatch(likelihood(theta),
+          error = function(e) {
+            record_issue("error", e)
+            return(NULL)
+          }
+        ),
+        warning = function(w) {
+          record_issue("warning", w)
+          invokeRestart("muffleWarning")
         }
       )
       if (is.null(l_tmp)) {
@@ -705,20 +745,33 @@ rspde_lme <- function(formula,
         }
       } else {
       
+        run_optim <- function(method) {
+          withCallingHandlers(
+            tryCatch(
+              list(
+                res = optim(
+                  start_values_aux,
+                  likelihood_new,
+                  method = method,
+                  control = optim_controls,
+                  hessian = hessian
+                ),
+                error = NULL
+              ),
+              error = function(e) {
+                list(res = structure(NA_real_, optim_error = e), error = e)
+              }
+            ),
+            warning = function(w) {
+              invokeRestart("muffleWarning")
+            }
+          )
+        }
+
         start_fit <- Sys.time()
-        res <- withCallingHandlers(
-          tryCatch(optim(start_values_aux,
-            likelihood_new,
-            method = optim_method,
-            control = optim_controls,
-            hessian = hessian
-          ), error = function(e) {
-            return(NA)
-          }),
-          warning = function(w) {
-            invokeRestart("muffleWarning")
-          }
-        )
+        optim_out <- run_optim(optim_method)
+        res <- optim_out$res
+        optim_error <- optim_out$error
         end_fit <- Sys.time()
         time_fit <- end_fit - start_fit
   
@@ -759,12 +812,14 @@ rspde_lme <- function(formula,
             problem_optim[[optim_method]][["hess"]] <- NA
             problem_optim[[optim_method]][["time_hessian"]] <- NA
             problem_optim[[optim_method]][["time_fit"]] <- NA
+            problem_optim[[optim_method]][["error"]] <- optim_error
           } else {
             problem_optim[[optim_method]][["lik"]] <- -res$value
             problem_optim[[optim_method]][["res"]] <- res
             problem_optim[[optim_method]][["hess"]] <- observed_fisher
             problem_optim[[optim_method]][["time_hessian"]] <- time_hessian
             problem_optim[[optim_method]][["time_fit"]] <- time_fit
+            problem_optim[[optim_method]][["error"]] <- NULL
           }
         }
   
@@ -779,19 +834,9 @@ rspde_lme <- function(formula,
             new_method <- possible_methods[1]
             time_fit <- NULL
             start_fit <- Sys.time()
-            res <- withCallingHandlers(
-              tryCatch(optim(start_values_aux,
-                likelihood_new,
-                method = new_method,
-                control = optim_controls,
-                hessian = hessian
-              ), error = function(e) {
-                return(NA)
-              }),
-              warning = function(w) {
-                invokeRestart("muffleWarning")
-              }
-            )
+            optim_out <- run_optim(new_method)
+            res <- optim_out$res
+            optim_error <- optim_out$error
             end_fit <- Sys.time()
             time_fit <- end_fit - start_fit
             tmp_method <- new_method
@@ -802,6 +847,7 @@ rspde_lme <- function(formula,
               problem_optim[[tmp_method]][["hess"]] <- NA
               problem_optim[[tmp_method]][["time_hessian"]] <- NA
               problem_optim[[tmp_method]][["time_fit"]] <- NA
+              problem_optim[[tmp_method]][["error"]] <- optim_error
             } else {
               if (!improve_hessian) {
                 observed_fisher <- res$hessian
@@ -830,6 +876,7 @@ rspde_lme <- function(formula,
               problem_optim[[tmp_method]][["hess"]] <- observed_fisher
               problem_optim[[tmp_method]][["time_hessian"]] <- time_hessian
               problem_optim[[tmp_method]][["time_fit"]] <- time_fit
+              problem_optim[[tmp_method]][["error"]] <- NULL
             }
   
             cond_ok <- ((!is.na(res[1])) && cond_pos_hes)
@@ -846,7 +893,26 @@ rspde_lme <- function(formula,
             dat[["lik"]]
           })
           if (all(is.na(lik_val))) {
-            stop("The model could not be fitted. All optimizations method failed.")
+            err_msgs <- vapply(names(problem_optim), function(method) {
+              err <- problem_optim[[method]][["error"]]
+              if (is.null(err)) {
+                return(NA_character_)
+              }
+              paste0(method, ": ", conditionMessage(err))
+            }, character(1))
+            err_msgs <- err_msgs[!is.na(err_msgs)]
+            recent_issues <- format_recent_issues()
+            if (length(err_msgs) > 0) {
+              stop(paste(
+                "The model could not be fitted. All optimization methods failed.",
+                "Errors:", paste(err_msgs, collapse = " | "),
+                if (!is.null(recent_issues)) recent_issues else NULL
+              ))
+            }
+            stop(paste(
+              "The model could not be fitted. All optimization methods failed.",
+              if (!is.null(recent_issues)) recent_issues else NULL
+            ))
           } else if (ok_optim) {
             warning(paste("optim method", orig_optim_method, "failed to provide a positive-definite Hessian. Another optimization method was used."))
             rm(problem_optim)
@@ -978,6 +1044,7 @@ rspde_lme <- function(formula,
   object$anisotropic <- anisotropic
   object$intrinsic <- intrinsic
   object$mean_correction <- mean_correction
+  object$likelihood_issues <- if (exists("get_recent_issues")) get_recent_issues() else NULL
   if(spacetime) { 
       object$time <- time_df
   }
@@ -1405,9 +1472,9 @@ predict.rspde_lme <- function(object,
               if(length(time) != n_prd) {
                   stop("loc and time should have the same length.")
               }
-              Aprd <- object$latent_model$make_A(loc = loc, time = time)    
+              Aprd <- make_A(object$latent_model, loc = loc, time = time)    
           } else {
-              Aprd <- object$latent_model$make_A(loc)
+              Aprd <- make_A(object$latent_model, loc)
           }
           
       } else {

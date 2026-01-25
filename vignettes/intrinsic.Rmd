@@ -576,8 +576,8 @@ Y <- as.matrix(A %*% u + sigma.e * matrix(rnorm(n.obs*n.rep),n.obs,n.rep))
 Let us now show how to do kriging prediction for this model. 
 
 ```{r}
-A <- op$make_A(obs.loc)
-A.krig <- op$make_A(x)
+A <- make_A(op, loc = obs.loc)
+A.krig <- make_A(op, loc = x)
 u.krig <- predict(op,
   A = A, Aprd = A.krig, Y = Y[,1], sigma.e = sigma.e,
   compute.variances = TRUE
@@ -631,6 +631,19 @@ plot(x, vario, type = "l", col = 2, lwd = 2)
 points(x, op$variogram(L/2), col = 1)
 ```
 
+We can note here that the variogram of the approximate model is not particularly close to the variogram of the true continuous model. The reason for this is that the value of `alpha` is very small, and we therefore need a larger order of the rational approximation than the default value of 2. We can adjust the orders of the rational approximations through the `m_alpha` and `m_beta` values in `intrinsic.matern.operators`. Let us increase the value of `m_alpha` and decrease the value of `m_beta`.
+```{r}
+op <- intrinsic.matern.operators(kappa = kappa, tau = tau, alpha = alpha,
+                                 beta = beta, mesh = mesh, d = 1, m_alpha = 6, 
+                                 m_beta = 1)
+
+vario <- variogram.intrinsic.spde(c(L/2), mesh$loc, tau = tau,
+                                  beta = beta, alpha = alpha, kappa = kappa, L = L, d = 1)
+plot(x, vario, type = "l", col = 2, lwd = 2)
+points(x, op$variogram(L/2), col = 1)
+```
+
+We now have a better approximation. 
 Similar to the previous example, we will generate data with the mean value correction for extremes models:
 
 ```{r}
@@ -650,8 +663,8 @@ Y <- as.matrix(A %*% u + sigma.e * matrix(rnorm(n.obs*n.rep), n.obs, n.rep))
 Let's visualize the data and predictions for this model:
 
 ```{r}
-A <- op$make_A(obs.loc)
-A.krig <- op$make_A(x)
+A <- make_A(op, loc = obs.loc)
+A.krig <- make_A(op, loc = x)
 u.krig <- predict(op,
   A = A, Aprd = A.krig, Y = Y[,1], sigma.e = sigma.e,
   compute.variances = TRUE
@@ -674,15 +687,14 @@ Now, we will use `rspde_lme` to fit the parameters but this time we will not fix
 
 ```{r}
 data = data.frame(y = c(Y), loc = rep(obs.loc, n.rep), rep = rep(1:n.rep, each = n.obs))
-
+op <- intrinsic.matern.operators(kappa = kappa, tau = tau, alpha = 1.3, beta = 1.05, mesh = mesh, d = 1, m_alpha = 3, m_beta = 1)
 fit <- rspde_lme(y ~ -1, loc = "loc", repl = "rep", data = data,
-                 model = op, mean_correction = TRUE, parallel = TRUE)
+                 model = op, mean_correction = TRUE, parallel = FALSE)
 
 # Compare estimated and true parameter values
 rbind(c(fit$coeff$random_effects[c("alpha", "beta", "tau", "kappa")], fit$coeff$measurement_error), 
       c(alpha, beta, tau, kappa, sigma.e))
 ```
-
 
 
 

@@ -2,12 +2,12 @@ on:
   push:
     branches:
       - devel-src
-  pull_request:
-    branches:
-      - devel
-      - devel-src
 
 name: R-CMD-check-mac
+
+permissions:
+  contents: write
+
 
 jobs:
   R-CMD-check:
@@ -21,11 +21,8 @@ jobs:
         config:
           - {os: macOS-latest, r: 'release'}
 
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}    
-          
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -39,6 +36,7 @@ jobs:
       - name: Install system dependencies on macOS
         if: runner.os == 'macOS'
         run: |
+          set -euo pipefail
           brew install --cask xquartz
           brew install pkg-config
           brew install proj@9

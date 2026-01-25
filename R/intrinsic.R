@@ -416,16 +416,17 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
                                 type_rational_approx = "chebfun",
                                 scaling = NULL) {
   n_m <- rspde.order
-  
-  mt <- get_rational_coefficients(n_m, type_rational_approx)
-
-
   m_alpha <- floor(alpha)
-
-  row_nu <- round(1000 * cut_decimals(alpha))
-  r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
-  p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
-  k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
+  #mt <- get_rational_coefficients(n_m, type_rational_approx)
+  #row_nu <- round(1000 * cut_decimals(alpha))
+  #r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
+  #p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
+  #k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
+  coef <- interp_rational_coefficients(order = n_m, type_interp = "spline", alpha = alpha,
+                                       type_rational_approx = type_rational_approx)
+  r <- coef$r
+  p <- coef$p
+  k <- coef$k
 
   if (!only_fractional) {
     if (m_alpha == 0) {
@@ -571,7 +572,7 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 #' \item{fem_mesh_matrices}{A list containing the mass lumped mass
 #' matrix, the stiffness matrix and
 #' the higher-order FEM-related matrices.}
-#' \item{make_A}{A function to compute the projection matrix which links the field to observation locations.}
+#' \item{make_A}{Use [make_A()] to compute the projection matrix linking the field to observation locations.}
 #' \item{variogram}{A function to compute the variogram of the model at a specified node.}
 #' \item{A}{Matrix that sums the components in the approximation to the mesh nodes.}
 #' \item{scaling}{The scaling used in the intrinsic part of the model.}
@@ -589,7 +590,7 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 #' if (requireNamespace("RSpectra", quietly = TRUE)) {
 #'   x <- seq(from = 0, to = 10, length.out = 201)
 #'   beta <- 1
-#'   alpha <- 1
+#'   alpha <- 1  
 #'   kappa <- 1
 #'   op <- intrinsic.matern.operators(
 #'     kappa = kappa, tau = 1, alpha = alpha,
@@ -746,15 +747,31 @@ intrinsic.matern.operators <- function(kappa,
     }
     Q_list <- list(Qproper = Q.list1,
                    Qintrinsic = Q.list2)
+    #check for K parts 
+    fix_alpha <- FALSE
+    if(!(alpha %% 1 == 0) && floor(alpha) == 0) {
+        fix_alpha = TRUE
+    }
+    fix_beta <- FALSE
+    if(!(beta %% 1 == 0) && floor(beta) == 0) {
+        fix_beta = TRUE
+    }
     for (i in 1:m1) {
       for (j in 1:m2) {
+          if(fix_alpha && i==m1) {
+              Qij <- op1$C %*% Q.list1[[i]] %*% Q.list2[[j]] 
+          } else if(fix_beta && j==m2) {
+              Qij <-  op1$Ci %*% Q.list1[[i]] %*% Q.list2[[j]] #Q.list1[[i]] %*% Q.list2[[j]] %*% op1$C
+          } else {
+              Qij <- Q.list1[[i]] %*% op1$Ci %*% Q.list2[[j]]
+          }
         if (return_block_list) {
-          Q[[k]] <- Q.list1[[i]] %*% op1$Ci %*% Q.list2[[j]]
+          Q[[k]] <- Qij
         } else {
           if (i == 1 && j == 1) {
-            Q <- Q.list1[[i]] %*% op1$Ci %*% Q.list2[[j]]
+            Q <- Qij
           } else {
-            Q <- bdiag(Q, Q.list1[[i]] %*% op1$Ci %*% Q.list2[[j]])
+            Q <- bdiag(Q, Qij)
           }
         }
         k <- k + 1
@@ -834,28 +851,6 @@ intrinsic.matern.operators <- function(kappa,
   m1 <- max(c(length(Q_list$Qproper),1))
   m2 <- max(c(length(Q_list$Qintrinsic),1))
   m <- m1*m2
-  if (!is.null(mesh)) {
-      make_A <- function(loc) {
-        Ai <- fmesher::fm_basis(x = mesh, loc = loc)
-        A <- kronecker(matrix(rep(1, m), 1, m), Ai)   
-        return(A)
-      }
-  } else if (!is.null(graph)) {
-      make_A <- function(loc) {
-          Ai <- graph$fem_basis(loc)
-          A <- kronecker(matrix(rep(1, m), 1, m), Ai)   
-          return(A)
-      }
-  } else if (!is.null(loc_mesh) && d == 1) {
-      make_A <- function(loc) {
-          Ai <- rSPDE::rSPDE.A1d(x = loc_mesh, loc = loc)
-          A <- kronecker(matrix(rep(1, m), 1, m), Ai)   
-          return(A)
-      }
-  } else {
-      make_A <- NULL
-  }
-  
   variogram <- function(loc, semi = FALSE) {
     if(return_block_list) { 
         QQ <- Q[[1]]
@@ -934,7 +929,7 @@ intrinsic.matern.operators <- function(kappa,
           
           
       }
-      return(out)
+    return(out)
   }
   out <- list(
     C = op1$C, 
@@ -958,7 +953,6 @@ intrinsic.matern.operators <- function(kappa,
     stationary = TRUE,
     has_mesh = has_mesh,
     has_graph = has_graph,
-    make_A = make_A,
     variogram = variogram,
     mean_correction = mean_correction,
     A = A,
@@ -971,6 +965,25 @@ intrinsic.matern.operators <- function(kappa,
   class(out) <- "intrinsicCBrSPDEobj"
 
   return(out)
+}
+
+#' @export
+#' @method make_A intrinsicCBrSPDEobj
+make_A.intrinsicCBrSPDEobj <- function(object, loc, ...) {
+  m <- object$m
+  if (!is.null(object$mesh)) {
+    Ai <- fmesher::fm_basis(x = object$mesh, loc = loc)
+    return(kronecker(matrix(rep(1, m), 1, m), Ai))
+  }
+  if (!is.null(object$graph)) {
+    Ai <- object$graph$fem_basis(loc)
+    return(kronecker(matrix(rep(1, m), 1, m), Ai))
+  }
+  if (!is.null(object$loc_mesh) && object$d == 1) {
+    Ai <- rSPDE::rSPDE.A1d(x = object$loc_mesh, loc = loc)
+    return(kronecker(matrix(rep(1, m), 1, m), Ai))
+  }
+  stop("Please, create the object using the mesh.")
 }
 
 
@@ -1072,7 +1085,11 @@ simulate.intrinsicCBrSPDEobj <- function(object, nsim = 1,
                   tmp <- expand2(R)
                   Z <- rnorm(n * nsim)
                   dim(Z) <- c(n, nsim)
-                  Di <- Diagonal(n,c(1/sqrt(diag(tmp$D)[-n]),0))
+                  D.diag <- diag(tmp$D)
+                  v <- rep(0,length(D.diag))
+                  ind.d <- (D.diag  > .Machine$double.eps^0.5)
+                  v[ind.d] <- 1/sqrt(D.diag[ind.d])
+                  Di <- Diagonal(n,v)
                   X <- X + as.matrix(solve(tmp$P1, solve(t(tmp$L1), Di%*%Z)))
               } else {
                   ind <- (1+n*(i-1)) : (n*i)
@@ -1287,6 +1304,8 @@ precision.intrinsicCBrSPDEobj <- function(object,
 #' @param posterior_samples If `TRUE`, posterior samples will be returned.
 #' @param n_samples Number of samples to be returned. Will only be used if `sampling` is `TRUE`.
 #' @param only_latent Should the posterior samples be only given to the laten model?
+#' @param mean_correction Should mean correction be used for extreme value models?
+#' @param ind_mean Index of the mesh node to condition on for the mean correction.
 #' @param ... further arguments passed to or from other methods.
 #' @return A list with elements
 #' \item{mean }{The kriging predictor (the posterior mean of u|Y).}
@@ -1336,7 +1355,10 @@ predict.intrinsicCBrSPDEobj <- function(object,
                                         mu = 0,
                                         compute.variances = FALSE, 
                                         posterior_samples = FALSE,
-                                        n_samples = 100, only_latent = FALSE,
+                                        n_samples = 100, 
+                                        only_latent = FALSE,
+                                        mean_correction = FALSE,
+                                        ind_mean = 1,
                                         ...) {
     Y <- as.matrix(Y)
     if (dim(Y)[1] != dim(A)[1]) {
@@ -1370,24 +1392,30 @@ predict.intrinsicCBrSPDEobj <- function(object,
             stop("the length of mu is wrong.")
         }
     }
-    
+    if(mean_correction) {
+        mu <- mu  - 0.5*sigma.e^2 + object$mean_correction(full=TRUE, index = ind_mean)
+    } 
+     
     if (!no_nugget) {
-        ## construct Q
         Q <- object$Q
-        ## compute Q_x|y
-        Q_xgiveny <- (t(A) %*% Q.e %*% A) + Q
         
-        ## construct mu_x|y
-        mu_xgiveny <- t(A) %*% Q.e %*% (Y - A%*%mu)    
+        Q.p <- (t(A) %*% Q.e %*% A) + Q
         
-        R <- Matrix::Cholesky(forceSymmetric(Q_xgiveny))
-        mu_xgiveny <- solve(R, mu_xgiveny, system = "A")
-        
-        mu_xgiveny <- mu + mu_xgiveny
-        out$mean <- Aprd %*% mu_xgiveny
+        R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
+        diag_L <- diag(R.p)
+        ind <- diag_L > .Machine$double.eps^0.5
+        P <- expand1(R.p, which = "P1")
+        L <- expand1(R.p, which = "L1")
+        di <- rep(0,length(ind))
+        di[ind] <- 1/diag_L[ind]
+        Di<- Diagonal(length(ind),di)
+    
+        mu_xgiveny <- mu + t(P)%*%solve(t(L), Di %*% solve(L, P %*% (as.vector(t(A) %*% (Y - A %*% mu) / sigma.e^2) )))
+    
+        out$mean <- as.vector(Aprd %*% mu_xgiveny)
         
         if (compute.variances) {
-            out$variance <- diag(Aprd %*% solve(R, t(Aprd), system = "A"))
+            out$variance <- diag(Aprd %*% t(P)%*%solve(t(L), Di %*% solve(L, P %*% t(Aprd)) ))
         }
     } else {
         Q <- object$Q
@@ -1403,14 +1431,18 @@ predict.intrinsicCBrSPDEobj <- function(object,
         }
     }
     
-    
     if (posterior_samples) {
         if (!no_nugget) {
             Z <- rnorm(dim(object$Q)[1] * n_samples)
             dim(Z) <- c(dim(object$Q)[1], n_samples)
-            LQ <-  chol(forceSymmetric(Q_xgiveny))
-            X <- as.matrix(solve(LQ, Z)) + kronecker(as.matrix(mu_xgiveny), 
-                                                     matrix(rep(1,n_samples),1,n_samples))
+            
+            di <- rep(0,length(ind))
+            di[ind] <- 1/sqrt(diag_L[ind])
+            Di.sqrt <- Diagonal(length(ind),di)
+            
+            X <- as.matrix(t(P)%*%solve(t(L), Di.sqrt %*% Z))
+            
+            X <- X + kronecker(as.matrix(mu_xgiveny), matrix(rep(1,n_samples),1,n_samples))
             X <- Aprd %*% X
             if (!only_latent) {
                 X <- X + matrix(rnorm(n_samples * dim(Aprd)[1], sd = sigma.e), nrow = dim(Aprd)[1])
@@ -1590,15 +1622,33 @@ aux_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
     return(l_tmp)
 }
 
+
 #' @noRd
 aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e, 
                                        beta_cov, mean_correction) {
     
     #compute prior log determinant
     Q <- object$Q
-    prior.ld <- 0.5*precision(object, ld = TRUE)
+    R <- Cholesky(Q, perm = TRUE, LDL = TRUE)
+    diag_L <- diag(R)
+    if(object$beta >= 1) {
+        ind.Q <- diag_L > sort(diag_L)[object$m]      
+    } else {
+        ind.Q <- rep(TRUE, length(diag_L))
+    }
+    #ind.Q <- diag_L > 1e-10
+    nz <- sum(!ind.Q)
+    prior.ld <- 0.5*(sum(log(diag_L[ind.Q])) + nz*log(object$n))
+    
+    #ev <- eigen(Q)$values
+    #prior.ld2 <- 0.5*sum(log(ev[ev > .Machine$double.eps^0.5]))
+    #cat("ld diff : ", prior.ld - prior.ld2,"\n")
+    
+    #prior.ld <- 0.5*sum(log(diag_L[diag_L > .Machine$double.eps^0.5]))
+    
+    #prior.ld <- 0.5*precision(object, ld = TRUE)
     if(mean_correction) {
-        mean_latent <- object$mean_correction()
+        mean_latent <- -0.5*sigma_e^2 + object$mean_correction(full=TRUE, index = 1)
     } else {
         mean_latent <- rep(0,dim(Q)[1])
     }
@@ -1621,24 +1671,47 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
         y_ <- y_tmp[!na_obs]
         
         n.o <- length(y_)
-        A_tmp <- A_list[[as.character(i)]]
-        Q.p <- Q + t(A_tmp) %*% A_tmp / sigma_e^2
-        
-        if(object$beta < 1 && object$alpha == 0) {
-        #if(0) {
-            posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+        if(i==repl_val[1]) {
+            A_tmp <- A_list[[as.character(i)]]
+            A1 <- A_tmp
+            update_chol <- TRUE
         } else {
-            if(object$m == 1) {
-            #    if(0) {
-                posterior.ld <- 0.5*c(determinant(Q.p, logarithm = TRUE)$modulus)
+            A_tmp <- A_list[[as.character(i)]]
+            if(all.equal(A1,A_tmp) == TRUE) {
+                update_chol <- FALSE
             } else {
-                ind <- 1 + seq(from = object$n, 
-                               to = (object$m-1)*object$n, by = object$n)
-                posterior.ld <- 0.5*(c(determinant(Q.p[-ind,-ind], logarithm = TRUE)$modulus) + (object$m-1)*log(dim(Q)[1]) - log(object$m))  
-                l <- l - log(2*pi)    
+                update_chol <- TRUE
             }
         }
+        #cat("i = ", repl_val, ", update_chol = ", update_chol, "\n")
         
+        if(update_chol) {
+            Q.p <- Q + t(A_tmp) %*% A_tmp / sigma_e^2
+            R.p <- Matrix::Cholesky(Q.p, perm = TRUE, LDL = TRUE)
+            #D <- expand1(R.p, which = "D")
+            diag_L <- diag(R.p)
+            #ind <- diag_L > .Machine$double.eps^0.5
+            if(nz>1){
+                ind <- diag_L > sort(diag_L)[nz-1]    
+            } else {
+                ind <- rep(TRUE,length(diag_L))
+            }
+            
+            nz.p <- sum(!ind)
+            posterior.ld <- 0.5*(sum(log(diag_L[ind])) + log(object$m*object$n^nz.p))
+            
+            #ev <- eigen(Q.p)$values
+            #posterior.ld2 <- 0.5*sum(log(ev[ev > .Machine$double.eps^0.5]))
+            #cat("ld post diff : ", posterior.ld - posterior.ld2,"\n")
+            
+        
+            P <- expand1(R.p, which = "P1")
+            L <- expand1(R.p, which = "L1")
+            di <- rep(0,length(ind))
+            di[ind] <- 1/diag_L[ind]
+            Di<- Diagonal(length(ind),di)
+        }
+     
         l <- l + prior.ld - posterior.ld - n.o * log(sigma_e)
         
         v <- y_
@@ -1646,17 +1719,18 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
         if (ncol(X_cov) > 0) {
             X_cov_tmp <- X_cov_tmp[!na_obs, , drop = FALSE]
             # X_cov_tmp <- X_cov_list[[as.character(i)]]
-            v <- v - X_cov_tmp %*% beta_cov - A_tmp %*% mean_latent
+            v <- v - X_cov_tmp %*% beta_cov 
         }
-        R.p <- Matrix::Cholesky(Q.p)
-        mu.p <- solve(R.p, as.vector(t(A_tmp) %*% v / sigma_e^2), system = "A")
         
-        v <- v - A_tmp %*% mu.p
+        #mu.p <- mean_latent + solve(R.p, as.vector(t(A_tmp) %*% (v - A_tmp %*% mean_latent) / sigma_e^2), system = "A")
+        mu.p <- 0*mean_latent + t(P)%*%solve(t(L), Di %*% solve(L, P %*% (as.vector(t(A_tmp) %*% (v - A_tmp %*% mean_latent) / sigma_e^2) )))
         
-        l <- l - 0.5 * (t(mu.p) %*% Q %*% mu.p + t(v) %*% v / sigma_e^2) -
-            0.5 * n.o * log(2 * pi)
+        v <- v - A_tmp %*% mean_latent - A_tmp %*% mu.p
+        
+        l <- l - 0.5 * (t(mu.p - 0*mean_latent) %*% Q %*% (mu.p - 0*mean_latent) + t(v) %*% v / sigma_e^2) -
+            0.5 * (n.o + nz - nz.p) * log(2 * pi)
     }
-    
+    cat("alpha = ", object$alpha, ", tau = ", object$tau, ", beta =", object$beta, ", sigma_e = ", sigma_e, ", lik = ", as.double(l), "nz = ", nz, ", nz.p = ", nz.p,"\n")
     return(as.double(l))
 }
 
@@ -1740,6 +1814,10 @@ variogram.intrinsic.spde <- function(s0 = NULL,
       lambda <- (i * pi / L)^(-2 * beta) * ((i * pi / L)^2 + kappa^2)^(-alpha)
       vario <- vario + 0.5 * (2 / L) * lambda * (cos(i * pi * s / L) - cos(i * pi * s0 / L))^2
     }
+    #if(beta == 0) {
+    #    lambda <- (kappa^2)^(-alpha)
+    #    vario <- vario + 0.5 * (2 / L) * lambda * (cos(0 * pi * s / L) - cos(0 * pi * s0 / L))^2
+    #}
   } else if (d == 2) {
     if (!is.matrix(s)) {
       stop("s should be a matrix if d=2")
@@ -1768,6 +1846,12 @@ variogram.intrinsic.spde <- function(s0 = NULL,
         vario <- vario + 0.5 * lambda * (e1 - e2)^2
       }
     }
+    #if(beta == 0) {
+    #    lambda <- (kappa^2)^(-alpha)
+    #    e1 <- (1 / L) * cos(0 * pi * s[, 1] / L) * cos(0 * pi * s[, 2] / L)
+    #    e2 <- (1 / L) * cos(0 * pi * s0[1] / L) * cos(0 * pi * s0[2] / L)
+    #    vario <- vario + 0.5 * lambda * (e1 - e2)^2
+    #}
   } else {
     stop("d should be 1 or 2.")
   }

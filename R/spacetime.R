@@ -21,6 +21,7 @@
 #' @param beta Integer smoothness parameter beta.
 #' @param bounded_rho Logical. Specifies whether `rho` should be bounded to ensure the existence, uniqueness, and well-posedness of the solution. Defaults to `TRUE`. 
 #' Note that this bounding is not a strict condition; there may exist values of rho beyond the upper bound that still satisfy these properties. 
+#' @param bound_rho A positive number specifying the bound for `rho`. If `NULL`, the default bound will be used.
 #' @param graph_dirichlet For models on metric graphs, use Dirichlet vertex conditions at vertices of degree 1?
 #' When `bounded_rho = TRUE`, the `rspde_lme` models enforce bounded `rho` for consistency. 
 #' If the estimated value of `rho` approaches the upper bound too closely, we recommend refitting the model with `bounded_rho = FALSE`. However, this should be done with caution, as it may lead to instability in some cases, though it can also result in a better model fit. 
@@ -54,7 +55,8 @@ spacetime.operators <- function(mesh_space = NULL,
                                 alpha = NULL,
                                 beta = NULL,
                                 graph_dirichlet = TRUE,
-                                bounded_rho = TRUE) {
+                                bounded_rho = TRUE,
+                                bound_rho = NULL) {
     
     
     if ((!is.null(mesh_space) && !is.null(graph)) || (!is.null(mesh_space) && !is.null(space_loc)) || (!is.null(graph) && !is.null(space_loc))){
@@ -95,6 +97,15 @@ spacetime.operators <- function(mesh_space = NULL,
     if(!is.null(mesh_space)){
         if(!inherits(mesh_space, c("fm_mesh_2d", "fm_mesh_1d"))){
             stop("mesh_space should be a mesh generated from fmesher::fm_mesh_1d() or fmesher::fm_mesh_2d().")
+        }
+    }
+
+    if(!is.null(bound_rho)){
+        if(length(bound_rho) != 1){
+            stop("bound_rho must be a positive number")
+        }
+        if(bound_rho <= 0){
+            stop("bound_rho must be a positive number")
         }
     }
 
@@ -198,26 +209,32 @@ spacetime.operators <- function(mesh_space = NULL,
         }
     }
     if (is.null(kappa)) {
-        kappa <- exp(param[2])
+        kappa <- 10 * exp(param[2])
     } else {
         kappa <- rspde_check_user_input(kappa, "kappa", 0, 1)
     }
     
     if (is.null(sigma)) {
-        sigma <- exp(-param[1])
+        sigma <- 10 * exp(-param[1])
     } else {
         sigma <- rspde_check_user_input(sigma, "sigma", 0, 1)
     }
 
     if(has_graph){
         edge_lengths <- graph$get_edge_lengths()
-        bound_rho <- max(edge_lengths)/pi
+        if(is.null(bound_rho)){
+            bound_rho <- max(edge_lengths)/pi
+        } 
     } else if(d == 1){
         bbox_mesh <- fmesher::fm_bbox(mesh_space)
-        bound_rho <- (bbox_mesh[[1]][2] - bbox_mesh[[1]][1])/pi
+        if(is.null(bound_rho)){
+            bound_rho <- (bbox_mesh[[1]][2] - bbox_mesh[[1]][1])/pi
+        } 
     } else{
         bbox_mesh <- fmesher::fm_bbox(mesh_space)
-        bound_rho <- min(bbox_mesh[[1]][2] - bbox_mesh[[1]][1], bbox_mesh[[2]][2] - bbox_mesh[[2]][1])/pi
+        if(is.null(bound_rho)){
+            bound_rho <- min(bbox_mesh[[1]][2] - bbox_mesh[[1]][1], bbox_mesh[[2]][2] - bbox_mesh[[2]][1])/pi
+        } 
     }
 
 
@@ -256,7 +273,11 @@ spacetime.operators <- function(mesh_space = NULL,
     }
     
     if (is.null(gamma)) {
-        gamma <- 2/diff(range(time))
+        time_span <- diff(range(time))
+        if (time_span <= 0) {
+            stop("time_loc/mesh_time must span a positive range")
+        }
+        gamma <- 1/time_span
     } else {
         gamma <- rspde_check_user_input(gamma, "gamma", 0, 1)
     }
@@ -317,22 +338,6 @@ spacetime.operators <- function(mesh_space = NULL,
     }
     
     Q <- Q/sigma^2
-    make_A <- function(loc, time, dirichlet = TRUE, include_deg1 = FALSE) {
-        if (!is.null(graph)) {
-            if (graph_dirichlet && dirichlet && !include_deg1) {
-                return(rSPDE.Ast(graph = graph, mesh_time = mesh_time, 
-                                 obs.s = loc, obs.t = time, 
-                                 ind.field = ind.field))    
-            } else {
-                return(rSPDE.Ast(graph = graph, mesh_time = mesh_time, 
-                                 obs.s = loc, obs.t = time))
-            }
-        } else {
-            return(rSPDE.Ast(mesh_space = mesh_space, mesh_time = mesh_time, 
-                             obs.s = loc, obs.t = time))
-        }
-    }
-    
     if(has_graph) { 
         plot_covariances <- function(t.ind, s.ind, t.shift=NULL) {
             if(is.null(t.shift)){
@@ -506,7 +511,6 @@ spacetime.operators <- function(mesh_space = NULL,
     out$mesh_space <- mesh_space
     out$graph <- graph
     out$d <- d
-    out$make_A <- make_A
     out$plot_covariances <- plot_covariances
     out$stationary <- TRUE
     out$bound_rho <- bound_rho
@@ -526,6 +530,22 @@ spacetime.operators <- function(mesh_space = NULL,
     class(out) <- "spacetimeobj"
     return(out)
 
+}
+
+#' @export
+#' @method make_A spacetimeobj
+make_A.spacetimeobj <- function(object, loc, time, dirichlet = TRUE, include_deg1 = FALSE, ...) {
+    if (isTRUE(object$has_graph) && !is.null(object$graph)) {
+        if (object$graph_dirichlet && dirichlet && !include_deg1) {
+            return(rSPDE.Ast(graph = object$graph, mesh_time = object$mesh_time, 
+                             obs.s = loc, obs.t = time, 
+                             ind.field = object$ind.space))    
+        }
+        return(rSPDE.Ast(graph = object$graph, mesh_time = object$mesh_time, 
+                         obs.s = loc, obs.t = time))
+    }
+    return(rSPDE.Ast(mesh_space = object$mesh_space, mesh_time = object$mesh_time, 
+                     obs.s = loc, obs.t = time))
 }
 
 
@@ -1210,4 +1230,3 @@ kron.Glist <- function(M,Glist, left = TRUE){
     }
     return(Mlist)
 }
-
