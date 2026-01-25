@@ -14,6 +14,7 @@ jobs:
       runs-on: ubuntu-latest
       env:
         GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.ACTIONS_SECRET }}
       steps:
         - uses: actions/checkout@v4      
         
@@ -22,6 +23,10 @@ jobs:
             set -euo pipefail
             git config --local user.email "actions@github.com"
             git config --local user.name "GitHub Actions"
+            if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+              echo "Event is push; pushing updates"
+              git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
+            fi
             git fetch origin devel-src
             git checkout devel
             git reset --hard origin/devel-src
@@ -37,8 +42,11 @@ jobs:
 
             if ! git diff-index --quiet HEAD --; then
               git commit -m "Doing the setup"
-              if ! git push origin devel; then
-                git push origin devel --force-with-lease
+              if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+                echo "Event is push; pushing updates"
+                if ! git push origin devel; then
+                  git push origin devel --force-with-lease
+                fi
               fi
             fi
           shell: bash
