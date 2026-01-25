@@ -1,3 +1,5 @@
+# rSPDE (development version)
+
 # rSPDE 2.5.2
 
 * Added intrinsic Matern mapper support and related documentation.
