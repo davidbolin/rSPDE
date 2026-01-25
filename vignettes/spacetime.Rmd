@@ -55,10 +55,10 @@ t <- seq(from = 0, to = 10, length.out = 21)
 ```
 We can now use `spacetime.operators()` to construct the model
 ```{r}
-kappa <- 7
-sigma <- 12
+kappa <- 5
+sigma <- 10
 gamma <- 0.1
-rho_1d <- 0.1
+rho_1d <- 1
 alpha <- 1
 beta <- 1
 
@@ -134,8 +134,8 @@ df_1d <- data.frame(y = as.matrix(Y), space = obs.loc$x, time = obs.loc$t)
 Let us create a mesh for the spatial and temporal domains for the model fitting:
 
 ```{r}
-mesh_1d_time <- fmesher::fm_mesh_1d(df_1d$time)
-mesh_1d_space <- fmesher::fm_mesh_1d(df_1d$space)
+mesh_1d_time <- fmesher::fm_mesh_1d(t)
+mesh_1d_space <- fmesher::fm_mesh_1d(s)
 ```
 
 
@@ -213,7 +213,7 @@ cmp <- y ~ -1 + Intercept(1) + field(list(space = space, time = time), model = s
 We are now in a position to fit the model:
 
 ```{r}
-bru_fit <- bru(cmp, data = df_1d, options = list(num.threads = "15:1"))
+bru_fit <- bru(cmp, data = df_1d, options = list(num.threads = "1:1"))
 ```
 
 Let us now compare the estimated results (the means of the parameters) with the true values:
@@ -258,7 +258,7 @@ t <- seq(from = 0, to = 10, length.out = 11)
 kappa <- 9.9
 sigma <- 29
 gamma <- 0.11
-rho_2d <- c(0, 0)
+rho_2d <- c(0.2, 0.3)
 alpha <- 1
 beta <- 1
 
@@ -335,7 +335,7 @@ mesh_2d_spatial <- fm_mesh_2d(
   max.edge = c(0.2, 0.6)
 )
 
-mesh_2d_time <- fmesher::fm_mesh_1d(df_2d$t)
+mesh_2d_time <- fmesher::fm_mesh_1d(t)
 ```
 
 
@@ -396,7 +396,7 @@ cmp <- y ~ -1 + Intercept(1) + field(list(
 We are now in a position to fit the model:
 
 ```{r}
-bru_fit_field <- bru(cmp, data = df_2d, options = list(num.threads = "15:1"))
+bru_fit_field <- bru(cmp, data = df_2d, options = list(num.threads = "1:1"))
 ```
 
 Let us now compare the estimated results (the means of the parameters) with the true values:
@@ -471,7 +471,7 @@ cmp_unbounded <- y ~ -1 + Intercept(1) + field(list(space = space, time = time),
   model = st_bru_unbounded
 )
 
-bru_fit_unbounded <- bru(cmp_unbounded, data = df_1d, options = list(num.threads = "15:1", verbose = TRUE))
+bru_fit_unbounded <- bru(cmp_unbounded, data = df_1d, options = list(num.threads = "1:1", verbose = TRUE))
 
 ### Extract and Compare Results
 param_unbounded <- transform_parameters_spacetime(
