@@ -11,6 +11,7 @@ permissions:
   
 jobs:
     devel_src_setup:
+      if: github.actor != 'github-actions[bot]'
       runs-on: ubuntu-latest
       env:
         GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
