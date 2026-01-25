@@ -1,5 +1,9 @@
 name: devel_setup
 
+permissions:
+  contents: write
+
+
 on:
   push:
     branches:
@@ -15,24 +19,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup and Push
         shell: bash
         run: |
+          set -euo pipefail
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
 
-          git fetch origin devel-src
+          git fetch origin devel devel-src
           git checkout devel-src
-          
-          git merge origin/devel -X theirs --no-edit --no-commit --no-ff --allow-unrelated-histories
-          
-          git checkout --theirs .
-          git add . 
-          git reset -- src/
-          
+
+          git reset --hard origin/devel
+          if git ls-tree -d --name-only origin/devel-src src | grep -q '^src$'; then
+            git checkout origin/devel-src -- src/
+          fi
+          git add -A
+
           if [ -f DESCRIPTION ]; then
             sed -i 's/NeedsCompilation: no/NeedsCompilation: yes/' DESCRIPTION
             git add DESCRIPTION
@@ -40,5 +43,7 @@ jobs:
           
           if ! git diff-index --quiet HEAD --; then
             git commit -m "Doing the setup"
-            git push origin devel-src --force
+            if ! git push origin devel-src; then
+              git push origin devel-src --force-with-lease
+            fi
           fi

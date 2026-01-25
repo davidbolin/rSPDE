@@ -4,6 +4,10 @@ on:
       - stable
 
 name: stable_setup
+
+permissions:
+  contents: write
+
   
 jobs:
     stable_setup:
@@ -11,21 +15,31 @@ jobs:
       env:
         GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       steps:
-        - uses: actions/checkout@v2      
+        - uses: actions/checkout@v4      
         
         - name: Merge with stable-src and accept all incoming changes
           run: |
+            set -euo pipefail
             git config --local user.email "actions@github.com"
-            git config --local user.name "GitHub Actions"              
-            git config pull.rebase true
-            git fetch origin
+            git config --local user.name "GitHub Actions"
+            git fetch origin stable stable-src
             git checkout stable-src
-            git merge -X theirs stable --no-edit --no-commit --no-ff --allow-unrelated-histories    
-            git checkout --theirs .
-            git add . 
-            git reset -- src/
-            sed -i 's/NeedsCompilation: no/NeedsCompilation: yes/' DESCRIPTION
-            git add DESCRIPTION
-            git commit -m "Doing the setup"
-            git push origin stable-src --force
+
+            git reset --hard origin/stable
+            if git ls-tree -d --name-only origin/stable-src src | grep -q '^src$'; then
+              git checkout origin/stable-src -- src/
+            fi
+            git add -A
+
+            if [ -f DESCRIPTION ]; then
+              sed -i 's/NeedsCompilation: no/NeedsCompilation: yes/' DESCRIPTION
+              git add DESCRIPTION
+            fi
+
+            if ! git diff-index --quiet HEAD --; then
+              git commit -m "Doing the setup"
+              if ! git push origin stable-src; then
+                git push origin stable-src --force-with-lease
+              fi
+            fi
           shell: bash

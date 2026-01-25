@@ -9,6 +9,10 @@ on:
 
 name: R-CMD-check-mac
 
+permissions:
+  contents: write
+
+
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
@@ -39,6 +43,7 @@ jobs:
       - name: Install system dependencies on macOS
         if: runner.os == 'macOS'
         run: |
+          set -euo pipefail
           brew install --cask xquartz
           brew install pkg-config
           brew install proj@9
@@ -61,6 +66,7 @@ jobs:
              rcmdcheck
       - name: Session info
         run: |
+          set -euo pipefail
           options(width = 100)
           pkgs <- installed.packages()[, "Package"]
           sessioninfo::session_info(pkgs, include_base = TRUE)
