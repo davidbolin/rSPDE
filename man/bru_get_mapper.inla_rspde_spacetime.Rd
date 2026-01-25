@@ -4,7 +4,7 @@
 \alias{bru_get_mapper.inla_rspde_spacetime}
 \title{rSPDE space time inlabru mapper}
 \usage{
-\method{bru_get_mapper}{inla_rspde_spacetime}(model, ...)
+bru_get_mapper.inla_rspde_spacetime(model, ...)
 }
 \arguments{
 \item{model}{An \code{inla_rspde_spacetime} object for which to construct or extract a mapper}
