@@ -273,8 +273,11 @@ spacetime.operators <- function(mesh_space = NULL,
     }
     
     if (is.null(gamma)) {
-        range_time <- diff(range(time)) * 0.2
-        gamma <- 2/range_time
+        time_span <- diff(range(time))
+        if (time_span <= 0) {
+            stop("time_loc/mesh_time must span a positive range")
+        }
+        gamma <- 1/time_span
     } else {
         gamma <- rspde_check_user_input(gamma, "gamma", 0, 1)
     }
