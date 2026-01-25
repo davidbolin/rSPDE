@@ -11,17 +11,17 @@ vignette: >
     
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-    collapse = TRUE,
-    comment = "#>"
+  collapse = TRUE,
+  comment = "#>"
 )
 library(rSPDE)
-library(INLA)    
+library(INLA)
 set.seed(123)
 ```
 
 ```{r inla_link, include = FALSE}
 inla_link <- function() {
-    sprintf("[%s](%s)", "`R-INLA`", "https://www.r-inla.org")
+  sprintf("[%s](%s)", "`R-INLA`", "https://www.r-inla.org")
 }
 ```
 
@@ -58,9 +58,9 @@ library(fmesher)
 n_loc <- 2000
 loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
 mesh_2d <- fm_mesh_2d(
-    loc = loc_2d_mesh,
-    cutoff = 0.01,
-    max.edge = c(0.1, 0.5)
+  loc = loc_2d_mesh,
+  cutoff = 0.01,
+  max.edge = c(0.1, 0.5)
 )
 plot(mesh_2d, main = "")
 ```
@@ -68,75 +68,95 @@ plot(mesh_2d, main = "")
 We now specify the model using the `matern2d.operators` function. 
 ```{r}
 sigma <- 1
-nu = 0.5
+nu <- 0.5
 hx <- 0.08
 hy <- 0.08
 hxy <- 0.5
-op <- matern2d.operators(hx = hx, hy = hy, hxy = hxy, nu = nu, 
-                         sigma = sigma, mesh = mesh_2d)
+op <- matern2d.operators(
+  hx = hx, hy = hy, hxy = hxy, nu = nu,
+  sigma = sigma, mesh = mesh_2d
+)
 ```
 
 The `matern2d.operators` object has `cov_function_mesh` method which can be used 
 evaluate the covariance function on the mesh. For example
 ```{r}
-r <- op$cov_function_mesh(matrix(c(0.5,0.5),1,2))
-proj <- fm_evaluator(mesh_2d, dims = c(100, 100), xlim = c(0,1), ylim = c(0,1))
+r <- cov_function_mesh(op, p = matrix(c(0.5, 0.5), 1, 2))
+proj <- fm_evaluator(mesh_2d, dims = c(100, 100), xlim = c(0, 1), ylim = c(0, 1))
 r.mesh <- fm_evaluate(proj, field = as.vector(r))
-cov.df <- data.frame(x1 = proj$lattice$loc[,1],
-                     x2 = proj$lattice$loc[,2], 
-                     cov = c(r.mesh))
-ggplot(cov.df, aes(x = x1, y = x2, fill = cov)) + geom_raster() + xlim(0,1) + ylim(0,1) + scale_fill_viridis()
+cov.df <- data.frame(
+  x1 = proj$lattice$loc[, 1],
+  x2 = proj$lattice$loc[, 2],
+  cov = c(r.mesh)
+)
+ggplot(cov.df, aes(x = x1, y = x2, fill = cov)) +
+  geom_raster() +
+  xlim(0, 1) +
+  ylim(0, 1) +
+  scale_fill_viridis()
 ```
 
 
 We can simulate from the field using the `simulate method`:
 ```{r}
 u <- simulate(op)
-proj <- fm_evaluator(mesh_2d, dims = c(100, 100), xlim = c(0,1), ylim = c(0,1))
+proj <- fm_evaluator(mesh_2d, dims = c(100, 100), xlim = c(0, 1), ylim = c(0, 1))
 u.mesh <- fm_evaluate(proj, field = as.vector(u))
-cov.df <- data.frame(x1 = proj$lattice$loc[,1],
-                     x2 = proj$lattice$loc[,2], 
-                     u = c(u.mesh))
-ggplot(cov.df, aes(x = x1, y = x2, fill = u)) + geom_raster() + xlim(0,1) + ylim(0,1) + scale_fill_viridis()
+cov.df <- data.frame(
+  x1 = proj$lattice$loc[, 1],
+  x2 = proj$lattice$loc[, 2],
+  u = c(u.mesh)
+)
+ggplot(cov.df, aes(x = x1, y = x2, fill = u)) +
+  geom_raster() +
+  xlim(0, 1) +
+  ylim(0, 1) +
+  scale_fill_viridis()
 ```
 
 Let us now simulate some data based on this simulated field.
 
 ```{r}
 n.obs <- 2000
-obs.loc <- cbind(runif(n.obs),runif(n.obs))
-A <- fm_basis(mesh_2d,obs.loc)
+obs.loc <- cbind(runif(n.obs), runif(n.obs))
+A <- fm_basis(mesh_2d, obs.loc)
 sigma.e <- 0.1
-Y <- as.vector(A%*%u + sigma.e*rnorm(n.obs))
+Y <- as.vector(A %*% u + sigma.e * rnorm(n.obs))
 ```
 
 We can compute kriging predictions of the process $u$ based on these observations. 
 To specify which locations that should be predicted, the argument `Aprd` is used. 
 This argument should be an observation matrix that links the mesh locations to the prediction locations.  
 ```{r, fig.show='hold',fig.align = "center"}
-A <- op$make_A(obs.loc)
-Aprd <- op$make_A(proj$lattice$loc)
+A <- make_A(op, loc = obs.loc)
+Aprd <- make_A(op, loc = proj$lattice$loc)
 u.krig <- predict(op, A = A, Aprd = Aprd, Y = Y, sigma.e = sigma.e)
 ```
 The process simulation,  and the kriging prediction are shown in the following figure.
 
 ```{r, fig.show='hold', fig.align = "center",echo=TRUE}
-data.df <- data.frame(x = obs.loc[,1], y = obs.loc[,2], field = Y, type = "Data")
-krig.df <- data.frame(x = proj$lattice$loc[,1], y = proj$lattice$loc[,2],
-                      field = as.vector(u.krig$mean), type = "Prediction")
+data.df <- data.frame(x = obs.loc[, 1], y = obs.loc[, 2], field = Y, type = "Data")
+krig.df <- data.frame(
+  x = proj$lattice$loc[, 1], y = proj$lattice$loc[, 2],
+  field = as.vector(u.krig$mean), type = "Prediction"
+)
 df_plot <- rbind(data.df, krig.df)
-ggplot(df_plot) + aes(x = x, y = y, fill = field) +
-        facet_wrap(~type) + geom_raster(data = krig.df) +
-        geom_point(data = data.df, aes(colour = field),
-        show.legend = FALSE) + 
-        scale_fill_viridis() + scale_colour_viridis()
-
+ggplot(df_plot) +
+  aes(x = x, y = y, fill = field) +
+  facet_wrap(~type) +
+  geom_raster(data = krig.df) +
+  geom_point(
+    data = data.df, aes(colour = field),
+    show.legend = FALSE
+  ) +
+  scale_fill_viridis() +
+  scale_colour_viridis()
 ```
 Let us finally use `rspde_lme` to estimate the parameters based on the data.
 
 ```{r}
-df <- data.frame(Y = as.matrix(Y), x = obs.loc[,1], y = obs.loc[,2])
-res <- rspde_lme(Y ~ 1, loc = c("x","y"), data = df, model = op, parallel = TRUE)
+df <- data.frame(Y = as.matrix(Y), x = obs.loc[, 1], y = obs.loc[, 2])
+res <- rspde_lme(Y ~ 1, loc = c("x", "y"), data = df, model = op, parallel = TRUE)
 ```
 
 In the call, `y~1` indicates that we also want to estimate a mean value of the model, and the arguments `loc` provides the names of the spatial and temporal coordinates in the data frame. 
@@ -148,33 +168,41 @@ summary(res)
 
 Let us compare the estimated results with the true values:
 ```{r}
-results <- data.frame(sigma = c(sigma, res$coeff$random_effects[2]),
-                      hx = c(hx, res$coeff$random_effects[3]), 
-                      hy = c(hy, res$coeff$random_effects[4]),
-                      hxy = c(hxy, res$coeff$random_effects[5]),
-                      nu = c(nu, res$coeff$random_effects[1]),
-                      sigma.e = c(sigma.e, res$coeff$measurement_error),
-                      intercept = c(0, res$coeff$fixed_effects),
-                      row.names = c("True", "Estimate"))
-                      
+results <- data.frame(
+  sigma = c(sigma, res$coeff$random_effects[2]),
+  hx = c(hx, res$coeff$random_effects[3]),
+  hy = c(hy, res$coeff$random_effects[4]),
+  hxy = c(hxy, res$coeff$random_effects[5]),
+  nu = c(nu, res$coeff$random_effects[1]),
+  sigma.e = c(sigma.e, res$coeff$measurement_error),
+  intercept = c(0, res$coeff$fixed_effects),
+  row.names = c("True", "Estimate")
+)
+
 print(results)
 ```
 
 Finally, we can also do prediction based on the fitted model as 
 ```{r}
-pred.data <- data.frame(x = proj$lattice$loc[,1], y = proj$lattice$loc[,2])
-pred <- predict(res, newdata = pred.data, loc = c("x","y"))
+pred.data <- data.frame(x = proj$lattice$loc[, 1], y = proj$lattice$loc[, 2])
+pred <- predict(res, newdata = pred.data, loc = c("x", "y"))
 
-data.df <- data.frame(x = obs.loc[,1], y = obs.loc[,2], field = Y, type = "Data")
-krig.df <- data.frame(x = proj$lattice$loc[,1], y = proj$lattice$loc[,2],
-                      field = as.vector(u.krig$mean), type = "Prediction")
+data.df <- data.frame(x = obs.loc[, 1], y = obs.loc[, 2], field = Y, type = "Data")
+krig.df <- data.frame(
+  x = proj$lattice$loc[, 1], y = proj$lattice$loc[, 2],
+  field = as.vector(u.krig$mean), type = "Prediction"
+)
 df_plot <- rbind(data.df, krig.df)
-ggplot(df_plot) + aes(x = x, y = y, fill = field) +
-        facet_wrap(~type) + geom_raster(data = krig.df) +
-        geom_point(data = data.df, aes(colour = field),
-        show.legend = FALSE) + 
-        scale_fill_viridis() + scale_colour_viridis()
-
+ggplot(df_plot) +
+  aes(x = x, y = y, fill = field) +
+  facet_wrap(~type) +
+  geom_raster(data = krig.df) +
+  geom_point(
+    data = data.df, aes(colour = field),
+    show.legend = FALSE
+  ) +
+  scale_fill_viridis() +
+  scale_colour_viridis()
 ```
 
 ## Inlabru Implementation
@@ -190,7 +218,7 @@ model_aniso <- rspde.anistropic2d(mesh = mesh_2d)
 
 Then we create the component and fit the model using the `inlabru` package. Observe that we can use the same data frame as in the `rspde_lme` example.
 ```{r}
-cmp <- Y ~ Intercept(1) - 1 + field(cbind(x,y), model = model_aniso)
+cmp <- Y ~ Intercept(1) - 1 + field(cbind(x, y), model = model_aniso)
 bru_fit_field <- bru(cmp, data = df, options = list(num.threads = "1:1"))
 ```
 
