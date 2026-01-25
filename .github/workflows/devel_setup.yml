@@ -13,8 +13,7 @@ jobs:
   devel_setup:
     runs-on: ubuntu-latest
     env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      GH_TOKEN: ${{ secrets.ACTIONS_SECRET }}
+      GITHUB_PAT: ${{ secrets.rSPDE }}
     permissions:
       contents: write
 
@@ -29,7 +28,11 @@ jobs:
           git config --local user.name "GitHub Actions"
           if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
             echo "Event is push; pushing updates"
-            git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
+            if [ -z "${GITHUB_PAT:-}" ]; then
+              echo "GITHUB_PAT is empty; cannot push"
+              exit 1
+            fi
+            git remote set-url origin https://x-access-token:${GITHUB_PAT}@github.com/${{ github.repository }}.git
           fi
 
           git fetch origin devel devel-src

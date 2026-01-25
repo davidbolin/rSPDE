@@ -2,10 +2,6 @@ on:
   push:
     branches:
       - devel-src
-  pull_request:
-    branches:
-      - devel
-      - devel-src
 
 name: R-CMD-check-mac
 
@@ -25,9 +21,6 @@ jobs:
         config:
           - {os: macOS-latest, r: 'release'}
 
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}    
-          
     steps:
       - uses: actions/checkout@v3
 

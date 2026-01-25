@@ -5,10 +5,6 @@ on:
   push:
     branches:
       - devel-src
-  pull_request:
-    branches:
-      - devel
-      - devel-src
 
 name: R-CMD-check
 
@@ -32,7 +28,6 @@ jobs:
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       R_KEEP_PKG_SOURCE: yes
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}     
 
     steps:
       - uses: actions/checkout@v4
@@ -88,5 +83,5 @@ jobs:
     steps:
       - env:
           GH_REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh workflow run retry-workflow.yml -F run_id=${{ github.run_id }}
