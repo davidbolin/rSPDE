@@ -54,18 +54,20 @@ jobs:
       - name: Delete vignettes and pkgdown, then copy cran vign
         run: |
           git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"          
-          git rm -rf vignettes
-          rm -rf vignettes
-          mkdir vignettes
-          cd cran_vignettes
-          cp * ../vignettes
-          cd ..
-          cd man
-          git rm -rf figures
-          rm -rf figures
-          cd ..
-          git rm -rf cran_vignettes
+          git config --local user.name "GitHub Actions"
+          if [ -d vignettes ]; then
+            git rm -rf vignettes
+            rm -rf vignettes
+          fi
+          mkdir -p vignettes
+          if [ -d cran_vignettes ]; then
+            cp cran_vignettes/* vignettes/ || true
+            git rm -rf cran_vignettes
+          fi
+          if [ -d man/figures ]; then
+            git rm -rf man/figures
+            rm -rf man/figures
+          fi
           git add vignettes
           sed -i .bak 's/#devel\.tag/#stable\.tag/' R/inla_rspde.R
           sed -i .bak '/donttest{ #devel version$/a\
