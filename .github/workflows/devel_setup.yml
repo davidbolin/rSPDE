@@ -1,35 +1,53 @@
+name: devel_setup
+
 on:
   push:
     branches:
       - devel
 
-name: devel_setup
-
 jobs:
   devel_setup:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
+      - name: Verify Secret
+        run: |
+          if [ -z "${{ secrets.ACTIONS_SECRET }}" ]; then
+            echo "Secret is empty"
+          else
+            echo "Secret is found"
+          fi
+
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.ACTIONS_SECRET }}
-          fetch-depth: 0 
+          token: ${{ secrets.ACTIONS_SECRET || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: Run Setup Logic
+      - name: Setup and Push
+        shell: bash
         run: |
-          git config --global --unset-all http.https://github.com/.extraheader || true
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          git remote set-url origin https://x-access-token:${{ secrets.ACTIONS_SECRET }}@github.com/davidbolin/rSPDE.git
-          git fetch origin
+          
+          git remote set-url origin https://x-access-token:${{ secrets.ACTIONS_SECRET || secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+
+          git fetch origin devel-src
           git checkout devel-src
+          
           git merge origin/devel -X theirs --no-edit --no-commit --no-ff --allow-unrelated-histories
           
           git checkout --theirs .
           git add . 
           git reset -- src/
-          sed -i 's/NeedsCompilation: no/NeedsCompilation: yes/' DESCRIPTION
-          git add DESCRIPTION
           
-          git commit -m "Doing the setup"
-          git push origin devel-src --force
-        shell: bash
+          if [ -f DESCRIPTION ]; then
+            sed -i 's/NeedsCompilation: no/NeedsCompilation: yes/' DESCRIPTION
+            git add DESCRIPTION
+          fi
+          
+          if ! git diff-index --quiet HEAD --; then
+            git commit -m "Doing the setup"
+            git push origin devel-src --force
+          fi
