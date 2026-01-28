@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      FLEXIBLAS_LIBRARY_PATH: /usr/lib/x86_64-linux-gnu/flexiblas:/opt/intel/oneapi/mkl/latest/lib/intel64
     steps:
       - uses: actions/checkout@v6
 
@@ -28,7 +29,26 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           set -euo pipefail
-          sudo apt-get update -y && sudo apt-get install -y libglu1-mesa-dev libeigen3-dev
+          sudo apt-get update -y
+          sudo apt-get install -y gpg-agent ca-certificates
+          # Intel oneAPI MKL repo
+          curl -fsSL https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+            | sudo gpg --dearmor -o /usr/share/keyrings/intel-oneapi-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/intel-oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+            | sudo tee /etc/apt/sources.list.d/oneapi.list
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            libglu1-mesa-dev \
+            libeigen3-dev \
+            libflexiblas3 \
+            libflexiblas-dev \
+            libflexiblas-netlib \
+            libopenblas0-pthread \
+            libblas3 \
+            liblapack3 \
+            intel-oneapi-mkl
+          sudo update-alternatives --set libblas.so.3-x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/flexiblas/libflexiblas.so.3
+          sudo update-alternatives --set liblapack.so.3-x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/flexiblas/libflexiblas.so.3
           sudo ln -s /usr/bin/gcc /usr/local/bin/gcc
           sudo ln -s /usr/bin/g++ /usr/local/bin/g++          
 
@@ -42,6 +62,22 @@ jobs:
           options(width = 100)
           pkgs <- installed.packages()[, "Package"]
           sessioninfo::session_info(pkgs, include_base = TRUE)
+        shell: Rscript {0}
+
+      - name: Verify FlexiBLAS backends
+        run: |
+          options(width = 100)
+          if (!requireNamespace("flexiblas", quietly = TRUE)) {
+            stop("flexiblas R package not installed; cannot verify backends")
+          }
+          backends <- flexiblas::flexiblas_list()
+          message("FlexiBLAS backends: ", paste(backends, collapse = ", "))
+          if (!any(grepl("netlib", tolower(backends)))) {
+            stop("Netlib backend not found in FlexiBLAS list")
+          }
+          if (!any(grepl("mkl", tolower(backends)))) {
+            stop("MKL backend not found in FlexiBLAS list")
+          }
         shell: Rscript {0}
 
       - name: Install package
