@@ -11,7 +11,7 @@ permissions:
   
 jobs:
     devel_src_setup:
-      if: github.actor != 'github-actions[bot]'
+      if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'Doing the setup')
       runs-on: ubuntu-latest
       env:
         GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
