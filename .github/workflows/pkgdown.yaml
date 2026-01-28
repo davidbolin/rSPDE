@@ -41,15 +41,35 @@ jobs:
           sudo apt-get install -y \
             libglu1-mesa-dev \
             libeigen3-dev \
-            libflexiblas3 \
-            libflexiblas-dev \
-            libflexiblas-netlib \
-            libopenblas0-pthread \
+            build-essential \
+            gfortran \
+            cmake \
+            git \
             libblas3 \
             liblapack3 \
+            libopenblas0-pthread \
             intel-oneapi-mkl
-          sudo update-alternatives --set libblas.so.3-x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/flexiblas/libflexiblas.so.3
-          sudo update-alternatives --set liblapack.so.3-x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/flexiblas/libflexiblas.so.3
+          # Build and install FlexiBLAS from source (not available on ubuntu-latest)
+          git clone --depth 1 https://github.com/mpimd-csc/flexiblas.git /tmp/flexiblas
+          cmake -S /tmp/flexiblas -B /tmp/flexiblas/build \
+            -DCMAKE_C_COMPILER=/usr/bin/gcc \
+            -DCMAKE_Fortran_COMPILER=/usr/bin/gfortran \
+            -DCMAKE_INSTALL_PREFIX=/usr/local
+          cmake --build /tmp/flexiblas/build -j"$(nproc)"
+          sudo cmake --install /tmp/flexiblas/build
+          sudo ldconfig
+          sudo update-alternatives --install \
+            /usr/lib/x86_64-linux-gnu/libblas.so.3 \
+            libblas.so.3-x86_64-linux-gnu \
+            /usr/local/lib/libflexiblas.so.3 100
+          sudo update-alternatives --set \
+            libblas.so.3-x86_64-linux-gnu /usr/local/lib/libflexiblas.so.3
+          sudo update-alternatives --install \
+            /usr/lib/x86_64-linux-gnu/liblapack.so.3 \
+            liblapack.so.3-x86_64-linux-gnu \
+            /usr/local/lib/libflexiblas.so.3 100
+          sudo update-alternatives --set \
+            liblapack.so.3-x86_64-linux-gnu /usr/local/lib/libflexiblas.so.3
           sudo ln -s /usr/bin/gcc /usr/local/bin/gcc
           sudo ln -s /usr/bin/g++ /usr/local/bin/g++          
 
