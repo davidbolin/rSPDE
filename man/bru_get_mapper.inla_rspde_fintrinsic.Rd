@@ -4,7 +4,7 @@
 \alias{bru_get_mapper.inla_rspde_fintrinsic}
 \title{rSPDE inlabru mapper}
 \usage{
-\method{bru_get_mapper}{inla_rspde_fintrinsic}(model, ...)
+bru_get_mapper.inla_rspde_fintrinsic(model, ...)
 }
 \arguments{
 \item{model}{An \code{inla_rspde_fintrinsic} object for which to construct or extract a mapper}

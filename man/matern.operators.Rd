@@ -77,6 +77,10 @@ approximation should be used? The current types are
 "brasil", "chebfun" or "chebfunLB".}
 
 \item{compute_logdet}{Should log determinants be computed while building the model? (For covariance-based models)}
+
+\item{check_stationarity}{Logical; if TRUE, automatically returns a stationary
+model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
+non-stationary model even when parameters are constant.}
 }
 \value{
 If \code{type} is "covariance", then \code{matern.operators}

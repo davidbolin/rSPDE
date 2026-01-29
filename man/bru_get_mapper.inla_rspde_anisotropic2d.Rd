@@ -4,7 +4,7 @@
 \alias{bru_get_mapper.inla_rspde_anisotropic2d}
 \title{rSPDE anisotropic inlabru mapper}
 \usage{
-\method{bru_get_mapper}{inla_rspde_anisotropic2d}(model, ...)
+bru_get_mapper.inla_rspde_anisotropic2d(model, ...)
 }
 \arguments{
 \item{model}{An \code{inla_rspde_anisotropic2d} object for which to construct or extract a mapper}

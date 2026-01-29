@@ -24,7 +24,8 @@ spde.matern.operators(
   loc_mesh = NULL,
   m = 1,
   type = c("covariance", "operator"),
-  type_rational_approximation = c("brasil", "chebfun", "chebfunLB")
+  type_rational_approximation = c("brasil", "chebfun", "chebfunLB"),
+  check_stationarity = TRUE
 )
 }
 \arguments{
