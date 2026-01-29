@@ -233,9 +233,6 @@ fractional.operators <- function(L,
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
 #' "brasil", "chebfun" or "chebfunLB".
-#' @param check_stationarity Logical; if TRUE, automatically returns a stationary
-#' model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
-#' non-stationary model even when parameters are constant.
 #' @param compute_logdet Should log determinants be computed while building the model? (For covariance-based models)
 #' @return If `type` is "covariance", then `matern.operators`
 #' returns an object of class "CBrSPDEobj".
