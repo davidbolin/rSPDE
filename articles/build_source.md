@@ -1,0 +1,209 @@
+# Building the rSPDE package from source on Mac and Linux
+
+## Building from source
+
+To build `rSPDE` from source you need to obtain the [GitHub
+version](https://github.com/davidbolin/rSPDE). If you have all the
+dependencies (see below how to install some of them), you can install
+the `rSPDE` package from source by running the following command on `R`
+(for the development version):
+
+``` r
+remotes::install_github("davidbolin/rspde", ref = "devel-src")
+```
+
+or, if you want to install the stable version:
+
+``` r
+remotes::install_github("davidbolin/rspde", ref = "stable-src")
+```
+
+## Dependencies on Linux
+
+The `rSPDE` package depends on the [Eigen C++
+library](https://eigen.tuxfamily.org/index.php?title=Main_Page).
+
+To install Eigen on Ubuntu, run:
+
+``` bash
+sudo apt install libeigen3-dev
+```
+
+To install Eigen on Arch-Linux or Manjaro, run:
+
+``` bash
+sudo pacman -S eigen3
+```
+
+To install Eigen on Red Hat, Fedor or CentOS, run:
+
+``` bash
+sudo yum install eigen3-devel
+```
+
+To install Eigen on OpenSuse, run:
+
+``` bash
+sudo zypper install eigen3-devel
+```
+
+## Dependencies on Mac
+
+We can install Eigen on MacOS with [Homebrew](https://brew.sh/).
+
+To install Homebrew, run:
+
+``` bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+To install Eigen using Homebrew, run:
+
+``` bash
+brew install eigen
+```
+
+Finally, if after installing `eigen` with `brew` it gives you an error
+that it cannot find `eigen` library, you can create a symbolic link to
+`eigen`’s path as:
+
+``` bash
+sudo ln -s $(brew --prefix eigen)/include/eigen3 /usr/local/include/eigen3
+```
+
+You also need to create the following symbolic links related to
+homebrew:
+
+``` bash
+sudo ln -s $(brew --prefix)/lib /usr/local/brewlib
+sudo ln -s $(brew --prefix)/include /usr/local/brewinclude
+```
+
+Finally, you need to install `gcc-14`:
+
+``` bash
+brew install gcc@14
+```
+
+and also create the symbolic links associated to `gcc`:
+
+``` bash
+sudo ln -s $(brew --prefix gcc@14)/bin/gcc-14 /usr/local/bin/gcc
+sudo ln -s $(brew --prefix gcc@14)/bin/g++-14 /usr/local/bin/g++
+```
+
+## Adjusting the Makefile
+
+If you experience trouble while installing the `rSPDE` package, you
+might need to adjust the `Makefile`. Before that, you will need to have
+`rSPDE` source files locally on your computer. To such an end, you can,
+for instance, close the `rSPDE` repository by running the following
+command on a terminal:
+
+``` bash
+git clone https://github.com/davidbolin/rSPDE.git
+```
+
+You can also [download the source
+files](https://github.com/davidbolin/rSPDE/archive/refs/heads/devel-src.zip).
+
+Now, let us discuss the `Makefile`. The `Makefile` has the following
+base form:
+
+``` bash
+toInclude = ${R_LIBRARY_DIR}/INLA/include/
+
+obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o \
+      cgeneric_rspde_stat_frac_model.o cgeneric_rspde_nonstat_general.o \
+      cgeneric_rspde_stat_general.o cgeneric_rspde_stat_parsim_gen.o \
+      cgeneric_rspde_stat_parsim_fixed.o cgeneric_rspde_stat_int.o \
+      cgeneric_rspde_nonstat_gen_fixed.o cgeneric_rspde_nonstat_int.o \
+      cgeneric_aux_nonstat_int.o
+
+all : rSPDE.so
+
+CC = clang
+CXX = clang++
+
+EIGEN_MAC = /usr/local/include/eigen3/
+EIGEN_LINUX = /usr/include/eigen3/
+
+flags = -O2 -Wall -Wextra -fpic
+
+%.o: %.c
+    $(CC) $(flags) -Iinclude -I$(toInclude)  -c $^ -o $@
+
+%.o: %.cpp
+    $(CXX) $(flags)  -I$(toInclude) -I$(EIGEN_MAC) -I$(EIGEN_LINUX) -c $^ -o $@
+
+rSPDE.so: $(obj)
+    $(CXX) -shared *.o -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack
+
+clean :
+    rm -f *.o
+
+.PHONY: all clean
+```
+
+### Adjusts on Linux
+
+For linux, we recommend to use the `gcc-12` and `g++-12` compilers. To
+this end, one must install `gcc` and `g++`, then change the following
+lines on the `Makefile`:
+
+``` bash
+CC = gcc
+CXX = g++
+```
+
+One should also confirm the location of the Eigen library. The default
+location is `/usr/include/eigen3/` and is already set at the Makefile.
+If you have Eigen installed in a different location, you will need to
+update the `Makefile` by changing the `EIGEN_LINUX` variable:
+
+``` bash
+EIGEN_LINUX = /correct_path/
+```
+
+To install `gcc` and `g++` on Ubuntu, run
+
+``` bash
+sudo apt install gcc g++
+```
+
+To install `gcc` and `g++` on Arch-Linux or Manjaro, run:
+
+``` bash
+sudo pacman -S gcc g++
+```
+
+To install `gcc` and `g++` on Red Hat, Fedor or CentOS, run:
+
+``` bash
+sudo yum install gcc g++
+```
+
+To install `gcc` and `g++` on OpenSuse, run:
+
+``` bash
+sudo zypper install gcc g++
+```
+
+### Adjusts on Mac
+
+For Mac, especially with intel processors, we found the most stable
+compiler to be `clang` and `clang++`. Thus, one must have the following
+lines on the `Makefile`:
+
+One should also confirm the location of the Eigen library. The default
+location is `/usr/local` and is already set at the Makefile.
+
+If you installed Eigen using Homebrew, you can check the location of the
+Eigen installation by using the following command:
+
+``` bash
+brew --prefix eigen
+```
+
+You can, then, update the `EIGEN_MAC` variable in the `Makefile` with
+the correct path.

@@ -6,12 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Rational approximations without finite element approximations • rSPDE</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet">
@@ -27,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.5.1.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.5.2.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +43,7 @@
 <li><a class="dropdown-item" href="../articles/rspde_inla.html">R-INLA implementation of the rational SPDE approach</a></li>
     <li><a class="dropdown-item" href="../articles/rspde_inlabru.html">inlabru implementation of the rational SPDE approach</a></li>
     <li><a class="dropdown-item" href="../articles/rspde_cov.html">Rational approximation with the rSPDE package</a></li>
+    <li><a class="dropdown-item" href="../articles/rspde_vs_exact.html">rSPDE vs exact Matern covariance - timing and memory</a></li>
     <li><a class="dropdown-item" href="../articles/rspde_base.html">Operator-based rational approximation</a></li>
     <li><a class="dropdown-item" href="../articles/intrinsic.html">Intrinsic models</a></li>
     <li><a class="dropdown-item" href="../articles/anisotropic.html">Anisotropic models</a></li>
@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-07-20. Last
-modified: 2025-04-26.</h4>
+modified: 2026-01-29.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rspde_nofem.Rmd" class="external-link"><code>vignettes/rspde_nofem.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_nofem.Rmd</code></div>
@@ -151,7 +151,7 @@ covariance are shown in the following figure.</p>
 <span>  cex.main <span class="op">=</span> <span class="fl">0.8</span>, cex.axis <span class="op">=</span> <span class="fl">0.8</span>, cex.lab <span class="op">=</span> <span class="fl">0.8</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">opar</span><span class="op">)</span></span></code></pre></div>
-<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-5-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="" width="700" style="display: block; margin: auto;"></p>
 <p>To improve the approximation we can increase the order of the
 approximation, by increasing
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>.
@@ -183,7 +183,7 @@ to
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op_cov</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">s</span>, <span class="va">u</span>, type <span class="op">=</span> <span class="st">"l"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="700"></p>
 <p>If we want replicates, we simply set the argument <code>nsim</code>
 to the desired number of replicates. For instance, to generate two
 replicates of the model, we simply do:</p>
@@ -254,20 +254,20 @@ and
 <span><span class="co">## </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##             Estimate Std.error z-value Pr(&gt;|z|)    </span></span>
-<span><span class="co">## (Intercept)   2.0141    0.2957   6.812 9.59e-12 ***</span></span>
-<span><span class="co">## x1           -1.1960    0.4969  -2.407   0.0161 *  </span></span>
+<span><span class="co">## (Intercept)   2.0141    0.2957   6.812  9.6e-12 ***</span></span>
+<span><span class="co">## x1           -1.1959    0.4969  -2.407   0.0161 *  </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##       Estimate Std.error z-value</span></span>
-<span><span class="co">## nu     0.91411   0.10863   8.415</span></span>
-<span><span class="co">## sigma  1.41325   0.08782  16.093</span></span>
-<span><span class="co">## range  0.12563   0.01633   7.694</span></span>
+<span><span class="co">## nu     0.91412   0.10870   8.409</span></span>
+<span><span class="co">## sigma  1.41325   0.08784  16.089</span></span>
+<span><span class="co">## range  0.12563   0.01634   7.689</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects (SPDE parameterization):</span></span>
 <span><span class="co">##        Estimate Std.error z-value</span></span>
-<span><span class="co">## alpha  1.414114  0.108634   13.02</span></span>
+<span><span class="co">## alpha  1.414116  0.108702   13.01</span></span>
 <span><span class="co">## tau    0.024819  0.001191   20.84</span></span>
-<span><span class="co">## kappa 21.525744  1.917908   11.22</span></span>
+<span><span class="co">## kappa 21.525897  1.918353   11.22</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
@@ -279,8 +279,8 @@ and
 <span><span class="co">## Number of function calls by 'optim' = 42</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.29023 mins </span></span>
-<span><span class="co">##   set up the parallelization = 2.65389 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.2462 mins </span></span>
+<span><span class="co">##   set up the parallelization = 2.55385 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -289,14 +289,14 @@ and
 <span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">nu</span>, <span class="va">fit</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##             sigma     range        nu</span></span>
-<span><span class="co">## Truth     1.30000 0.1264911 0.8000000</span></span>
-<span><span class="co">## Estimates 1.41325 0.1256281 0.9141135</span></span></code></pre>
+<pre><code><span><span class="co">##              sigma     range        nu</span></span>
+<span><span class="co">## Truth     1.300000 0.1264911 0.8000000</span></span>
+<span><span class="co">## Estimates 1.413248 0.1256274 0.9141162</span></span></code></pre>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 140.0677 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 137.326 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -325,7 +325,7 @@ are shown in the following figure.</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">s</span>, <span class="va">u.krig</span><span class="op">$</span><span class="va">mean</span>, col <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">opar</span><span class="op">)</span></span></code></pre></div>
-<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-17-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-17-1.png" class="r-plt" alt="" width="700" style="display: block; margin: auto;"></p>
 <p>We can also use the <code><a href="../reference/augment.rspde_lme.html">augment()</a></code> function and pipe the
 results into a plot:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
@@ -336,7 +336,7 @@ results into a plot:</p>
 <span>                <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">loc</span>, y <span class="op">=</span> <span class="va">.fitted</span><span class="op">)</span> <span class="op">+</span></span>
 <span>                <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"red"</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>                <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">df_data</span><span class="op">[</span><span class="va">df_data</span><span class="op">$</span><span class="va">repl</span><span class="op">==</span><span class="fl">1</span>,<span class="op">]</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">loc</span>, y<span class="op">=</span><span class="va">y</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
+<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-18-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 </div>
 <div class="section level2">
@@ -357,7 +357,7 @@ data again.</p>
 <span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">u</span> <span class="op">+</span> <span class="va">sigma.e</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n.obs</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">s</span>, <span class="va">u</span>, type <span class="op">=</span> <span class="st">"l"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">s</span>,<span class="va">Y</span>,col<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-19-1.png" width="700">
+<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-19-1.png" class="r-plt" alt="" width="700">
 We can now specify the model and fit it to the data using
 <code>inla</code>. In the following code, we fix the smoothness
 parameter to 0.5. In this case, it will not be estimated in
@@ -369,10 +369,7 @@ in the function. The default name of the model component (set in the
 index vector) is <code>field</code>.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## This is INLA_25.04.16 built 2025-04-16 08:05:23 UTC.</span></span>
-<span><span class="co">##  - See www.r-inla.org/contact-us for how to get help.</span></span>
-<span><span class="co">##  - List available models/likelihoods/etc with inla.list.models()</span></span>
-<span><span class="co">##  - Use inla.doc(&lt;NAME&gt;) to access documentation</span></span></code></pre>
+<pre><code><span><span class="co">## </span></span></code></pre>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">inla_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.matern1d.html">rspde.matern1d</a></span><span class="op">(</span>loc <span class="op">=</span> <span class="va">s</span>, nu <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
 <span><span class="va">st.dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html" class="external-link">inla.stack</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span>, A <span class="op">=</span> <span class="va">inla_model</span><span class="op">$</span><span class="va">A</span>, effects <span class="op">=</span> <span class="va">inla_model</span><span class="op">$</span><span class="va">index</span><span class="op">)</span></span>
@@ -384,15 +381,15 @@ index vector) is <code>field</code>.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">res</span>, <span class="st">"field"</span>, <span class="va">inla_model</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span> </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##            mean      sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## std.dev 1.02658 0.33741   0.575344 0.955049    1.87006 0.825079</span></span>
-<span><span class="co">## range   2.93952 2.26415   0.747710 2.284360    9.04098 1.594030</span></span></code></pre>
+<pre><code><span><span class="co">##            mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## std.dev 1.01597 0.331035   0.583785 0.942935    1.86414 0.815745</span></span>
+<span><span class="co">## range   2.89562 2.263480   0.780736 2.233400    9.08900 1.550030</span></span></code></pre>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">posterior_df_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gg_df.html">gg_df</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">posterior_df_fit</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">parameter</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Density"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
+<p><img src="rspde_nofem_files/figure-html/unnamed-chunk-21-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level2">
 <h2 id="using-the-models-in-inlabru">Using the models in <code>inlabru</code><a class="anchor" aria-label="anchor" href="#using-the-models-in-inlabru"></a>
@@ -429,10 +426,10 @@ model component, and fit the model:</p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">bru_fit</span>, <span class="st">"field"</span>, <span class="va">bru_model</span>, parameterization <span class="op">=</span> <span class="st">"matern"</span><span class="op">)</span> </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##             mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">## std.dev 0.824634 0.1919480   0.528878 0.797598    1.27940 0.765018</span></span>
-<span><span class="co">## range   0.620877 0.1678600   0.369238 0.595047    1.01537 0.540277</span></span>
-<span><span class="co">## nu      0.873933 0.0696851   0.737269 0.874113    1.01044 0.875475</span></span></code></pre>
+<pre><code><span><span class="co">##             mean       sd 0.025quant 0.5quant 0.975quant     mode</span></span>
+<span><span class="co">## std.dev 0.433974 0.200593   0.118527 0.411375   0.891879 0.378555</span></span>
+<span><span class="co">## range   0.992575 0.345106   0.466664 0.944744   1.801190 0.896720</span></span>
+<span><span class="co">## nu      0.865764 0.219277   0.467585 0.856026   1.313500 0.829032</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="kriging-with-the-inlabru-implementation">Kriging with the inlabru implementation<a class="anchor" aria-label="anchor" href="#kriging-with-the-inlabru-implementation"></a>
@@ -447,7 +444,8 @@ in which we want to do prediction:</p>
 predict method:</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">bru_fit</span>, newdata <span class="op">=</span> <span class="va">df_pred</span>, formula <span class="op">=</span> <span class="op">~</span> <span class="va">Intercept</span> <span class="op">+</span> <span class="va">field</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in match_with_tolerance(input, loc): Error: The input location 0.0050000000 is not present in the original locations used to create the model object.</span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;"> in `match_with_tolerance()`:</span></span></span>
+<span><span class="co">## <span style="color: #BBBB00;">!</span> Error: The input location 0.0050000000 is not present in the original locations used to create the model object.</span></span></code></pre>
 <p>Indeed, it complained that we are trying to obtain predictions at
 locations that were not used to create the model object. However, we can
 obtain predictions using our modified <code>predict</code> method, in
@@ -470,7 +468,7 @@ which we need to pass the components and well as the model:</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

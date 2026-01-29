@@ -1,0 +1,906 @@
+# The `rSPDE` package
+
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version-last-release/rSPDE)](https://cran.r-project.org/package=rSPDE)
+[![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)
+[![R-CMD-check](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml/badge.svg?branch=devel-src)](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml)
+
+`rSPDE` is an R package used for computing rational approximations of
+fractional SPDEs. These rational approximations can be used for
+computatially efficient statistical inference.
+
+Basic statistical operations such as likelihood evaluations and kriging
+predictions using the fractional approximations are also implemented.
+The package also contains an interface to
+[R-INLA](https://www.r-inla.org "INLA homepage").
+
+# Introduction
+
+Several popular Gaussian random field models can be represented as
+solutions to stochastic partial differential equations (SPDEs) of the
+form
+
+$$L^{\beta}(\tau u) = \mathcal{W}.$$
+
+Here $\mathcal{W}$ is a Gaussian white noise, $L$ is a second-order
+differential operator, the fractional power $\beta$ determines the
+smoothness of $u$, and $\tau$ scales the variance of $u$. The simplest
+example is a model on ${\mathbb{R}}^{d}$ with $L = \kappa^{2} - \Delta$,
+which results in a Gaussian random field $u$ with a Matérn covariance
+function
+
+$$C(h) = \frac{\sigma^{2}}{2^{\nu - 1}\Gamma(\nu)}(\kappa h)^{\nu}K_{\nu}(\kappa h).$$
+
+If $2\beta$ is an integer and if the domain $\mathcal{D}$ where the
+model is defined is bounded, then $u$ can be approximated by a Gaussian
+Markov random field (GMRF) $u$ via a finite element method (FEM) for the
+SPDE. Specifically, the approximation can be written as
+
+$$u_{h}(s) = \sum\limits_{i = 1}^{n}u_{i}\varphi_{i}(s).$$
+
+Here $\{\varphi_{i}\}$ are piecewise linear basis functions defined by
+some triangulation of $\mathcal{D}$ and the vector of weights
+$u = \left( u_{1},\ldots,u_{n} \right)^{\top}$ is normally distributed,
+$N\left( u,{\widetilde{Q}}^{- 1} \right)$, where $\widetilde{Q}$ is
+sparse. See [An explicit link between Gaussian fields and Gaussian
+Markov random fields: the stochastic partial differential equation
+approach](https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x "An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach")
+for further details.
+
+The `rSPDE` package provides corresponding computationally efficient
+approximations for the case when $\beta$ is a general fractional power.
+The main idea is to combine the FEM approximation with a rational
+approximation of the fractional operator. As a result, one can easily do
+inference and prediction using fractional SPDE models such as
+
+$$\left( \kappa^{2} - \Delta \right)^{\beta}u = \mathcal{W}.$$
+
+In particular, it allows for bayesian inference of all model parameters,
+including the fractional parameter $\beta$.
+
+For illustration purposes, the package contains a simple FEM
+implementation for models on R. See the [An introduction to the rSPDE
+package](https://davidbolin.github.io/rSPDE//articles/rSPDE.html "An introduction to the rSPDE package")
+vignette for an introduction to the package. The [Rational approximation
+with the rSPDE
+package](https://davidbolin.github.io/rSPDE//articles/rspde_cov.html)
+and [Operator-based rational
+approximation](https://davidbolin.github.io/rSPDE//articles/rspde_base.html)
+vignettes provide introductions to how to create and fit `rSPDE` models.
+For an introduction to the [`R-INLA`](https://www.r-inla.org)
+implementation of the `rSPDE` models see the [R-INLA implementation of
+the rational SPDE
+approach](https://davidbolin.github.io/rSPDE//articles/rspde_inla.html "INLA vignette").
+The [`rSPDE`
+documentation](https://davidbolin.github.io/rSPDE/reference/index.html "`rSPDE` documentation.")
+contains descriptions and examples of the functions in the `rSPDE`
+package.
+
+# Installation instructions
+
+The latest CRAN release of the package can be installed directly from
+CRAN with `install.packages("rSPDE")`. The latest stable version (which
+is sometimes slightly more recent than the CRAN version), can be
+installed by using the command
+
+``` r
+remotes::install_github("davidbolin/rspde", ref = "stable")
+```
+
+in R. The development version can be installed using the command
+
+``` r
+remotes::install_github("davidbolin/rspde", ref = "devel")
+```
+
+If you want to install the package using the
+`{r}emotes::install_github`-method on Windows, you first need to install
+`Rtools` and add the paths to `Rtools` and `gcc` to the Windows `PATH`
+environment variable. This can be done for the current R session only
+using the commands
+
+``` r
+rtools = "C:\Rtools\bin"
+gcc = "C:\Rtools\gcc-4.6.3\bin"
+Sys.setenv(PATH = paste(c(gcc, rtools, Sys.getenv("PATH")), collapse = ";"))
+```
+
+where the variables `{r}tools` and `gcc` need to be changed if `Rtools`
+is not installed directly on `C:`, and `gcc`’s version might need to be
+changed depending on the version of `Rtools`.
+
+# Example with rSPDE - INLA
+
+We will illustrate the `rSPDE` package with a kriging example using our
+`R-INLA` interface to `rSPDE`.
+
+The data consist of precipitation measurements from the Paraná region in
+Brazil and were provided by the Brazilian National Water Agency. The
+data were collected at 616 gauge stations in Paraná state, south of
+Brazil, for each day in 2011. We will not analyse the full
+spatio-temporal data set, but instead look at the total precipitation in
+January
+
+For further details on the dataset and on the commands we refer the
+reader to the [rSPDE-INLA
+Vignette](https://davidbolin.github.io/rSPDE//articles/rspde_inla.html "INLA vignette").
+
+``` r
+library(rSPDE)
+library(ggplot2)
+library(INLA)
+library(splancs)
+library(viridis)
+
+#Load the data
+data(PRprec)
+data(PRborder)
+
+#Get the precipitation in January
+Y <- rowMeans(PRprec[, 3 + 1:31])
+
+#Treat the data and plot
+ind <- !is.na(Y)
+Y <- Y[ind]
+coords <- as.matrix(PRprec[ind, 1:2])
+alt <- PRprec$Altitude[ind]
+
+ggplot() +
+  geom_point(aes(
+    x = coords[, 1], y = coords[, 2],
+    colour = Y
+  ), size = 2, alpha = 1) +
+  geom_path(aes(x = PRborder[, 1], y = PRborder[, 2])) +
+  geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[
+    1034:1078,
+    2
+  ]), colour = "red") + 
+  scale_color_viridis()
+```
+
+![](reference/figures/unnamed-chunk-4-1.png)
+
+``` r
+#Get distance from the sea
+seaDist <- apply(spDists(coords, PRborder[1034:1078, ], longlat = TRUE), 1, 
+                 min)
+                 
+#Create the mesh
+library(fmesher)
+prdomain <- fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(100, 100))
+prmesh <- fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
+plot(prmesh, asp = 1, main = "")
+lines(PRborder, col = 3)
+points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
+```
+
+![](reference/figures/unnamed-chunk-5-1.png)
+
+``` r
+#Create the observation matrix
+Abar <- rspde.make.A(mesh = prmesh, loc = coords)
+
+#Create the rspde model object
+rspde_model <- rspde.matern(mesh = prmesh)
+
+#Create the index and inla.stack object
+mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
+stk.dat <- inla.stack(
+  data = list(y = Y), A = list(Abar, 1), tag = "est",
+  effects = list(
+    c(
+      mesh.index
+    ),
+    list(
+      seaDist = inla.group(seaDist),
+      Intercept = 1
+    )
+  )
+)
+                      
+#Create the formula object and fit the model
+f.s <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
+  f(field, model = rspde_model)
+  
+rspde_fit <- inla(f.s, family = "Gamma", data = inla.stack.data(stk.dat), 
+            verbose = FALSE, 
+            control.inla=list(int.strategy='eb'),
+            control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE))
+            
+summary(rspde_fit)
+```
+
+``` R
+## Time used:
+##     Pre = 0.362, Running = 3.64, Post = 0.0314, Total = 4.03 
+## Fixed effects:
+##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
+## Intercept 1.942 0.041      1.861    1.942      2.022 1.942   0
+## 
+## Random effects:
+##   Name     Model
+##     seaDist RW1 model
+##    field CGeneric
+## 
+## Model hyperparameters:
+##                                                   mean       sd 0.025quant
+## Precision-parameter for the Gamma observations   14.44    1.041     12.497
+## Precision for seaDist                          7618.27 4402.633   2442.462
+## Theta1 for field                                 -3.75    3.003    -10.756
+## Theta2 for field                                  1.95    0.665      0.926
+## Theta3 for field                                  2.03    2.607     -1.745
+##                                                0.5quant 0.975quant     mode
+## Precision-parameter for the Gamma observations    14.40   1.66e+01   14.328
+## Precision for seaDist                           6562.40   1.91e+04 4940.684
+## Theta1 for field                                  -3.33   5.89e-01   -1.202
+## Theta2 for field                                   1.87   3.47e+00    1.464
+## Theta3 for field                                   1.66   8.11e+00   -0.173
+## 
+## Marginal log-Likelihood:  -1254.85 
+##  is computed 
+## Posterior summaries for the linear predictor and the fitted values are computed
+## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
+```
+
+``` r
+result_fit <- rspde.result(rspde_fit, "field", rspde_model)
+```
+
+``` R
+## Warning in rspde.result(rspde_fit, "field", rspde_model): the mean or mode of
+## nu is very close to nu.upper.bound, please consider increasing nu.upper.bound,
+## and refitting the model.
+```
+
+``` r
+summary(result_fit)
+```
+
+``` R
+##          mean       sd  0.025quant  0.5quant 0.975quant        mode
+## tau   0.25552 0.571513 2.33011e-05 0.0396163    1.79758 7.36355e-08
+## kappa 9.01176 8.292800 2.54662e+00 6.3537200   31.60780 3.78503e+00
+## nu    1.44623 0.554217 2.98411e-01 1.6577900    1.99934 1.99999e+00
+```
+
+``` r
+#Plot the posterior densities
+posterior_df_fit <- gg_df(result_fit)
+
+ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
+```
+
+![](reference/figures/unnamed-chunk-8-1.png)
+
+``` r
+#Create a grid to predict
+nxy <- c(150, 100)
+projgrid <- rspde.mesh.projector(prmesh,
+  xlim = range(PRborder[, 1]),
+  ylim = range(PRborder[, 2]), dims = nxy
+)
+xy.in <- inout(projgrid$lattice$loc, cbind(PRborder[, 1], PRborder[, 2]))
+coord.prd <- projgrid$lattice$loc[xy.in, ]
+
+#Compute A matrix and seaDist at predict locations and build the stack
+A.prd <- projgrid$proj$A[xy.in, ]
+seaDist.prd <- apply(spDists(coord.prd, 
+    PRborder[1034:1078, ], longlat = TRUE), 1, min)
+ef.prd = list(c(mesh.index), 
+    list(long = inla.group(coord.prd[, 
+    1]), lat = inla.group(coord.prd[, 2]), 
+    seaDist = inla.group(seaDist.prd),
+    Intercept = 1))
+stk.prd <- inla.stack(data = list(y = NA), 
+    A = list(A.prd, 1), tag = "prd", 
+    effects = ef.prd)
+stk.all <- inla.stack(stk.dat, stk.prd)
+
+rspde_fitprd <- inla(f.s,
+  family = "Gamma",
+  data = inla.stack.data(stk.all),
+  control.predictor = list(
+    A = inla.stack.A(stk.all),
+    compute = TRUE, link = 1
+  ),
+  control.compute = list(
+    return.marginals = FALSE,
+    return.marginals.predictor = FALSE
+  ),
+  control.inla = list(int.strategy = "eb")
+)
+
+id.prd <- inla.stack.index(stk.all, "prd")$data
+m.prd <- rspde_fitprd$summary.fitted.values$mean[id.prd]
+sd.prd <- rspde_fitprd$summary.fitted.values$sd[id.prd]
+
+#Plot the predictions
+pred_df <- data.frame(x1 = coord.prd[,1],
+                      x2 = coord.prd[,2],
+                      mean = m.prd,
+                      sd = sd.prd)
+
+ggplot(pred_df, aes(x = x1, y = x2, fill = mean)) +
+  geom_raster() +
+  scale_fill_viridis()
+```
+
+![](reference/figures/unnamed-chunk-9-1.png)
+
+Then, the std. deviations:
+
+``` r
+ggplot(pred_df, aes(x = x1, y = x2, fill = sd)) +
+  geom_raster() + scale_fill_viridis()
+```
+
+![](reference/figures/unnamed-chunk-10-1.png)
+
+# Example with rSPDE - inlabru
+
+We will now illustrate the `rSPDE` the same kriging example above with
+our `inlabru` interface to `rSPDE`. We will make this description
+self-contained, so we will not use any information or codes from the
+example above.
+
+The data consist of precipitation measurements from the Paraná region in
+Brazil and were provided by the Brazilian National Water Agency. The
+data were collected at 616 gauge stations in Paraná state, south of
+Brazil, for each day in 2011. We will not analyse the full
+spatio-temporal data set, but instead look at the total precipitation in
+January
+
+For further details on the dataset and on the commands we refer the
+reader to the [rSPDE-inlabru
+Vignette](https://davidbolin.github.io/rSPDE//articles/rspde_inlabru.html "inlabru vignette").
+
+``` r
+library(rSPDE)
+library(ggplot2)
+library(INLA)
+library(inlabru)
+library(splancs)
+
+#Load the data
+data(PRprec)
+data(PRborder)
+
+#Get the precipitation in January
+Y <- rowMeans(PRprec[, 3 + 1:31])
+
+#Treat the data and plot
+ind <- !is.na(Y)
+Y <- Y[ind]
+coords <- as.matrix(PRprec[ind, 1:2])
+alt <- PRprec$Altitude[ind]
+
+ggplot() +
+  geom_point(aes(
+    x = coords[, 1], y = coords[, 2],
+    colour = Y
+  ), size = 2, alpha = 1) +
+  geom_path(aes(x = PRborder[, 1], y = PRborder[, 2])) +
+  geom_path(aes(x = PRborder[1034:1078, 1], y = PRborder[
+    1034:1078,
+    2
+  ]), colour = "red") + 
+  scale_color_viridis()
+```
+
+![](reference/figures/unnamed-chunk-11-1.png)
+
+``` r
+#Get distance from the sea
+seaDist <- apply(spDists(coords, PRborder[1034:1078, ], longlat = TRUE), 1, 
+                 min)
+                 
+#Create the mesh
+library(fmesher)
+prdomain <- fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(100, 100))
+prmesh <- fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
+plot(prmesh, asp = 1, main = "")
+lines(PRborder, col = 3)
+points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
+```
+
+![](reference/figures/unnamed-chunk-12-1.png)
+
+``` r
+library(sf)
+```
+
+``` R
+## Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.4.0; sf_use_s2() is TRUE
+```
+
+``` r
+#Create the rspde model object
+rspde_model <- rspde.matern(mesh = prmesh)
+
+#Create the data.frame
+prdata <- data.frame(long = coords[,1], lat = coords[,2], 
+                        seaDist = inla.group(seaDist), y = Y)
+                      
+prdata <- st_as_sf(prdata, coords = c("long", "lat"), crs = 4326)                      
+#Create the component
+
+cmp <- y ~ Intercept(1) + distSea(seaDist, model="rw1") +
+field(geometry, model = rspde_model)
+
+# Fit the model
+  
+rspde_fit <- bru(cmp, family = "Gamma", 
+            data = prdata,
+            options = list(
+            verbose = FALSE, 
+            control.inla=list(int.strategy='eb'),
+            control.predictor = list(compute = TRUE))
+)
+            
+summary(rspde_fit)
+```
+
+``` R
+## inlabru version: 2.13.0
+## INLA version: 26.01.26-1
+## Components:
+## Intercept: main = linear(1), group = exchangeable(1L), replicate = iid(1L), NULL
+## distSea: main = rw1(seaDist), group = exchangeable(1L), replicate = iid(1L), NULL
+## field: main = cgeneric(geometry), group = exchangeable(1L), replicate = iid(1L), NULL
+## Observation models:
+##   Family: 'Gamma'
+##     Tag: <No tag>
+##     Data class: 'sf', 'data.frame'
+##     Response class: 'numeric'
+##     Predictor: y ~ .
+##     Additive/Linear: TRUE/TRUE
+##     Used components: effects[Intercept, distSea, field], latent[]
+## Time used:
+##     Pre = 0.18, Running = 3, Post = 0.0449, Total = 3.22 
+## Fixed effects:
+##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
+## Intercept 1.941 0.042      1.859    1.941      2.023 1.941   0
+## 
+## Random effects:
+##   Name     Model
+##     distSea RW1 model
+##    field CGeneric
+## 
+## Model hyperparameters:
+##                                                   mean       sd 0.025quant
+## Precision-parameter for the Gamma observations   14.43    1.038     12.486
+## Precision for distSea                          7531.38 4171.224   2348.542
+## Theta1 for field                                 -2.34    1.943     -6.768
+## Theta2 for field                                  1.67    0.495      0.849
+## Theta3 for field                                  0.86    1.742     -1.858
+##                                                0.5quant 0.975quant     mode
+## Precision-parameter for the Gamma observations   14.391   1.66e+01   14.323
+## Precision for distSea                          6596.026   1.82e+04 5043.069
+## Theta1 for field                                 -2.109   6.87e-01   -1.001
+## Theta2 for field                                  1.631   2.77e+00    1.420
+## Theta3 for field                                  0.656   4.83e+00   -0.326
+## 
+## Marginal log-Likelihood:  -1255.13 
+##  is computed 
+## Posterior summaries for the linear predictor and the fitted values are computed
+## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
+```
+
+``` r
+#Get the summary on the user's scale
+result_fit <- rspde.result(rspde_fit, "field", rspde_model)
+```
+
+``` R
+## Warning in rspde.result(rspde_fit, "field", rspde_model): the mean or mode of
+## nu is very close to nu.upper.bound, please consider increasing nu.upper.bound,
+## and refitting the model.
+```
+
+``` r
+summary(result_fit)
+```
+
+``` R
+##           mean       sd 0.025quant 0.5quant 0.975quant        mode
+## tau   0.347033 0.584006 0.00121506 0.127991    1.95048 0.000233595
+## kappa 6.057820 3.571110 2.34601000 5.032290   15.69500 3.658000000
+## nu    1.242710 0.537696 0.27388200 1.295040    1.98329 1.991860000
+```
+
+``` r
+#Plot the posterior densities
+posterior_df_fit <- gg_df(result_fit)
+
+ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
+facet_wrap(~parameter, scales = "free") + labs(y = "Density")
+```
+
+![](reference/figures/unnamed-chunk-14-1.png)
+
+``` r
+#Create a grid to predict
+nxy <- c(150, 100)
+projgrid <- rspde.mesh.projector(prmesh, xlim = range(PRborder[, 1]), 
+ylim = range(PRborder[,2]), dims = nxy)
+xy.in <- inout(projgrid$lattice$loc, cbind(PRborder[, 1], PRborder[, 2]))
+coord.prd <- projgrid$lattice$loc[xy.in, ]
+
+#Compute seaDist at predict locations 
+seaDist.prd <- apply(spDists(coord.prd, 
+    PRborder[1034:1078, ], longlat = TRUE), 1, min)
+
+# Build the prediction data.frame()
+coord.prd.df <- data.frame(long = coord.prd[,1],
+                            lat = coord.prd[,2])
+
+coord.prd.df$seaDist <- seaDist.prd
+
+coord.prd.df <- st_as_sf(coord.prd.df, coords = c("long", "lat"), 
+                        crs = 4326)
+
+# Obtain prediction at the locations
+pred_obs <- predict(rspde_fit, coord.prd.df, 
+        ~exp(Intercept + field + distSea))
+```
+
+Finally, we plot the results. First the predicted mean:
+
+``` r
+ggplot() + gg(pred_obs, geom = "tile", 
+          aes(fill = mean)) +
+  scale_fill_viridis()
+```
+
+![](reference/figures/unnamed-chunk-16-1.png)
+
+Then, the std. deviations:
+
+``` r
+ggplot() + gg(pred_obs, geom = "tile", aes(fill = sd)) +
+  geom_raster() + scale_fill_viridis()
+```
+
+![](reference/figures/unnamed-chunk-17-1.png)
+
+# Package index
+
+## rSPDE package
+
+- [`rSPDE`](https://davidbolin.github.io/rSPDE/reference/rSPDE-package.md)
+  [`rSPDE-package`](https://davidbolin.github.io/rSPDE/reference/rSPDE-package.md)
+  : Rational approximations of fractional SPDEs.
+
+## rSPDE models
+
+- [`rspde.matern()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.md)
+  : Matern rSPDE model object for INLA
+- [`rspde.metric_graph()`](https://davidbolin.github.io/rSPDE/reference/rspde.metric_graph.md)
+  : Matern rSPDE model object for metric graphs in INLA
+- [`rspde.spacetime()`](https://davidbolin.github.io/rSPDE/reference/rspde.spacetime.md)
+  : Space-Time Random Fields via SPDE Approximation
+- [`rspde.anistropic2d()`](https://davidbolin.github.io/rSPDE/reference/rspde.anistropic2d.md)
+  : Rational approximations of stationary anisotropic Gaussian Matern
+  random fields
+- [`rspde.matern1d()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern1d.md)
+  : Matern rSPDE model object for INLA
+- [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md)
+  : Rational approximations of stationary Gaussian Matern random fields
+- [`matern2d.operators()`](https://davidbolin.github.io/rSPDE/reference/matern2d.operators.md)
+  : Rational approximations of stationary anisotropic Gaussian Matern
+  random fields
+- [`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md)
+  : Rational approximations of non-stationary Gaussian SPDE Matern
+  random fields
+- [`fractional.operators()`](https://davidbolin.github.io/rSPDE/reference/fractional.operators.md)
+  : Rational approximations of fractional operators
+- [`matern.rational()`](https://davidbolin.github.io/rSPDE/reference/matern.rational.md)
+  : Rational approximation of the Matern fields on intervals and metric
+  graphs
+- [`spacetime.operators()`](https://davidbolin.github.io/rSPDE/reference/spacetime.operators.md)
+  : Space-time random fields
+
+## Linear mixed-effects models
+
+- [`rspde_lme()`](https://davidbolin.github.io/rSPDE/reference/rspde_lme.md)
+  : rSPDE linear mixed effects models
+
+- [`predict(`*`<rspde_lme>`*`)`](https://davidbolin.github.io/rSPDE/reference/predict.rspde_lme.md)
+  : Prediction of a mixed effects regression model on a metric graph.
+
+- [`summary(`*`<rspde_lme>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.rspde_lme.md)
+  :
+
+  Summary Method for `rspde_lme` Objects.
+
+- [`glance(`*`<rspde_lme>`*`)`](https://davidbolin.github.io/rSPDE/reference/glance.rspde_lme.md)
+  :
+
+  Glance at an `rspde_lme` object
+
+- [`augment(`*`<rspde_lme>`*`)`](https://davidbolin.github.io/rSPDE/reference/augment.rspde_lme.md)
+  :
+
+  Augment data with information from a `rspde_lme` object
+
+## Intrinsic models
+
+- [`intrinsic.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/intrinsic.matern.operators.md)
+  : Covariance-based approximations of intrinsic fields
+- [`intrinsic.operators()`](https://davidbolin.github.io/rSPDE/reference/intrinsic.operators.md)
+  : Covariance-based approximations of intrinsic fields
+- [`variogram.intrinsic.spde()`](https://davidbolin.github.io/rSPDE/reference/variogram.intrinsic.spde.md)
+  : Variogram of intrinsic SPDE model
+- [`rspde.intrinsic.matern()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.intrinsic.md)
+  : Intrinsic Matern rSPDE model object for INLA
+- [`rspde.intrinsic()`](https://davidbolin.github.io/rSPDE/reference/rspde.intrinsic.md)
+  : Rational approximations of fractional intrinsic fields
+- [`simulate(`*`<intrinsicCBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/simulate.intrinsicCBrSPDEobj.md)
+  : Simulation of a fractional intrinsic SPDE using the covariance-based
+  rational SPDE approximation
+
+## Log-likelihood
+
+- [`rSPDE.matern.loglike()`](https://davidbolin.github.io/rSPDE/reference/rSPDE.matern.loglike.md)
+  : Object-based log-likelihood function for latent Gaussian fractional
+  SPDE model using the rational approximations
+- [`rSPDE.loglike()`](https://davidbolin.github.io/rSPDE/reference/rSPDE.loglike.md)
+  : Object-based log-likelihood function for latent Gaussian fractional
+  SPDE model
+- [`spde.matern.loglike()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.loglike.md)
+  : Parameter-based log-likelihood for a latent Gaussian Matern SPDE
+  model using a rational SPDE approximation
+- [`rSPDE.construct.matern.loglike()`](https://davidbolin.github.io/rSPDE/reference/rSPDE.construct.matern.loglike.md)
+  : Constructor of Matern loglikelihood functions.
+- [`construct.spde.matern.loglike()`](https://davidbolin.github.io/rSPDE/reference/construct.spde.matern.loglike.md)
+  : Constructor of Matern loglikelihood functions for non-stationary
+  models.
+
+## Computation of precision matrices
+
+- [`rspde.matern.precision()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.precision.md)
+  : Precision matrix of the covariance-based rational approximation of
+  stationary Gaussian Matern random fields
+- [`rspde.matern.precision.integer()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.precision.integer.md)
+  : Precision matrix of stationary Gaussian Matern random fields with
+  integer covariance exponent
+
+## Methods for rSPDE, CBrSPDE and spacetime objects
+
+- [`predict(`*`<rSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/predict.rSPDEobj.md)
+  : Prediction of a fractional SPDE using a rational SPDE approximation
+- [`simulate(`*`<rSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/simulate.rSPDEobj.md)
+  : Simulation of a fractional SPDE using a rational SPDE approximation
+- [`summary(`*`<rSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.rSPDEobj.md)
+  [`print(`*`<summary.rSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.rSPDEobj.md)
+  [`print(`*`<rSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.rSPDEobj.md)
+  : Summarise rSPDE objects
+- [`update(`*`<rSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/update.rSPDEobj.md)
+  : Update parameters of rSPDEobj objects
+- [`predict(`*`<CBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/predict.CBrSPDEobj.md)
+  : Prediction of a fractional SPDE using the covariance-based rational
+  SPDE approximation
+- [`simulate(`*`<CBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/simulate.CBrSPDEobj.md)
+  : Simulation of a fractional SPDE using the covariance-based rational
+  SPDE approximation
+- [`summary(`*`<CBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.CBrSPDEobj.md)
+  [`print(`*`<summary.CBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.CBrSPDEobj.md)
+  [`print(`*`<CBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.CBrSPDEobj.md)
+  : Summarise CBrSPDE objects
+- [`update(`*`<CBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/update.CBrSPDEobj.md)
+  : Update parameters of CBrSPDEobj objects
+- [`precision()`](https://davidbolin.github.io/rSPDE/reference/precision.CBrSPDEobj.md)
+  : Get the precision matrix of CBrSPDEobj objects
+- [`predict(`*`<CBrSPDEobj2d>`*`)`](https://davidbolin.github.io/rSPDE/reference/predict.CBrSPDEobj2d.md)
+  : Prediction of an anisotropic Whittle-Matern field
+- [`simulate(`*`<CBrSPDEobj2d>`*`)`](https://davidbolin.github.io/rSPDE/reference/simulate.CBrSPDEobj2d.md)
+  : Simulation of a fractional SPDE using the covariance-based rational
+  SPDE approximation
+- [`summary(`*`<CBrSPDEobj2d>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.CBrSPDEobj2d.md)
+  [`print(`*`<summary.CBrSPDEobj2d>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.CBrSPDEobj2d.md)
+  [`print(`*`<CBrSPDEobj2d>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.CBrSPDEobj2d.md)
+  : Summarise CBrSPDEobj2d objects
+- [`update(`*`<CBrSPDEobj2d>`*`)`](https://davidbolin.github.io/rSPDE/reference/update.CBrSPDEobj2d.md)
+  : Update parameters of CBrSPDEobj2d objects
+- [`precision(`*`<CBrSPDEobj2d>`*`)`](https://davidbolin.github.io/rSPDE/reference/precision.CBrSPDEobj2d.md)
+  : Get the precision matrix of CBrSPDEobj2d objects
+- [`simulate(`*`<rSPDEobj1d>`*`)`](https://davidbolin.github.io/rSPDE/reference/simulate.rSPDEobj1d.md)
+  : Simulation of a Matern field using a rational SPDE approximation
+- [`summary(`*`<rSPDEobj1d>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.rSPDEobj1d.md)
+  [`print(`*`<summary.rSPDEobj1d>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.rSPDEobj1d.md)
+  [`print(`*`<rSPDEobj1d>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.rSPDEobj1d.md)
+  : Summarise rSPDE objects without FEM
+- [`update(`*`<rSPDEobj1d>`*`)`](https://davidbolin.github.io/rSPDE/reference/update.rSPDEobj1d.md)
+  : Update parameters of rSPDEobj1d objects
+- [`precision(`*`<rSPDEobj1d>`*`)`](https://davidbolin.github.io/rSPDE/reference/precision.rSPDEobj1d.md)
+  : Get the precision matrix of rSPDEobj1d objects
+- [`precision(`*`<spacetimeobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/precision.spacetimeobj.md)
+  : Get the precision matrix of spacetimeobj objects
+- [`predict(`*`<spacetimeobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/predict.spacetimeobj.md)
+  : Prediction of a space-time SPDE
+- [`simulate(`*`<spacetimeobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/simulate.spacetimeobj.md)
+  : Simulation of space-time models
+- [`update(`*`<spacetimeobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/update.spacetimeobj.md)
+  : Update parameters of spacetimeobj objects
+- [`summary(`*`<spacetimeobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.spacetimeobj.md)
+  [`print(`*`<summary.spacetimeobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.spacetimeobj.md)
+  [`print(`*`<spacetimeobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.spacetimeobj.md)
+  : Summarise spacetime objects
+- [`precision(`*`<intrinsicCBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/precision.intrinsicCBrSPDEobj.md)
+  : Get the precision matrix of intrinsicCBrSPDEobj objects
+- [`predict(`*`<intrinsicCBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/predict.intrinsicCBrSPDEobj.md)
+  : Prediction of an intrinsic Whittle-Matern model
+- [`summary(`*`<intrinsicCBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.intrinsicCBrSPDEobj.md)
+  [`print(`*`<summary.intrinsicCBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.intrinsicCBrSPDEobj.md)
+  [`print(`*`<intrinsicCBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.intrinsicCBrSPDEobj.md)
+  : Summary method for class "intrinsicCBrSPDEobj"
+- [`update(`*`<intrinsicCBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/update.intrinsicCBrSPDEobj.md)
+  : Update parameters of intrinsicCBrSPDEobj objects
+
+## Functions and methods for R-INLA rSPDE objects
+
+- [`rspde.make.A()`](https://davidbolin.github.io/rSPDE/reference/rspde.make.A.md)
+  : Observation/prediction matrices for rSPDE models.
+
+- [`spde.make.A()`](https://davidbolin.github.io/rSPDE/reference/spde.make.A.md)
+  : Observation/prediction matrices for rSPDE models with integer
+  smoothness.
+
+- [`rspde.make.index()`](https://davidbolin.github.io/rSPDE/reference/rspde.make.index.md)
+  : rSPDE model index vector generation
+
+- [`graph_data_rspde()`](https://davidbolin.github.io/rSPDE/reference/graph_data_rspde.md)
+  : Data extraction from metric graphs for 'rSPDE' models
+
+- [`rspde.mesh.project()`](https://davidbolin.github.io/rSPDE/reference/rspde.mesh.project.md)
+  [`rspde.mesh.projector()`](https://davidbolin.github.io/rSPDE/reference/rspde.mesh.project.md)
+  :
+
+  Calculate a lattice projection to/from an `inla.mesh` for rSPDE
+  objects
+
+- [`rspde.result()`](https://davidbolin.github.io/rSPDE/reference/rspde.result.md)
+  : rSPDE result extraction from INLA estimation results
+
+- [`summary(`*`<rspde_result>`*`)`](https://davidbolin.github.io/rSPDE/reference/summary.rspde_result.md)
+  :
+
+  Summary for posteriors of field parameters for an `inla_rspde` model
+  from a `rspde_result` object
+
+- [`precision(`*`<inla_rspde>`*`)`](https://davidbolin.github.io/rSPDE/reference/precision.inla_rspde.md)
+  :
+
+  Get the precision matrix of `inla_rspde` objects
+
+- [`gg_df()`](https://davidbolin.github.io/rSPDE/reference/gg_df.md) :
+  Data frame for result objects from R-INLA fitted models to be used in
+  ggplot2
+
+- [`gg_df(`*`<rspde_result>`*`)`](https://davidbolin.github.io/rSPDE/reference/gg_df.rspde_result.md)
+  : Data frame for rspde_result objects to be used in ggplot2
+
+## Functions and methods for rSPDE interface for inlabru
+
+- [`cross_validation()`](https://davidbolin.github.io/rSPDE/reference/cross_validation.md)
+  : Perform cross-validation on a list of fitted models.
+- [`predict(`*`<inla_rspde_matern1d>`*`)`](https://davidbolin.github.io/rSPDE/reference/predict.inla_rspde_matern1d.md)
+  : Predict method for 'inlabru' stationary Matern 1d models
+- [`ibm_n.bru_mapper_inla_rspde_fintrinsic()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  [`ibm_values.bru_mapper_inla_rspde_fintrinsic()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  [`ibm_jacobian.bru_mapper_inla_rspde_fintrinsic()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  [`bru_get_mapper.inla_rspde()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  [`ibm_n.bru_mapper_inla_rspde()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  [`ibm_values.bru_mapper_inla_rspde()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  [`ibm_jacobian.bru_mapper_inla_rspde()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  : rSPDE inlabru mapper
+- [`bru_get_mapper.inla_rspde_spacetime()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_spacetime.md)
+  : rSPDE space time inlabru mapper
+- [`bru_get_mapper.inla_rspde_anisotropic2d()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_anisotropic2d.md)
+  : rSPDE anisotropic inlabru mapper
+- [`bru_get_mapper.inla_rspde_matern1d()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_matern1d.md)
+  [`ibm_n.bru_mapper_inla_rspde_matern1d()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_matern1d.md)
+  [`ibm_values.bru_mapper_inla_rspde_matern1d()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_matern1d.md)
+  [`ibm_jacobian.bru_mapper_inla_rspde_matern1d()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_matern1d.md)
+  : rSPDE stationary inlabru mapper
+- [`bru_get_mapper.inla_rspde_fintrinsic()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_fintrinsic.md)
+  : rSPDE inlabru mapper
+- [`bru_get_mapper.intrinsic_matern()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.intrinsic_matern.md)
+  [`ibm_n.bru_mapper_intrinsic_matern()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.intrinsic_matern.md)
+  [`ibm_values.bru_mapper_intrinsic_matern()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.intrinsic_matern.md)
+  [`ibm_jacobian.bru_mapper_intrinsic_matern()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.intrinsic_matern.md)
+  : rSPDE inlabru mapper
+
+## Finite element-related functions
+
+- [`rSPDE.A1d()`](https://davidbolin.github.io/rSPDE/reference/rSPDE.A1d.md)
+  : Observation matrix for finite element discretization on R
+- [`rSPDE.fem1d()`](https://davidbolin.github.io/rSPDE/reference/rSPDE.fem1d.md)
+  : Finite element calculations for problems on R
+- [`rSPDE.fem2d()`](https://davidbolin.github.io/rSPDE/reference/rSPDE.fem2d.md)
+  : Finite element calculations for problems in 2D
+- [`rSPDE.Ast()`](https://davidbolin.github.io/rSPDE/reference/rSPDE.Ast.md)
+  : Observation matrix for space-time models
+
+## Auxiliary functions
+
+- [`create_train_test_indices()`](https://davidbolin.github.io/rSPDE/reference/create_train_test_indices.md)
+  : Create train and test splits for cross-validation
+- [`get.initial.values.rSPDE()`](https://davidbolin.github.io/rSPDE/reference/get.initial.values.rSPDE.md)
+  : Initial values for log-likelihood optimization in rSPDE models with
+  a latent stationary Gaussian Matern model
+- [`require.nowarnings()`](https://davidbolin.github.io/rSPDE/reference/require.nowarnings.md)
+  : Warnings free loading of add-on packages
+- [`matern.covariance()`](https://davidbolin.github.io/rSPDE/reference/matern.covariance.md)
+  : The Matern covariance function
+- [`matern.rational.cov()`](https://davidbolin.github.io/rSPDE/reference/matern.rational.cov.md)
+  : Rational approximation of the Matern covariance
+- [`folded.matern.covariance.1d()`](https://davidbolin.github.io/rSPDE/reference/folded.matern.covariance.1d.md)
+  : The 1d folded Matern covariance function
+- [`folded.matern.covariance.2d()`](https://davidbolin.github.io/rSPDE/reference/folded.matern.covariance.2d.md)
+  : The 2d folded Matern covariance function
+- [`rspde.matern.precision.opt()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.precision.opt.md)
+  : Optimized precision matrix of the covariance-based rational
+  approximation
+- [`rspde.matern.precision.integer.opt()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.precision.integer.opt.md)
+  : Optimized precision matrix of stationary Gaussian Matern random
+  fields with integer covariance exponent
+- [`` `rational.order<-`() ``](https://davidbolin.github.io/rSPDE/reference/rational.order-set.md)
+  : Changing the order of the rational approximation
+- [`` `rational.type<-`() ``](https://davidbolin.github.io/rSPDE/reference/rational.type-set.md)
+  : Changing the type of the rational approximation
+- [`rational.order()`](https://davidbolin.github.io/rSPDE/reference/rational.order.md)
+  : Get the order of rational approximation.
+- [`rational.type()`](https://davidbolin.github.io/rSPDE/reference/rational.type.md)
+  : Get type of rational approximation.
+- [`transform_parameters_anisotropic()`](https://davidbolin.github.io/rSPDE/reference/transform_parameters_anisotropic.md)
+  : Transform Anisotropic SPDE Model Parameters to Original Scale
+- [`transform_parameters_spacetime()`](https://davidbolin.github.io/rSPDE/reference/transform_parameters_spacetime.md)
+  : Transform Spacetime SPDE Model Parameters to Original Scale
+- [`cov_function_mesh()`](https://davidbolin.github.io/rSPDE/reference/cov_function_mesh.md)
+  : Covariance between mesh nodes and locations
+- [`covariance_mesh()`](https://davidbolin.github.io/rSPDE/reference/covariance_mesh.md)
+  : Covariance between mesh nodes
+- [`make_A()`](https://davidbolin.github.io/rSPDE/reference/make_A.md) :
+  Projection matrix for model objects
+
+## Operator operations
+
+- [`Pr.mult()`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md)
+  [`Pr.solve()`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md)
+  [`Pl.mult()`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md)
+  [`Pl.solve()`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md)
+  [`Q.mult()`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md)
+  [`Q.solve()`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md)
+  [`Qsqrt.mult()`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md)
+  [`Qsqrt.solve()`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md)
+  [`Sigma.mult()`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md)
+  [`Sigma.solve()`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md)
+  : Operations with the Pr and Pl operators
+
+# Articles
+
+### All vignettes
+
+- [Anisotropic
+  models](https://davidbolin.github.io/rSPDE/articles/anisotropic.md):
+- [Building the rSPDE package from source on Mac and
+  Linux](https://davidbolin.github.io/rSPDE/articles/build_source.md):
+- [Intrinsic models in the rSPDE
+  package](https://davidbolin.github.io/rSPDE/articles/intrinsic.md):
+- [Operator-based rational
+  approximation](https://davidbolin.github.io/rSPDE/articles/rspde_base.md):
+- [Rational approximation with the rSPDE
+  package](https://davidbolin.github.io/rSPDE/articles/rspde_cov.md):
+- [R-INLA implementation of the rational SPDE
+  approach](https://davidbolin.github.io/rSPDE/articles/rspde_inla.md):
+- [inlabru implementation of the rational SPDE
+  approach](https://davidbolin.github.io/rSPDE/articles/rspde_inlabru.md):
+- [Rational approximations without finite element
+  approximations](https://davidbolin.github.io/rSPDE/articles/rspde_nofem.md):
+- [rSPDE vs exact Matern covariance: timing and
+  memory](https://davidbolin.github.io/rSPDE/articles/rspde_vs_exact.md):
+- [An introduction to the rSPDE
+  package](https://davidbolin.github.io/rSPDE/articles/rSPDE.md):
+- [Spatio-temporal
+  models](https://davidbolin.github.io/rSPDE/articles/spacetime.md):

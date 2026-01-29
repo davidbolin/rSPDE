@@ -1,0 +1,798 @@
+# Operator-based rational approximation
+
+## Introduction
+
+Several popular Gaussian random field models can be represented as
+solutions to stochastic partial differential equations (SPDEs) of the
+form $$L^{\beta}(\tau u) = \mathcal{W}.$$
+
+Here $\mathcal{W}$ is Gaussian white noise, $L$ is a second-order
+differential operator, the fractional power $\beta > 0$ determines the
+smoothness of $u$, and $\tau > 0$ scales the variance of $u$.
+
+If $2\beta$ is an integer and if the domain $\mathcal{D}$ where the
+model is defined is bounded, then $u$ can be approximated by a Gaussian
+Markov random field (GMRF) $u$ via a finite element method (FEM) for the
+SPDE. Specifically, the approximation can be written as
+$$u_{h}(s) = \sum\limits_{i = 1}^{n}u_{i}\varphi_{i}(s).$$ Here
+$\{\varphi_{i}\}$ are piecewise linear basis functions defined by some
+triangulation of $\mathcal{D}$ and the vector of weights
+$u = \left( u_{1},\ldots,u_{n} \right)^{T}$ is normally distributed,
+$N\left( u,{\widetilde{Q}}^{- 1} \right)$, where $\widetilde{Q}$ is
+sparse. See [Lindgren, Rue, and Lindström
+(2011)](https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x)
+for further details.
+
+In this vignette we focus on the operator-based rational approximation.
+This approach, introduced by [Bolin and Kirchner
+(2020)](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537),
+results in an approximation of the original SPDE which is of the form
+$P_{l}x = P_{r}\mathcal{W}$, where $P_{l}$ and $P_{r}$ are
+non-fractional operators defined in terms of polynomials $p_{l}$ and
+$p_{r}$. The order of $p_{r}$ is given by $m$ and the order of $p_{l}$
+is $m + m_{\beta}$ where $m_{\beta}$ is the integer part of $\beta$ if
+$\beta > 1$ and $m_{\beta} = 1$ otherwise.
+
+The combination of the rational approximation of the operator with the
+FEM discretization yields an approximation $u_{h}$ of $u$ on the basis
+expansion form above. The difference to the non-fractional case is that
+the vector of stochastic weights now is
+$u \sim N\left( 0,P_{r}Q^{- 1}P_{r}^{T} \right)$ where $Q$ and $P_{r}$
+are sparse matrices. Alternatively, $u$ can be represented as
+$u = P_{r}x$ where $x \sim N\left( 0,Q^{- 1} \right)$, which means that
+the discrete approximation is a latent GMRF. This can be used for
+computationally efficient inference and simulation. See [Bolin and
+Kirchner
+(2020)](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537)
+for further details.
+
+## Using the package to perform operator-based rational approximations
+
+The main purpose of the `rSPDE` package is to provide functions for
+creating the rational approximation. In this vignette we focus on the
+operator-based rational approximation, which means assembling the
+matrices $Q$ and $P_{r}$. There are three functions for computing the
+rational approximation. The most general function is
+[`fractional.operators()`](https://davidbolin.github.io/rSPDE/reference/fractional.operators.md),
+which works for a wide class of models with a general differential
+operator $L$. For the stationary Matérn case, where
+$L = \kappa^{2} - \Delta$, the function
+[`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md)
+provides a simplified model specification. For the generalized
+non-stationary Matérn model, defined through the SPDE
+$$\left( \kappa(s)^{2} - \Delta \right)^{\beta}\left( \tau(s)u(s) \right) = \mathcal{W},$$
+the function
+[`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md)
+can be used.
+
+For the alternative covariance-based rational approximation, we refer
+the reader to the [Rational approximation with the rSPDE
+package](https://davidbolin.github.io/rSPDE/articles/rspde_cov.md)
+vignette. It is worth noting that the covariance-based rational
+approximation only applies to fractional SPDE models with Gaussian
+noise, whereas the operator-based rational approximation can be used for
+more general models such as the models driven by type-G Lévy noise
+considered in [Wallin and Bolin
+(2015)](https://onlinelibrary.wiley.com/doi/full/10.1111/sjos.12141),
+[Bolin
+(2013)](https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12046), and
+[Asar et al.
+(2020)](https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12405).
+
+Once the approximation has been constructed, it can be included manually
+in statistical models just as for the non-fractional case. The package
+has some built-in functions for basic use of the approximation, such as
+[`simulate()`](https://rdrr.io/r/stats/simulate.html) which can be
+applied for simulation of the field. There are also functions for
+likelihood evaluation and kriging prediction for geostatistical models
+with Gaussian measurement noise. In the following sections, we
+illustrate the usage of these functions.
+
+### Constructing the approximation
+
+In this section, we explain how the different main functions can be used
+for constructing the rational approximation. The first step for
+constructing the rational SPDE approximation is to define the FEM mesh.
+In this section, we use the simple FEM implementation in the `rSPDE`
+package for models defined on an interval.
+
+Assume that we want to define a model on the interval
+$\lbrack 0,1\rbrack$. We then start by defining a vector with mesh nodes
+$s_{i}$ where the basis functions $\varphi_{i}$ are centered.
+
+``` r
+s <- seq(from = 0, to = 1, length.out = 101)
+```
+
+Based on these nodes, we use (implicitly) the built-in function
+[`rSPDE.fem1d()`](https://davidbolin.github.io/rSPDE/reference/rSPDE.fem1d.md)
+to assemble two matrices needed for creating the approximation of a
+basic Matérn model. These matrices are the mass matrix $C$, with
+elements $C_{ij} = \int\varphi_{j}(s)\varphi_{i}(s)ds$, and the
+stiffness matrix $G$, with elements
+$G_{ij} = \int\nabla\varphi_{j}(s) \cdot \nabla\varphi_{i}(s)ds$.
+
+We can now use
+[`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md)
+to construct a rational SPDE approximation of degree $m = 1$ for a
+Gaussian random field with a Matérn covariance function on the interval.
+Since we are using the operator-based approximation, we must set `type`
+to `"operator"`.
+
+``` r
+kappa <- 20
+sigma <- 2
+nu <- 0.8
+r <- sqrt(8*nu)/kappa
+op <- matern.operators( sigma = sigma, 
+  range = r,
+  nu = nu,
+  loc_mesh = s, d = 1, m = 1,
+  type = "operator",
+  parameterization = "matern"
+)
+```
+
+The object `op` contains the matrices needed for evaluating the
+distribution of the stochastic weights $u$. If we want to evaluate
+$u_{h}(s)$ at some locations $s_{1},\ldots,s_{n}$, we need to multiply
+the weights with the basis functions $\varphi_{i}(s)$ evaluated at the
+locations. For this, we can construct the observation matrix $A$ with
+elements $A_{ij} = \varphi_{j}\left( s_{i} \right)$, which links the FEM
+basis functions to the locations. This matrix can be constructed using
+the function
+[`rSPDE.A1d()`](https://davidbolin.github.io/rSPDE/reference/rSPDE.A1d.md).
+
+To evaluate the accuracy of the approximation, let us compute the
+covariance function between the process at $s = 0.5$ and all other
+locations in `s` and compare with the true covariance function, which is
+the folded Matérn covariance, see Theorem 1 in [An explicit link between
+Gaussian fields and Gaussian Markov random fields: the stochastic
+partial differential equation
+approach](https://www.jstor.org/stable/41262260). The covariances can be
+calculated as $$AP_{r}Q^{- 1}P_{r}^{T}v.$$ Here $A$ is an identity
+matrix since we are evaluating the approximation in the nodes of the FEM
+mesh and $v$ is a vector with all basis functions evaluated in
+$s = 0.5$. This way of computing the covariance is obtained by setting
+`direct = TRUE` in
+[`cov_function_mesh()`](https://davidbolin.github.io/rSPDE/reference/cov_function_mesh.md):
+
+``` r
+c.approx <- cov_function_mesh(op, 0.5, direct = TRUE)
+c.true <- folded.matern.covariance.1d(rep(0.5, length(s)),
+abs(s), kappa, nu, sigma)
+```
+
+The covariance function and the error compared with the Matérn
+covariance are shown in the following figure.
+
+``` r
+opar <- par(
+  mfrow = c(1, 2), mgp = c(1.3, 0.5, 0),
+  mar = c(2, 2, 0.5, 0.5) + 0.1
+)
+plot(s, c.true,
+  type = "l", ylab = "C(|s-0.5|)", xlab = "s", ylim = c(0, 5),
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
+lines(s, c.approx, col = 2)
+legend("topright",
+  bty = "n",
+  legend = c("Matérn", "m=1 rSPDE"),
+  col = c("black", "red"),
+  lty = rep(1, 2), ncol = 1,
+  cex = 0.8
+)
+
+plot(s, c.true - c.approx,
+  type = "l", ylab = "Error", xlab = "s",
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
+par(opar)
+```
+
+![](rspde_base_files/figure-html/unnamed-chunk-4-1.png)
+
+To improve the approximation we can increase the degree of the
+polynomials, by increasing $m$, and/or increase the number of basis
+functions used for the FEM approximation. Let us, as an example, compute
+the approximation with $m = 2$ using the same mesh, as well as the
+approximation when we increase the number of basis functions and use
+$m = 1$ and $m = 2$. We will also load the `fmesher` package to use the
+[`fm_basis()`](https://inlabru-org.github.io/fmesher/reference/fm_basis.html)
+and
+[`fm_mesh_1d()`](https://inlabru-org.github.io/fmesher/reference/fm_mesh_1d.html)
+functions to map between the meshes.
+
+``` r
+library(fmesher)
+
+op2 <- matern.operators(
+  range = r, sigma = sigma, nu = nu,
+  loc_mesh = s, d = 1, m = 2,
+  type = "operator",
+  parameterization = "matern"
+)
+c.approx2 <- cov_function_mesh(op2, 0.5, direct = TRUE)
+
+s2 <- seq(from = 0, to = 1, length.out = 501)
+fem2 <- rSPDE.fem1d(s2)
+op <- matern.operators(
+  range = r, sigma = sigma, nu = nu,
+  loc_mesh = s2, d = 1, m = 1,
+  type = "operator",
+  parameterization = "matern"
+)
+
+mesh_s2 <- fm_mesh_1d(s2)
+
+A  <- fm_basis(mesh_s2, s)
+c.approx3 <- A %*% cov_function_mesh(op, 0.5, direct = TRUE)
+
+op <- matern.operators(
+  range = r, sigma = sigma, nu = nu,
+  loc_mesh = s2, d = 1, m = 2,
+  type = "operator",
+  parameterization = "matern"
+)
+c.approx4 <- A %*% cov_function_mesh(op, 0.5, direct = TRUE)
+```
+
+The resulting errors are shown in the following figure.
+
+``` r
+opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
+plot(s, c.true - c.approx,
+  type = "l", ylab = "Error", xlab = "s", col = 1,
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
+lines(s, c.true - c.approx2, col = 2)
+lines(s, c.true - c.approx3, col = 3)
+lines(s, c.true - c.approx4, col = 4)
+legend("bottomright",
+  bty = "n",
+  legend = c("m=1 coarse mesh", "m=2 coarse mesh",
+  "m=1 fine mesh", "m=2 fine mesh"),
+  col = c(1, 2, 3, 4),
+  lty = rep(1, 2), ncol = 1,
+  cex = 0.8
+)
+par(opar)
+```
+
+![](rspde_base_files/figure-html/unnamed-chunk-6-1.png)
+
+Since the error induced by the rational approximation decreases
+exponentially in $m$, there is rarely a need for an approximation with a
+large value of $m$. This is good because the number of non-zero elements
+in $P_{r}$ and $Q$ increases with $m$, which makes the approximation
+more computationally costly to use. Further, the condition numbers of
+$P_{r}$ and $Q$ increase with $m$, which can cause numerical problems
+when working with these matrices. To illustrate this, let us compute the
+norm of the approximation error for different $m$.
+
+``` r
+# Mapping s2 to s
+A <- fm_basis(mesh_s2, s)
+
+errors <- rep(0, 4)
+for (i in 1:4) {
+  op <- matern.operators(
+    range = r, sigma = sigma, nu = nu,
+    loc_mesh = s2, d = 1, m = i,
+    type = "operator",
+  parameterization = "matern"
+  )
+  c.app <- A %*% cov_function_mesh(op, 0.5, direct = TRUE)
+  errors[i] <- norm(c.true - c.app)
+}
+print(errors)
+#> [1]   1.0113068   0.1100836 576.3166935  54.6482253
+```
+
+We see that, when we used the direct method to compute the covariance
+function, as described above, the error decreases when increasing $m$
+from $1$ to $2$, but is very large for $m = 3$ and $m = 4$. The reason
+for this is not that the approximation is bad, but that the numerical
+accuracy of the product $P_{r}Q^{- 1}P_{r}v$ is low due to the large
+condition numbers of the matrices.
+
+It is important to note that the alternative covariance-based rational
+approximation is more numerically stable. The main reason for this is
+that it relies on a decomposition of the field $u$ into a sum of random
+fields, which removes the need of computing higher order finite element
+matrices for large values of $m$. See the [Rational approximation with
+the rSPDE
+package](https://davidbolin.github.io/rSPDE/articles/rspde_cov.md)
+vignette for further details.
+
+To handle this issue for the operator-based rational approximation, the
+package contains functions for performing operations such as $P_{r}v$ or
+$P_{r}^{- 1}v$ that takes advantage of the structure of $P_{r}$ to avoid
+numerical instabilities. A complete list of these function can be seen
+by typing
+[`?operator.operations`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md).
+One of these functions is
+[`Sigma.mult()`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md),
+which performs the multiplication $P_{r}Q^{- 1}P_{r}v$ in a more
+numerically stable way. Let us use this function to compute the errors
+of the approximations again to see that we indeed get better
+approximations as $m$ increases. This is obtained by setting the
+`direct` argument in
+[`cov_function_mesh()`](https://davidbolin.github.io/rSPDE/reference/cov_function_mesh.md)
+to `FALSE`:
+
+``` r
+errors2 <- rep(0, 4)
+for (i in 1:4) {
+  op <- matern.operators(
+    range = r, sigma = sigma, nu = nu,
+    loc_mesh = s2, d = 1, m = i,
+    type = "operator",
+  parameterization = "matern"
+  )
+  c.app <- A %*% cov_function_mesh(op, 0.5, direct = FALSE)
+  errors2[i] <- norm(c.true - c.app)
+}
+print(errors2)
+#> [1] 1.01130750 0.10425661 0.02356591 0.01717388
+```
+
+## A non-stationary model
+
+Let us now examine a non-stationary model
+$\left( \kappa(s)^{2} - \Delta \right)^{\beta}\left( \tau(s)u(s) \right) = \mathcal{W}$
+with $\kappa(s) = 10\left( 1 + 2s^{2} \right)$ and
+$\tau(s) = 0.1\left( 1 - 0.7s^{2} \right)$. We can then use
+[`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md)
+to create the rational approximation with $m = 1$ as follows.
+
+``` r
+s <- seq(from = 0, to = 1, length.out = 501)
+s_mesh <- fm_mesh_1d(s)
+
+kappa <- 10 * (1 + 2 * s^2)
+tau <- 0.1 * (1 - 0.7 * s^2)
+op <- spde.matern.operators(
+  kappa = kappa, tau = tau, nu = nu,
+  d = 1, m = 1, mesh = s_mesh,
+  type = "operator",
+  parameterization = "matern"
+)
+```
+
+Let us compute the covariance function $C\left( s,s_{i} \right)$ of the
+non-stationary model for the locations $s_{1} = 0.1,s_{2} = 0.5,$ and
+$s_{3} = 0.9$.
+
+``` r
+v <- t(make_A(op, loc = c(0.1, 0.5, 0.9)))
+covs <- Sigma.mult(op, v)
+```
+
+The three covariances are shown in the following figure.
+
+``` r
+opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
+plot(s, covs[, 1],
+  type = "l", ylab = "C(s,s_i)", xlab = "s",
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
+lines(s, covs[, 2], col = 2)
+lines(s, covs[, 3], col = 3)
+par(opar)
+```
+
+![](rspde_base_files/figure-html/unnamed-chunk-11-1.png)
+
+We see that this choice of $\kappa(s)$ and $\tau(s)$ results in a model
+with longer range for small values of $s$ and smaller variance in the
+middle of the domain. We can also apply the general function
+[`fractional.operators()`](https://davidbolin.github.io/rSPDE/reference/fractional.operators.md)
+to construct the approximation. This function requires that the user
+supplies a discretization of the non-fractional operator $L$, as well as
+a scaling factor $c > 0$ which is a lower bound for the smallest
+eigenvalue of $L$. In our case we have $L = \kappa(s)^{2} - \Delta$, and
+the eigenvalues of this operator is bounded from below by
+$c = \min_{s}\kappa(s)^{2}$. We compute this constant and the discrete
+operator.
+
+``` r
+fem <- fm_fem(s_mesh)
+C <- fem$c0
+G <- fem$g1 
+
+c <- min(kappa)^2
+L <- G + C %*% Diagonal(501, kappa^2)
+```
+
+Another difference between
+[`fractional.operators()`](https://davidbolin.github.io/rSPDE/reference/fractional.operators.md)
+and the previous functions for constructing the approximation, is that
+it requires specifying $\beta$ instead of the smoothness parameter $\nu$
+for the Matérn covariance. These two parameters are related as
+$2\beta = \nu + d/2$.
+
+``` r
+op <- fractional.operators(
+  L = L, beta = (nu + 1 / 2) / 2, C = C,
+  scale.factor = c, tau = tau, m = 1
+)
+```
+
+Let’s make sure that we have the same approximation by comparing the
+previously computed covariances.
+
+``` r
+covs2 <- Sigma.mult(op, v)
+norm(covs - covs2)
+#> [1] 0
+```
+
+Obviously, it is simpler to use
+[`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md)
+in this case, but the advantage with
+[`fractional.operators()`](https://davidbolin.github.io/rSPDE/reference/fractional.operators.md)
+is that it also can be used for other more general models such as one
+with $L = \kappa(s)^{2} - \nabla \cdot \left( H(s)\nabla \right)$ for
+some matrix-valued function $H(s)$.
+
+### Using the approximation
+
+For any approximation, constructed using the functions
+[`fractional.operators()`](https://davidbolin.github.io/rSPDE/reference/fractional.operators.md),
+[`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md),
+or
+[`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md),
+we can simulate from the model using
+[`simulate()`](https://rdrr.io/r/stats/simulate.html).
+
+``` r
+u <- simulate(op)
+```
+
+There is also built-in support for kriging prediction. To illustrate
+this, we use the simulation to create some noisy observations of the
+process. For this, we first construct the observation matrix linking the
+FEM basis functions to the locations where we want to simulate. We first
+randomly generate some observation locations and then construct the
+matrix.
+
+``` r
+n.obs <- 20
+obs.loc <- runif(n = n.obs, min = 0, max = 1)
+A <- fm_basis(s_mesh, obs.loc)
+```
+
+We now generate the observations as
+$Y_{i} = u\left( s_{i} \right) + \varepsilon_{i}$, where
+$\varepsilon_{i} \sim N\left( 0,\sigma_{e}^{2} \right)$ is Gaussian
+measurement noise.
+
+``` r
+sigma.e <- 0.3
+Y <- as.vector(A %*% u + sigma.e * rnorm(n.obs))
+```
+
+Finally, we compute the kriging prediction of the process $u$ at the
+locations in `s` based on these observations. To specify which locations
+that should be predicted, the argument `Aprd` is used. This argument
+should be an observation matrix that links the mesh locations to the
+prediction locations.
+
+``` r
+A.krig <- fm_basis(s_mesh, s)
+u.krig <- predict(op, A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e)
+```
+
+The process simulation, the observed data, and the kriging prediction
+are shown in the following figure.
+
+``` r
+opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
+plot(obs.loc, Y,
+  ylab = "u(s)", xlab = "s",
+  ylim = c(min(c(min(u), min(Y))), max(c(max(u), max(Y)))),
+  cex.main = 0.8, cex.axis = 0.8, cex.lab = 0.8
+)
+lines(s, u)
+lines(s, u.krig$mean, col = 2)
+par(opar)
+```
+
+![](rspde_base_files/figure-html/unnamed-chunk-19-1.png)
+
+## Spatial data and parameter estimation
+
+The functions used in the previous examples also work for spatial
+models. We then need to construct a mesh over the domain of interest and
+then compute the matrices needed to define the operator. These tasks can
+be performed, for example, using the `fmesher` package. Let us start by
+defining a mesh over $\lbrack 0,1\rbrack \times \lbrack 0,1\rbrack$ and
+compute the mass and stiffness matrices for that mesh.
+
+``` r
+library(fmesher)
+m <- 200
+loc_2d_mesh <- matrix(runif(m * 2), m, 2)
+mesh_2d <- fm_mesh_2d(
+  loc = loc_2d_mesh,
+  cutoff = 0.05,
+  offset = c(0.1, 0.4),
+  max.edge = c(0.05, 0.5)
+)
+plot(mesh_2d, main = "")
+points(loc_2d_mesh[, 1], loc_2d_mesh[, 2])
+```
+
+![](rspde_base_files/figure-html/unnamed-chunk-20-1.png) We can now use
+these matrices to define a rational SPDE approximation of degree $m = 1$
+for a Matérn model in the same was as before. To illustrate this, we
+simulate a latent process with standard deviation $\sigma = 1$ and range
+$0.1$. We choose $\nu = 0.5$ so that the model corresponds to a Gaussian
+process with an exponential covariance function.
+
+``` r
+nu <- 0.8
+sigma <- 1.3
+range <- 0.15
+op <- matern.operators(range = range, sigma = sigma,
+nu = nu, m = 2, mesh = mesh_2d,
+  parameterization = "matern")
+```
+
+Now let us simulate some noisy data that we will use to estimate the
+parameters of the model. To construct the observation matrix, we use the
+`fmesher` function
+[`fm_basis()`](https://inlabru-org.github.io/fmesher/reference/fm_basis.html).
+We sample 30 replicates of the latent field.
+
+``` r
+n.rep <- 30
+u <- simulate(op, nsim = n.rep)
+A <- fm_basis(
+  x = mesh_2d,
+  loc = loc_2d_mesh
+)
+sigma.e <- 0.1
+Y <- A %*% u + matrix(rnorm(m * n.rep), ncol = n.rep) * sigma.e
+```
+
+The first replicate of the simulated random field as well as the
+observation locations are shown in the following figure.
+
+``` r
+library(viridis)
+library(ggplot2)
+proj <- fm_evaluator(mesh_2d, dims = c(70, 70))
+
+df_field <- data.frame(x = proj$lattice$loc[,1],
+                        y = proj$lattice$loc[,2],
+                        field = as.vector(fm_evaluate(proj, 
+                        field = as.vector(u[, 1]))),
+                        type = "field")
+
+df_loc <- data.frame(x = loc_2d_mesh[, 1],
+                      y = loc_2d_mesh[, 2],
+                      field = as.vector(Y[,1]),
+                      type = "locations")
+df_plot <- rbind(df_field, df_loc)
+
+ggplot(df_plot) + aes(x = x, y = y, fill = field) +
+        facet_wrap(~type) + xlim(0,1) + ylim(0,1) + 
+        geom_raster(data = df_field) +
+        geom_point(data = df_loc, aes(colour = field),
+        show.legend = FALSE) + 
+        scale_fill_viridis() + scale_colour_viridis()
+```
+
+![](rspde_base_files/figure-html/unnamed-chunk-23-1.png)
+
+For each type of rational approximation of degree $m$, there is a
+corresponding likelihood function that can be used for likelihood-based
+parameter estimation. Since we constructed the model with
+[`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md),
+we can use the function
+[`spde.matern.loglike()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.loglike.md)
+to define the likelihood. To simplify parameter estimation, we create an
+object containing the `rSPDE` model (we are assigning the meaningless
+value 1 for the parameters because they will not be used):
+
+``` r
+op_obj <- matern.operators( m = 1,
+    type = "operator", mesh = mesh_2d
+  )
+```
+
+Now, we set up a vector with the response variables and create an
+auxiliary replicates vector, `repl`, that contains the indexes of the
+replicates of each observation. Then, we build the
+[`data.frame()`](https://rdrr.io/r/base/data.frame.html), that also
+contanis the spatial locations, and we fit the model:
+
+``` r
+y_vec <- as.vector(Y)
+repl <- rep(1:n.rep, each = m)
+df_data_2d <- data.frame(y = y_vec, x_coord = loc_2d_mesh[,1],
+                      y_coord = loc_2d_mesh[,2])
+```
+
+We can now fit the model (and speed up by setting `parallel` to `TRUE`):
+
+``` r
+fit_2d <- rspde_lme(y ~ -1, model = op_obj, 
+          data = df_data_2d, repl = repl,
+          loc = c("x_coord", "y_coord"), 
+          parallel = TRUE)
+```
+
+Let us see a summary of the fitted model:
+
+``` r
+summary(fit_2d)
+#> 
+#> Latent model - Whittle-Matern
+#> 
+#> Call:
+#> rspde_lme(formula = y ~ -1, loc = c("x_coord", "y_coord"), data = df_data_2d, 
+#>     model = op_obj, repl = repl, parallel = TRUE)
+#> 
+#> No fixed effects.
+#> 
+#> Random effects:
+#>       Estimate Std.error z-value
+#> alpha  1.88916   0.07026  26.886
+#> tau    0.01809   0.00491   3.683
+#> kappa 17.79484   0.93918  18.947
+#> 
+#> Random effects (Matern parameterization):
+#>       Estimate Std.error z-value
+#> nu    0.889161  0.070265   12.65
+#> sigma 1.278916  0.016080   79.53
+#> range 0.149879  0.004622   32.42
+#> 
+#> Measurement error:
+#>          Estimate Std.error z-value
+#> std. dev 0.100523  0.002495   40.29
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+#> 
+#> Log-Likelihood:  -5820.19 
+#> Number of function calls by 'optim' = 61
+#> Optimization method used in 'optim' = L-BFGS-B
+#> 
+#> Time used to:     fit the model =  1.23212 mins 
+#>   set up the parallelization = 2.57452 secs
+```
+
+and glance:
+
+``` r
+glance(fit_2d)
+#> # A tibble: 1 × 8
+#>    nobs sigma logLik    AIC    BIC deviance df.residual model               
+#>   <int> <dbl>  <dbl>  <dbl>  <dbl>    <dbl>       <dbl> <chr>               
+#> 1  6000 0.101 -5820. 11648. 11675.   11640.        5996 Matern approximation
+```
+
+Let us compare the estimated results with the true values:
+
+``` r
+print(data.frame(
+  sigma = c(sigma, fit_2d$alt_par_coeff$coeff["sigma"]), 
+  range = c(range, fit_2d$alt_par_coeff$coeff["range"]),
+  nu = c(nu, fit_2d$alt_par_coeff$coeff["nu"]),
+  row.names = c("Truth", "Estimates")
+))
+#>              sigma     range        nu
+#> Truth     1.300000 0.1500000 0.8000000
+#> Estimates 1.278916 0.1498791 0.8891609
+
+# Total time
+print(fit_2d$fitting_time)
+#> Time difference of 1.232127 mins
+```
+
+Finally, we observe that we can use the
+[`rational.order()`](https://davidbolin.github.io/rSPDE/reference/rational.order.md)
+function, to check the order of the rational approximation of the
+`rSPDE` object, as well as to use the `rational.order<-()` function to
+assign new orders:
+
+``` r
+rational.order(op_obj)
+#> [1] 1
+
+rational.order(op_obj) <- 2
+```
+
+Let us fit again and check the results. We use the previous fit to speed
+up the computation.
+
+``` r
+fit_2d <- rspde_lme(y ~ -1, model = op_obj, 
+          data = df_data_2d, repl = repl,
+          loc = c("x_coord", "y_coord"), 
+          parallel = TRUE, previous_fit = fit_2d)
+```
+
+Let us check the summary:
+
+``` r
+summary(fit_2d)
+#> 
+#> Latent model - Whittle-Matern
+#> 
+#> Call:
+#> rspde_lme(formula = y ~ -1, loc = c("x_coord", "y_coord"), data = df_data_2d, 
+#>     model = op_obj, repl = repl, previous_fit = fit_2d, parallel = TRUE)
+#> 
+#> No fixed effects.
+#> 
+#> Random effects:
+#>       Estimate Std.error z-value
+#> alpha  1.89697   0.19945   9.511
+#> tau    0.01764   0.01372   1.286
+#> kappa 17.79897   2.36402   7.529
+#> 
+#> Random effects (Matern parameterization):
+#>       Estimate Std.error z-value
+#> nu    0.896968  0.199447   4.497
+#> sigma 1.276248  0.016092  79.308
+#> range 0.150501  0.004606  32.676
+#> 
+#> Measurement error:
+#>          Estimate Std.error z-value
+#> std. dev 0.100590  0.002507   40.12
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+#> 
+#> Log-Likelihood:  -5820.136 
+#> Number of function calls by 'optim' = 28
+#> Optimization method used in 'optim' = L-BFGS-B
+#> 
+#> Time used to:     fit the model =  1.18743 mins 
+#>   set up the parallelization = 2.56963 secs
+```
+
+Let us compare the estimated results with the true values:
+
+``` r
+print(data.frame(
+  sigma = c(sigma, fit_2d$alt_par_coeff$coeff["sigma"]), 
+  range = c(range, fit_2d$alt_par_coeff$coeff["range"]),
+  nu = c(nu, fit_2d$alt_par_coeff$coeff["nu"]),
+  row.names = c("Truth", "Estimates")
+))
+#>              sigma     range        nu
+#> Truth     1.300000 0.1500000 0.8000000
+#> Estimates 1.276248 0.1505007 0.8969678
+
+# Total time
+print(fit_2d$fitting_time)
+#> Time difference of 1.187437 mins
+```
+
+## References
+
+Asar, Özgür, David Bolin, Peter Diggle, and Jonas Wallin. 2020. “Linear
+Mixed Effects Models for Non-Gaussian Repeated Measurement Data.”
+*Journal of the Royal Statistical Society. Series C. Applied Statistics*
+69 (5): 1015–65.
+
+Bolin, David. 2013. “Spatial Matérn Fields Driven by Non-Gaussian
+Noise.” *Scandinavian Journal of Statistics* 41 (3): 557–79.
+
+Bolin, David, and Kristin Kirchner. 2020. “The Rational SPDE Approach
+for Gaussian Random Fields with General Smoothness.” *Journal of
+Computational and Graphical Statistics* 29 (2): 274–85.
+
+Lindgren, Finn, Håvard Rue, and Johan Lindström. 2011. “An Explicit Link
+Between Gaussian Fields and Gaussian Markov Random Fields: The
+Stochastic Partial Differential Equation Approach.” *Journal of the
+Royal Statistical Society. Series B. Statistical Methodology* 73 (4):
+423–98.
+
+Wallin, Jonas, and David Bolin. 2015. “Geostatistical Modelling Using
+Non-Gaussian Matérn Fields.” *Scandinavian Journal of Statistics* 42
+(3): 872–90.
