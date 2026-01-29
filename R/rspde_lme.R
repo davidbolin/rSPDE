@@ -366,12 +366,12 @@ rspde_lme <- function(formula,
     # General updates for the different models
 
     if (!inherits(model, "spacetimeobj") && !inherits(model, "CBrSPDEobj2d") && !inherits(model, "intrinsicCBrSPDEobj")) {
-        model <- update(model, parameterization = parameterization)    
+        model <- update(model, parameterization = parameterization, check_stationarity = FALSE)    
     }
 
     if (!is.null(rspde_order) && !is.null(model)) {
         if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
-          model <- update(model, m = rspde_order)      
+          model <- update(model, m = rspde_order, check_stationarity = FALSE)      
         }
     } else if (!is.null(model)) {
       rspde_order <- model$m
@@ -1555,6 +1555,8 @@ predict.rspde_lme <- function(object,
     param_name_cleaned <- gsub(" \\(fixed\\)$", "", param_name)
     update_params[[param_name_cleaned]] <- coeff_random[[param_name]]
   }
+
+  update_params$check_stationarity <- FALSE
   
   # # If alt_par_coeff exists, also consider those parameters
   # if (!is.null(object$alt_par_coeff) && !is.null(object$alt_par_coeff$coeff)) {

@@ -106,6 +106,9 @@ simulate.rSPDEobj <- function(object,
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are "chebfun",
 #' "brasil" or "chebfunLB".
+#' @param check_stationarity Logical; if TRUE, automatically returns a stationary
+#' model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
+#' non-stationary model even when parameters are constant.
 #' @param ... Currently not used.
 #' @return It returns an object of class "CBrSPDEobj. This object contains the
 #' same quantities listed in the output of [matern.operators()].
@@ -152,6 +155,7 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
                               type_rational_approximation =
                                 object$type_rational_approximation,
                               return_block_list = object$return_block_list,
+                              check_stationarity = TRUE,
                               ...) {
   new_object <- object
   d <- object$d
@@ -374,7 +378,8 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
         graph = graph,
         parameterization = parameterization,
         type = "covariance",
-        type_rational_approximation = new_object$type_rational_approximation
+        type_rational_approximation = new_object$type_rational_approximation,
+        check_stationarity = check_stationarity
       )
     } else {
       new_object <- spde.matern.operators(
@@ -394,7 +399,8 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
         B.sigma = new_object$B.sigma,
         B.range = new_object$B.range,
         type = "covariance",
-        type_rational_approximation = new_object$type_rational_approximation
+        type_rational_approximation = new_object$type_rational_approximation,
+        check_stationarity = check_stationarity
       )
     }
   }
@@ -501,6 +507,9 @@ update.CBrSPDEobj2d <- function(object,
 #' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
 #' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument.
 #' @param parameterization If non-null, update the parameterization. Only works for stationary models.
+#' @param check_stationarity Logical; if TRUE, automatically returns a stationary
+#' model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
+#' non-stationary model even when parameters are constant.
 #' @param ... Currently not used.
 #' @return It returns an object of class "rSPDEobj. This object contains the
 #' same quantities listed in the output of [matern.operators()].
@@ -543,7 +552,9 @@ update.rSPDEobj <- function(object, nu = NULL,
                             loc_mesh = NULL,
                             graph = NULL,
                             range_mesh = NULL,
-                            parameterization = NULL, ...) {
+                            parameterization = NULL,
+                            check_stationarity = TRUE,
+                            ...) {
   new_object <- object
 
   ## get parameters
@@ -728,7 +739,8 @@ update.rSPDEobj <- function(object, nu = NULL,
         range_mesh = range_mesh,
         parameterization = parameterization,
         graph = graph,
-        type = "operator"
+        type = "operator",
+        check_stationarity = check_stationarity
       )
     } else {
       new_object <- spde.matern.operators(
@@ -747,7 +759,8 @@ update.rSPDEobj <- function(object, nu = NULL,
         range_mesh = range_mesh,
         parameterization = parameterization,
         graph = graph,
-        type = "operator"
+        type = "operator",
+        check_stationarity = check_stationarity
       )
     }
   }
