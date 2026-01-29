@@ -302,10 +302,10 @@ summary(rspde_fit)
     ##     Additive/Linear: TRUE/TRUE
     ##     Used components: effects[Intercept, distSea, field], latent[]
     ## Time used:
-    ##     Pre = 0.297, Running = 5.22, Post = 0.102, Total = 5.62 
+    ##     Pre = 0.29, Running = 6.35, Post = 0.0964, Total = 6.74 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-    ## Intercept 1.942 0.042       1.86    1.942      2.023 1.942   0
+    ## Intercept 1.941 0.042       1.86    1.941      2.023 1.941   0
     ## 
     ## Random effects:
     ##   Name     Model
@@ -313,20 +313,20 @@ summary(rspde_fit)
     ##    field CGeneric
     ## 
     ## Model hyperparameters:
-    ##                                                   mean      sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.43    1.04     12.482
-    ## Precision for distSea                          7505.36 4358.30   2307.796
-    ## Theta1 for field                                 -4.74    4.41    -14.958
-    ## Theta2 for field                                  2.28    1.08      0.638
-    ## Theta3 for field                                  2.98    3.91     -2.817
+    ##                                                   mean       sd 0.025quant
+    ## Precision-parameter for the Gamma observations   14.43    1.037      12.49
+    ## Precision for distSea                          7750.84 4551.329    2327.86
+    ## Theta1 for field                                 -4.33    3.394     -12.30
+    ## Theta2 for field                                  2.04    0.716       0.96
+    ## Theta3 for field                                  2.52    2.924      -1.61
     ##                                                0.5quant 0.975quant     mode
-    ## Precision-parameter for the Gamma observations    14.40      16.58   14.339
-    ## Precision for distSea                           6475.99   18811.13 4855.496
-    ## Theta1 for field                                  -4.15       1.78   -1.170
-    ## Theta2 for field                                   2.14       4.76    1.455
-    ## Theta3 for field                                   2.45      12.04   -0.188
+    ## Precision-parameter for the Gamma observations    14.40   1.66e+01   14.335
+    ## Precision for distSea                           6674.57   1.95e+04 4972.714
+    ## Theta1 for field                                  -3.84   4.53e-01   -1.141
+    ## Theta2 for field                                   1.95   3.69e+00    1.476
+    ## Theta3 for field                                   2.10   9.38e+00   -0.182
     ## 
-    ## Marginal log-Likelihood:  -1254.37 
+    ## Marginal log-Likelihood:  -1254.76 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -373,9 +373,9 @@ summary(result_fit)
 ```
 
     ##            mean        sd  0.025quant  0.5quant 0.975quant        mode
-    ## tau    0.677725  2.865200 5.32475e-07 0.0180788    5.76013 8.75868e-11
-    ## kappa 19.900100 40.766900 1.91569e+00 8.2427800  113.05300 3.23462e+00
-    ## nu     1.468040  0.638997 1.16081e-01 1.8232000    1.99998 1.99999e+00
+    ## tau    0.217288  0.517082 4.92838e-06 0.0241726    1.61219 6.96490e-09
+    ## kappa 10.279600 10.725100 2.62863e+00 6.8225900   39.19500 3.81216e+00
+    ## nu     1.511230  0.539875 3.28251e-01 1.7607400    1.99981 1.99999e+00
 
 We can also plot the posterior densities. To this end we will use the
 [`gg_df()`](https://davidbolin.github.io/rSPDE/reference/gg_df.md)
@@ -408,10 +408,10 @@ result_fit_matern <- rspde.result(rspde_fit, "field",
 summary(result_fit_matern)
 ```
 
-    ##             mean         sd 0.025quant  0.5quant 0.975quant      mode
-    ## std.dev 50.75690 985.152000 0.68355900 22.841000 119.118000 -0.295938
-    ## range    0.39012   0.259183 0.00753056  0.369876   0.951127  0.095006
-    ## nu       1.46804   0.638997 0.11608100  1.823200   1.999980  1.999990
+    ##             mean         sd 0.025quant 0.5quant 0.975quant      mode
+    ## std.dev 8.565800 113.371000 -0.0109383  3.47824  32.574400 -0.160995
+    ## range   0.433283   0.245995  0.0463670  0.41678   0.966398  0.424095
+    ## nu      1.511230   0.539875  0.3282510  1.76074   1.999810  1.999990
 
 In a similar manner, we can obtain posterior plots on the `matern`
 parameterization:
@@ -729,7 +729,7 @@ summary(rspde_fit.rep)
     ##     Additive/Linear: TRUE/TRUE
     ##     Used components: effects[field], latent[]
     ## Time used:
-    ##     Pre = 0.178, Running = 47.8, Post = 1.03, Total = 49 
+    ##     Pre = 0.202, Running = 46.4, Post = 0.948, Total = 47.6 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -991,7 +991,7 @@ summary(rspde_fit_nonstat)
     ##     Additive/Linear: TRUE/TRUE
     ##     Used components: effects[field], latent[]
     ## Time used:
-    ##     Pre = 0.171, Running = 16, Post = 0.142, Total = 16.3 
+    ##     Pre = 0.166, Running = 16.2, Post = 0.146, Total = 16.5 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1133,13 +1133,13 @@ cv_result
 ```
 
     ##           Model               mse               mae               dss
-    ## 1    stationary 0.149937771106052 0.281632382822572 -1.06863925442593
-    ## 2 nonstationary 0.146936894144698 0.279650334621488 -1.14192596002464
+    ## 1    stationary  0.14979575536611 0.281290993359321 -1.06205831655155
+    ## 2 nonstationary 0.148088187688944 0.280370629330245  -1.1412396111486
     ##            Best     nonstationary     nonstationary     nonstationary
     ##                crps             scrps
-    ## 1 0.198460796209064 0.508894017214948
-    ## 2 0.197785299000005 0.502422369123377
-    ##       nonstationary     nonstationary
+    ## 1 0.198006729309994 0.507703505449597
+    ## 2 0.198708088283116 0.504644213058711
+    ##          stationary     nonstationary
 
 The
 [`cross_validation()`](https://davidbolin.github.io/rSPDE/reference/cross_validation.md)
