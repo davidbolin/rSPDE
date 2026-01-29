@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      FLEXIBLAS_LIBRARY_PATH: /usr/lib/x86_64-linux-gnu/flexiblas:/opt/intel/oneapi/mkl/latest/lib/intel64
+      FLEXIBLAS_LIBRARY_PATH: /usr/local/lib/flexiblas:/opt/intel/oneapi/mkl/latest/lib/intel64
+      LD_LIBRARY_PATH: /opt/intel/oneapi/mkl/latest/lib/intel64
     steps:
       - uses: actions/checkout@v6
 
@@ -48,13 +49,17 @@ jobs:
             libblas3 \
             liblapack3 \
             libopenblas0-pthread \
-            intel-oneapi-mkl
+            intel-oneapi-mkl \
+            intel-oneapi-mkl-devel \
+            intel-oneapi-openmp
           # Build and install FlexiBLAS from source (not available on ubuntu-latest)
           git clone --depth 1 https://github.com/mpimd-csc/flexiblas.git /tmp/flexiblas
           cmake -S /tmp/flexiblas -B /tmp/flexiblas/build \
             -DCMAKE_C_COMPILER=/usr/bin/gcc \
             -DCMAKE_Fortran_COMPILER=/usr/bin/gfortran \
-            -DCMAKE_INSTALL_PREFIX=/usr/local
+            -DCMAKE_INSTALL_PREFIX=/usr/local \
+            -DMKL_BUILDER=OFF \
+            -DENABLE_INTEL_MKL=OFF
           cmake --build /tmp/flexiblas/build -j"$(nproc)"
           sudo cmake --install /tmp/flexiblas/build
           sudo ldconfig
@@ -96,8 +101,15 @@ jobs:
           if (!any(grepl("netlib", tolower(backends)))) {
             stop("Netlib backend not found in FlexiBLAS list")
           }
-          if (!any(grepl("mkl", tolower(backends)))) {
-            stop("MKL backend not found in FlexiBLAS list")
+          mkl_path <- "/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_rt.so"
+          if (!file.exists(mkl_path)) {
+            stop("MKL runtime not found at: ", mkl_path)
+          }
+          flexiblas::flexiblas_load_backend(mkl_path)
+          loaded <- flexiblas::flexiblas_list_loaded()
+          message("Loaded backends: ", paste(loaded, collapse = ", "))
+          if (!any(grepl("mkl_rt\\.so", loaded))) {
+            stop("MKL backend not loaded from libmkl_rt.so")
           }
         shell: Rscript {0}
 

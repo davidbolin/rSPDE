@@ -77,7 +77,13 @@ pick_backend <- function(target, backends) {
     idx <- which(grepl("veclib|vec|apple", nm_low))
   }
   if (!length(idx) && target_low == "mkl") {
-    idx <- which(grepl("mkl", nm_low))
+    idx <- which(nm_low == "mklopenmp")
+    if (!length(idx)) {
+      idx <- which(grepl("mklopenmp", nm_low))
+    }
+    if (!length(idx)) {
+      idx <- which(grepl("mkl", nm_low))
+    }
   }
   if (!length(idx) && target_low == "netlib") {
     idx <- which(grepl("netlib", nm_low))

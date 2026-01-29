@@ -1045,6 +1045,9 @@ CBrSPDE.matern.operators <- function(C,
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
 #' "brasil", "chebfun" or "chebfunLB".
+#' @param check_stationarity Logical; if TRUE, automatically returns a stationary
+#' model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
+#' non-stationary model even when parameters are constant.
 #'
 #'
 #' @details The approximation is based on a rational approximation of the
