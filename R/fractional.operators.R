@@ -1391,7 +1391,12 @@ spde.matern.operators <- function(kappa = NULL,
     }
   }
 
+  has_spatially_varying_B <- nrow(B.tau) > 1 && ncol(B.tau) > 1 && (
+    any(apply(B.tau[, -1, drop = FALSE], 2, function(x) length(unique(x)) > 1)) ||
+    any(apply(B.kappa[, -1, drop = FALSE], 2, function(x) length(unique(x)) > 1)))
+
   if (check_stationarity &&
+      !has_spatially_varying_B &&
       !is.null(tau) && !is.null(kappa) &&
       is_constant_param(tau) && is_constant_param(kappa)) {
     if (parameterization == "spde") {

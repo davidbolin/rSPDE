@@ -15,7 +15,6 @@ library(ggplot2)
 library(dplyr)
 library(gridExtra)
 library(gtable)
-library(peakRAM)
 library(tidyr)
 ```
 
@@ -171,13 +170,23 @@ benchmark_data <- lapply(sample_sizes, function(N) {
   )
 })
 
+max_ram_usage <- function(expr) {
+  start <- gc(verbose = FALSE, reset = TRUE)
+  eval(substitute(expr), envir = parent.frame())
+  end <- gc(verbose = FALSE, reset = FALSE)
+  max_col <- which(colnames(end) == "max used")
+  if (length(max_col) == 0) stop("gc output does not include 'max used'")
+  mb_col <- max_col + 1
+  end["Vcells", mb_col] - start["Vcells", mb_col]
+}
+
 run_exact <- function(locs, Y, backend_name) {
   if (backend_name != "base") {
     set_backend(pick_backend(backend_name, flex_backends))
   }
   timing_env <- new.env(parent = emptyenv())
   timing_env$elapsed <- NA_real_
-  peak <- peakRAM::peakRAM({
+  peak_mb <- max_ram_usage({
     Sigma_field <- rSPDE::matern.covariance(
       h = as.matrix(dist(locs)),
       kappa = kappa_true, nu = nu_true, sigma = sigma_true
@@ -186,7 +195,7 @@ run_exact <- function(locs, Y, backend_name) {
       loglike_exact_chol(Y, Sigma_field, sigma_e)
     })["elapsed"]
   })
-  list(elapsed_sec = as.numeric(timing_env$elapsed), peak_mib = peak$Peak_RAM_Used_MiB)
+  list(elapsed_sec = as.numeric(timing_env$elapsed), peak_ram = peak_mb)
 }
 
 run_rspde <- function(locs, Y, backend_name, m) {
@@ -195,7 +204,7 @@ run_rspde <- function(locs, Y, backend_name, m) {
   }
   timing_env <- new.env(parent = emptyenv())
   timing_env$elapsed <- NA_real_
-  peak <- peakRAM::peakRAM({
+  peak_mb <- max_ram_usage({
     mesh <- fm_mesh_2d(loc = locs, cutoff = 0.0025)
     A <- fm_basis(mesh, locs)
     obj <- matern.operators(
@@ -206,7 +215,7 @@ run_rspde <- function(locs, Y, backend_name, m) {
       rSPDE:::rSPDE.matern.loglike(object = obj, Y = Y, A = A, sigma.e = sigma_e)
     })["elapsed"]
   })
-  list(elapsed_sec = as.numeric(timing_env$elapsed), peak_mib = peak$Peak_RAM_Used_MiB)
+  list(elapsed_sec = as.numeric(timing_env$elapsed), peak_ram = peak_mb)
 }
 
 bench_rows <- list()
@@ -223,21 +232,21 @@ for (bm in benchmark_data) {
       backend = backend_label(backend_name),
       method = "Exact",
       elapsed_sec = exact_vec$elapsed_sec,
-      ram_gib = exact_vec$peak_mib / 1024
+      peak_ram = exact_vec$peak_ram
     )
   }
 
   for (m in 1:4) {
     rspde_runs <- lapply(seq_len(10), function(i) run_rspde(locs, Y, bench_plan$rspde_backend, m))
     rspde_elapsed <- vapply(rspde_runs, function(x) x$elapsed_sec, numeric(1))
-    rspde_peak <- vapply(rspde_runs, function(x) x$peak_mib, numeric(1))
-    rspde_net <- list(elapsed_sec = mean(rspde_elapsed), peak_mib = mean(rspde_peak))
+    rspde_peak <- vapply(rspde_runs, function(x) x$peak_ram, numeric(1))
+    rspde_net <- list(elapsed_sec = mean(rspde_elapsed), peak_ram = mean(rspde_peak))
     bench_rows[[length(bench_rows) + 1]] <- data.frame(
       N = N,
       backend = backend_label(bench_plan$rspde_backend),
       method = paste0("rSPDE m=", m),
       elapsed_sec = rspde_net$elapsed_sec,
-      ram_gib = rspde_net$peak_mib / 1024
+      peak_ram = rspde_net$peak_ram
     )
   }
 }
@@ -245,6 +254,10 @@ for (bm in benchmark_data) {
 bench_df <- bind_rows(bench_rows)
 results_all <- bench_df %>% mutate(expr = method, median = elapsed_sec)
 mem_df <- bench_df %>% mutate(method = method)
+if (!"ram_gib" %in% names(mem_df) && "peak_ram" %in% names(mem_df)) {
+  divisor <- if (max(mem_df$peak_ram, na.rm = TRUE) > 1e4) 1e5 else 1024
+  mem_df$ram_gib <- mem_df$peak_ram / divisor
+}
 
 dir.create("cache", showWarnings = FALSE, recursive = TRUE)
 saveRDS(list(results_all = results_all, mem_df = mem_df, sample_sizes = sample_sizes),
