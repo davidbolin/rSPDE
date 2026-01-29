@@ -3601,7 +3601,10 @@ create_likelihood <- function(model, model_options, y_resp,
     }
     
     # Update the model with the extracted parameters
-    model_tmp <- do.call(update, c(list(object = model_tmp), result$args_list))
+    model_tmp <- do.call(update, c(
+      list(object = model_tmp, check_stationarity = FALSE),
+      result$args_list
+    ))
     
     # Get arguments for auxiliary likelihood function
     aux_args <- get_aux_lik_fun_args(
