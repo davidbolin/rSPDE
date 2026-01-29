@@ -39,11 +39,11 @@ $N \in \{1000,2000,\ldots,10000,12500,15000,20000,25000,30000\}$. For each $N$, 
 - the exact dense Mat\'ern likelihood, based on the Cholesky factorization of the covariance matrix, and
 - the rSPDE sparse log-likelihood for approximation orders $m = 1,\ldots,4$.
 
-For each $m$, the rSPDE timing is averaged over 10 runs. When R is linked to FlexiBLAS and MKL or vecLib is available, we evaluate the exact model under Netlib (up to $N=4000$) and under MKL/vecLib for all sample sizes, while running rSPDE under Netlib for all sample sizes. Otherwise, both exact and rSPDE timings use the base R BLAS.
+For each $m$, the rSPDE timing is averaged over 10 runs. When R is linked to FlexiBLAS and MKL or vecLib is available, we evaluate the exact model under Netlib (up to $N=8000$) and under MKL/vecLib for all sample sizes, while running rSPDE under Netlib for all sample sizes. Otherwise, both exact and rSPDE timings use the base R BLAS.
 
-Netlib BLAS is single-threaded, whereas MKL is multi-threaded. To keep the overall cost manageable, the exact Netlib evaluations are only computed up to $N=4000$, since dense Cholesky factorization becomes prohibitively expensive at larger $N$ in a single-threaded setting.
+Netlib BLAS is single-threaded, whereas MKL is multi-threaded. To keep the overall cost manageable, the exact Netlib evaluations are only computed up to $N=8000$, since dense Cholesky factorization becomes prohibitively expensive at larger $N$ in a single-threaded setting.
 
-```{r timing-benchmark-data, echo=FALSE, cache=TRUE, cache.lazy=FALSE}
+```{r timing-benchmark-data, echo=TRUE, eval = FALSE}
 loglike_exact_chol <- function(y, Sigma_matern, sigma_e) {
   S <- Sigma_matern
   diag(S) <- diag(S) + sigma_e^2
@@ -216,7 +216,7 @@ for (bm in benchmark_data) {
   Y <- bm$Y
 
   for (backend_name in bench_plan$exact_backends) {
-    if (backend_name == "netlib" && N > 4000) next
+    if (backend_name == "netlib" && N > 8000) next
     exact_vec <- run_exact(locs, Y, backend_name)
     bench_rows[[length(bench_rows) + 1]] <- data.frame(
       N = N,
@@ -254,94 +254,4 @@ saveRDS(list(results_all = results_all, mem_df = mem_df, sample_sizes = sample_s
 
 ## Results
 
-```{r timing-benchmark, echo=FALSE, fig.width=5.3, fig.height=3.3, fig.cap="Timing benchmark and peak memory usage for exact dense Matern likelihood evaluation versus rSPDE sparse approximations in a simplified Gaussian setting.", fig.align='center'}
-timing_data <- readRDS("cache/timing_benchmark_results.rds")
-results_all <- timing_data$results_all
-mem_df <- timing_data$mem_df
-sample_sizes <- timing_data$sample_sizes
-
-linetype_scale <- scale_linetype_manual(values = c(MKL = "dashed", Netlib = "solid", VecLib = "dashed", Base = "solid"))
-
-if (!"ram_gib" %in% names(mem_df) && "ram_mib" %in% names(mem_df)) {
-  mem_df$ram_gib <- mem_df$ram_mib / 1024
-}
-if (!"elapsed_sec" %in% names(results_all)) {
-  results_all$median <- results_all$median / 1000
-}
-
-results_all$backend <- factor(results_all$backend, levels = c("MKL", "Netlib", "VecLib", "Base"))
-mem_df$backend <- factor(mem_df$backend, levels = c("MKL", "Netlib", "VecLib", "Base"))
-
-timing_plot <- ggplot(results_all, aes(x = N, y = median, color = expr, linetype = backend)) +
-  geom_line(linewidth = 0.6) +
-  scale_x_continuous(breaks = pretty(sample_sizes, n = 6)) +
-  linetype_scale +
-  labs(title = "Runtime across sample sizes", x = "Sample size (N)", y = "Time (s)", color = "Method") +
-  guides(
-    color = guide_legend(ncol = 3, byrow = TRUE),
-    linetype = guide_legend(title = "Backend", ncol = 2, byrow = TRUE)
-  ) +
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
-    axis.text.y = element_text(size = 7),
-    panel.grid.major = element_line(linewidth = 0.3, color = "grey85"),
-    panel.grid.minor = element_blank(),
-    plot.title = element_text(size = 8),
-    legend.position = "bottom",
-    legend.box = "horizontal",
-    legend.key.width = grid::unit(1.2, "lines"),
-    legend.key.height = grid::unit(0.6, "lines"),
-    legend.box.margin = margin(-20, 0, 0, 0),
-    legend.box.spacing = grid::unit(0, "pt"),
-    legend.margin = margin(-20, 0, 0, 0),
-    legend.spacing.y = grid::unit(0, "pt"),
-    legend.title = element_text(size = 7),
-    legend.text = element_text(size = 7),
-    axis.title = element_text(size = 7),
-    plot.margin = margin(5, 5, 2, 5)
-  )
-
-mem_plot <- ggplot(mem_df, aes(x = N, y = ram_gib, color = method, linetype = backend)) +
-  geom_line(linewidth = 0.6) +
-  scale_x_continuous(breaks = pretty(sample_sizes, n = 6)) +
-  scale_y_log10() +
-  linetype_scale +
-  labs(title = "Memory footprint (log scale)", x = "Sample size (N)", y = "Peak RAM (GiB)", color = "Method") +
-  guides(
-    color = guide_legend(ncol = 3, byrow = TRUE),
-    linetype = guide_legend(title = "Backend", ncol = 2, byrow = TRUE)
-  ) +
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
-    axis.text.y = element_text(size = 7),
-    panel.grid.major = element_line(linewidth = 0.3, color = "grey85"),
-    panel.grid.minor = element_blank(),
-    plot.title = element_text(size = 8),
-    legend.position = "bottom",
-    legend.box = "horizontal",
-    legend.key.width = grid::unit(1.2, "lines"),
-    legend.key.height = grid::unit(0.6, "lines"),
-    legend.box.margin = margin(-20, 0, 0, 0),
-    legend.box.spacing = grid::unit(0, "pt"),
-    legend.margin = margin(-20, 0, 0, 0),
-    legend.spacing.y = grid::unit(0, "pt"),
-    legend.title = element_text(size = 7),
-    legend.text = element_text(size = 7),
-    axis.title = element_text(size = 7),
-    plot.margin = margin(5, 5, 2, 5)
-  )
-
-legend_grob <- gtable::gtable_filter(ggplotGrob(timing_plot), "guide-box")
-gridExtra::grid.arrange(
-  gridExtra::arrangeGrob(
-    timing_plot + theme(legend.position = "none"),
-    mem_plot + theme(legend.position = "none"),
-    ncol = 2
-  ),
-  legend_grob,
-  ncol = 1,
-  heights = c(1, 0.18)
-)
-```
+![Timing benchmark and peak memory usage for exact dense Matern likelihood evaluation versus rSPDE sparse approximations in a simplified Gaussian setting.](figures/timing-benchmark-1.png){width=100%}
