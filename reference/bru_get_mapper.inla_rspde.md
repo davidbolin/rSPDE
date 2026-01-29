@@ -114,10 +114,10 @@ if (requireNamespace("INLA", quietly = TRUE) &&
 #>     Additive/Linear: TRUE/TRUE
 #>     Used components: effects[Intercept, field], latent[]
 #> Time used:
-#>     Pre = 0.53, Running = 1.34, Post = 0.0717, Total = 1.94 
+#>     Pre = 0.584, Running = 1.31, Post = 0.0802, Total = 1.98 
 #> Fixed effects:
 #>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-#> Intercept 0.306 0.165     -0.022    0.306      0.634 0.306   0
+#> Intercept 0.306 0.169     -0.029    0.306      0.643 0.306   0
 #> 
 #> Random effects:
 #>   Name     Model
@@ -125,17 +125,17 @@ if (requireNamespace("INLA", quietly = TRUE) &&
 #> 
 #> Model hyperparameters:
 #>                                           mean     sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 133.08 90.545      20.68   110.63
-#> Theta1 for field                         -8.99  5.024     -20.88    -8.17
-#> Theta2 for field                          3.36  0.534       2.60     3.29
-#> Theta3 for field                          2.67  2.713      -1.02     2.23
+#> Precision for the Gaussian observations 141.72 93.772     25.278   119.08
+#> Theta1 for field                         -8.08  4.154    -17.922    -7.40
+#> Theta2 for field                          3.24  0.426      2.620     3.19
+#> Theta3 for field                          2.17  2.237     -0.862     1.81
 #>                                         0.975quant   mode
-#> Precision for the Gaussian observations     359.02 61.695
-#> Theta1 for field                             -2.16 -3.864
-#> Theta2 for field                              4.61  2.909
-#> Theta3 for field                              9.10 -0.098
+#> Precision for the Gaussian observations     376.51 72.472
+#> Theta1 for field                             -2.44 -3.840
+#> Theta2 for field                              4.24  2.897
+#> Theta3 for field                              7.47 -0.105
 #> 
-#> Marginal log-Likelihood:  -106.44 
+#> Marginal log-Likelihood:  -106.64 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
