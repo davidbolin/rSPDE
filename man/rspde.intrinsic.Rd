@@ -71,7 +71,7 @@ direct path to a .so (or .dll) file.}
 If NULL (default), it will be computed using RSpectra::eigs.
 Must be positive if provided.}
 
-\item{opts}{A list of options passed to RSpectra::eigs function.
+\item{opts}{A list of options passed to \code{RSpectra::eigs} function.
 See RSpectra documentation for available options.}
 
 \item{...}{Additional arguments passed internally for configuration purposes.}

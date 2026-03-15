@@ -18,7 +18,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 prmesh <- fmesher::fm_mesh_2d_inla(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -75,7 +75,7 @@ testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
 # Y <- Y[ind]
 # coords <- as.matrix(PRprec[ind, 1:2])
 
-# prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+# prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 # prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -133,7 +133,7 @@ testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
 # Y <- Y[ind]
 # coords <- as.matrix(PRprec[ind, 1:2])
 
-# prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+# prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 # prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -191,7 +191,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -246,7 +246,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -293,7 +293,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -351,7 +351,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -408,7 +408,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 

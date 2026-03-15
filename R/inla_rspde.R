@@ -2607,13 +2607,8 @@ rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
   smorg <- fmesher::fm_bary(mesh, loc = mesh$loc)
   ti <- matrix(0L, nrow(loc), 1)
   b <- matrix(0, nrow(loc), 3)
-  if (utils::packageVersion("fmesher") <= "0.2.0.9000") {
-    ti[jj, 1L] <- as.vector(smorg$t)
-    b[jj, ] <- smorg$bary
-  } else {
-    ti[jj, 1L] <- smorg$index
-    b[jj, ] <- smorg$where
-  }
+  ti[jj, 1L] <- smorg$index
+  b[jj, ] <- smorg$where
   ok <- !is.na(ti[, 1L])
   ii <- which(ok)
   A <- (sparseMatrix(dims = c(nrow(loc), mesh$n), i = rep(

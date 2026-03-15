@@ -40,7 +40,10 @@ test_that("A matrix construction", {
   A_inla <- fmesher::fm_basis(mesh,loc)
 
   # Pr multiplication
-  expect_equal(A, A_inla, tolerance = 1e-10)
+  # From fmesher 0.7.0, fm_basis removes redundant explicit zeros, so
+  # cannot use expect_equal(A, B), as that would trigger an error due to
+  # mismatching internal matrix storage.
+  expect_equal(sum(abs(A - A_inla)), 0, tolerance = 1e-10)
 
     INLA::inla.setOption(num.threads = old_threads)
 })
