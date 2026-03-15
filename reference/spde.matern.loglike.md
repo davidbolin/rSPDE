@@ -136,8 +136,8 @@ print(data.frame(
   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
   row.names = c("Truth", "Estimates")
 ))
-#>                 tau     kappa       nu   sigma.e
-#> Truth     0.5000000 1.0000000 0.800000 0.1000000
-#> Estimates 0.5481522 0.7711699 2.050953 0.1015812
+#>                 tau     kappa        nu    sigma.e
+#> Truth     0.5000000 1.0000000 0.8000000 0.10000000
+#> Estimates 0.5220492 0.9322801 0.9274488 0.09856622
 # }
 ```

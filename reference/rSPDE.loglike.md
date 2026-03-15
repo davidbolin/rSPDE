@@ -85,5 +85,5 @@ Y <- as.vector(A %*% u + sigma.e * rnorm(10))
 # compute log-likelihood of the data
 lik1 <- rSPDE.loglike(op, Y, A, sigma.e)
 cat(lik1)
-#> -8.21687
+#> -9.336895
 ```

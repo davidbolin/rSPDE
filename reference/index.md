@@ -221,29 +221,29 @@
   : Perform cross-validation on a list of fitted models.
 - [`predict(`*`<inla_rspde_matern1d>`*`)`](https://davidbolin.github.io/rSPDE/reference/predict.inla_rspde_matern1d.md)
   : Predict method for 'inlabru' stationary Matern 1d models
-- [`ibm_n.bru_mapper_inla_rspde_fintrinsic()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
-  [`ibm_values.bru_mapper_inla_rspde_fintrinsic()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
-  [`ibm_jacobian.bru_mapper_inla_rspde_fintrinsic()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
-  [`bru_get_mapper.inla_rspde()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
-  [`ibm_n.bru_mapper_inla_rspde()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
-  [`ibm_values.bru_mapper_inla_rspde()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
-  [`ibm_jacobian.bru_mapper_inla_rspde()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+- [`ibm_n(`*`<bru_mapper_inla_rspde_fintrinsic>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  [`ibm_values(`*`<bru_mapper_inla_rspde_fintrinsic>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  [`ibm_jacobian(`*`<bru_mapper_inla_rspde_fintrinsic>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  [`bru_get_mapper(`*`<inla_rspde>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  [`ibm_n(`*`<bru_mapper_inla_rspde>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  [`ibm_values(`*`<bru_mapper_inla_rspde>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
+  [`ibm_jacobian(`*`<bru_mapper_inla_rspde>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde.md)
   : rSPDE inlabru mapper
-- [`bru_get_mapper.inla_rspde_spacetime()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_spacetime.md)
+- [`bru_get_mapper(`*`<inla_rspde_spacetime>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_spacetime.md)
   : rSPDE space time inlabru mapper
-- [`bru_get_mapper.inla_rspde_anisotropic2d()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_anisotropic2d.md)
+- [`bru_get_mapper(`*`<inla_rspde_anisotropic2d>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_anisotropic2d.md)
   : rSPDE anisotropic inlabru mapper
-- [`bru_get_mapper.inla_rspde_matern1d()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_matern1d.md)
-  [`ibm_n.bru_mapper_inla_rspde_matern1d()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_matern1d.md)
-  [`ibm_values.bru_mapper_inla_rspde_matern1d()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_matern1d.md)
-  [`ibm_jacobian.bru_mapper_inla_rspde_matern1d()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_matern1d.md)
+- [`bru_get_mapper(`*`<inla_rspde_matern1d>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_matern1d.md)
+  [`ibm_n(`*`<bru_mapper_inla_rspde_matern1d>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_matern1d.md)
+  [`ibm_values(`*`<bru_mapper_inla_rspde_matern1d>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_matern1d.md)
+  [`ibm_jacobian(`*`<bru_mapper_inla_rspde_matern1d>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_matern1d.md)
   : rSPDE stationary inlabru mapper
-- [`bru_get_mapper.inla_rspde_fintrinsic()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_fintrinsic.md)
+- [`bru_get_mapper(`*`<inla_rspde_fintrinsic>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.inla_rspde_fintrinsic.md)
   : rSPDE inlabru mapper
-- [`bru_get_mapper.intrinsic_matern()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.intrinsic_matern.md)
-  [`ibm_n.bru_mapper_intrinsic_matern()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.intrinsic_matern.md)
-  [`ibm_values.bru_mapper_intrinsic_matern()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.intrinsic_matern.md)
-  [`ibm_jacobian.bru_mapper_intrinsic_matern()`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.intrinsic_matern.md)
+- [`bru_get_mapper(`*`<intrinsic_matern>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.intrinsic_matern.md)
+  [`ibm_n(`*`<bru_mapper_intrinsic_matern>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.intrinsic_matern.md)
+  [`ibm_values(`*`<bru_mapper_intrinsic_matern>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.intrinsic_matern.md)
+  [`ibm_jacobian(`*`<bru_mapper_intrinsic_matern>`*`)`](https://davidbolin.github.io/rSPDE/reference/bru_get_mapper.intrinsic_matern.md)
   : rSPDE inlabru mapper
 
 ## Finite element-related functions

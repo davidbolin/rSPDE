@@ -60,4 +60,4 @@ Authors:
 
 Other contributors:
 
-- Finn Lindgren <finn.lindgren@ed.ac.uk> \[contributor\]
+- Finn Lindgren <finn.lindgren@gmail.com> \[contributor\]

@@ -5,7 +5,8 @@ rSPDE inlabru mapper
 ## Usage
 
 ``` r
-bru_get_mapper.inla_rspde_fintrinsic(model, ...)
+# S3 method for class 'inla_rspde_fintrinsic'
+bru_get_mapper(model, ...)
 ```
 
 ## Arguments

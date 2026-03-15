@@ -68,8 +68,9 @@ using 'inlabru'.</p>
 <span>  probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.5</span>, <span class="fl">0.975</span><span class="op">)</span>,</span>
 <span>  return_original_order <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  num.threads <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  include <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  exclude <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  used <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  include <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  exclude <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  drop <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  tolerance <span class="op">=</span> <span class="fl">1e-04</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -86,7 +87,8 @@ function.</p></dd>
 
 
 <dt id="arg-cmp">cmp<a class="anchor" aria-label="anchor" href="#arg-cmp"></a></dt>
-<dd><p>The 'inlabru' component used to fit the model.</p></dd>
+<dd><p>The 'inlabru' component used to fit the model. Only the <code>formula</code>
+input syntax is supported.</p></dd>
 
 
 <dt id="arg-bru-fit">bru_fit<a class="anchor" aria-label="anchor" href="#arg-bru-fit"></a></dt>
@@ -128,17 +130,14 @@ original order?</p></dd>
 computations. Default NULL, leaves it up to 'INLA'. When seed != 0, overridden to "1:1"</p></dd>
 
 
-<dt id="arg-include">include<a class="anchor" aria-label="anchor" href="#arg-include"></a></dt>
-<dd><p>Character vector of component labels that are needed by the
-predictor expression; Default: NULL (include all components that are not
-explicitly excluded)</p></dd>
+<dt id="arg-used">used<a class="anchor" aria-label="anchor" href="#arg-used"></a></dt>
+<dd><p>Optional <code><a href="https://inlabru-org.github.io/inlabru/reference/bru_used.html" class="external-link">inlabru::bru_used()</a></code> specification for what components
+are needed by the predictor expression. Normally, autodetection works, and
+<code>used</code> can be left as <code>NULL</code> (the default).</p></dd>
 
 
-<dt id="arg-exclude">exclude<a class="anchor" aria-label="anchor" href="#arg-exclude"></a></dt>
-<dd><p>Character vector of component labels that are not used by the
-predictor expression. The exclusion list is applied to the list as determined
-by the include parameter; Default: NULL (do not remove any components from
-the inclusion list)</p></dd>
+<dt id="arg-include-exclude">include, exclude<a class="anchor" aria-label="anchor" href="#arg-include-exclude"></a></dt>
+<dd><p>Deprecated unused alternatives to <code>used</code>.</p></dd>
 
 
 <dt id="arg-drop">drop<a class="anchor" aria-label="anchor" href="#arg-drop"></a></dt>

@@ -5,13 +5,17 @@ rSPDE inlabru mapper
 ## Usage
 
 ``` r
-bru_get_mapper.intrinsic_matern(model, ...)
+# S3 method for class 'intrinsic_matern'
+bru_get_mapper(model, ...)
 
-ibm_n.bru_mapper_intrinsic_matern(mapper, ...)
+# S3 method for class 'bru_mapper_intrinsic_matern'
+ibm_n(mapper, ...)
 
-ibm_values.bru_mapper_intrinsic_matern(mapper, ...)
+# S3 method for class 'bru_mapper_intrinsic_matern'
+ibm_values(mapper, ...)
 
-ibm_jacobian.bru_mapper_intrinsic_matern(mapper, input, ...)
+# S3 method for class 'bru_mapper_intrinsic_matern'
+ibm_jacobian(mapper, input, ...)
 ```
 
 ## Arguments

@@ -111,8 +111,9 @@ rspde.intrinsic(
 
 - opts:
 
-  A list of options passed to RSpectra::eigs function. See RSpectra
-  documentation for available options.
+  A list of options passed to
+  [`RSpectra::eigs`](https://rdrr.io/pkg/RSpectra/man/eigs.html)
+  function. See RSpectra documentation for available options.
 
 - ...:
 

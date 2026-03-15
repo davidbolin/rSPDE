@@ -5,7 +5,8 @@ rSPDE space time inlabru mapper
 ## Usage
 
 ``` r
-bru_get_mapper.inla_rspde_spacetime(model, ...)
+# S3 method for class 'inla_rspde_spacetime'
+bru_get_mapper(model, ...)
 ```
 
 ## Arguments

@@ -18,8 +18,9 @@ predict(
   probs = c(0.025, 0.5, 0.975),
   return_original_order = TRUE,
   num.threads = NULL,
-  include = NULL,
-  exclude = NULL,
+  used = NULL,
+  include = deprecated(),
+  exclude = deprecated(),
   drop = FALSE,
   tolerance = 1e-04,
   ...
@@ -36,7 +37,8 @@ predict(
 
 - cmp:
 
-  The 'inlabru' component used to fit the model.
+  The 'inlabru' component used to fit the model. Only the `formula`
+  input syntax is supported.
 
 - bru_fit:
 
@@ -79,18 +81,17 @@ predict(
   Default NULL, leaves it up to 'INLA'. When seed != 0, overridden to
   "1:1"
 
-- include:
+- used:
 
-  Character vector of component labels that are needed by the predictor
-  expression; Default: NULL (include all components that are not
-  explicitly excluded)
+  Optional
+  [`inlabru::bru_used()`](https://inlabru-org.github.io/inlabru/reference/bru_used.html)
+  specification for what components are needed by the predictor
+  expression. Normally, autodetection works, and `used` can be left as
+  `NULL` (the default).
 
-- exclude:
+- include, exclude:
 
-  Character vector of component labels that are not used by the
-  predictor expression. The exclusion list is applied to the list as
-  determined by the include parameter; Default: NULL (do not remove any
-  components from the inclusion list)
+  Deprecated unused alternatives to `used`.
 
 - drop:
 

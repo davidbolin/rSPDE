@@ -5,7 +5,8 @@ rSPDE anisotropic inlabru mapper
 ## Usage
 
 ``` r
-bru_get_mapper.inla_rspde_anisotropic2d(model, ...)
+# S3 method for class 'inla_rspde_anisotropic2d'
+bru_get_mapper(model, ...)
 ```
 
 ## Arguments

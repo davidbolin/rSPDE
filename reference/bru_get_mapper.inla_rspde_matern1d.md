@@ -5,13 +5,17 @@ rSPDE stationary inlabru mapper
 ## Usage
 
 ``` r
-bru_get_mapper.inla_rspde_matern1d(model, ...)
+# S3 method for class 'inla_rspde_matern1d'
+bru_get_mapper(model, ...)
 
-ibm_n.bru_mapper_inla_rspde_matern1d(mapper, ...)
+# S3 method for class 'bru_mapper_inla_rspde_matern1d'
+ibm_n(mapper, ...)
 
-ibm_values.bru_mapper_inla_rspde_matern1d(mapper, ...)
+# S3 method for class 'bru_mapper_inla_rspde_matern1d'
+ibm_values(mapper, ...)
 
-ibm_jacobian.bru_mapper_inla_rspde_matern1d(mapper, input, ...)
+# S3 method for class 'bru_mapper_inla_rspde_matern1d'
+ibm_jacobian(mapper, input, ...)
 ```
 
 ## Arguments

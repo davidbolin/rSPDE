@@ -5,19 +5,26 @@ rSPDE inlabru mapper
 ## Usage
 
 ``` r
-ibm_n.bru_mapper_inla_rspde_fintrinsic(mapper, ...)
+# S3 method for class 'bru_mapper_inla_rspde_fintrinsic'
+ibm_n(mapper, ...)
 
-ibm_values.bru_mapper_inla_rspde_fintrinsic(mapper, ...)
+# S3 method for class 'bru_mapper_inla_rspde_fintrinsic'
+ibm_values(mapper, ...)
 
-ibm_jacobian.bru_mapper_inla_rspde_fintrinsic(mapper, input, ...)
+# S3 method for class 'bru_mapper_inla_rspde_fintrinsic'
+ibm_jacobian(mapper, input, ...)
 
-bru_get_mapper.inla_rspde(model, ...)
+# S3 method for class 'inla_rspde'
+bru_get_mapper(model, ...)
 
-ibm_n.bru_mapper_inla_rspde(mapper, ...)
+# S3 method for class 'bru_mapper_inla_rspde'
+ibm_n(mapper, ...)
 
-ibm_values.bru_mapper_inla_rspde(mapper, ...)
+# S3 method for class 'bru_mapper_inla_rspde'
+ibm_values(mapper, ...)
 
-ibm_jacobian.bru_mapper_inla_rspde(mapper, input, ...)
+# S3 method for class 'bru_mapper_inla_rspde'
+ibm_jacobian(mapper, input, ...)
 ```
 
 ## Arguments
@@ -100,42 +107,42 @@ if (requireNamespace("INLA", quietly = TRUE) &&
 #>   `inla.setOption(fmesher.evolution.warn = FALSE)`.
 #> ℹ To ensure visibility of these messages in package tests, also set
 #>   `inla.setOption(fmesher.evolution.verbosity = 'warn')`.
-#> inlabru version: 2.13.0
-#> INLA version: 26.01.26-1
-#> Components:
-#> Intercept: main = linear(1), group = exchangeable(1L), replicate = iid(1L), NULL
-#> field: main = cgeneric(cbind(x1, x2)), group = exchangeable(1L), replicate = iid(1L), NULL
+#> inlabru version: 2.14.0 
+#> INLA version: 26.02.06 
+#> Latent components:
+#> Intercept: main = linear(1)
+#> field: main = cgeneric(cbind(x1, x2))
 #> Observation models:
-#>   Family: 'gaussian'
-#>     Tag: <No tag>
+#>   Model tag: <No tag>
+#>     Family: 'gaussian'
 #>     Data class: 'data.frame'
 #>     Response class: 'numeric'
-#>     Predictor: y ~ .
-#>     Additive/Linear: TRUE/TRUE
-#>     Used components: effects[Intercept, field], latent[]
+#>     Predictor: y ~ Intercept + field
+#>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
+#>     Used components: effect[Intercept, field], latent[] 
 #> Time used:
-#>     Pre = 0.563, Running = 1.35, Post = 0.107, Total = 2.02 
+#>     Pre = 0.343, Running = 1.44, Post = 0.108, Total = 1.89 
 #> Fixed effects:
-#>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-#> Intercept 0.305 0.169     -0.028    0.305      0.641 0.305   0
+#>            mean   sd 0.025quant 0.5quant 0.975quant  mode kld
+#> Intercept 0.306 0.17     -0.031    0.306      0.645 0.306   0
 #> 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
 #> 
 #> Model hyperparameters:
-#>                                           mean     sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 155.13 76.326     49.368  140.761
-#> Theta1 for field                         -3.78  0.498     -4.567   -3.833
-#> Theta2 for field                          2.94  0.202      2.540    2.943
-#> Theta3 for field                         -0.12  0.268     -0.721   -0.093
-#>                                         0.975quant    mode
-#> Precision for the Gaussian observations    342.064 113.162
-#> Theta1 for field                            -2.652  -4.094
-#> Theta2 for field                             3.336   2.947
-#> Theta3 for field                             0.314   0.037
+#>                                            mean      sd 0.025quant 0.5quant
+#> Precision for the Gaussian observations 174.007 119.933     37.647  143.961
+#> Theta1 for field                         -3.609   0.564     -4.751   -3.599
+#> Theta2 for field                          2.870   0.212      2.454    2.870
+#> Theta3 for field                         -0.222   0.316     -0.824   -0.228
+#>                                         0.975quant   mode
+#> Precision for the Gaussian observations    486.027 94.389
+#> Theta1 for field                            -2.530 -3.553
+#> Theta2 for field                             3.289  2.867
+#> Theta3 for field                             0.418 -0.256
 #> 
-#> Marginal log-Likelihood:  -108.72 
+#> Marginal log-Likelihood:  -108.14 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
