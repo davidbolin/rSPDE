@@ -15,8 +15,9 @@
   probs = c(0.025, 0.5, 0.975),
   return_original_order = TRUE,
   num.threads = NULL,
-  include = NULL,
-  exclude = NULL,
+  used = NULL,
+  include = deprecated(),
+  exclude = deprecated(),
   drop = FALSE,
   tolerance = 1e-04,
   ...
@@ -26,7 +27,8 @@
 \item{object}{An \code{inla_rspde_matern1d} object built with the \code{rspde.matern1d()}
 function.}
 
-\item{cmp}{The 'inlabru' component used to fit the model.}
+\item{cmp}{The 'inlabru' component used to fit the model. Only the \code{formula}
+input syntax is supported.}
 
 \item{bru_fit}{A fitted model using 'inlabru' or 'INLA'.}
 
@@ -51,14 +53,11 @@ original order?}
 \item{num.threads}{Specification of desired number of threads for parallel
 computations. Default NULL, leaves it up to 'INLA'. When seed != 0, overridden to "1:1"}
 
-\item{include}{Character vector of component labels that are needed by the
-predictor expression; Default: NULL (include all components that are not
-explicitly excluded)}
+\item{used}{Optional \code{\link[inlabru:bru_used]{inlabru::bru_used()}} specification for what components
+are needed by the predictor expression. Normally, autodetection works, and
+\code{used} can be left as \code{NULL} (the default).}
 
-\item{exclude}{Character vector of component labels that are not used by the
-predictor expression. The exclusion list is applied to the list as determined
-by the include parameter; Default: NULL (do not remove any components from
-the inclusion list)}
+\item{include, exclude}{Deprecated unused alternatives to \code{used}.}
 
 \item{drop}{logical; If keep=FALSE, data is a SpatialDataFrame, and the
 prediciton summary has the same number of rows as data, then the output is a

@@ -278,12 +278,8 @@ rspde.spacetime <- function(mesh_space = NULL,
 bru_get_mapper.inla_rspde_spacetime <- function(model, ...) {
   stopifnot(requireNamespace("inlabru"))
   inlabru::bru_mapper_multi(list(
-    space = if(inherits(model[["mesh"]], c("fm_mesh_1d", "inla.mesh.1d"))){
-      inlabru::bru_mapper(model[["mesh"]], indexed = TRUE)
-    } else{
-      inlabru::bru_mapper(model[["mesh"]])
-    },
-    time = inlabru::bru_mapper(model[["time_mesh"]], indexed = TRUE)
+    space = inlabru::bm_fmesher(model[["mesh"]]),
+    time = inlabru::bm_fmesher(model[["time_mesh"]])
   ))
 }
 

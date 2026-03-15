@@ -462,7 +462,8 @@ ibm_jacobian.bru_mapper_inla_rspde_matern1d <- function(mapper, input, ...) {
 #' using 'inlabru'.
 #' @param object An `inla_rspde_matern1d` object built with the `rspde.matern1d()`
 #' function.
-#' @param cmp The 'inlabru' component used to fit the model.
+#' @param cmp The 'inlabru' component used to fit the model. Only the `formula`
+#'   input syntax is supported.
 #' @param bru_fit A fitted model using 'inlabru' or 'INLA'.
 #' @param newdata A data.frame of covariates needed for the prediction. 
 #' @param formula A formula where the right hand side defines an R expression to
@@ -478,13 +479,10 @@ ibm_jacobian.bru_mapper_inla_rspde_matern1d <- function(mapper, input, ...) {
 #' original order?
 #' @param num.threads	Specification of desired number of threads for parallel
 #' computations. Default NULL, leaves it up to 'INLA'. When seed != 0, overridden to "1:1"
-#' @param include	Character vector of component labels that are needed by the
-#' predictor expression; Default: NULL (include all components that are not
-#' explicitly excluded)
-#' @param exclude	Character vector of component labels that are not used by the
-#' predictor expression. The exclusion list is applied to the list as determined
-#' by the include parameter; Default: NULL (do not remove any components from
-#' the inclusion list)
+#' @param used Optional [inlabru::bru_used()] specification for what components
+#' are needed by the predictor expression. Normally, autodetection works, and
+#' `used` can be left as `NULL` (the default).
+#' @param include,exclude Deprecated unused alternatives to `used`.
 #' @param drop logical; If keep=FALSE, data is a SpatialDataFrame, and the
 #' prediciton summary has the same number of rows as data, then the output is a
 #' SpatialDataFrame object. Default FALSE.
@@ -492,6 +490,7 @@ ibm_jacobian.bru_mapper_inla_rspde_matern1d <- function(mapper, input, ...) {
 #' @param... Additional arguments passed on to `inla.posterior.sample()`.
 #' @return A list with predictions.
 #' @export
+#' @importFrom lifecycle deprecated
 
 predict.inla_rspde_matern1d <- function(object,
                                            cmp,
@@ -503,25 +502,23 @@ predict.inla_rspde_matern1d <- function(object,
                                            probs = c(0.025, 0.5, 0.975),
                                            return_original_order = TRUE,
                                            num.threads = NULL,
-                                           include = NULL,
-                                           exclude = NULL,
+                                           used = NULL,
+                                           include = deprecated(),
+                                           exclude = deprecated(),
                                            drop = FALSE,
                                            tolerance = 1e-4,
                                            ...){
-  if(length(bru_fit$bru_info$lhoods) > 1){
+  if (length(inlabru::as_bru_obs_list(bru_fit)) > 1){
     stop("Only models with one likelihood implemented.")
   }
 
-  name_locations <- bru_fit$bru_info$model$effects$field$main$input$input
-  if (!is.character(name_locations) || length(name_locations) != 1) {
-    # Handle symbols/calls from different inlabru versions
-    name_locations <- all.vars(name_locations)
-  }
+  name_locations <-
+    inlabru::bru_input_text(inlabru::as_bru_comp_list(bru_fit)$field)$core$main
   if (length(name_locations) != 1) {
     stop("Could not determine location column name from fitted model.")
   }
-  
-  original_data <- bru_fit$bru_info$lhoods[[1]]$data
+
+  original_data <- inlabru::as_bru_obs_list(bru_fit)[[1]]$data
 
   new_data <- newdata
   new_data[["__new"]] <- TRUE
@@ -530,7 +527,7 @@ predict.inla_rspde_matern1d <- function(object,
 
   new_data <- merge_with_tolerance(original_data, new_data, by = as.character(name_locations), tolerance = tolerance)
 
-  spde____model <- rspde.matern1d(loc = new_data[[name_locations]], 
+  spde____model <- rspde.matern1d(loc = new_data[[name_locations]],
                                     rspde.order = object[["rspde.order"]],
                                     nu.upper.bound = object[["nu.upper.bound"]],
                                     nu = object[["nu"]],
@@ -548,12 +545,11 @@ predict.inla_rspde_matern1d <- function(object,
   cmp_c[3] <- sub(name_model, "spde____model", cmp_c[3])
   cmp_new <- as.formula(paste(cmp_c[2], cmp_c[1], cmp_c[3]))
 
-  info <- bru_fit[["bru_info"]]
-  info[["options"]] <- inlabru::bru_call_options(inlabru::bru_options(info[["options"]]))
+  info <- inlabru::as_bru_info(bru_fit)
 
   bru_fit_new <- inlabru::bru(cmp_new,
           data = new_data, options = info[["options"]])
-  
+
   pred <- predict(object = bru_fit_new,
                     newdata = newdata,
                     formula = formula,
@@ -561,8 +557,7 @@ predict.inla_rspde_matern1d <- function(object,
                     seed = seed,
                     probs = probs,
                     num.threads = num.threads,
-                    include = include,
-                    exclude = exclude,
+                    used = used,
                     drop = drop,
                     ...)
 

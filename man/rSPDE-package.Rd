@@ -57,7 +57,7 @@ Authors:
 
 Other contributors:
 \itemize{
-  \item Finn Lindgren \email{finn.lindgren@ed.ac.uk} [contributor]
+  \item Finn Lindgren \email{finn.lindgren@gmail.com} [contributor]
 }
 
 }

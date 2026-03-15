@@ -34,7 +34,7 @@
 #' direct path to a .so (or .dll) file.
 #' @param debug Logical value indicating whether to enable INLA debug mode.
 #' @param cache Use caching internally in the estimation?
-#' @param opts A list of options passed to RSpectra::eigs function. 
+#' @param opts A list of options passed to `RSpectra::eigs` function. 
 #' See RSpectra documentation for available options.
 #' @param scaling A positive numeric value of length 1 for scaling the model.
 #'   If NULL (default), it will be computed using RSpectra::eigs.
@@ -646,17 +646,11 @@ rspde.intrinsic.result <- function(inla, name, rspde,
 #' }
 bru_get_mapper.inla_rspde_fintrinsic <- function(model, ...) {
     stopifnot(requireNamespace("inlabru"))
-    inlabru_version <- as.character(packageVersion("inlabru"))
-    if(inlabru_version >= "2.11.1.9022"){
-        n_rep <- model[["rspde.order"]] + 1
-        if((model[["est_nu"]] == 0L) && (model[["integer.nu"]])){
-            n_rep <- 1
-        }
-        inlabru::bru_mapper_repeat(inlabru::bru_mapper(model[["mesh"]]), n_rep = n_rep)
-    } else{
-        mapper <- list(model = model)
-        inlabru::bru_mapper_define(mapper, new_class = "bru_mapper_inla_rspde_fintrinsic")
+    n_rep <- model[["rspde.order"]] + 1
+    if((model[["est_nu"]] == 0L) && (model[["integer.nu"]])){
+        n_rep <- 1
     }
+    inlabru::bru_mapper_repeat(inlabru::bm_fmesher(model[["mesh"]]), n_rep = n_rep)
 }
 
 #' @param mapper A `bru_mapper_inla_rspde` object
@@ -714,14 +708,8 @@ ibm_jacobian.bru_mapper_inla_rspde_fintrinsic <- function(mapper, input, ...) {
 #' }
 bru_get_mapper.intrinsic_matern <- function(model, ...) {
     stopifnot(requireNamespace("inlabru"))
-    inlabru_version <- as.character(packageVersion("inlabru"))
-    if(inlabru_version >= "2.11.1.9022"){
-        n_rep <- 1
-        inlabru::bru_mapper_repeat(inlabru::bru_mapper(model[["mesh"]]), n_rep = n_rep)
-    } else{
-        mapper <- list(model = model)
-        inlabru::bru_mapper_define(mapper, new_class = "bru_mapper_intrinsic_matern")
-    }
+    n_rep <- 1
+    inlabru::bru_mapper_repeat(inlabru::bru_mapper(model[["mesh"]]), n_rep = n_rep)
 }
 
 #' @param mapper A `bru_mapper_intrinsic_matern` object

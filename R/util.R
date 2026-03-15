@@ -1732,7 +1732,7 @@ convert_B_matrices <- function(B.sigma, B.range, n.spde, nu.nominal, d) {
 #'
 #' @param d The dimension of the spatial domain
 #' @param nu The smoothness parameter
-#' @param par Vector of parameters to convert (either [tau, kappa] or [sigma, range])
+#' @param par Vector of parameters to convert (either `[tau, kappa]` or `[sigma, range]`)
 #' @param hessian The observed Fisher information matrix (can be NULL if all parameters are fixed)
 #' @param fixed_params Named logical vector indicating which parameters are fixed
 #' @param to_spde Logical; if TRUE, convert from Matern to SPDE, otherwise from SPDE to Matern

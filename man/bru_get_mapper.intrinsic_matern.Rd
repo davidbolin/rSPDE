@@ -7,13 +7,13 @@
 \alias{ibm_jacobian.bru_mapper_intrinsic_matern}
 \title{rSPDE inlabru mapper}
 \usage{
-bru_get_mapper.intrinsic_matern(model, ...)
+\method{bru_get_mapper}{intrinsic_matern}(model, ...)
 
-ibm_n.bru_mapper_intrinsic_matern(mapper, ...)
+\method{ibm_n}{bru_mapper_intrinsic_matern}(mapper, ...)
 
-ibm_values.bru_mapper_intrinsic_matern(mapper, ...)
+\method{ibm_values}{bru_mapper_intrinsic_matern}(mapper, ...)
 
-ibm_jacobian.bru_mapper_intrinsic_matern(mapper, input, ...)
+\method{ibm_jacobian}{bru_mapper_intrinsic_matern}(mapper, input, ...)
 }
 \arguments{
 \item{model}{An \code{intrinsic_matern} object for which to construct or extract a mapper}
