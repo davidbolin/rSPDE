@@ -3451,7 +3451,8 @@ rspde.metric_graph <- function(graph_obj,
       nu.prec.inc = nu.prec.inc,
       type.rational.approx = type.rational.approx,
       vec_param = param,
-      prior.theta.param = prior.theta.param
+      prior.theta.param = prior.theta.param,
+      shared_lib = shared_lib
     )
   } else {
     rspde_model <- rspde.matern(
@@ -3470,7 +3471,8 @@ rspde.metric_graph <- function(graph_obj,
       nu.prec.inc = nu.prec.inc,
       type.rational.approx = type.rational.approx,
       vec_param = param,
-      prior.theta.param = prior.theta.param
+      prior.theta.param = prior.theta.param,
+      shared_lib = shared_lib
     )
   }
 
