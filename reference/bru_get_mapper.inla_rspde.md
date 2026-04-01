@@ -108,7 +108,7 @@ if (requireNamespace("INLA", quietly = TRUE) &&
 #> ℹ To ensure visibility of these messages in package tests, also set
 #>   `inla.setOption(fmesher.evolution.verbosity = 'warn')`.
 #> inlabru version: 2.14.0 
-#> INLA version: 26.02.06 
+#> INLA version: 26.03.19 
 #> Latent components:
 #> Intercept: main = linear(1)
 #> field: main = cgeneric(cbind(x1, x2))
@@ -121,28 +121,28 @@ if (requireNamespace("INLA", quietly = TRUE) &&
 #>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 #>     Used components: effect[Intercept, field], latent[] 
 #> Time used:
-#>     Pre = 0.343, Running = 1.44, Post = 0.108, Total = 1.89 
+#>     Pre = 0.332, Running = 1.58, Post = 0.102, Total = 2.01 
 #> Fixed effects:
 #>            mean   sd 0.025quant 0.5quant 0.975quant  mode kld
-#> Intercept 0.306 0.17     -0.031    0.306      0.645 0.306   0
+#> Intercept 0.305 0.17     -0.032    0.305      0.644 0.305   0
 #> 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
 #> 
 #> Model hyperparameters:
-#>                                            mean      sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 174.007 119.933     37.647  143.961
-#> Theta1 for field                         -3.609   0.564     -4.751   -3.599
-#> Theta2 for field                          2.870   0.212      2.454    2.870
-#> Theta3 for field                         -0.222   0.316     -0.824   -0.228
-#>                                         0.975quant   mode
-#> Precision for the Gaussian observations    486.027 94.389
-#> Theta1 for field                            -2.530 -3.553
-#> Theta2 for field                             3.289  2.867
-#> Theta3 for field                             0.418 -0.256
+#>                                            mean     sd 0.025quant 0.5quant
+#> Precision for the Gaussian observations 163.370 80.488     51.547  148.280
+#> Theta1 for field                         -4.471  0.822     -6.427   -4.328
+#> Theta2 for field                          2.910  0.189      2.564    2.902
+#> Theta3 for field                          0.089  0.341     -0.379    0.038
+#>                                         0.975quant    mode
+#> Precision for the Gaussian observations    360.125 119.062
+#> Theta1 for field                            -3.374  -3.607
+#> Theta2 for field                             3.308   2.862
+#> Theta3 for field                             0.897  -0.261
 #> 
-#> Marginal log-Likelihood:  -108.14 
+#> Marginal log-Likelihood:  -108.72 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')

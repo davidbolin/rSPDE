@@ -231,8 +231,8 @@ summary(res)
 #> Number of function calls by 'optim' = 50
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  23.99154 secs 
-#>   set up the parallelization = 5.30485 secs
+#> Time used to:     fit the model =  22.84073 secs 
+#>   set up the parallelization = 4.97861 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -328,7 +328,7 @@ results <- data.frame(
 print(results)
 #>             kappa     sigma     gamma      rho    sigma.e  intercept
 #> True     5.000000 10.000000 0.1000000 1.000000 0.01000000 0.00000000
-#> Estimate 4.741308  9.037951 0.1008695 1.090696 0.01074866 0.01238386
+#> Estimate 4.677085  9.123076 0.1061707 1.191519 0.01005917 0.01271066
 ```
 
 ## A spatial example
@@ -518,8 +518,8 @@ summary(res_2d)
 #> Number of function calls by 'optim' = 81
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  2.60417 mins 
-#>   set up the parallelization = 5.56289 secs
+#> Time used to:     fit the model =  2.58172 mins 
+#>   set up the parallelization = 5.42108 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -587,12 +587,12 @@ results <- data.frame(
 )
 
 print(results)
-#>              kappa        sigma       gamma       rho_1       rho_2
-#> True     9.9000000 2.900000e+01 1.10000e-01  0.20000000  0.30000000
-#> Estimate 0.2957659 3.913119e-05 9.07826e-09 -0.04136347 -0.02689761
+#>              kappa        sigma        gamma        rho_1        rho_2
+#> True     9.9000000 2.900000e+01 1.100000e-01  0.200000000  0.300000000
+#> Estimate 0.3009676 3.848025e-05 8.723392e-09 -0.003454795 -0.004320446
 #>               sigma.e intercept
 #> True     0.0100000000 0.0000000
-#> Estimate 0.0005198533 0.4919004
+#> Estimate 0.0005200932 0.4928725
 ```
 
 ## Fit with `bounded_rho = FALSE`
@@ -674,9 +674,9 @@ results_unbounded <- data.frame(
 )
 
 print(results_unbounded)
-#>             kappa     sigma     gamma       rho    sigma.e  intercept
-#> True     9.900000 29.000000 0.1100000 1.0000000 0.01000000 0.00000000
-#> Estimate 4.436701  7.891081 0.1019698 0.9482357 0.01089138 0.01212498
+#>             kappa     sigma      gamma      rho     sigma.e  intercept
+#> True     9.900000 29.000000 0.11000000 1.000000 0.010000000 0.00000000
+#> Estimate 5.026244  9.082655 0.08955354 1.418052 0.007723455 0.01239866
 ```
 
 ## References

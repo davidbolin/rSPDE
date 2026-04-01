@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-10-23. Last
-modified: 2026-03-15.</h4>
+modified: 2026-04-01.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/anisotropic.Rmd" class="external-link"><code>vignettes/anisotropic.Rmd</code></a></small>
       <div class="d-none name"><code>anisotropic.Rmd</code></div>
@@ -271,8 +271,8 @@ us see a summary of the fitted model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 46</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  26.33489 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 2.88422 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  26.48364 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 2.803 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -354,12 +354,12 @@ scale of the estimated parameters back to the original scale.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                  hx         hy       hxy     sigma        nu   sigma.e</span></span>
-<span><span class="co">#&gt; True           0.08       0.08       0.5         1       0.5 0.1000000</span></span>
-<span><span class="co">#&gt; Estimate 0.09172594 0.09127115 0.5688725 0.9754234 0.4539282 0.1001553</span></span>
+<span><span class="co">#&gt;                 hx         hy       hxy     sigma        nu   sigma.e</span></span>
+<span><span class="co">#&gt; True          0.08       0.08       0.5         1       0.5 0.1000000</span></span>
+<span><span class="co">#&gt; Estimate 0.0917466 0.09158569 0.5677859 0.9761319 0.4567412 0.1001515</span></span>
 <span><span class="co">#&gt;           intercept</span></span>
 <span><span class="co">#&gt; True      0.0000000</span></span>
-<span><span class="co">#&gt; Estimate -0.1598406</span></span></code></pre></div>
+<span><span class="co">#&gt; Estimate -0.1625111</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
