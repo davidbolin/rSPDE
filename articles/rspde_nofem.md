@@ -224,8 +224,8 @@ summary(fit)
     ## Number of function calls by 'optim' = 42
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  2.32747 mins 
-    ##   set up the parallelization = 2.60347 secs
+    ## Time used to:     fit the model =  2.35729 mins 
+    ##   set up the parallelization = 2.71506 secs
 
 Let us compare with the true values and compare the time:
 
@@ -248,7 +248,7 @@ total_time <- fit$fitting_time + fit$time_par
 print(total_time)
 ```
 
-    ## Time difference of 142.2518 secs
+    ## Time difference of 144.1525 secs
 
 ### Kriging
 
@@ -355,8 +355,8 @@ summary(result_fit)
 ```
 
     ##            mean       sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 1.01648 0.331755   0.583556  0.94323    1.86665 0.816602
-    ## range   2.89965 2.271380   0.779771  2.23485    9.11400 1.556020
+    ## std.dev 1.01510 0.329876   0.584149 0.942394    1.86009 0.817347
+    ## range   2.88891 2.250800   0.782297 2.230780    9.04518 1.540770
 
 ``` r
 posterior_df_fit <- gg_df(result_fit)

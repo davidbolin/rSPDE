@@ -121,28 +121,28 @@ if (requireNamespace("INLA", quietly = TRUE) &&
 #>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 #>     Used components: effect[Intercept, field], latent[] 
 #> Time used:
-#>     Pre = 0.326, Running = 1.41, Post = 0.102, Total = 1.84 
+#>     Pre = 0.346, Running = 1.41, Post = 0.347, Total = 2.11 
 #> Fixed effects:
 #>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-#> Intercept 0.305 0.169      -0.03    0.305      0.642 0.305   0
+#> Intercept 0.306 0.162     -0.016    0.305      0.629 0.305   0
 #> 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
 #> 
 #> Model hyperparameters:
-#>                                            mean     sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 173.230 86.584     56.928  156.033
-#> Theta1 for field                         -3.729  0.542     -4.546   -3.799
-#> Theta2 for field                          2.941  0.202      2.538    2.943
-#> Theta3 for field                         -0.131  0.279     -0.768   -0.099
+#>                                           mean     sd 0.025quant 0.5quant
+#> Precision for the Gaussian observations 155.11 80.479      45.78   139.18
+#> Theta1 for field                        -10.56  6.328     -25.57    -9.51
+#> Theta2 for field                          3.59  0.723       2.58     3.49
+#> Theta3 for field                          3.50  3.396      -1.09     2.94
 #>                                         0.975quant    mode
-#> Precision for the Gaussian observations    388.718 124.749
-#> Theta1 for field                            -2.481  -4.150
-#> Theta2 for field                             3.332   2.952
-#> Theta3 for field                             0.305   0.059
+#> Precision for the Gaussian observations     353.86 108.696
+#> Theta1 for field                             -2.01  -4.056
+#> Theta2 for field                              5.29   2.992
+#> Theta3 for field                             11.55   0.011
 #> 
-#> Marginal log-Likelihood:  -108.69 
+#> Marginal log-Likelihood:  -106.49 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')

@@ -211,10 +211,10 @@ summary(rspde_fit)
 
 ``` R
 ## Time used:
-##     Pre = 0.424, Running = 3.61, Post = 0.0315, Total = 4.06 
+##     Pre = 0.406, Running = 3.31, Post = 0.0329, Total = 3.75 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-## Intercept 1.942 0.043      1.858    1.942      2.025 1.942   0
+## Intercept 1.941 0.042      1.859    1.941      2.024 1.941   0
 ## 
 ## Random effects:
 ##   Name     Model
@@ -222,20 +222,20 @@ summary(rspde_fit)
 ##    field CGeneric
 ## 
 ## Model hyperparameters:
-##                                                   mean      sd 0.025quant
-## Precision-parameter for the Gamma observations   14.41    1.04     12.461
-## Precision for seaDist                          7657.61 4343.77   2342.263
-## Theta1 for field                                 -4.49    3.99    -13.776
-## Theta2 for field                                  2.21    1.01      0.695
-## Theta3 for field                                  2.83    3.61     -2.410
+##                                                   mean       sd 0.025quant
+## Precision-parameter for the Gamma observations   14.42    1.038      12.47
+## Precision for seaDist                          7633.61 4372.007    2331.58
+## Theta1 for field                                 -3.17    2.462      -8.89
+## Theta2 for field                                  1.80    0.548       0.93
+## Theta3 for field                                  1.58    2.181      -1.62
 ##                                                0.5quant 0.975quant     mode
-## Precision-parameter for the Gamma observations    14.37      16.55   14.309
-## Precision for seaDist                           6663.52   18831.27 5039.328
-## Theta1 for field                                  -3.93       1.31   -1.140
-## Theta2 for field                                   2.08       4.55    1.417
-## Theta3 for field                                   2.34      11.23   -0.182
+## Precision-parameter for the Gamma observations    14.39   1.66e+01   14.344
+## Precision for seaDist                           6621.50   1.89e+04 4988.465
+## Theta1 for field                                  -2.83   4.35e-01   -1.126
+## Theta2 for field                                   1.74   3.04e+00    1.440
+## Theta3 for field                                   1.28   6.64e+00   -0.222
 ## 
-## Marginal log-Likelihood:  -1254.47 
+## Marginal log-Likelihood:  -1254.98 
 ##  is computed 
 ## Posterior summaries for the linear predictor and the fitted values are computed
 ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -256,10 +256,10 @@ summary(result_fit)
 ```
 
 ``` R
-##            mean        sd  0.025quant  0.5quant 0.975quant        mode
-## tau    0.441101  1.456970 1.07510e-06 0.0222871    3.71561 5.73677e-10
-## kappa 17.079800 31.557500 2.02250e+00 7.7630100   91.97150 3.24198e+00
-## nu     1.475010  0.612172 1.66789e-01 1.8059200    1.99997 1.99999e+00
+##           mean       sd  0.025quant  0.5quant 0.975quant        mode
+## tau   0.248087 0.459024 0.000147669 0.0640274    1.52880 1.35971e-06
+## kappa 7.094220 4.925090 2.554400000 5.5799000   20.56510 3.76125e+00
+## nu    1.393350 0.536726 0.332664000 1.5398300    1.99722 1.99991e+00
 ```
 
 ``` r
@@ -456,7 +456,7 @@ summary(rspde_fit)
 ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 ##     Used components: effect[Intercept, distSea, field], latent[] 
 ## Time used:
-##     Pre = 0.159, Running = 3.45, Post = 0.031, Total = 3.64 
+##     Pre = 0.186, Running = 4.05, Post = 0.039, Total = 4.27 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 ## Intercept 1.942 0.042       1.86    1.942      2.023 1.942   0
@@ -467,20 +467,20 @@ summary(rspde_fit)
 ##    field CGeneric
 ## 
 ## Model hyperparameters:
-##                                                   mean       sd 0.025quant
-## Precision-parameter for the Gamma observations   14.43    1.042     12.489
-## Precision for distSea                          7624.60 4443.982   2461.866
-## Theta1 for field                                 -4.42    3.850    -13.395
-## Theta2 for field                                  2.18    0.935      0.775
-## Theta3 for field                                  2.67    3.396     -2.263
+##                                                   mean      sd 0.025quant
+## Precision-parameter for the Gamma observations   14.44    1.04     12.487
+## Precision for distSea                          7411.39 4237.48   2255.219
+## Theta1 for field                                 -4.15    4.30    -13.971
+## Theta2 for field                                  2.16    1.07      0.463
+## Theta3 for field                                  2.43    3.79     -3.460
 ##                                                0.5quant 0.975quant     mode
-## Precision-parameter for the Gamma observations    14.39      16.59   14.314
-## Precision for distSea                           6546.18   19251.58 4911.208
-## Theta1 for field                                  -3.89       1.16   -1.187
-## Theta2 for field                                   2.06       4.34    1.458
-## Theta3 for field                                   2.20      10.58   -0.178
+## Precision-parameter for the Gamma observations    14.40      16.59   14.340
+## Precision for distSea                           6434.56   18330.88 4849.122
+## Theta1 for field                                  -3.64       2.54   -1.167
+## Theta2 for field                                   2.04       4.58    1.477
+## Theta3 for field                                   1.98      11.07   -0.189
 ## 
-## Marginal log-Likelihood:  -1254.57 
+## Marginal log-Likelihood:  -1254.32 
 ##  is computed 
 ## Posterior summaries for the linear predictor and the fitted values are computed
 ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -502,10 +502,10 @@ summary(result_fit)
 ```
 
 ``` R
-##            mean        sd  0.025quant  0.5quant 0.975quant        mode
-## tau    0.387983  1.212700 1.50905e-06 0.0232588    3.17223 1.08342e-09
-## kappa 15.025300 24.047800 2.19156e+00 7.6538100   74.80590 3.46322e+00
-## nu     1.474880  0.601322 1.90029e-01 1.7793600    1.99993 1.99999e+00
+##           mean        sd  0.025quant  0.5quant 0.975quant        mode
+## tau    1.50505  8.189100 7.61575e-07 0.0294767   12.16610 3.73975e-10
+## kappa 17.15500 33.035600 1.60593e+00 7.4772000   94.95180 2.98009e+00
+## nu     1.38735  0.682074 6.32877e-02 1.7350400    1.99996 1.99999e+00
 ```
 
 ``` r
