@@ -18,8 +18,8 @@ obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o 
 	  cgeneric_rspde_1d_general.o cgeneric_aux_1d.o 
 
 # Compiler settings
-CC = /usr/local/bin/gcc
-CXX = /usr/local/bin/g++
+CC = /opt/homebrew/bin/gcc-14
+CXX = /opt/homebrew/bin/g++-14
 
 # Eigen and library paths
 EIGEN_MAC = /opt/homebrew/
@@ -38,10 +38,10 @@ ifeq ($(shell uname -s), Linux)
 else ifeq ($(shell uname -s), Darwin)
     ifeq ($(ARCH), arm64)
         flags = -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp -arch arm64
-        LINK_FLAGS = -L$(R_HOME)/lib -lR -ldl -lm -arch arm64
+        LINK_FLAGS = -L$(R_HOME)/lib -lR -ldl -lm -arch arm64 -static-libstdc++ -static-libgcc
     else ifeq ($(ARCH), x86_64)
         flags = -O2 -Wall -Wextra -fpic -g -I$(MAC_INCLUDE) -fopenmp -arch x86_64
-        LINK_FLAGS = -L$(R_HOME)/lib -lR -ldl -lm -arch x86_64
+        LINK_FLAGS = -L$(R_HOME)/lib -lR -ldl -lm -arch x86_64 -static-libstdc++ -static-libgcc
     endif
 endif
 
@@ -69,7 +69,11 @@ cgeneric.h:
 # Link shared library
 rSPDE.so: cgeneric.h $(obj)
 	$(CXX) $(flags) -shared $(obj) -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack $(LINK_FLAGS)
-
+	@if [ "$$(uname -s)" = "Darwin" ]; then \
+	    echo "Adhoc-signing rspde_cgeneric_models.so for macOS dyld..."; \
+	    codesign --force --sign - ../inst/shared/rspde_cgeneric_models.so || \
+	      echo "Warning: codesign failed; the library may not load on macOS 26+"; \
+	fi
 # Clean up
 clean:
 	rm -f *.o
