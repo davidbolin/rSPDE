@@ -3325,7 +3325,7 @@ rspde.metric_graph <- function(graph_obj,
                                  "chebfun",
                                  "chebfunLB"
                                ),
-                               shared_lib = "INLA") {
+                               shared_lib = "detect") {
   if (!inherits(graph_obj, "metric_graph")) {
     stop("The graph object should be of class metric_graph!")
   }
