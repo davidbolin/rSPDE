@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Update src/FUNCTIONS on inla branch
+      - name: Update src folder on inla branch
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
@@ -31,13 +31,13 @@ jobs:
 
           git checkout inla
 
-          mkdir -p src
-          git checkout devel-src -- src/FUNCTIONS
+          git rm -rf src
+          git checkout devel-src -- src
 
-          git add src/FUNCTIONS
+          git add src
 
           if ! git diff-index --quiet HEAD --; then
-            git commit -m "Update src/FUNCTIONS"
+            git commit -m "Update src from devel-src"
             git push origin inla
           fi
 
