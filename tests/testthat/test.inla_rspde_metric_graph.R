@@ -138,17 +138,26 @@ test_that("graph_spde alpha=2 fits the user-reported failing example without neg
     # Skip when the rSPDE shared library is not present at the location
     # that MetricGraph::graph_spde() resolves via shared_lib = "rSPDE"
     # (e.g. when this test runs against a freshly-loaded source tree
-    # that has not been compiled / installed). Without the .so this
-    # test cannot exercise the C++ closed-form code path.
-    rspde_shlib <- system.file(
-        "shared/rspde_cgeneric_models.so",
-        package = "rSPDE"
+    # that has not been compiled / installed). MetricGraph resolves the
+    # path via system.file("shared", package = "rSPDE"), which under
+    # devtools::load_all does not always return the same path it
+    # returns from a top-level call -- so we have to check it the same
+    # way MetricGraph does, from its namespace.
+    rspde_shdir <- evalq(
+        system.file("shared", package = "rSPDE"),
+        envir = asNamespace("MetricGraph")
     )
-    if (!nzchar(rspde_shlib) || !file.exists(rspde_shlib)) {
-        rspde_shlib <- system.file(
-            "shared/rspde_cgeneric_models.dll",
-            package = "rSPDE"
+    rspde_shlib <- if (nzchar(rspde_shdir)) {
+        file.path(
+            rspde_shdir,
+            if (.Platform$OS.type == "windows") {
+                "rspde_cgeneric_models.dll"
+            } else {
+                "rspde_cgeneric_models.so"
+            }
         )
+    } else {
+        ""
     }
     skip_if(
         !nzchar(rspde_shlib) || !file.exists(rspde_shlib),
