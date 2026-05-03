@@ -209,8 +209,8 @@ double *inla_cgeneric_rspde_1d_general_model(inla_cgeneric_cmd_tp cmd, double *t
       if(cache) {
           // cache exists, check if theta is the same
           
-          if(n_par == 2 && cache->theta[0] == theta[0] && cache->theta[1] == theta[1] || 
-             n_par == 3 && cache->theta[0] == theta[0] && cache->theta[1] == theta[1] && cache->theta[2] == theta[2]) {
+          if((n_par == 2 && cache->theta[0] == theta[0] && cache->theta[1] == theta[1]) || 
+             (n_par == 3 && cache->theta[0] == theta[0] && cache->theta[1] == theta[1] && cache->theta[2] == theta[2])) {
 
               memcpy(ret + 2, cache->Q, M * sizeof(double));
 
@@ -281,8 +281,8 @@ double *inla_cgeneric_rspde_1d_general_model(inla_cgeneric_cmd_tp cmd, double *t
       
       if(cache) {
           // cache exists, check if theta is the same
-          if(n_par == 2 && cache->theta[0] == theta[0] && cache->theta[1] == theta[1] || 
-             n_par == 3 && cache->theta[0] == theta[0] && cache->theta[1] == theta[1] && cache->theta[2] == theta[2]) {
+          if((n_par == 2 && cache->theta[0] == theta[0] && cache->theta[1] == theta[1]) || 
+             (n_par == 3 && cache->theta[0] == theta[0] && cache->theta[1] == theta[1] && cache->theta[2] == theta[2])) {
               // same parameters, return const
               memcpy(ret, cache->lconst, sizeof(double));
           } else {

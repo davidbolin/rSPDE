@@ -19,7 +19,8 @@ double *inla_cgeneric_rspde_fintrinsic_model(inla_cgeneric_cmd_tp cmd, double *t
     double *const_store = NULL;
     double*Q_store = NULL;
     int k, i;
-    double lnu, ltau, tau;
+    double lnu = 0.0;
+    double ltau, tau;
     char *prior_nu_dist;
     int est_nu = 0;
     

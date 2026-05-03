@@ -5,7 +5,7 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
 
     double *ret = NULL;
     int k, i;
-    double lkappa, lsigma, lgamma, rho, rho2, logit_rho, logit_rho2;
+    double lkappa, lsigma, lgamma, rho, rho2, logit_rho, logit_rho2 = 0.0;
     double kappa, sigma, gamma;
     double prior_rho2_mean;
 
