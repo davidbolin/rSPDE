@@ -41,7 +41,7 @@ double *inla_cgeneric_rspde_anisotropic2d_model(inla_cgeneric_cmd_tp cmd, double
 
     double *ret = NULL;
     int k, i;
-    double lhx, lhy, logit_hxy, lnu;
+    double lhx, lhy, logit_hxy, lnu = 0.0;
     double lsigma;
     double sigma, hx, hy, hxy;
     char *prior_nu_dist;
