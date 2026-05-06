@@ -2,25 +2,33 @@
 
 ## Introduction
 
-For domains $D \subset {\mathbb{R}}^{2}$, the `rSPDE` package implements
+For domains $`D\subset \mathbb{R}^2`$, the `rSPDE` package implements
 the anisotropic Matérn model
-$$\left( I - \nabla \cdot (H\nabla) \right)^{{(\nu + 1)}/2}u = c\sigma W,\quad{\text{on}\mspace{6mu}}D$$
-Where $H$ is a $2 \times 2$ positive definite matrix, $\sigma,\nu > 0$
-and $c$ is a constant chosen such that $u$ would have the covariance
-function
-$$r(h) = \frac{\sigma^{2}}{2^{\nu - 1}\Gamma(\nu)}\left( \sqrt{h^{T}H^{- 1}h} \right)^{\nu}K_{\nu}\left( \sqrt{h^{T}H^{- 1}h} \right),$$
-if the domain was $D = {\mathbb{R}}^{2}$, i.e., a stationary and
-anisotropic Matérn covariance function. The matrix $H$ is defined as
-$$H = \begin{bmatrix}
-h_{x}^{2} & {h_{x}h_{y}h_{xy}} \\
-{h_{x}h_{y}h_{xy}} & h_{y}^{2}
-\end{bmatrix}$$ with $h_{x},h_{y} > 0$ and $h_{xy} \in ( - 1,1)$.
+``` math
+    (I - \nabla\cdot (H\nabla))^{(\nu + 1)/2} u = c\sigma W, \quad \text{on }  D
+```
+Where $`H`$ is a $`2\times 2`$ positive definite matrix,
+$`\sigma, \nu >0`$ and $`c`$ is a constant chosen such that $`u`$ would
+have the covariance function
+``` math
+r(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)} (\sqrt{h^T H^{-1} h})^{\nu} K_{\nu}(\sqrt{h^T H^{-1} h}),
+```
+if the domain was $`D = \mathbb{R}^2`$, i.e., a stationary and
+anisotropic Matérn covariance function. The matrix $`H`$ is defined as
+``` math
+H = \begin{bmatrix}
+h_x^2 & h_xh_y h_{xy}\\
+h_xh_y h_{xy} & h_y^2
+\end{bmatrix}
+```
+with $`h_x,h_y>0`$ and $`h_{xy} \in (-1,1)`$.
 
 ## Implementation details
 
 Let us begin by loading some packages needed for making the plots
 
 ``` r
+
 library(ggplot2)
 library(gridExtra)
 library(viridis)
@@ -30,6 +38,7 @@ We start by creating a region of interest and a spatial mesh using the
 `fmesher` package:
 
 ``` r
+
 library(fmesher)
 n_loc <- 2000
 loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
@@ -46,6 +55,7 @@ plot(mesh_2d, main = "")
 We now specify the model using the `matern2d.operators` function.
 
 ``` r
+
 sigma <- 1
 nu <- 0.5
 hx <- 0.08
@@ -61,6 +71,7 @@ The `matern2d.operators` object has `cov_function_mesh` method which can
 be used evaluate the covariance function on the mesh. For example
 
 ``` r
+
 r <- cov_function_mesh(op, p = matrix(c(0.5, 0.5), 1, 2))
 proj <- fm_evaluator(mesh_2d, dims = c(100, 100), xlim = c(0, 1), ylim = c(0, 1))
 r.mesh <- fm_evaluate(proj, field = as.vector(r))
@@ -83,6 +94,7 @@ ggplot(cov.df, aes(x = x1, y = x2, fill = cov)) +
 We can simulate from the field using the `simulate method`:
 
 ``` r
+
 u <- simulate(op)
 proj <- fm_evaluator(mesh_2d, dims = c(100, 100), xlim = c(0, 1), ylim = c(0, 1))
 u.mesh <- fm_evaluate(proj, field = as.vector(u))
@@ -105,6 +117,7 @@ ggplot(cov.df, aes(x = x1, y = x2, fill = u)) +
 Let us now simulate some data based on this simulated field.
 
 ``` r
+
 n.obs <- 2000
 obs.loc <- cbind(runif(n.obs), runif(n.obs))
 A <- fm_basis(mesh_2d, obs.loc)
@@ -112,12 +125,13 @@ sigma.e <- 0.1
 Y <- as.vector(A %*% u + sigma.e * rnorm(n.obs))
 ```
 
-We can compute kriging predictions of the process $u$ based on these
+We can compute kriging predictions of the process $`u`$ based on these
 observations. To specify which locations that should be predicted, the
 argument `Aprd` is used. This argument should be an observation matrix
 that links the mesh locations to the prediction locations.
 
 ``` r
+
 A <- make_A(op, loc = obs.loc)
 Aprd <- make_A(op, loc = proj$lattice$loc)
 u.krig <- predict(op, A = A, Aprd = Aprd, Y = Y, sigma.e = sigma.e)
@@ -127,6 +141,7 @@ The process simulation, and the kriging prediction are shown in the
 following figure.
 
 ``` r
+
 data.df <- data.frame(x = obs.loc[, 1], y = obs.loc[, 2], field = Y, type = "Data")
 krig.df <- data.frame(
   x = proj$lattice$loc[, 1], y = proj$lattice$loc[, 2],
@@ -149,6 +164,7 @@ ggplot(df_plot) +
 use `rspde_lme` to estimate the parameters based on the data.
 
 ``` r
+
 df <- data.frame(Y = as.matrix(Y), x = obs.loc[, 1], y = obs.loc[, 2])
 res <- rspde_lme(Y ~ 1, loc = c("x", "y"), data = df, model = op, parallel = TRUE)
 ```
@@ -159,6 +175,7 @@ and temporal coordinates in the data frame. Let us see a summary of the
 fitted model:
 
 ``` r
+
 summary(res)
 #> 
 #> Latent model - Anisotropic Whittle-Matern
@@ -189,13 +206,14 @@ summary(res)
 #> Number of function calls by 'optim' = 46
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  26.69362 secs 
-#>   set up the parallelization = 2.87827 secs
+#> Time used to:     fit the model =  27.63308 secs 
+#>   set up the parallelization = 2.93175 secs
 ```
 
 Let us compare the estimated results with the true values:
 
 ``` r
+
 results <- data.frame(
   sigma = c(sigma, res$coeff$random_effects[2]),
   hx = c(hx, res$coeff$random_effects[3]),
@@ -219,6 +237,7 @@ print(results)
 Finally, we can also do prediction based on the fitted model as
 
 ``` r
+
 pred.data <- data.frame(x = proj$lattice$loc[, 1], y = proj$lattice$loc[, 2])
 pred <- predict(res, newdata = pred.data, loc = c("x", "y"))
 
@@ -248,6 +267,7 @@ We will now fit the model using the `inlabru` package. First, we load
 the package, and create the anisotropic model object:
 
 ``` r
+
 library(inlabru)
 
 model_aniso <- rspde.anistropic2d(mesh = mesh_2d)
@@ -258,6 +278,7 @@ package. Observe that we can use the same data frame as in the
 `rspde_lme` example.
 
 ``` r
+
 cmp <- Y ~ Intercept(1) - 1 + field(cbind(x, y), model = model_aniso)
 bru_fit_field <- bru(cmp, data = df, options = list(num.threads = "1:1"))
 ```
@@ -269,6 +290,7 @@ to change the scale of the estimated parameters back to the original
 scale.
 
 ``` r
+
 results <- data.frame(
   rbind(
     # True values
@@ -287,10 +309,10 @@ results <- data.frame(
 )
 
 print(results)
-#>                 hx         hy       hxy     sigma        nu   sigma.e
-#> True          0.08       0.08       0.5         1       0.5 0.1000000
-#> Estimate 0.0917466 0.09158569 0.5677859 0.9761319 0.4567412 0.1001515
+#>                  hx         hy       hxy     sigma        nu   sigma.e
+#> True           0.08       0.08       0.5         1       0.5 0.1000000
+#> Estimate 0.09150871 0.09103764 0.5691553 0.9734408 0.4521673 0.1001249
 #>           intercept
 #> True      0.0000000
-#> Estimate -0.1625111
+#> Estimate -0.1619266
 ```

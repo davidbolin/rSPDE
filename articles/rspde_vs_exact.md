@@ -1,6 +1,7 @@
 # rSPDE vs exact Matern covariance: timing and memory
 
 ``` r
+
 library(rSPDE)
 library(fmesher)
 library(Matrix)
@@ -43,38 +44,41 @@ rSPDE replaces dense covariance computations with sparse precision
 matrix computations by constructing a Gaussian Markov random field
 (GMRF) representation. The resulting linear algebra is substantially
 cheaper in both time and memory than dense covariance factorizations.
-The approximation order $m$ controls accuracy; the approximation error
-decreases exponentially fast with $m$, so small orders often provide
+The approximation order $`m`$ controls accuracy; the approximation error
+decreases exponentially fast with $`m`$, so small orders often provide
 high accuracy at low computational cost.
 
 ## Benchmark setup
 
 We consider a Gaussian model
-$$y_{i} = u\left( s_{i} \right) + \varepsilon_{i},\qquad\varepsilon_{i} \sim \mathcal{N}\left( 0,\sigma_{e}^{2} \right),$$
-where $u$ is a Mat'ern field on the unit square and the observations are
-taken at $N$ random locations $s_{i} \in \lbrack 0,1\rbrack^{2}$. We use
-$N \in \{ 1000,2000,\ldots,10000,12500,15000,20000,25000,30000\}$. For
-each $N$, we build a triangulation with `fm_mesh_2d` using
+``` math
+y_i = u(s_i) + \varepsilon_i,\qquad \varepsilon_i \sim \mathcal{N}(0,\sigma_e^2),
+```
+where $`u`$ is a Mat'ern field on the unit square and the observations
+are taken at $`N`$ random locations $`s_i \in [0,1]^2`$. We use
+$`N \in \{1000,2000,\ldots,10000,12500,15000,20000,25000,30000\}`$. For
+each $`N`$, we build a triangulation with `fm_mesh_2d` using
 `cutoff = 0.0025`, construct the observation matrix with `fm_basis`, and
 compare the cost of evaluating:
 
 - the exact dense Mat'ern likelihood, based on the Cholesky
   factorization of the covariance matrix, and
 - the rSPDE sparse log-likelihood for approximation orders
-  $m = 1,\ldots,4$.
+  $`m = 1,\ldots,4`$.
 
-For each $m$, the rSPDE timing is averaged over 10 runs. When R is
+For each $`m`$, the rSPDE timing is averaged over 10 runs. When R is
 linked to FlexiBLAS and MKL or vecLib is available, we evaluate the
-exact model under Netlib (up to $N = 8000$) and under MKL/vecLib for all
+exact model under Netlib (up to $`N=8000`$) and under MKL/vecLib for all
 sample sizes, while running rSPDE under Netlib for all sample sizes.
 Otherwise, both exact and rSPDE timings use the base R BLAS.
 
 Netlib BLAS is single-threaded, whereas MKL is multi-threaded. To keep
 the overall cost manageable, the exact Netlib evaluations are only
-computed up to $N = 8000$, since dense Cholesky factorization becomes
-prohibitively expensive at larger $N$ in a single-threaded setting.
+computed up to $`N=8000`$, since dense Cholesky factorization becomes
+prohibitively expensive at larger $`N`$ in a single-threaded setting.
 
 ``` r
+
 loglike_exact_chol <- function(y, Sigma_matern, sigma_e) {
   S <- Sigma_matern
   diag(S) <- diag(S) + sigma_e^2

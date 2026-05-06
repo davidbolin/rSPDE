@@ -19,43 +19,53 @@ Several popular Gaussian random field models can be represented as
 solutions to stochastic partial differential equations (SPDEs) of the
 form
 
-$$L^{\beta}(\tau u) = \mathcal{W}.$$
+``` math
+L^{\beta} (\tau u) = \mathcal{W}.
+```
 
-Here $\mathcal{W}$ is a Gaussian white noise, $L$ is a second-order
-differential operator, the fractional power $\beta$ determines the
-smoothness of $u$, and $\tau$ scales the variance of $u$. The simplest
-example is a model on ${\mathbb{R}}^{d}$ with $L = \kappa^{2} - \Delta$,
-which results in a Gaussian random field $u$ with a Matérn covariance
-function
+Here $`\mathcal{W}`$ is a Gaussian white noise, $`L`$ is a second-order
+differential operator, the fractional power $`\beta`$ determines the
+smoothness of $`u`$, and $`\tau`$ scales the variance of $`u`$. The
+simplest example is a model on $`\mathbb{R}^d`$ with
+$`L = \kappa^2 - \Delta`$, which results in a Gaussian random field
+$`u`$ with a Matérn covariance function
 
-$$C(h) = \frac{\sigma^{2}}{2^{\nu - 1}\Gamma(\nu)}(\kappa h)^{\nu}K_{\nu}(\kappa h).$$
+``` math
+C(h) = \dfrac{ \sigma^2 }{ 2 ^ {\nu-1} \Gamma (\nu)} (\kappa h)^{\nu} K_{\nu} (\kappa h).
+```
 
-If $2\beta$ is an integer and if the domain $\mathcal{D}$ where the
-model is defined is bounded, then $u$ can be approximated by a Gaussian
-Markov random field (GMRF) $u$ via a finite element method (FEM) for the
-SPDE. Specifically, the approximation can be written as
+If $`2 \beta`$ is an integer and if the domain $`\mathcal{D}`$ where the
+model is defined is bounded, then $`u`$ can be approximated by a
+Gaussian Markov random field (GMRF) $`\mathbf { \mathrm{u} }`$ via a
+finite element method (FEM) for the SPDE. Specifically, the
+approximation can be written as
 
-$$u_{h}(s) = \sum\limits_{i = 1}^{n}u_{i}\varphi_{i}(s).$$
+``` math
+u_h(s) = \sum_{i=1}^n u_i \varphi_i (s).
+```
 
-Here $\{\varphi_{i}\}$ are piecewise linear basis functions defined by
-some triangulation of $\mathcal{D}$ and the vector of weights
-$u = \left( u_{1},\ldots,u_{n} \right)^{\top}$ is normally distributed,
-$N\left( u,{\widetilde{Q}}^{- 1} \right)$, where $\widetilde{Q}$ is
-sparse. See [An explicit link between Gaussian fields and Gaussian
-Markov random fields: the stochastic partial differential equation
+Here $`\{\varphi_i\}`$ are piecewise linear basis functions defined by
+some triangulation of $`\mathcal{D}`$ and the vector of weights
+$`\mathbf{\mathrm{u}} = (u_1,\ldots,u_n)^\top`$ is normally distributed,
+$`N(\mathbf{\mathrm{u}}, \tilde{\mathbf{\mathrm{Q}}}^{-1})`$, where
+$`\tilde{ \mathbf{ \mathrm{Q} } }`$ is sparse. See [An explicit link
+between Gaussian fields and Gaussian Markov random fields: the
+stochastic partial differential equation
 approach](https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x "An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach")
 for further details.
 
 The `rSPDE` package provides corresponding computationally efficient
-approximations for the case when $\beta$ is a general fractional power.
-The main idea is to combine the FEM approximation with a rational
+approximations for the case when $`\beta`$ is a general fractional
+power. The main idea is to combine the FEM approximation with a rational
 approximation of the fractional operator. As a result, one can easily do
 inference and prediction using fractional SPDE models such as
 
-$$\left( \kappa^{2} - \Delta \right)^{\beta}u = \mathcal{W}.$$
+``` math
+(\kappa^2-\Delta)^\beta u = \mathcal{W}.
+```
 
 In particular, it allows for bayesian inference of all model parameters,
-including the fractional parameter $\beta$.
+including the fractional parameter $`\beta`$.
 
 For illustration purposes, the package contains a simple FEM
 implementation for models on R. See the [An introduction to the rSPDE
@@ -83,12 +93,14 @@ is sometimes slightly more recent than the CRAN version), can be
 installed by using the command
 
 ``` r
+
 remotes::install_github("davidbolin/rspde", ref = "stable")
 ```
 
 in R. The development version can be installed using the command
 
 ``` r
+
 remotes::install_github("davidbolin/rspde", ref = "devel")
 ```
 
@@ -125,6 +137,7 @@ reader to the [rSPDE-INLA
 Vignette](https://davidbolin.github.io/rSPDE//articles/rspde_inla.html "INLA vignette").
 
 ``` r
+
 library(rSPDE)
 library(ggplot2)
 library(INLA)
@@ -160,6 +173,7 @@ ggplot() +
 ![](reference/figures/unnamed-chunk-4-1.png)
 
 ``` r
+
 #Get distance from the sea
 seaDist <- apply(spDists(coords, PRborder[1034:1078, ], longlat = TRUE), 1, 
                  min)
@@ -176,6 +190,7 @@ points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
 ![](reference/figures/unnamed-chunk-5-1.png)
 
 ``` r
+
 #Create the observation matrix
 Abar <- rspde.make.A(mesh = prmesh, loc = coords)
 
@@ -211,10 +226,10 @@ summary(rspde_fit)
 
 ``` R
 ## Time used:
-##     Pre = 0.406, Running = 3.31, Post = 0.0329, Total = 3.75 
+##     Pre = 0.352, Running = 3.14, Post = 0.0955, Total = 3.59 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-## Intercept 1.941 0.042      1.859    1.941      2.024 1.941   0
+## Intercept 1.941 0.042      1.859    1.941      2.023 1.941   0
 ## 
 ## Random effects:
 ##   Name     Model
@@ -222,26 +237,27 @@ summary(rspde_fit)
 ##    field CGeneric
 ## 
 ## Model hyperparameters:
-##                                                   mean       sd 0.025quant
-## Precision-parameter for the Gamma observations   14.42    1.038      12.47
-## Precision for seaDist                          7633.61 4372.007    2331.58
-## Theta1 for field                                 -3.17    2.462      -8.89
-## Theta2 for field                                  1.80    0.548       0.93
-## Theta3 for field                                  1.58    2.181      -1.62
+##                                                    mean      sd 0.025quant
+## Precision-parameter for the Gamma observations   14.426    1.04      12.48
+## Precision for seaDist                          7647.497 4389.35    2310.01
+## Theta1 for field                                 -2.509    2.25      -7.63
+## Theta2 for field                                  1.746    0.60       0.76
+## Theta3 for field                                  0.992    1.99      -2.14
 ##                                                0.5quant 0.975quant     mode
-## Precision-parameter for the Gamma observations    14.39   1.66e+01   14.344
-## Precision for seaDist                           6621.50   1.89e+04 4988.465
-## Theta1 for field                                  -2.83   4.35e-01   -1.126
-## Theta2 for field                                   1.74   3.04e+00    1.440
-## Theta3 for field                                   1.28   6.64e+00   -0.222
+## Precision-parameter for the Gamma observations   14.390      16.58   14.319
+## Precision for seaDist                          6634.884   18956.27 4989.067
+## Theta1 for field                                 -2.250       1.02   -1.010
+## Theta2 for field                                  1.694       3.08    1.422
+## Theta3 for field                                  0.765       5.52   -0.322
 ## 
-## Marginal log-Likelihood:  -1254.98 
+## Marginal log-Likelihood:  -1254.93 
 ##  is computed 
 ## Posterior summaries for the linear predictor and the fitted values are computed
 ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
 ```
 
 ``` r
+
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 ```
 
@@ -252,17 +268,19 @@ result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 ```
 
 ``` r
+
 summary(result_fit)
 ```
 
 ``` R
-##           mean       sd  0.025quant  0.5quant 0.975quant        mode
-## tau   0.248087 0.459024 0.000147669 0.0640274    1.52880 1.35971e-06
-## kappa 7.094220 4.925090 2.554400000 5.5799000   20.56510 3.76125e+00
-## nu    1.393350 0.536726 0.332664000 1.5398300    1.99722 1.99991e+00
+##           mean       sd  0.025quant 0.5quant 0.975quant        mode
+## tau   0.423619 0.878670 0.000516855 0.112019    2.72589 1.59947e-05
+## kappa 6.967990 5.297160 2.147760000 5.340970   21.44810 3.52169e+00
+## nu    1.256400 0.573155 0.214643000 1.341200    1.99154 1.99869e+00
 ```
 
 ``` r
+
 #Plot the posterior densities
 posterior_df_fit <- gg_df(result_fit)
 
@@ -273,6 +291,7 @@ facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ![](reference/figures/unnamed-chunk-8-1.png)
 
 ``` r
+
 #Create a grid to predict
 nxy <- c(150, 100)
 projgrid <- rspde.mesh.projector(prmesh,
@@ -330,6 +349,7 @@ ggplot(pred_df, aes(x = x1, y = x2, fill = mean)) +
 Then, the std. deviations:
 
 ``` r
+
 ggplot(pred_df, aes(x = x1, y = x2, fill = sd)) +
   geom_raster() + scale_fill_viridis()
 ```
@@ -355,6 +375,7 @@ reader to the [rSPDE-inlabru
 Vignette](https://davidbolin.github.io/rSPDE//articles/rspde_inlabru.html "inlabru vignette").
 
 ``` r
+
 library(rSPDE)
 library(ggplot2)
 library(INLA)
@@ -390,6 +411,7 @@ ggplot() +
 ![](reference/figures/unnamed-chunk-11-1.png)
 
 ``` r
+
 #Get distance from the sea
 seaDist <- apply(spDists(coords, PRborder[1034:1078, ], longlat = TRUE), 1, 
                  min)
@@ -406,6 +428,7 @@ points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
 ![](reference/figures/unnamed-chunk-12-1.png)
 
 ``` r
+
 library(sf)
 ```
 
@@ -414,6 +437,7 @@ library(sf)
 ```
 
 ``` r
+
 #Create the rspde model object
 rspde_model <- rspde.matern(mesh = prmesh)
 
@@ -441,8 +465,8 @@ summary(rspde_fit)
 ```
 
 ``` R
-## inlabru version: 2.14.0 
-## INLA version: 26.03.19 
+## inlabru version: 2.14.1 
+## INLA version: 26.05.02 
 ## Latent components:
 ## Intercept: main = linear(1)
 ## distSea: main = rw1(seaDist)
@@ -456,10 +480,10 @@ summary(rspde_fit)
 ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 ##     Used components: effect[Intercept, distSea, field], latent[] 
 ## Time used:
-##     Pre = 0.186, Running = 4.05, Post = 0.039, Total = 4.27 
+##     Pre = 0.173, Running = 3.06, Post = 0.038, Total = 3.27 
 ## Fixed effects:
 ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-## Intercept 1.942 0.042       1.86    1.942      2.023 1.942   0
+## Intercept 1.941 0.042       1.86    1.941      2.023 1.941   0
 ## 
 ## Random effects:
 ##   Name     Model
@@ -467,48 +491,41 @@ summary(rspde_fit)
 ##    field CGeneric
 ## 
 ## Model hyperparameters:
-##                                                   mean      sd 0.025quant
-## Precision-parameter for the Gamma observations   14.44    1.04     12.487
-## Precision for distSea                          7411.39 4237.48   2255.219
-## Theta1 for field                                 -4.15    4.30    -13.971
-## Theta2 for field                                  2.16    1.07      0.463
-## Theta3 for field                                  2.43    3.79     -3.460
+##                                                    mean       sd 0.025quant
+## Precision-parameter for the Gamma observations   14.439    1.040     12.485
+## Precision for distSea                          7388.933 4053.696   2255.257
+## Theta1 for field                                 -0.911    0.396     -1.690
+## Theta2 for field                                  1.401    0.274      0.859
+## Theta3 for field                                 -0.418    0.381     -1.170
 ##                                                0.5quant 0.975quant     mode
-## Precision-parameter for the Gamma observations    14.40      16.59   14.340
-## Precision for distSea                           6434.56   18330.88 4849.122
-## Theta1 for field                                  -3.64       2.54   -1.167
-## Theta2 for field                                   2.04       4.58    1.477
-## Theta3 for field                                   1.98      11.07   -0.189
+## Precision-parameter for the Gamma observations   14.407      16.58   14.356
+## Precision for distSea                          6503.397   17692.77 4980.614
+## Theta1 for field                                 -0.912      -0.13   -0.913
+## Theta2 for field                                  1.403       1.94    1.408
+## Theta3 for field                                 -0.417       0.33   -0.415
 ## 
-## Marginal log-Likelihood:  -1254.32 
+## Marginal log-Likelihood:  -1256.56 
 ##  is computed 
 ## Posterior summaries for the linear predictor and the fitted values are computed
 ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
 ```
 
 ``` r
+
 #Get the summary on the user's scale
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
-```
-
-``` R
-## Warning in rspde.result(rspde_fit, "field", rspde_model): the mean or mode of
-## nu is very close to nu.upper.bound, please consider increasing nu.upper.bound,
-## and refitting the model.
-```
-
-``` r
 summary(result_fit)
 ```
 
 ``` R
-##           mean        sd  0.025quant  0.5quant 0.975quant        mode
-## tau    1.50505  8.189100 7.61575e-07 0.0294767   12.16610 3.73975e-10
-## kappa 17.15500 33.035600 1.60593e+00 7.4772000   94.95180 2.98009e+00
-## nu     1.38735  0.682074 6.32877e-02 1.7350400    1.99996 1.99999e+00
+##           mean       sd 0.025quant 0.5quant 0.975quant     mode
+## tau   0.434431 0.177231   0.185691 0.401886   0.871949 0.344711
+## kappa 4.213300 1.161490   2.371530 4.066730   6.904480 3.790720
+## nu    0.800591 0.176239   0.476068 0.794317   1.160360 0.780688
 ```
 
 ``` r
+
 #Plot the posterior densities
 posterior_df_fit <- gg_df(result_fit)
 
@@ -519,6 +536,7 @@ facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 ![](reference/figures/unnamed-chunk-14-1.png)
 
 ``` r
+
 #Create a grid to predict
 nxy <- c(150, 100)
 projgrid <- rspde.mesh.projector(prmesh, xlim = range(PRborder[, 1]), 
@@ -547,6 +565,7 @@ pred_obs <- predict(rspde_fit, coord.prd.df,
 Finally, we plot the results. First the predicted mean:
 
 ``` r
+
 ggplot() + gg(pred_obs, geom = "tile", 
           aes(fill = mean)) +
   scale_fill_viridis()
@@ -557,6 +576,7 @@ ggplot() + gg(pred_obs, geom = "tile",
 Then, the std. deviations:
 
 ``` r
+
 ggplot() + gg(pred_obs, geom = "tile", aes(fill = sd)) +
   geom_raster() + scale_fill_viridis()
 ```

@@ -7,7 +7,7 @@ implementation of the covariance-based rational SPDE approach. For
 further technical details on the covariance-based approach, see the
 [Rational approximation with the `rSPDE`
 package](https://davidbolin.github.io/rSPDE/articles/rspde_cov.md)
-vignette and [Bolin, Simas, and Xiong
+vignette and [Bolin et al.
 (2023)](https://doi.org/10.1080/10618600.2023.2231051).
 
 We begin by providing a step-by-step illustration on how to use our
@@ -40,7 +40,7 @@ INLA](https://www.routledge.com/Advanced-Spatial-Modeling-with-Stochastic-Partia
 and also the vignette [Spatial Statistics using R-INLA and Gaussian
 Markov random
 fields](https://sites.stat.washington.edu/peter/591/INLA.html). See also
-[Lindgren, Rue, and Lindström
+[Lindgren et al.
 (2011)](https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x)
 for theoretical details on the standard SPDE approach.
 
@@ -57,24 +57,26 @@ fields](https://sites.stat.washington.edu/peter/591/INLA.html). As
 precipitation data are always positive, we will assume it is Gamma
 distributed. [`R-INLA`](https://www.r-inla.org) uses the following
 parameterization of the Gamma distribution,
-$$\Gamma(\mu,\phi):\pi(y) = \frac{1}{\Gamma(\phi)}\left( \frac{\phi}{\mu} \right)^{\phi}y^{\phi - 1}\exp\left( - \frac{\phi y}{\mu} \right).$$
+``` math
+\Gamma(\mu, \phi): \pi (y) = \frac{1}{\Gamma(\phi)} \left(\frac{\phi}{\mu}\right)^{\phi} y^{\phi - 1} \exp\left(-\frac{\phi y}{\mu}\right) .
+```
 In this parameterization, the distribution has expected value
-$E(x) = \mu$ and variance $V(x) = \mu^{2}/\phi$, where $1/\phi$ is a
+$`E(x) = \mu`$ and variance $`V(x) = \mu^2/\phi`$, where $`1/\phi`$ is a
 dispersion parameter.
 
-In this example $\mu$ will be modelled using a stochastic model that
+In this example $`\mu`$ will be modelled using a stochastic model that
 includes both covariates and spatial structure, resulting in the latent
-Gaussian model for the precipitation measurements $$\begin{aligned}
-{y_{i} \mid \mu\left( s_{i} \right),\theta} & {\sim \Gamma\left( \mu\left( s_{i} \right),c\phi \right)} \\
-{\log\left( \mu(s) \right)} & {= \eta(s) = \sum\limits_{k}f_{k}\left( c_{k}(s) \right) + u(s)} \\
-\theta & {\sim \pi(\theta)}
-\end{aligned},$$
+Gaussian model for the precipitation measurements
+``` math
+\begin{align} y_i\mid \mu(s_i), \theta &\sim \Gamma(\mu(s_i),c\phi)\\ \log (\mu(s)) &= \eta(s) = \sum_k f_k(c_k(s))+u(s)\\ \theta &\sim \pi(\theta) \end{align},
+```
 
-where $y_{i}$ denotes the measurement taken at location $s_{i}$,
-$c_{k}(s)$ are covariates, $u(s)$ is a mean-zero Gaussian Matérn field,
-and $\theta$ is a vector containing all parameters of the model,
-including smoothness of the field. That is, by using the `rSPDE` model
-we will also be able to estimate the smoothness of the latent field.
+where $`y_i`$ denotes the measurement taken at location $`s_i`$,
+$`c_k(s)`$ are covariates, $`u(s)`$ is a mean-zero Gaussian Matérn
+field, and $`\theta`$ is a vector containing all parameters of the
+model, including smoothness of the field. That is, by using the `rSPDE`
+model we will also be able to estimate the smoothness of the latent
+field.
 
 ### Examining the data
 
@@ -86,6 +88,7 @@ We begin by loading some libraries we need to get the data and build the
 plots.
 
 ``` r
+
 library(ggplot2)
 library(INLA)
 library(inlabru)
@@ -96,6 +99,7 @@ library(viridis)
 Let us load the data and the border of the region
 
 ``` r
+
 data(PRprec)
 data(PRborder)
 ```
@@ -107,6 +111,7 @@ set, but instead look at the total precipitation in January, which we
 calculate as
 
 ``` r
+
 Y <- rowMeans(PRprec[, 3 + 1:31])
 ```
 
@@ -114,6 +119,7 @@ In the next snippet of code, we extract the coordinates and altitudes
 and remove the locations with missing values.
 
 ``` r
+
 ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
@@ -123,6 +129,7 @@ alt <- PRprec$Altitude[ind]
 Let us build a plot for the precipitations:
 
 ``` r
+
 ggplot() +
   geom_point(aes(
     x = coords[, 1], y = coords[, 2],
@@ -145,6 +152,7 @@ This covariate is not available, so let us calculate it for each
 observation location:
 
 ``` r
+
 seaDist <- apply(spDists(coords, PRborder[1034:1078, ],
   longlat = TRUE
 ), 1, min)
@@ -154,6 +162,7 @@ Now, let us plot the precipitation as a function of the possible
 covariates:
 
 ``` r
+
 par(mfrow = c(2, 2))
 plot(coords[, 1], Y, cex = 0.5, xlab = "Longitude")
 plot(coords[, 2], Y, cex = 0.5, xlab = "Latitude")
@@ -164,6 +173,7 @@ plot(alt, Y, cex = 0.5, xlab = "Altitude")
 ![](rspde_inlabru_files/figure-html/plot_prec_as_func-1.png)
 
 ``` r
+
 par(mfrow = c(1, 1))
 ```
 
@@ -173,6 +183,7 @@ To use the [`inlabru`](http://inlabru.org/) implementation of the
 `rSPDE` model we need to load the functions:
 
 ``` r
+
 library(rSPDE)
 ```
 
@@ -191,6 +202,7 @@ a mesh which is based on a non-convex hull to avoid adding many small
 triangles outside the domain of interest:
 
 ``` r
+
 library(fmesher)
 
 prdomain <- fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(100, 100))
@@ -210,12 +222,14 @@ In place of a `inla.stack`, we can set up a
 <https://inlabru-org.github.io/inlabru/index.html> for further details.
 
 ``` r
+
 library(sf)
 ```
 
     ## Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.4.0; sf_use_s2() is TRUE
 
 ``` r
+
 prdata <- data.frame(long = coords[,1], lat = coords[,2], 
                         seaDist = inla.group(seaDist), y = Y)
 prdata <- st_as_sf(prdata, coords = c("long", "lat"), crs = 4326)
@@ -224,8 +238,8 @@ prdata <- st_as_sf(prdata, coords = c("long", "lat"), crs = 4326)
 #### Setting up the rSPDE model
 
 To set up an `rSPDE`model, all we need is the mesh. By default it will
-assume that we want to estimate the smoothness parameter $\nu$ and to do
-a covariance-based rational approximation of order 2.
+assume that we want to estimate the smoothness parameter $`\nu`$ and to
+do a covariance-based rational approximation of order 2.
 
 Later in this vignette we will also see other options for setting up
 `rSPDE` models such as keeping the smoothness parameter fixed and/or
@@ -236,6 +250,7 @@ Therefore, to set up a model all we have to do is use the
 function:
 
 ``` r
+
 rspde_model <- rspde.matern(mesh = prmesh)
 ```
 
@@ -246,18 +261,23 @@ function.
 
 We will assume the following linkage between model components and
 observations
-$$\eta(s) \sim Ax(s) + A{\mspace{6mu}\text{Intercept}} + \text{seaDist}.$$$\eta(s)$
-will then be used in the observation-likelihood,
-$$y_{i} \mid \eta\left( s_{i} \right),\theta \sim \Gamma\left( \exp\left( \eta\left( s_{i} \right) \right),c\phi \right).$$
+``` math
+\eta(s) \sim A x(s) + A \text{ Intercept} + \text{seaDist}.
+```
+$`\eta(s)`$ will then be used in the observation-likelihood,
+``` math
+y_i\mid \eta(s_i),\theta \sim \Gamma(\exp(\eta (s_i)), c\phi).
+```
 
 ### Model fitting
 
-We will build a model using the distance to the sea $x_{i}$ as a
+We will build a model using the distance to the sea $`x_i`$ as a
 covariate through an improper CAR(1) model with
-$\beta_{ij} = 1(i \sim j)$, which [`R-INLA`](https://www.r-inla.org)
+$`\beta_{ij}=1(i\sim j)`$, which [`R-INLA`](https://www.r-inla.org)
 calls a random walk of order 1. We will fit it in `inlabru`’s style:
 
 ``` r
+
 cmp <- y ~ Intercept(1) + distSea(seaDist, model="rw1") +
 field(geometry, model = rspde_model)
 ```
@@ -267,6 +287,7 @@ To fit the model we simply use the
 function:
 
 ``` r
+
 rspde_fit <- bru(cmp, data = prdata,
   family = "Gamma",
   options = list(
@@ -284,11 +305,12 @@ hyper-parameters (i.e. dispersion in the gamma likelihood, the precision
 of the RW1, and the parameters of the spatial field):
 
 ``` r
+
 summary(rspde_fit)
 ```
 
-    ## inlabru version: 2.14.0 
-    ## INLA version: 26.03.19 
+    ## inlabru version: 2.14.1 
+    ## INLA version: 26.05.02 
     ## Latent components:
     ## Intercept: main = linear(1)
     ## distSea: main = rw1(seaDist)
@@ -302,10 +324,10 @@ summary(rspde_fit)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[Intercept, distSea, field], latent[] 
     ## Time used:
-    ##     Pre = 0.298, Running = 5.94, Post = 0.0378, Total = 6.27 
+    ##     Pre = 0.291, Running = 6.98, Post = 0.11, Total = 7.38 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-    ## Intercept 1.941 0.042      1.858    1.941      2.024 1.941   0
+    ## Intercept 1.941 0.041       1.86    1.941      2.022 1.941   0
     ## 
     ## Random effects:
     ##   Name     Model
@@ -313,43 +335,52 @@ summary(rspde_fit)
     ##    field CGeneric
     ## 
     ## Model hyperparameters:
-    ##                                                   mean       sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.43    1.041     12.467
-    ## Precision for distSea                          7503.65 3998.298   2328.634
-    ## Theta1 for field                                 -2.71    2.027     -7.400
-    ## Theta2 for field                                  1.70    0.467      0.937
-    ## Theta3 for field                                  1.17    1.781     -1.503
+    ##                                                   mean      sd 0.025quant
+    ## Precision-parameter for the Gamma observations   14.44    1.04     12.490
+    ## Precision for distSea                          7580.34 4147.89   2374.481
+    ## Theta1 for field                                 -2.60    1.95     -7.096
+    ## Theta2 for field                                  1.69    0.45      0.943
+    ## Theta3 for field                                  1.04    1.70     -1.544
     ##                                                0.5quant 0.975quant    mode
-    ## Precision-parameter for the Gamma observations   14.395   1.66e+01   14.35
-    ## Precision for distSea                          6658.092   1.76e+04 5165.86
-    ## Theta1 for field                                 -2.448   3.17e-01   -1.11
-    ## Theta2 for field                                  1.657   2.75e+00    1.43
-    ## Theta3 for field                                  0.938   5.28e+00   -0.23
+    ## Precision-parameter for the Gamma observations   14.407   1.66e+01   14.35
+    ## Precision for distSea                          6663.059   1.82e+04 5120.27
+    ## Theta1 for field                                 -2.353   3.58e-01   -1.10
+    ## Theta2 for field                                  1.653   2.69e+00    1.46
+    ## Theta3 for field                                  0.826   4.95e+00   -0.26
     ## 
-    ## Marginal log-Likelihood:  -1255.18 
+    ## Marginal log-Likelihood:  -1255.19 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
 
-Let $\theta_{1} = \text{Theta1}$, $\theta_{2} = \text{Theta2}$ and
-$\theta_{3} = \text{Theta3}$. In terms of the SPDE
-$$\left( \kappa^{2}I - \Delta \right)^{\alpha/2}(\tau u) = \mathcal{W},$$
-where $\alpha = \nu + d/2$, we have that
-$$\tau = \exp\left( \theta_{1} \right),\quad\kappa = \exp\left( \theta_{2} \right),$$
+Let $`\theta_1 = \textrm{Theta1}`$, $`\theta_2=\textrm{Theta2}`$ and
+$`\theta_3=\textrm{Theta3}`$. In terms of the SPDE
+``` math
+(\kappa^2 I - \Delta)^{\alpha/2}(\tau u) = \mathcal{W},
+```
+where $`\alpha = \nu + d/2`$, we have that
+``` math
+\tau = \exp(\theta_1),\quad \kappa = \exp(\theta_2), 
+```
 and by default
-$$\nu = 4(\frac{\exp\left( \theta_{3} \right)}{1 + \exp\left( \theta_{3} \right)}).$$
-The number 4 comes from the upper bound for $\nu$, which is discussed in
-[R-INLA implementation of the rational SPDE
+``` math
+\nu = 4\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).
+```
+The number 4 comes from the upper bound for $`\nu`$, which is discussed
+in [R-INLA implementation of the rational SPDE
 approach](https://davidbolin.github.io/rSPDE/articles/rspde_inla.md)
 vignette.
 
 In general, we have
-$$\nu = \nu_{UB}(\frac{\exp\left( \theta_{3} \right)}{1 + \exp\left( \theta_{3} \right)}),$$
-where $\nu_{UB}$ is the value of the upper bound for the smoothness
-parameter $\nu$.
+``` math
+\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big),
+```
+where $`\nu_{UB}`$ is the value of the upper bound for the smoothness
+parameter $`\nu`$.
 
-Another choice for prior for $\nu$ is a truncated lognormal distribution
-and is also discussed in [R-INLA implementation of the rational SPDE
+Another choice for prior for $`\nu`$ is a truncated lognormal
+distribution and is also discussed in [R-INLA implementation of the
+rational SPDE
 approach](https://davidbolin.github.io/rSPDE/articles/rspde_inla.md)
 vignette.
 
@@ -360,6 +391,7 @@ by using the function
 [`rspde.result()`](https://davidbolin.github.io/rSPDE/reference/rspde.result.md):
 
 ``` r
+
 result_fit <- rspde.result(rspde_fit, "field", 
                 rspde_model)
 ```
@@ -369,19 +401,21 @@ result_fit <- rspde.result(rspde_fit, "field",
     ## and refitting the model.
 
 ``` r
+
 summary(result_fit)
 ```
 
     ##           mean       sd  0.025quant 0.5quant 0.975quant        mode
-    ## tau   0.248373 0.393745 0.000648511 0.091967    1.34933 4.66001e-05
-    ## kappa 6.142790 3.419050 2.566390000 5.162800   15.37020 3.79080e+00
-    ## nu    1.333590 0.509312 0.368983000 1.415530    1.98935 1.99617e+00
+    ## tau   0.260602 0.409953 0.000875698 0.100676    1.40259 0.000131387
+    ## kappa 6.029880 3.176100 2.577990000 5.146970   14.54640 3.872250000
+    ## nu    1.304420 0.508315 0.357099000 1.370100    1.98527 1.992540000
 
 We can also plot the posterior densities. To this end we will use the
 [`gg_df()`](https://davidbolin.github.io/rSPDE/reference/gg_df.md)
 function, which creates `ggplot2` user-friendly data frames:
 
 ``` r
+
 posterior_df_fit <- gg_df(result_fit)
 
 ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
@@ -396,6 +430,7 @@ setting the `parameterization` argument on the
 function:
 
 ``` r
+
 result_fit_matern <- rspde.result(rspde_fit, "field", 
                 rspde_model, parameterization = "matern")
 ```
@@ -405,18 +440,20 @@ result_fit_matern <- rspde.result(rspde_fit, "field",
     ## consider increasing nu.upper.bound, and refitting the model.
 
 ``` r
+
 summary(result_fit_matern)
 ```
 
     ##             mean       sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 0.435301 0.574724   0.172300 0.322216    1.49272 0.304371
-    ## range   0.542354 0.211767   0.184086 0.523762    1.01438 0.524270
-    ## nu      1.333590 0.509312   0.368983 1.415530    1.98935 1.996170
+    ## std.dev 0.413951 0.502848   0.172852 0.321246    1.39674 0.310178
+    ## range   0.548082 0.214180   0.196845 0.521502    1.03078 0.476494
+    ## nu      1.304420 0.508315   0.357099 1.370100    1.98527 1.992540
 
 In a similar manner, we can obtain posterior plots on the `matern`
 parameterization:
 
 ``` r
+
 posterior_df_fit_matern <- gg_df(result_fit_matern)
 
 ggplot(posterior_df_fit_matern) + geom_line(aes(x = x, y = y)) + 
@@ -436,6 +473,7 @@ this end, we can use the
 function:
 
 ``` r
+
 nxy <- c(150, 100)
 projgrid <- fm_evaluator(prmesh,
   xlim = range(PRborder[, 1]),
@@ -449,12 +487,14 @@ cells that are outside the region of interest so that we do not plot the
 estimates there.
 
 ``` r
+
 xy.in <- inout(projgrid$lattice$loc, cbind(PRborder[, 1], PRborder[, 2]))
 ```
 
 Let us plot the locations that we will do prediction:
 
 ``` r
+
 coord.prd <- projgrid$lattice$loc[xy.in, ]
 plot(coord.prd, type = "p", cex = 0.1)
 lines(PRborder)
@@ -468,6 +508,7 @@ Let us now create a
 coordinates:
 
 ``` r
+
 coord.prd.df <- data.frame(x1 = coord.prd[,1],
                             x2 = coord.prd[,2])
 coord.prd.df <- st_as_sf(coord.prd.df, coords = c("x1", "x2"), 
@@ -481,6 +522,7 @@ the prediction location to our prediction
 `coord.prd.df`:
 
 ``` r
+
 seaDist.prd <- apply(spDists(coord.prd,
   PRborder[1034:1078, ],
   longlat = TRUE
@@ -489,6 +531,7 @@ coord.prd.df$seaDist <- seaDist.prd
 ```
 
 ``` r
+
 pred_obs <- predict(rspde_fit, coord.prd.df, 
         ~exp(Intercept + field + distSea))
 ```
@@ -496,6 +539,7 @@ pred_obs <- predict(rspde_fit, coord.prd.df,
 Finally, we plot the results. First the predicted mean:
 
 ``` r
+
 ggplot() + gg(pred_obs, geom = "tile",
     aes(fill = mean)) +
   geom_raster() +
@@ -507,6 +551,7 @@ ggplot() + gg(pred_obs, geom = "tile",
 Then, the std. deviations:
 
 ``` r
+
 ggplot() + gg(pred_obs, geom = "tile",
     aes(fill = sd)) +
   geom_raster() +
@@ -530,25 +575,28 @@ along with its methods (for instance, the
 ### Simulating the data
 
 Let us consider a simple Gaussian linear model with 30 independent
-replicates of a latent spatial field $x(\mathbf{s})$, observed at the
-same $m$ locations, $\{\mathbf{s}_{1},\ldots,\mathbf{s}_{m}\}$, for each
-replicate. For each $i = 1,\ldots,m,$ we have
+replicates of a latent spatial field $`x(\mathbf{s})`$, observed at the
+same $`m`$ locations, $`\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}`$, for
+each replicate. For each $`i = 1,\ldots,m,`$ we have
 
-$$\begin{aligned}
-y_{i} & {= x_{1}\left( \mathbf{s}_{i} \right) + \varepsilon_{i},} \\
-\vdots & {= \vdots} \\
-y_{i + 29m} & {= x_{30}\left( \mathbf{s}_{i} \right) + \varepsilon_{i + 29m},}
-\end{aligned}$$
+``` math
+\begin{align} 
+y_i &= x_1(\mathbf{s}_i)+\varepsilon_i,\\
+\vdots &= \vdots\\
 
-where $\varepsilon_{1},\ldots,\varepsilon_{30m}$ are iid normally
+y_{i+29m} &= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
+\end{align}
+```
+
+where $`\varepsilon_1,\ldots,\varepsilon_{30m}`$ are iid normally
 distributed with mean 0 and standard deviation 0.1.
 
-We use the basis function representation of $x( \cdot )$ to define the
-$A$ matrix linking the point locations to the mesh. We also need to
+We use the basis function representation of $`x(\cdot)`$ to define the
+$`A`$ matrix linking the point locations to the mesh. We also need to
 account for the fact that we have 30 replicates at the same locations.
-To this end, the $A$ matrix we need can be generated by
+To this end, the $`A`$ matrix we need can be generated by
 [`spde.make.A()`](https://davidbolin.github.io/rSPDE/reference/spde.make.A.md)
-function. The reason being that we are sampling $x( \cdot )$ directly
+function. The reason being that we are sampling $`x(\cdot)`$ directly
 and not the latent vector described in the introduction of the [Rational
 approximation with the `rSPDE`
 package](https://davidbolin.github.io/rSPDE/articles/rspde_cov.md)
@@ -557,6 +605,7 @@ vignette.
 We begin by creating the mesh:
 
 ``` r
+
 m <- 200
 loc_2d_mesh <- matrix(runif(m * 2), m, 2)
 mesh_2d <- fm_mesh_2d(
@@ -571,7 +620,7 @@ points(loc_2d_mesh[, 1], loc_2d_mesh[, 2])
 
 ![](rspde_inlabru_files/figure-html/unnamed-chunk-5-1.png)
 
-We then compute the $A$ matrix, which is needed for simulation, and
+We then compute the $`A`$ matrix, which is needed for simulation, and
 connects the observation locations to the mesh. To this end we will use
 the
 [`spde.make.A()`](https://davidbolin.github.io/rSPDE/reference/spde.make.A.md)
@@ -583,6 +632,7 @@ and
 from the `fmesher` package.
 
 ``` r
+
 n.rep <- 30
 A <- spde.make.A(
   mesh = mesh_2d,
@@ -592,19 +642,20 @@ A <- spde.make.A(
 )
 ```
 
-Notice that for the simulated data, we should use the $A$ matrix from
+Notice that for the simulated data, we should use the $`A`$ matrix from
 [`spde.make.A()`](https://davidbolin.github.io/rSPDE/reference/spde.make.A.md)
 function instead of the
 [`rspde.make.A()`](https://davidbolin.github.io/rSPDE/reference/rspde.make.A.md).
 
 We will now simulate a latent process with standard deviation
-$\sigma = 1$ and range $0.1$. We will use $\nu = 0.5$ so that the model
-has an exponential covariance function. To this end we create a model
-object with the
+$`\sigma=1`$ and range $`0.1`$. We will use $`\nu=0.5`$ so that the
+model has an exponential covariance function. To this end we create a
+model object with the
 [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md)
 function:
 
 ``` r
+
 nu <- 0.5
 sigma <- 1
 range <- 0.1
@@ -628,10 +679,11 @@ vignette.
 
 To simulate the latent process all we need to do is to use the
 [`simulate()`](https://rdrr.io/r/stats/simulate.html) method on the
-`operator_information` object. We then obtain the simulated data $y$ by
-connecting with the $A$ matrix and adding the gaussian noise.
+`operator_information` object. We then obtain the simulated data $`y`$
+by connecting with the $`A`$ matrix and adding the gaussian noise.
 
 ``` r
+
 set.seed(1)
 u <- simulate(operator_information, nsim = n.rep)
 y <- as.vector(A %*% as.vector(u)) +
@@ -642,6 +694,7 @@ The first replicate of the simulated random field as well as the
 observation locations are shown in the following figure.
 
 ``` r
+
 proj <- fm_evaluator(mesh_2d, dims = c(100, 100))
 
 df_field <- data.frame(x = proj$lattice$loc[,1],
@@ -673,6 +726,7 @@ Let us then use the rational SPDE approach to fit the data.
 We begin by creating the model object.
 
 ``` r
+
 rspde_model.rep <- rspde.matern(mesh = mesh_2d,
           parameterization = "spde") 
 ```
@@ -682,6 +736,7 @@ Let us now create the
 with the replicates indexes:
 
 ``` r
+
 rep.df <- data.frame(y = y, x1 = rep(loc_2d_mesh[,1], n.rep),
                       x2 = rep(loc_2d_mesh[,2], n.rep))
 rep.df <- st_as_sf(rep.df, coords = c("x1", "x2"))
@@ -695,6 +750,7 @@ function. It will not produce warning and might fit some meaningless
 model.
 
 ``` r
+
 cmp.rep <-
   y ~ -1 + field(geometry,
     model = rspde_model.rep,
@@ -713,11 +769,12 @@ rspde_fit.rep <-
 We can get the summary:
 
 ``` r
+
 summary(rspde_fit.rep)
 ```
 
-    ## inlabru version: 2.14.0 
-    ## INLA version: 26.03.19 
+    ## inlabru version: 2.14.1 
+    ## INLA version: 26.05.02 
     ## Latent components:
     ## field: main = cgeneric(geometry), replicate = iid(repl)
     ## Observation models:
@@ -729,22 +786,22 @@ summary(rspde_fit.rep)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.158, Running = 87.1, Post = 2.86, Total = 90.1 
+    ##     Pre = 0.171, Running = 88.5, Post = 3.64, Total = 92.3 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
     ## 
     ## Model hyperparameters:
-    ##                                          mean    sd 0.025quant 0.5quant
-    ## Precision for the Gaussian observations 94.43 4.703     85.931   94.174
-    ## Theta1 for field                        -3.25 0.072     -3.421   -3.238
-    ## Theta2 for field                         3.17 0.031      3.106    3.164
-    ## Theta3 for field                        -0.63 0.030     -0.674   -0.634
+    ##                                           mean    sd 0.025quant 0.5quant
+    ## Precision for the Gaussian observations 94.718 4.699     86.209   94.470
+    ## Theta1 for field                        -3.235 0.064     -3.386   -3.226
+    ## Theta2 for field                         3.164 0.031      3.104    3.164
+    ## Theta3 for field                        -0.633 0.029     -0.678   -0.636
     ##                                         0.975quant   mode
-    ## Precision for the Gaussian observations    104.424 93.344
-    ## Theta1 for field                            -3.151 -3.176
+    ## Precision for the Gaussian observations    104.690 93.665
+    ## Theta1 for field                            -3.145 -3.182
     ## Theta2 for field                             3.227  3.162
-    ## Theta3 for field                            -0.562 -0.654
+    ## Theta3 for field                            -0.566 -0.655
     ## 
     ## Marginal log-Likelihood:  -4498.14 
     ##  is computed 
@@ -754,16 +811,18 @@ summary(rspde_fit.rep)
 and the summary in the user’s scale:
 
 ``` r
+
 result_fit_rep <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 summary(result_fit_rep)
 ```
 
-    ##             mean         sd 0.025quant   0.5quant 0.975quant       mode
-    ## tau    0.0389338 0.00272845  0.0327568  0.0393538  0.0428385  0.0417916
-    ## kappa 23.6949000 0.72288100 22.3445000 23.6680000 25.1816000 23.5926000
-    ## nu     0.6948450 0.01340360  0.6752200  0.6926580  0.7258940  0.6840700
+    ##            mean         sd 0.025quant   0.5quant 0.975quant       mode
+    ## tau    0.039456 0.00246436  0.0338999  0.0398204  0.0430781  0.0417688
+    ## kappa 23.679600 0.73348000 22.2988000 23.6568000 25.1784000 23.5982000
+    ## nu     0.693669 0.01324030  0.6736920  0.6916500  0.7240520  0.6839210
 
 ``` r
+
 result_df <- data.frame(
   parameter = c("tau", "kappa", "nu"),
   true = c(tau, kappa, nu),
@@ -782,24 +841,26 @@ print(result_df)
 ```
 
     ##   parameter        true        mean        mode
-    ## 1       tau  0.08920621  0.03893377  0.04179165
-    ## 2     kappa 20.00000000 23.69487148 23.59259960
-    ## 3        nu  0.50000000  0.69484526  0.68406988
+    ## 1       tau  0.08920621  0.03945597  0.04176884
+    ## 2     kappa 20.00000000 23.67961478 23.59818584
+    ## 3        nu  0.50000000  0.69366870  0.68392136
 
 Let us also obtain the summary on the `matern` parameterization:
 
 ``` r
+
 result_fit_rep_matern <- rspde.result(rspde_fit.rep, "field", rspde_model.rep, 
                           parameterization = "matern")
 summary(result_fit_rep_matern)
 ```
 
     ##              mean         sd 0.025quant  0.5quant 0.975quant     mode
-    ## std.dev 1.0890500 0.01305920  1.0641400 1.0885900   1.115430 1.087710
-    ## range   0.0992151 0.00361131  0.0923633 0.0990831   0.106641 0.098279
-    ## nu      0.6948450 0.01340360  0.6752200 0.6926580   0.725894 0.684070
+    ## std.dev 1.0870200 0.01270990  1.0626200 1.0867500   1.112820 1.086590
+    ## range   0.0990926 0.00356549  0.0924013 0.0990079   0.106238 0.098348
+    ## nu      0.6936690 0.01324030  0.6736920 0.6916500   0.724052 0.683921
 
 ``` r
+
 result_df_matern <- data.frame(
   parameter = c("std_dev", "range", "nu"),
   true = c(sigma, range, nu),
@@ -817,41 +878,47 @@ result_df_matern <- data.frame(
 print(result_df_matern)
 ```
 
-    ##   parameter true      mean      mode
-    ## 1   std_dev  1.0 1.0890451 0.6840699
-    ## 2     range  0.1 0.0992151 0.6840699
-    ## 3        nu  0.5 0.6948453 0.6840699
+    ##   parameter true       mean      mode
+    ## 1   std_dev  1.0 1.08701761 0.6839214
+    ## 2     range  0.1 0.09909259 0.6839214
+    ## 3        nu  0.5 0.69366870 0.6839214
 
 ## An example with a non-stationary model
 
 Our goal now is to show how one can fit model with non-stationary
-$\sigma$ (std. deviation) and non-stationary $\rho$ (a range parameter).
-One can also use the parameterization in terms of non-stationary SPDE
-parameters $\kappa$ and $\tau$.
+$`\sigma`$ (std. deviation) and non-stationary $`\rho`$ (a range
+parameter). One can also use the parameterization in terms of
+non-stationary SPDE parameters $`\kappa`$ and $`\tau`$.
 
 For this example we will consider simulated data.
 
 ### Simulating the data
 
 Let us consider a simple Gaussian linear model with a latent spatial
-field $x(\mathbf{s})$, defined on the rectangle $(0,10) \times (0,5)$,
-where the std. deviation and range parameter satisfy the following
-log-linear regressions: $$\begin{aligned}
-{\log\left( \sigma(\mathbf{s}) \right)} & {= \theta_{1} + \theta_{3}b(\mathbf{s}),} \\
-{\log\left( \rho(\mathbf{s}) \right)} & {= \theta_{2} + \theta_{3}b(\mathbf{s}),}
-\end{aligned}$$ where $b(\mathbf{s}) = \left( s_{1} - 5 \right)/10$. We
-assume the data is observed at $m$ locations,
-$\{\mathbf{s}_{1},\ldots,\mathbf{s}_{m}\}$. For each $i = 1,\ldots,m,$
-we have
+field $`x(\mathbf{s})`$, defined on the rectangle
+$`(0,10) \times (0,5)`$, where the std. deviation and range parameter
+satisfy the following log-linear regressions:
+``` math
+\begin{align}
+\log(\sigma(\mathbf{s})) &= \theta_1 + \theta_3 b(\mathbf{s}),\\
+\log(\rho(\mathbf{s})) &= \theta_2 + \theta_3 b(\mathbf{s}),
+\end{align}
+```
+where $`b(\mathbf{s}) = (s_1-5)/10`$. We assume the data is observed at
+$`m`$ locations, $`\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}`$. For each
+$`i = 1,\ldots,m,`$ we have
 
-$$y_{i} = x_{1}\left( \mathbf{s}_{i} \right) + \varepsilon_{i},$$
+``` math
+y_i = x_1(\mathbf{s}_i)+\varepsilon_i,
+```
 
-where $\varepsilon_{1},\ldots,\varepsilon_{m}$ are iid normally
+where $`\varepsilon_1,\ldots,\varepsilon_{m}`$ are iid normally
 distributed with mean 0 and standard deviation 0.1.
 
 We begin by defining the domain and creating the mesh:
 
 ``` r
+
 rec_domain <- cbind(c(0, 1, 1, 0, 0) * 10, c(0, 0, 1, 1, 0) * 5)
 
 mesh <- fm_mesh_2d(loc.domain = rec_domain, cutoff = 0.1, 
@@ -879,13 +946,13 @@ and `range` (or with both `tau` and `kappa`), one simply let the
 corresponding column to be nonzero on both `B.sigma` and `B.range` (or
 on `B.tau` and `B.kappa`).
 
-We will assume $\nu = 0.8$, $\theta_{1} = 0,\theta_{2} = 1$ and
-$\theta_{3} = 1$. Let us now build the model to obtain the sample with
-the
+We will assume $`\nu = 0.8`$, $`\theta_1 = 0, \theta_2 = 1`$ and
+$`\theta_3=1`$. Let us now build the model to obtain the sample with the
 [`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md)
 function:
 
 ``` r
+
 nu <- 0.8
 true_theta <- c(0,1, 1)
 B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10)
@@ -904,13 +971,15 @@ Let us now sample the data with the
 [`simulate()`](https://rdrr.io/r/stats/simulate.html) method:
 
 ``` r
+
 u <- as.vector(simulate(op_cov_ns, seed = 123))
 ```
 
 Let us now obtain 600 random locations on the rectangle and compute the
-$A$ matrix:
+$`A`$ matrix:
 
 ``` r
+
 m <- 600
 loc_mesh <- cbind(runif(m) * 10, runif(m) * 5)
 
@@ -923,6 +992,7 @@ A <- spde.make.A(
 We can now generate the response vector `y`:
 
 ``` r
+
 y <- as.vector(A %*% as.vector(u)) + rnorm(m) * 0.1
 ```
 
@@ -934,6 +1004,7 @@ We begin by creating the model object. We are creating a new one so that
 we do not start the estimation at the true values.
 
 ``` r
+
 rspde_model_nonstat <- rspde.matern(mesh = mesh,
   B.sigma = B.sigma,
   B.range = B.range,
@@ -945,6 +1016,7 @@ Let us now create the
 with the replicates indexes:
 
 ``` r
+
 nonstat_df <- data.frame(y = y, x1 = loc_mesh[,1],
                       x2 = loc_mesh[,2])
 nonstat_df <- st_as_sf(nonstat_df, coords = c("x1", "x2"))
@@ -957,6 +1029,7 @@ function. It will not produce warning and might fit some meaningless
 model.
 
 ``` r
+
 cmp_nonstat <-
   y ~ -1 + field(geometry,
     model = rspde_model_nonstat
@@ -975,11 +1048,12 @@ rspde_fit_nonstat <-
 We can get the summary:
 
 ``` r
+
 summary(rspde_fit_nonstat)
 ```
 
-    ## inlabru version: 2.14.0 
-    ## INLA version: 26.03.19 
+    ## inlabru version: 2.14.1 
+    ## INLA version: 26.05.02 
     ## Latent components:
     ## field: main = cgeneric(geometry)
     ## Observation models:
@@ -991,26 +1065,26 @@ summary(rspde_fit_nonstat)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.15, Running = 23.3, Post = 0.132, Total = 23.6 
+    ##     Pre = 0.142, Running = 21, Post = 0.173, Total = 21.4 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
     ## 
     ## Model hyperparameters:
-    ##                                            mean     sd 0.025quant 0.5quant
-    ## Precision for the Gaussian observations 106.109 10.140     87.713  105.573
-    ## Theta1 for field                         -0.069  0.083     -0.215   -0.074
-    ## Theta2 for field                          0.811  0.094      0.644    0.806
-    ## Theta3 for field                          1.172  0.103      0.976    1.169
-    ## Theta4 for field                          0.026  0.063     -0.083    0.022
+    ##                                            mean    sd 0.025quant 0.5quant
+    ## Precision for the Gaussian observations 104.575 7.624     90.683  104.193
+    ## Theta1 for field                         -0.072 0.079     -0.223   -0.074
+    ## Theta2 for field                          0.808 0.098      0.616    0.808
+    ## Theta3 for field                          1.200 0.158      0.911    1.193
+    ## Theta4 for field                          0.019 0.059     -0.088    0.016
     ##                                         0.975quant    mode
-    ## Precision for the Gaussian observations    127.602 104.395
-    ## Theta1 for field                             0.111  -0.100
-    ## Theta2 for field                             1.013   0.781
-    ## Theta3 for field                             1.381   1.159
-    ## Theta4 for field                             0.161   0.003
+    ## Precision for the Gaussian observations    120.690 103.204
+    ## Theta1 for field                             0.089  -0.082
+    ## Theta2 for field                             1.003   0.806
+    ## Theta3 for field                             1.531   1.161
+    ## Theta4 for field                             0.144   0.002
     ## 
-    ## Marginal log-Likelihood:  1.96 
+    ## Marginal log-Likelihood:  2.06 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -1020,19 +1094,21 @@ by using the function
 [`rspde.result()`](https://davidbolin.github.io/rSPDE/reference/rspde.result.md):
 
 ``` r
+
 result_fit_nonstat <- rspde.result(rspde_fit_nonstat, "field", rspde_model_nonstat)
 summary(result_fit_nonstat)
 ```
 
     ##                     mean        sd 0.025quant   0.5quant 0.975quant       mode
-    ## Theta1.matern -0.0686065 0.0834119  -0.214759 -0.0737475    0.11110 -0.0995102
-    ## Theta2.matern  0.8114250 0.0942523   0.643749  0.8062860    1.01274  0.7805020
-    ## Theta3.matern  1.1716200 0.1030350   0.975541  1.1693900    1.38118  1.1594600
-    ## nu             1.0130300 0.0310597   0.958781  1.0104500    1.07966  1.0011400
+    ## Theta1.matern -0.0724459 0.0792918  -0.223314 -0.0741678  0.0887946 -0.0817976
+    ## Theta2.matern  0.8082280 0.0981722   0.616486  0.8077060  1.0030300  0.8055140
+    ## Theta3.matern  1.2000400 0.1578990   0.911145  1.1932600  1.5309400  1.1614500
+    ## nu             1.0092600 0.0294487   0.956224  1.0073600  1.0712600  1.0009800
 
 Let us compare the mean to the true values of the parameters:
 
 ``` r
+
 summ_res_nonstat <- summary(result_fit_nonstat)
 result_df <- data.frame(
   parameter = result_fit_nonstat$params,
@@ -1044,16 +1120,17 @@ print(result_df)
 ```
 
     ##       parameter true       mean       mode
-    ## 1 Theta1.matern  0.0 -0.0686065 -0.0995102
-    ## 2 Theta2.matern  1.0  0.8114250  0.7805020
-    ## 3 Theta3.matern  1.0  1.1716200  1.1594600
-    ## 4            nu  0.8  1.0130300  1.0011400
+    ## 1 Theta1.matern  0.0 -0.0724459 -0.0817976
+    ## 2 Theta2.matern  1.0  0.8082280  0.8055140
+    ## 3 Theta3.matern  1.0  1.2000400  1.1614500
+    ## 4            nu  0.8  1.0092600  1.0009800
 
 We can also plot the posterior densities. To this end we will use the
 [`gg_df()`](https://davidbolin.github.io/rSPDE/reference/gg_df.md)
 function, which creates `ggplot2` user-friendly data frames:
 
 ``` r
+
 posterior_df_fit <- gg_df(result_fit_nonstat)
 
 ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
@@ -1074,12 +1151,14 @@ Let us, then, fit a stationary model with the previous dataset. We start
 by defining the stationary model:
 
 ``` r
+
 rspde_model_stat <- rspde.matern(mesh = mesh)
 ```
 
 Then, `inlabru`’s component:
 
 ``` r
+
 cmp_stat <-
   y ~ -1 + field(geometry,
     model = rspde_model_stat
@@ -1089,6 +1168,7 @@ cmp_stat <-
 We can now fit the model:
 
 ``` r
+
 rspde_fit_stat <-
   bru(cmp_stat,
     data = nonstat_df,
@@ -1109,6 +1189,7 @@ model on 20% of the data, to predict 80% of the data.
 Let us create the models list:
 
 ``` r
+
 models <- list(stationary = rspde_fit_stat, 
                 nonstationary = rspde_fit_nonstat)
 ```
@@ -1122,6 +1203,7 @@ not refit the model for each fold, however only the training data will
 be used to perform the prediction.
 
 ``` r
+
 cv_result <- cross_validation(models, cv_type = "lpo", print = FALSE)
 ```
 
@@ -1129,16 +1211,17 @@ We can now look at the results by printing `cv_result`. Observe that the
 best model with respect to each score is displayed in the last row.
 
 ``` r
+
 cv_result
 ```
 
-    ##           Model               mse               mae                dss
-    ## 1    stationary 0.136236559028489  0.27086404156199 -0.776521166820094
-    ## 2 nonstationary 0.135615656215287 0.271183285683687   -1.1641187842445
-    ##            Best     nonstationary        stationary      nonstationary
+    ##           Model               mse               mae               dss
+    ## 1    stationary 0.135314747127157 0.270290867502335 -1.21238805093093
+    ## 2 nonstationary 0.133249574048742 0.269214624506688 -1.17400731254973
+    ##            Best     nonstationary     nonstationary        stationary
     ##                crps             scrps
-    ## 1 0.194891168572986 0.526837528450063
-    ## 2 0.191670737034308 0.495625103378727
+    ## 1 0.189804322421744 0.490921735922323
+    ## 2 0.188492795437985 0.486837816124232
     ##       nonstationary     nonstationary
 
 The
@@ -1181,7 +1264,7 @@ function, in an identical manner to the examples above.
 Bolin, David, Alexandre B. Simas, and Zhen Xiong. 2023.
 “Covariance-Based Rational Approximations of Fractional SPDEs for
 Computationally Efficient Bayesian Inference.” *Journal of Computational
-and Graphical Statistics*.
+and Graphical Statistics*, ahead of print.
 <https://doi.org/10.1080/10618600.2022.2139648>.
 
 Lindgren, Finn, Håvard Rue, and Johan Lindström. 2011. “An Explicit Link

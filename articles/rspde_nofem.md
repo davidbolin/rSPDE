@@ -12,22 +12,25 @@ required. In this vignette we will introduce these methods.
 We begin by loading the `rSPDE` package:
 
 ``` r
+
 library(rSPDE)
 ```
 
-Assume that we want to define a model on the interval
-$\lbrack 0,1\rbrack$, which we want to evaluate at some locations
+Assume that we want to define a model on the interval $`[0,1]`$, which
+we want to evaluate at some locations
 
 ``` r
+
 s <- seq(from = 0, to = 1, length.out = 101)
 ```
 
 We can now use
 [`matern.rational()`](https://davidbolin.github.io/rSPDE/reference/matern.rational.md)
-to construct a rational SPDE approximation of order $m = 2$ for a
+to construct a rational SPDE approximation of order $`m=2`$ for a
 Gaussian random field with a Matérn covariance function on the interval.
 
 ``` r
+
 kappa <- 20
 sigma <- 2
 nu <- 0.8
@@ -41,11 +44,12 @@ locations `loc`, and they are only supplied to indicate where we want to
 evaluate it.
 
 To evaluate the accuracy of the approximation, let us compute the
-covariance function between the process at $s = 0$ and all other
+covariance function between the process at $`s=0`$ and all other
 locations in `s` and compare with the true Matérn covariance function.
 The covariances can be calculated by using the `covariance()` method.
 
 ``` r
+
 c_cov.approx <- op_cov$covariance(ind = 1)
 c.true <- matern.covariance(abs(s[1] - s), kappa, nu, sigma)
 ```
@@ -54,6 +58,7 @@ The covariance function and the error compared with the Matérn
 covariance are shown in the following figure.
 
 ``` r
+
 opar <- par(
   mfrow = c(1, 2), mgp = c(1.3, 0.5, 0),
   mar = c(2, 2, 0.5, 0.5) + 0.1
@@ -81,10 +86,11 @@ par(opar)
 ![](rspde_nofem_files/figure-html/unnamed-chunk-5-1.png)
 
 To improve the approximation we can increase the order of the
-approximation, by increasing $m$. Let us, for example, compute the
-approximation with $m = 1,\ldots,4$.
+approximation, by increasing $`m`$. Let us, for example, compute the
+approximation with $`m=1,\ldots,4`$.
 
 ``` r
+
 errors <- rep(0, 4)
 for (i in 1:4) {
   op_cov_i <- matern.rational(loc = s, range = r, sigma = sigma, nu = nu,
@@ -96,8 +102,8 @@ print(errors)
 
     ## [1] 1.36208052 0.29200800 0.07907210 0.02597968
 
-We see that the error decreases very fast when we increase $m$ from $1$
-to $4$.
+We see that the error decreases very fast when we increase $`m`$ from
+$`1`$ to $`4`$.
 
 ## Simulation
 
@@ -110,6 +116,7 @@ object returned by the
 function:
 
 ``` r
+
 u <- simulate(op_cov)
 plot(s, u, type = "l")
 ```
@@ -121,6 +128,7 @@ number of replicates. For instance, to generate two replicates of the
 model, we simply do:
 
 ``` r
+
 u.rep <- simulate(op_cov, nsim = 2)
 ```
 
@@ -135,19 +143,21 @@ randomly generate some observation locations and then construct the
 matrix.
 
 ``` r
+
 set.seed(1)
 n.obs <- 100
 obs.loc <- sort(runif(n.obs))
 ```
 
 We now generate the observations as
-$Y_{i} = 2 - x1 + u\left( s_{i} \right) + \varepsilon_{i}$, where
-$\varepsilon_{i} \sim N\left( 0,\sigma_{e}^{2} \right)$ is Gaussian
-measurement noise, $x1$ is a covariate giving the observation location.
-We will assume that the latent process has a Matérn covariance with
-$\kappa = 20,\sigma = 1.3$ and $\nu = 0.8$:
+$`Y_i = 2 - x1 + u(s_i) + \varepsilon_i`$, where
+$`\varepsilon_i \sim N(0,\sigma_e^2)`$ is Gaussian measurement noise,
+$`x1`$ is a covariate giving the observation location. We will assume
+that the latent process has a Matérn covariance with
+$`\kappa=20, \sigma=1.3`$ and $`\nu=0.8`$:
 
 ``` r
+
 n.rep <- 10
 kappa <- 20
 sigma <- 1.3
@@ -171,6 +181,7 @@ df_data <- data.frame(y = as.vector(Y), loc = rep(obs.loc, n.rep),
 Let us create a new object to fit the model:
 
 ``` r
+
 op_cov_est <- matern.rational(loc = obs.loc, m = 2)
 ```
 
@@ -179,6 +190,7 @@ Let us now fit the model. To this end we will use the
 function:
 
 ``` r
+
 fit <- rspde_lme(y~x1, model = op_cov_est,
                  repl = repl, data = df_data, loc = "loc",
                  parallel = TRUE)
@@ -187,6 +199,7 @@ fit <- rspde_lme(y~x1, model = op_cov_est,
 Here is the summary:
 
 ``` r
+
 summary(fit)
 ```
 
@@ -224,12 +237,13 @@ summary(fit)
     ## Number of function calls by 'optim' = 42
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  2.35729 mins 
-    ##   set up the parallelization = 2.71506 secs
+    ## Time used to:     fit the model =  2.39316 mins 
+    ##   set up the parallelization = 2.75658 secs
 
 Let us compare with the true values and compare the time:
 
 ``` r
+
 print(data.frame(
   sigma = c(sigma, fit$coeff$random_effects[2]), 
   range = c(r, fit$coeff$random_effects[3]),
@@ -243,16 +257,17 @@ print(data.frame(
     ## Estimates 1.413248 0.1256274 0.9141162
 
 ``` r
+
 # Total time (time to fit plus time to set up the parallelization)
 total_time <- fit$fitting_time + fit$time_par
 print(total_time)
 ```
 
-    ## Time difference of 144.1525 secs
+    ## Time difference of 146.3462 secs
 
 ### Kriging
 
-Finally, we compute the kriging prediction of the process $u$ at the
+Finally, we compute the kriging prediction of the process $`u`$ at the
 locations in `s` based on these observations.
 
 Let us create the `data.frame` with locations in which we want to obtain
@@ -260,6 +275,7 @@ the predictions. Observe that we also must provide the values of the
 covariates.
 
 ``` r
+
 s <- seq(from = 0, to = 1, length.out = 100)
 df_pred <- data.frame(loc = s, x1 = s)
 ```
@@ -269,6 +285,7 @@ We can now perform kriging with the
 to predict at the locations for the first replicate:
 
 ``` r
+
 u.krig <- predict(fit, newdata = df_pred, loc = "loc", which_repl = 1)
 ```
 
@@ -276,6 +293,7 @@ The simulated process, the observed data, and the kriging prediction are
 shown in the following figure.
 
 ``` r
+
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 plot(obs.loc, Y[,1],
   ylab = "u(s)", xlab = "s",
@@ -293,6 +311,7 @@ We can also use the
 function and pipe the results into a plot:
 
 ``` r
+
 library(ggplot2)
 library(dplyr)
 
@@ -310,6 +329,7 @@ The `inla` implementation of the models is found in the `rspde.matern1d`
 function. To test it, let us simulate some data again.
 
 ``` r
+
 sigma <- 1
 nu <- 0.8
 sigma.e <- 0.1
@@ -333,12 +353,14 @@ from data. Note that the `A` matrix and the `index` vector needed by
 component (set in the index vector) is `field`.
 
 ``` r
+
 library(INLA)
 ```
 
     ## 
 
 ``` r
+
 inla_model <- rspde.matern1d(loc = s, nu = 0.5)
 st.dat <- inla.stack(data = list(y = as.vector(Y)), A = inla_model$A, effects = inla_model$index)
 res <- inla(y ~ -1 + f(field, model = inla_model), 
@@ -350,15 +372,17 @@ res <- inla(y ~ -1 + f(field, model = inla_model),
 Let us look at some summaries of the fit:
 
 ``` r
+
 result_fit <- rspde.result(res, "field", inla_model, parameterization = "matern") 
 summary(result_fit)
 ```
 
     ##            mean       sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 1.01510 0.329876   0.584149 0.942394    1.86009 0.817347
-    ## range   2.88891 2.250800   0.782297 2.230780    9.04518 1.540770
+    ## std.dev 1.01555 0.330529   0.583937 0.942718    1.86295 0.818104
+    ## range   2.89265 2.257990   0.781410 2.232300    9.07155 1.546010
 
 ``` r
+
 posterior_df_fit <- gg_df(result_fit)
 
 ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
@@ -373,6 +397,7 @@ Let us now fit the following model using our `inlabru` implementation.
 In this case, we will estimate nu.
 
 ``` r
+
 sigma <- 1
 nu <- 0.8
 sigma.e <- 0.1
@@ -388,12 +413,14 @@ We need to create a `data.frame` with the response variables and
 locations:
 
 ``` r
+
 df_bru <- data.frame(y = Y, loc = s)
 ```
 
 We now create the model object, without specifying `nu`:
 
 ``` r
+
 bru_model <- rspde.matern1d(loc = s)
 ```
 
@@ -401,12 +428,9 @@ Finally, we can load the `inlabru` package, create the model component,
 and fit the model:
 
 ``` r
+
 library(inlabru)
-```
 
-    ## Loading required package: fmesher
-
-``` r
 cmp <- y ~ -1 + Intercept(1) + field(loc, model = bru_model)
 bru_fit <- bru(cmp, data = df_bru, options = list(num.threads = "1:1"))
 ```
@@ -414,14 +438,15 @@ bru_fit <- bru(cmp, data = df_bru, options = list(num.threads = "1:1"))
 Let us, again, look at the summaries of the fit:
 
 ``` r
+
 result_fit <- rspde.result(bru_fit, "field", bru_model, parameterization = "matern") 
 summary(result_fit)
 ```
 
-    ##             mean       sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 0.348107 0.241638 0.00815133 0.309801   0.886292 0.112125
-    ## range   1.040690 0.402912 0.47757600 0.967410   2.042620 0.841837
-    ## nu      0.371435 0.189154 0.07849170 0.351130   0.782647 0.264379
+    ##             mean        sd 0.025quant 0.5quant 0.975quant     mode
+    ## std.dev 0.751392 0.1657690   0.488599 0.730817   1.136350 0.694559
+    ## range   0.580754 0.1530140   0.347074 0.558808   0.931553 0.496662
+    ## nu      0.836218 0.0693557   0.696057 0.838337   0.967393 0.846243
 
 ## Kriging with the inlabru implementation
 
@@ -430,6 +455,7 @@ by creating the `data.frame` containing the locations in which we want
 to do prediction:
 
 ``` r
+
 s_pred <- seq(from = 0, to = 5, length.out = 1001)
 df_pred <- data.frame(loc = s_pred)
 ```
@@ -438,6 +464,7 @@ Now, first observe that we cannot directly use `inlabru`’s predict
 method:
 
 ``` r
+
 pred <- predict(bru_fit, newdata = df_pred, formula = ~ Intercept + field)
 ```
 
@@ -450,6 +477,7 @@ obtain predictions using our modified `predict` method, in which we need
 to pass the components and well as the model:
 
 ``` r
+
 pred <- predict(bru_model, cmp, bru_fit, newdata = df_pred, formula = ~ Intercept + field)
 ```
 

@@ -11,7 +11,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/davidbolin/rSPDE/blob/devel-src/inst/CITATION)
+[`inst/CITATION`](https://github.com/davidbolin/rSPDE/blob/devel/inst/CITATION)
 
 Bolin D, Simas A (2023). *rSPDE: Rational Approximations of Fractional
 Stochastic Partial Differential Equations*. R package version 2.3.3,

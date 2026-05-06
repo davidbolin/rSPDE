@@ -77,9 +77,9 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-10-23. Last
-modified: 2026-04-08.</h4>
+modified: 2026-05-06.</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/spacetime.Rmd" class="external-link"><code>vignettes/spacetime.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel/vignettes/spacetime.Rmd" class="external-link"><code>vignettes/spacetime.Rmd</code></a></small>
       <div class="d-none name"><code>spacetime.Rmd</code></div>
     </div>
 
@@ -90,7 +90,7 @@ modified: 2026-04-08.</h4>
 </h2>
 <p>The <code>rSPDE</code> package implements the following
 spatio-temporal model
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>u</mi><mo>+</mo><mi>γ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>+</mo><msup><mi>κ</mi><mrow><mi>d</mi><mi>/</mi><mn>2</mn></mrow></msup><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>α</mi></msup><mi>u</mi><mo>=</mo><mi>d</mi><msub><mi>W</mi><mi>Q</mi></msub><mo>,</mo><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">on </mtext><mspace width="0.333em"></mspace></mrow><mi>T</mi><mo>×</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>u</mi><mo>+</mo><mi>γ</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>+</mo><msup><mi>κ</mi><mrow><mi>d</mi><mi>/</mi><mn>2</mn></mrow></msup><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi mathvariant="normal">Δ</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>α</mi></msup><mi>u</mi><mo>=</mo><mi>d</mi><msub><mi>W</mi><mi>Q</mi></msub><mo>,</mo><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">on </mtext><mspace width="0.333em"></mspace></mrow><mi>T</mi><mo>×</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">
 d u + \gamma(\kappa^2 + \kappa^{d/2}\rho\cdot \nabla - \Delta)^{\alpha} u = dW_Q, \quad \text{on } T\times D
 </annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
@@ -113,7 +113,7 @@ Further,
 is a
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math>-Wiener
 process with spatial covariance operator
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mn>2</mn></msup><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mi>β</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\sigma^2(\kappa^2 - \Delta)^{-\beta}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><mi mathvariant="normal">Δ</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>−</mi><mi>β</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\sigma^2(\kappa^2 - \Delta)^{-\beta}</annotation></semantics></math>,
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>σ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\sigma^2</annotation></semantics></math>
 is a variance parameter. Thus, the model has two smoothness parameters
@@ -125,7 +125,7 @@ generalization of the spatio-temporal models introduced in <a href="https://www.
 generalization is to allow for drift and to allow for metric graphs as
 spatial domains. The model is implemented using a finite element
 discretization of the corresponding precision operator
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mrow><mo>−</mo><mn>2</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mo>+</mo><mi>γ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>+</mo><msup><mi>κ</mi><mrow><mi>d</mi><mi>/</mi><mn>2</mn></mrow></msup><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>α</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>β</mi></msup><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mo>+</mo><mi>γ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><msup><mi>κ</mi><mrow><mi>d</mi><mi>/</mi><mn>2</mn></mrow></msup><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>α</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mrow><mi>−</mi><mn>2</mn></mrow></msup><mo stretchy="false" form="prefix">(</mo><mi>d</mi><mo>+</mo><mi>γ</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>+</mo><msup><mi>κ</mi><mrow><mi>d</mi><mi>/</mi><mn>2</mn></mrow></msup><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi mathvariant="normal">Δ</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>α</mi></msup><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><mi mathvariant="normal">Δ</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>β</mi></msup><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">(</mo><mi>d</mi><mo>+</mo><mi>γ</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><msup><mi>κ</mi><mrow><mi>d</mi><mi>/</mi><mn>2</mn></mrow></msup><mi>ρ</mi><mo>⋅</mo><mi>∇</mi><mo>−</mo><mi mathvariant="normal">Δ</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>α</mi></msup><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \sigma^{-2}(d + \gamma(\kappa^2 + \kappa^{d/2}\rho\cdot \nabla - \Delta)^{\alpha})(\kappa^2 - \Delta)^{\beta} ((d + \gamma(\kappa^2 - \kappa^{d/2}\rho\cdot \nabla - \Delta)^{\alpha}))
 </annotation></semantics></math> in both space and time, similarly to
 the discretization introduced in <a href="https://www.raco.cat/index.php/SORT/article/view/428665" class="external-link"><span class="citation">Lindgren et al. (2024)</span></a>. This
@@ -156,9 +156,9 @@ mesh object from the <code>fmesher</code> package, as a graph from the
 intervals. The temporal discretization can be specified either by
 specifying the mesh nodes or by providing a mesh object.</p>
 <p>Assume that we want to define a model on the spatial interval
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>20</mn><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,20]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>20</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,20]</annotation></semantics></math>
 and the temporal domain
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>10</mn><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,10]</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>10</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,10]</annotation></semantics></math>.
 We can then simply specify the mesh nodes as</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">s</span> <span class="op">&lt;-</span> <span class="va">s_1d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">20</span>, length.out <span class="op">=</span> <span class="fl">101</span><span class="op">)</span></span>
@@ -181,9 +181,9 @@ model</p>
 <p>The <code>spacetime.operators</code> object has a
 <code>plot_covariances</code> method which for univariate spatial
 domains simply plots the covariance
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mn>0</mn></msub><mo>,</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(u(s,t), u(s_0, t_0))</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mn>0</mn></msub><mo>,</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">C(u(s,t), u(s_0, t_0))</annotation></semantics></math>
 for a fixed spatio-temporal location
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mn>0</mn></msub><mo>,</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(s_0, t_0)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mn>0</mn></msub><mo>,</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(s_0, t_0)</annotation></semantics></math>
 specified by the indices in the spatial and temporal discretizations.
 For example:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -207,9 +207,9 @@ matrix.</p>
 <span><span class="va">obs.loc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n.obs</span><span class="op">)</span>, t <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">t</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n.obs</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/make_A.html">make_A</a></span><span class="op">(</span><span class="va">op</span>, loc <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">x</span>, time <span class="op">=</span> <span class="va">obs.loc</span><span class="op">$</span><span class="va">t</span><span class="op">)</span></span></code></pre></div>
 <p>We now generate the observations as
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>i</mi></msub><mo>=</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">Y_i = u(s_i) + \varepsilon_i</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>i</mi></msub><mo>=</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">Y_i = u(s_i) + \varepsilon_i</annotation></semantics></math>,
 where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mi>i</mi></msub><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>e</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\varepsilon_i \sim N(0,\sigma_e^2)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mi>i</mi></msub><mo>∼</mo><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>e</mi><mn>2</mn></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\varepsilon_i \sim N(0,\sigma_e^2)</annotation></semantics></math>
 is Gaussian measurement noise.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op</span>, nsim <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
@@ -310,8 +310,8 @@ model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 50</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  23.79371 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 5.25175 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  23.97275 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 5.23514 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -325,9 +325,9 @@ model:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa     sigma     gamma     rho    sigma.e  intercept</span></span>
-<span><span class="co">#&gt; True     5.000000 10.000000 0.1000000 1.00000 0.01000000 0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 4.703093  9.067346 0.1076121 1.03043 0.01399155 0.01225038</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa     sigma    gamma      rho    sigma.e  intercept</span></span>
+<span><span class="co">#&gt; True     5.000000 10.000000 0.100000 1.000000 0.01000000 0.00000000</span></span>
+<span><span class="co">#&gt; Estimate 4.703093  9.067345 0.107612 1.030429 0.01399151 0.01225026</span></span></code></pre></div>
 <p>Finally, we can also do prediction based on the fitted model as</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred.data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">s</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">t</span><span class="op">)</span><span class="op">)</span>, t <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">t</span>, each <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -359,7 +359,6 @@ implementation. We start by creating the model object with the
 <code><a href="../reference/rspde.spacetime.html">rspde.spacetime()</a></code> function:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://www.inlabru.org" class="external-link">inlabru</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: fmesher</span></span>
 <span><span class="va">st_bru</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.spacetime.html">rspde.spacetime</a></span><span class="op">(</span>mesh_space <span class="op">=</span> <span class="va">mesh_1d_space</span>, mesh_time <span class="op">=</span> <span class="va">mesh_1d_time</span>, alpha <span class="op">=</span> <span class="fl">1</span>, beta <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p>We now create the model component, which requires the user to pass
 the index as a list containing the elements <code>space</code> with the
@@ -388,9 +387,9 @@ parameters) with the true values:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa     sigma     gamma      rho    sigma.e  intercept</span></span>
-<span><span class="co">#&gt; True     5.000000 10.000000 0.1000000 1.000000 0.01000000 0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 4.677085  9.123076 0.1061707 1.191519 0.01005917 0.01271066</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa     sigma    gamma      rho    sigma.e  intercept</span></span>
+<span><span class="co">#&gt; True     5.000000 10.000000 0.100000 1.000000 0.01000000 0.00000000</span></span>
+<span><span class="co">#&gt; Estimate 4.707337  8.846552 0.099092 1.186784 0.01078479 0.01238618</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -445,7 +444,7 @@ discretization to plot the marginal spatial covariance for, and an input
 discretization to show the marginal temporal covariance for. It further
 takes an input <code>t.shift</code> which can be used to plot
 covariances
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo>,</mo><msub><mi>t</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo>,</mo><msub><mi>t</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(u(\cdot, t_i), u(\cdot, t_j))</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo>,</mo><msub><mi>t</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo>,</mo><msub><mi>t</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">C(u(\cdot, t_i), u(\cdot, t_j))</annotation></semantics></math>,
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>i</mi></msub><annotation encoding="application/x-tex">t_i</annotation></semantics></math>
 is <code>t[t.ind]</code> and
@@ -486,9 +485,9 @@ is <code>t[t.ind + t.shift]</code>. For example</p>
 <span><span class="co">#&gt; (`geom_raster()`).</span></span></code></pre></div>
 <p><img src="spacetime_files/figure-html/unnamed-chunk-23-1.png" class="r-plt" alt="" width="700"></p>
 <p>We now generate the observations as
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>i</mi></msub><mo>=</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">Y_i = u(s_i) + \varepsilon_i</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>i</mi></msub><mo>=</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">Y_i = u(s_i) + \varepsilon_i</annotation></semantics></math>,
 where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mi>i</mi></msub><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>e</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\varepsilon_i \sim N(0,\sigma_e^2)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mi>i</mi></msub><mo>∼</mo><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>e</mi><mn>2</mn></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\varepsilon_i \sim N(0,\sigma_e^2)</annotation></semantics></math>
 is Gaussian measurement noise.</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n.obs</span> <span class="op">&lt;-</span> <span class="fl">500</span></span>
@@ -543,7 +542,7 @@ fitting:</p>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;               Estimate Std.error z-value</span></span>
 <span><span class="co">#&gt; kappa          9.71690   0.74406  13.059</span></span>
-<span><span class="co">#&gt; sigma         11.91772   6.46225   1.844</span></span>
+<span><span class="co">#&gt; sigma         11.91772   6.46226   1.844</span></span>
 <span><span class="co">#&gt; gamma          0.06230   0.03416   1.824</span></span>
 <span><span class="co">#&gt; rho            0.07952   0.60347   0.132</span></span>
 <span><span class="co">#&gt; rho2           0.12814   0.76728   0.167</span></span>
@@ -560,8 +559,8 @@ fitting:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 81</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  2.62917 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 5.81546 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  2.67206 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 5.57193 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -576,9 +575,9 @@ fitting:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;           kappa    sigma      gamma      rho_1     rho_2    sigma.e  intercept</span></span>
-<span><span class="co">#&gt; True     9.9000 29.00000 0.11000000 0.20000000 0.3000000 0.01000000 0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 9.7169 11.91772 0.06229692 0.07952026 0.1281441 0.04683419 0.03702228</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa    sigma      gamma      rho_1    rho_2    sigma.e  intercept</span></span>
+<span><span class="co">#&gt; True     9.900000 29.00000 0.11000000 0.20000000 0.300000 0.01000000 0.00000000</span></span>
+<span><span class="co">#&gt; Estimate 9.716897 11.91772 0.06229696 0.07952028 0.128144 0.04683421 0.03702207</span></span></code></pre></div>
 <p>Let us now use our <code>inlabru</code> implementation. We first
 define the model.</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
@@ -615,12 +614,12 @@ parameters) with the true values:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              kappa        sigma        gamma        rho_1        rho_2</span></span>
-<span><span class="co">#&gt; True     9.9000000 2.900000e+01 1.100000e-01  0.200000000  0.300000000</span></span>
-<span><span class="co">#&gt; Estimate 0.3009676 3.848025e-05 8.723392e-09 -0.003454795 -0.004320446</span></span>
+<span><span class="co">#&gt;              kappa        sigma        gamma        rho_1         rho_2</span></span>
+<span><span class="co">#&gt; True     9.9000000 2.900000e+01 1.100000e-01 2.000000e-01  0.3000000000</span></span>
+<span><span class="co">#&gt; Estimate 0.2981365 3.929495e-05 9.094568e-09 7.349718e-06 -0.0006288078</span></span>
 <span><span class="co">#&gt;               sigma.e intercept</span></span>
 <span><span class="co">#&gt; True     0.0100000000 0.0000000</span></span>
-<span><span class="co">#&gt; Estimate 0.0005200932 0.4928725</span></span></code></pre></div>
+<span><span class="co">#&gt; Estimate 0.0005198931 0.4931451</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -665,9 +664,9 @@ convergence of the optimization.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa     sigma     gamma     rho   sigma.e  intercept</span></span>
-<span><span class="co">#&gt; True     9.900000 29.000000 0.1100000 1.00000 0.0100000 0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 4.703064  9.066892 0.1076067 1.03032 0.0139923 0.01228339</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa     sigma     gamma      rho    sigma.e intercept</span></span>
+<span><span class="co">#&gt; True     9.900000 29.000000 0.1100000 1.000000 0.01000000 0.0000000</span></span>
+<span><span class="co">#&gt; Estimate 4.703064  9.066892 0.1076068 1.030319 0.01399226 0.0122834</span></span></code></pre></div>
 <p>Now, the <code>inlabru</code> implementation:</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">### Fit with bounded_rho = FALSE</span></span>
@@ -700,15 +699,15 @@ convergence of the optimization.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results_unbounded</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa     sigma      gamma      rho     sigma.e  intercept</span></span>
-<span><span class="co">#&gt; True     9.900000 29.000000 0.11000000 1.000000 0.010000000 0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 5.026244  9.082655 0.08955354 1.418052 0.007723455 0.01239866</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa     sigma     gamma      rho     sigma.e  intercept</span></span>
+<span><span class="co">#&gt; True     9.900000 29.000000 0.1100000 1.000000 0.010000000 0.00000000</span></span>
+<span><span class="co">#&gt; Estimate 4.733179  9.147476 0.1068021 1.165041 0.008194457 0.01250031</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-lindgren24" class="csl-entry">
 Lindgren, Finn, Haakon Bakka, David Bolin, Elias Krainski, and Håvard
 Rue. 2024. <span>“A Diffusion-Based Spatio-Temporal Extension of

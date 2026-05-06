@@ -77,9 +77,9 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2019-08-07. Last
-modified: 2026-04-08.</h4>
+modified: 2026-05-06.</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rspde_base.Rmd" class="external-link"><code>vignettes/rspde_base.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel/vignettes/rspde_base.Rmd" class="external-link"><code>vignettes/rspde_base.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_base.Rmd</code></div>
     </div>
 
@@ -91,7 +91,7 @@ modified: 2026-04-08.</h4>
 <p>Several popular Gaussian random field models can be represented as
 solutions to stochastic partial differential equations (SPDEs) of the
 form
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>L</mi><mi>β</mi></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mi>u</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>𝒲</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>L</mi><mi>β</mi></msup><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>𝒲</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
 L^{\beta} (\tau u) = \mathcal{W}.
 </annotation></semantics></math></p>
 <p>Here
@@ -116,20 +116,20 @@ can be approximated by a Gaussian Markov random field (GMRF)
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">u</mi><annotation encoding="application/x-tex">\boldsymbol{\mathrm{u}}</annotation></semantics></math>
 via a finite element method (FEM) for the SPDE. Specifically, the
 approximation can be written as
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>h</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>u</mi><mi>i</mi></msub><msub><mi>φ</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>h</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>u</mi><mi>i</mi></msub><msub><mi>φ</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 u_h(s) = \sum_{i=1}^n u_i \varphi_i(s).
 </annotation></semantics></math> Here
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><msub><mi>φ</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{\varphi_i\}</annotation></semantics></math>
 are piecewise linear basis functions defined by some triangulation of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math>
 and the vector of weights
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">u</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>u</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>u</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>T</mi></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{u}} = (u_1,\ldots,u_n)^T</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">u</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>u</mi><mi>n</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mi>T</mi></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{u}} = (u_1,\ldots,u_n)^T</annotation></semantics></math>
 is normally distributed,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi mathvariant="normal">u</mi><mo>,</mo><msup><mover><mi mathvariant="normal">Q</mi><mo accent="true">̃</mo></mover><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N(\boldsymbol{\mathrm{u}},\tilde{\boldsymbol{\mathrm{Q}}}^{-1})</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">u</mi><mo>,</mo><msup><mover><mi mathvariant="normal">Q</mi><mo accent="true">̃</mo></mover><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">N(\boldsymbol{\mathrm{u}},\tilde{\boldsymbol{\mathrm{Q}}}^{-1})</annotation></semantics></math>,
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi mathvariant="normal">Q</mi><mo accent="true">̃</mo></mover><annotation encoding="application/x-tex">\tilde{\boldsymbol{\mathrm{Q}}}</annotation></semantics></math>
-is sparse. See <a href="https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x" class="external-link"><span class="citation">Lindgren, Rue, and Lindström (2011)</span></a> for
-further details.</p>
+is sparse. See <a href="https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x" class="external-link"><span class="citation">Lindgren et al. (2011)</span></a> for further
+details.</p>
 <p>In this vignette we focus on the operator-based rational
 approximation. This approach, introduced by <a href="https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537" class="external-link"><span class="citation">Bolin and Kirchner (2020)</span></a>, results in an
 approximation of the original SPDE which is of the form
@@ -166,7 +166,7 @@ of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
 on the basis expansion form above. The difference to the non-fractional
 case is that the vector of stochastic weights now is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">u</mi><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn mathvariant="normal">0</mn><mo>,</mo><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><msup><mi mathvariant="normal">Q</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><msubsup><mi mathvariant="normal">P</mi><mi>r</mi><mi>T</mi></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{u}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">u</mi><mo>∼</mo><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn mathvariant="normal">0</mn><mo>,</mo><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><msup><mi mathvariant="normal">Q</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><msubsup><mi mathvariant="normal">P</mi><mi>r</mi><mi>T</mi></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{u}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T)</annotation></semantics></math>
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Q</mi><annotation encoding="application/x-tex">\boldsymbol{\mathrm{Q}}</annotation></semantics></math>
 and
@@ -176,7 +176,7 @@ are sparse matrices. Alternatively,
 can be represented as
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">u</mi><mo>=</mo><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><mi mathvariant="normal">x</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{u}} = \boldsymbol{\mathrm{P}}_r \boldsymbol{\mathrm{x}}</annotation></semantics></math>
 where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">x</mi><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn mathvariant="normal">0</mn><mo>,</mo><msup><mi mathvariant="normal">Q</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{x}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{Q}}^{-1})</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">x</mi><mo>∼</mo><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn mathvariant="normal">0</mn><mo>,</mo><msup><mi mathvariant="normal">Q</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{x}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{Q}}^{-1})</annotation></semantics></math>,
 which means that the discrete approximation is a latent GMRF. This can
 be used for computationally efficient inference and simulation. See <a href="https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537" class="external-link">Bolin
 and Kirchner (2020)</a> for further details.</p>
@@ -197,11 +197,11 @@ most general function is <code><a href="../reference/fractional.operators.html">
 works for a wide class of models with a general differential operator
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>.
 For the stationary Matérn case, where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><mi>Δ</mi></mrow><annotation encoding="application/x-tex">L = \kappa^2 - \Delta</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><mi mathvariant="normal">Δ</mi></mrow><annotation encoding="application/x-tex">L = \kappa^2 - \Delta</annotation></semantics></math>,
 the function <code><a href="../reference/matern.operators.html">matern.operators()</a></code> provides a simplified model
 specification. For the generalized non-stationary Matérn model, defined
 through the SPDE
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>κ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>β</mi></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>𝒲</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>κ</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo>−</mo><mi mathvariant="normal">Δ</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>β</mi></msup><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>𝒲</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
 (\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W},
 </annotation></semantics></math> the function
 <code><a href="../reference/spde.matern.operators.html">spde.matern.operators()</a></code> can be used.</p>
@@ -229,7 +229,7 @@ constructing the rational SPDE approximation is to define the FEM mesh.
 In this section, we use the simple FEM implementation in the
 <code>rSPDE</code> package for models defined on an interval.</p>
 <p>Assume that we want to define a model on the interval
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,1]</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,1]</annotation></semantics></math>.
 We then start by defining a vector with mesh nodes
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>s</mi><mi>i</mi></msub><annotation encoding="application/x-tex">s_i</annotation></semantics></math>
 where the basis functions
@@ -243,11 +243,11 @@ the approximation of a basic Matérn model. These matrices are the mass
 matrix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">C</mi><annotation encoding="application/x-tex">\boldsymbol{\mathrm{C}}</annotation></semantics></math>,
 with elements
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mo>∫</mo><msub><mi>φ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>φ</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">C_{ij} = \int \varphi_j(s) \varphi_i(s) ds</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mo>∫</mo><msub><mi>φ</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>φ</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mi>d</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">C_{ij} = \int \varphi_j(s) \varphi_i(s) ds</annotation></semantics></math>,
 and the stiffness matrix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">G</mi><annotation encoding="application/x-tex">\boldsymbol{\mathrm{G}}</annotation></semantics></math>,
 with elements
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>G</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mo>∫</mo><mi>∇</mi><msub><mi>φ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>⋅</mo><mi>∇</mi><msub><mi>φ</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">G_{ij} = \int \nabla\varphi_j(s) \cdot \nabla\varphi_i(s) ds</annotation></semantics></math>.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>G</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mo>∫</mo><mi>∇</mi><msub><mi>φ</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>⋅</mo><mi>∇</mi><msub><mi>φ</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mi>d</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">G_{ij} = \int \nabla\varphi_j(s) \cdot \nabla\varphi_i(s) ds</annotation></semantics></math>.</p>
 <p>We can now use <code><a href="../reference/matern.operators.html">matern.operators()</a></code> to construct a
 rational SPDE approximation of degree
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">m=1</annotation></semantics></math>
@@ -270,16 +270,16 @@ set <code>type</code> to <code>"operator"</code>.</p>
 evaluating the distribution of the stochastic weights
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">u</mi><annotation encoding="application/x-tex">\boldsymbol{\mathrm{u}}</annotation></semantics></math>.
 If we want to evaluate
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>h</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">u_h(s)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>h</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u_h(s)</annotation></semantics></math>
 at some locations
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>s</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">s_1,\ldots, s_n</annotation></semantics></math>,
 we need to multiply the weights with the basis functions
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>φ</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\varphi_i(s)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>φ</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\varphi_i(s)</annotation></semantics></math>
 evaluated at the locations. For this, we can construct the observation
 matrix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">A</mi><annotation encoding="application/x-tex">\boldsymbol{\mathrm{A}}</annotation></semantics></math>
 with elements
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>φ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">A_{ij} = \varphi_j(s_i)</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>φ</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">A_{ij} = \varphi_j(s_i)</annotation></semantics></math>,
 which links the FEM basis functions to the locations. This matrix can be
 constructed using the function <code><a href="../reference/rSPDE.A1d.html">rSPDE.A1d()</a></code>.</p>
 <p>To evaluate the accuracy of the approximation, let us compute the
@@ -291,7 +291,7 @@ covariance function, which is the folded Matérn covariance, see Theorem
 between Gaussian fields and Gaussian Markov random fields: the
 stochastic partial differential equation approach</a>. The covariances
 can be calculated as
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">A</mi><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><msup><mi mathvariant="normal">Q</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><msubsup><mi mathvariant="normal">P</mi><mi>r</mi><mi>T</mi></msubsup><mi mathvariant="normal">v</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">A</mi><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><msup><mi mathvariant="normal">Q</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><msubsup><mi mathvariant="normal">P</mi><mi>r</mi><mi>T</mi></msubsup><mi mathvariant="normal">v</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \boldsymbol{\mathrm{A}} \boldsymbol{\mathrm{P}}_r \boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T\boldsymbol{\mathrm{v}}.
 </annotation></semantics></math> Here
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">A</mi><annotation encoding="application/x-tex">\boldsymbol{\mathrm{A}}</annotation></semantics></math>
@@ -450,7 +450,7 @@ and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">m=4</annotation></semantics></math>.
 The reason for this is not that the approximation is bad, but that the
 numerical accuracy of the product
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><msup><mi mathvariant="normal">Q</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><mi>v</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><msup><mi mathvariant="normal">Q</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><mi>v</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv</annotation></semantics></math>
 is low due to the large condition numbers of the matrices.</p>
 <p>It is important to note that the alternative covariance-based
 rational approximation is more numerically stable. The main reason for
@@ -465,14 +465,14 @@ package</a> vignette for further details.</p>
 the package contains functions for performing operations such as
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><mi>v</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{P}}_rv</annotation></semantics></math>
 or
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi mathvariant="normal">P</mi><mi>r</mi><mrow><mo>−</mo><mn>1</mn></mrow></msubsup><mi>v</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{P}}_r^{-1}v</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi mathvariant="normal">P</mi><mi>r</mi><mrow><mi>−</mi><mn>1</mn></mrow></msubsup><mi>v</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{P}}_r^{-1}v</annotation></semantics></math>
 that takes advantage of the structure of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><annotation encoding="application/x-tex">\boldsymbol{\mathrm{P}}_r</annotation></semantics></math>
 to avoid numerical instabilities. A complete list of these function can
 be seen by typing <code><a href="../reference/operator.operations.html">?operator.operations</a></code>. One of these
 functions is <code><a href="../reference/operator.operations.html">Sigma.mult()</a></code>, which performs the
 multiplication
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><msup><mi mathvariant="normal">Q</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><mi>v</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><msup><mi mathvariant="normal">Q</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><msub><mi mathvariant="normal">P</mi><mi>r</mi></msub><mi>v</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv</annotation></semantics></math>
 in a more numerically stable way. Let us use this function to compute
 the errors of the approximations again to see that we indeed get better
 approximations as
@@ -499,11 +499,11 @@ in <code><a href="../reference/cov_function_mesh.html">cov_function_mesh()</a></
 <h2 id="a-non-stationary-model">A non-stationary model<a class="anchor" aria-label="anchor" href="#a-non-stationary-model"></a>
 </h2>
 <p>Let us now examine a non-stationary model
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>κ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>β</mi></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>𝒲</mi></mrow><annotation encoding="application/x-tex">(\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>κ</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo>−</mo><mi mathvariant="normal">Δ</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>β</mi></msup><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>𝒲</mi></mrow><annotation encoding="application/x-tex">(\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W}</annotation></semantics></math>
 with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>10</mn><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mn>2</mn><msup><mi>s</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\kappa(s) = 10(1+2s^2)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>10</mn><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mn>2</mn><msup><mi>s</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\kappa(s) = 10(1+2s^2)</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0.1</mn><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mn>0.7</mn><msup><mi>s</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau(s) = 0.1(1 - 0.7s^2)</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0.1</mn><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mn>0.7</mn><msup><mi>s</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\tau(s) = 0.1(1 - 0.7s^2)</annotation></semantics></math>.
 We can then use <code><a href="../reference/spde.matern.operators.html">spde.matern.operators()</a></code> to create the
 rational approximation with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">m=1</annotation></semantics></math>
@@ -521,7 +521,7 @@ as follows.</p>
 <span>  parameterization <span class="op">=</span> <span class="st">"matern"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Let us compute the covariance function
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo>,</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(s,s_i)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo>,</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">C(s,s_i)</annotation></semantics></math>
 of the non-stationary model for the locations
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mn>1</mn></msub><mo>=</mo><mn>0.1</mn><mo>,</mo><msub><mi>s</mi><mn>2</mn></msub><mo>=</mo><mn>0.5</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">s_1=0.1, s_2 = 0.5,</annotation></semantics></math>
 and
@@ -541,9 +541,9 @@ and
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">opar</span><span class="op">)</span></span></code></pre></div>
 <p><img src="rspde_base_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="700" style="display: block; margin: auto;"></p>
 <p>We see that this choice of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\kappa(s)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\kappa(s)</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau(s)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\tau(s)</annotation></semantics></math>
 results in a model with longer range for small values of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
 and smaller variance in the middle of the domain. We can also apply the
@@ -556,9 +556,9 @@ as well as a scaling factor
 which is a lower bound for the smallest eigenvalue of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>.
 In our case we have
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mi>κ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>−</mo><mi>Δ</mi></mrow><annotation encoding="application/x-tex">L = \kappa(s)^2 - \Delta</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mi>κ</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo>−</mo><mi mathvariant="normal">Δ</mi></mrow><annotation encoding="application/x-tex">L = \kappa(s)^2 - \Delta</annotation></semantics></math>,
 and the eigenvalues of this operator is bounded from below by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><msub><mo>min</mo><mi>s</mi></msub><mi>κ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">c = \min_s \kappa(s)^2</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><msub><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mi>s</mi></msub><mi>κ</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">c = \min_s \kappa(s)^2</annotation></semantics></math>.
 We compute this constant and the discrete operator.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/fmesher/reference/fm_fem.html" class="external-link">fm_fem</a></span><span class="op">(</span><span class="va">s_mesh</span><span class="op">)</span></span>
@@ -590,9 +590,9 @@ previously computed covariances.</p>
 in this case, but the advantage with <code><a href="../reference/fractional.operators.html">fractional.operators()</a></code>
 is that it also can be used for other more general models such as one
 with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mi>κ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>−</mo><mi>∇</mi><mo>⋅</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi mathvariant="normal">H</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>∇</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">L = \kappa(s)^2 - \nabla \cdot (\boldsymbol{\mathrm{H}}(s) \nabla)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mi>κ</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo>−</mo><mi>∇</mi><mo>⋅</mo><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">H</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mi>∇</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">L = \kappa(s)^2 - \nabla \cdot (\boldsymbol{\mathrm{H}}(s) \nabla)</annotation></semantics></math>
 for some matrix-valued function
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">H</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{H}}(s)</annotation></semantics></math>.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">H</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\boldsymbol{\mathrm{H}}(s)</annotation></semantics></math>.</p>
 <div class="section level3">
 <h3 id="using-the-approximation">Using the approximation<a class="anchor" aria-label="anchor" href="#using-the-approximation"></a>
 </h3>
@@ -613,9 +613,9 @@ matrix.</p>
 <span><span class="va">obs.loc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">n.obs</span>, min <span class="op">=</span> <span class="fl">0</span>, max <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/fmesher/reference/fm_basis.html" class="external-link">fm_basis</a></span><span class="op">(</span><span class="va">s_mesh</span>, <span class="va">obs.loc</span><span class="op">)</span></span></code></pre></div>
 <p>We now generate the observations as
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>i</mi></msub><mo>=</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">Y_i = u(s_i) + \varepsilon_i</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>i</mi></msub><mo>=</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">Y_i = u(s_i) + \varepsilon_i</annotation></semantics></math>,
 where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mi>i</mi></msub><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>e</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\varepsilon_i \sim N(0,\sigma_e^2)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mi>i</mi></msub><mo>∼</mo><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>e</mi><mn>2</mn></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\varepsilon_i \sim N(0,\sigma_e^2)</annotation></semantics></math>
 is Gaussian measurement noise.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sigma.e</span> <span class="op">&lt;-</span> <span class="fl">0.3</span></span>
@@ -652,7 +652,7 @@ models. We then need to construct a mesh over the domain of interest and
 then compute the matrices needed to define the operator. These tasks can
 be performed, for example, using the <code>fmesher</code> package. Let
 us start by defining a mesh over
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>×</mo><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">[0,1]\times [0, 1]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo><mo>×</mo><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,1]\times [0, 1]</annotation></semantics></math>
 and compute the mass and stiffness matrices for that mesh.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://inlabru-org.github.io/fmesher/" class="external-link">fmesher</a></span><span class="op">)</span></span>
@@ -789,8 +789,8 @@ we fit the model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 61</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  1.24637 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 2.69455 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  1.28816 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 2.71825 secs</span></span></code></pre></div>
 <p>and glance:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">)</span></span>
@@ -812,7 +812,7 @@ we fit the model:</p>
 <span></span>
 <span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 1.246371 mins</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 1.288163 mins</span></span></code></pre></div>
 <p>Finally, we observe that we can use the <code><a href="../reference/rational.order.html">rational.order()</a></code>
 function, to check the order of the rational approximation of the
 <code>rSPDE</code> object, as well as to use the
@@ -863,8 +863,8 @@ speed up the computation.</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 28</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  1.20314 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 2.65175 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  1.2428 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 2.72545 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -879,12 +879,12 @@ speed up the computation.</p>
 <span></span>
 <span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 1.20315 mins</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 1.242806 mins</span></span></code></pre></div>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-asar20" class="csl-entry">
 Asar, Özgür, David Bolin, Peter Diggle, and Jonas Wallin. 2020.
 <span>“Linear Mixed Effects Models for Non-Gaussian Repeated Measurement

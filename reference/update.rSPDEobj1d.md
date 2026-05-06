@@ -106,6 +106,7 @@ same quantities listed in the output of
 ## Examples
 
 ``` r
+
 s <- seq(from = 0, to = 1, length.out = 101)
 kappa <- 20
 sigma <- 2

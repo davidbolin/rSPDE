@@ -9,7 +9,7 @@ The covariance-based approach is an efficient alternative to the
 operator-based rational SPDE approach by [Bolin and Kirchner
 (2020)](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537)
 which works when one has SPDE driven by Gaussian white noise. We refer
-the reader to [Bolin, Simas, and Xiong
+the reader to [Bolin et al.
 (2023)](https://doi.org/10.1080/10618600.2023.2231051) for the
 theoretical details of the approach.
 
@@ -27,102 +27,127 @@ respectively.
 ## Covariance-based rational SPDE approach
 
 Let us first present the idea behind the approach. In the SPDE approach,
-introduced in [Lindgren, Rue, and Lindström
+introduced in [Lindgren et al.
 (2011)](https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x)
-we model $u$ as the solution of the following SPDE:
-$$L^{\alpha/2}(\tau u) = W,$$ where $L = - \Delta + \kappa^{2}I$ and $W$
-is the standard Gaussian white noise. Here, $\alpha$, $\kappa$ and
-$\tau$ are the parameters of the model. In the standard SPDE approach,
-$\alpha = \nu + d/2$ needs to be fixed to an integer value, where
-$\alpha = 2$ is the usual default value. In the rational SPDE approach
-we can use any value of $\nu > 0$ and also estimate it from data.
+we model $`u`$ as the solution of the following SPDE:
+``` math
+L^{\alpha/2}(\tau u) = W,
+```
+where $`L  = -\Delta +\kappa^2 I`$ and $`W`$ is the standard Gaussian
+white noise. Here, $`\alpha`$, $`\kappa`$ and $`\tau`$ are the
+parameters of the model. In the standard SPDE approach,
+$`\alpha = \nu + d/2`$ needs to be fixed to an integer value, where
+$`\alpha = 2`$ is the usual default value. In the rational SPDE approach
+we can use any value of $`\nu>0`$ and also estimate it from data.
 
 The main idea of the covariance-based rational SPDE approach is to
 perform the rational approximation of the covariance operator
-$L^{- \alpha}$. To this end, we begin by obtaining an approximation of
-the random field $u$, which is the solution of the SPDE above, by using
-the finite element method (FEM):
-$$u_{h}\left( \mathbf{s}_{i} \right) = \sum\limits_{j = 1}^{n_{h}}{\widehat{u}}_{j}\varphi_{j}\left( \mathbf{s}_{i} \right),$$
-where $\{{\widehat{u}}_{j}\}_{j = 1}^{n_{h}}$ are stochastic weights and
-$\{\varphi_{j}\left( \mathbf{s}_{i} \right)\}_{j = 1}^{n_{h}}$ are fixed
-piecewise linear and continuous basis functions obtained from a
-triangulation of the spatial domain. We then obtain a FEM approximation
-of the operator $L$, which is given by $L_{h}$, and the covariance
-operator of $u_{h}$ is given by $L_{h}^{- \alpha}$.
+$`L^{-\alpha}`$. To this end, we begin by obtaining an approximation of
+the random field $`u`$, which is the solution of the SPDE above, by
+using the finite element method (FEM):
+``` math
+u_h(\mathbf{s}_i)=\sum_{j=1}^{n_h} \hat{u}_j \varphi_j(\mathbf{s}_i),
+```
+where $`\{\hat{u}_j\}_{j = 1}^{n_h}`$ are stochastic weights and
+$`\{\varphi_j(\mathbf{s}_i)\}_{j = 1}^{n_h}`$ are fixed piecewise linear
+and continuous basis functions obtained from a triangulation of the
+spatial domain. We then obtain a FEM approximation of the operator
+$`L`$, which is given by $`L_h`$, and the covariance operator of $`u_h`$
+is given by $`L_h^{-\alpha}`$.
 
-Now, by using the rational approximation on $L_{h}$, we can approximate
-covariance operator $L_{h}^{- \alpha}$ as
-$$L_{h,m}^{- \alpha} = L_{h}^{- \lfloor\alpha\rfloor}p\left( L_{h}^{- 1} \right)q\left( L_{h}^{- 1} \right)^{- 1},$$
-where $\lfloor\alpha\rfloor$ denotes the integer part of $\alpha$, $m$
-is the order of rational approximation,
-$p\left( L_{h}^{- 1} \right) = \sum_{i = 0}^{m}a_{i}L_{h}^{m - i}$ and
-$q\left( L_{h}^{- 1} \right) = \sum_{j = 0}^{m}b_{j}L_{h}^{m - i}$, with
-$\{ a_{i}\}_{i = 0}^{m}$ and $\{ b_{j}\}_{j = 0}^{m}$ being known
-coefficients obtained from a rational approximation of the function
-$x^{\alpha - \lfloor\alpha\rfloor}$.
+Now, by using the rational approximation on $`L_h`$, we can approximate
+covariance operator $`L_h^{-\alpha}`$ as
+``` math
+L_{h,m}^{-\alpha} = L_h^{-\lfloor\alpha\rfloor} p(L_h^{-1})q(L_h^{-1})^{-1},
+```
+where $`\lfloor\alpha\rfloor`$ denotes the integer part of $`\alpha`$,
+$`m`$ is the order of rational approximation,
+$`p(L_h^{-1}) = \sum_{i=0}^m a_i L_h^{m-i}`$ and
+$`q(L_h^{-1}) = \sum_{j=0}^m b_j L_h^{m-i}`$, with $`\{a_i\}_{i = 0}^m`$
+and $`\{b_j\}_{j = 0}^m`$ being known coefficients obtained from a
+rational approximation of the function
+$`x^{\alpha - \lfloor\alpha\rfloor}`$.
 
 The next step is to perform a partial fraction decomposition of the
-rational function
-$p\left( L_{h}^{- 1} \right)q\left( L_{h}^{- 1} \right)^{- 1}$, which
-yields the representation
-$$L_{h,m}^{- \alpha} = L_{h}^{- \lfloor\alpha\rfloor}\left( \sum\limits_{i = 1}^{m}r_{i}\left( L_{h} - p_{i}I \right)^{- 1} + k \right).$$
+rational function $`p(L_h^{-1})q(L_h^{-1})^{-1}`$, which yields the
+representation
+``` math
+L_{h,m}^{-\alpha} =L_h^{-\lfloor\alpha\rfloor} \left(\sum_{i=1}^{m}  r_i  (L_h-p_i I)^{-1} +k\right).
+```
 Based on the above operator equation, we can write the covariance matrix
-of the stochastic weights $\widehat{\textbf{𝐮}}$, where
-$\widehat{\textbf{𝐮}} = \left\lbrack {\widehat{u}}_{1},...,{\widehat{u}}_{n_{h}} \right\rbrack^{\top}$,
-as
-$$\mathbf{\Sigma}_{\widehat{\textbf{𝐮}}} = \left( \textbf{𝐋}^{- 1}\textbf{𝐂} \right)^{\lfloor\alpha\rfloor}\sum\limits_{i = 1}^{m}r_{i}\left( \textbf{𝐋} - p_{i}\textbf{𝐂} \right)^{- 1} + \textbf{𝐊},$$
-where $\textbf{𝐂} = \{ C_{ij}\}_{i,j = 1}^{n_{h}}$,
-$C_{ij} = \left( \varphi_{i},\varphi_{j} \right)_{L_{2}{(\mathcal{D})}}$,
-is the mass matrix, $\textbf{𝐋} = \kappa^{2}\textbf{𝐂} + \textbf{𝐆}$,
-$\textbf{𝐆} = \{ G_{ij}\}_{i,j = 1}^{n_{h}}$,
-$G_{ij} = \left( \nabla\varphi_{i},\nabla\varphi_{j} \right)_{L_{2}{(\mathcal{D})}}$,
-is the stiffness matrix, and $$\textbf{𝐊} = \left\{ \begin{array}{lcl}
-{k\textbf{𝐂}} & & {\lfloor\alpha\rfloor = 0} \\
-{k\textbf{𝐋}^{- 1}\left( \textbf{𝐂}\textbf{𝐋}^{- 1} \right)^{\lfloor\alpha\rfloor - 1}} & & {\lfloor\alpha\rfloor \geq 1} \\
- & & 
-\end{array} \right..$$
+of the stochastic weights $`\hat{\textbf{u}}`$, where
+$`\hat{\textbf{u}}=[\hat{u}_1,...,\hat{u}_{n_h}]^\top`$, as
+``` math
+\mathbf{\Sigma}_{\hat{\textbf{u}}} = (\textbf{L}^{-1}\textbf{C})^{\lfloor\alpha\rfloor} \sum_{i=1}^{m}r_i(\textbf{L}-p_i\textbf{C})^{-1}+\textbf{K}, 
+```
+where $`\textbf{C} = \{C_{ij}\}_{i,j=1}^{n_h}`$,
+$`C_{ij} = (\varphi_i,\varphi_j)_{L_2(\mathcal{D})}`$, is the mass
+matrix, $`\textbf{L} = \kappa^2\textbf{C}+\textbf{G}`$,
+$`\textbf{G} = \{G_{ij}\}_{i,j=1}^{n_h}`$,
+$`G_{ij}=(\nabla\varphi_i,\nabla\varphi_j)_{L_2(\mathcal{D})}`$, is the
+stiffness matrix, and
+``` math
+\textbf{K}=\left\{
+    \begin{array}{lcl}
+        k\textbf{C}      &      & {\lfloor\alpha\rfloor=0}\\
+        k\textbf{L}^{-1}(\textbf{C}\textbf{L}^{-1})^{\lfloor\alpha\rfloor-1}    &      & {\lfloor\alpha\rfloor\geq 1}\\
+    \end{array} \right. .
+    
+```
 
-The above representation shows that we can express
-$\widehat{\textbf{𝐮}}$ as
-$$\widehat{\textbf{𝐮}} = \sum\limits_{i = 1}^{m + 1}\textbf{𝐱}_{i},$$
-where $\textbf{𝐱}_{i} = \left( x_{i,1},\ldots,x_{i,n_{h}} \right)$,
-$$\textbf{𝐱}_{i} \sim N\left( \textbf{𝟎},\textbf{𝐐}_{i}^{- 1} \right),$$
-and $\textbf{𝐐}_{i}$ is the precision matrix of $\textbf{𝐱}_{i}$, which
-is given by $$\textbf{𝐐}_{i} = \left\{ \begin{array}{lcl}
-{\left( \textbf{𝐋} - p_{i}\textbf{𝐂} \right)\left( \textbf{𝐂}^{- 1}\textbf{𝐋} \right)^{\lfloor\alpha\rfloor}/r_{i},} & & {i = 1,...,m} \\
-{\textbf{𝐊}^{- 1},} & & {i = m + 1} \\
- & & 
-\end{array}. \right.$$
+The above representation shows that we can express $`\hat{\textbf{u}}`$
+as
+``` math
+\hat{\textbf{u}}=\sum_{i=1}^{m+1}\textbf{x}_i,
+```
+where $`\textbf{x}_i = (x_{i,1}, \ldots, x_{i,n_h})`$,
+``` math
+\textbf{x}_i \sim N(\textbf{0},\textbf{Q}_i^{-1}),
+```
+and $`\textbf{Q}_i`$ is the precision matrix of $`\textbf{x}_i`$, which
+is given by
+``` math
+\textbf{Q}_i=\left \{
+    \begin{array}{lcl}
+        (\textbf{L}-p_i\textbf{C})(\textbf{C}^{-1}\textbf{L})^{\lfloor\alpha\rfloor}/r_i,      &      & {i = 1,...,m}\\
+         \textbf{K}^{-1},   &      & {i = m+1}\\
+    \end{array}. \right.
+    
+```
 
 We, then, replace the Matérn latent field by the latent vector given
 above, which has precision matrix given by
-$$\textbf{𝐐} = \begin{bmatrix}
-\textbf{𝐐}_{1} & & \\
- & \ddots & \\
- & & \textbf{𝐐}_{m + 1}
-\end{bmatrix}.$$ We thus have a Markov approximation which can be used
-for computationally efficient inference. For example, assume that we
-observe
-$$y_{j} = u_{h}\left( \mathbf{s}_{j} \right) + \varepsilon_{j},\quad j = 1,\ldots,N,$$
-where $\varepsilon_{j} \sim N\left( 0,\sigma_{\varepsilon}^{2} \right)$
-are iid measurement noise. Then, we have that
-$$y_{j} = u_{h}\left( \mathbf{s}_{j} \right) + \varepsilon_{j} = \sum\limits_{l = 1}^{n_{h}}{\widehat{u}}_{l}\varphi_{l}\left( \mathbf{s}_{j} \right) + \varepsilon_{j} = \sum\limits_{i = 1}^{m + 1}\sum\limits_{l = 1}^{n_{h}}x_{i,l}\varphi_{l}\left( \mathbf{s}_{j} \right) + \varepsilon_{j}.$$
+``` math
+\textbf{Q}=\begin{bmatrix}\textbf{Q}_1& &\\&\ddots&\\& &\textbf{Q}_{m+1}\end{bmatrix}.
+```
+We thus have a Markov approximation which can be used for
+computationally efficient inference. For example, assume that we observe
+``` math
+y_j = u_h(\mathbf{s}_j) + \varepsilon_j,\quad j=1,\ldots, N,
+```
+where $`\varepsilon_j\sim N(0,\sigma_\varepsilon^2)`$ are iid
+measurement noise. Then, we have that
+``` math
+y_j = u_h(\mathbf{s}_j) + \varepsilon_j = \sum_{l=1}^{n_h} \hat{u}_l \varphi_l(\mathbf{s}_j) + \varepsilon_j = \sum_{i=1}^{m+1} \sum_{l=1}^{n_h} x_{i,l} \varphi_l(\mathbf{s}_j) + \varepsilon_j.
+```
 This can be written in a matrix form as
-$$\textbf{𝐲} = \overline{\textbf{𝐀}}\textbf{𝐗} + {\mathbf{ε}},$$ where
-$\textbf{𝐲} = \left\lbrack y_{1},\ldots,y_{N} \right\rbrack^{\top},\textbf{𝐗} = \left\lbrack \textbf{𝐱}_{1}^{\top},\ldots,\textbf{𝐱}_{m + 1}^{\top} \right\rbrack^{\top}$,
-${\mathbf{ε}} = \left\lbrack \varepsilon_{1},\ldots,\varepsilon_{N} \right\rbrack^{\top}$,
-$$\overline{\textbf{𝐀}} = \begin{bmatrix}
-\textbf{𝐀} & \cdots & \textbf{𝐀}
-\end{bmatrix}_{n \times n_{h}{(m + 1)}},$$ and
-$$\textbf{𝐀} = \begin{bmatrix}
-{\varphi_{1}\left( s_{1} \right)} & \cdots & {\varphi_{n_{h}}\left( s_{1} \right)} \\
-\vdots & \vdots & \vdots \\
-{\varphi_{1}\left( s_{n} \right)} & \cdots & {\varphi_{n_{h}}\left( s_{n} \right)}
-\end{bmatrix}.$$ We then arrive at the following hierarchical model:
-$$\begin{aligned}
-{\textbf{𝐲} \mid \textbf{𝐗}} & {\sim N\left( 0,\sigma_{\varepsilon}\textbf{𝐈} \right)} \\
-\textbf{𝐗} & {\sim N\left( 0,\textbf{𝐐}^{- 1} \right)}
-\end{aligned}.$$
+``` math
+\textbf{y} = \overline{\textbf{A}} \textbf{X} + \boldsymbol{\varepsilon},
+```
+where
+$`\textbf{y} = [y_1,\ldots,y_N]^\top, \textbf{X} = [\textbf{x}_1^\top,\ldots,\textbf{x}_{m+1}^\top]^\top`$,
+$`\boldsymbol{\varepsilon} = [\varepsilon_1,\ldots,\varepsilon_N]^\top`$,
+``` math
+\overline{\textbf{A}}=\begin{bmatrix}\textbf{A}&\cdots&\textbf{A}\end{bmatrix}_{n\times n_h(m+1)},
+```
+and
+``` math
+\textbf{A}=\begin{bmatrix}\varphi_1(s_1)&\cdots&\varphi_{n_h}(s_1)\\\vdots&\vdots&\vdots\\\varphi_1(s_n)&\cdots&\varphi_{n_h}(s_n)\end{bmatrix}.
+```
+We then arrive at the following hierarchical model:
+``` math
+\begin{align} \textbf{y}\mid \textbf{X} &\sim N(0,\sigma_\varepsilon\textbf{I})\\ \textbf{X}&\sim N(0,\textbf{Q}^{-1}) \end{align}.
+```
 
 With these elements, we can, for example, use
 [`R-INLA`](https://www.r-inla.org) to compute the posterior distribution
@@ -153,20 +178,22 @@ vignette.
 We begin by loading the `rSPDE` package:
 
 ``` r
+
 library(rSPDE)
 ```
 
-Assume that we want to define a model on the interval
-$\lbrack 0,1\rbrack$. We then start by defining a vector with mesh nodes
-$s_{i}$ where the basis functions $\varphi_{i}$ are centered.
+Assume that we want to define a model on the interval $`[0,1]`$. We then
+start by defining a vector with mesh nodes $`s_i`$ where the basis
+functions $`\varphi_i`$ are centered.
 
 ``` r
+
 s <- seq(from = 0, to = 1, length.out = 101)
 ```
 
 We can now use
 [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md)
-to construct a rational SPDE approximation of order $m = 2$ for a
+to construct a rational SPDE approximation of order $`m=2`$ for a
 Gaussian random field with a Matérn covariance function on the interval.
 We also refer the reader to the [Operator-based rational
 approximation](https://davidbolin.github.io/rSPDE/articles/rspde_base.md)
@@ -174,6 +201,7 @@ for a similar comparison made for the operator-based rational
 approximation.
 
 ``` r
+
 kappa <- 20
 sigma <- 2
 nu <- 0.8
@@ -184,40 +212,42 @@ op_cov <- matern.operators(loc_mesh = s, nu = nu,
 ```
 
 The object `op_cov` contains the matrices needed for evaluating the
-distribution of the stochastic weights $u$. If we want to evaluate
-$u_{h}(s)$ at some locations $s_{1},\ldots,s_{n}$, we need to multiply
-the weights with the basis functions $\varphi_{i}(s)$ evaluated at the
-locations. For this, we can construct the observation matrix $A$, with
-elements $A_{ij} = \varphi_{j}\left( s_{i} \right)$, which links the FEM
-basis functions to the locations. This matrix can be constructed using
-the function
+distribution of the stochastic weights $`\boldsymbol{\mathrm{u}}`$. If
+we want to evaluate $`u_h(s)`$ at some locations $`s_1,\ldots, s_n`$, we
+need to multiply the weights with the basis functions $`\varphi_i(s)`$
+evaluated at the locations. For this, we can construct the observation
+matrix $`\boldsymbol{\mathrm{A}}`$, with elements
+$`A_{ij} = \varphi_j(s_i)`$, which links the FEM basis functions to the
+locations. This matrix can be constructed using the function
 [`fm_basis()`](https://inlabru-org.github.io/fmesher/reference/fm_basis.html)
 from the `fmesher` package. However, as observed in the introduction of
-this vignette, we have decomposed the stochastic weights $u$ into a
-vector of latent variables. Thus, the $A$ matrix for the
-covariance-based rational approximation, which we will denote by
-$\overline{A}$, is actually given by the $m + 1$-fold horizontal
-concatenation of these $A$ matrices, where $m$ is the order of the
-rational approximation.
+this vignette, we have decomposed the stochastic weights
+$`\boldsymbol{\mathrm{u}}`$ into a vector of latent variables. Thus, the
+$`A`$ matrix for the covariance-based rational approximation, which we
+will denote by $`\overline{A}`$, is actually given by the $`m+1`$-fold
+horizontal concatenation of these $`A`$ matrices, where $`m`$ is the
+order of the rational approximation.
 
 To evaluate the accuracy of the approximation, let us compute the
-covariance function between the process at $s = 0.5$ and all other
+covariance function between the process at $`s=0.5`$ and all other
 locations in `s` and compare with the true Matérn covariance function.
 The covariances can be calculated by using the
 [`cov_function_mesh()`](https://davidbolin.github.io/rSPDE/reference/cov_function_mesh.md)
 method.
 
 ``` r
+
 c_cov.approx <- cov_function_mesh(op_cov, 0.5)
 ```
 
 Let us now compute the true Matérn covariance function on the interval
-$(0,1)$, which is the folded Matérn, see Theorem 1 in [An explicit link
-between Gaussian fields and Gaussian Markov random fields: the
+$`(0,1)`$, which is the folded Matérn, see Theorem 1 in [An explicit
+link between Gaussian fields and Gaussian Markov random fields: the
 stochastic partial differential equation
 approach](https://www.jstor.org/stable/41262260) for further details.
 
 ``` r
+
 c.true <- folded.matern.covariance.1d(rep(0.5, length(s)), 
                                       abs(s), kappa, nu, sigma)
 ```
@@ -226,6 +256,7 @@ The covariance function and the error compared with the Matérn
 covariance are shown in the following figure.
 
 ``` r
+
 opar <- par(
   mfrow = c(1, 2), mgp = c(1.3, 0.5, 0),
   mar = c(2, 2, 0.5, 0.5) + 0.1
@@ -253,17 +284,18 @@ par(opar)
 ![](rspde_cov_files/figure-html/unnamed-chunk-6-1.png)
 
 To improve the approximation we can increase the degree of the
-polynomials, by increasing $m$, and/or increase the number of basis
+polynomials, by increasing $`m`$, and/or increase the number of basis
 functions used for the FEM approximation. Let us, for example, compute
-the approximation with $m = 4$ using the same mesh, as well as the
+the approximation with $`m=4`$ using the same mesh, as well as the
 approximation when we increase the number of basis functions and use
-$m = 2$ and $m = 4$. We will also load the `fmesher` package to use the
+$`m=2`$ and $`m=4`$. We will also load the `fmesher` package to use the
 [`fm_basis()`](https://inlabru-org.github.io/fmesher/reference/fm_basis.html)
 and
 [`fm_mesh_1d()`](https://inlabru-org.github.io/fmesher/reference/fm_mesh_1d.html)
 functions to map between the meshes.
 
 ``` r
+
 library(fmesher)
 
 op_cov2 <- matern.operators(
@@ -301,6 +333,7 @@ c_cov.approx4 <- A2 %*% cov_function_mesh(op_cov, 0.5)
 The resulting errors are shown in the following figure.
 
 ``` r
+
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 plot(s, c.true - c_cov.approx,
   type = "l", ylab = "Error", xlab = "s", col = 1,
@@ -323,13 +356,14 @@ par(opar)
 ![](rspde_cov_files/figure-html/unnamed-chunk-8-1.png)
 
 Since the error induced by the rational approximation decreases
-exponentially in $m$, there is in general rarely a need for an
-approximation with a large value of $m$. This is good because the size
-of $Q$ increases with $m$, which makes the approximation more
-computationally costly to use. To illustrate this, let us compute the
-norm of the approximation error for different $m$.
+exponentially in $`m`$, there is in general rarely a need for an
+approximation with a large value of $`m`$. This is good because the size
+of $`\boldsymbol{\mathrm{Q}}`$ increases with $`m`$, which makes the
+approximation more computationally costly to use. To illustrate this,
+let us compute the norm of the approximation error for different $`m`$.
 
 ``` r
+
 # Mapping s2 to s
 A2 <- fm_basis(mesh_s2, s)
 
@@ -348,9 +382,9 @@ print(errors)
 
     ## [1] 2.72288321 0.58558875 0.16311776 0.05787784
 
-We see that the error decreases very fast when we increase $m$ from $1$
-to $4$, without any numerical instability. This is an advantage of the
-covariance-based rational approximation when compared to the
+We see that the error decreases very fast when we increase $`m`$ from
+$`1`$ to $`4`$, without any numerical instability. This is an advantage
+of the covariance-based rational approximation when compared to the
 operator-based rational approximation. See [Operator-based rational
 approximation](https://davidbolin.github.io/rSPDE/articles/rspde_base.md)
 for details on the numerical instability of the operator-based rational
@@ -369,6 +403,7 @@ object returned by the
 function:
 
 ``` r
+
 u <- simulate(op_cov)
 ```
 
@@ -377,6 +412,7 @@ number of replicates. For instance, to generate two replicates of the
 model, we simply do:
 
 ``` r
+
 u.rep <- simulate(op_cov, nsim = 2)
 ```
 
@@ -391,6 +427,7 @@ randomly generate some observation locations and then construct the
 matrix.
 
 ``` r
+
 set.seed(1)
 s <- seq(from = 0, to = 1, length.out = 501)
 n.obs <- 200
@@ -400,13 +437,14 @@ A <- fm_basis(x = mesh_s, loc = obs.loc)
 ```
 
 We now generate the observations as
-$Y_{i} = 2 - x1 + u\left( s_{i} \right) + \varepsilon_{i}$, where
-$\varepsilon_{i} \sim N\left( 0,\sigma_{e}^{2} \right)$ is Gaussian
-measurement noise, $x1$ is a covariate giving the observation location.
-We will assume that the latent process has a Matérn covariance with
-$\kappa = 20,\sigma = 1.3$ and $\nu = 0.8$:
+$`Y_i = 2 - x1 + u(s_i) + \varepsilon_i`$, where
+$`\varepsilon_i \sim N(0,\sigma_e^2)`$ is Gaussian measurement noise,
+$`x1`$ is a covariate giving the observation location. We will assume
+that the latent process has a Matérn covariance with
+$`\kappa=20, \sigma=1.3`$ and $`\nu=0.8`$:
 
 ``` r
+
 kappa <- 20
 sigma <- 1.3
 nu <- 0.8
@@ -433,6 +471,7 @@ df_data <- data.frame(y = Y, loc = obs.loc, x1 = x1)
 Let us create a new object to fit the model:
 
 ``` r
+
 op_cov_est <- matern.operators(
   loc_mesh = s, d = 1, m = 2,
   parameterization = "matern"
@@ -444,6 +483,7 @@ Let us now fit the model. To this end we will use the
 function:
 
 ``` r
+
 fit <- rspde_lme(y~x1, model = op_cov_est,
                     data = df_data, loc = "loc")
 ```
@@ -452,6 +492,7 @@ We can get a summary of the fit with the
 [`summary()`](https://rdrr.io/r/base/summary.html) method:
 
 ``` r
+
 summary(fit)
 ```
 
@@ -488,11 +529,12 @@ summary(fit)
     ## Number of function calls by 'optim' = 52
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  11.59585 secs
+    ## Time used to:     fit the model =  11.23909 secs
 
 Let us compare the parameters of the latent model:
 
 ``` r
+
 print(data.frame(
   nu = c(nu, fit$coeff$random_effects["nu"]),
   sigma = c(sigma, fit$coeff$random_effects["sigma"]), 
@@ -506,15 +548,17 @@ print(data.frame(
     ## Estimates 0.6224996 1.540749 0.2092506
 
 ``` r
+
 # Total time
 print(fit$fitting_time)
 ```
 
-    ## Time difference of 11.59585 secs
+    ## Time difference of 11.2391 secs
 
 Let us take a glance at the fit:
 
 ``` r
+
 glance(fit)
 ```
 
@@ -527,6 +571,7 @@ We can also speed up the optimization by setting `parallel=TRUE` (which
 uses implicitly the `optimParallel` function):
 
 ``` r
+
 fit_par <- rspde_lme(y~x1, model = op_cov_est,
                     data = df_data, loc = "loc", parallel = TRUE)
 ```
@@ -534,6 +579,7 @@ fit_par <- rspde_lme(y~x1, model = op_cov_est,
 Here is the summary:
 
 ``` r
+
 summary(fit_par)
 ```
 
@@ -571,12 +617,13 @@ summary(fit_par)
     ## Number of function calls by 'optim' = 52
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  9.296 secs 
-    ##   set up the parallelization = 2.62355 secs
+    ## Time used to:     fit the model =  9.17987 secs 
+    ##   set up the parallelization = 2.70413 secs
 
 Let us compare with the true values and compare the time:
 
 ``` r
+
 print(data.frame(
   sigma = c(sigma, fit_par$coeff$random_effects["sigma"]), 
   range = c(r, fit_par$coeff$random_effects["range"]),
@@ -590,16 +637,17 @@ print(data.frame(
     ## Estimates 1.540749 0.2092506 0.6224996
 
 ``` r
+
 # Total time (time to fit plus time to set up the parallelization)
 total_time <- fit_par$fitting_time + fit_par$time_par
 print(total_time)
 ```
 
-    ## Time difference of 11.91956 secs
+    ## Time difference of 11.88401 secs
 
 ### Kriging
 
-Finally, we compute the kriging prediction of the process $u$ at the
+Finally, we compute the kriging prediction of the process $`u`$ at the
 locations in `s` based on these observations.
 
 Let us create the `data.frame` with locations in which we want to obtain
@@ -607,6 +655,7 @@ the predictions. Observe that we also must provide the values of the
 covariates.
 
 ``` r
+
 df_pred <- data.frame(loc = s, x1 = s)
 ```
 
@@ -614,6 +663,7 @@ We can now perform kriging with the
 [`predict()`](https://rdrr.io/r/stats/predict.html) method:
 
 ``` r
+
 u.krig <- predict(fit, newdata = df_pred, loc = "loc")
 ```
 
@@ -621,6 +671,7 @@ The simulated process, the observed data, and the kriging prediction are
 shown in the following figure.
 
 ``` r
+
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 plot(obs.loc, Y,
   ylab = "u(s)", xlab = "s",
@@ -638,6 +689,7 @@ We can also use the
 function and pipe the results into a plot:
 
 ``` r
+
 library(ggplot2)
 library(dplyr)
 
@@ -661,23 +713,26 @@ We will use the `CBrSPDEobj` object (returned from the
 function) from the previous example, namely `op_cov`.
 
 ``` r
+
 set.seed(123)
 n.rep <- 20
 u.rep <- simulate(op_cov, nsim = n.rep)
 ```
 
-Now, let us generate the observed values $Y$:
+Now, let us generate the observed values $`Y`$:
 
 ``` r
+
 sigma.e <- 0.3
 Y.rep <- A %*% u.rep + sigma.e * matrix(rnorm(n.obs * n.rep), ncol = n.rep)
 ```
 
-Note that $Y$ is a matrix with 20 columns, each column containing one
+Note that $`Y`$ is a matrix with 20 columns, each column containing one
 replicate. We need to turn `y` into a vector and create an auxiliary
 vector `repl` indexing the replicates of `y`:
 
 ``` r
+
 y_vec <- as.vector(Y.rep)
 repl <- rep(1:n.rep, each = n.obs)
 
@@ -689,6 +744,7 @@ We can now fit the model in the same way as before by using the
 function:
 
 ``` r
+
 fit_repl <- rspde_lme(y_vec ~ -1, model = op_cov_est, repl = repl, 
       data = df_data_repl, loc = "loc", parallel = TRUE)
 ```
@@ -704,6 +760,7 @@ fit_repl <- rspde_lme(y_vec ~ -1, model = op_cov_est, repl = repl,
 Let us see a summary of the fit:
 
 ``` r
+
 summary(fit_repl)
 ```
 
@@ -740,12 +797,13 @@ summary(fit_repl)
     ## Number of function calls by 'optim' = 36
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  15.15199 secs 
-    ##   set up the parallelization = 2.6546 secs
+    ## Time used to:     fit the model =  14.91075 secs 
+    ##   set up the parallelization = 2.80169 secs
 
 and glance:
 
 ``` r
+
 glance(fit_repl)
 ```
 
@@ -757,6 +815,7 @@ glance(fit_repl)
 Let us compare with the true values:
 
 ``` r
+
   print(data.frame(
     sigma = c(sigma, fit_repl$coeff$random_effects["sigma"]), 
     range = c(r, fit_repl$coeff$random_effects["range"]),
@@ -770,17 +829,19 @@ Let us compare with the true values:
     ## Estimates 1.28027 0.1385527 0.7069531
 
 ``` r
+
 # Total time
 print(fit_repl$fitting_time)
 ```
 
-    ## Time difference of 15.15199 secs
+    ## Time difference of 14.91076 secs
 
 We can obtain better estimates of the Hessian by setting
 `improve_hessian` to `TRUE`, however this might make the process take
 longer:
 
 ``` r
+
 fit_repl2 <- rspde_lme(y_vec ~ -1, model = op_cov_est, repl = repl, 
       data = df_data_repl, loc = "loc", parallel = TRUE, 
       improve_hessian = TRUE)
@@ -789,6 +850,7 @@ fit_repl2 <- rspde_lme(y_vec ~ -1, model = op_cov_est, repl = repl,
 Let us get a summary:
 
 ``` r
+
 summary(fit_repl2)
 ```
 
@@ -825,9 +887,9 @@ summary(fit_repl2)
     ## Number of function calls by 'optim' = 36
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  12.39602 secs 
-    ##   compute the Hessian = 7.04486 secs 
-    ##   set up the parallelization = 2.72676 secs
+    ## Time used to:     fit the model =  12.1433 secs 
+    ##   compute the Hessian = 6.72303 secs 
+    ##   set up the parallelization = 2.71977 secs
 
 ## Spatial data and parameter estimation
 
@@ -835,26 +897,30 @@ The functions used in the previous examples also work for spatial
 models. We then need to construct a mesh over the domain of interest and
 then compute the matrices needed to define the operator. These tasks can
 be performed, for example, using the `fmesher` package. Let us start by
-defining a mesh over $\lbrack 0,1\rbrack \times \lbrack 0,1\rbrack$ and
-compute the mass and stiffness matrices for that mesh.
+defining a mesh over $`[0,1]\times [0, 1]`$ and compute the mass and
+stiffness matrices for that mesh.
 
 We consider a simple Gaussian linear model with 30 independent
-replicates of a latent spatial field $u(\mathbf{s})$, observed at the
-same $m$ locations, $\{\mathbf{s}_{1},\ldots,\mathbf{s}_{m}\}$, for each
-replicate. For each $i = 1,\ldots,m,$ we have
+replicates of a latent spatial field $`u(\mathbf{s})`$, observed at the
+same $`m`$ locations, $`\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}`$, for
+each replicate. For each $`i = 1,\ldots,m,`$ we have
 
-$$\begin{aligned}
-y_{i} & {= u_{1}\left( \mathbf{s}_{i} \right) + \varepsilon_{i},} \\
-\vdots & {= \vdots} \\
-y_{i + 29m} & {= u_{30}\left( \mathbf{s}_{i} \right) + \varepsilon_{i + 29m},}
-\end{aligned}$$
+``` math
+\begin{align} 
+y_i &= u_1(\mathbf{s}_i)+\varepsilon_i,\\
+\vdots &= \vdots\\
 
-where $\varepsilon_{1},\ldots,\varepsilon_{30m}$ are iid normally
+y_{i+29m} &= u_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
+\end{align}
+```
+
+where $`\varepsilon_1,\ldots,\varepsilon_{30m}`$ are iid normally
 distributed with mean 0 and standard deviation 0.1.
 
 Let us create the FEM mesh:
 
 ``` r
+
 n_loc <- 500
 loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
 mesh_2d <- fm_mesh_2d(
@@ -870,15 +936,16 @@ points(loc_2d_mesh[, 1], loc_2d_mesh[, 2])
 ![](rspde_cov_files/figure-html/unnamed-chunk-35-1.png)
 
 We can now use this mesh to define a rational SPDE approximation of
-order $m = 2$ for a Matérn model in the same fashion as we did above in
+order $`m=2`$ for a Matérn model in the same fashion as we did above in
 the one-dimensional case. We now simulate a latent process with standard
-deviation $\sigma = 1$ and range $0.1$. We will use $\nu = 0.5$ so that
-the model has an exponential covariance function. To this end we create
-a model object with the
+deviation $`\sigma=1`$ and range $`0.1`$. We will use $`\nu=0.5`$ so
+that the model has an exponential covariance function. To this end we
+create a model object with the
 [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md)
 function:
 
 ``` r
+
 nu <- 0.7
 sigma <- 1.3
 range <- 0.15
@@ -902,6 +969,7 @@ from the `fmesher` package. Recall that we will simulate the data with
 30 replicates.
 
 ``` r
+
 n.rep <- 30
 u <- simulate(op_cov_2d, nsim = n.rep)
 A <- fm_basis(
@@ -916,6 +984,7 @@ The first replicate of the simulated random field as well as the
 observation locations are shown in the following figure.
 
 ``` r
+
 library(viridis)
 library(ggplot2)
 proj <- fm_evaluator(mesh_2d, dims = c(70, 70))
@@ -945,6 +1014,7 @@ ggplot(df_plot) + aes(x = x, y = y, fill = field) +
 Let us now create a new object to fit the model:
 
 ``` r
+
 op_cov_2d_est <- matern.operators(
   mesh = mesh_2d,
   m = 2
@@ -957,6 +1027,7 @@ that contains the indexes of the replicates of each observation, and
 then we fit the model:
 
 ``` r
+
 y_vec <- as.vector(Y)
 repl <- rep(1:n.rep, each = n_loc)
 df_data_2d <- data.frame(y = y_vec, x_coord = loc_2d_mesh[,1],
@@ -970,6 +1041,7 @@ fit_2d <- rspde_lme(y ~ -1, model = op_cov_2d_est,
 Let us get a summary:
 
 ``` r
+
 summary(fit_2d)
 ```
 
@@ -1006,12 +1078,13 @@ summary(fit_2d)
     ## Number of function calls by 'optim' = 69
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  2.71926 mins 
-    ##   set up the parallelization = 2.62028 secs
+    ## Time used to:     fit the model =  2.77729 mins 
+    ##   set up the parallelization = 2.60471 secs
 
 and glance:
 
 ``` r
+
 glance(fit_2d)
 ```
 
@@ -1023,6 +1096,7 @@ glance(fit_2d)
 Let us compare the estimated results with the true values:
 
 ``` r
+
 print(data.frame(
   sigma = c(sigma, fit_2d$alt_par_coeff$coeff["sigma"]), 
   range = c(range, fit_2d$alt_par_coeff$coeff["range"]),
@@ -1036,22 +1110,25 @@ print(data.frame(
     ## Estimates 1.339541 0.1520373 0.5976046
 
 ``` r
+
 # Total time
 print(fit_2d$fitting_time)
 ```
 
-    ## Time difference of 2.719265 mins
+    ## Time difference of 2.77729 mins
 
 Let us now plot the prediction for replicate 3 by using the `augment`
 function. We begin by creating the `data.frame` we want to do
 prediction:
 
 ``` r
+
 df_pred <- data.frame(x = proj$lattice$loc[,1],
                         y = proj$lattice$loc[,2])
 ```
 
 ``` r
+
 augment(fit_2d, newdata = df_pred, loc = c("x","y"), which_repl = 3) %>% ggplot() +
               geom_raster(aes(x=x, y=y, fill = .fitted)) + xlim(0,1) + ylim(0,1) + 
               scale_fill_viridis()
@@ -1078,7 +1155,7 @@ of the parameter you want to fix. For stationary models, the parameters
 that can be fixed in the `model_options` list are:
 
 - `fix_sigma_e`: Fix the standard deviation of the noise parameter
-  $\sigma_{\varepsilon}$
+  $`\sigma_\varepsilon`$
 - `fix_nu`: Fix the smoothness parameter ν
 - `fix_sigma`: Fix the standard deviation parameter σ
 - `fix_range`: Fix the range parameter
@@ -1099,7 +1176,7 @@ to a local minimum. For example, to set a starting value for the range
 parameter, you would use `model_options = list(start_range = 0.15)`.
 
 - `start_sigma_e`: Starting value for the standard deviation of the
-  noise parameter $\sigma_{\varepsilon}$
+  noise parameter $`\sigma_\varepsilon`$
 - `start_nu`: Starting value for the smoothness parameter ν
 - `start_sigma`: Starting value for the standard deviation parameter σ
 - `start_range`: Starting value for the range parameter
@@ -1118,6 +1195,7 @@ deviation σ to 1, and set the starting value for the range parameter to
 0.15.
 
 ``` r
+
 # Create a new model fit with fixed ν and σ, and a starting value for range
 fit_2d_fixed <- rspde_lme(y ~ -1, model = op_cov_2d_est, 
                          data = df_data_2d, repl = repl,
@@ -1133,6 +1211,7 @@ fit_2d_fixed <- rspde_lme(y ~ -1, model = op_cov_2d_est,
 Let us get a summary of the fit:
 
 ``` r
+
 summary(fit_2d_fixed)
 ```
 
@@ -1170,8 +1249,8 @@ summary(fit_2d_fixed)
     ## Number of function calls by 'optim' = 8
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  14.90322 secs 
-    ##   set up the parallelization = 2.62835 secs
+    ## Time used to:     fit the model =  15.99932 secs 
+    ##   set up the parallelization = 2.62818 secs
 
 Notice in the summary that ν and σ are fixed at the specified values,
 and only the range parameter is estimated. When parameters are fixed,
@@ -1182,6 +1261,7 @@ Let us compare this fit with our previous fit where all parameters were
 estimated:
 
 ``` r
+
 # Compare the log-likelihoods
 logLik_full <- logLik(fit_2d)
 logLik_fixed <- logLik(fit_2d_fixed)
@@ -1192,6 +1272,7 @@ cat("Log-likelihood with all parameters estimated:", logLik_full, "\n")
     ## Log-likelihood with all parameters estimated: -5657.679
 
 ``` r
+
 cat("Log-likelihood with fixed nu and sigma:", logLik_fixed, "\n")
 ```
 
@@ -1205,6 +1286,7 @@ initialize the optimization, you would use
 `start_from_previous = fit_2d`.
 
 ``` r
+
 fit_2d_start <- rspde_lme(y ~ -1, model = op_cov_2d_est, 
                          data = df_data_2d, repl = repl,
                          loc = c("x_coord", "y_coord"),, 
@@ -1218,6 +1300,7 @@ fit_2d_start <- rspde_lme(y ~ -1, model = op_cov_2d_est,
 Let us get a summary of the fit:
 
 ``` r
+
 summary(fit_2d_start)
 ```
 
@@ -1254,38 +1337,44 @@ summary(fit_2d_start)
     ## Number of function calls by 'optim' = 125
     ## Optimization method used in 'optim' = Nelder-Mead
     ## 
-    ## Time used to:     fit the model =  1.63732 mins
+    ## Time used to:     fit the model =  1.62456 mins
 
 ## An example with a non-stationary model
 
 Our goal now is to show how one can fit model with non-stationary
-$\sigma$ (std. deviation) and non-stationary $\rho$ (a range parameter).
-One can also use the parameterization in terms of non-stationary SPDE
-parameters $\kappa$ and $\tau$.
+$`\sigma`$ (std. deviation) and non-stationary $`\rho`$ (a range
+parameter). One can also use the parameterization in terms of
+non-stationary SPDE parameters $`\kappa`$ and $`\tau`$.
 
 For this example we will consider simulated data.
 
 ### Simulating the data
 
 Let us consider a simple Gaussian linear model with a latent spatial
-field $x(\mathbf{s})$, defined on the rectangle $(0,10) \times (0,5)$,
-where the std. deviation and range parameter satisfy the following
-log-linear regressions: $$\begin{aligned}
-{\log\left( \sigma(\mathbf{s}) \right)} & {= \theta_{1} + \theta_{3}b(\mathbf{s}),} \\
-{\log\left( \rho(\mathbf{s}) \right)} & {= \theta_{2} + \theta_{3}b(\mathbf{s}),}
-\end{aligned}$$ where $b(\mathbf{s}) = \left( s_{1} - 5 \right)/10$. We
-assume the data is observed at $m$ locations,
-$\{\mathbf{s}_{1},\ldots,\mathbf{s}_{m}\}$. For each $i = 1,\ldots,m,$
-we have
+field $`x(\mathbf{s})`$, defined on the rectangle
+$`(0,10) \times (0,5)`$, where the std. deviation and range parameter
+satisfy the following log-linear regressions:
+``` math
+\begin{align}
+\log(\sigma(\mathbf{s})) &= \theta_1 + \theta_3 b(\mathbf{s}),\\
+\log(\rho(\mathbf{s})) &= \theta_2 + \theta_3 b(\mathbf{s}),
+\end{align}
+```
+where $`b(\mathbf{s}) = (s_1-5)/10`$. We assume the data is observed at
+$`m`$ locations, $`\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}`$. For each
+$`i = 1,\ldots,m,`$ we have
 
-$$y_{i} = x_{1}\left( \mathbf{s}_{i} \right) + \varepsilon_{i},$$
+``` math
+y_i = x_1(\mathbf{s}_i)+\varepsilon_i,
+```
 
-where $\varepsilon_{1},\ldots,\varepsilon_{m}$ are iid normally
+where $`\varepsilon_1,\ldots,\varepsilon_{m}`$ are iid normally
 distributed with mean 0 and standard deviation 0.1.
 
 We begin by defining the domain and creating the mesh:
 
 ``` r
+
 rec_domain <- cbind(c(0, 1, 1, 0, 0) * 10, c(0, 0, 1, 1, 0) * 5)
 
 mesh <- fm_mesh_2d(loc.domain = rec_domain, cutoff = 0.1, 
@@ -1313,12 +1402,13 @@ and `range` (or with both `tau` and `kappa`), one simply let the
 corresponding column to be nonzero on both `B.sigma` and `B.range` (or
 on `B.tau` and `B.kappa`).
 
-We will assume $\nu = 0.8$, $\theta_{1} = 0,\theta_{2} = 1$ and
-$\theta_{3} = 1$. Let us now build the model with the
+We will assume $`\nu = 0.8`$, $`\theta_1 = 0, \theta_2 = 1`$ and
+$`\theta_3=1`$. Let us now build the model with the
 [`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md)
 function:
 
 ``` r
+
 nu <- 0.8
 true_theta <- c(0,1, 1)
 B.sigma = cbind(0, 1, 0, (mesh$loc[,1] - 5) / 10)
@@ -1338,13 +1428,15 @@ Let us now sample the data with the
 [`simulate()`](https://rdrr.io/r/stats/simulate.html) method:
 
 ``` r
+
 u <- as.vector(simulate(op_cov_ns, seed = 123))
 ```
 
 Let us now obtain 600 random locations on the rectangle and compute the
-$A$ matrix:
+$`A`$ matrix:
 
 ``` r
+
 m <-600
 loc_mesh <- cbind(runif(m) * 10, runif(m) * 5)
 
@@ -1357,12 +1449,14 @@ A <- fm_basis(
 We can now generate the response vector `y`:
 
 ``` r
+
 y <- as.vector(A %*% as.vector(u)) + rnorm(m) * 0.3
 ```
 
 Let us now create the object to fit the data:
 
 ``` r
+
 op_cov_ns_est <- op_cov_ns <- spde.matern.operators(mesh = mesh, 
   B.sigma = B.sigma, 
   B.range = B.range,
@@ -1374,12 +1468,14 @@ Let us also create the
 the data and the locations:
 
 ``` r
+
 df_data_ns <- data.frame(y= y, x_coord = loc_mesh[,1], y_coord = loc_mesh[,2])
 ```
 
 ### Fitting the non-stationary rSPDE model
 
 ``` r
+
 fit_ns <- rspde_lme(y ~ -1, model = op_cov_ns_est, 
           data = df_data_ns, loc = c("x_coord", "y_coord"), 
           parallel = TRUE)
@@ -1394,6 +1490,7 @@ fit_ns <- rspde_lme(y ~ -1, model = op_cov_ns_est,
 Let us get the summary:
 
 ``` r
+
 summary(fit_ns)
 ```
 
@@ -1425,12 +1522,13 @@ summary(fit_ns)
     ## Number of function calls by 'optim' = 24
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  7.24715 secs 
-    ##   set up the parallelization = 2.68804 secs
+    ## Time used to:     fit the model =  7.51941 secs 
+    ##   set up the parallelization = 2.7576 secs
 
 Let us now compare with the true values:
 
 ``` r
+
 print(data.frame(
   theta1 = c(true_theta[1], fit_ns$coeff$random_effects[2]), 
   theta2 = c(true_theta[2], fit_ns$coeff$random_effects[3]),
@@ -1455,6 +1553,7 @@ argument using `fix_theta1`, `fix_theta2`, etc., or `start_theta1`,
 For example, if we want to fix the first coefficient theta1 to 0:
 
 ``` r
+
 fit_ns_fixed_theta1 <- rspde_lme(y ~ -1, model = op_cov_ns_est, 
           data = df_data_ns, loc = c("x_coord", "y_coord"), 
           model_options = list(fix_theta1 = 0),  # Fix theta1 to 0
@@ -1468,6 +1567,7 @@ fit_ns_fixed_theta1 <- rspde_lme(y ~ -1, model = op_cov_ns_est,
     ## allows other optimization methods to be used.
 
 ``` r
+
 summary(fit_ns_fixed_theta1)
 ```
 
@@ -1500,14 +1600,15 @@ summary(fit_ns_fixed_theta1)
     ## Number of function calls by 'optim' = 24
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  5.33528 secs 
-    ##   set up the parallelization = 2.66173 secs
+    ## Time used to:     fit the model =  5.42341 secs 
+    ##   set up the parallelization = 2.74819 secs
 
 We can also fix the entire theta vector at once using the `fix_theta`
 parameter. This is particularly useful when we have strong prior
 knowledge about all the parameters:
 
 ``` r
+
 fit_ns_fixed_all <- rspde_lme(y ~ -1, model = op_cov_ns_est, 
           data = df_data_ns, loc = c("x_coord", "y_coord"), 
           model_options = list(fix_theta = c(0, 1, 1)),  # Fix the entire theta vector
@@ -1515,6 +1616,7 @@ fit_ns_fixed_all <- rspde_lme(y ~ -1, model = op_cov_ns_est,
 ```
 
 ``` r
+
 summary(fit_ns_fixed_all)
 ```
 
@@ -1547,13 +1649,14 @@ summary(fit_ns_fixed_all)
     ## Number of function calls by 'optim' = 24
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  2.78566 secs 
-    ##   set up the parallelization = 2.7297 secs
+    ## Time used to:     fit the model =  2.81762 secs 
+    ##   set up the parallelization = 2.79342 secs
 
 Similarly, we can provide starting values for the entire theta vector
 with `start_theta`:
 
 ``` r
+
 fit_ns_start <- rspde_lme(y ~ -1, model = op_cov_ns_est, 
           data = df_data_ns, loc = c("x_coord", "y_coord"), 
           model_options = list(start_theta = c(0, 1, 1)),  # Starting values for theta vector
@@ -1567,6 +1670,7 @@ fit_ns_start <- rspde_lme(y ~ -1, model = op_cov_ns_est,
     ## allows other optimization methods to be used.
 
 ``` r
+
 summary(fit_ns_start)
 ```
 
@@ -1599,16 +1703,16 @@ summary(fit_ns_start)
     ## Number of function calls by 'optim' = 24
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  7.12591 secs 
-    ##   set up the parallelization = 2.71005 secs
+    ## Time used to:     fit the model =  7.23529 secs 
+    ##   set up the parallelization = 2.71881 secs
 
 ## Changing the type and the order of the rational approximation
 
 We have three rational approximations available. The BRASIL algorithm
 [Hofreither (2021)](https://doi.org/10.1007/s11075-020-01042-0), and two
 “versions” of the Clenshaw-Lord Chebyshev-Pade algorithm, one with lower
-bound zero and another with the lower bound given in [Bolin, Simas, and
-Xiong (2023)](https://doi.org/10.1080/10618600.2023.2231051).
+bound zero and another with the lower bound given in [Bolin et al.
+(2023)](https://doi.org/10.1080/10618600.2023.2231051).
 
 The type of rational approximation can be chosen by setting the
 `type_rational_approximation` argument in the `matern.operators`
@@ -1621,6 +1725,7 @@ For instance, we can create an `rSPDE` object with a `chebfunLB`
 rational approximation by
 
 ``` r
+
 op_cov_2d_type <- matern.operators(
   mesh = mesh_2d,
   m = 2,
@@ -1634,18 +1739,21 @@ We can check the order of the rational approximation with the
 function and assign a new order with the `rational.order<-()` function:
 
 ``` r
+
 rational.order(op_cov_2d_type)
 ```
 
     ## [1] 2
 
 ``` r
+
 rational.order(op_cov_2d_type) <- 1
 ```
 
 Let us fit a model using the data from the previous example:
 
 ``` r
+
 fit_order1 <- rspde_lme(y ~ -1, model = op_cov_2d_type, 
           data = df_data_2d,repl = repl,
           loc = c("x_coord", "y_coord"), parallel = TRUE)
@@ -1660,6 +1768,7 @@ fit_order1 <- rspde_lme(y ~ -1, model = op_cov_2d_type,
     ## Warning in sqrt(diag(inv_fisher)): NaNs produced
 
 ``` r
+
 summary(fit_order1)
 ```
 
@@ -1696,12 +1805,13 @@ summary(fit_order1)
     ## Number of function calls by 'optim' = 43
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  51.13413 secs 
-    ##   set up the parallelization = 2.58351 secs
+    ## Time used to:     fit the model =  52.29376 secs 
+    ##   set up the parallelization = 2.67702 secs
 
 Let us compare with the true values:
 
 ``` r
+
 print(data.frame(
   sigma = c(sigma, fit_order1$alt_par_coeff$coeff["sigma"]), 
   range = c(range, fit_order1$alt_par_coeff$coeff["range"]),
@@ -1720,12 +1830,14 @@ function and assign a new type by using the `rational.type<-()`
 function:
 
 ``` r
+
 rational.type(op_cov_2d_type)
 ```
 
     ## [1] "chebfunLB"
 
 ``` r
+
 rational.type(op_cov_2d_type) <- "brasil"
 ```
 
@@ -1733,6 +1845,7 @@ Let us now fit this model, with the data from the previous example, with
 `brasil` rational approximation:
 
 ``` r
+
 fit_brasil <- rspde_lme(y ~ -1, model = op_cov_2d_type, 
           data = df_data_2d,repl = repl,
           loc = c("x_coord", "y_coord"), parallel = TRUE)
@@ -1747,6 +1860,7 @@ fit_brasil <- rspde_lme(y ~ -1, model = op_cov_2d_type,
     ## Warning in sqrt(diag(inv_fisher)): NaNs produced
 
 ``` r
+
 summary(fit_brasil)
 ```
 
@@ -1783,12 +1897,13 @@ summary(fit_brasil)
     ## Number of function calls by 'optim' = 50
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  56.74422 secs 
-    ##   set up the parallelization = 2.53238 secs
+    ## Time used to:     fit the model =  59.0552 secs 
+    ##   set up the parallelization = 2.63432 secs
 
 Let us compare with the true values:
 
 ``` r
+
 print(data.frame(
   sigma = c(sigma, fit_brasil$alt_par_coeff$coeff["sigma"]), 
   range = c(range, fit_brasil$alt_par_coeff$coeff["range"]),
@@ -1810,7 +1925,7 @@ Computational and Graphical Statistics* 29 (2): 274–85.
 Bolin, David, Alexandre B. Simas, and Zhen Xiong. 2023.
 “Covariance-Based Rational Approximations of Fractional SPDEs for
 Computationally Efficient Bayesian Inference.” *Journal of Computational
-and Graphical Statistics*.
+and Graphical Statistics*, ahead of print.
 <https://doi.org/10.1080/10618600.2022.2139648>.
 
 Hofreither, Clemens. 2021. “An Algorithm for Best Rational Approximation

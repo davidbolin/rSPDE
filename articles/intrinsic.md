@@ -8,13 +8,16 @@ implemented in the `rSPDE` package.
 ### A fractional intrinsic model
 
 A basic intrinsic model which is implemented in `rSPDE` is defined as  
-$$( - \Delta)^{\beta/2}(\tau u) = \mathcal{W},$$ where $\beta > d/2$ and
-$d$ is the dimension of the spatial domain.
+``` math
+(-\Delta)^{\beta/2}(\tau u) = \mathcal{W},
+```
+where $`\beta > d/2`$ and $`d`$ is the dimension of the spatial domain.
 
 To illustrate these models, we begin by defining a mesh over
-$\lbrack 0,2\rbrack \times \lbrack 0,2\rbrack$:
+$`[0,2]\times [0, 2]`$:
 
 ``` r
+
 library(fmesher)
 bnd <- fm_segm(rbind(c(0, 0), c(2, 0), c(2, 2), c(0, 2)), is.bnd = TRUE)
 mesh_2d <- fm_mesh_2d(
@@ -32,6 +35,7 @@ We now use the
 function to construct the `rSPDE` representation of the general model.
 
 ``` r
+
 library(rSPDE)
 tau <- 0.2
 beta <- 1.8
@@ -46,6 +50,7 @@ compare the variogram of the approximation (implemented in the function
 as follows.
 
 ``` r
+
 point <- matrix(c(1,1),1,2)
 Gamma <- op$variogram(point)
 vario <- variogram.intrinsic.spde(point, mesh_2d$loc[,1:2], tau = tau,
@@ -61,9 +66,11 @@ points(d,vario,col=2)
 If we want to increase the accuracy, we can either use a finer mesh or
 increase the order of the rational approximation through the argument
 `m` in `intrinsic.operators`. The default value of `m` is 1. We can now
-use the `simulate` function to simulate a realization of the field $u$:
+use the `simulate` function to simulate a realization of the field
+$`u`$:
 
 ``` r
+
 u <- simulate(op,nsim = 1)
 
 proj <- fm_evaluator(mesh_2d, dims = c(100, 100))
@@ -87,13 +94,16 @@ By default, the field is simulated with a zero-integral constraint.
 ### Fitting the model with `R-INLA`
 
 Let us now consider a simple Gaussian linear model where the spatial
-field $u(\mathbf{s})$ is observed at $m$ locations,
-$\{\mathbf{s}_{1},\ldots,\mathbf{s}_{m}\}$ under Gaussian measurement
-noise. For each $i = 1,\ldots,m,$ we have $$\begin{aligned}
-y_{i} & {= u\left( \mathbf{s}_{i} \right) + \varepsilon_{i}} \\
- & 
-\end{aligned},$$ where $\varepsilon_{1},\ldots,\varepsilon_{m}$ are iid
-normally distributed with mean 0 and standard deviation 0.1.
+field $`u(\mathbf{s})`$ is observed at $`m`$ locations,
+$`\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}`$ under Gaussian measurement
+noise. For each $`i = 1,\ldots,m,`$ we have
+``` math
+\begin{align} 
+y_i &= u(\mathbf{s}_i)+\varepsilon_i\\
+\end{align},
+```
+where $`\varepsilon_1,\ldots,\varepsilon_{m}`$ are iid normally
+distributed with mean 0 and standard deviation 0.1.
 
 To generate a data set `y` from this model, we first draw some
 observation locations at random in the domain and then use the
@@ -104,10 +114,11 @@ functions (that wraps the functions
 and
 [`fm_row_kron()`](https://inlabru-org.github.io/fmesher/reference/fm_row_kron.html)
 of the `fmesher` package) to construct the observation matrix which can
-be used to evaluate the simulated field $u$ at the observation
+be used to evaluate the simulated field $`u`$ at the observation
 locations. After this we simply add the measurment noise.
 
 ``` r
+
 n_loc <- 1000
 loc_2d_mesh <- matrix(2*runif(n_loc * 2), n_loc, 2)
 
@@ -122,6 +133,7 @@ y <- A %*% u + rnorm(n_loc) * sigma.e
 The generated data can be seen in the following image.
 
 ``` r
+
 df <- data.frame(x1 = as.double(loc_2d_mesh[, 1]),
   x2 = as.double(loc_2d_mesh[, 2]), y = as.double(y))
 ggplot(df, aes(x = x1, y = x2, col = y)) +
@@ -138,6 +150,7 @@ SPDE
 approach](https://davidbolin.github.io/rSPDE/articles/rspde_inla.md).
 
 ``` r
+
 library(INLA)
 #> 
 rspde.order <- 2
@@ -149,12 +162,14 @@ st.dat <- inla.stack(data = list(y = as.vector(y)), A = Abar, effects = mesh.ind
 We now create the model object.
 
 ``` r
+
 rspde_model <- rspde.intrinsic(mesh = mesh_2d, rspde.order = rspde.order)
 ```
 
 Finally, we create the formula and fit the model to the data:
 
 ``` r
+
 f <- y ~ -1 + f(field, model = rspde_model)
 rspde_fit <- inla(f,
                   data = inla.stack.data(st.dat),
@@ -166,11 +181,12 @@ To compare the estimated parameters to the true parameters, we can do
 the following:
 
 ``` r
+
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
 #>         mean        sd 0.025quant 0.5quant 0.975quant     mode
-#> tau 0.125126 0.0270979  0.0813405 0.121837   0.187348 0.115324
-#> nu  0.968237 0.0745904  0.8194860 0.969408   1.111770 0.973543
+#> tau 0.124642 0.0223275  0.0878089 0.122148   0.175227 0.116954
+#> nu  0.968011 0.0615217  0.8441020 0.969488   1.085230 0.974565
 tau <- op$tau
 nu <- op$beta - 1 #beta = nu + d/2 
 result_df <- data.frame(
@@ -183,20 +199,21 @@ result_df <- data.frame(
 )
 print(result_df)
 #>   parameter true       mean       mode
-#> 1       tau  0.2 0.12512639 0.11532354
-#> 2        nu  0.8 0.96823662 0.97354345
-#> 3   sigma.e  0.1 0.09793544 0.09833684
+#> 1       tau  0.2 0.12464165 0.11695421
+#> 2        nu  0.8 0.96801089 0.97456491
+#> 3   sigma.e  0.1 0.09794395 0.09841126
 ```
 
 ### Extreme value models
 
 When used for extreme value statistics, one might want to use a
-particular form of the mean value of the latent field $u$, which is zero
-at one location $k$ and is given by the diagonal of $Q_{- k, - k}^{- 1}$
-for the remaining locations. This option can be specified via the
-`mean.correction` argument of `rspde.intrinsic`:
+particular form of the mean value of the latent field $`u`$, which is
+zero at one location $`k`$ and is given by the diagonal of
+$`Q_{-k,-k}^{-1}`$ for the remaining locations. This option can be
+specified via the `mean.correction` argument of `rspde.intrinsic`:
 
 ``` r
+
 rspde_model2 <- rspde.intrinsic(mesh = mesh_2d, rspde.order = rspde.order,
                                 mean.correction = TRUE)
 ```
@@ -204,6 +221,7 @@ rspde_model2 <- rspde.intrinsic(mesh = mesh_2d, rspde.order = rspde.order,
 We can then fit this model as before:
 
 ``` r
+
 f <- y ~ -1 + f(field, model = rspde_model2)
 rspde_fit <- inla(f,
                   data = inla.stack.data(st.dat),
@@ -214,6 +232,7 @@ rspde_fit <- inla(f,
 To see the posterior distributions of the parameters we can do:
 
 ``` r
+
 result_fit <- rspde.result(rspde_fit, "field", rspde_model2)
 posterior_df_fit <- gg_df(result_fit)
 
@@ -230,6 +249,7 @@ replicates are handled in the same way as any other `rSPDE` model. We
 start by generating some data with 200 observations per replicate
 
 ``` r
+
 set.seed(1)
 tau <- 0.2
 beta <- 1.9
@@ -253,6 +273,7 @@ y <- as.vector(A %*% as.vector(u)) +
 We now create the stack, A matrix and index and fit the model:
 
 ``` r
+
 Abar.rep <- rspde.make.A(
   mesh = mesh_2d, loc = loc_2d_mesh, index = rep(1:m, times = n.rep),
   repl = rep(1:n.rep, each = m)
@@ -287,11 +308,12 @@ rspde_fit.rep <-
 We then compare with the true parameter estimates as before
 
 ``` r
+
 result_fit <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 summary(result_fit)
 #>         mean        sd 0.025quant 0.5quant 0.975quant     mode
-#> tau 0.177946 0.0111483   0.157648 0.177348   0.201401 0.175908
-#> nu  0.924109 0.0142291   0.895539 0.924390   0.951391 0.925333
+#> tau 0.177687 0.0114608   0.155591 0.177609    0.20054 0.177804
+#> nu  0.923810 0.0153326   0.894695 0.923398    0.95486 0.922017
 tau <- op$tau
 nu <- op$beta - 1 #beta = nu + d/2 
 result_df <- data.frame(
@@ -303,15 +325,16 @@ result_df <- data.frame(
              sqrt(1/rspde_fit.rep$summary.hyperpar[1,6]))
 )
 print(result_df)
-#>   parameter true      mean       mode
-#> 1       tau  0.2 0.1779463 0.17590846
-#> 2        nu  0.9 0.9241086 0.92533255
-#> 3   sigma.e  0.1 0.1000062 0.09998612
+#>   parameter true       mean       mode
+#> 1       tau  0.2 0.17768726 0.17780447
+#> 2        nu  0.9 0.92380971 0.92201728
+#> 3   sigma.e  0.1 0.09992825 0.09981984
 ```
 
 To see the posterior distributions of the parameters we can do:
 
 ``` r
+
 result_fit <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 posterior_df_fit <- gg_df(result_fit)
 
@@ -326,8 +349,10 @@ facet_wrap(~parameter, scales = "free") + labs(y = "Density")
 The `rSPDE` package also contains a partial implementation of a more
 general intrinsic model, which we refer to as an intrinsic Matérn model.
 The model is defined as  
-$$( - \Delta)^{\beta/2}\left( \kappa^{2} - \Delta \right)^{\alpha/2}(\tau u) = \mathcal{W},$$
-where $\alpha + \beta > d/2$ and $d$ is the dimension of the spatial
+``` math
+(-\Delta)^{\beta/2}(\kappa^2-\Delta)^{\alpha/2}(\tau u) = \mathcal{W},
+```
+where $`\alpha + \beta > d/2`$ and $`d`$ is the dimension of the spatial
 domain. These models are handled by performing two rational
 approximations, one for each fractional operator.
 
@@ -337,6 +362,7 @@ the
 function to construct the `rSPDE` representation of the general model.
 
 ``` r
+
 bnd <- fm_segm(rbind(c(0, 0), c(2, 0), c(2, 2), c(0, 2)), is.bnd = TRUE)
 mesh_2d <- fm_mesh_2d(
     boundary = bnd, 
@@ -359,6 +385,7 @@ compare the variogram of the approximation with the true variogram
 as follows.
 
 ``` r
+
 point <- matrix(c(1,1),1,2)
 Gamma <- op$variogram(point)
 vario <- variogram.intrinsic.spde(point, mesh_2d$loc[,1:2], kappa = kappa, 
@@ -374,9 +401,10 @@ lines(sort(d),sort(vario),col=2, lwd = 2)
 ![](intrinsic_files/figure-html/unnamed-chunk-19-1.png)
 
 We can now use the `simulate` function to simulate a realization of the
-field $u$:
+field $`u`$:
 
 ``` r
+
 u <- simulate(op,nsim = 1, use_kl = FALSE)
 
 proj <- fm_evaluator(mesh_2d, dims = c(100, 100))
@@ -407,6 +435,7 @@ approach](https://davidbolin.github.io/rSPDE/articles/rspde_inla.md).
 We begin by simulating some data as before.
 
 ``` r
+
 n_loc <- 2000
 loc_2d_mesh <- matrix(2*runif(n_loc * 2), n_loc, 2)
 
@@ -421,6 +450,7 @@ y <- A %*% u + rnorm(n_loc) * sigma.e
 The generated data can be seen in the following image.
 
 ``` r
+
 df <- data.frame(x1 = as.double(loc_2d_mesh[, 1]),
   x2 = as.double(loc_2d_mesh[, 2]), y = as.double(y))
 ggplot(df, aes(x = x1, y = x2, col = y)) +
@@ -430,13 +460,14 @@ ggplot(df, aes(x = x1, y = x2, col = y)) +
 
 ![](intrinsic_files/figure-html/unnamed-chunk-22-1.png)
 
-To fit the model, we create the $A$ matrix, the index, and the
+To fit the model, we create the $`A`$ matrix, the index, and the
 `inla.stack` object. For now, these more general models can only be
-estimated with $\beta = 1$ and $\alpha = 1$ or $\alpha = 2$. For these
-non-fractional models, we can use the standard INLA functions to make
-the required elements.
+estimated with $`\beta = 1`$ and $`\alpha = 1`$ or $`\alpha = 2`$. For
+these non-fractional models, we can use the standard INLA functions to
+make the required elements.
 
 ``` r
+
 mesh.index <- inla.spde.make.index(name = "field", n.spde = mesh_2d$n)
 
 st.dat <- inla.stack(data = list(y = as.vector(y)), A = A, effects = mesh.index)
@@ -445,12 +476,14 @@ st.dat <- inla.stack(data = list(y = as.vector(y)), A = A, effects = mesh.index)
 We now create the model object.
 
 ``` r
+
 rspde_model <- rspde.intrinsic.matern(mesh = mesh_2d, alpha = alpha)
 ```
 
 Finally, we create the formula and fit the model to the data:
 
 ``` r
+
 f <- y ~ -1 + f(field, model = rspde_model)
 rspde_fit <- inla(f,
                   data = inla.stack.data(st.dat),
@@ -461,24 +494,25 @@ rspde_fit <- inla(f,
 We can get a summary of the fit:
 
 ``` r
+
 summary(rspde_fit)
 #> Time used:
-#>     Pre = 0.148, Running = 22.3, Post = 0.0551, Total = 22.5 
+#>     Pre = 0.146, Running = 20.8, Post = 0.0546, Total = 21 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
 #> 
 #> Model hyperparameters:
 #>                                           mean    sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 100.68 4.491      92.10   100.59
+#> Precision for the Gaussian observations 100.64 4.493      92.09   100.53
 #> Theta1 for field                         -5.98 0.048      -6.07    -5.98
-#> Theta2 for field                          2.35 0.086       2.17     2.35
+#> Theta2 for field                          2.35 0.087       2.17     2.35
 #>                                         0.975quant   mode
-#> Precision for the Gaussian observations     109.78 100.44
+#> Precision for the Gaussian observations     109.78 100.31
 #> Theta1 for field                             -5.88  -5.98
-#> Theta2 for field                              2.51   2.35
+#> Theta2 for field                              2.52   2.35
 #> 
-#> Marginal log-Likelihood:  727.86 
+#> Marginal log-Likelihood:  727.87 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -488,11 +522,12 @@ To get a summary of the fit of the random field only, we can do the
 following:
 
 ``` r
+
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
 #>              mean          sd 0.025quant   0.5quant  0.975quant        mode
-#> tau    0.00253231 0.000121324 0.00230549  0.0025272  0.00278195  0.00251614
-#> kappa 10.49070000 0.897805000 8.79809000 10.4701000 12.32000000 10.44880000
+#> tau    0.00253265 0.000121827 0.00230298  0.0025284  0.00278094  0.00252041
+#> kappa 10.49390000 0.909078000 8.80439000 10.4624000 12.37210000 10.40750000
 tau <- op$tau
 result_df <- data.frame(
   parameter = c("tau", "kappa"),
@@ -501,9 +536,9 @@ result_df <- data.frame(
   mode = c(result_fit$summary.tau$mode, result_fit$summary.kappa$mode)
 )
 print(result_df)
-#>   parameter    true        mean         mode
-#> 1       tau  0.0025  0.00253231  0.002516139
-#> 2     kappa 10.0000 10.49072847 10.448830319
+#>   parameter    true         mean         mode
+#> 1       tau  0.0025  0.002532649  0.002520408
+#> 2     kappa 10.0000 10.493944133 10.407543925
 ```
 
 ### Kriging with `R-INLA` implementation
@@ -522,6 +557,7 @@ as we would in [`R-INLA`](https://www.r-inla.org)’s standard SPDE
 implementation:
 
 ``` r
+
 projgrid <- inla.mesh.projector(mesh_2d,
   xlim = c(0, 2),
   ylim = c(0, 2)
@@ -542,9 +578,10 @@ projgrid <- inla.mesh.projector(mesh_2d,
 This lattice contains 100 × 100 locations (the default). Let us now
 calculate the predictions jointly with the estimation. To this end,
 first, we begin by linking the prediction coordinates to the mesh nodes
-through an $A$ matrix
+through an $`A`$ matrix
 
 ``` r
+
 A.prd <- projgrid$proj$A
 ```
 
@@ -553,6 +590,7 @@ prediction locations, so we set `y= NA`. We then join this stack with
 the estimation stack.
 
 ``` r
+
 ef.prd <- list(c(mesh.index))
 st.prd <- inla.stack(
   data = list(y = NA),
@@ -570,6 +608,7 @@ hyper-parameters) through the command
 `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes:
 
 ``` r
+
 rspde_fitprd <- inla(f,
   family = "Gaussian",
   data = inla.stack.data(st.all),
@@ -589,6 +628,7 @@ We then extract the indices to the prediction nodes and then extract the
 mean and the standard deviation of the response:
 
 ``` r
+
 id.prd <- inla.stack.index(st.all, "prd")$data
 m.prd <- matrix(rspde_fitprd$summary.fitted.values$mean[id.prd], 100, 100)
 sd.prd <- matrix(rspde_fitprd$summary.fitted.values$sd[id.prd], 100, 100)
@@ -597,6 +637,7 @@ sd.prd <- matrix(rspde_fitprd$summary.fitted.values$sd[id.prd], 100, 100)
 Finally, we plot the results. First the mean:
 
 ``` r
+
 field.pred.df <- data.frame(x1 = projgrid$lattice$loc[,1],
                         x2 = projgrid$lattice$loc[,2], 
                         y = as.vector(m.prd))
@@ -609,6 +650,7 @@ ggplot(field.pred.df, aes(x = x1, y = x2, fill = y)) +
 Then, the marginal standard deviations:
 
 ``` r
+
 field.pred.sd.df <- data.frame(x1 = proj$lattice$loc[,1],
                         x2 = proj$lattice$loc[,2], 
                         sd = as.vector(sd.prd))
@@ -629,6 +671,7 @@ dimension.
 Let us start with generating the model
 
 ``` r
+
 L = 20
 x <- seq(from = 0, to = L, length.out = 101)
 mesh <- fm_mesh_1d(x)
@@ -652,6 +695,7 @@ extremes models is also implemented, so we generate some data using
 this.
 
 ``` r
+
 n.rep <- 100
 u <- simulate(op,nsim = n.rep, integral.constraint = FALSE, use_kl = TRUE)
 
@@ -668,6 +712,7 @@ Y <- as.matrix(A %*% u + sigma.e * matrix(rnorm(n.obs*n.rep),n.obs,n.rep))
 Let us now show how to do kriging prediction for this model.
 
 ``` r
+
 A <- make_A(op, loc = obs.loc)
 A.krig <- make_A(op, loc = x)
 u.krig <- predict(op,
@@ -699,6 +744,7 @@ indicate that this parameter should not be fitted but kept fixed at
 correction when fitting.
 
 ``` r
+
 data = data.frame(y = c(Y), loc = rep(obs.loc, n.rep), rep  = rep(1:n.rep, each = n.obs))
 
 fit <- rspde_lme(y ~ -1, loc = "loc", repl  = "rep", data = data,
@@ -720,6 +766,7 @@ simultaneously. We will set up a new model with different parameter
 values:
 
 ``` r
+
 L = 20
 x <- seq(from = 0, to = L, length.out = 101)
 mesh <- fm_mesh_1d(x)
@@ -748,6 +795,7 @@ approximations through the `m_alpha` and `m_beta` values in
 decrease the value of `m_beta`.
 
 ``` r
+
 op <- intrinsic.matern.operators(kappa = kappa, tau = tau, alpha = alpha,
                                  beta = beta, mesh = mesh, d = 1, m_alpha = 6, 
                                  m_beta = 1)
@@ -764,6 +812,7 @@ We now have a better approximation. Similar to the previous example, we
 will generate data with the mean value correction for extremes models:
 
 ``` r
+
 n.rep <- 100
 u <- simulate(op, nsim = n.rep, integral.constraint = FALSE, use_kl = TRUE)
 
@@ -780,6 +829,7 @@ Y <- as.matrix(A %*% u + sigma.e * matrix(rnorm(n.obs*n.rep), n.obs, n.rep))
 Let’s visualize the data and predictions for this model:
 
 ``` r
+
 A <- make_A(op, loc = obs.loc)
 A.krig <- make_A(op, loc = x)
 u.krig <- predict(op,
@@ -808,6 +858,7 @@ previous example where we set `fix_alpha=0`, we do not include this
 constraint:
 
 ``` r
+
 data = data.frame(y = c(Y), loc = rep(obs.loc, n.rep), rep = rep(1:n.rep, each = n.obs))
 op <- intrinsic.matern.operators(kappa = kappa, tau = tau, alpha = 1.3, beta = 1.05, mesh = mesh, d = 1, m_alpha = 3, m_beta = 1)
 fit <- rspde_lme(y ~ -1, loc = "loc", repl = "rep", data = data,

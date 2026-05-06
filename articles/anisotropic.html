@@ -77,9 +77,9 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-10-23. Last
-modified: 2026-04-08.</h4>
+modified: 2026-05-06.</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/anisotropic.Rmd" class="external-link"><code>vignettes/anisotropic.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel/vignettes/anisotropic.Rmd" class="external-link"><code>vignettes/anisotropic.Rmd</code></a></small>
       <div class="d-none name"><code>anisotropic.Rmd</code></div>
     </div>
 
@@ -91,7 +91,7 @@ modified: 2026-04-08.</h4>
 <p>For domains
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mo>⊂</mo><msup><mi>ℝ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">D\subset \mathbb{R}^2</annotation></semantics></math>,
 the <code>rSPDE</code> package implements the anisotropic Matérn model
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>I</mi><mo>−</mo><mi>∇</mi><mo>⋅</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>H</mi><mi>∇</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>ν</mi><mo>+</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mn>2</mn></mrow></msup><mi>u</mi><mo>=</mo><mi>c</mi><mi>σ</mi><mi>W</mi><mo>,</mo><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">on </mtext><mspace width="0.333em"></mspace></mrow><mi>D</mi></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>I</mi><mo>−</mo><mi>∇</mi><mo>⋅</mo><mo stretchy="false" form="prefix">(</mo><mi>H</mi><mi>∇</mi><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">)</mo><mrow><mo stretchy="false" form="prefix">(</mo><mi>ν</mi><mo>+</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mn>2</mn></mrow></msup><mi>u</mi><mo>=</mo><mi>c</mi><mi>σ</mi><mi>W</mi><mo>,</mo><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">on </mtext><mspace width="0.333em"></mspace></mrow><mi>D</mi></mrow><annotation encoding="application/x-tex">
     (I - \nabla\cdot (H\nabla))^{(\nu + 1)/2} u = c\sigma W, \quad \text{on }  D
 </annotation></semantics></math> Where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>H</mi><annotation encoding="application/x-tex">H</annotation></semantics></math>
@@ -104,7 +104,7 @@ and
 is a constant chosen such that
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
 would have the covariance function
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><msup><mi>σ</mi><mn>2</mn></msup><mrow><msup><mn>2</mn><mrow><mi>ν</mi><mo>−</mo><mn>1</mn></mrow></msup><mi>Γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>ν</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><msqrt><mrow><msup><mi>h</mi><mi>T</mi></msup><msup><mi>H</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mi>h</mi></mrow></msqrt><mo stretchy="true" form="postfix">)</mo></mrow><mi>ν</mi></msup><msub><mi>K</mi><mi>ν</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msqrt><mrow><msup><mi>h</mi><mi>T</mi></msup><msup><mi>H</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mi>h</mi></mrow></msqrt><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><msup><mi>σ</mi><mn>2</mn></msup><mrow><msup><mn>2</mn><mrow><mi>ν</mi><mo>−</mo><mn>1</mn></mrow></msup><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="prefix">(</mo><mi>ν</mi><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo stretchy="false" form="prefix">(</mo><msqrt><mrow><msup><mi>h</mi><mi>T</mi></msup><msup><mi>H</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mi>h</mi></mrow></msqrt><msup><mo stretchy="false" form="postfix">)</mo><mi>ν</mi></msup><msub><mi>K</mi><mi>ν</mi></msub><mo stretchy="false" form="prefix">(</mo><msqrt><mrow><msup><mi>h</mi><mi>T</mi></msup><msup><mi>H</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mi>h</mi></mrow></msqrt><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 r(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)} (\sqrt{h^T H^{-1} h})^{\nu} K_{\nu}(\sqrt{h^T H^{-1} h}),
 </annotation></semantics></math> if the domain was
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mo>=</mo><msup><mi>ℝ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">D = \mathbb{R}^2</annotation></semantics></math>,
@@ -120,7 +120,7 @@ h_xh_y h_{xy} &amp; h_y^2
 </annotation></semantics></math> with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>x</mi></msub><mo>,</mo><msub><mi>h</mi><mi>y</mi></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">h_x,h_y&gt;0</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mrow><mi>x</mi><mi>y</mi></mrow></msub><mo>∈</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h_{xy} \in (-1,1)</annotation></semantics></math>.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mrow><mi>x</mi><mi>y</mi></mrow></msub><mo>∈</mo><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mn>1</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h_{xy} \in (-1,1)</annotation></semantics></math>.</p>
 </div>
 <div class="section level2">
 <h2 id="implementation-details">Implementation details<a class="anchor" aria-label="anchor" href="#implementation-details"></a>
@@ -271,8 +271,8 @@ us see a summary of the fitted model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 46</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  26.69362 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 2.87827 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  27.63308 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 2.93175 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -354,12 +354,12 @@ scale of the estimated parameters back to the original scale.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                 hx         hy       hxy     sigma        nu   sigma.e</span></span>
-<span><span class="co">#&gt; True          0.08       0.08       0.5         1       0.5 0.1000000</span></span>
-<span><span class="co">#&gt; Estimate 0.0917466 0.09158569 0.5677859 0.9761319 0.4567412 0.1001515</span></span>
+<span><span class="co">#&gt;                  hx         hy       hxy     sigma        nu   sigma.e</span></span>
+<span><span class="co">#&gt; True           0.08       0.08       0.5         1       0.5 0.1000000</span></span>
+<span><span class="co">#&gt; Estimate 0.09150871 0.09103764 0.5691553 0.9734408 0.4521673 0.1001249</span></span>
 <span><span class="co">#&gt;           intercept</span></span>
 <span><span class="co">#&gt; True      0.0000000</span></span>
-<span><span class="co">#&gt; Estimate -0.1625111</span></span></code></pre></div>
+<span><span class="co">#&gt; Estimate -0.1619266</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

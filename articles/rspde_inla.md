@@ -6,7 +6,7 @@ In this vignette we will present the [`R-INLA`](https://www.r-inla.org)
 implementation of the rational SPDE approach. For theoretical details we
 refer the reader to the [Rational approximation with the `rSPDE`
 package](https://davidbolin.github.io/rSPDE/articles/rspde_cov.md)
-vignette and to [Bolin, Simas, and Xiong
+vignette and to [Bolin et al.
 (2023)](https://doi.org/10.1080/10618600.2023.2231051).
 
 We begin by providing a step-by-step illustration on how to use our
@@ -36,7 +36,7 @@ INLA](https://www.routledge.com/Advanced-Spatial-Modeling-with-Stochastic-Partia
 and also the vignette [Spatial Statistics using R-INLA and Gaussian
 Markov random
 fields](https://sites.stat.washington.edu/peter/591/INLA.html). See also
-[Lindgren, Rue, and Lindström
+[Lindgren et al.
 (2011)](https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x)
 for theoretical details on the standard SPDE approach.
 
@@ -53,24 +53,26 @@ fields](https://sites.stat.washington.edu/peter/591/INLA.html). As
 precipitation data are always positive, we will assume it is Gamma
 distributed. [`R-INLA`](https://www.r-inla.org) uses the following
 parameterization of the Gamma distribution,
-$$\Gamma(\mu,\phi):\pi(y) = \frac{1}{\Gamma(\phi)}\left( \frac{\phi}{\mu} \right)^{\phi}y^{\phi - 1}\exp\left( - \frac{\phi y}{\mu} \right).$$
+``` math
+\Gamma(\mu, \phi): \pi (y) = \frac{1}{\Gamma(\phi)} \left(\frac{\phi}{\mu}\right)^{\phi} y^{\phi - 1} \exp\left(-\frac{\phi y}{\mu}\right) .
+```
 In this parameterization, the distribution has expected value
-$E(x) = \mu$ and variance $V(x) = \mu^{2}/(\phi)$, where$1/\phi$ is a
-dispersion parameter.
+$`E(x) = \mu`$ and variance $`V(x) = \mu^2/(\phi)`$, where$`1/\phi`$ is
+a dispersion parameter.
 
-In this example $\mu$ will be modeled using a stochastic model that
+In this example $`\mu`$ will be modeled using a stochastic model that
 includes both covariates and spatial structure, resulting in the latent
-Gaussian model for the precipitation measurements $$\begin{aligned}
-{y_{i} \mid \mu\left( s_{i} \right),\theta} & {\sim \Gamma\left( \mu\left( s_{i} \right),c\phi \right)} \\
-{\log\left( \mu(s) \right)} & {= \eta(s) = \sum\limits_{k}f_{k}\left( c_{k}(s) \right) + u(s)} \\
-\theta & {\sim \pi(\theta)}
-\end{aligned},$$
+Gaussian model for the precipitation measurements
+``` math
+\begin{align} y_i\mid \mu(s_i), \theta &\sim \Gamma(\mu(s_i),c\phi)\\ \log (\mu(s)) &= \eta(s) = \sum_k f_k(c_k(s))+u(s)\\ \theta &\sim \pi(\theta) \end{align},
+```
 
-where $y_{i}$ denotes the measurement taken at location $s_{i}$,
-$c_{k}(s)$ are covariates, $u(s)$ is a mean-zero Gaussian Matérn field,
-and $\theta$ is a vector containing all parameters of the model,
-including smoothness of the field. That is, by using the `rSPDE` model
-we will also be able to estimate the smoothness of the latent field.
+where $`y_i`$ denotes the measurement taken at location $`s_i`$,
+$`c_k(s)`$ are covariates, $`u(s)`$ is a mean-zero Gaussian Matérn
+field, and $`\theta`$ is a vector containing all parameters of the
+model, including smoothness of the field. That is, by using the `rSPDE`
+model we will also be able to estimate the smoothness of the latent
+field.
 
 ### Examining the data
 
@@ -82,6 +84,7 @@ We begin by loading some libraries we need to get the data and build the
 plots.
 
 ``` r
+
 library(ggplot2)
 library(INLA)
 library(splancs)
@@ -91,6 +94,7 @@ library(viridis)
 Let us load the data and the border of the region
 
 ``` r
+
 data(PRprec)
 data(PRborder)
 ```
@@ -102,6 +106,7 @@ set, but instead look at the total precipitation in January, which we
 calculate as
 
 ``` r
+
 Y <- rowMeans(PRprec[, 3 + 1:31])
 ```
 
@@ -109,6 +114,7 @@ In the next snippet of code, we extract the coordinates and altitudes
 and remove the locations with missing values.
 
 ``` r
+
 ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
@@ -118,6 +124,7 @@ alt <- PRprec$Altitude[ind]
 Let us build plot the precipitation observations using `ggplot`:
 
 ``` r
+
 ggplot() +
   geom_point(aes(
     x = coords[, 1], y = coords[, 2],
@@ -139,6 +146,7 @@ covariate is not available, so let us calculate it for each observation
 location:
 
 ``` r
+
 seaDist <- apply(spDists(coords, PRborder[1034:1078, ],
   longlat = TRUE
 ), 1, min)
@@ -148,6 +156,7 @@ Now, let us plot the precipitation as a function of the possible
 covariates:
 
 ``` r
+
 par(mfrow = c(2, 2))
 plot(coords[, 1], Y, cex = 0.5, xlab = "Longitude")
 plot(coords[, 2], Y, cex = 0.5, xlab = "Latitude")
@@ -158,6 +167,7 @@ plot(alt, Y, cex = 0.5, xlab = "Altitude")
 ![](rspde_inla_files/figure-html/plot_prec_as_func-1.png)
 
 ``` r
+
 par(mfrow = c(1, 1))
 ```
 
@@ -167,6 +177,7 @@ To use the [`R-INLA`](https://www.r-inla.org) implementation of the
 `rSPDE` model we need to load the functions:
 
 ``` r
+
 library(rSPDE)
 ```
 
@@ -199,6 +210,7 @@ We can use `fmesher` for creating the mesh. We begin by loading the
 `fmesher` package:
 
 ``` r
+
 library(fmesher)
 ```
 
@@ -206,6 +218,7 @@ Let us create a mesh which is based on a non-convex hull to avoid adding
 many small triangles outside the domain of interest:
 
 ``` r
+
 prdomain <- fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(100, 100))
 prmesh <- fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.2)
 
@@ -218,8 +231,8 @@ points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
 
 #### The observation matrix
 
-We now create the $A$ matrix, that connects the mesh to the observation
-locations and then create the `rSPDE` model.
+We now create the $`A`$ matrix, that connects the mesh to the
+observation locations and then create the `rSPDE` model.
 
 For this task, as we mentioned earlier, we need to use an
 `rSPDE`specific function, whose name is very reminiscent to
@@ -228,7 +241,7 @@ For this task, as we mentioned earlier, we need to use an
 (in place of [`R-INLA`](https://www.r-inla.org)’s
 [`inla.spde.make.A()`](https://rdrr.io/pkg/INLA/man/inla.spde.make.A.html)).
 The reason for the need of this specific function is that the size of
-the $A$ matrix depends on the order of the rational approximation. The
+the $`A`$ matrix depends on the order of the rational approximation. The
 details can be found in the introduction of the [Rational approximation
 with the `rSPDE`
 package](https://davidbolin.github.io/rSPDE/articles/rspde_cov.md)
@@ -242,13 +255,15 @@ vignette, an approximation of order 2 in the covariance-based rational
 approximation has approximately the same computational cost as the
 operator-based rational approximation of order 1.
 
-Recall that the latent process $u$ is a solution of
-$$\left( \kappa^{2}I - \Delta \right)^{\alpha/2}(\tau u) = \mathcal{W},$$
-where $\alpha = \nu + d/2$. We want to estimate all three parameters
-$\tau,\kappa$ and $\nu$, which is the default option of  
+Recall that the latent process $`u`$ is a solution of
+``` math
+(\kappa^2 I-\Delta)^{\alpha/2}(\tau u) = \mathcal{W},
+```
+where $`\alpha = \nu + d/2`$. We want to estimate all three parameters
+$`\tau,\kappa`$ and $`\nu`$, which is the default option of  
 the `rSPDE`-`INLA` implementation. However, there is also an option to
-fix the smoothness parameter $\nu$ to some predefined value and only
-estimate $\tau$ and $\kappa$. This will be discussed later.
+fix the smoothness parameter $`\nu`$ to some predefined value and only
+estimate $`\tau`$ and $`\kappa`$. This will be discussed later.
 
 In this first example we will assume we want a rational approximation of
 order 1. To this end we can use the
@@ -258,14 +273,15 @@ smoothness, which are the default options in this function, the required
 parameters are simply the mesh and the locations:
 
 ``` r
+
 Abar <- rspde.make.A(mesh = prmesh, loc = coords)
 ```
 
 #### Setting up the rSPDE model
 
 To set up an `rSPDE`model, all we need is the mesh. By default it will
-assume that we want to estimate the smoothness parameter $\nu$ and to do
-a covariance-based rational approximation of order 2.
+assume that we want to estimate the smoothness parameter $`\nu`$ and to
+do a covariance-based rational approximation of order 2.
 
 Later in this vignette we will also see other options for setting up
 `rSPDE` models such as keeping the smoothness parameter fixed and/or
@@ -276,6 +292,7 @@ Therefore, to set up a model all we have to do is use the
 function:
 
 ``` r
+
 rspde_model <- rspde.matern(mesh = prmesh)
 ```
 
@@ -290,7 +307,7 @@ or `inla.spde` or `inla.spde2` by `rspde`.
 #### The `inla.stack`
 
 Since the covariates are already evaluated at the observation locations,
-we only want to apply the $A$ matrix to the spatial effect and not the
+we only want to apply the $`A`$ matrix to the spatial effect and not the
 fixed effects. We can use the
 [`inla.stack()`](https://rdrr.io/pkg/INLA/man/inla.stack.html) function.
 
@@ -301,19 +318,21 @@ The difference, however, is that we need to use the function
 to create the index.
 
 If one is using the default options, that is, to estimate the smoothness
-parameter $\nu$ and to do a rational approximation of order 2, the usage
-of
+parameter $`\nu`$ and to do a rational approximation of order 2, the
+usage of
 [`rspde.make.index()`](https://davidbolin.github.io/rSPDE/reference/rspde.make.index.md)
 is identical to the usage of
 [`inla.spde.make.index()`](https://rdrr.io/pkg/INLA/man/inla.spde.make.index.html):
 
 ``` r
+
 mesh.index <- rspde.make.index(name = "field", mesh = prmesh)
 ```
 
 We can then create the stack in a standard manner:
 
 ``` r
+
 stk.dat <- inla.stack(
   data = list(y = Y), A = list(Abar, 1), tag = "est",
   effects = list(
@@ -328,30 +347,35 @@ stk.dat <- inla.stack(
 )
 ```
 
-Here the observation matrix $A$ is applied to the spatial effect and the
-intercept while an identity observation matrix, denoted by $1$, is
+Here the observation matrix $`A`$ is applied to the spatial effect and
+the intercept while an identity observation matrix, denoted by $`1`$, is
 applied to the covariates. This means the covariates are unaffected by
 the observation matrix.
 
-The observation matrices in $A = list(Abar,1)$ are used to link the
+The observation matrices in $`A=list(Abar,1)`$ are used to link the
 corresponding elements in the effects-list to the observations. Thus in
 our model the latent spatial field `mesh.index` and the intercept are
-linked to the log-expectation of the observations, i.e. $\eta(s)$,
-through the $A$-matrix. The covariates, on the other hand, are linked
-directly to $\eta(s)$. The `stk.dat` object defined above implies the
+linked to the log-expectation of the observations, i.e. $`\eta(s)`$,
+through the $`A`$-matrix. The covariates, on the other hand, are linked
+directly to $`\eta(s)`$. The `stk.dat` object defined above implies the
 following principal linkage between model components and observations
-$$\eta(s) \sim Ax(s) + A{\mspace{6mu}\text{Intercept}} + \text{seaDist}.$$$\eta(s)$
-will then be used in the observation-likelihood,
-$$y_{i} \mid \eta\left( s_{i} \right),\theta \sim \Gamma\left( \exp\left( \eta\left( s_{i} \right) \right),c\phi \right).$$
+``` math
+\eta(s) \sim A x(s) + A \text{ Intercept} + \text{seaDist}.
+```
+$`\eta(s)`$ will then be used in the observation-likelihood,
+``` math
+y_i\mid \eta(s_i),\theta \sim \Gamma(\exp(\eta (s_i)), c\phi).
+```
 
 ### Model fitting
 
-We will build a model using the distance to the sea $x_{i}$ as a
+We will build a model using the distance to the sea $`x_i`$ as a
 covariate through an improper CAR(1) model with
-$\beta_{ij} = 1(i \sim j)$, which [`R-INLA`](https://www.r-inla.org)
+$`\beta_{ij}=1(i\sim j)`$, which [`R-INLA`](https://www.r-inla.org)
 calls a random walk of order 1.
 
 ``` r
+
 f.s <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model)
 ```
@@ -363,6 +387,7 @@ To fit the model we proceed as in the standard SPDE approach and we
 simply call [`inla()`](https://rdrr.io/pkg/INLA/man/inla.html).
 
 ``` r
+
 rspde_fit <- inla(f.s,
   family = "Gamma", data = inla.stack.data(stk.dat),
   verbose = FALSE,
@@ -380,11 +405,12 @@ hyper-parameters (i.e. dispersion in the gamma likelihood, the precision
 of the RW1, and the parameters of the spatial field):
 
 ``` r
+
 summary(rspde_fit)
 ```
 
     ## Time used:
-    ##     Pre = 0.354, Running = 7.13, Post = 0.0325, Total = 7.51 
+    ##     Pre = 0.351, Running = 6.07, Post = 0.0327, Total = 6.46 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
     ## Intercept 1.942 0.042       1.86    1.942      2.023 1.942   0
@@ -395,41 +421,49 @@ summary(rspde_fit)
     ##    field CGeneric
     ## 
     ## Model hyperparameters:
-    ##                                                    mean      sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.433    1.04     12.487
-    ## Precision for seaDist                          7642.051 4454.28   2335.558
-    ## Theta1 for field                                 -1.638    4.40    -10.581
-    ## Theta2 for field                                  1.573    1.06     -0.457
-    ## Theta3 for field                                  0.217    3.79     -6.986
+    ##                                                   mean       sd 0.025quant
+    ## Precision-parameter for the Gamma observations   14.43    1.038     12.488
+    ## Precision for seaDist                          7426.19 4083.297   2389.839
+    ## Theta1 for field                                 -3.65    2.833    -10.274
+    ## Theta2 for field                                  1.90    0.616      0.954
+    ## Theta3 for field                                  1.95    2.456     -1.583
     ##                                                0.5quant 0.975quant     mode
-    ## Precision-parameter for the Gamma observations   14.399      16.58   14.337
-    ## Precision for seaDist                          6588.575   19197.81 4930.428
-    ## Theta1 for field                                 -1.542       6.72   -1.114
-    ## Theta2 for field                                  1.551       3.73    1.454
-    ## Theta3 for field                                  0.134       7.92   -0.234
+    ## Precision-parameter for the Gamma observations    14.40   1.66e+01   14.335
+    ## Precision for seaDist                           6501.25   1.79e+04 4995.038
+    ## Theta1 for field                                  -3.25   4.13e-01   -1.218
+    ## Theta2 for field                                   1.83   3.31e+00    1.457
+    ## Theta3 for field                                   1.61   7.68e+00   -0.146
     ## 
-    ## Marginal log-Likelihood:  -1254.15 
+    ## Marginal log-Likelihood:  -1254.93 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
 
-Let $\theta_{1} = \text{Theta1}$, $\theta_{2} = \text{Theta2}$ and
-$\theta_{3} = \text{Theta3}$. In terms of the SPDE
-$$\left( \kappa^{2}I - \Delta \right)^{\alpha/2}(\tau u) = \mathcal{W},$$
-where $\alpha = \nu + d/2$, we have that
-$$\tau = \exp\left( \theta_{1} \right),\quad\kappa = \exp\left( \theta_{2} \right),$$
+Let $`\theta_1 = \textrm{Theta1}`$, $`\theta_2=\textrm{Theta2}`$ and
+$`\theta_3=\textrm{Theta3}`$. In terms of the SPDE
+``` math
+(\kappa^2 I - \Delta)^{\alpha/2}(\tau u) = \mathcal{W},
+```
+where $`\alpha = \nu + d/2`$, we have that
+``` math
+\tau = \exp(\theta_1),\quad \kappa = \exp(\theta_2), 
+```
 and by default
-$$\nu = 2(\frac{\exp\left( \theta_{3} \right)}{1 + \exp\left( \theta_{3} \right)}).$$
-The number 2 comes from the upper bound for $\nu$, which will be
+``` math
+\nu = 2\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).
+```
+The number 2 comes from the upper bound for $`\nu`$, which will be
 discussed later in this vignette.
 
 In general, we have
-$$\nu = \nu_{UB}(\frac{\exp\left( \theta_{3} \right)}{1 + \exp\left( \theta_{3} \right)}),$$
-where $\nu_{UB}$ is the value of the upper bound for the smoothness
-parameter $\nu$.
+``` math
+\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big),
+```
+where $`\nu_{UB}`$ is the value of the upper bound for the smoothness
+parameter $`\nu`$.
 
-Another choice for prior for $\nu$ is a truncated lognormal distribution
-and will also be discussed later in this vignette.
+Another choice for prior for $`\nu`$ is a truncated lognormal
+distribution and will also be discussed later in this vignette.
 
 ### `rSPDE`-`INLA` results
 
@@ -438,6 +472,7 @@ by using the function
 [`rspde.result()`](https://davidbolin.github.io/rSPDE/reference/rspde.result.md):
 
 ``` r
+
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 ```
 
@@ -446,13 +481,14 @@ result_fit <- rspde.result(rspde_fit, "field", rspde_model)
     ## and refitting the model.
 
 ``` r
+
 summary(result_fit)
 ```
 
-    ##            mean          sd  0.025quant 0.5quant 0.975quant        mode
-    ## tau   261.11900 3768.810000 2.77793e-05 0.219929   792.9430 4.97265e-08
-    ## kappa   8.58166   12.336400 6.43400e-01 4.687760    41.0672 1.59741e+00
-    ## nu      1.02572    0.785424 1.95346e-03 1.055250     1.9992 1.99999e+00
+    ##           mean       sd  0.025quant  0.5quant 0.975quant        mode
+    ## tau   0.226739 0.465705 3.74605e-05 0.0424865    1.51626 1.61515e-07
+    ## kappa 8.288840 6.837280 2.61809e+00 6.1169300   27.00520 3.81648e+00
+    ## nu    1.449940 0.536394 3.40429e-01 1.6420200    1.99900 1.99998e+00
 
 As mentioned above, when we create the model object with
 [`rspde.matern()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.md),
@@ -471,6 +507,7 @@ using the
 function.
 
 ``` r
+
 posterior_df_fit <- gg_df(result_fit)
 
 ggplot(posterior_df_fit) + geom_line(aes(x = x, y = y)) + 
@@ -490,6 +527,7 @@ We can also obtain the results for the `matern` parameterization by
 setting the `parameterization` argument to `matern`:
 
 ``` r
+
 result_fit_matern <- rspde.result(rspde_fit, "field", 
                       rspde_model, parameterization = "matern")
 ```
@@ -499,18 +537,20 @@ result_fit_matern <- rspde.result(rspde_fit, "field",
     ## consider increasing nu.upper.bound, and refitting the model.
 
 ``` r
+
 summary(result_fit_matern)
 ```
 
-    ##             mean       sd  0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 0.985765 4.625630 -0.08359720 0.311707   7.446780 0.135232
-    ## range   0.443224 0.225310  0.08344340 0.422630   0.946426 0.405502
-    ## nu      1.025720 0.785424  0.00195346 1.055250   1.999200 1.999990
+    ##             mean       sd 0.025quant 0.5quant 0.975quant     mode
+    ## std.dev 0.874126 3.860320  0.0558872 0.367238   4.967060 0.276214
+    ## range   0.474152 0.230422  0.0910999 0.460127   0.982779 0.437949
+    ## nu      1.449940 0.536394  0.3404290 1.642020   1.999000 1.999980
 
 In a similar manner, we can obtain posterior plots on the `matern`
 parameterization:
 
 ``` r
+
 posterior_df_fit_matern <- gg_df(result_fit_matern)
 
 ggplot(posterior_df_fit_matern) + geom_line(aes(x = x, y = y)) + 
@@ -535,6 +575,7 @@ same fashion as we would in [`R-INLA`](https://www.r-inla.org)’s
 standard SPDE implementation:
 
 ``` r
+
 nxy <- c(150, 100)
 projgrid <- rspde.mesh.projector(prmesh,
   xlim = range(PRborder[, 1]),
@@ -548,12 +589,14 @@ cells that are outside the region of interest so that we do not plot the
 estimates there.
 
 ``` r
+
 xy.in <- inout(projgrid$lattice$loc, cbind(PRborder[, 1], PRborder[, 2]))
 ```
 
 Let us plot the locations that we will do prediction:
 
 ``` r
+
 coord.prd <- projgrid$lattice$loc[xy.in, ]
 plot(coord.prd, type = "p", cex = 0.1)
 lines(PRborder)
@@ -565,16 +608,17 @@ points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
 Now, there are a few ways we could calculate the kriging prediction. The
 simplest way is to evaluate the mean of all individual random effects in
 the linear predictor and then to calculate the exponential of their sum
-(since $\mu(s) = \exp\left( \eta(s) \right)$ ). A more accurate way is
-to calculate the prediction jointly with the estimation, which
-unfortunately is quite computationally expensive if we do prediction on
-a fine grid. However, in this illustration, we proceed with this option
-to show how one can do it.
+(since $`\mu(s)=\exp(\eta(s))`$ ). A more accurate way is to calculate
+the prediction jointly with the estimation, which unfortunately is quite
+computationally expensive if we do prediction on a fine grid. However,
+in this illustration, we proceed with this option to show how one can do
+it.
 
 To this end, first, link the prediction coordinates to the mesh nodes
-through an $A$ matrix
+through an $`A`$ matrix
 
 ``` r
+
 A.prd <- projgrid$proj$A[xy.in, ]
 ```
 
@@ -582,6 +626,7 @@ Since we are using distance to the sea as a covariate, we also have to
 calculate this covariate for the prediction locations.
 
 ``` r
+
 seaDist.prd <- apply(spDists(coord.prd,
   PRborder[1034:1078, ],
   longlat = TRUE
@@ -593,6 +638,7 @@ prediction locations, so we set `y= NA`. We then join this stack with
 the estimation stack.
 
 ``` r
+
 ef.prd <- list(
   c(mesh.index),
   list(
@@ -620,6 +666,7 @@ hyper-parameters) through the command
 `control.inla = list(int.strategy = "eb")`, i.e. empirical Bayes.
 
 ``` r
+
 rspde_fitprd <- inla(f.s,
   family = "Gamma",
   data = inla.stack.data(stk.all),
@@ -640,6 +687,7 @@ We then extract the indices to the prediction nodes and then extract the
 mean and the standard deviation of the response:
 
 ``` r
+
 id.prd <- inla.stack.index(stk.all, "prd")$data
 m.prd <- rspde_fitprd$summary.fitted.values$mean[id.prd]
 sd.prd <- rspde_fitprd$summary.fitted.values$sd[id.prd]
@@ -648,6 +696,7 @@ sd.prd <- rspde_fitprd$summary.fitted.values$sd[id.prd]
 Finally, we plot the results:
 
 ``` r
+
 # Plot the predictions
 pred_df <- data.frame(x1 = coord.prd[,1],
                       x2 = coord.prd[,2],
@@ -664,6 +713,7 @@ ggplot(pred_df, aes(x = x1, y = x2, fill = mean)) +
 Then, the std. deviations:
 
 ``` r
+
 ggplot(pred_df, aes(x = x1, y = x2, fill = sd)) +
   geom_raster() + scale_fill_viridis()
 ```
@@ -685,25 +735,28 @@ along with its methods (for instance, the
 ### Simulating the data
 
 Let us consider a simple Gaussian linear model with 30 independent
-replicates of a latent spatial field $x(\mathbf{s})$, observed at the
-same $m$ locations, $\{\mathbf{s}_{1},\ldots,\mathbf{s}_{m}\}$, for each
-replicate. For each $i = 1,\ldots,m,$ we have
+replicates of a latent spatial field $`x(\mathbf{s})`$, observed at the
+same $`m`$ locations, $`\{\mathbf{s}_1 , \ldots , \mathbf{s}_m \}`$, for
+each replicate. For each $`i = 1,\ldots,m,`$ we have
 
-$$\begin{aligned}
-y_{i} & {= x_{1}\left( \mathbf{s}_{i} \right) + \varepsilon_{i},} \\
-\vdots & {= \vdots} \\
-y_{i + 29m} & {= x_{30}\left( \mathbf{s}_{i} \right) + \varepsilon_{i + 29m},}
-\end{aligned}$$
+``` math
+\begin{align} 
+y_i &= x_1(\mathbf{s}_i)+\varepsilon_i,\\
+\vdots &= \vdots\\
 
-where $\varepsilon_{1},\ldots,\varepsilon_{30m}$ are iid normally
+y_{i+29m} &= x_{30}(\mathbf{s}_i) + \varepsilon_{i+29m},
+\end{align}
+```
+
+where $`\varepsilon_1,\ldots,\varepsilon_{30m}`$ are iid normally
 distributed with mean 0 and standard deviation 0.1.
 
-We use the basis function representation of $x( \cdot )$ to define the
-$A$ matrix linking the point locations to the mesh. We also need to
+We use the basis function representation of $`x(\cdot)`$ to define the
+$`A`$ matrix linking the point locations to the mesh. We also need to
 account for the fact that we have 30 replicates at the same locations.
-To this end, the $A$ matrix we need can be generated by
+To this end, the $`A`$ matrix we need can be generated by
 [`spde.make.A()`](https://davidbolin.github.io/rSPDE/reference/spde.make.A.md)
-function. The reason being that we are sampling $x( \cdot )$ directly
+function. The reason being that we are sampling $`x(\cdot)`$ directly
 and not the latent vector described in the introduction of the [Rational
 approximation with the `rSPDE`
 package](https://davidbolin.github.io/rSPDE/articles/rspde_cov.md)
@@ -712,6 +765,7 @@ vignette.
 We begin by creating the mesh:
 
 ``` r
+
 m <- 200
 loc_2d_mesh <- matrix(runif(m * 2), m, 2)
 mesh_2d <- fm_mesh_2d(
@@ -726,7 +780,7 @@ points(loc_2d_mesh[, 1], loc_2d_mesh[, 2])
 
 ![](rspde_inla_files/figure-html/unnamed-chunk-2-1.png)
 
-We then compute the $A$ matrix, which is needed for simulation, and
+We then compute the $`A`$ matrix, which is needed for simulation, and
 connects the observation locations to the mesh. To this end we will use
 the
 [`spde.make.A()`](https://davidbolin.github.io/rSPDE/reference/spde.make.A.md)
@@ -738,6 +792,7 @@ and
 from the `fmesher` package.
 
 ``` r
+
 n.rep <- 30
 A <- spde.make.A(
   mesh = mesh_2d,
@@ -747,20 +802,21 @@ A <- spde.make.A(
 )
 ```
 
-Notice that for the simulated data, we should use the $A$ matrix from
+Notice that for the simulated data, we should use the $`A`$ matrix from
 [`spde.make.A()`](https://davidbolin.github.io/rSPDE/reference/spde.make.A.md)
 function instead of the
 [`rspde.make.A()`](https://davidbolin.github.io/rSPDE/reference/rspde.make.A.md)
 function.
 
 We will now simulate a latent process with standard deviation
-$\sigma = 1$ and range $0.1$. We will use $\nu = 0.5$ so that the model
-has an exponential covariance function. To this end we create a model
-object with the
+$`\sigma=1`$ and range $`0.1`$. We will use $`\nu=0.5`$ so that the
+model has an exponential covariance function. To this end we create a
+model object with the
 [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md)
 function:
 
 ``` r
+
 nu <- 0.5
 sigma <- 1
 range <- 0.1
@@ -784,10 +840,11 @@ vignette.
 
 To simulate the latent process all we need to do is to use the
 [`simulate()`](https://rdrr.io/r/stats/simulate.html) method on the
-`operator_information` object. We then obtain the simulated data $y$ by
-connecting with the $A$ matrix and adding the gaussian noise.
+`operator_information` object. We then obtain the simulated data $`y`$
+by connecting with the $`A`$ matrix and adding the gaussian noise.
 
 ``` r
+
 set.seed(1)
 u <- simulate(operator_information, nsim = n.rep)
 y <- as.vector(A %*% as.vector(u)) +
@@ -798,6 +855,7 @@ The first replicate of the simulated random field as well as the
 observation locations are shown in the following figure.
 
 ``` r
+
 proj <- fm_evaluator(mesh_2d, dims = c(100, 100))
 
 df_field <- data.frame(x = proj$lattice$loc[,1],
@@ -829,7 +887,7 @@ ggplot(df_plot) + aes(x = x, y = y, fill = field) +
 
 Let us then use the rational SPDE approach to fit the data.
 
-We begin by creating the $A$ matrix and index with replicates, and the
+We begin by creating the $`A`$ matrix and index with replicates, and the
 `inla.stack` object. It is important to notice that since we have
 replicates we should provide the `index` and `repl` arguments for
 [`rspde.make.A()`](https://davidbolin.github.io/rSPDE/reference/rspde.make.A.md)
@@ -841,6 +899,7 @@ function. They behave identically as in their
 and `inla.make.index()`.
 
 ``` r
+
 Abar.rep <- rspde.make.A(
   mesh = mesh_2d, loc = loc_2d_mesh, index = rep(1:m, times = n.rep),
   repl = rep(1:n.rep, each = m)
@@ -860,6 +919,7 @@ st.dat.rep <- inla.stack(
 We now create the model object.
 
 ``` r
+
 rspde_model.rep <- rspde.matern(mesh = mesh_2d, parameterization = "spde") 
 ```
 
@@ -869,6 +929,7 @@ forget the `replicate` argument when building the formula as
 produce warning and might fit some meaningless model.
 
 ``` r
+
 f.rep <-
   y ~ -1 + f(field,
     model = rspde_model.rep,
@@ -887,11 +948,12 @@ rspde_fit.rep <-
 We can get the summary:
 
 ``` r
+
 summary(rspde_fit.rep)
 ```
 
     ## Time used:
-    ##     Pre = 0.15, Running = 50.9, Post = 0.826, Total = 51.9 
+    ##     Pre = 0.159, Running = 51.5, Post = 0.592, Total = 52.3 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -899,7 +961,7 @@ summary(rspde_fit.rep)
     ## Model hyperparameters:
     ##                                          mean    sd 0.025quant 0.5quant
     ## Precision for the Gaussian observations 98.14 4.873      89.24    97.90
-    ## Theta1 for field                        -8.04 4.848     -19.48    -7.28
+    ## Theta1 for field                        -8.04 4.849     -19.48    -7.28
     ## Theta2 for field                         3.94 0.788       2.86     3.82
     ## Theta3 for field                         2.06 2.701      -1.66     1.64
     ##                                         0.975quant   mode
@@ -916,6 +978,7 @@ summary(rspde_fit.rep)
 and the summary in the user’s scale:
 
 ``` r
+
 result_fit_rep <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 ```
 
@@ -924,15 +987,17 @@ result_fit_rep <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
     ## nu.upper.bound, and refitting the model.
 
 ``` r
+
 summary(result_fit_rep)
 ```
 
-    ##             mean        sd  0.025quant    0.5quant 0.975quant        mode
-    ## tau    0.0307527  0.099606 2.86812e-13 8.04674e-04   0.270114 2.86812e-13
-    ## kappa 74.7338000 95.273400 1.72546e+01 4.43858e+01 322.951000 2.20010e+01
-    ## nu     1.4358500  0.562548 3.13919e-01 1.65071e+00   1.999520 1.99999e+00
+    ##             mean         sd  0.025quant    0.5quant 0.975quant        mode
+    ## tau    0.0307474  0.0995941 2.85808e-13 8.03131e-04   0.269453 2.85808e-13
+    ## kappa 74.7534000 95.3210000 1.72549e+01 4.43913e+01 323.084000 2.20017e+01
+    ## nu     1.4359100  0.5625410 3.13940e-01 1.65082e+00   1.999520 1.99999e+00
 
 ``` r
+
 result_df <- data.frame(
   parameter = c("tau", "kappa", "nu"),
   true = c(tau, kappa, nu),
@@ -950,17 +1015,17 @@ result_df <- data.frame(
 print(result_df)
 ```
 
-    ##   parameter        true       mean         mode
-    ## 1       tau  0.08920621  0.0307527 2.868123e-13
-    ## 2     kappa 20.00000000 74.7337827 2.200101e+01
-    ## 3        nu  0.50000000  1.4358517 1.999988e+00
+    ##   parameter        true        mean         mode
+    ## 1       tau  0.08920621  0.03074738 2.858078e-13
+    ## 2     kappa 20.00000000 74.75342664 2.200169e+01
+    ## 3        nu  0.50000000  1.43591241 1.999988e+00
 
 ## An example with a non-stationary model
 
-It is also possible to consider models in which $\sigma$ (std.
-deviation) and $\rho$ (range parameter) are non-stationary. One can also
-use the parameterization in terms of the SPDE parameters $\kappa$ and
-$\tau$.
+It is also possible to consider models in which $`\sigma`$ (std.
+deviation) and $`\rho`$ (range parameter) are non-stationary. One can
+also use the parameterization in terms of the SPDE parameters $`\kappa`$
+and $`\tau`$.
 
 An example of such a model is given in the vignette [inlabru
 implementation of the rational SPDE
@@ -980,14 +1045,14 @@ In each case we will provide an illustrative example.
 When we fit a
 [`rspde.matern()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.md)
 model we need to provide an upper bound for the smoothness parameter
-$\nu$. The reason for that is that the sparsity of the precision matrix
-should be kept fixed during [`R-INLA`](https://www.r-inla.org)’s
-estimation and the higher the value of $\nu$ the denser the precision
+$`\nu`$. The reason for that is that the sparsity of the precision
+matrix should be kept fixed during [`R-INLA`](https://www.r-inla.org)’s
+estimation and the higher the value of $`\nu`$ the denser the precision
 matrix gets.
 
-This means that the higher the value of $\nu$, the higher the
+This means that the higher the value of $`\nu`$, the higher the
 computational cost to fit the model. Therefore, ideally, want to choose
-an upper bound for $\nu$ as small as possible.
+an upper bound for $`\nu`$ as small as possible.
 
 To change the value of the upper bound for the smoothness parameter, we
 must change the argument `nu.upper.bound`. The default value for
@@ -998,11 +1063,11 @@ It is clear from the discussion above that the smaller the value of
 `nu.upper.bound` the faster the estimation procedure will be.
 
 However, if we choose a value of `nu.upper.bound` which is too low, the
-“correct” value of $\nu$ might not belong to the interval
-$\left( 0,\nu_{UB} \right)$, where $\nu_{UB}$ is the value of
-`nu.upper.bound`. Hence, one might be forced to increase
-`nu.upper.bound` and estimate again, which, obviously will increase the
-computational cost as we will need to do more than one estimation.
+“correct” value of $`\nu`$ might not belong to the interval
+$`(0,\nu_{UB})`$, where $`\nu_{UB}`$ is the value of `nu.upper.bound`.
+Hence, one might be forced to increase `nu.upper.bound` and estimate
+again, which, obviously will increase the computational cost as we will
+need to do more than one estimation.
 
 Let us illustrate by considering the same model we considered above for
 the precipitation in Paraná region in Brazil and consider
@@ -1014,14 +1079,16 @@ We simply use the function
 with the argument `nu.upper.bound` set to 4:
 
 ``` r
+
 rspde_model_2 <- rspde.matern(mesh = prmesh, nu.upper.bound = 4)
 ```
 
-Since we are considering the default `rspde.order`, the $A$ matrix and
+Since we are considering the default `rspde.order`, the $`A`$ matrix and
 the mesh index objects are the same as the previous ones. Let us then
 update the formula and fit the model:
 
 ``` r
+
 f.s.2 <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model_2)
 
@@ -1037,14 +1104,15 @@ rspde_fit_2 <- inla(f.s.2,
 Let us see the summary of the fit:
 
 ``` r
+
 summary(rspde_fit_2)
 ```
 
     ## Time used:
-    ##     Pre = 0.156, Running = 16.1, Post = 0.027, Total = 16.2 
+    ##     Pre = 0.153, Running = 13.9, Post = 0.028, Total = 14.1 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-    ## Intercept 1.941 0.042      1.859    1.941      2.023 1.941   0
+    ## Intercept 1.942 0.042       1.86    1.942      2.023 1.942   0
     ## 
     ## Random effects:
     ##   Name     Model
@@ -1052,20 +1120,20 @@ summary(rspde_fit_2)
     ##    field CGeneric
     ## 
     ## Model hyperparameters:
-    ##                                                    mean       sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.488    1.034     12.520
-    ## Precision for seaDist                          7662.594 4358.690   2338.969
-    ## Theta1 for field                                 -0.127    0.800     -1.590
-    ## Theta2 for field                                  1.183    0.394      0.376
-    ## Theta3 for field                                 -2.008    0.711     -3.495
+    ##                                                    mean      sd 0.025quant
+    ## Precision-parameter for the Gamma observations   14.465    1.04     12.514
+    ## Precision for seaDist                          7665.368 4446.73   2474.309
+    ## Theta1 for field                                 -0.381    3.02     -6.297
+    ## Theta2 for field                                  1.267    1.08     -0.866
+    ## Theta3 for field                                 -1.809    2.53     -6.828
     ##                                                0.5quant 0.975quant     mode
-    ## Precision-parameter for the Gamma observations   14.465     16.587   14.449
-    ## Precision for seaDist                          6662.688  18880.482 5032.361
-    ## Theta1 for field                                 -0.161      1.549   -0.322
-    ## Theta2 for field                                  1.194      1.927    1.241
-    ## Theta3 for field                                 -1.979     -0.702   -1.842
+    ## Precision-parameter for the Gamma observations   14.429      16.62   14.360
+    ## Precision for seaDist                          6591.334   19284.97 4954.849
+    ## Theta1 for field                                 -0.393       5.61   -0.443
+    ## Theta2 for field                                  1.272       3.38    1.290
+    ## Theta3 for field                                 -1.799       3.15   -1.757
     ## 
-    ## Marginal log-Likelihood:  -1255.78 
+    ## Marginal log-Likelihood:  -1254.51 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -1074,36 +1142,39 @@ Let us compare with the cost from the previous fit, with the default
 value of `nu.upper.bound` of 2:
 
 ``` r
+
 # nu.upper.bound = 2
 rspde_fit$cpu.used
 ```
 
     ##        Pre    Running       Post      Total 
-    ## 0.35396576 7.12747693 0.03249931 7.51394200
+    ## 0.35093570 6.07424474 0.03267884 6.45785928
 
 ``` r
+
 # nu.upper.bound = 4
 rspde_fit_2$cpu.used
 ```
 
     ##         Pre     Running        Post       Total 
-    ##  0.15575671 16.05102754  0.02702427 16.23380852
+    ##  0.15279484 13.89292383  0.02802753 14.07374620
 
 We can see that the fit for `nu.upper.bound` equal to 2 was considerably
 faster.
 
 Finally, let us get the result results for the field and see the
-estimate of $\nu$:
+estimate of $`\nu`$:
 
 ``` r
+
 result_fit_2 <- rspde.result(rspde_fit_2, "field", rspde_model_2)
 summary(result_fit_2)
 ```
 
-    ##          mean       sd 0.025quant 0.5quant 0.975quant     mode
-    ## tau   1.23069 1.249470   0.206294 0.841747    4.62920 0.459008
-    ## kappa 3.52130 1.383700   1.468590 3.310260    6.82711 2.877760
-    ## nu    0.54885 0.314508   0.119572 0.489764    1.31612 0.335868
+    ##           mean        sd 0.025quant 0.5quant 0.975quant        mode
+    ## tau   43.47970 389.12200 0.00193624 0.673954  260.46800 6.31169e-05
+    ## kappa  6.24250   8.41214 0.42870200 3.570160   28.74660 1.09213e+00
+    ## nu     1.11416   1.21060 0.00452734 0.569012    3.82894 1.05734e-03
 
 ### Changing the order of the rational approximation
 
@@ -1123,26 +1194,29 @@ comparison with the Matérn covariance.
 Let us fit the above model with the covariance-based rational
 approximation of order `3`. Since we are changing the order of the
 rational approximation, that is, we are changing the `rspde.order`
-argument, we need to recompute the $A$ matrix and the mesh index.
+argument, we need to recompute the $`A`$ matrix and the mesh index.
 Therefore, we proceed as follows:
 
 - We build a new model:
 
 ``` r
+
 rspde_model_order_3 <- rspde.matern(mesh = prmesh, 
   rspde.order = 3
 )
 ```
 
-- We create a new $A$ matrix:
+- We create a new $`A`$ matrix:
 
 ``` r
+
 Abar_3 <- rspde.make.A(mesh = prmesh, loc = coords, rspde.order = 3)
 ```
 
 - We create a new index:
 
 ``` r
+
 mesh.index.3 <- rspde.make.index(
   name = "field", mesh = prmesh,
   rspde.order = 3
@@ -1152,6 +1226,7 @@ mesh.index.3 <- rspde.make.index(
 Now the remaining steps are the same as before:
 
 ``` r
+
 stk.dat.3 <- inla.stack(
   data = list(y = Y), A = list(Abar_3, 1), tag = "est",
   effects = list(
@@ -1182,11 +1257,12 @@ rspde_fit_order_3 <- inla(f.s.3,
 Let us see the summary:
 
 ``` r
+
 summary(rspde_fit_order_3)
 ```
 
     ## Time used:
-    ##     Pre = 0.16, Running = 18.3, Post = 0.0348, Total = 18.5 
+    ##     Pre = 0.161, Running = 17.6, Post = 0.0361, Total = 17.8 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
     ## Intercept 1.941 0.041      1.861    1.941      2.022 1.941   0
@@ -1198,19 +1274,19 @@ summary(rspde_fit_order_3)
     ## 
     ## Model hyperparameters:
     ##                                                   mean       sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.46    1.040     12.516
-    ## Precision for seaDist                          7496.03 4272.763   2338.809
-    ## Theta1 for field                                 -4.02    3.071    -11.181
-    ## Theta2 for field                                  2.04    0.707      0.966
-    ## Theta3 for field                                  2.12    2.516     -1.527
+    ## Precision-parameter for the Gamma observations   14.46    1.038     12.516
+    ## Precision for seaDist                          7478.31 4156.924   2424.228
+    ## Theta1 for field                                 -3.09    2.333     -8.468
+    ## Theta2 for field                                  1.86    0.573      0.943
+    ## Theta3 for field                                  1.35    1.912     -1.542
     ##                                                0.5quant 0.975quant     mode
-    ## Precision-parameter for the Gamma observations    14.43   1.66e+01   14.371
-    ## Precision for seaDist                           6501.14   1.85e+04 4915.153
-    ## Theta1 for field                                  -3.59   4.18e-01   -1.411
-    ## Theta2 for field                                   1.96   3.67e+00    1.510
-    ## Theta3 for field                                   1.77   7.98e+00   -0.005
+    ## Precision-parameter for the Gamma observations    14.43   1.66e+01   14.364
+    ## Precision for seaDist                           6519.12   1.82e+04 4988.244
+    ## Theta1 for field                                  -2.79   4.32e-01   -1.281
+    ## Theta2 for field                                   1.80   3.15e+00    1.507
+    ## Theta3 for field                                   1.11   5.75e+00   -0.118
     ## 
-    ## Marginal log-Likelihood:  -1254.84 
+    ## Marginal log-Likelihood:  -1255.05 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -1220,20 +1296,22 @@ significantly increased. Let us compare the cost of having
 `rspde.order=3` with the cost of having `rspde.order=1`:
 
 ``` r
+
 # order = 1
 rspde_fit$cpu.used
 ```
 
     ##        Pre    Running       Post      Total 
-    ## 0.35396576 7.12747693 0.03249931 7.51394200
+    ## 0.35093570 6.07424474 0.03267884 6.45785928
 
 ``` r
+
 # order = 3
 rspde_fit_order_3$cpu.used
 ```
 
     ##         Pre     Running        Post       Total 
-    ##  0.15969110 18.26180124  0.03477693 18.45626926
+    ##  0.16117358 17.56810999  0.03610849 17.76539207
 
 One can check the order of the rational approximation by using the
 [`rational.order()`](https://davidbolin.github.io/rSPDE/reference/rational.order.md)
@@ -1248,12 +1326,14 @@ object, to the `A` matrix and to the `index` objects.
 Here to check the models:
 
 ``` r
+
 rational.order(rspde_model)
 ```
 
     ## [1] 1
 
 ``` r
+
 rational.order(rspde_model_order_3)
 ```
 
@@ -1262,12 +1342,14 @@ rational.order(rspde_model_order_3)
 Here to check the `A` matrices:
 
 ``` r
+
 rational.order(Abar)
 ```
 
     ## [1] 1
 
 ``` r
+
 rational.order(Abar_3)
 ```
 
@@ -1276,12 +1358,14 @@ rational.order(Abar_3)
 Here to check the indexes:
 
 ``` r
+
 rational.order(mesh.index)
 ```
 
     ## [1] 1
 
 ``` r
+
 rational.order(mesh.index.3)
 ```
 
@@ -1290,6 +1374,7 @@ rational.order(mesh.index.3)
 Let us now change the order of the `rspde_model` object to be 2:
 
 ``` r
+
 rational.order(rspde_model) <- 2
 rational.order(Abar) <- 2
 rational.order(mesh.index) <- 2
@@ -1298,6 +1383,7 @@ rational.order(mesh.index) <- 2
 Let us fit this new model:
 
 ``` r
+
  f.s.2 <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model)
 
@@ -1328,14 +1414,15 @@ rspde_fit_order_2 <- inla(f.s.2,
 Here is the summary:
 
 ``` r
+
 summary(rspde_fit_order_2)
 ```
 
     ## Time used:
-    ##     Pre = 0.171, Running = 8.79, Post = 0.0304, Total = 8.99 
+    ##     Pre = 0.175, Running = 9.08, Post = 0.032, Total = 9.29 
     ## Fixed effects:
     ##            mean   sd 0.025quant 0.5quant 0.975quant  mode kld
-    ## Intercept 1.942 0.04      1.863    1.942       2.02 1.942   0
+    ## Intercept 1.941 0.04      1.863    1.941       2.02 1.941   0
     ## 
     ## Random effects:
     ##   Name     Model
@@ -1344,86 +1431,90 @@ summary(rspde_fit_order_2)
     ## 
     ## Model hyperparameters:
     ##                                                    mean       sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.477    1.041      12.53
-    ## Precision for seaDist                          7470.303 4349.352    2388.27
-    ## Theta1 for field                                 -2.426    1.525      -5.86
-    ## Theta2 for field                                  1.720    0.396       1.03
-    ## Theta3 for field                                  0.761    1.205      -1.18
+    ## Precision-parameter for the Gamma observations   14.480    1.041     12.531
+    ## Precision for seaDist                          7551.378 4462.341   2363.608
+    ## Theta1 for field                                 -2.483    1.661     -6.220
+    ## Theta2 for field                                  1.755    0.447      0.989
+    ## Theta3 for field                                  0.783    1.283     -1.286
     ##                                                0.5quant 0.975quant     mode
-    ## Precision-parameter for the Gamma observations   14.441   1.66e+01   14.369
-    ## Precision for seaDist                          6420.681   1.88e+04 4818.197
-    ## Theta1 for field                                 -2.266   1.30e-02   -1.491
-    ## Theta2 for field                                  1.695   2.58e+00    1.565
-    ## Theta3 for field                                  0.638   3.47e+00    0.037
+    ## Precision-parameter for the Gamma observations   14.445   1.66e+01   14.380
+    ## Precision for seaDist                          6468.315   1.92e+04 4821.155
+    ## Theta1 for field                                 -2.311   1.84e-01   -1.479
+    ## Theta2 for field                                  1.724   2.73e+00    1.565
+    ## Theta3 for field                                  0.655   3.66e+00    0.023
     ## 
-    ## Marginal log-Likelihood:  -1255.49 
+    ## Marginal log-Likelihood:  -1255.38 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
 
 ### Estimating models with fixed smoothness
 
-We can fix the smoothness, say $\nu$, of the model by providing a
+We can fix the smoothness, say $`\nu`$, of the model by providing a
 non-NULL positive value for `nu`.
 
-When the smoothness, $\nu$, is fixed, we can have two possibilities:
+When the smoothness, $`\nu`$, is fixed, we can have two possibilities:
 
-- $\alpha = \nu + d/2$ is integer;
+- $`\alpha = \nu + d/2`$ is integer;
 
-- $\alpha = \nu + d/2$ is not integer.
+- $`\alpha = \nu + d/2`$ is not integer.
 
-The first case, i.e., when $\alpha$ is integer, has less computational
-cost. Furthermore, the $A$ matrix is different than the $A$ matrix for
-the non-integer $\alpha$.
+The first case, i.e., when $`\alpha`$ is integer, has less computational
+cost. Furthermore, the $`A`$ matrix is different than the $`A`$ matrix
+for the non-integer $`\alpha`$.
 
-The $A$ matrix is the same for all values of $\nu$ such that $\alpha$ is
-integer. So, the $A$ matrix for these cases only need to be computed
-once. The same holds for the `index` obtained from the
+The $`A`$ matrix is the same for all values of $`\nu`$ such that
+$`\alpha`$ is integer. So, the $`A`$ matrix for these cases only need to
+be computed once. The same holds for the `index` obtained from the
 [`rspde.make.index()`](https://davidbolin.github.io/rSPDE/reference/rspde.make.index.md)
 function.
 
-In the second case the $A$ matrix only depends on the order of the
-rational approximation and not on $\nu$. Therefore, if the matrix $A$
-has already been computed for some `rspde.order`, then the $A$ matrix
-will be same for all the values of $\nu$ such that $\alpha$ is
-non-integer for that `rspde.order`. The same holds for the `index`
+In the second case the $`A`$ matrix only depends on the order of the
+rational approximation and not on $`\nu`$. Therefore, if the matrix
+$`A`$ has already been computed for some `rspde.order`, then the $`A`$
+matrix will be same for all the values of $`\nu`$ such that $`\alpha`$
+is non-integer for that `rspde.order`. The same holds for the `index`
 obtained from the
 [`rspde.make.index()`](https://davidbolin.github.io/rSPDE/reference/rspde.make.index.md)
 function.
 
-If $\nu$ is fixed, we have that the parameters returned by
+If $`\nu`$ is fixed, we have that the parameters returned by
 [`R-INLA`](https://www.r-inla.org) are \$\$\kappa =
 \exp(\theta_1)\quad\hbox{and}\quad\tau = \exp(\theta_2).\$\$ We will now
 provide illustrations for both scenarios. It is also noteworthy that
-just as for the case in which we estimate $\nu$, we can also change the
-order of the rational approximation by changing the value of
-`rspde.order`. For both illustrations with fixed $\nu$ below, we will
+just as for the case in which we estimate $`\nu`$, we can also change
+the order of the rational approximation by changing the value of
+`rspde.order`. For both illustrations with fixed $`\nu`$ below, we will
 only consider the order of the rational approximation of 1, that is, the
 default order.
 
-#### Estimating models with fixed smoothness and non-integer $\alpha$
+#### Estimating models with fixed smoothness and non-integer $`\alpha`$
 
 Recall that:
-$$\nu = \nu_{UB}(\frac{\exp\left( \theta_{3} \right)}{1 + \exp\left( \theta_{3} \right)}).$$
-Thus, to illustrate, let us consider a fixed $\nu$ given by the mean of
-$\nu$ obtained from the first model we considered in this vignette,
+``` math
+\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).
+```
+Thus, to illustrate, let us consider a fixed $`\nu`$ given by the mean
+of $`\nu`$ obtained from the first model we considered in this vignette,
 namely, the fit given by `rspde_fit`, which is approximately
-$\nu = 1.21$.
+$`\nu = 1.21`$.
 
-Notice that for this $\nu$, the value of $\alpha$ is non-integer, so we
-can use the $A$ matrix and the index of the first fitted model, which is
-also of order 2.
+Notice that for this $`\nu`$, the value of $`\alpha`$ is non-integer, so
+we can use the $`A`$ matrix and the index of the first fitted model,
+which is also of order 2.
 
 Therefore, all we have to do is build a new model in which we set `nu`
 to `1.21`:
 
 ``` r
+
 rspde_model_fix <- rspde.matern(mesh = prmesh, nu = 1.21)
 ```
 
 Let us now fit the model:
 
 ``` r
+
 f.s.fix <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model_fix)
 
@@ -1439,11 +1530,12 @@ rspde_fix <- inla(f.s.fix,
 Here we have the summary:
 
 ``` r
+
 summary(rspde_fix)
 ```
 
     ## Time used:
-    ##     Pre = 0.16, Running = 4.17, Post = 0.0245, Total = 4.35 
+    ##     Pre = 0.161, Running = 4.19, Post = 0.0258, Total = 4.38 
     ## Fixed effects:
     ##            mean   sd 0.025quant 0.5quant 0.975quant  mode kld
     ## Intercept 1.941 0.04      1.863    1.941       2.02 1.941   0
@@ -1456,12 +1548,12 @@ summary(rspde_fix)
     ## Model hyperparameters:
     ##                                                   mean       sd 0.025quant
     ## Precision-parameter for the Gamma observations   14.44    1.042      12.49
-    ## Precision for seaDist                          7462.30 4212.527    2402.07
+    ## Precision for seaDist                          7462.37 4212.704    2402.01
     ## Theta1 for field                                 -1.89    0.359      -2.60
     ## Theta2 for field                                  1.60    0.268       1.08
     ##                                                0.5quant 0.975quant    mode
     ## Precision-parameter for the Gamma observations    14.41      16.59   14.35
-    ## Precision for seaDist                           6475.94   18384.51 4923.06
+    ## Precision for seaDist                           6475.94   18385.09 4922.99
     ## Theta1 for field                                  -1.88      -1.18   -1.88
     ## Theta2 for field                                   1.60       2.13    1.60
     ## 
@@ -1473,25 +1565,27 @@ summary(rspde_fix)
 Now, the summary in the original scale:
 
 ``` r
+
 result_fix <- rspde.result(rspde_fix, "field", rspde_model_fix)
 summary(result_fix)
 ```
 
     ##           mean        sd 0.025quant 0.5quant 0.975quant     mode
-    ## tau   0.161771 0.0591195  0.0749445 0.152151   0.304638 0.134079
-    ## kappa 5.143220 1.3943800  2.9534300 4.957390   8.396540 4.602990
+    ## tau   0.161771 0.0591202  0.0749437 0.152151    0.30464 0.134079
+    ## kappa 5.143230 1.3944000  2.9534200 4.957390    8.39661 4.603000
 
-#### Estimating models with fixed smoothness and integer $\alpha$
+#### Estimating models with fixed smoothness and integer $`\alpha`$
 
-Since we are in dimension $d = 2$, and $\nu > 0$, the smallest value of
-$\nu$ that makes $\alpha = \nu + 1$ an integer is $\nu = 1$. This value
-is also close to the estimated mean of the first model we fitted and
-enclosed by the posterior marginal density of $\nu$ for the first fit.
-Therefore, let us fit the model with $\nu = 1$.
+Since we are in dimension $`d=2`$, and $`\nu>0`$, the smallest value of
+$`\nu`$ that makes $`\alpha = \nu + 1`$ an integer is $`\nu=1`$. This
+value is also close to the estimated mean of the first model we fitted
+and enclosed by the posterior marginal density of $`\nu`$ for the first
+fit. Therefore, let us fit the model with $`\nu=1`$.
 
-To this end we need to compute a new $A$ matrix:
+To this end we need to compute a new $`A`$ matrix:
 
 ``` r
+
 Abar.int <- rspde.make.A(
   mesh = prmesh, loc = coords,
   nu = 1
@@ -1501,6 +1595,7 @@ Abar.int <- rspde.make.A(
 a new index:
 
 ``` r
+
 mesh.index.int <- rspde.make.index(
   name = "field", mesh = prmesh,
   nu = 1
@@ -1510,6 +1605,7 @@ mesh.index.int <- rspde.make.index(
 create a new model (remember to set `nu=1`):
 
 ``` r
+
 rspde_model_fix_int1 <- rspde.matern(mesh = prmesh,
   nu = 1)
 ```
@@ -1517,6 +1613,7 @@ rspde_model_fix_int1 <- rspde.matern(mesh = prmesh,
 The remaining is standard:
 
 ``` r
+
 stk.dat.int <- inla.stack(
   data = list(y = Y), A = list(Abar.int, 1), tag = "est",
   effects = list(
@@ -1550,11 +1647,12 @@ rspde_fix_int_1 <- inla(f.s.fix.int.1,
 Let us check the summary:
 
 ``` r
+
 summary(rspde_fix_int_1)
 ```
 
     ## Time used:
-    ##     Pre = 0.157, Running = 1.06, Post = 0.0219, Total = 1.24 
+    ##     Pre = 0.154, Running = 1.06, Post = 0.0227, Total = 1.24 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
     ## Intercept 1.942 0.041       1.86    1.942      2.023 1.942   0
@@ -1567,12 +1665,12 @@ summary(rspde_fix_int_1)
     ## Model hyperparameters:
     ##                                                   mean       sd 0.025quant
     ## Precision-parameter for the Gamma observations   14.43    1.041     12.488
-    ## Precision for seaDist                          7625.08 4461.087   2402.471
+    ## Precision for seaDist                          7626.61 4464.922   2401.137
     ## Theta1 for field                                 -1.40    0.327     -2.052
     ## Theta2 for field                                  1.52    0.292      0.951
     ##                                                0.5quant 0.975quant    mode
     ## Precision-parameter for the Gamma observations    14.39     16.583   14.32
-    ## Precision for seaDist                           6550.09  19267.496 4903.15
+    ## Precision for seaDist                           6550.32  19279.730 4901.86
     ## Theta1 for field                                  -1.40     -0.765   -1.39
     ## Theta2 for field                                   1.52      2.100    1.51
     ## 
@@ -1584,186 +1682,224 @@ summary(rspde_fix_int_1)
 and check the summary in the user’s scale:
 
 ``` r
+
 rspde_result_int <- rspde.result(rspde_fix_int_1, "field", rspde_model_fix_int1)
 summary(rspde_result_int)
 ```
 
     ##           mean        sd 0.025quant 0.5quant 0.975quant     mode
-    ## tau   0.259926 0.0857248   0.129293 0.247521   0.462892 0.223489
-    ## kappa 4.764410 1.4170600   2.600620 4.554940   8.124810 4.150660
+    ## tau   0.259915 0.0857188    0.12928 0.247517   0.462854 0.223483
+    ## kappa 4.764640 1.4172000    2.60085 4.555070   8.125610 4.150780
 
 ### Changing the priors
 
 We begin by recalling that the fitted `rSPDE` model in
 [`R-INLA`](https://www.r-inla.org) contains the parameters
-$\text{Theta1}$, $\text{Theta2}$ and $\text{Theta3}$. Let, again,
-$\theta_{1} = \text{Theta1}$, $\theta_{2} = \text{Theta2}$ and
-$\theta_{3} = \text{Theta3}$. In terms of the SPDE
-$$\left( \kappa^{2}I - \Delta \right)^{\alpha/2}(\tau u) = \mathcal{W},$$
-where $\alpha = \nu + d/2$.
+$`\textrm{Theta1}`$, $`\textrm{Theta2}`$ and $`\textrm{Theta3}`$. Let,
+again, $`\theta_1 = \textrm{Theta1}`$, $`\theta_2=\textrm{Theta2}`$ and
+$`\theta_3=\textrm{Theta3}`$. In terms of the SPDE
+``` math
+(\kappa^2 I - \Delta)^{\alpha/2}(\tau u) = \mathcal{W},
+```
+where $`\alpha = \nu + d/2`$.
 
-We also have the range parameter $\rho = \frac{\sqrt{8\nu}}{\kappa}$ and
-the standard deviation
-$\sigma = \sqrt{\frac{\Gamma(\nu)}{\tau^{2}\kappa^{2\nu}(4\pi)^{d/2}\Gamma(\nu + d/2)}}$.
+We also have the range parameter $`\rho = \frac{\sqrt{8\nu}}{\kappa}`$
+and the standard deviation
+$`\sigma = \sqrt{\frac{\Gamma(\nu)}{\tau^2 \kappa^{2\nu}(4\pi)^{d/2}\Gamma(\nu + d/2)}}`$.
 
-#### Changing the priors of $\tau$ and $\kappa$
+#### Changing the priors of $`\tau`$ and $`\kappa`$
 
-We begin by dealing with $\tau$ and $\kappa$.
+We begin by dealing with $`\tau`$ and $`\kappa`$.
 
 We have that
-$$\tau = \exp\left( \theta_{1} \right),\quad\kappa = \exp\left( \theta_{2} \right).$$
+``` math
+\tau = \exp(\theta_1),\quad \kappa = \exp(\theta_2).
+```
 The
 [`rspde.matern()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.md)
-function assumes a lognormal prior distribution for $\tau$ and $\kappa$.
-This prior distribution is obtained by assuming that $\theta_{1}$ and
-$\theta_{2}$ follow normal distributions. By default we assume
-$\theta_{1}$ and $\theta_{2}$ to be independent and to follow normal
-distributions
-$\theta_{1} \sim N\left( \log\left( \tau_{0} \right),10 \right)$ and
-$\theta_{2} \sim N\left( \log\left( \kappa_{0} \right),10 \right)$.
+function assumes a lognormal prior distribution for $`\tau`$ and
+$`\kappa`$. This prior distribution is obtained by assuming that
+$`\theta_1`$ and $`\theta_2`$ follow normal distributions. By default we
+assume $`\theta_1`$ and $`\theta_2`$ to be independent and to follow
+normal distributions $`\theta_1\sim N(\log(\tau_0), 10)`$ and
+$`\theta_2\sim N(\log(\kappa_0), 10)`$.
 
-$\kappa_{0}$ is suitably defined in terms of the mesh and $\tau_{0}$ is
-defined in terms of $\kappa_{0}$ and on the prior of the smoothness
+$`\kappa_0`$ is suitably defined in terms of the mesh and $`\tau_0`$ is
+defined in terms of $`\kappa_0`$ and on the prior of the smoothness
 parameter.
 
 If one wants to define the prior
-$$\theta_{1} \sim N\left( \text{mean\_theta\_1},\text{sd\_theta\_1} \right),$$
+``` math
+\theta_1 \sim N(\text{mean_theta_1}, \text{sd_theta_1}),
+```
 one can simply set the argument
 `prior.tau = list(meanlog=mean_theta_1, sdlog=sd_theta_1)`. Analogously,
 to define the prior
-$$\theta_{2} \sim N\left( \text{mean\_theta\_2},\text{sd\_theta\_2} \right),$$
+``` math
+\theta_2 \sim N(\text{mean_theta_2}, \text{sd_theta_2}),
+```
 one can set the argument
 `prior.kappa = list(meanlog=mean_theta_2, sdlog=sd_theta_2)`.
 
 It is important to mention that, by default, the initial values of
-$\tau$ and $\kappa$ are $\exp\left( \text{mean\_theta\_1} \right)$ and
-$\exp\left( \text{mean\_theta\_2} \right)$, respectively. So, if the
-user does not change these parameters, and also does not change the
-initial values, the initial values of $\tau$ and $\kappa$ will be,
-respectively, $\tau_{0}$ and $\kappa_{0}$.
+$`\tau`$ and $`\kappa`$ are $`\exp(\text{mean_theta_1})`$ and
+$`\exp(\text{mean_theta_2})`$, respectively. So, if the user does not
+change these parameters, and also does not change the initial values,
+the initial values of $`\tau`$ and $`\kappa`$ will be, respectively,
+$`\tau_0`$ and $`\kappa_0`$.
 
 If one sets `prior.tau = list(meanlog=mean_theta_1)`, the prior for
-$\theta_{1}$ will be
-$$\theta_{1} \sim N\left( \text{mean\_theta\_1},1 \right),$$ whereas, if
-one sets, `prior.tau = list(sdlog=sd_theta_1)`, the prior will be
-$$\theta_{1} \sim N\left( \log\left( \tau_{0} \right),\text{sd\_theta\_1} \right).$$
+$`\theta_1`$ will be
+``` math
+\theta_1 \sim N(\text{mean_theta_1}, 1),
+```
+whereas, if one sets, `prior.tau = list(sdlog=sd_theta_1)`, the prior
+will be
+``` math
+\theta_1 \sim N(\log(\tau_0), \text{sd_theta_1}).
+```
 Analogously, if one sets `prior.kappa = list(meanlog=mean_theta_2)`, the
-prior for $\theta_{2}$ will be
-$$\theta_{2} \sim N\left( \text{mean\_theta\_2},1 \right),$$ whereas, if
-one sets, `prior.kappa = list(sdlog=sd_theta_2)`, the prior will be
-$$\theta_{2} \sim N\left( \log\left( \kappa_{0} \right),\text{sd\_theta\_2} \right).$$
+prior for $`\theta_2`$ will be
+``` math
+\theta_2 \sim N(\text{mean_theta_2}, 1),
+```
+whereas, if one sets, `prior.kappa = list(sdlog=sd_theta_2)`, the prior
+will be
+``` math
+\theta_2 \sim N(\log(\kappa_0), \text{sd_theta_2}).
+```
 
-#### Changing the priors of $\rho$ (range) and $\sigma$ (std. dev.)
+#### Changing the priors of $`\rho`$ (range) and $`\sigma`$ (std. dev.)
 
-Let us now consider the priors for the range, $\rho$, and std.
-deviation, $\sigma$. This parameterization is used with the argument
+Let us now consider the priors for the range, $`\rho`$, and std.
+deviation, $`\sigma`$. This parameterization is used with the argument
 `parameterization = "matern"`, which is the default.
 
 In this case, we have that
-$$\sigma = \exp\left( \theta_{1} \right),\quad\rho = \exp\left( \theta_{2} \right).$$
+``` math
+\sigma = \exp(\theta_1),\quad \rho = \exp(\theta_2).
+```
 We have two options for prior. By default, which is the option
 `prior.theta.param = "theta"`, the
 [`rspde.matern()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.md)
-function assumes a lognormal prior distribution for $\sigma$ and $\rho$.
-This prior distribution is obtained by assuming that $\theta_{1}$ and
-$\theta_{2}$ follow normal distributions. By default we assume
-$\theta_{1}$ and $\theta_{2}$ to be independent and to follow normal
-distributions
-$\theta_{1} \sim N\left( \log\left( \sigma_{0} \right),10 \right)$ and
-$\theta_{2} \sim N\left( \log\left( \rho_{0} \right),10 \right)$.
+function assumes a lognormal prior distribution for $`\sigma`$ and
+$`\rho`$. This prior distribution is obtained by assuming that
+$`\theta_1`$ and $`\theta_2`$ follow normal distributions. By default we
+assume $`\theta_1`$ and $`\theta_2`$ to be independent and to follow
+normal distributions $`\theta_1\sim N(\log(\sigma_0), 10)`$ and
+$`\theta_2\sim N(\log(\rho_0), 10)`$.
 
-$\rho_{0}$ is suitably defined in terms of the mesh and $\sigma_{0}$ is
-defined in terms of $\rho_{0}$ and on the prior of the smoothness
+$`\rho_0`$ is suitably defined in terms of the mesh and $`\sigma_0`$ is
+defined in terms of $`\rho_0`$ and on the prior of the smoothness
 parameter.
 
-Similarly to the priors of $\tau$ and $\kappa$, if one wants to define
-the prior
-$$\theta_{1} \sim N\left( \text{mean\_theta\_1},\text{sd\_theta\_1} \right),$$
+Similarly to the priors of $`\tau`$ and $`\kappa`$, if one wants to
+define the prior
+``` math
+\theta_1 \sim N(\text{mean_theta_1}, \text{sd_theta_1}),
+```
 one can simply set the argument
 `prior.tau = list(meanlog=mean_theta_1, sdlog=sd_theta_1)`. Analogously,
 to define the prior
-$$\theta_{2} \sim N\left( \text{mean\_theta\_2},\text{sd\_theta\_2} \right),$$
+``` math
+\theta_2 \sim N(\text{mean_theta_2}, \text{sd_theta_2}),
+```
 one can set the argument
 `prior.kappa = list(meanlog=mean_theta_2, sdlog=sd_theta_2)`.
 
 Another option is to set `prior.theta.param = "spde"`. In this case, a
 change of variables is performed. So, we assume a lognormal prior on
-$\tau$ and $\kappa$. Then, by the relations
-$\rho = \frac{\sqrt{8\nu}}{\kappa}$ and
-$\sigma = \sqrt{\frac{\Gamma(\nu)}{\tau^{2}\kappa^{2\nu}(4\pi)^{d/2}\Gamma(\nu + d/2)}}$,
-we obtain a prior for $\rho$ and $\sigma$.
+$`\tau`$ and $`\kappa`$. Then, by the relations
+$`\rho = \frac{\sqrt{8\nu}}{\kappa}`$ and
+$`\sigma = \sqrt{\frac{\Gamma(\nu)}{\tau^2 \kappa^{2\nu}(4\pi)^{d/2}\Gamma(\nu + d/2)}}`$,
+we obtain a prior for $`\rho`$ and $`\sigma`$.
 
-#### Changing the prior of $\nu$
+#### Changing the prior of $`\nu`$
 
-Finally, let us consider the smoothness parameter $\nu$.
+Finally, let us consider the smoothness parameter $`\nu`$.
 
-By default, we assume that $\nu$ follows a beta distribution on the
-interval $\left( 0,\nu_{UB} \right)$, where $\nu_{UB}$ is the upper
-bound for $\nu$, with mean $\nu_{0} = \min\{ 1,\nu_{UB}/2\}$ and
-variance
-$\frac{\nu_{0}\left( \nu_{UB} - \nu_{0} \right)}{1 + \phi_{0}}$, and we
-call $\phi_{0}$ the precision parameter, whose default value is
-$$\phi_{0} = \max\{\frac{\nu_{UB}}{\nu_{0}},\frac{\nu_{UB}}{\nu_{UB} - \nu_{0}}\} + \phi_{inc}.$$
-The parameter $\phi_{inc}$ is an increment to ensure that the prior beta
-density has boundary values equal to zero (where the boundary values are
-defined either by continuity or by limits). The default value of
-$\phi_{inc}$ is 1. The value of $\phi_{inc}$ can be changed by changing
-the argument `nu.prec.inc` in the
+By default, we assume that $`\nu`$ follows a beta distribution on the
+interval $`(0,\nu_{UB})`$, where $`\nu_{UB}`$ is the upper bound for
+$`\nu`$, with mean $`\nu_0=\min\{1, \nu_{UB}/2\}`$ and variance
+$`\frac{\nu_0(\nu_{UB}-\nu_0)}{1+\phi_0}`$, and we call $`\phi_0`$ the
+precision parameter, whose default value is
+``` math
+\phi_0 = \max\Big\{\frac{\nu_{UB}}{\nu_0}, \frac{\nu_{UB}}{\nu_{UB}-\nu_0}\Big\} + \phi_{inc}.
+```
+The parameter $`\phi_{inc}`$ is an increment to ensure that the prior
+beta density has boundary values equal to zero (where the boundary
+values are defined either by continuity or by limits). The default value
+of $`\phi_{inc}`$ is 1. The value of $`\phi_{inc}`$ can be changed by
+changing the argument `nu.prec.inc` in the
 [`rspde.matern()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.md)
-function. The higher the value of $\phi_{inc}$ (that is, the value of
+function. The higher the value of $`\phi_{inc}`$ (that is, the value of
 `nu.prec.inc`) the more informative the prior distribution becomes.
 
-Let us denote a beta distribution with support on
-$\left( 0,\nu_{UB} \right)$, mean $\mu$ and precision parameter $\phi$
-by $\mathcal{B}_{\nu_{UB}}(\mu,\phi)$.
+Let us denote a beta distribution with support on $`(0,\nu_{UB})`$, mean
+$`\mu`$ and precision parameter $`\phi`$ by
+$`\mathcal{B}_{\nu_{UB}}(\mu,\phi)`$.
 
-If we want $\nu$ to have a prior
-$$\nu \sim \mathcal{B}_{\nu_{UB}}\left( \text{nu\_1},\text{prec\_1} \right),$$
+If we want $`\nu`$ to have a prior
+``` math
+\nu \sim \mathcal{B}_{\nu_{UB}}(\text{nu_1},\text{prec_1}),
+```
 one simply needs to set `prior.nu = list(mean=nu_1, prec=prec_1)`. If
-one sets `prior.nu = list(mean=nu_1)`, then $\nu$ will have prior
-$$\nu \sim \mathcal{B}_{\nu_{UB}}\left( \text{nu\_1},\phi_{1} \right),$$
+one sets `prior.nu = list(mean=nu_1)`, then $`\nu`$ will have prior
+``` math
+\nu \sim \mathcal{B}_{\nu_{UB}}(\text{nu_1},\phi_1),
+```
 where
-$$\phi_{1} = \max\{\frac{\nu_{UB}}{\text{nu\_1}},\frac{\nu_{UB}}{\nu_{UB} - \text{nu\_1}}\} + \text{nu.prec.inc}.$$
+``` math
+\phi_1 = \max\Big\{\frac{\nu_{UB}}{\text{nu_1}}, \frac{\nu_{UB}}{\nu_{UB}-\text{nu_1}}\Big\} + \text{nu.prec.inc}.
+```
 
-Of one sets `prior.nu = list(prec=prec_1)`, then $\nu$ will have prior
-$$\nu \sim \mathcal{B}_{\nu_{UB}}\left( \nu_{0},\text{prec\_1} \right).$$
+Of one sets `prior.nu = list(prec=prec_1)`, then $`\nu`$ will have prior
+``` math
+\nu\sim \mathcal{B}_{\nu_{UB}}(\nu_0, \text{prec_1}).
+```
 It is also noteworthy that we have that, in terms of
 [`R-INLA`](https://www.r-inla.org)’s parameters,
 
-$$\nu = \nu_{UB}(\frac{\exp\left( \theta_{3} \right)}{1 + \exp\left( \theta_{3} \right)}).$$
+``` math
+\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).
+```
 
 It is important to mention that, by default, if a beta prior
-distribution is chosen for the smoothness parameter $\nu$, then the
-initial value of $\nu$ is the mean of the prior beta distribution. So,
+distribution is chosen for the smoothness parameter $`\nu`$, then the
+initial value of $`\nu`$ is the mean of the prior beta distribution. So,
 if the user does not change this parameter, and also does not change the
-initial value, the initial value of $\nu$ will be
-$\min\{ 1,\nu_{UB}/2\}$.
+initial value, the initial value of $`\nu`$ will be
+$`\min\{1,\nu_{UB}/2\}`$.
 
 We also assume that, in terms of [`R-INLA`](https://www.r-inla.org)’s
 parameters,
-$$\nu = \nu_{UB}(\frac{\exp\left( \theta_{3} \right)}{1 + \exp\left( \theta_{3} \right)}).$$
+``` math
+\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).
+```
 
-We can have another possibility of prior distribution for $\nu$, namely,
-truncated lognormal distribution. The truncated lognormal distribution
-is defined in the following sense. We assume that $\log(\nu)$ has prior
-distribution given by a [truncated normal
+We can have another possibility of prior distribution for $`\nu`$,
+namely, truncated lognormal distribution. The truncated lognormal
+distribution is defined in the following sense. We assume that
+$`\log(\nu)`$ has prior distribution given by a [truncated normal
 distribution](https://en.wikipedia.org/wiki/Truncated_normal_distribution#One_sided_truncation_(of_upper_tail))
-with support $\left( - \infty,\log\left( \nu_{UB} \right) \right)$,
-where $\nu_{UB}$ is the upper bound for $\nu$, with location parameter
-$\mu_{0} = \log\left( \nu_{0} \right) = \log(\min\{ 1,\nu_{UB}/2\})$ and
-scale parameter $\sigma_{0} = 1$. More precisely, let
-$\Phi( \cdot ;\mu,\sigma)$ stand for the cumulative distribution
-function (CDF) of a normal distribution with mean $\mu$ and standard
-deviation $\sigma$. Then, $\log(\nu)$ has cumulative distribution
+with support $`(-\infty,\log(\nu_{UB}))`$, where $`\nu_{UB}`$ is the
+upper bound for $`\nu`$, with location parameter
+$`\mu_0 =\log(\nu_0)= \log\Big(\min\{1,\nu_{UB}/2\}\Big)`$ and scale
+parameter $`\sigma_0 = 1`$. More precisely, let
+$`\Phi(\cdot; \mu,\sigma)`$ stand for the cumulative distribution
+function (CDF) of a normal distribution with mean $`\mu`$ and standard
+deviation $`\sigma`$. Then, $`\log(\nu)`$ has cumulative distribution
 function given by
-$$F_{\log{(\nu)}}(x) = \frac{\Phi\left( x;\mu_{0},\sigma_{0} \right)}{\Phi\left( \nu_{UB} \right)},\quad x \leq \nu_{UB},$$
-and $F_{\log{(\nu)}}(x) = 1$ if $x > \nu_{UB}$. We will call $\mu_{0}$
-and $\sigma_{0}$ the log-location and log-scale parameters of $\nu$,
-respectively, and we say that $\log(\nu)$ follows a truncated normal
-distribution with location parameter $\mu_{0}$ and scale parameter
-$\sigma_{0}$.
+``` math
+F_{\log(\nu)}(x) = \frac{\Phi(x;\mu_0,\sigma_0)}{\Phi(\nu_{UB})},\quad x\leq \nu_{UB},
+```
+and $`F_{\log(\nu)}(x) = 1`$ if $`x>\nu_{UB}`$. We will call $`\mu_0`$
+and $`\sigma_0`$ the log-location and log-scale parameters of $`\nu`$,
+respectively, and we say that $`\log(\nu)`$ follows a truncated normal
+distribution with location parameter $`\mu_0`$ and scale parameter
+$`\sigma_0`$.
 
-To change the prior distribution of $\nu$ to the truncated lognormal
+To change the prior distribution of $`\nu`$ to the truncated lognormal
 distribution, we need to set the argument `prior.nu.dist="lognormal"`.
 
 To change these parameters in the prior distribution to, say, `log_nu_1`
@@ -1771,34 +1907,36 @@ and `log_sigma_1`, one can simply set
 `prior.nu = list(loglocation=log_nu_1, logscale=sigma_1)`.
 
 If one sets `prior.nu = list(loglocation=log_nu_1)`, the prior for
-$\theta_{3}$ will be a truncated normal normal distribution with
+$`\theta_3`$ will be a truncated normal normal distribution with
 location parameter `log_nu_1` and scale parameter `1`. Analogously, if
 one sets, `prior.nu = list(logscale=sigma_1)`, the prior for
-$\theta_{3}$ will be a truncated normal distribution with location
-parameter $\log\left( \nu_{0} \right) = \log(\min\{ 1,\nu_{UB}/2\})$ and
-scale parameter `sigma_1`.
+$`\theta_3`$ will be a truncated normal distribution with location
+parameter $`\log(\nu_0)= \log\Big(\min\{1,\nu_{UB}/2\}\Big)`$ and scale
+parameter `sigma_1`.
 
 It is important to mention that, by default, if a truncated lognormal
-prior distribution is chosen for the smoothness parameter $\nu$, then
-the initial value of $\nu$ is the exponential of the log-location
-parameter of $\nu$. So, if the user does not change this parameter, and
-also does not change the initial value, the initial value of $\nu$ will
-be $\min\{ 1,\nu_{UB}/2\}$.
+prior distribution is chosen for the smoothness parameter $`\nu`$, then
+the initial value of $`\nu`$ is the exponential of the log-location
+parameter of $`\nu`$. So, if the user does not change this parameter,
+and also does not change the initial value, the initial value of $`\nu`$
+will be $`\min\{1,\nu_{UB}/2\}`$.
 
 Let us consider an example with the same dataset used in the first model
-of this vignette where we change the prior distribution of $\nu$ from
+of this vignette where we change the prior distribution of $`\nu`$ from
 beta to lognormal.
 
 ``` r
+
 rspde_model_beta <- rspde.matern(mesh = prmesh, prior.nu.dist = "lognormal")
 ```
 
-Since we did not change `rspde.order` and are not fixing $\nu$, we can
-use the same $A$ matrix and same index from the first example.
+Since we did not change `rspde.order` and are not fixing $`\nu`$, we can
+use the same $`A`$ matrix and same index from the first example.
 
 Therefore, all we have to do is update the formula and fit the model:
 
 ``` r
+
 f.s.beta <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model_beta)
 
@@ -1814,14 +1952,15 @@ rspde_fit_beta <- inla(f.s.beta,
 We have the summary:
 
 ``` r
+
 summary(rspde_fit_beta)
 ```
 
     ## Time used:
-    ##     Pre = 0.16, Running = 6.72, Post = 0.0262, Total = 6.9 
+    ##     Pre = 0.158, Running = 7.24, Post = 0.0281, Total = 7.43 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-    ## Intercept 1.942 0.043      1.858    1.942      2.025 1.942   0
+    ## Intercept 1.941 0.042      1.859    1.941      2.024 1.941   0
     ## 
     ## Random effects:
     ##   Name     Model
@@ -1830,19 +1969,19 @@ summary(rspde_fit_beta)
     ## 
     ## Model hyperparameters:
     ##                                                    mean       sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.397    1.036     12.461
-    ## Precision for seaDist                          7692.214 4504.093   2368.674
-    ## Theta1 for field                                 -1.427    1.045     -3.702
-    ## Theta2 for field                                  1.488    0.366      0.818
-    ## Theta3 for field                                  0.045    0.905     -1.518
+    ## Precision-parameter for the Gamma observations   14.408    1.038     12.470
+    ## Precision for seaDist                          7559.779 4235.168   2277.860
+    ## Theta1 for field                                 -1.734    1.463     -4.910
+    ## Theta2 for field                                  1.590    0.477      0.728
+    ## Theta3 for field                                  0.247    1.182     -1.801
     ##                                                0.5quant 0.975quant     mode
-    ## Precision-parameter for the Gamma observations   14.361   1.65e+01   14.292
-    ## Precision for seaDist                          6617.496   1.94e+04 4946.106
-    ## Theta1 for field                                 -1.353   3.68e-01   -0.987
-    ## Theta2 for field                                  1.472   2.25e+00    1.399
-    ## Theta3 for field                                 -0.017   2.01e+00   -0.323
+    ## Precision-parameter for the Gamma observations   14.372   1.66e+01   14.300
+    ## Precision for seaDist                          6614.462   1.84e+04 5018.345
+    ## Theta1 for field                                 -1.634   7.95e-01   -1.139
+    ## Theta2 for field                                  1.567   2.60e+00    1.456
+    ## Theta3 for field                                  0.168   2.81e+00   -0.225
     ## 
-    ## Marginal log-Likelihood:  -1255.86 
+    ## Marginal log-Likelihood:  -1255.56 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -1850,18 +1989,20 @@ summary(rspde_fit_beta)
 Also, we can have the summary in the user’s scale:
 
 ``` r
+
 result_fit_beta <- rspde.result(rspde_fit_beta, "field", rspde_model_beta)
 summary(result_fit_beta)
 ```
 
-    ##           mean       sd 0.025quant 0.5quant 0.975quant      mode
-    ## tau   0.383262 0.387640  0.0253244 0.265083    1.43189 0.0668648
-    ## kappa 4.737500 1.859010  2.2780500 4.337060    9.45541 3.6501400
-    ## nu    1.010600 0.384631  0.3620010 0.980659    1.75867 0.7756280
+    ##           mean       sd 0.025quant 0.5quant 0.975quant     mode
+    ## tau   0.423015 0.654828 0.00764372  0.20203    2.18375 0.011422
+    ## kappa 5.509790 2.945080 2.08629000  4.75313   13.29200 3.661200
+    ## nu    1.082940 0.459172 0.28632400  1.06984    1.88300 0.787937
 
 and the plot of the posterior marginal densities
 
 ``` r
+
 posterior_df_fit_beta <- gg_df(result_fit_beta)
 
 ggplot(posterior_df_fit_beta) + geom_line(aes(x = x, y = y)) + 
@@ -1876,13 +2017,13 @@ The starting values to be used by [`R-INLA`](https://www.r-inla.org)’s
 optimization algorithm can be changed by setting the arguments
 `start.ltau`, `start.lkappa` and `start.nu`.
 
-- `start.ltau` will be the initial value for $\log(\tau)$, that is, the
-  logarithm of $\tau$.
+- `start.ltau` will be the initial value for $`\log(\tau)`$, that is,
+  the logarithm of $`\tau`$.
 
-- `start.lkappa` will be the inital value for $\log(\kappa)$, that is,
-  the logarithm of $\kappa$.
+- `start.lkappa` will be the inital value for $`\log(\kappa)`$, that is,
+  the logarithm of $`\kappa`$.
 
-- `start.nu` will be the initial value for $\nu$. Notice that here the
+- `start.nu` will be the initial value for $`\nu`$. Notice that here the
   initial value is *not* on the log scale.
 
 One can change the initial value of one or more parameters.
@@ -1892,6 +2033,7 @@ For instance, let us consider the example with precipitation data,
 fitted value when considering the default `rspde.order` (which is 1):
 
 ``` r
+
 rspde_model_order_3_start <- rspde.matern(mesh = prmesh, rspde.order = 3,
   nu.upper.bound = 2,
   start.lkappa = result_fit$summary.log.kappa$mean,
@@ -1900,10 +2042,11 @@ rspde_model_order_3_start <- rspde.matern(mesh = prmesh, rspde.order = 3,
 )
 ```
 
-Since we already computed the $A$ matrix and the index for
+Since we already computed the $`A`$ matrix and the index for
 `rspde.order=3`, all we have to do is to update the formula and fit:
 
 ``` r
+
 f.s.3.start <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
   f(field, model = rspde_model_order_3_start)
 
@@ -1923,11 +2066,12 @@ rspde_fit_order_3_start <- inla(f.s.3.start,
 We have the summary:
 
 ``` r
+
 summary(rspde_fit_order_3_start)
 ```
 
     ## Time used:
-    ##     Pre = 0.17, Running = 16.2, Post = 0.0353, Total = 16.4 
+    ##     Pre = 0.16, Running = 35.3, Post = 0.036, Total = 35.5 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
     ## Intercept 1.941 0.041       1.86    1.941      2.023 1.941   0
@@ -1938,20 +2082,20 @@ summary(rspde_fit_order_3_start)
     ##    field CGeneric
     ## 
     ## Model hyperparameters:
-    ##                                                   mean       sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.44    1.043     12.515
-    ## Precision for seaDist                          7651.05 4440.425   2326.807
-    ## Theta1 for field                                 -4.12    3.141    -11.433
-    ## Theta2 for field                                  2.06    0.713      0.965
-    ## Theta3 for field                                  2.18    2.544     -1.532
+    ##                                                    mean      sd 0.025quant
+    ## Precision-parameter for the Gamma observations   14.472    1.04     12.515
+    ## Precision for seaDist                          7548.016 4239.47   2349.538
+    ## Theta1 for field                                 -1.985    1.66     -5.657
+    ## Theta2 for field                                  1.658    0.50      0.785
+    ## Theta3 for field                                  0.455    1.37     -1.823
     ##                                                0.5quant 0.975quant     mode
-    ## Precision-parameter for the Gamma observations    14.40   1.66e+01   14.307
-    ## Precision for seaDist                           6608.75   1.91e+04 4951.623
-    ## Theta1 for field                                  -3.69   4.52e-01   -1.497
-    ## Theta2 for field                                   1.97   3.69e+00    1.522
-    ## Theta3 for field                                   1.83   8.10e+00    0.069
+    ## Precision-parameter for the Gamma observations   14.439   1.66e+01   14.384
+    ## Precision for seaDist                          6580.361   1.85e+04 5003.014
+    ## Theta1 for field                                 -1.842   7.65e-01   -1.130
+    ## Theta2 for field                                  1.627   2.74e+00    1.468
+    ## Theta3 for field                                  0.339   3.48e+00   -0.238
     ## 
-    ## Marginal log-Likelihood:  -1254.81 
+    ## Marginal log-Likelihood:  -1255.22 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -1961,8 +2105,8 @@ summary(rspde_fit_order_3_start)
 We have three rational approximations available. The BRASIL algorithm
 [Hofreither (2021)](https://doi.org/10.1007/s11075-020-01042-0), and two
 “versions” of the Clenshaw-Lord Chebyshev-Pade algorithm, one with lower
-bound zero and another with the lower bound given in [Bolin, Simas, and
-Xiong (2023)](https://doi.org/10.1080/10618600.2023.2231051).
+bound zero and another with the lower bound given in [Bolin et al.
+(2023)](https://doi.org/10.1080/10618600.2023.2231051).
 
 The type of rational approximation can be chosen by setting the
 `type.rational.approx` argument in the `rspde.matern` function. The
@@ -1974,6 +2118,7 @@ Let us fit a model assigning a `brasil` rational approximation. We will
 consider a model with the order of the rational approximation being 1:
 
 ``` r
+
 rspde_model_brasil <- rspde.matern(prmesh, 
               type.rational.approx = "brasil")
 
@@ -1992,14 +2137,15 @@ rspde_fit_order_1_brasil <- inla(f.s.brasil,
 Let us get the summary:
 
 ``` r
+
 summary(rspde_fit_order_1_brasil)
 ```
 
     ## Time used:
-    ##     Pre = 0.163, Running = 6.2, Post = 0.0271, Total = 6.39 
+    ##     Pre = 0.153, Running = 5.37, Post = 0.0278, Total = 5.55 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-    ## Intercept 1.941 0.042       1.86    1.941      2.023 1.941   0
+    ## Intercept 1.941 0.041       1.86    1.941      2.022 1.941   0
     ## 
     ## Random effects:
     ##   Name     Model
@@ -2007,20 +2153,20 @@ summary(rspde_fit_order_1_brasil)
     ##    field CGeneric
     ## 
     ## Model hyperparameters:
-    ##                                                   mean       sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.43    1.039     12.483
-    ## Precision for seaDist                          7542.57 4255.420   2353.510
-    ## Theta1 for field                                 -4.42    3.755    -13.156
-    ## Theta2 for field                                  2.11    0.837      0.832
-    ## Theta3 for field                                  2.61    3.249     -2.139
+    ##                                                    mean       sd 0.025quant
+    ## Precision-parameter for the Gamma observations   14.442    1.039     12.497
+    ## Precision for seaDist                          7317.545 3905.071   2209.911
+    ## Theta1 for field                                 -0.941    0.392     -1.745
+    ## Theta2 for field                                  1.398    0.274      0.854
+    ## Theta3 for field                                 -0.409    0.378     -1.130
     ##                                                0.5quant 0.975quant     mode
-    ## Precision-parameter for the Gamma observations    14.39      16.57   14.330
-    ## Precision for seaDist                           6564.23   18509.63 4982.937
-    ## Theta1 for field                                  -3.90       1.07   -1.302
-    ## Theta2 for field                                   2.00       4.03    1.475
-    ## Theta3 for field                                   2.17      10.17   -0.077
+    ## Precision-parameter for the Gamma observations   14.408     16.584   14.346
+    ## Precision for seaDist                          6503.638  17119.129 5029.423
+    ## Theta1 for field                                 -0.931     -0.204   -0.882
+    ## Theta2 for field                                  1.399      1.932    1.406
+    ## Theta3 for field                                 -0.417      0.359   -0.452
     ## 
-    ## Marginal log-Likelihood:  -1254.60 
+    ## Marginal log-Likelihood:  -1256.58 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -2031,12 +2177,14 @@ check the order with the
 function, and assign a new type with the `rational.type<-()` function.
 
 ``` r
+
 rational.type(rspde_model)
 ```
 
     ## [1] "brasil"
 
 ``` r
+
 rational.type(rspde_model_brasil)
 ```
 
@@ -2046,6 +2194,7 @@ Let us change the type of the rational approximation on the model with
 rational approximation of order 3:
 
 ``` r
+
 rational.type(rspde_model_order_3) <- "brasil"
 
 f.s.3 <- y ~ -1 + Intercept + f(seaDist, model = "rw1") +
@@ -2063,14 +2212,15 @@ rspde_fit_order_3_brasil <- inla(f.s.3,
 Let us get the summary:
 
 ``` r
+
 summary(rspde_fit_order_3_brasil)
 ```
 
     ## Time used:
-    ##     Pre = 0.176, Running = 27.2, Post = 0.0354, Total = 27.5 
+    ##     Pre = 0.176, Running = 17.5, Post = 0.0365, Total = 17.7 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-    ## Intercept 1.942 0.044      1.856    1.942      2.027 1.942   0
+    ## Intercept 1.942 0.041      1.861    1.942      2.022 1.942   0
     ## 
     ## Random effects:
     ##   Name     Model
@@ -2079,19 +2229,19 @@ summary(rspde_fit_order_3_brasil)
     ## 
     ## Model hyperparameters:
     ##                                                    mean       sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.454    1.033     12.465
-    ## Precision for seaDist                          7593.096 4337.992   2387.554
-    ## Theta1 for field                                 -1.483    1.452     -4.599
-    ## Theta2 for field                                  1.537    0.513      0.612
-    ## Theta3 for field                                  0.083    1.239     -2.109
-    ##                                                0.5quant 0.975quant     mode
-    ## Precision-parameter for the Gamma observations   14.438      16.53   14.453
-    ## Precision for seaDist                          6575.935   18834.51 4969.658
-    ## Theta1 for field                                 -1.396       1.08   -0.969
-    ## Theta2 for field                                  1.511       2.62    1.387
-    ## Theta3 for field                                  0.011       2.74   -0.342
+    ## Precision-parameter for the Gamma observations   14.460    1.042     12.516
+    ## Precision for seaDist                          7534.587 4220.770   2443.447
+    ## Theta1 for field                                 -2.180    1.540     -5.647
+    ## Theta2 for field                                  1.662    0.421      0.936
+    ## Theta3 for field                                  0.625    1.280     -1.435
+    ##                                                0.5quant 0.975quant    mode
+    ## Precision-parameter for the Gamma observations   14.423   1.66e+01   14.35
+    ## Precision for seaDist                          6551.193   1.85e+04 4997.07
+    ## Theta1 for field                                 -2.020   2.87e-01   -1.24
+    ## Theta2 for field                                  1.634   2.58e+00    1.49
+    ## Theta3 for field                                  0.496   3.50e+00   -0.14
     ## 
-    ## Marginal log-Likelihood:  -1255.19 
+    ## Marginal log-Likelihood:  -1255.35 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -2101,7 +2251,7 @@ summary(rspde_fit_order_3_brasil)
 Bolin, David, Alexandre B. Simas, and Zhen Xiong. 2023.
 “Covariance-Based Rational Approximations of Fractional SPDEs for
 Computationally Efficient Bayesian Inference.” *Journal of Computational
-and Graphical Statistics*.
+and Graphical Statistics*, ahead of print.
 <https://doi.org/10.1080/10618600.2022.2139648>.
 
 Hofreither, Clemens. 2021. “An Algorithm for Best Rational Approximation

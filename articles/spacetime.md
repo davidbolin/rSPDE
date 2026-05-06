@@ -3,30 +3,34 @@
 ## Introduction
 
 The `rSPDE` package implements the following spatio-temporal model
-$$du + \gamma\left( \kappa^{2} + \kappa^{d/2}\rho \cdot \nabla - \Delta \right)^{\alpha}u = dW_{Q},\quad{\text{on}\mspace{6mu}}T \times D$$
-where $T$ is a temporal interval and $D$ is a spatial domain which can
-be an interval, a bounded subset of ${\mathbb{R}}^{2}$ or a metric
-graph. Here $\kappa > 0$ is a spatial range parameter, $\rho$ is a drift
-parameter which is in $\mathbb{R}$ for spatial domains that are
-intervals or metric graphs, and in ${\mathbb{R}}^{2}$ for spatial
-domains which are bounded subsets of ${\mathbb{R}}^{2}$. Further,
-$W_{Q}$ is a $Q$-Wiener process with spatial covariance operator
-$\sigma^{2}\left( \kappa^{2} - \Delta \right)^{- \beta}$, where
-$\sigma^{2}$ is a variance parameter. Thus, the model has two smoothness
-parameters $\alpha$ and $\beta$ which are assumed to be integers. The
-model is therefore a generalization of the spatio-temporal models
-introduced in [Lindgren et al.
+``` math
+d u + \gamma(\kappa^2 + \kappa^{d/2}\rho\cdot \nabla - \Delta)^{\alpha} u = dW_Q, \quad \text{on } T\times D
+```
+where $`T`$ is a temporal interval and $`D`$ is a spatial domain which
+can be an interval, a bounded subset of $`\mathbb{R}^2`$ or a metric
+graph. Here $`\kappa>0`$ is a spatial range parameter, $`\rho`$ is a
+drift parameter which is in $`\mathbb{R}`$ for spatial domains that are
+intervals or metric graphs, and in $`\mathbb{R}^2`$ for spatial domains
+which are bounded subsets of $`\mathbb{R}^2`$. Further, $`W_Q`$ is a
+$`Q`$-Wiener process with spatial covariance operator
+$`\sigma^2(\kappa^2 - \Delta)^{-\beta}`$, where $`\sigma^2`$ is a
+variance parameter. Thus, the model has two smoothness parameters
+$`\alpha`$ and $`\beta`$ which are assumed to be integers. The model is
+therefore a generalization of the spatio-temporal models introduced in
+[Lindgren et al.
 (2024)](https://www.raco.cat/index.php/SORT/article/view/428665), where
 the generalization is to allow for drift and to allow for metric graphs
 as spatial domains. The model is implemented using a finite element
 discretization of the corresponding precision operator
-$$\sigma^{- 2}\left( d + \gamma\left( \kappa^{2} + \kappa^{d/2}\rho \cdot \nabla - \Delta \right)^{\alpha} \right)\left( \kappa^{2} - \Delta \right)^{\beta}\left( \left( d + \gamma\left( \kappa^{2} - \kappa^{d/2}\rho \cdot \nabla - \Delta \right)^{\alpha} \right) \right)$$
+``` math
+\sigma^{-2}(d + \gamma(\kappa^2 + \kappa^{d/2}\rho\cdot \nabla - \Delta)^{\alpha})(\kappa^2 - \Delta)^{\beta} ((d + \gamma(\kappa^2 - \kappa^{d/2}\rho\cdot \nabla - \Delta)^{\alpha}))
+```
 in both space and time, similarly to the discretization introduced in
 [Lindgren et al.
 (2024)](https://www.raco.cat/index.php/SORT/article/view/428665). This
-parameterization of the drift term, using $\rho\kappa^{d/2}$ in place of
-the standard $\rho$, is chosen to simplify the enforcement of
-theoretical bounds on the range of $\rho$, ensuring that the equation
+parameterization of the drift term, using $`\rho \kappa^{d/2}`$ in place
+of the standard $`\rho`$, is chosen to simplify the enforcement of
+theoretical bounds on the range of $`\rho`$, ensuring that the equation
 remains well-posed and also providing numerical stability for
 finite-dimensional approximations.
 
@@ -35,6 +39,7 @@ finite-dimensional approximations.
 Let us begin by loading some packages needed for making the plots
 
 ``` r
+
 library(ggplot2)
 library(gridExtra)
 library(viridis)
@@ -50,11 +55,12 @@ from the `MetricGraph` package, or as the mesh nodes for models on
 intervals. The temporal discretization can be specified either by
 specifying the mesh nodes or by providing a mesh object.
 
-Assume that we want to define a model on the spatial interval
-$\lbrack 0,20\rbrack$ and the temporal domain $\lbrack 0,10\rbrack$. We
-can then simply specify the mesh nodes as
+Assume that we want to define a model on the spatial interval $`[0,20]`$
+and the temporal domain $`[0,10]`$. We can then simply specify the mesh
+nodes as
 
 ``` r
+
 s <- s_1d <- seq(from = 0, to = 20, length.out = 101)
 t <- t_1d <- seq(from = 0, to = 10, length.out = 21)
 ```
@@ -64,6 +70,7 @@ We can now use
 to construct the model
 
 ``` r
+
 kappa <- 5
 sigma <- 10
 gamma <- 0.1
@@ -80,11 +87,12 @@ op <- spacetime.operators(
 
 The `spacetime.operators` object has a `plot_covariances` method which
 for univariate spatial domains simply plots the covariance
-$C\left( u(s,t),u\left( s_{0},t_{0} \right) \right)$ for a fixed
-spatio-temporal location $\left( s_{0},t_{0} \right)$ specified by the
-indices in the spatial and temporal discretizations. For example:
+$`C(u(s,t), u(s_0, t_0))`$ for a fixed spatio-temporal location
+$`(s_0, t_0)`$ specified by the indices in the spatial and temporal
+discretizations. For example:
 
 ``` r
+
 op$plot_covariances(t.ind = 15, s.ind = 50)
 ```
 
@@ -96,6 +104,7 @@ We can simulate from the model using
 [`simulate()`](https://rdrr.io/r/stats/simulate.html):
 
 ``` r
+
 u <- simulate(op)
 ```
 
@@ -107,30 +116,32 @@ randomly generate some observation locations and then construct the
 matrix.
 
 ``` r
+
 n.obs <- 500
 
 obs.loc <- data.frame(x = max(s) * runif(n.obs), t = max(t) * runif(n.obs))
 A <- make_A(op, loc = obs.loc$x, time = obs.loc$t)
 ```
 
-We now generate the observations as
-$Y_{i} = u\left( s_{i} \right) + \varepsilon_{i}$, where
-$\varepsilon_{i} \sim N\left( 0,\sigma_{e}^{2} \right)$ is Gaussian
-measurement noise.
+We now generate the observations as $`Y_i = u(s_i) + \varepsilon_i`$,
+where $`\varepsilon_i \sim N(0,\sigma_e^2)`$ is Gaussian measurement
+noise.
 
 ``` r
+
 x <- simulate(op, nsim = 1)
 sigma.e <- 0.01
 Y <- as.vector(A %*% x + sigma.e * rnorm(n.obs))
 ```
 
-Finally, we compute the kriging prediction of the process $u$ at the
+Finally, we compute the kriging prediction of the process $`u`$ at the
 locations in `s` based on these observations. To specify which locations
 that should be predicted, the argument `Aprd` is used. This argument
 should be an observation matrix that links the mesh locations to the
 prediction locations.
 
 ``` r
+
 Aprd <- make_A(op, loc = rep(s, length(t)), time = rep(t, each = length(s)))
 u.krig <- predict(op, A = A, Aprd = Aprd, Y = Y, sigma.e = sigma.e)
 ```
@@ -139,6 +150,7 @@ The process simulation, and the kriging prediction are shown in the
 following figure.
 
 ``` r
+
 data.df <- data.frame(space = obs.loc$x, time = obs.loc$t, field = Y, type = "Data")
 krig.df <- data.frame(
   space = rep(s, length(t)), time = rep(t, each = length(s)),
@@ -167,6 +179,7 @@ collect the data in a data frame, that also contains the spatial
 locations and the time points.
 
 ``` r
+
 df_1d <- data.frame(y = as.matrix(Y), space = obs.loc$x, time = obs.loc$t)
 ```
 
@@ -174,6 +187,7 @@ Let us create a mesh for the spatial and temporal domains for the model
 fitting:
 
 ``` r
+
 mesh_1d_time <- fmesher::fm_mesh_1d(t)
 mesh_1d_space <- fmesher::fm_mesh_1d(s)
 ```
@@ -185,12 +199,14 @@ mesh_1d_space <- fmesher::fm_mesh_1d(s)
 We begin by creating an `rspde` operator:
 
 ``` r
+
 op_lme1d <- spacetime.operators(mesh_space = mesh_1d_space, mesh_time = mesh_1d_time, alpha = 1, beta = 1)
 ```
 
 We now fit the model:
 
 ``` r
+
 res <- rspde_lme(y ~ 1, loc = "space", loc_time = "time", data = df_1d, model = op_lme1d, parallel = TRUE)
 ```
 
@@ -200,6 +216,7 @@ of the spatial and temporal coordinates in the data frame. Let us see a
 summary of the fitted model:
 
 ``` r
+
 summary(res)
 #> 
 #> Latent model - Spatio-temporal with alpha =  1 , beta =  1
@@ -231,13 +248,14 @@ summary(res)
 #> Number of function calls by 'optim' = 50
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  23.79371 secs 
-#>   set up the parallelization = 5.25175 secs
+#> Time used to:     fit the model =  23.97275 secs 
+#>   set up the parallelization = 5.23514 secs
 ```
 
 Let us compare the estimated results with the true values:
 
 ``` r
+
 results <- data.frame(
   kappa = c(kappa, res$coeff$random_effects[1]),
   sigma = c(sigma, res$coeff$random_effects[2]),
@@ -249,14 +267,15 @@ results <- data.frame(
 )
 
 print(results)
-#>             kappa     sigma     gamma     rho    sigma.e  intercept
-#> True     5.000000 10.000000 0.1000000 1.00000 0.01000000 0.00000000
-#> Estimate 4.703093  9.067346 0.1076121 1.03043 0.01399155 0.01225038
+#>             kappa     sigma    gamma      rho    sigma.e  intercept
+#> True     5.000000 10.000000 0.100000 1.000000 0.01000000 0.00000000
+#> Estimate 4.703093  9.067345 0.107612 1.030429 0.01399151 0.01225026
 ```
 
 Finally, we can also do prediction based on the fitted model as
 
 ``` r
+
 pred.data <- data.frame(x = rep(s, length(t)), t = rep(t, each = length(s)))
 pred <- predict(res, newdata = pred.data, loc = "x", time = "t")
 data.df <- data.frame(space = obs.loc$x, time = obs.loc$t, field = Y, type = "Data")
@@ -287,8 +306,8 @@ creating the model object with the
 function:
 
 ``` r
+
 library(inlabru)
-#> Loading required package: fmesher
 st_bru <- rspde.spacetime(mesh_space = mesh_1d_space, mesh_time = mesh_1d_time, alpha = 1, beta = 1)
 ```
 
@@ -297,12 +316,14 @@ index as a list containing the elements `space` with the spatial indices
 and `time` with the temporal indices:
 
 ``` r
+
 cmp <- y ~ -1 + Intercept(1) + field(list(space = space, time = time), model = st_bru)
 ```
 
 We are now in a position to fit the model:
 
 ``` r
+
 bru_fit <- bru(cmp, data = df_1d, options = list(num.threads = "1:1"))
 ```
 
@@ -310,6 +331,7 @@ Let us now compare the estimated results (the means of the parameters)
 with the true values:
 
 ``` r
+
 param_st_1d <- transform_parameters_spacetime(
   bru_fit$summary.hyperpar$mean[2:5],
   st_bru
@@ -326,9 +348,9 @@ results <- data.frame(
 )
 
 print(results)
-#>             kappa     sigma     gamma      rho    sigma.e  intercept
-#> True     5.000000 10.000000 0.1000000 1.000000 0.01000000 0.00000000
-#> Estimate 4.677085  9.123076 0.1061707 1.191519 0.01005917 0.01271066
+#>             kappa     sigma    gamma      rho    sigma.e  intercept
+#> True     5.000000 10.000000 0.100000 1.000000 0.01000000 0.00000000
+#> Estimate 4.707337  8.846552 0.099092 1.186784 0.01078479 0.01238618
 ```
 
 ## A spatial example
@@ -338,6 +360,7 @@ creating a region of interest and a spatial mesh using the `fmesher`
 package:
 
 ``` r
+
 library(fmesher)
 n_loc <- 1000
 loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
@@ -354,6 +377,7 @@ plot(mesh_2d, main = "")
 We now proceed as previously by defining a temporal region and the model
 
 ``` r
+
 t <- seq(from = 0, to = 10, length.out = 11)
 kappa <- 9.9
 sigma <- 29
@@ -388,20 +412,21 @@ the time discretization to plot the marginal spatial covariance for, and
 an input `s.ind` which is the index of the location in the space
 discretization to show the marginal temporal covariance for. It further
 takes an input `t.shift` which can be used to plot covariances
-$C\left( u\left( \cdot ,t_{i} \right),u\left( \cdot ,t_{j} \right) \right)$,
-where $t_{i}$ is `t[t.ind]` and $t_{j}$ is `t[t.ind + t.shift]`. For
-example
+$`C(u(\cdot, t_i), u(\cdot, t_j))`$, where $`t_i`$ is `t[t.ind]` and
+$`t_j`$ is `t[t.ind + t.shift]`. For example
 
 We can simulate from the model using
 [`simulate()`](https://rdrr.io/r/stats/simulate.html):
 
 ``` r
+
 u <- simulate(op)
 ```
 
 Let us plot the simulation for a few time points
 
 ``` r
+
 proj <- fm_evaluator(mesh_2d, dims = c(100, 100))
 U <- matrix(u, nrow = mesh_2d$n, ncol = length(t))
 field1 <- fm_evaluate(proj, field = as.vector(U[, 2]))
@@ -434,12 +459,12 @@ ggplot(field.df) +
 
 ![](spacetime_files/figure-html/unnamed-chunk-23-1.png)
 
-We now generate the observations as
-$Y_{i} = u\left( s_{i} \right) + \varepsilon_{i}$, where
-$\varepsilon_{i} \sim N\left( 0,\sigma_{e}^{2} \right)$ is Gaussian
-measurement noise.
+We now generate the observations as $`Y_i = u(s_i) + \varepsilon_i`$,
+where $`\varepsilon_i \sim N(0,\sigma_e^2)`$ is Gaussian measurement
+noise.
 
 ``` r
+
 n.obs <- 500
 obs.loc <- data.frame(x = runif(n.obs), y = runif(n.obs), t = max(t) * runif(n.obs))
 A <- make_A(op, loc = cbind(obs.loc$x, obs.loc$y), time = obs.loc$t)
@@ -454,12 +479,14 @@ To estimate the model parameters based on this data, we can use the
 that also contanis the spatial locations, and we fit the model:
 
 ``` r
+
 df_2d <- data.frame(Y = as.matrix(Y), x = obs.loc$x, y = obs.loc$y, t = obs.loc$t)
 ```
 
 Let us also create spatial and temporal meshes for the model fitting:
 
 ``` r
+
 mesh_2d_spatial <- fm_mesh_2d(
   loc = df_2d[, c("x", "y")],
   cutoff = 0.07,
@@ -474,18 +501,21 @@ mesh_2d_time <- fmesher::fm_mesh_1d(t)
 We begin by creating an `rspde` operator:
 
 ``` r
+
 op_lme2d <- spacetime.operators(mesh_space = mesh_2d_spatial, mesh_time = mesh_2d_time, alpha = 1, beta = 1)
 ```
 
 Let us now fit the model:
 
 ``` r
+
 res_2d <- rspde_lme(Y ~ 1, loc = c("x", "y"), loc_time = "t", data = df_2d, model = op_lme2d, parallel = TRUE)
 ```
 
 Let us see a summary of the fitted model:
 
 ``` r
+
 summary(res_2d)
 #> 
 #> Latent model - Spatio-temporal with alpha =  1 , beta =  1
@@ -501,7 +531,7 @@ summary(res_2d)
 #> Random effects:
 #>               Estimate Std.error z-value
 #> kappa          9.71690   0.74406  13.059
-#> sigma         11.91772   6.46225   1.844
+#> sigma         11.91772   6.46226   1.844
 #> gamma          0.06230   0.03416   1.824
 #> rho            0.07952   0.60347   0.132
 #> rho2           0.12814   0.76728   0.167
@@ -518,13 +548,14 @@ summary(res_2d)
 #> Number of function calls by 'optim' = 81
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  2.62917 mins 
-#>   set up the parallelization = 5.81546 secs
+#> Time used to:     fit the model =  2.67206 mins 
+#>   set up the parallelization = 5.57193 secs
 ```
 
 Let us compare the estimated results with the true values:
 
 ``` r
+
 results <- data.frame(
   kappa = c(kappa, res_2d$coeff$random_effects[1]),
   sigma = c(sigma, res_2d$coeff$random_effects[2]),
@@ -537,14 +568,15 @@ results <- data.frame(
 )
 
 print(results)
-#>           kappa    sigma      gamma      rho_1     rho_2    sigma.e  intercept
-#> True     9.9000 29.00000 0.11000000 0.20000000 0.3000000 0.01000000 0.00000000
-#> Estimate 9.7169 11.91772 0.06229692 0.07952026 0.1281441 0.04683419 0.03702228
+#>             kappa    sigma      gamma      rho_1    rho_2    sigma.e  intercept
+#> True     9.900000 29.00000 0.11000000 0.20000000 0.300000 0.01000000 0.00000000
+#> Estimate 9.716897 11.91772 0.06229696 0.07952028 0.128144 0.04683421 0.03702207
 ```
 
 Let us now use our `inlabru` implementation. We first define the model.
 
 ``` r
+
 st_bru_field <- rspde.spacetime(
   mesh_space = mesh_2d_spatial,
   mesh_time = mesh_2d_time, alpha = 1, beta = 1
@@ -554,6 +586,7 @@ st_bru_field <- rspde.spacetime(
 Now, the component:
 
 ``` r
+
 cmp <- y ~ -1 + Intercept(1) + field(list(
   space = cbind(x, y),
   time = t
@@ -563,6 +596,7 @@ cmp <- y ~ -1 + Intercept(1) + field(list(
 We are now in a position to fit the model:
 
 ``` r
+
 bru_fit_field <- bru(cmp, data = df_2d, options = list(num.threads = "1:1"))
 ```
 
@@ -570,6 +604,7 @@ Let us now compare the estimated results (the means of the parameters)
 with the true values:
 
 ``` r
+
 param_st <- transform_parameters_spacetime(
   bru_fit_field$summary.hyperpar$mean[2:6],
   st_bru_field
@@ -587,19 +622,19 @@ results <- data.frame(
 )
 
 print(results)
-#>              kappa        sigma        gamma        rho_1        rho_2
-#> True     9.9000000 2.900000e+01 1.100000e-01  0.200000000  0.300000000
-#> Estimate 0.3009676 3.848025e-05 8.723392e-09 -0.003454795 -0.004320446
+#>              kappa        sigma        gamma        rho_1         rho_2
+#> True     9.9000000 2.900000e+01 1.100000e-01 2.000000e-01  0.3000000000
+#> Estimate 0.2981365 3.929495e-05 9.094568e-09 7.349718e-06 -0.0006288078
 #>               sigma.e intercept
 #> True     0.0100000000 0.0000000
-#> Estimate 0.0005200932 0.4928725
+#> Estimate 0.0005198931 0.4931451
 ```
 
 ## Fit with `bounded_rho = FALSE`
 
-In cases where the estimated value of $\rho$ approaches the upper bound
-(available in `st_bru$bound_rho`), the model can be re-fitted with
-`bounded_rho = FALSE`. This removes the bounding constraint on $\rho$,
+In cases where the estimated value of $`\rho`$ approaches the upper
+bound (available in `st_bru$bound_rho`), the model can be re-fitted with
+`bounded_rho = FALSE`. This removes the bounding constraint on $`\rho`$,
 which can lead to a better fit but may introduce numerical instability.
 Below, we demonstrate this for both the 1D and spatial examples.
 
@@ -613,6 +648,7 @@ example. We will use the previous fit as a starting point for the new
 fit to improve the convergence of the optimization.
 
 ``` r
+
 op_1d_unbounded <- spacetime.operators(
   space_loc = s_1d, time_loc = t_1d,
   alpha = 1, beta = 1,
@@ -636,14 +672,15 @@ results <- data.frame(
 )
 
 print(results)
-#>             kappa     sigma     gamma     rho   sigma.e  intercept
-#> True     9.900000 29.000000 0.1100000 1.00000 0.0100000 0.00000000
-#> Estimate 4.703064  9.066892 0.1076067 1.03032 0.0139923 0.01228339
+#>             kappa     sigma     gamma      rho    sigma.e intercept
+#> True     9.900000 29.000000 0.1100000 1.000000 0.01000000 0.0000000
+#> Estimate 4.703064  9.066892 0.1076068 1.030319 0.01399226 0.0122834
 ```
 
 Now, the `inlabru` implementation:
 
 ``` r
+
 ### Fit with bounded_rho = FALSE
 st_bru_unbounded <- rspde.spacetime(
   space_loc = s_1d, time_loc = t_1d, alpha = 1,
@@ -674,9 +711,9 @@ results_unbounded <- data.frame(
 )
 
 print(results_unbounded)
-#>             kappa     sigma      gamma      rho     sigma.e  intercept
-#> True     9.900000 29.000000 0.11000000 1.000000 0.010000000 0.00000000
-#> Estimate 5.026244  9.082655 0.08955354 1.418052 0.007723455 0.01239866
+#>             kappa     sigma     gamma      rho     sigma.e  intercept
+#> True     9.900000 29.000000 0.1100000 1.000000 0.010000000 0.00000000
+#> Estimate 4.733179  9.147476 0.1068021 1.165041 0.008194457 0.01250031
 ```
 
 ## References

@@ -4,22 +4,30 @@
 
 Several popular Gaussian random field models can be represented as
 solutions to stochastic partial differential equations (SPDEs) of the
-form $$L^{\beta}(\tau u) = \mathcal{W}.$$
+form
+``` math
+L^{\beta} (\tau u) = \mathcal{W}.
+```
 
-Here $\mathcal{W}$ is Gaussian white noise, $L$ is a second-order
-differential operator, the fractional power $\beta > 0$ determines the
-smoothness of $u$, and $\tau > 0$ scales the variance of $u$.
+Here $`\mathcal{W}`$ is Gaussian white noise, $`L`$ is a second-order
+differential operator, the fractional power $`\beta>0`$ determines the
+smoothness of $`u`$, and $`\tau>0`$ scales the variance of $`u`$.
 
-If $2\beta$ is an integer and if the domain $\mathcal{D}$ where the
-model is defined is bounded, then $u$ can be approximated by a Gaussian
-Markov random field (GMRF) $u$ via a finite element method (FEM) for the
-SPDE. Specifically, the approximation can be written as
-$$u_{h}(s) = \sum\limits_{i = 1}^{n}u_{i}\varphi_{i}(s).$$ Here
-$\{\varphi_{i}\}$ are piecewise linear basis functions defined by some
-triangulation of $\mathcal{D}$ and the vector of weights
-$u = \left( u_{1},\ldots,u_{n} \right)^{T}$ is normally distributed,
-$N\left( u,{\widetilde{Q}}^{- 1} \right)$, where $\widetilde{Q}$ is
-sparse. See [Lindgren, Rue, and Lindström
+If $`2\beta`$ is an integer and if the domain $`\mathcal{D}`$ where the
+model is defined is bounded, then $`u`$ can be approximated by a
+Gaussian Markov random field (GMRF) $`\boldsymbol{\mathrm{u}}`$ via a
+finite element method (FEM) for the SPDE. Specifically, the
+approximation can be written as
+``` math
+u_h(s) = \sum_{i=1}^n u_i \varphi_i(s).
+```
+Here $`\{\varphi_i\}`$ are piecewise linear basis functions defined by
+some triangulation of $`\mathcal{D}`$ and the vector of weights
+$`\boldsymbol{\mathrm{u}} = (u_1,\ldots,u_n)^T`$ is normally
+distributed,
+$`N(\boldsymbol{\mathrm{u}},\tilde{\boldsymbol{\mathrm{Q}}}^{-1})`$,
+where $`\tilde{\boldsymbol{\mathrm{Q}}}`$ is sparse. See [Lindgren et
+al.
 (2011)](https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9868.2011.00777.x)
 for further details.
 
@@ -27,22 +35,26 @@ In this vignette we focus on the operator-based rational approximation.
 This approach, introduced by [Bolin and Kirchner
 (2020)](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537),
 results in an approximation of the original SPDE which is of the form
-$P_{l}x = P_{r}\mathcal{W}$, where $P_{l}$ and $P_{r}$ are
-non-fractional operators defined in terms of polynomials $p_{l}$ and
-$p_{r}$. The order of $p_{r}$ is given by $m$ and the order of $p_{l}$
-is $m + m_{\beta}$ where $m_{\beta}$ is the integer part of $\beta$ if
-$\beta > 1$ and $m_{\beta} = 1$ otherwise.
+$`P_l x = P_r \mathcal{W}`$, where $`P_l`$ and $`P_r`$ are
+non-fractional operators defined in terms of polynomials $`p_l`$ and
+$`p_r`$. The order of $`p_r`$ is given by $`m`$ and the order of $`p_l`$
+is $`m + m_{\beta}`$ where $`m_{\beta}`$ is the integer part of
+$`\beta`$ if $`\beta>1`$ and $`m_{\beta} = 1`$ otherwise.
 
 The combination of the rational approximation of the operator with the
-FEM discretization yields an approximation $u_{h}$ of $u$ on the basis
+FEM discretization yields an approximation $`u_h`$ of $`u`$ on the basis
 expansion form above. The difference to the non-fractional case is that
 the vector of stochastic weights now is
-$u \sim N\left( 0,P_{r}Q^{- 1}P_{r}^{T} \right)$ where $Q$ and $P_{r}$
-are sparse matrices. Alternatively, $u$ can be represented as
-$u = P_{r}x$ where $x \sim N\left( 0,Q^{- 1} \right)$, which means that
-the discrete approximation is a latent GMRF. This can be used for
-computationally efficient inference and simulation. See [Bolin and
-Kirchner
+$`\boldsymbol{\mathrm{u}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T)`$
+where $`\boldsymbol{\mathrm{Q}}`$ and $`\boldsymbol{\mathrm{P}}_r`$ are
+sparse matrices. Alternatively, $`\boldsymbol{\mathrm{u}}`$ can be
+represented as
+$`\boldsymbol{\mathrm{u}} = \boldsymbol{\mathrm{P}}_r \boldsymbol{\mathrm{x}}`$
+where
+$`\boldsymbol{\mathrm{x}} \sim N(\boldsymbol{\mathrm{0}},\boldsymbol{\mathrm{Q}}^{-1})`$,
+which means that the discrete approximation is a latent GMRF. This can
+be used for computationally efficient inference and simulation. See
+[Bolin and Kirchner
 (2020)](https://www.tandfonline.com/doi/full/10.1080/10618600.2019.1665537)
 for further details.
 
@@ -51,16 +63,19 @@ for further details.
 The main purpose of the `rSPDE` package is to provide functions for
 creating the rational approximation. In this vignette we focus on the
 operator-based rational approximation, which means assembling the
-matrices $Q$ and $P_{r}$. There are three functions for computing the
-rational approximation. The most general function is
+matrices $`\boldsymbol{\mathrm{Q}}`$ and $`\boldsymbol{\mathrm{P}}_r`$.
+There are three functions for computing the rational approximation. The
+most general function is
 [`fractional.operators()`](https://davidbolin.github.io/rSPDE/reference/fractional.operators.md),
 which works for a wide class of models with a general differential
-operator $L$. For the stationary Matérn case, where
-$L = \kappa^{2} - \Delta$, the function
+operator $`L`$. For the stationary Matérn case, where
+$`L = \kappa^2 - \Delta`$, the function
 [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md)
 provides a simplified model specification. For the generalized
 non-stationary Matérn model, defined through the SPDE
-$$\left( \kappa(s)^{2} - \Delta \right)^{\beta}\left( \tau(s)u(s) \right) = \mathcal{W},$$
+``` math
+(\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W},
+```
 the function
 [`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md)
 can be used.
@@ -96,30 +111,33 @@ constructing the rational SPDE approximation is to define the FEM mesh.
 In this section, we use the simple FEM implementation in the `rSPDE`
 package for models defined on an interval.
 
-Assume that we want to define a model on the interval
-$\lbrack 0,1\rbrack$. We then start by defining a vector with mesh nodes
-$s_{i}$ where the basis functions $\varphi_{i}$ are centered.
+Assume that we want to define a model on the interval $`[0,1]`$. We then
+start by defining a vector with mesh nodes $`s_i`$ where the basis
+functions $`\varphi_i`$ are centered.
 
 ``` r
+
 s <- seq(from = 0, to = 1, length.out = 101)
 ```
 
 Based on these nodes, we use (implicitly) the built-in function
 [`rSPDE.fem1d()`](https://davidbolin.github.io/rSPDE/reference/rSPDE.fem1d.md)
 to assemble two matrices needed for creating the approximation of a
-basic Matérn model. These matrices are the mass matrix $C$, with
-elements $C_{ij} = \int\varphi_{j}(s)\varphi_{i}(s)ds$, and the
-stiffness matrix $G$, with elements
-$G_{ij} = \int\nabla\varphi_{j}(s) \cdot \nabla\varphi_{i}(s)ds$.
+basic Matérn model. These matrices are the mass matrix
+$`\boldsymbol{\mathrm{C}}`$, with elements
+$`C_{ij} = \int \varphi_j(s) \varphi_i(s) ds`$, and the stiffness matrix
+$`\boldsymbol{\mathrm{G}}`$, with elements
+$`G_{ij} = \int \nabla\varphi_j(s) \cdot \nabla\varphi_i(s) ds`$.
 
 We can now use
 [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md)
-to construct a rational SPDE approximation of degree $m = 1$ for a
+to construct a rational SPDE approximation of degree $`m=1`$ for a
 Gaussian random field with a Matérn covariance function on the interval.
 Since we are using the operator-based approximation, we must set `type`
 to `"operator"`.
 
 ``` r
+
 kappa <- 20
 sigma <- 2
 nu <- 0.8
@@ -134,30 +152,35 @@ op <- matern.operators( sigma = sigma,
 ```
 
 The object `op` contains the matrices needed for evaluating the
-distribution of the stochastic weights $u$. If we want to evaluate
-$u_{h}(s)$ at some locations $s_{1},\ldots,s_{n}$, we need to multiply
-the weights with the basis functions $\varphi_{i}(s)$ evaluated at the
-locations. For this, we can construct the observation matrix $A$ with
-elements $A_{ij} = \varphi_{j}\left( s_{i} \right)$, which links the FEM
-basis functions to the locations. This matrix can be constructed using
-the function
+distribution of the stochastic weights $`\boldsymbol{\mathrm{u}}`$. If
+we want to evaluate $`u_h(s)`$ at some locations $`s_1,\ldots, s_n`$, we
+need to multiply the weights with the basis functions $`\varphi_i(s)`$
+evaluated at the locations. For this, we can construct the observation
+matrix $`\boldsymbol{\mathrm{A}}`$ with elements
+$`A_{ij} = \varphi_j(s_i)`$, which links the FEM basis functions to the
+locations. This matrix can be constructed using the function
 [`rSPDE.A1d()`](https://davidbolin.github.io/rSPDE/reference/rSPDE.A1d.md).
 
 To evaluate the accuracy of the approximation, let us compute the
-covariance function between the process at $s = 0.5$ and all other
+covariance function between the process at $`s=0.5`$ and all other
 locations in `s` and compare with the true covariance function, which is
 the folded Matérn covariance, see Theorem 1 in [An explicit link between
 Gaussian fields and Gaussian Markov random fields: the stochastic
 partial differential equation
 approach](https://www.jstor.org/stable/41262260). The covariances can be
-calculated as $$AP_{r}Q^{- 1}P_{r}^{T}v.$$ Here $A$ is an identity
-matrix since we are evaluating the approximation in the nodes of the FEM
-mesh and $v$ is a vector with all basis functions evaluated in
-$s = 0.5$. This way of computing the covariance is obtained by setting
-`direct = TRUE` in
+calculated as
+``` math
+\boldsymbol{\mathrm{A}} \boldsymbol{\mathrm{P}}_r \boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_r^T\boldsymbol{\mathrm{v}}.
+```
+Here $`\boldsymbol{\mathrm{A}}`$ is an identity matrix since we are
+evaluating the approximation in the nodes of the FEM mesh and
+$`\boldsymbol{\mathrm{v}}`$ is a vector with all basis functions
+evaluated in $`s=0.5`$. This way of computing the covariance is obtained
+by setting `direct = TRUE` in
 [`cov_function_mesh()`](https://davidbolin.github.io/rSPDE/reference/cov_function_mesh.md):
 
 ``` r
+
 c.approx <- cov_function_mesh(op, 0.5, direct = TRUE)
 c.true <- folded.matern.covariance.1d(rep(0.5, length(s)),
 abs(s), kappa, nu, sigma)
@@ -167,6 +190,7 @@ The covariance function and the error compared with the Matérn
 covariance are shown in the following figure.
 
 ``` r
+
 opar <- par(
   mfrow = c(1, 2), mgp = c(1.3, 0.5, 0),
   mar = c(2, 2, 0.5, 0.5) + 0.1
@@ -194,17 +218,18 @@ par(opar)
 ![](rspde_base_files/figure-html/unnamed-chunk-4-1.png)
 
 To improve the approximation we can increase the degree of the
-polynomials, by increasing $m$, and/or increase the number of basis
+polynomials, by increasing $`m`$, and/or increase the number of basis
 functions used for the FEM approximation. Let us, as an example, compute
-the approximation with $m = 2$ using the same mesh, as well as the
+the approximation with $`m=2`$ using the same mesh, as well as the
 approximation when we increase the number of basis functions and use
-$m = 1$ and $m = 2$. We will also load the `fmesher` package to use the
+$`m=1`$ and $`m=2`$. We will also load the `fmesher` package to use the
 [`fm_basis()`](https://inlabru-org.github.io/fmesher/reference/fm_basis.html)
 and
 [`fm_mesh_1d()`](https://inlabru-org.github.io/fmesher/reference/fm_mesh_1d.html)
 functions to map between the meshes.
 
 ``` r
+
 library(fmesher)
 
 op2 <- matern.operators(
@@ -241,6 +266,7 @@ c.approx4 <- A %*% cov_function_mesh(op, 0.5, direct = TRUE)
 The resulting errors are shown in the following figure.
 
 ``` r
+
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 plot(s, c.true - c.approx,
   type = "l", ylab = "Error", xlab = "s", col = 1,
@@ -263,15 +289,18 @@ par(opar)
 ![](rspde_base_files/figure-html/unnamed-chunk-6-1.png)
 
 Since the error induced by the rational approximation decreases
-exponentially in $m$, there is rarely a need for an approximation with a
-large value of $m$. This is good because the number of non-zero elements
-in $P_{r}$ and $Q$ increases with $m$, which makes the approximation
-more computationally costly to use. Further, the condition numbers of
-$P_{r}$ and $Q$ increase with $m$, which can cause numerical problems
-when working with these matrices. To illustrate this, let us compute the
-norm of the approximation error for different $m$.
+exponentially in $`m`$, there is rarely a need for an approximation with
+a large value of $`m`$. This is good because the number of non-zero
+elements in $`\boldsymbol{\mathrm{P}}_r`$ and
+$`\boldsymbol{\mathrm{Q}}`$ increases with $`m`$, which makes the
+approximation more computationally costly to use. Further, the condition
+numbers of $`\boldsymbol{\mathrm{P}}_r`$ and $`\boldsymbol{\mathrm{Q}}`$
+increase with $`m`$, which can cause numerical problems when working
+with these matrices. To illustrate this, let us compute the norm of the
+approximation error for different $`m`$.
 
 ``` r
+
 # Mapping s2 to s
 A <- fm_basis(mesh_s2, s)
 
@@ -291,38 +320,42 @@ print(errors)
 ```
 
 We see that, when we used the direct method to compute the covariance
-function, as described above, the error decreases when increasing $m$
-from $1$ to $2$, but is very large for $m = 3$ and $m = 4$. The reason
-for this is not that the approximation is bad, but that the numerical
-accuracy of the product $P_{r}Q^{- 1}P_{r}v$ is low due to the large
-condition numbers of the matrices.
+function, as described above, the error decreases when increasing $`m`$
+from $`1`$ to $`2`$, but is very large for $`m=3`$ and $`m=4`$. The
+reason for this is not that the approximation is bad, but that the
+numerical accuracy of the product
+$`\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv`$
+is low due to the large condition numbers of the matrices.
 
 It is important to note that the alternative covariance-based rational
 approximation is more numerically stable. The main reason for this is
-that it relies on a decomposition of the field $u$ into a sum of random
-fields, which removes the need of computing higher order finite element
-matrices for large values of $m$. See the [Rational approximation with
-the rSPDE
+that it relies on a decomposition of the field $`u`$ into a sum of
+random fields, which removes the need of computing higher order finite
+element matrices for large values of $`m`$. See the [Rational
+approximation with the rSPDE
 package](https://davidbolin.github.io/rSPDE/articles/rspde_cov.md)
 vignette for further details.
 
 To handle this issue for the operator-based rational approximation, the
-package contains functions for performing operations such as $P_{r}v$ or
-$P_{r}^{- 1}v$ that takes advantage of the structure of $P_{r}$ to avoid
-numerical instabilities. A complete list of these function can be seen
-by typing
+package contains functions for performing operations such as
+$`\boldsymbol{\mathrm{P}}_rv`$ or $`\boldsymbol{\mathrm{P}}_r^{-1}v`$
+that takes advantage of the structure of $`\boldsymbol{\mathrm{P}}_r`$
+to avoid numerical instabilities. A complete list of these function can
+be seen by typing
 [`?operator.operations`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md).
 One of these functions is
 [`Sigma.mult()`](https://davidbolin.github.io/rSPDE/reference/operator.operations.md),
-which performs the multiplication $P_{r}Q^{- 1}P_{r}v$ in a more
-numerically stable way. Let us use this function to compute the errors
-of the approximations again to see that we indeed get better
-approximations as $m$ increases. This is obtained by setting the
+which performs the multiplication
+$`\boldsymbol{\mathrm{P}}_r\boldsymbol{\mathrm{Q}}^{-1}\boldsymbol{\mathrm{P}}_rv`$
+in a more numerically stable way. Let us use this function to compute
+the errors of the approximations again to see that we indeed get better
+approximations as $`m`$ increases. This is obtained by setting the
 `direct` argument in
 [`cov_function_mesh()`](https://davidbolin.github.io/rSPDE/reference/cov_function_mesh.md)
 to `FALSE`:
 
 ``` r
+
 errors2 <- rep(0, 4)
 for (i in 1:4) {
   op <- matern.operators(
@@ -341,13 +374,14 @@ print(errors2)
 ## A non-stationary model
 
 Let us now examine a non-stationary model
-$\left( \kappa(s)^{2} - \Delta \right)^{\beta}\left( \tau(s)u(s) \right) = \mathcal{W}$
-with $\kappa(s) = 10\left( 1 + 2s^{2} \right)$ and
-$\tau(s) = 0.1\left( 1 - 0.7s^{2} \right)$. We can then use
+$`(\kappa(s)^2 - \Delta)^\beta (\tau(s)u(s)) = \mathcal{W}`$ with
+$`\kappa(s) = 10(1+2s^2)`$ and $`\tau(s) = 0.1(1 - 0.7s^2)`$. We can
+then use
 [`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md)
-to create the rational approximation with $m = 1$ as follows.
+to create the rational approximation with $`m=1`$ as follows.
 
 ``` r
+
 s <- seq(from = 0, to = 1, length.out = 501)
 s_mesh <- fm_mesh_1d(s)
 
@@ -361,11 +395,12 @@ op <- spde.matern.operators(
 )
 ```
 
-Let us compute the covariance function $C\left( s,s_{i} \right)$ of the
-non-stationary model for the locations $s_{1} = 0.1,s_{2} = 0.5,$ and
-$s_{3} = 0.9$.
+Let us compute the covariance function $`C(s,s_i)`$ of the
+non-stationary model for the locations $`s_1=0.1, s_2 = 0.5,`$ and
+$`s_3 = 0.9`$.
 
 ``` r
+
 v <- t(make_A(op, loc = c(0.1, 0.5, 0.9)))
 covs <- Sigma.mult(op, v)
 ```
@@ -373,6 +408,7 @@ covs <- Sigma.mult(op, v)
 The three covariances are shown in the following figure.
 
 ``` r
+
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 plot(s, covs[, 1],
   type = "l", ylab = "C(s,s_i)", xlab = "s",
@@ -385,19 +421,20 @@ par(opar)
 
 ![](rspde_base_files/figure-html/unnamed-chunk-11-1.png)
 
-We see that this choice of $\kappa(s)$ and $\tau(s)$ results in a model
-with longer range for small values of $s$ and smaller variance in the
-middle of the domain. We can also apply the general function
+We see that this choice of $`\kappa(s)`$ and $`\tau(s)`$ results in a
+model with longer range for small values of $`s`$ and smaller variance
+in the middle of the domain. We can also apply the general function
 [`fractional.operators()`](https://davidbolin.github.io/rSPDE/reference/fractional.operators.md)
 to construct the approximation. This function requires that the user
-supplies a discretization of the non-fractional operator $L$, as well as
-a scaling factor $c > 0$ which is a lower bound for the smallest
-eigenvalue of $L$. In our case we have $L = \kappa(s)^{2} - \Delta$, and
-the eigenvalues of this operator is bounded from below by
-$c = \min_{s}\kappa(s)^{2}$. We compute this constant and the discrete
+supplies a discretization of the non-fractional operator $`L`$, as well
+as a scaling factor $`c>0`$ which is a lower bound for the smallest
+eigenvalue of $`L`$. In our case we have $`L = \kappa(s)^2 - \Delta`$,
+and the eigenvalues of this operator is bounded from below by
+$`c = \min_s \kappa(s)^2`$. We compute this constant and the discrete
 operator.
 
 ``` r
+
 fem <- fm_fem(s_mesh)
 C <- fem$c0
 G <- fem$g1 
@@ -409,11 +446,12 @@ L <- G + C %*% Diagonal(501, kappa^2)
 Another difference between
 [`fractional.operators()`](https://davidbolin.github.io/rSPDE/reference/fractional.operators.md)
 and the previous functions for constructing the approximation, is that
-it requires specifying $\beta$ instead of the smoothness parameter $\nu$
-for the Matérn covariance. These two parameters are related as
-$2\beta = \nu + d/2$.
+it requires specifying $`\beta`$ instead of the smoothness parameter
+$`\nu`$ for the Matérn covariance. These two parameters are related as
+$`2\beta = \nu + d/2`$.
 
 ``` r
+
 op <- fractional.operators(
   L = L, beta = (nu + 1 / 2) / 2, C = C,
   scale.factor = c, tau = tau, m = 1
@@ -424,6 +462,7 @@ Let’s make sure that we have the same approximation by comparing the
 previously computed covariances.
 
 ``` r
+
 covs2 <- Sigma.mult(op, v)
 norm(covs - covs2)
 #> [1] 0
@@ -434,8 +473,9 @@ Obviously, it is simpler to use
 in this case, but the advantage with
 [`fractional.operators()`](https://davidbolin.github.io/rSPDE/reference/fractional.operators.md)
 is that it also can be used for other more general models such as one
-with $L = \kappa(s)^{2} - \nabla \cdot \left( H(s)\nabla \right)$ for
-some matrix-valued function $H(s)$.
+with
+$`L = \kappa(s)^2 - \nabla \cdot (\boldsymbol{\mathrm{H}}(s) \nabla)`$
+for some matrix-valued function $`\boldsymbol{\mathrm{H}}(s)`$.
 
 ### Using the approximation
 
@@ -448,6 +488,7 @@ we can simulate from the model using
 [`simulate()`](https://rdrr.io/r/stats/simulate.html).
 
 ``` r
+
 u <- simulate(op)
 ```
 
@@ -459,28 +500,30 @@ randomly generate some observation locations and then construct the
 matrix.
 
 ``` r
+
 n.obs <- 20
 obs.loc <- runif(n = n.obs, min = 0, max = 1)
 A <- fm_basis(s_mesh, obs.loc)
 ```
 
-We now generate the observations as
-$Y_{i} = u\left( s_{i} \right) + \varepsilon_{i}$, where
-$\varepsilon_{i} \sim N\left( 0,\sigma_{e}^{2} \right)$ is Gaussian
-measurement noise.
+We now generate the observations as $`Y_i = u(s_i) + \varepsilon_i`$,
+where $`\varepsilon_i \sim N(0,\sigma_e^2)`$ is Gaussian measurement
+noise.
 
 ``` r
+
 sigma.e <- 0.3
 Y <- as.vector(A %*% u + sigma.e * rnorm(n.obs))
 ```
 
-Finally, we compute the kriging prediction of the process $u$ at the
+Finally, we compute the kriging prediction of the process $`u`$ at the
 locations in `s` based on these observations. To specify which locations
 that should be predicted, the argument `Aprd` is used. This argument
 should be an observation matrix that links the mesh locations to the
 prediction locations.
 
 ``` r
+
 A.krig <- fm_basis(s_mesh, s)
 u.krig <- predict(op, A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e)
 ```
@@ -489,6 +532,7 @@ The process simulation, the observed data, and the kriging prediction
 are shown in the following figure.
 
 ``` r
+
 opar <- par(mgp = c(1.3, 0.5, 0), mar = c(2, 2, 0.5, 0.5) + 0.1)
 plot(obs.loc, Y,
   ylab = "u(s)", xlab = "s",
@@ -508,10 +552,11 @@ The functions used in the previous examples also work for spatial
 models. We then need to construct a mesh over the domain of interest and
 then compute the matrices needed to define the operator. These tasks can
 be performed, for example, using the `fmesher` package. Let us start by
-defining a mesh over $\lbrack 0,1\rbrack \times \lbrack 0,1\rbrack$ and
-compute the mass and stiffness matrices for that mesh.
+defining a mesh over $`[0,1]\times [0, 1]`$ and compute the mass and
+stiffness matrices for that mesh.
 
 ``` r
+
 library(fmesher)
 m <- 200
 loc_2d_mesh <- matrix(runif(m * 2), m, 2)
@@ -526,13 +571,14 @@ points(loc_2d_mesh[, 1], loc_2d_mesh[, 2])
 ```
 
 ![](rspde_base_files/figure-html/unnamed-chunk-20-1.png) We can now use
-these matrices to define a rational SPDE approximation of degree $m = 1$
+these matrices to define a rational SPDE approximation of degree $`m=1`$
 for a Matérn model in the same was as before. To illustrate this, we
-simulate a latent process with standard deviation $\sigma = 1$ and range
-$0.1$. We choose $\nu = 0.5$ so that the model corresponds to a Gaussian
-process with an exponential covariance function.
+simulate a latent process with standard deviation $`\sigma=1`$ and range
+$`0.1`$. We choose $`\nu=0.5`$ so that the model corresponds to a
+Gaussian process with an exponential covariance function.
 
 ``` r
+
 nu <- 0.8
 sigma <- 1.3
 range <- 0.15
@@ -548,6 +594,7 @@ parameters of the model. To construct the observation matrix, we use the
 We sample 30 replicates of the latent field.
 
 ``` r
+
 n.rep <- 30
 u <- simulate(op, nsim = n.rep)
 A <- fm_basis(
@@ -562,6 +609,7 @@ The first replicate of the simulated random field as well as the
 observation locations are shown in the following figure.
 
 ``` r
+
 library(viridis)
 library(ggplot2)
 proj <- fm_evaluator(mesh_2d, dims = c(70, 70))
@@ -588,7 +636,7 @@ ggplot(df_plot) + aes(x = x, y = y, fill = field) +
 
 ![](rspde_base_files/figure-html/unnamed-chunk-23-1.png)
 
-For each type of rational approximation of degree $m$, there is a
+For each type of rational approximation of degree $`m`$, there is a
 corresponding likelihood function that can be used for likelihood-based
 parameter estimation. Since we constructed the model with
 [`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md),
@@ -599,6 +647,7 @@ object containing the `rSPDE` model (we are assigning the meaningless
 value 1 for the parameters because they will not be used):
 
 ``` r
+
 op_obj <- matern.operators( m = 1,
     type = "operator", mesh = mesh_2d
   )
@@ -611,6 +660,7 @@ replicates of each observation. Then, we build the
 contanis the spatial locations, and we fit the model:
 
 ``` r
+
 y_vec <- as.vector(Y)
 repl <- rep(1:n.rep, each = m)
 df_data_2d <- data.frame(y = y_vec, x_coord = loc_2d_mesh[,1],
@@ -620,6 +670,7 @@ df_data_2d <- data.frame(y = y_vec, x_coord = loc_2d_mesh[,1],
 We can now fit the model (and speed up by setting `parallel` to `TRUE`):
 
 ``` r
+
 fit_2d <- rspde_lme(y ~ -1, model = op_obj, 
           data = df_data_2d, repl = repl,
           loc = c("x_coord", "y_coord"), 
@@ -629,6 +680,7 @@ fit_2d <- rspde_lme(y ~ -1, model = op_obj,
 Let us see a summary of the fitted model:
 
 ``` r
+
 summary(fit_2d)
 #> 
 #> Latent model - Whittle-Matern
@@ -661,13 +713,14 @@ summary(fit_2d)
 #> Number of function calls by 'optim' = 61
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  1.24637 mins 
-#>   set up the parallelization = 2.69455 secs
+#> Time used to:     fit the model =  1.28816 mins 
+#>   set up the parallelization = 2.71825 secs
 ```
 
 and glance:
 
 ``` r
+
 glance(fit_2d)
 #> # A tibble: 1 × 8
 #>    nobs sigma logLik    AIC    BIC deviance df.residual model               
@@ -678,6 +731,7 @@ glance(fit_2d)
 Let us compare the estimated results with the true values:
 
 ``` r
+
 print(data.frame(
   sigma = c(sigma, fit_2d$alt_par_coeff$coeff["sigma"]), 
   range = c(range, fit_2d$alt_par_coeff$coeff["range"]),
@@ -690,7 +744,7 @@ print(data.frame(
 
 # Total time
 print(fit_2d$fitting_time)
-#> Time difference of 1.246371 mins
+#> Time difference of 1.288163 mins
 ```
 
 Finally, we observe that we can use the
@@ -700,6 +754,7 @@ function, to check the order of the rational approximation of the
 assign new orders:
 
 ``` r
+
 rational.order(op_obj)
 #> [1] 1
 
@@ -710,6 +765,7 @@ Let us fit again and check the results. We use the previous fit to speed
 up the computation.
 
 ``` r
+
 fit_2d <- rspde_lme(y ~ -1, model = op_obj, 
           data = df_data_2d, repl = repl,
           loc = c("x_coord", "y_coord"), 
@@ -719,6 +775,7 @@ fit_2d <- rspde_lme(y ~ -1, model = op_obj,
 Let us check the summary:
 
 ``` r
+
 summary(fit_2d)
 #> 
 #> Latent model - Whittle-Matern
@@ -751,13 +808,14 @@ summary(fit_2d)
 #> Number of function calls by 'optim' = 28
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  1.20314 mins 
-#>   set up the parallelization = 2.65175 secs
+#> Time used to:     fit the model =  1.2428 mins 
+#>   set up the parallelization = 2.72545 secs
 ```
 
 Let us compare the estimated results with the true values:
 
 ``` r
+
 print(data.frame(
   sigma = c(sigma, fit_2d$alt_par_coeff$coeff["sigma"]), 
   range = c(range, fit_2d$alt_par_coeff$coeff["range"]),
@@ -770,7 +828,7 @@ print(data.frame(
 
 # Total time
 print(fit_2d$fitting_time)
-#> Time difference of 1.20315 mins
+#> Time difference of 1.242806 mins
 ```
 
 ## References

@@ -76,9 +76,9 @@
                         <h4 data-toc-skip class="author">David
 Bolin</h4>
             
-            <h4 data-toc-skip class="date">2026-04-08</h4>
+            <h4 data-toc-skip class="date">2026-05-06</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/intrinsic.Rmd" class="external-link"><code>vignettes/intrinsic.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel/vignettes/intrinsic.Rmd" class="external-link"><code>vignettes/intrinsic.Rmd</code></a></small>
       <div class="d-none name"><code>intrinsic.Rmd</code></div>
     </div>
 
@@ -94,7 +94,7 @@ models implemented in the <code>rSPDE</code> package.</p>
 <h3 id="a-fractional-intrinsic-model">A fractional intrinsic model<a class="anchor" aria-label="anchor" href="#a-fractional-intrinsic-model"></a>
 </h3>
 <p>A basic intrinsic model which is implemented in <code>rSPDE</code> is
-defined as<br><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>β</mi><mi>/</mi><mn>2</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mi>u</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>𝒲</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+defined as<br><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mi mathvariant="normal">Δ</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>β</mi><mi>/</mi><mn>2</mn></mrow></msup><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>𝒲</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
 (-\Delta)^{\beta/2}(\tau u) = \mathcal{W},
 </annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>&gt;</mo><mi>d</mi><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">\beta &gt; d/2</annotation></semantics></math>
@@ -102,7 +102,7 @@ and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
 is the dimension of the spatial domain.</p>
 <p>To illustrate these models, we begin by defining a mesh over
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>2</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>×</mo><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>2</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">[0,2]\times [0, 2]</annotation></semantics></math>:</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>2</mn><mo stretchy="false" form="postfix">]</mo><mo>×</mo><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>2</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,2]\times [0, 2]</annotation></semantics></math>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://inlabru-org.github.io/fmesher/" class="external-link">fmesher</a></span><span class="op">)</span></span>
 <span><span class="va">bnd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/fmesher/reference/fm_segm.html" class="external-link">fm_segm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>, is.bnd <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -167,7 +167,7 @@ constraint.</p>
 </h3>
 <p>Let us now consider a simple Gaussian linear model where the spatial
 field
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐬</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">u(\mathbf{s})</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>𝐬</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u(\mathbf{s})</annotation></semantics></math>
 is observed at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
 locations,
@@ -175,7 +175,7 @@ locations,
 under Gaussian measurement noise. For each
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>m</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">i = 1,\ldots,m,</annotation></semantics></math>
 we have
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>y</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐬</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd></mtr></mtable><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>y</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>𝐬</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd></mtr></mtable><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \begin{align} 
 y_i &amp;= u(\mathbf{s}_i)+\varepsilon_i\\
 \end{align},
@@ -237,8 +237,8 @@ the following:</p>
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;         mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">#&gt; tau 0.125126 0.0270979  0.0813405 0.121837   0.187348 0.115324</span></span>
-<span><span class="co">#&gt; nu  0.968237 0.0745904  0.8194860 0.969408   1.111770 0.973543</span></span>
+<span><span class="co">#&gt; tau 0.124642 0.0223275  0.0878089 0.122148   0.175227 0.116954</span></span>
+<span><span class="co">#&gt; nu  0.968011 0.0615217  0.8441020 0.969488   1.085230 0.974565</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">beta</span> <span class="op">-</span> <span class="fl">1</span> <span class="co">#beta = nu + d/2 </span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -251,9 +251,9 @@ the following:</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter true       mean       mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.2 0.12512639 0.11532354</span></span>
-<span><span class="co">#&gt; 2        nu  0.8 0.96823662 0.97354345</span></span>
-<span><span class="co">#&gt; 3   sigma.e  0.1 0.09793544 0.09833684</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       tau  0.2 0.12464165 0.11695421</span></span>
+<span><span class="co">#&gt; 2        nu  0.8 0.96801089 0.97456491</span></span>
+<span><span class="co">#&gt; 3   sigma.e  0.1 0.09794395 0.09841126</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="extreme-value-models">Extreme value models<a class="anchor" aria-label="anchor" href="#extreme-value-models"></a>
@@ -264,7 +264,7 @@ particular form of the mean value of the latent field
 which is zero at one location
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
 and is given by the diagonal of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>Q</mi><mrow><mo>−</mo><mi>k</mi><mo>,</mo><mo>−</mo><mi>k</mi></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msubsup><annotation encoding="application/x-tex">Q_{-k,-k}^{-1}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>Q</mi><mrow><mi>−</mi><mi>k</mi><mo>,</mo><mi>−</mi><mi>k</mi></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msubsup><annotation encoding="application/x-tex">Q_{-k,-k}^{-1}</annotation></semantics></math>
 for the remaining locations. This option can be specified via the
 <code>mean.correction</code> argument of
 <code>rspde.intrinsic</code>:</p>
@@ -349,8 +349,8 @@ observations per replicate</p>
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span>, <span class="st">"field"</span>, <span class="va">rspde_model.rep</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;         mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">#&gt; tau 0.177946 0.0111483   0.157648 0.177348   0.201401 0.175908</span></span>
-<span><span class="co">#&gt; nu  0.924109 0.0142291   0.895539 0.924390   0.951391 0.925333</span></span>
+<span><span class="co">#&gt; tau 0.177687 0.0114608   0.155591 0.177609    0.20054 0.177804</span></span>
+<span><span class="co">#&gt; nu  0.923810 0.0153326   0.894695 0.923398    0.95486 0.922017</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">beta</span> <span class="op">-</span> <span class="fl">1</span> <span class="co">#beta = nu + d/2 </span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -362,10 +362,10 @@ observations per replicate</p>
 <span>             <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">rspde_fit.rep</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">[</span><span class="fl">1</span>,<span class="fl">6</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   parameter true      mean       mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.2 0.1779463 0.17590846</span></span>
-<span><span class="co">#&gt; 2        nu  0.9 0.9241086 0.92533255</span></span>
-<span><span class="co">#&gt; 3   sigma.e  0.1 0.1000062 0.09998612</span></span></code></pre></div>
+<span><span class="co">#&gt;   parameter true       mean       mode</span></span>
+<span><span class="co">#&gt; 1       tau  0.2 0.17768726 0.17780447</span></span>
+<span><span class="co">#&gt; 2        nu  0.9 0.92380971 0.92201728</span></span>
+<span><span class="co">#&gt; 3   sigma.e  0.1 0.09992825 0.09981984</span></span></code></pre></div>
 <p>To see the posterior distributions of the parameters we can do:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span>, <span class="st">"field"</span>, <span class="va">rspde_model.rep</span><span class="op">)</span></span>
@@ -380,7 +380,7 @@ observations per replicate</p>
 </h2>
 <p>The <code>rSPDE</code> package also contains a partial implementation
 of a more general intrinsic model, which we refer to as an intrinsic
-Matérn model. The model is defined as<br><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>β</mi><mi>/</mi><mn>2</mn></mrow></msup><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><mi>Δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>α</mi><mi>/</mi><mn>2</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mi>u</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>𝒲</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+Matérn model. The model is defined as<br><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mi mathvariant="normal">Δ</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>β</mi><mi>/</mi><mn>2</mn></mrow></msup><mo stretchy="false" form="prefix">(</mo><msup><mi>κ</mi><mn>2</mn></msup><mo>−</mo><mi mathvariant="normal">Δ</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>α</mi><mi>/</mi><mn>2</mn></mrow></msup><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>𝒲</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
 (-\Delta)^{\beta/2}(\kappa^2-\Delta)^{\alpha/2}(\tau u) = \mathcal{W},
 </annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>+</mo><mi>β</mi><mo>&gt;</mo><mi>d</mi><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">\alpha + \beta &gt; d/2</annotation></semantics></math>
@@ -497,22 +497,22 @@ to make the required elements.</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 0.148, Running = 22.3, Post = 0.0551, Total = 22.5 </span></span>
+<span><span class="co">#&gt;     Pre = 0.146, Running = 20.8, Post = 0.0546, Total = 21 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model hyperparameters:</span></span>
 <span><span class="co">#&gt;                                           mean    sd 0.025quant 0.5quant</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations 100.68 4.491      92.10   100.59</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations 100.64 4.493      92.09   100.53</span></span>
 <span><span class="co">#&gt; Theta1 for field                         -5.98 0.048      -6.07    -5.98</span></span>
-<span><span class="co">#&gt; Theta2 for field                          2.35 0.086       2.17     2.35</span></span>
+<span><span class="co">#&gt; Theta2 for field                          2.35 0.087       2.17     2.35</span></span>
 <span><span class="co">#&gt;                                         0.975quant   mode</span></span>
-<span><span class="co">#&gt; Precision for the Gaussian observations     109.78 100.44</span></span>
+<span><span class="co">#&gt; Precision for the Gaussian observations     109.78 100.31</span></span>
 <span><span class="co">#&gt; Theta1 for field                             -5.88  -5.98</span></span>
-<span><span class="co">#&gt; Theta2 for field                              2.51   2.35</span></span>
+<span><span class="co">#&gt; Theta2 for field                              2.52   2.35</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Marginal log-Likelihood:  727.86 </span></span>
+<span><span class="co">#&gt; Marginal log-Likelihood:  727.87 </span></span>
 <span><span class="co">#&gt;  is computed </span></span>
 <span><span class="co">#&gt; Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span><span class="co">#&gt; (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre></div>
@@ -522,8 +522,8 @@ following:</p>
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;              mean          sd 0.025quant   0.5quant  0.975quant        mode</span></span>
-<span><span class="co">#&gt; tau    0.00253231 0.000121324 0.00230549  0.0025272  0.00278195  0.00251614</span></span>
-<span><span class="co">#&gt; kappa 10.49070000 0.897805000 8.79809000 10.4701000 12.32000000 10.44880000</span></span>
+<span><span class="co">#&gt; tau    0.00253265 0.000121827 0.00230298  0.0025284  0.00278094  0.00252041</span></span>
+<span><span class="co">#&gt; kappa 10.49390000 0.909078000 8.80439000 10.4624000 12.37210000 10.40750000</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span><span class="op">)</span>,</span>
@@ -532,9 +532,9 @@ following:</p>
 <span>  mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">$</span><span class="va">summary.tau</span><span class="op">$</span><span class="va">mode</span>, <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.kappa</span><span class="op">$</span><span class="va">mode</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   parameter    true        mean         mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.0025  0.00253231  0.002516139</span></span>
-<span><span class="co">#&gt; 2     kappa 10.0000 10.49072847 10.448830319</span></span></code></pre></div>
+<span><span class="co">#&gt;   parameter    true         mean         mode</span></span>
+<span><span class="co">#&gt; 1       tau  0.0025  0.002532649  0.002520408</span></span>
+<span><span class="co">#&gt; 2     kappa 10.0000 10.493944133 10.407543925</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kriging-with-r-inla-implementation">Kriging with <code>R-INLA</code> implementation<a class="anchor" aria-label="anchor" href="#kriging-with-r-inla-implementation"></a>

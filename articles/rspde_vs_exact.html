@@ -75,7 +75,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>rSPDE vs exact Matern covariance: timing and memory</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/vignettes/rspde_vs_exact.Rmd" class="external-link"><code>vignettes/rspde_vs_exact.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel/vignettes/rspde_vs_exact.Rmd" class="external-link"><code>vignettes/rspde_vs_exact.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_vs_exact.Rmd</code></div>
     </div>
 
@@ -128,14 +128,14 @@ cost.</p>
 <h2 id="benchmark-setup">Benchmark setup<a class="anchor" aria-label="anchor" href="#benchmark-setup"></a>
 </h2>
 <p>We consider a Gaussian model
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ε</mi><mi>i</mi></msub><mo>∼</mo><mi>𝒩</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>e</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>ε</mi><mi>i</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ε</mi><mi>i</mi></msub><mo>∼</mo><mi>𝒩</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>e</mi><mn>2</mn></msubsup><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 y_i = u(s_i) + \varepsilon_i,\qquad \varepsilon_i \sim \mathcal{N}(0,\sigma_e^2),
 </annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
 is a Mat'ern field on the unit square and the observations are taken at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
 random locations
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>i</mi></msub><mo>∈</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s_i \in [0,1]^2</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>i</mi></msub><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><msup><mo stretchy="false" form="postfix">]</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s_i \in [0,1]^2</annotation></semantics></math>.
 We use
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1000</mn><mo>,</mo><mn>2000</mn><mo>,</mo><mi>…</mi><mo>,</mo><mn>10000</mn><mo>,</mo><mn>12500</mn><mo>,</mo><mn>15000</mn><mo>,</mo><mn>20000</mn><mo>,</mo><mn>25000</mn><mo>,</mo><mn>30000</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">N \in \{1000,2000,\ldots,10000,12500,15000,20000,25000,30000\}</annotation></semantics></math>.
 For each

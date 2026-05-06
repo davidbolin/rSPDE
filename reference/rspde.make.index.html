@@ -43,7 +43,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>rSPDE model index vector generation</h1>
-      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel-src/R/inla_rspde.R" class="external-link"><code>R/inla_rspde.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel/R/inla_rspde.R" class="external-link"><code>R/inla_rspde.R</code></a></small>
       <div class="d-none name"><code>rspde.make.index.Rd</code></div>
     </div>
 
@@ -171,10 +171,11 @@ be estimated. If nu is fixed, you should provide the value of nu.</p></dd>
 <span class="r-in"><span>  <span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            mean        sd  0.025quant   0.5quant 0.975quant       mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> tau    0.022802 0.0108971  0.00590635  0.0215761  0.0465316  0.0166117</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> kappa 16.862100 3.2723800 11.48230000 16.4943000 24.2906000 15.7491000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> nu     0.971680 0.1434890  0.74408000  0.9527700  1.2914300  0.8787760</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>the mean or mode of nu is very close to nu.upper.bound, please consider increasing nu.upper.bound, and refitting the model.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             mean         sd  0.025quant    0.5quant 0.975quant        mode</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau    0.0202292  0.0740987 3.97364e-14 3.62427e-04   0.182241 3.97364e-14</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> kappa 37.3667000 33.8122000 1.16644e+01 2.64436e+01 129.514000 1.54715e+01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nu     1.5619100  0.4893330 4.53852e-01 1.78723e+00   1.999760 1.99999e+00</span>
 <span class="r-in"><span><span class="co"># devel.tag</span></span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
