@@ -46,6 +46,19 @@
 #'
 NULL
 
+.onLoad <- function(libname, pkgname) {
+  shared_dir <- system.file("shared", package = pkgname)
+  shared_lib <- file.path(
+    shared_dir,
+    if (.Platform$OS.type == "windows") {
+      "rspde_cgeneric_models.dll"
+    } else {
+      "rspde_cgeneric_models.so"
+    }
+  )
+  options(rspde.compiled = nzchar(shared_dir) && file.exists(shared_lib))
+}
+
 .onAttach <- function(libname, pkgname) {
   version <- utils::packageVersion("rSPDE")
   packageStartupMessage(
