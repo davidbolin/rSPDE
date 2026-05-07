@@ -56,6 +56,8 @@ Useful links:
 
 Authors:
 
+- David Bolin <davidbolin@gmail.com>
+
 - Alexandre Simas <alexandre.impa@gmail.com>
 
 Other contributors:

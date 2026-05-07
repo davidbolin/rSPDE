@@ -5,26 +5,19 @@ rSPDE inlabru mapper
 ## Usage
 
 ``` r
-# S3 method for class 'bru_mapper_inla_rspde_fintrinsic'
-ibm_n(mapper, ...)
+ibm_n.bru_mapper_inla_rspde_fintrinsic(mapper, ...)
 
-# S3 method for class 'bru_mapper_inla_rspde_fintrinsic'
-ibm_values(mapper, ...)
+ibm_values.bru_mapper_inla_rspde_fintrinsic(mapper, ...)
 
-# S3 method for class 'bru_mapper_inla_rspde_fintrinsic'
-ibm_jacobian(mapper, input, ...)
+ibm_jacobian.bru_mapper_inla_rspde_fintrinsic(mapper, input, ...)
 
-# S3 method for class 'inla_rspde'
-bru_get_mapper(model, ...)
+bru_get_mapper.inla_rspde(model, ...)
 
-# S3 method for class 'bru_mapper_inla_rspde'
-ibm_n(mapper, ...)
+ibm_n.bru_mapper_inla_rspde(mapper, ...)
 
-# S3 method for class 'bru_mapper_inla_rspde'
-ibm_values(mapper, ...)
+ibm_values.bru_mapper_inla_rspde(mapper, ...)
 
-# S3 method for class 'bru_mapper_inla_rspde'
-ibm_jacobian(mapper, input, ...)
+ibm_jacobian.bru_mapper_inla_rspde(mapper, input, ...)
 ```
 
 ## Arguments
@@ -120,10 +113,10 @@ if (requireNamespace("INLA", quietly = TRUE) &&
 #>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 #>     Used components: effect[Intercept, field], latent[] 
 #> Time used:
-#>     Pre = 0.343, Running = 1.34, Post = 0.402, Total = 2.09 
+#>     Pre = 0.333, Running = 1.38, Post = 0.369, Total = 2.08 
 #> Fixed effects:
 #>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-#> Intercept 0.305 0.169     -0.029    0.305      0.641 0.305   0
+#> Intercept 0.305 0.168     -0.027    0.305      0.639 0.305   0
 #> 
 #> Random effects:
 #>   Name     Model
@@ -131,17 +124,17 @@ if (requireNamespace("INLA", quietly = TRUE) &&
 #> 
 #> Model hyperparameters:
 #>                                            mean     sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 163.465 78.980     52.931  148.899
-#> Theta1 for field                         -3.786  0.464     -4.817   -3.745
-#> Theta2 for field                          2.880  0.203      2.492    2.876
-#> Theta3 for field                         -0.144  0.254     -0.574   -0.164
+#> Precision for the Gaussian observations 165.191 84.451      53.68   147.92
+#> Theta1 for field                         -3.771  0.464      -4.79    -3.74
+#> Theta2 for field                          2.886  0.213       2.48     2.88
+#> Theta3 for field                         -0.154  0.250      -0.59    -0.17
 #>                                         0.975quant    mode
-#> Precision for the Gaussian observations    356.031 120.771
-#> Theta1 for field                            -3.021  -3.539
-#> Theta2 for field                             3.291   2.859
-#> Theta3 for field                             0.414  -0.263
+#> Precision for the Gaussian observations    376.828 117.087
+#> Theta1 for field                            -2.980  -3.567
+#> Theta2 for field                             3.315   2.869
+#> Theta3 for field                             0.385  -0.251
 #> 
-#> Marginal log-Likelihood:  -108.75 
+#> Marginal log-Likelihood:  -108.66 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')

@@ -243,7 +243,7 @@ We can get a summary of the fit:
 
 summary(rspde_fit)
 #> Time used:
-#>     Pre = 0.326, Running = 2.09, Post = 0.0403, Total = 2.46 
+#>     Pre = 0.323, Running = 2.07, Post = 0.0389, Total = 2.43 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
@@ -530,24 +530,24 @@ summary(rspde_bru_fit)
 #>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 #>     Used components: effect[field], latent[] 
 #> Time used:
-#>     Pre = 0.154, Running = 2.16, Post = 0.131, Total = 2.45 
+#>     Pre = 0.163, Running = 2.12, Post = 0.125, Total = 2.41 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
 #> 
 #> Model hyperparameters:
 #>                                           mean    sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 93.887 4.982      84.43   93.766
-#> Theta1 for field                        -4.885 1.343      -8.01   -4.701
-#> Theta2 for field                         2.490 0.257       2.07    2.467
-#> Theta3 for field                         0.338 0.810      -0.85    0.227
+#> Precision for the Gaussian observations 93.902 4.974     84.458    93.78
+#> Theta1 for field                        -3.789 0.136     -4.022    -3.80
+#> Theta2 for field                         2.299 0.149      2.001     2.30
+#> Theta3 for field                        -0.316 0.089     -0.509    -0.31
 #>                                         0.975quant   mode
-#> Precision for the Gaussian observations     104.04 93.552
-#> Theta1 for field                             -2.92 -3.775
-#> Theta2 for field                              3.07  2.340
-#> Theta3 for field                              2.22 -0.331
+#> Precision for the Gaussian observations    104.037 93.567
+#> Theta1 for field                            -3.491 -3.850
+#> Theta2 for field                             2.587  2.307
+#> Theta3 for field                            -0.164 -0.278
 #> 
-#> Marginal log-Likelihood:  52.09 
+#> Marginal log-Likelihood:  50.05 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -559,10 +559,10 @@ and also obtain a summary of the field only:
 
 result_fit <- rspde.result(rspde_bru_fit, "field", rspde_model)
 summary(result_fit)
-#>             mean        sd  0.025quant   0.5quant 0.975quant        mode
-#> tau    0.0145767 0.0149184 0.000346303  0.0094836  0.0536033 4.75592e-04
-#> kappa 12.4713000 3.4825700 7.978690000 11.6739000 21.3249000 1.00321e+01
-#> nu     1.1344400 0.3377990 0.600569000  1.1000800  1.8001400 8.11127e-01
+#>             mean         sd 0.025quant  0.5quant 0.975quant     mode
+#> tau    0.0228129 0.00320365  0.0179362 0.0223036  0.0303608 0.020992
+#> kappa 10.0722000 1.48948000  7.4199800 9.9824400 13.2576000 9.817420
+#> nu     0.8436420 0.04276720  0.7517140 0.8474050  0.9176440 0.861343
 tau <- op$tau
 result_df <- data.frame(
   parameter = c("tau", "kappa", "nu"),
@@ -578,10 +578,10 @@ result_df <- data.frame(
   )
 )
 print(result_df)
-#>   parameter         true        mean         mode
-#> 1       tau  0.004452908  0.01457671 4.755924e-04
-#> 2     kappa 12.899612397 12.47127069 1.003213e+01
-#> 3        nu  1.300000000  1.13444033 8.111272e-01
+#>   parameter         true        mean       mode
+#> 1       tau  0.004452908  0.02281287 0.02099198
+#> 2     kappa 12.899612397 10.07215337 9.81742305
+#> 3        nu  1.300000000  0.84364163 0.86134343
 ```
 
 Let us obtain a summary in the `matern` parameterization by setting the
@@ -592,10 +592,10 @@ Let us obtain a summary in the `matern` parameterization by setting the
 result_fit_matern <- rspde.result(rspde_bru_fit, "field", rspde_model,
                                   parameterization = "matern")
 summary(result_fit_matern)
-#>             mean       sd 0.025quant 0.5quant 0.975quant     mode
-#> std.dev 2.354900 0.438400   1.654640  2.31573   3.288460 2.276900
-#> range   0.231771 0.045695   0.143934  0.23090   0.326222 0.229073
-#> nu      1.134440 0.337799   0.600569  1.10008   1.800140 0.811127
+#>             mean        sd 0.025quant 0.5quant 0.975quant     mode
+#> std.dev 2.460850 0.2754110   1.977300 2.444180   3.050500 2.389590
+#> range   0.261866 0.0412704   0.191457 0.258654   0.351503 0.244071
+#> nu      0.843642 0.0427672   0.751714 0.847405   0.917644 0.861343
 result_df_matern <- data.frame(
   parameter = c("sigma", "range", "nu"),
   true = c(sigma, range, nu), mean = c(
@@ -611,9 +611,9 @@ result_df_matern <- data.frame(
 )
 print(result_df_matern)
 #>   parameter true      mean      mode
-#> 1     sigma 2.00 2.3549024 2.2768951
-#> 2     range 0.25 0.2317713 0.2290726
-#> 3        nu 1.30 1.1344403 0.8111272
+#> 1     sigma 2.00 2.4608539 2.3895899
+#> 2     range 0.25 0.2618657 0.2440709
+#> 3        nu 1.30 0.8436416 0.8613434
 ```
 
 ### Kriging with `inlabru` implementation of the rational SPDE approach
@@ -756,8 +756,8 @@ summary(fit_rspde)
 #> Number of function calls by 'optim' = 145
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  49.05484 secs 
-#>   set up the parallelization = 2.81191 secs
+#> Time used to:     fit the model =  48.54332 secs 
+#>   set up the parallelization = 2.69581 secs
 ```
 
 Let us compare with the true values:
@@ -776,7 +776,7 @@ print(data.frame(
 
 # Time to fit
 print(fit_rspde$fitting_tim)
-#> Time difference of 49.05485 secs
+#> Time difference of 48.54332 secs
 ```
 
 ### Kriging with `rSPDE`

@@ -324,10 +324,10 @@ summary(rspde_fit)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[Intercept, distSea, field], latent[] 
     ## Time used:
-    ##     Pre = 0.291, Running = 6.98, Post = 0.11, Total = 7.38 
+    ##     Pre = 0.279, Running = 6.37, Post = 0.0841, Total = 6.74 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-    ## Intercept 1.941 0.041       1.86    1.941      2.022 1.941   0
+    ## Intercept 1.942 0.041      1.862    1.942      2.021 1.942   0
     ## 
     ## Random effects:
     ##   Name     Model
@@ -335,20 +335,20 @@ summary(rspde_fit)
     ##    field CGeneric
     ## 
     ## Model hyperparameters:
-    ##                                                   mean      sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.44    1.04     12.490
-    ## Precision for distSea                          7580.34 4147.89   2374.481
-    ## Theta1 for field                                 -2.60    1.95     -7.096
-    ## Theta2 for field                                  1.69    0.45      0.943
-    ## Theta3 for field                                  1.04    1.70     -1.544
-    ##                                                0.5quant 0.975quant    mode
-    ## Precision-parameter for the Gamma observations   14.407   1.66e+01   14.35
-    ## Precision for distSea                          6663.059   1.82e+04 5120.27
-    ## Theta1 for field                                 -2.353   3.58e-01   -1.10
-    ## Theta2 for field                                  1.653   2.69e+00    1.46
-    ## Theta3 for field                                  0.826   4.95e+00   -0.26
+    ##                                                   mean       sd 0.025quant
+    ## Precision-parameter for the Gamma observations   14.46    1.040      12.50
+    ## Precision for distSea                          7137.59 3796.179    2433.36
+    ## Theta1 for field                                 -4.62    3.918     -13.76
+    ## Theta2 for field                                  2.15    0.851       0.86
+    ## Theta3 for field                                  2.78    3.406      -2.15
+    ##                                                0.5quant 0.975quant     mode
+    ## Precision-parameter for the Gamma observations    14.43      16.59   14.388
+    ## Precision for distSea                           6283.39   16902.74 4899.309
+    ## Theta1 for field                                  -4.07       1.04   -1.305
+    ## Theta2 for field                                   2.04       4.11    1.496
+    ## Theta3 for field                                   2.31      10.72   -0.093
     ## 
-    ## Marginal log-Likelihood:  -1255.19 
+    ## Marginal log-Likelihood:  -1254.65 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -405,10 +405,10 @@ result_fit <- rspde.result(rspde_fit, "field",
 summary(result_fit)
 ```
 
-    ##           mean       sd  0.025quant 0.5quant 0.975quant        mode
-    ## tau   0.260602 0.409953 0.000875698 0.100676    1.40259 0.000131387
-    ## kappa 6.029880 3.176100 2.577990000 5.146970   14.54640 3.872250000
-    ## nu    1.304420 0.508315 0.357099000 1.370100    1.98527 1.992540000
+    ##            mean        sd  0.025quant 0.5quant 0.975quant        mode
+    ## tau    0.344287  1.086370 1.02715e-06 0.019329    2.86476 6.52182e-10
+    ## kappa 13.142900 17.887100 2.38494e+00 7.495160   59.43760 3.69218e+00
+    ## nu     1.496280  0.588138 2.10226e-01 1.799590    1.99994 1.99999e+00
 
 We can also plot the posterior densities. To this end we will use the
 [`gg_df()`](https://davidbolin.github.io/rSPDE/reference/gg_df.md)
@@ -444,10 +444,10 @@ result_fit_matern <- rspde.result(rspde_fit, "field",
 summary(result_fit_matern)
 ```
 
-    ##             mean       sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 0.413951 0.502848   0.172852 0.321246    1.39674 0.310178
-    ## range   0.548082 0.214180   0.196845 0.521502    1.03078 0.476494
-    ## nu      1.304420 0.508315   0.357099 1.370100    1.98527 1.992540
+    ##              mean        sd 0.025quant 0.5quant 0.975quant      mode
+    ## std.dev 11.877100 99.445100 -0.1738420 2.714810  68.252200 -0.297612
+    ## range    0.415181  0.249353  0.0294138 0.401855   0.953867  0.420189
+    ## nu       1.496280  0.588138  0.2102260 1.799590   1.999940  1.999990
 
 In a similar manner, we can obtain posterior plots on the `matern`
 parameterization:
@@ -786,7 +786,7 @@ summary(rspde_fit.rep)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.171, Running = 88.5, Post = 3.64, Total = 92.3 
+    ##     Pre = 0.174, Running = 86.6, Post = 2.92, Total = 89.7 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1065,7 +1065,7 @@ summary(rspde_fit_nonstat)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.142, Running = 21, Post = 0.173, Total = 21.4 
+    ##     Pre = 0.155, Running = 20.3, Post = 0.134, Total = 20.6 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1216,12 +1216,12 @@ cv_result
 ```
 
     ##           Model               mse               mae               dss
-    ## 1    stationary 0.135314747127157 0.270290867502335 -1.21238805093093
-    ## 2 nonstationary 0.133249574048742 0.269214624506688 -1.17400731254973
+    ## 1    stationary 0.135844439112595 0.270711197652152 -1.20847740273866
+    ## 2 nonstationary 0.132761955224834  0.26883965900393 -1.17628089962464
     ##            Best     nonstationary     nonstationary        stationary
     ##                crps             scrps
-    ## 1 0.189804322421744 0.490921735922323
-    ## 2 0.188492795437985 0.486837816124232
+    ## 1 0.190113166035239 0.491644123284751
+    ## 2 0.188069159815355 0.485678685130971
     ##       nonstationary     nonstationary
 
 The

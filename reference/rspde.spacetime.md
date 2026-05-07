@@ -162,10 +162,13 @@ approximation of the space-time Gaussian random field.
 ``` r
 library(INLA)
 library(MetricGraph)
-#> This is MetricGraph 1.5.0
+#> This is MetricGraph 1.6.0
 #> - See https://davidbolin.github.io/MetricGraph for vignettes and manuals.
 #> 
 #> Attaching package: ‘MetricGraph’
+#> The following object is masked from ‘package:rSPDE’:
+#> 
+#>     cross_validation
 #> The following object is masked from ‘package:stats’:
 #> 
 #>     filter
@@ -182,7 +185,7 @@ graph <- metric_graph$new()
 #> Setup edges and merge close vertices
 #> Computing the relative positions of the edges...
 #> Snap vertices to close edges
-#> Total construction time: 1.75 secs
+#> Total construction time: 1.64 secs
 #> Creating and updating vertices...
 #> Storing the initial graph...
 #> Computing the relative positions of the edges...
