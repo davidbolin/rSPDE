@@ -104,8 +104,7 @@ jobs:
           sed -i 's|/opt/homebrew/bin/g++-14|/usr/bin/g++|g' inst/src-optional/Makefile
           sed -i 's|/opt/homebrew/bin/gcc-14|/usr/bin/gcc|g' inst/src-optional/Makefile
           sed -i 's|/opt/homebrew/bin/gfortran-14|/usr/bin/gfortran|g' inst/src-optional/Makefile
-          sed -i 's|/opt/homebrew//include/eigen3/|/usr/include/eigen3/|g' inst/src-optional/Makefile
-          sed -i 's|/opt/homebrew/include/eigen3/|/usr/include/eigen3/|g' inst/src-optional/Makefile
+          sed -i 's|/opt/homebrew|/usr|g' inst/src-optional/Makefile
 
           if grep -n "/opt/homebrew" inst/src-optional/Makefile; then
             echo "Found remaining macOS Homebrew paths in inst/src-optional/Makefile"

@@ -1,9 +1,6 @@
-# NOTE: This workflow is overkill for most R packages
-# check-standard.yaml is likely a better choice
-# usethis::use_github_action("check-standard") will install it.
-#
 # For help debugging build failures open an issue on the RStudio community with the 'github-actions' tag.
 # https://community.rstudio.com/new-topic?category=Package%20development&tags=github-actions
+
 on:
   push:
     branches:
@@ -13,7 +10,6 @@ name: R-CMD-check-windows
 
 permissions:
   contents: write
-
 
 jobs:
   R-CMD-check-windows:
@@ -31,24 +27,26 @@ jobs:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       RSPM: ${{ matrix.config.rspm }}
       NOT_CRAN: false
-      RSPDE_COMPILE: "0"      
+      RSPDE_COMPILE: "0"
 
     steps:
       - uses: actions/checkout@v6
+
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.config.r }}
-          rtools-version: ${{ matrix.config.rtools-version }}
+          rtools-version: "44"
           extra-repositories: 'https://inla.r-inla-download.org/R/testing https://davidbolin.github.io/ngme2/'
           use-public-rspm: true
 
       - uses: r-lib/actions/setup-pandoc@v2
-          
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           dependencies: '"all"'
           extra-packages: |
-             rcmdcheck
+            rcmdcheck
+
       - name: Session info
         run: |
           options(width = 100)
@@ -63,10 +61,11 @@ jobs:
           Sys.setenv(RSPDE_COMPILE = "0")
         shell: Rscript {0}
 
-      - name: Exclude compiled-source Makefile on Windows
+      - name: Exclude non-CRAN files on Windows
         run: |
-          cat("Excluding inst/src-optional/Makefile for Windows pure-R check\n")
+          cat("Excluding non-CRAN files for Windows pure-R check\n")
           write("^inst/src-optional/Makefile$", file = ".Rbuildignore", append = TRUE)
+          write("^cran_vignettes$", file = ".Rbuildignore", append = TRUE)
         shell: Rscript {0}
 
       - uses: r-lib/actions/check-r-package@v2
@@ -75,6 +74,7 @@ jobs:
         with:
           build_args: 'c("--no-manual", "--no-build-vignettes")'
           args: 'c("--no-manual", "--ignore-vignettes", "--as-cran")'
+
   retry-on-failure:
     if: failure() && fromJSON(github.run_attempt) < 3
     needs: [R-CMD-check-windows]
