@@ -11,7 +11,6 @@ name: R-CMD-check
 permissions:
   contents: write
 
-
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
@@ -28,7 +27,7 @@ jobs:
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       R_KEEP_PKG_SOURCE: yes
-      RSPDE_COMPILE: "1"      
+      RSPDE_COMPILE: "1"
 
     steps:
       - uses: actions/checkout@v6
@@ -42,17 +41,7 @@ jobs:
           use-public-rspm: true
           extra-repositories: 'https://inla.r-inla-download.org/R/testing https://davidbolin.github.io/ngme2/'
 
-      - name: Install system dependencies on MacOS (X11, gdal)
-        if: runner.os == 'macOS'
-        run: |
-          set -euo pipefail
-          brew install --cask xquartz
-          brew install pkg-config
-          brew install proj@9
-          brew install gdal
-          brew install gcc
-          brew install eigen
-      - name: Install system dependencies on Linux (GL)
+      - name: Install system dependencies on Linux
         if: runner.os == 'Linux'
         run: |
           set -euo pipefail
@@ -65,27 +54,47 @@ jobs:
           sudo ln -sf /usr/bin/gcc /usr/local/bin/gcc
           sudo ln -sf /usr/bin/g++ /usr/local/bin/g++
           sudo ln -sf /usr/bin/gfortran /usr/local/bin/gfortran
+
+      - name: Configure Linux compilers
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p ~/.R
+          {
+            echo "CC=gcc"
+            echo "CXX=g++"
+            echo "CXX11=g++"
+            echo "CXX14=g++"
+            echo "CXX17=g++"
+            echo "FC=gfortran"
+            echo "F77=gfortran"
+          } >> ~/.R/Makevars
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           dependencies: '"all"'
           extra-packages: |
-             rcmdcheck
+            rcmdcheck
+            INLA
+
       - name: Session info
         run: |
           options(width = 100)
           pkgs <- installed.packages()[, "Package"]
           sessioninfo::session_info(pkgs, include_base = TRUE)
-        shell: Rscript {0}       
+        shell: Rscript {0}
+
       - uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
         with:
-          args: 'c("--no-manual", "--as-cran", "--configure-args=--enable-compiled")'
+          build_args: 'c("--configure-args=--enable-compiled")'
+          args: 'c("--no-manual", "--as-cran")'
           error-on: '"error"'
+
   retry-on-failure:
     if: failure() && fromJSON(github.run_attempt) < 3
     needs: [R-CMD-check]
-    runs-on: ${{ matrix.config.os }}
+    runs-on: ubuntu-latest
     steps:
       - env:
           GH_REPO: ${{ github.repository }}

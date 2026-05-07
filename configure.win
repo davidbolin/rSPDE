@@ -11,16 +11,11 @@ for arg in "$@"; do
     esac
 done
 
-mkdir -p src
-
 if [ "$COMPILE" = "1" ] || [ "$COMPILE" = "TRUE" ] || [ "$COMPILE" = "true" ]; then
     echo "*** rSPDE: compiling C/C++ cgeneric sources"
+    mkdir -p src
     cp inst/src-optional/* src/
 else
-    echo "*** rSPDE: pure-R install (set RSPDE_COMPILE=1 or pass --configure-args='--enable-compiled' to compile)"
-    cat > src/Makevars.win <<'EOF'
-all:
-	@cd .
-
-EOF
+    echo "*** rSPDE: pure-R install; no src directory will be created"
+    rm -rf src
 fi
