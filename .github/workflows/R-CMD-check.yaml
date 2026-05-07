@@ -87,8 +87,7 @@ jobs:
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
         with:
-          build_args: 'c("--configure-args=--enable-compiled")'
-          args: 'c("--no-manual", "--as-cran")'
+          args: 'c("--no-manual", "--as-cran", "--install-args=--configure-args=--enable-compiled")'
           error-on: '"error"'
 
   retry-on-failure:

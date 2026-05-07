@@ -63,11 +63,10 @@ jobs:
           Sys.setenv(RSPDE_COMPILE = "0")
         shell: Rscript {0}
 
-      - name: Exclude optional compile files on Windows
+      - name: Exclude compiled-source Makefile on Windows
         run: |
-          cat("Updating .Rbuildignore for pure-R Windows check\n")
+          cat("Excluding inst/src-optional/Makefile for Windows pure-R check\n")
           write("^inst/src-optional/Makefile$", file = ".Rbuildignore", append = TRUE)
-          write("^inst/src-optional/.*[.]mk$", file = ".Rbuildignore", append = TRUE)
         shell: Rscript {0}
 
       - uses: r-lib/actions/check-r-package@v2
