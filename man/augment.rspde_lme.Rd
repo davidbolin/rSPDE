@@ -45,7 +45,7 @@ will be obtained for all replicates. Default is \code{NULL}.}
 \item{...}{Additional arguments. Expert use only.}
 }
 \value{
-A \code{\link[tidyr:reexports]{tidyr::tibble()}} with columns:
+A \code{\link[tidyr:tibble]{tidyr::tibble()}} with columns:
 \itemize{
 \item \code{.fitted} Fitted or predicted value.
 \item \code{.fittedlwrconf} Lower bound of the confidence interval, if conf_int = TRUE

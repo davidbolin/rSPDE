@@ -1,9 +1,9 @@
-## Minimal demo for rSPDE — five vignette-based INLA examples
+## Minimal demo for rSPDE - five vignette-based INLA examples
 options(width = 80)
 set.seed(1)
 cat("\n=== rSPDE minimal demo ===\n")
 
-## ── Example 1: rspde.matern (spatial, mesh-based) ─────────────────────────────
+## ---- Example 1: rspde.matern (spatial, mesh-based) ------------------------------------------
 cat("\n-- Example 1: rspde.matern (spatial) --\n")
 try({
   library(INLA); library(rSPDE); library(fmesher)
@@ -25,7 +25,7 @@ try({
   print(summary(res))
 })
 
-## ── Example 2: rspde.spacetime ────────────────────────────────────────────────
+## ---- Example 2: rspde.spacetime -----------------------------------------------------------
 cat("\n-- Example 2: rspde.spacetime --\n")
 try({
   library(rSPDE); library(INLA)
@@ -54,7 +54,7 @@ try({
   print(summary(res))
 })
 
-## ── Example 3: rspde.intrinsic ────────────────────────────────────────────────
+## ---- Example 3: rspde.intrinsic ------------------------------------------------------
 cat("\n-- Example 3: rspde.intrinsic --\n")
 try({
   library(rSPDE); library(INLA); library(fmesher)
@@ -77,7 +77,7 @@ try({
   print(summary(res))
 })
 
-## ── Example 4: rspde.anistropic2d ─────────────────────────────────────────────
+## ---- Example 4: rspde.anistropic2d --------------------------------------
 cat("\n-- Example 4: rspde.anistropic2d (anisotropic) --\n")
 try({
   library(rSPDE); library(fmesher); library(INLA)
@@ -102,7 +102,7 @@ try({
   print(summary(res))
 })
 
-## ── Example 5: rspde.matern1d (1-D, no FEM) ──────────────────────────────────
+## ---- Example 5: rspde.matern1d (1-D, no FEM) -----------------------------
 cat("\n-- Example 5: rspde.matern1d (1-D rational approximation) --\n")
 try({
   library(rSPDE); library(INLA)

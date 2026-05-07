@@ -7,13 +7,13 @@
 \alias{ibm_jacobian.bru_mapper_inla_rspde_matern1d}
 \title{rSPDE stationary inlabru mapper}
 \usage{
-\method{bru_get_mapper}{inla_rspde_matern1d}(model, ...)
+bru_get_mapper.inla_rspde_matern1d(model, ...)
 
-\method{ibm_n}{bru_mapper_inla_rspde_matern1d}(mapper, ...)
+ibm_n.bru_mapper_inla_rspde_matern1d(mapper, ...)
 
-\method{ibm_values}{bru_mapper_inla_rspde_matern1d}(mapper, ...)
+ibm_values.bru_mapper_inla_rspde_matern1d(mapper, ...)
 
-\method{ibm_jacobian}{bru_mapper_inla_rspde_matern1d}(mapper, input, ...)
+ibm_jacobian.bru_mapper_inla_rspde_matern1d(mapper, input, ...)
 }
 \arguments{
 \item{model}{An \code{inla_rspde_matern1d} object for which to construct or extract a mapper}
