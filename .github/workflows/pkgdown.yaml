@@ -16,6 +16,7 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       FLEXIBLAS_LIBRARY_PATH: /usr/local/lib/flexiblas:/opt/intel/oneapi/mkl/latest/lib/intel64
       LD_LIBRARY_PATH: /opt/intel/oneapi/mkl/latest/lib/intel64
+      RSPDE_COMPILE: "1"
     steps:
       - uses: actions/checkout@v6
 
@@ -114,7 +115,7 @@ jobs:
         shell: Rscript {0}
 
       - name: Install package
-        run: R CMD INSTALL .
+        run: R CMD INSTALL --configure-args=--enable-compiled .
 
       - name: Deploy package
         run: |
