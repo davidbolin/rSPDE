@@ -123,11 +123,10 @@ if (requireNamespace("INLA", quietly = TRUE)) {
   result <- rspde.result(rspde_fit, "field", rspde_model)
   summary(result)
 }
-#> Warning: the mean or mode of nu is very close to nu.upper.bound, please consider increasing nu.upper.bound, and refitting the model.
-#>             mean         sd  0.025quant    0.5quant 0.975quant        mode
-#> tau    0.0131148  0.0320367 3.96105e-11  0.00106933   0.101764 3.96105e-11
-#> kappa 25.7258000 12.9552000 1.26255e+01 21.90880000  60.816400 1.59921e+01
-#> nu     1.5088100  0.4535420 5.68263e-01  1.65197000   1.997740 1.99992e+00
+#>             mean        sd  0.025quant  0.5quant 0.975quant       mode
+#> tau    0.0259078 0.0121645  0.00771458  0.024243  0.0540072  0.0194873
+#> kappa 16.7999000 3.3267500 11.29910000 16.440600 24.3211000 15.7221000
+#> nu     0.9381020 0.1362040  0.70762500  0.924436  1.2337100  0.8767920
 # devel.tag
 # }
 ```

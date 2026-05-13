@@ -529,7 +529,7 @@ summary(fit)
     ## Number of function calls by 'optim' = 52
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  9.87766 secs
+    ## Time used to:     fit the model =  11.51495 secs
 
 Let us compare the parameters of the latent model:
 
@@ -553,7 +553,7 @@ print(data.frame(
 print(fit$fitting_time)
 ```
 
-    ## Time difference of 9.877663 secs
+    ## Time difference of 11.51496 secs
 
 Let us take a glance at the fit:
 
@@ -617,8 +617,8 @@ summary(fit_par)
     ## Number of function calls by 'optim' = 52
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  8.32073 secs 
-    ##   set up the parallelization = 2.56862 secs
+    ## Time used to:     fit the model =  9.38239 secs 
+    ##   set up the parallelization = 2.77634 secs
 
 Let us compare with the true values and compare the time:
 
@@ -643,7 +643,7 @@ total_time <- fit_par$fitting_time + fit_par$time_par
 print(total_time)
 ```
 
-    ## Time difference of 10.88936 secs
+    ## Time difference of 12.15874 secs
 
 ### Kriging
 
@@ -797,8 +797,8 @@ summary(fit_repl)
     ## Number of function calls by 'optim' = 36
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  13.33915 secs 
-    ##   set up the parallelization = 2.61495 secs
+    ## Time used to:     fit the model =  15.89718 secs 
+    ##   set up the parallelization = 2.88988 secs
 
 and glance:
 
@@ -834,7 +834,7 @@ Let us compare with the true values:
 print(fit_repl$fitting_time)
 ```
 
-    ## Time difference of 13.33915 secs
+    ## Time difference of 15.89719 secs
 
 We can obtain better estimates of the Hessian by setting
 `improve_hessian` to `TRUE`, however this might make the process take
@@ -887,9 +887,9 @@ summary(fit_repl2)
     ## Number of function calls by 'optim' = 36
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  10.81659 secs 
-    ##   compute the Hessian = 6.19026 secs 
-    ##   set up the parallelization = 2.56734 secs
+    ## Time used to:     fit the model =  13.37462 secs 
+    ##   compute the Hessian = 7.34203 secs 
+    ##   set up the parallelization = 2.88083 secs
 
 ## Spatial data and parameter estimation
 
@@ -1078,8 +1078,8 @@ summary(fit_2d)
     ## Number of function calls by 'optim' = 69
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  2.728 mins 
-    ##   set up the parallelization = 2.51803 secs
+    ## Time used to:     fit the model =  2.8574 mins 
+    ##   set up the parallelization = 2.91262 secs
 
 and glance:
 
@@ -1115,7 +1115,7 @@ print(data.frame(
 print(fit_2d$fitting_time)
 ```
 
-    ## Time difference of 2.728006 mins
+    ## Time difference of 2.857401 mins
 
 Let us now plot the prediction for replicate 3 by using the `augment`
 function. We begin by creating the `data.frame` we want to do
@@ -1249,8 +1249,8 @@ summary(fit_2d_fixed)
     ## Number of function calls by 'optim' = 8
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  15.26846 secs 
-    ##   set up the parallelization = 2.56821 secs
+    ## Time used to:     fit the model =  16.30874 secs 
+    ##   set up the parallelization = 2.79126 secs
 
 Notice in the summary that ν and σ are fixed at the specified values,
 and only the range parameter is estimated. When parameters are fixed,
@@ -1337,7 +1337,7 @@ summary(fit_2d_start)
     ## Number of function calls by 'optim' = 125
     ## Optimization method used in 'optim' = Nelder-Mead
     ## 
-    ## Time used to:     fit the model =  1.62863 mins
+    ## Time used to:     fit the model =  1.6708 mins
 
 ## An example with a non-stationary model
 
@@ -1481,12 +1481,6 @@ fit_ns <- rspde_lme(y ~ -1, model = op_cov_ns_est,
           parallel = TRUE)
 ```
 
-    ## Warning in rspde_lme(y ~ -1, model = op_cov_ns_est, data = df_data_ns, loc =
-    ## c("x_coord", : The optimization failed to provide a numerically
-    ## positive-definite Hessian. You can try to obtain a positive-definite Hessian by
-    ## setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which
-    ## allows other optimization methods to be used.
-
 Let us get the summary:
 
 ``` r
@@ -1506,24 +1500,24 @@ summary(fit_ns)
 
     ## 
     ## Random effects:
-    ##          Estimate Std.error z-value
-    ## nu      8.302e-01        NA      NA
-    ## theta1  5.328e-18        NA      NA
-    ## theta2  1.030e+00        NA      NA
-    ## theta3 -1.097e-15        NA      NA
+    ##        Estimate Std.error z-value
+    ## nu      0.87847   0.02256  38.944
+    ## theta1 -0.23609   0.10187  -2.318
+    ## theta2  0.79452   0.26147   3.039
+    ## theta3  1.78561   0.36325   4.916
     ## 
     ## Measurement error:
     ##          Estimate Std.error z-value
-    ## std. dev   0.3134        NA      NA
+    ## std. dev  0.30996   0.01358   22.83
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
-    ## Log-Likelihood:  -395.2684 
-    ## Number of function calls by 'optim' = 24
+    ## Log-Likelihood:  -379.6413 
+    ## Number of function calls by 'optim' = 42
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  7.01985 secs 
-    ##   set up the parallelization = 2.61924 secs
+    ## Time used to:     fit the model =  11.9131 secs 
+    ##   set up the parallelization = 2.92588 secs
 
 Let us now compare with the true values:
 
@@ -1537,9 +1531,9 @@ print(data.frame(
   row.names = c("Truth", "Estimates"))
 ```
 
-    ##                theta1   theta2        theta3        nu
-    ## Truth     0.00000e+00 1.000000  1.000000e+00 0.8000000
-    ## Estimates 5.32807e-18 1.029619 -1.097284e-15 0.8301865
+    ##               theta1    theta2   theta3        nu
+    ## Truth      0.0000000 1.0000000 1.000000 0.8000000
+    ## Estimates -0.2360934 0.7945223 1.785615 0.8784667
 
 ### Fixing parameters in non-stationary models
 
@@ -1560,12 +1554,6 @@ fit_ns_fixed_theta1 <- rspde_lme(y ~ -1, model = op_cov_ns_est,
           parallel = TRUE)
 ```
 
-    ## Warning in rspde_lme(y ~ -1, model = op_cov_ns_est, data = df_data_ns, loc =
-    ## c("x_coord", : The optimization failed to provide a numerically
-    ## positive-definite Hessian. You can try to obtain a positive-definite Hessian by
-    ## setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which
-    ## allows other optimization methods to be used.
-
 ``` r
 
 summary(fit_ns_fixed_theta1)
@@ -1584,24 +1572,24 @@ summary(fit_ns_fixed_theta1)
 
     ## 
     ## Random effects:
-    ##                  Estimate Std.error z-value
-    ## nu              8.302e-01        NA      NA
-    ## theta1 (fixed)  0.000e+00        NA      NA
-    ## theta2          1.030e+00        NA      NA
-    ## theta3         -1.097e-15        NA      NA
+    ##                Estimate Std.error z-value
+    ## nu             0.627515  0.007208  87.054
+    ## theta1 (fixed) 0.000000        NA      NA
+    ## theta2         1.155768  0.233188   4.956
+    ## theta3         1.017623  0.185325   5.491
     ## 
     ## Measurement error:
     ##          Estimate Std.error z-value
-    ## std. dev   0.3134        NA      NA
+    ## std. dev  0.30425   0.01284    23.7
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
-    ## Log-Likelihood:  -395.2684 
-    ## Number of function calls by 'optim' = 24
+    ## Log-Likelihood:  -382.8119 
+    ## Number of function calls by 'optim' = 64
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  5.09379 secs 
-    ##   set up the parallelization = 2.61866 secs
+    ## Time used to:     fit the model =  12.74289 secs 
+    ##   set up the parallelization = 2.86848 secs
 
 We can also fix the entire theta vector at once using the `fix_theta`
 parameter. This is particularly useful when we have strong prior
@@ -1634,23 +1622,23 @@ summary(fit_ns_fixed_all)
     ## 
     ## Random effects:
     ##                Estimate Std.error z-value
-    ## nu              0.83019   0.06792   12.22
-    ## theta1 (fixed)  0.00000        NA      NA
-    ## theta2 (fixed)  1.00000        NA      NA
-    ## theta3 (fixed)  1.00000        NA      NA
+    ## nu               0.6605    0.0067   98.59
+    ## theta1 (fixed)   0.0000        NA      NA
+    ## theta2 (fixed)   1.0000        NA      NA
+    ## theta3 (fixed)   1.0000        NA      NA
     ## 
     ## Measurement error:
     ##          Estimate Std.error z-value
-    ## std. dev  0.31344   0.01516   20.67
+    ## std. dev  0.30295   0.01228   24.66
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
-    ## Log-Likelihood:  -395.2684 
-    ## Number of function calls by 'optim' = 24
+    ## Log-Likelihood:  -382.8519 
+    ## Number of function calls by 'optim' = 94
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  2.72111 secs 
-    ##   set up the parallelization = 2.6311 secs
+    ## Time used to:     fit the model =  10.04274 secs 
+    ##   set up the parallelization = 2.78647 secs
 
 Similarly, we can provide starting values for the entire theta vector
 with `start_theta`:
@@ -1662,12 +1650,6 @@ fit_ns_start <- rspde_lme(y ~ -1, model = op_cov_ns_est,
           model_options = list(start_theta = c(0, 1, 1)),  # Starting values for theta vector
           parallel = TRUE)
 ```
-
-    ## Warning in rspde_lme(y ~ -1, model = op_cov_ns_est, data = df_data_ns, loc =
-    ## c("x_coord", : The optimization failed to provide a numerically
-    ## positive-definite Hessian. You can try to obtain a positive-definite Hessian by
-    ## setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which
-    ## allows other optimization methods to be used.
 
 ``` r
 
@@ -1688,23 +1670,23 @@ summary(fit_ns_start)
     ## 
     ## Random effects:
     ##        Estimate Std.error z-value
-    ## nu       0.8302        NA      NA
-    ## theta1   0.0000        NA      NA
-    ## theta2   1.0000        NA      NA
-    ## theta3   1.0000        NA      NA
+    ## nu      0.88020   0.08057  10.925
+    ## theta1 -0.24227   0.10618  -2.282
+    ## theta2  0.78737   0.26109   3.016
+    ## theta3  1.81856   0.46608   3.902
     ## 
     ## Measurement error:
     ##          Estimate Std.error z-value
-    ## std. dev   0.3134        NA      NA
+    ## std. dev  0.30919   0.01365   22.66
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
-    ## Log-Likelihood:  -395.2684 
-    ## Number of function calls by 'optim' = 24
+    ## Log-Likelihood:  -379.6359 
+    ## Number of function calls by 'optim' = 72
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  6.89503 secs 
-    ##   set up the parallelization = 2.63314 secs
+    ## Time used to:     fit the model =  18.05884 secs 
+    ##   set up the parallelization = 2.76541 secs
 
 ## Changing the type and the order of the rational approximation
 
@@ -1805,8 +1787,8 @@ summary(fit_order1)
     ## Number of function calls by 'optim' = 43
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  49.38629 secs 
-    ##   set up the parallelization = 2.5017 secs
+    ## Time used to:     fit the model =  51.44348 secs 
+    ##   set up the parallelization = 2.61614 secs
 
 Let us compare with the true values:
 
@@ -1897,8 +1879,8 @@ summary(fit_brasil)
     ## Number of function calls by 'optim' = 50
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  55.60562 secs 
-    ##   set up the parallelization = 2.60714 secs
+    ## Time used to:     fit the model =  57.96213 secs 
+    ##   set up the parallelization = 2.6231 secs
 
 Let us compare with the true values:
 

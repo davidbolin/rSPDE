@@ -611,7 +611,7 @@ method:</p>
 <span><span class="co">## Number of function calls by 'optim' = 52</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  9.87766 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  11.51495 secs</span></span></code></pre>
 <p>Let us compare the parameters of the latent model:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -626,7 +626,7 @@ method:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 9.877663 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 11.51496 secs</span></span></code></pre>
 <p>Let us take a glance at the fit:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
@@ -677,8 +677,8 @@ method:</p>
 <span><span class="co">## Number of function calls by 'optim' = 52</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  8.32073 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.56862 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  9.38239 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.77634 secs</span></span></code></pre>
 <p>Let us compare with the true values and compare the time:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -694,7 +694,7 @@ method:</p>
 <code class="sourceCode R"><span><span class="co"># Total time (time to fit plus time to set up the parallelization)</span></span>
 <span><span class="va">total_time</span> <span class="op">&lt;-</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">fitting_time</span> <span class="op">+</span> <span class="va">fit_par</span><span class="op">$</span><span class="va">time_par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">total_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 10.88936 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 12.15874 secs</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="kriging">Kriging<a class="anchor" aria-label="anchor" href="#kriging"></a>
@@ -810,8 +810,8 @@ need to turn <code>y</code> into a vector and create an auxiliary vector
 <span><span class="co">## Number of function calls by 'optim' = 36</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  13.33915 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.61495 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  15.89718 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.88988 secs</span></span></code></pre>
 <p>and glance:</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">)</span></span></code></pre></div>
@@ -833,7 +833,7 @@ need to turn <code>y</code> into a vector and create an auxiliary vector
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_repl</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 13.33915 secs</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 15.89719 secs</span></span></code></pre>
 <p>We can obtain better estimates of the Hessian by setting
 <code>improve_hessian</code> to <code>TRUE</code>, however this might
 make the process take longer:</p>
@@ -875,9 +875,9 @@ make the process take longer:</p>
 <span><span class="co">## Number of function calls by 'optim' = 36</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  10.81659 secs </span></span>
-<span><span class="co">##   compute the Hessian = 6.19026 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.56734 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  13.37462 secs </span></span>
+<span><span class="co">##   compute the Hessian = 7.34203 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.88083 secs</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="spatial-data-and-parameter-estimation">Spatial data and parameter estimation<a class="anchor" aria-label="anchor" href="#spatial-data-and-parameter-estimation"></a>
@@ -1041,8 +1041,8 @@ observation, and then we fit the model:</p>
 <span><span class="co">## Number of function calls by 'optim' = 69</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.728 mins </span></span>
-<span><span class="co">##   set up the parallelization = 2.51803 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  2.8574 mins </span></span>
+<span><span class="co">##   set up the parallelization = 2.91262 secs</span></span></code></pre>
 <p>and glance:</p>
 <div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glance.rspde_lme.html">glance</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">)</span></span></code></pre></div>
@@ -1064,7 +1064,7 @@ observation, and then we fit the model:</p>
 <div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Total time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_2d</span><span class="op">$</span><span class="va">fitting_time</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Time difference of 2.728006 mins</span></span></code></pre>
+<pre><code><span><span class="co">## Time difference of 2.857401 mins</span></span></code></pre>
 <p>Let us now plot the prediction for replicate 3 by using the
 <code>augment</code> function. We begin by creating the
 <code>data.frame</code> we want to do prediction:</p>
@@ -1207,8 +1207,8 @@ deviation σ to 1, and set the starting value for the range parameter to
 <span><span class="co">## Number of function calls by 'optim' = 8</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  15.26846 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.56821 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  16.30874 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.79126 secs</span></span></code></pre>
 <p>Notice in the summary that ν and σ are fixed at the specified values,
 and only the range parameter is estimated. When parameters are fixed,
 they do not appear in the parameter estimates section, but rather are
@@ -1275,7 +1275,7 @@ previous fit to initialize the optimization, you would use
 <span><span class="co">## Number of function calls by 'optim' = 125</span></span>
 <span><span class="co">## Optimization method used in 'optim' = Nelder-Mead</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  1.62863 mins</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  1.6708 mins</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -1400,13 +1400,8 @@ data and the locations:</p>
 <code class="sourceCode R"><span><span class="va">fit_ns</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_ns_est</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_ns</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, </span>
 <span>          parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning in rspde_lme(y ~ -1, model = op_cov_ns_est, data = df_data_ns, loc =</span></span>
-<span><span class="co">## c("x_coord", : The optimization failed to provide a numerically</span></span>
-<span><span class="co">## positive-definite Hessian. You can try to obtain a positive-definite Hessian by</span></span>
-<span><span class="co">## setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which</span></span>
-<span><span class="co">## allows other optimization methods to be used.</span></span></code></pre>
 <p>Let us get the summary:</p>
-<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_ns</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Generalized Whittle-Matern</span></span>
@@ -1418,35 +1413,35 @@ data and the locations:</p>
 <span><span class="co">## No fixed effects.</span></span></code></pre>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
-<span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## nu      8.302e-01        NA      NA</span></span>
-<span><span class="co">## theta1  5.328e-18        NA      NA</span></span>
-<span><span class="co">## theta2  1.030e+00        NA      NA</span></span>
-<span><span class="co">## theta3 -1.097e-15        NA      NA</span></span>
+<span><span class="co">##        Estimate Std.error z-value</span></span>
+<span><span class="co">## nu      0.87847   0.02256  38.944</span></span>
+<span><span class="co">## theta1 -0.23609   0.10187  -2.318</span></span>
+<span><span class="co">## theta2  0.79452   0.26147   3.039</span></span>
+<span><span class="co">## theta3  1.78561   0.36325   4.916</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev   0.3134        NA      NA</span></span>
+<span><span class="co">## std. dev  0.30996   0.01358   22.83</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -395.2684 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 24</span></span>
+<span><span class="co">## Log-Likelihood:  -379.6413 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 42</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  7.01985 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.61924 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  11.9131 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.92588 secs</span></span></code></pre>
 <p>Let us now compare with the true values:</p>
-<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb103"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  theta1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">true_theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>  theta2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">true_theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  theta3 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">true_theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">alpha</span><span class="op">-</span><span class="fl">1</span>, <span class="va">fit_ns</span><span class="op">$</span><span class="va">coeff</span><span class="op">$</span><span class="va">random_effects</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Truth"</span>, <span class="st">"Estimates"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##                theta1   theta2        theta3        nu</span></span>
-<span><span class="co">## Truth     0.00000e+00 1.000000  1.000000e+00 0.8000000</span></span>
-<span><span class="co">## Estimates 5.32807e-18 1.029619 -1.097284e-15 0.8301865</span></span></code></pre>
+<pre><code><span><span class="co">##               theta1    theta2   theta3        nu</span></span>
+<span><span class="co">## Truth      0.0000000 1.0000000 1.000000 0.8000000</span></span>
+<span><span class="co">## Estimates -0.2360934 0.7945223 1.785615 0.8784667</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="fixing-parameters-in-non-stationary-models">Fixing parameters in non-stationary models<a class="anchor" aria-label="anchor" href="#fixing-parameters-in-non-stationary-models"></a>
@@ -1459,17 +1454,12 @@ starting values, but these options must be set in the
 <code>fix_theta2</code>, etc., or <code>start_theta1</code>,
 <code>start_theta2</code>, etc.</p>
 <p>For example, if we want to fix the first coefficient theta1 to 0:</p>
-<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_ns_fixed_theta1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_ns_est</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_ns</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, </span>
 <span>          model_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fix_theta1 <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,  <span class="co"># Fix theta1 to 0</span></span>
 <span>          parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning in rspde_lme(y ~ -1, model = op_cov_ns_est, data = df_data_ns, loc =</span></span>
-<span><span class="co">## c("x_coord", : The optimization failed to provide a numerically</span></span>
-<span><span class="co">## positive-definite Hessian. You can try to obtain a positive-definite Hessian by</span></span>
-<span><span class="co">## setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which</span></span>
-<span><span class="co">## allows other optimization methods to be used.</span></span></code></pre>
-<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_ns_fixed_theta1</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Generalized Whittle-Matern</span></span>
@@ -1482,33 +1472,33 @@ starting values, but these options must be set in the
 <span><span class="co">## No fixed effects.</span></span></code></pre>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
-<span><span class="co">##                  Estimate Std.error z-value</span></span>
-<span><span class="co">## nu              8.302e-01        NA      NA</span></span>
-<span><span class="co">## theta1 (fixed)  0.000e+00        NA      NA</span></span>
-<span><span class="co">## theta2          1.030e+00        NA      NA</span></span>
-<span><span class="co">## theta3         -1.097e-15        NA      NA</span></span>
+<span><span class="co">##                Estimate Std.error z-value</span></span>
+<span><span class="co">## nu             0.627515  0.007208  87.054</span></span>
+<span><span class="co">## theta1 (fixed) 0.000000        NA      NA</span></span>
+<span><span class="co">## theta2         1.155768  0.233188   4.956</span></span>
+<span><span class="co">## theta3         1.017623  0.185325   5.491</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev   0.3134        NA      NA</span></span>
+<span><span class="co">## std. dev  0.30425   0.01284    23.7</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -395.2684 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 24</span></span>
+<span><span class="co">## Log-Likelihood:  -382.8119 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 64</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  5.09379 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.61866 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  12.74289 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.86848 secs</span></span></code></pre>
 <p>We can also fix the entire theta vector at once using the
 <code>fix_theta</code> parameter. This is particularly useful when we
 have strong prior knowledge about all the parameters:</p>
-<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_ns_fixed_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_ns_est</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_ns</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, </span>
 <span>          model_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fix_theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,  <span class="co"># Fix the entire theta vector</span></span>
 <span>          parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_ns_fixed_all</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Generalized Whittle-Matern</span></span>
@@ -1522,36 +1512,31 @@ have strong prior knowledge about all the parameters:</p>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##                Estimate Std.error z-value</span></span>
-<span><span class="co">## nu              0.83019   0.06792   12.22</span></span>
-<span><span class="co">## theta1 (fixed)  0.00000        NA      NA</span></span>
-<span><span class="co">## theta2 (fixed)  1.00000        NA      NA</span></span>
-<span><span class="co">## theta3 (fixed)  1.00000        NA      NA</span></span>
+<span><span class="co">## nu               0.6605    0.0067   98.59</span></span>
+<span><span class="co">## theta1 (fixed)   0.0000        NA      NA</span></span>
+<span><span class="co">## theta2 (fixed)   1.0000        NA      NA</span></span>
+<span><span class="co">## theta3 (fixed)   1.0000        NA      NA</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev  0.31344   0.01516   20.67</span></span>
+<span><span class="co">## std. dev  0.30295   0.01228   24.66</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -395.2684 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 24</span></span>
+<span><span class="co">## Log-Likelihood:  -382.8519 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 94</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  2.72111 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.6311 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  10.04274 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.78647 secs</span></span></code></pre>
 <p>Similarly, we can provide starting values for the entire theta vector
 with <code>start_theta</code>:</p>
-<div class="sourceCode" id="cb117"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb115"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_ns_start</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_ns_est</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_ns</span>, loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, </span>
 <span>          model_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>start_theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,  <span class="co"># Starting values for theta vector</span></span>
 <span>          parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning in rspde_lme(y ~ -1, model = op_cov_ns_est, data = df_data_ns, loc =</span></span>
-<span><span class="co">## c("x_coord", : The optimization failed to provide a numerically</span></span>
-<span><span class="co">## positive-definite Hessian. You can try to obtain a positive-definite Hessian by</span></span>
-<span><span class="co">## setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which</span></span>
-<span><span class="co">## allows other optimization methods to be used.</span></span></code></pre>
-<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_ns_start</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Generalized Whittle-Matern</span></span>
@@ -1565,23 +1550,23 @@ with <code>start_theta</code>:</p>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##        Estimate Std.error z-value</span></span>
-<span><span class="co">## nu       0.8302        NA      NA</span></span>
-<span><span class="co">## theta1   0.0000        NA      NA</span></span>
-<span><span class="co">## theta2   1.0000        NA      NA</span></span>
-<span><span class="co">## theta3   1.0000        NA      NA</span></span>
+<span><span class="co">## nu      0.88020   0.08057  10.925</span></span>
+<span><span class="co">## theta1 -0.24227   0.10618  -2.282</span></span>
+<span><span class="co">## theta2  0.78737   0.26109   3.016</span></span>
+<span><span class="co">## theta3  1.81856   0.46608   3.902</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Measurement error:</span></span>
 <span><span class="co">##          Estimate Std.error z-value</span></span>
-<span><span class="co">## std. dev   0.3134        NA      NA</span></span>
+<span><span class="co">## std. dev  0.30919   0.01365   22.66</span></span>
 <span><span class="co">## ---</span></span>
 <span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Log-Likelihood:  -395.2684 </span></span>
-<span><span class="co">## Number of function calls by 'optim' = 24</span></span>
+<span><span class="co">## Log-Likelihood:  -379.6359 </span></span>
+<span><span class="co">## Number of function calls by 'optim' = 72</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  6.89503 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.63314 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  18.05884 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.76541 secs</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -1599,7 +1584,7 @@ zero lower bound and non-zero lower bounds are given, respectively, by
 the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <p>For instance, we can create an <code>rSPDE</code> object with a
 <code>chebfunLB</code> rational approximation by</p>
-<div class="sourceCode" id="cb123"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb120"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">op_cov_2d_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/matern.operators.html">matern.operators</a></span><span class="op">(</span></span>
 <span>  mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span>
 <span>  m <span class="op">=</span> <span class="fl">2</span>,</span>
@@ -1609,13 +1594,13 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <p>We can check the order of the rational approximation with the
 <code><a href="../reference/rational.order.html">rational.order()</a></code> function and assign a new order with the
 <code>rational.order&lt;-()</code> function:</p>
-<div class="sourceCode" id="cb124"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb121"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.order.html">rational.order</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 2</span></span></code></pre>
-<div class="sourceCode" id="cb126"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb123"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.order.html">rational.order</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fl">1</span></span></code></pre></div>
 <p>Let us fit a model using the data from the previous example:</p>
-<div class="sourceCode" id="cb127"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb124"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_order1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_2d_type</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_2d</span>,repl <span class="op">=</span> <span class="va">repl</span>,</span>
 <span>          loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -1625,7 +1610,7 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <span><span class="co">## or by setting 'parallel' to FALSE, which allows other optimization methods to</span></span>
 <span><span class="co">## be used.</span></span></code></pre>
 <pre><code><span><span class="co">## Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre>
-<div class="sourceCode" id="cb130"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb127"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_order1</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Whittle-Matern</span></span>
@@ -1658,10 +1643,10 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <span><span class="co">## Number of function calls by 'optim' = 43</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  49.38629 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.5017 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  51.44348 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.61614 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
-<div class="sourceCode" id="cb134"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb131"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">fit_order1</span><span class="op">$</span><span class="va">alt_par_coeff</span><span class="op">$</span><span class="va">coeff</span><span class="op">[</span><span class="st">"sigma"</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>  range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">range</span>, <span class="va">fit_order1</span><span class="op">$</span><span class="va">alt_par_coeff</span><span class="op">$</span><span class="va">coeff</span><span class="op">[</span><span class="st">"range"</span><span class="op">]</span><span class="op">)</span>,</span>
@@ -1674,14 +1659,14 @@ the choices <code>chebfun</code> and <code>chebfunLB</code>.</p>
 <p>Finally, we can check the type of rational approximation with the
 <code><a href="../reference/rational.type.html">rational.type()</a></code> function and assign a new type by using the
 <code>rational.type&lt;-()</code> function:</p>
-<div class="sourceCode" id="cb136"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb133"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.type.html">rational.type</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "chebfunLB"</span></span></code></pre>
-<div class="sourceCode" id="cb138"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb135"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rational.type.html">rational.type</a></span><span class="op">(</span><span class="va">op_cov_2d_type</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"brasil"</span></span></code></pre></div>
 <p>Let us now fit this model, with the data from the previous example,
 with <code>brasil</code> rational approximation:</p>
-<div class="sourceCode" id="cb139"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb136"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_brasil</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde_lme.html">rspde_lme</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="op">-</span><span class="fl">1</span>, model <span class="op">=</span> <span class="va">op_cov_2d_type</span>, </span>
 <span>          data <span class="op">=</span> <span class="va">df_data_2d</span>,repl <span class="op">=</span> <span class="va">repl</span>,</span>
 <span>          loc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_coord"</span>, <span class="st">"y_coord"</span><span class="op">)</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -1691,7 +1676,7 @@ with <code>brasil</code> rational approximation:</p>
 <span><span class="co">## or by setting 'parallel' to FALSE, which allows other optimization methods to</span></span>
 <span><span class="co">## be used.</span></span></code></pre>
 <pre><code><span><span class="co">## Warning in sqrt(diag(inv_fisher)): NaNs produced</span></span></code></pre>
-<div class="sourceCode" id="cb142"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb139"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_brasil</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Latent model - Whittle-Matern</span></span>
@@ -1724,10 +1709,10 @@ with <code>brasil</code> rational approximation:</p>
 <span><span class="co">## Number of function calls by 'optim' = 50</span></span>
 <span><span class="co">## Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Time used to:     fit the model =  55.60562 secs </span></span>
-<span><span class="co">##   set up the parallelization = 2.60714 secs</span></span></code></pre>
+<span><span class="co">## Time used to:     fit the model =  57.96213 secs </span></span>
+<span><span class="co">##   set up the parallelization = 2.6231 secs</span></span></code></pre>
 <p>Let us compare with the true values:</p>
-<div class="sourceCode" id="cb146"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sigma</span>, <span class="va">fit_brasil</span><span class="op">$</span><span class="va">alt_par_coeff</span><span class="op">$</span><span class="va">coeff</span><span class="op">[</span><span class="st">"sigma"</span><span class="op">]</span><span class="op">)</span>, </span>
 <span>  range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">range</span>, <span class="va">fit_brasil</span><span class="op">$</span><span class="va">alt_par_coeff</span><span class="op">$</span><span class="va">coeff</span><span class="op">[</span><span class="st">"range"</span><span class="op">]</span><span class="op">)</span>,</span>

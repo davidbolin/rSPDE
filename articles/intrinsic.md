@@ -185,8 +185,8 @@ the following:
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
 #>         mean        sd 0.025quant 0.5quant 0.975quant     mode
-#> tau 0.125152 0.0278227  0.0783778 0.122566   0.187184 0.117493
-#> nu  0.969362 0.0784809  0.8190110 0.967926   1.126520 0.963343
+#> tau 0.124844 0.0285147  0.0768301 0.122253   0.188286 0.117204
+#> nu  0.970298 0.0799186  0.8182250 0.968412   1.131280 0.962557
 tau <- op$tau
 nu <- op$beta - 1 #beta = nu + d/2 
 result_df <- data.frame(
@@ -198,10 +198,10 @@ result_df <- data.frame(
              sqrt(1/rspde_fit$summary.hyperpar[1,6]))
 )
 print(result_df)
-#>   parameter true       mean      mode
-#> 1       tau  0.2 0.12515247 0.1174925
-#> 2        nu  0.8 0.96936181 0.9633432
-#> 3   sigma.e  0.1 0.09780898 0.0981444
+#>   parameter true       mean       mode
+#> 1       tau  0.2 0.12484420 0.11720389
+#> 2        nu  0.8 0.97029819 0.96255719
+#> 3   sigma.e  0.1 0.09780602 0.09811606
 ```
 
 ### Extreme value models
@@ -311,9 +311,9 @@ We then compare with the true parameter estimates as before
 
 result_fit <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 summary(result_fit)
-#>         mean       sd 0.025quant 0.5quant 0.975quant      mode
-#> tau 0.171532 0.132369  0.0233313 0.137762   0.517277 0.0665027
-#> nu  0.993972 0.169186  0.7000240 0.979875   1.352430 0.9249300
+#>         mean         sd 0.025quant 0.5quant 0.975quant     mode
+#> tau 0.177533 0.00555501   0.166368 0.177670   0.188140 0.178246
+#> nu  0.923885 0.00796276   0.908825 0.923646   0.940064 0.922831
 tau <- op$tau
 nu <- op$beta - 1 #beta = nu + d/2 
 result_df <- data.frame(
@@ -326,9 +326,9 @@ result_df <- data.frame(
 )
 print(result_df)
 #>   parameter true       mean       mode
-#> 1       tau  0.2 0.17153165 0.06650266
-#> 2        nu  0.9 0.99397234 0.92493001
-#> 3   sigma.e  0.1 0.09760446 0.10037584
+#> 1       tau  0.2 0.17753282 0.17824621
+#> 2        nu  0.9 0.92388525 0.92283148
+#> 3   sigma.e  0.1 0.09995982 0.09975681
 ```
 
 To see the posterior distributions of the parameters we can do:
@@ -497,18 +497,18 @@ We can get a summary of the fit:
 
 summary(rspde_fit)
 #> Time used:
-#>     Pre = 0.144, Running = 21.7, Post = 0.0563, Total = 21.9 
+#>     Pre = 0.158, Running = 20.7, Post = 0.0558, Total = 20.9 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
 #> 
 #> Model hyperparameters:
 #>                                           mean    sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 100.68 4.491      92.10   100.59
+#> Precision for the Gaussian observations 100.68 4.483      92.10   100.60
 #> Theta1 for field                         -5.98 0.048      -6.07    -5.98
 #> Theta2 for field                          2.35 0.086       2.17     2.35
 #>                                         0.975quant   mode
-#> Precision for the Gaussian observations     109.78 100.44
+#> Precision for the Gaussian observations     109.75 100.46
 #> Theta1 for field                             -5.88  -5.98
 #> Theta2 for field                              2.51   2.35
 #> 
@@ -526,8 +526,8 @@ following:
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
 #>              mean          sd 0.025quant    0.5quant  0.975quant        mode
-#> tau    0.00253232 0.000121317 0.00230551  0.00252722  0.00278193  0.00251616
-#> kappa 10.49080000 0.897772000 8.79828000 10.47020000 12.32010000 10.44890000
+#> tau    0.00253201 0.000121283  0.0023058  0.00252665  0.00278205  0.00251457
+#> kappa 10.48850000 0.897145000  8.7934200 10.46950000 12.31240000 10.45380000
 tau <- op$tau
 result_df <- data.frame(
   parameter = c("tau", "kappa"),
@@ -537,8 +537,8 @@ result_df <- data.frame(
 )
 print(result_df)
 #>   parameter    true         mean         mode
-#> 1       tau  0.0025  0.002532323  0.002516161
-#> 2     kappa 10.0000 10.490805811 10.448887238
+#> 1       tau  0.0025  0.002532007  0.002514565
+#> 2     kappa 10.0000 10.488511443 10.453801844
 ```
 
 ### Kriging with `R-INLA` implementation

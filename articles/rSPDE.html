@@ -290,7 +290,7 @@ details.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 0.321, Running = 2.16, Post = 0.0389, Total = 2.52 </span></span>
+<span><span class="co">#&gt;     Pre = 0.366, Running = 2.27, Post = 0.0447, Total = 2.68 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
@@ -521,7 +521,7 @@ form the stack manually, but can simply collect the required data in a
 <span><span class="co">#&gt;     Additive/Linear/Rowwise: TRUE/TRUE/TRUE</span></span>
 <span><span class="co">#&gt;     Used components: effect[field], latent[] </span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 0.148, Running = 2.2, Post = 0.106, Total = 2.46 </span></span>
+<span><span class="co">#&gt;     Pre = 0.191, Running = 2.31, Post = 0.125, Total = 2.63 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
@@ -704,8 +704,8 @@ function.</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 145</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  48.10421 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 2.64429 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  50.81902 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 2.9319 secs</span></span></code></pre></div>
 <p>Let us compare with the true values:</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -720,7 +720,7 @@ function.</p>
 <span></span>
 <span><span class="co"># Time to fit</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_rspde</span><span class="op">$</span><span class="va">fitting_tim</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time difference of 48.10421 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 50.81903 secs</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kriging-with-rspde">Kriging with <code>rSPDE</code><a class="anchor" aria-label="anchor" href="#kriging-with-rspde"></a>
