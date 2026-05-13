@@ -360,10 +360,23 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
       alpha <- new_object$nu + d / 2
       new_object$alpha <- alpha
     }
+    # When the caller updates theta but not kappa/tau, the stored kappa/tau
+    # are stale relative to the new theta. Passing them through to
+    # spde.matern.operators causes that function to skip the recomputation
+    # from theta and the B matrices (see the `is.null(tau) || is.null(kappa)`
+    # branch there), leaving the precision matrix unchanged with respect to
+    # theta. Pass NULL in that case so the new theta is honoured.
+    if (!is.null(theta) && is.null(kappa) && is.null(tau)) {
+      kappa_arg <- NULL
+      tau_arg   <- NULL
+    } else {
+      kappa_arg <- new_object$kappa
+      tau_arg   <- new_object$tau
+    }
     if (parameterization == "spde") {
       new_object <- spde.matern.operators(
-        kappa = new_object$kappa,
-        tau = new_object$tau,
+        kappa = kappa_arg,
+        tau = tau_arg,
         theta = new_object$theta,
         alpha = new_object$alpha,
         B.tau = new_object$B.tau,
@@ -383,8 +396,8 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
       )
     } else {
       new_object <- spde.matern.operators(
-        kappa = new_object$kappa,
-        tau = new_object$tau,
+        kappa = kappa_arg,
+        tau = tau_arg,
         theta = new_object$theta,
         nu = new_object$nu,
         G = new_object$G,
@@ -722,10 +735,20 @@ update.rSPDEobj <- function(object, nu = NULL,
       new_object$alpha <- alpha
     }
 
+    # Same fix as in update.CBrSPDEobj: when theta is updated but kappa/tau
+    # are not, the stored kappa/tau are stale; pass NULL so they are
+    # recomputed from theta and the B matrices.
+    if (!is.null(theta) && is.null(kappa) && is.null(tau)) {
+      kappa_arg <- NULL
+      tau_arg   <- NULL
+    } else {
+      kappa_arg <- new_object$kappa
+      tau_arg   <- new_object$tau
+    }
     if (parameterization == "spde") {
       new_object <- spde.matern.operators(
-        kappa = new_object$kappa,
-        tau = new_object$tau,
+        kappa = kappa_arg,
+        tau = tau_arg,
         theta = new_object$theta,
         alpha = new_object$alpha,
         B.tau = new_object$B.tau,
@@ -744,8 +767,8 @@ update.rSPDEobj <- function(object, nu = NULL,
       )
     } else {
       new_object <- spde.matern.operators(
-        kappa = new_object$kappa,
-        tau = new_object$tau,
+        kappa = kappa_arg,
+        tau = tau_arg,
         theta = new_object$theta,
         nu = new_object$nu,
         B.range = new_object$B.range,
