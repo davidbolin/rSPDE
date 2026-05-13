@@ -248,8 +248,8 @@ summary(res)
 #> Number of function calls by 'optim' = 50
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  24.29884 secs 
-#>   set up the parallelization = 5.11368 secs
+#> Time used to:     fit the model =  22.63368 secs 
+#>   set up the parallelization = 5.36154 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -348,9 +348,9 @@ results <- data.frame(
 )
 
 print(results)
-#>             kappa     sigma    gamma      rho    sigma.e  intercept
-#> True     5.000000 10.000000 0.100000 1.000000 0.01000000 0.00000000
-#> Estimate 4.707337  8.846552 0.099092 1.186784 0.01078479 0.01238618
+#>             kappa     sigma      gamma     rho     sigma.e  intercept
+#> True     5.000000 10.000000 0.10000000 1.00000 0.010000000 0.00000000
+#> Estimate 5.081651  8.948111 0.07988228 1.59596 0.008589387 0.01238519
 ```
 
 ## A spatial example
@@ -548,8 +548,8 @@ summary(res_2d)
 #> Number of function calls by 'optim' = 81
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  2.68995 mins 
-#>   set up the parallelization = 5.62652 secs
+#> Time used to:     fit the model =  2.66224 mins 
+#>   set up the parallelization = 5.81563 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -622,12 +622,12 @@ results <- data.frame(
 )
 
 print(results)
-#>              kappa        sigma        gamma        rho_1         rho_2
-#> True     9.9000000 2.900000e+01 1.100000e-01 2.000000e-01  0.3000000000
-#> Estimate 0.2981365 3.929495e-05 9.094568e-09 7.349718e-06 -0.0006288078
-#>               sigma.e intercept
-#> True     0.0100000000 0.0000000
-#> Estimate 0.0005198931 0.4931451
+#>          kappa        sigma     gamma      rho_1      rho_2      sigma.e
+#> True     9.900 2.900000e+01 1.100e-01 0.20000000 0.30000000 0.0100000000
+#> Estimate 0.297 3.921411e-05 9.078e-09 0.01821738 0.01381615 0.0005198445
+#>          intercept
+#> True     0.0000000
+#> Estimate 0.4935684
 ```
 
 ## Fit with `bounded_rho = FALSE`
@@ -711,9 +711,9 @@ results_unbounded <- data.frame(
 )
 
 print(results_unbounded)
-#>             kappa     sigma     gamma      rho     sigma.e  intercept
-#> True     9.900000 29.000000 0.1100000 1.000000 0.010000000 0.00000000
-#> Estimate 4.733179  9.147476 0.1068021 1.165041 0.008194457 0.01250031
+#>             kappa    sigma      gamma      rho     sigma.e  intercept
+#> True     9.900000 29.00000 0.11000000 1.000000 0.010000000 0.00000000
+#> Estimate 4.922853  9.12735 0.09723031 1.209845 0.009207415 0.01240725
 ```
 
 ## References
