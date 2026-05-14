@@ -313,6 +313,30 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
       new_object$kappa <- rspde_check_user_input(kappa, "kappa", 0)
     }
 
+    # Callers that work from the fit's `coeff$random_effects` (e.g.
+    # predict.rspde_lme) pass the non-stationary thetas as individual
+    # named arguments `theta1`, `theta2`, ... rather than as a single
+    # `theta = c(...)` vector. Before this assembly step those names hit
+    # `...` and were silently dropped — `spde.matern.operators` was then
+    # called with the stale stored theta and Q never reflected the
+    # fitted parameters, producing predictions tuned to whatever theta
+    # happened to be cached on `object`. Convert them into the `theta`
+    # vector here so downstream code sees the right values.
+    if (is.null(theta)) {
+      .dots <- list(...)
+      .theta_names <- grep("^theta[0-9]+$", names(.dots), value = TRUE)
+      if (length(.theta_names) > 0) {
+        .idx <- as.integer(sub("^theta", "", .theta_names))
+        if (any(is.na(.idx)) || any(.idx < 1)) {
+          stop("Invalid theta index in update arguments.")
+        }
+        theta <- numeric(max(.idx))
+        for (k in seq_along(.theta_names)) {
+          theta[.idx[k]] <- .dots[[.theta_names[k]]]
+        }
+      }
+    }
+
     if (!is.null(theta)) {
       if (!is.numeric(theta)) {
         stop("theta must be numeric!")
