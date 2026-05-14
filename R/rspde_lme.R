@@ -1476,15 +1476,71 @@ predict.rspde_lme <- function(object,
     stop("Covariates not found in data.")
   }
 
-  if (sum(duplicated(loc)) > 0 && !object$spacetime) {
-    warning("There are duplicated locations for prediction, we will try to process the data to extract the unique locations,
-    along with the corresponding covariates.")
-    if (nrow(X_cov_pred) == nrow(loc)) {
-      data_tmp <- cbind(loc, X_cov_pred)
+  # Two separate concerns:
+  #
+  #   1) Warning. The only case worth a user-facing warning is duplicate
+  #      rows at the same (location, replicate) — the original predictor
+  #      ambiguity bug. Same location across different replicates is
+  #      legitimate (e.g. cross-replicate prediction on a graph) and
+  #      should NOT warn. Per-row replicate info is taken from
+  #      `predict(..., repl = "<col>" / <vector>)` first, then from a
+  #      `.group` column in `data` (the MetricGraph convention).
+  #
+  #   2) Deduplication. Independently of (1), if `loc` has duplicated
+  #      rows the downstream kriging spends O(n_loc^2) on the variance
+  #      `Aprd %*% solve(Q_xgiveny, t(Aprd))` etc., so we always collapse
+  #      `loc` to its unique rows (with the corresponding covariates).
+  #      Doing this silently lets cross-replicate `newdata` flow through
+  #      fast without surfacing a misleading warning.
+  if (!object$spacetime) {
+    repl_pred <- tmp_args[["repl"]]
+    if (is.character(repl_pred) && length(repl_pred) == 1) {
+      if (!is.null(data) && repl_pred %in% names(data)) {
+        repl_pred <- data[[repl_pred]]
+      } else {
+        repl_pred <- NULL
+      }
     }
-    data_tmp <- unique(data_tmp)
-    if (sum(duplicated(cbind(data_tmp[, 1:ncol(loc)]))) > 0) {
-      stop("Data processing failed, please provide a data with unique locations.")
+    if (is.null(repl_pred) && !is.null(data) && ".group" %in% names(data)) {
+      repl_pred <- data[[".group"]]
+    }
+    if (!is.null(repl_pred) && length(repl_pred) != nrow(loc)) {
+      repl_pred <- NULL
+    }
+
+    # (1) Within-replicate duplicate warning.
+    if (!is.null(repl_pred)) {
+      loc_repl_df <- data.frame(.e = loc[, 1], .d = loc[, 2], .repl = repl_pred)
+      within_rep_dups <- any(duplicated(loc_repl_df))
+    } else {
+      within_rep_dups <- any(duplicated(loc))
+    }
+    if (within_rep_dups) {
+      warning("There are duplicated locations for prediction, we will try to process the data to extract the unique locations,
+    along with the corresponding covariates.")
+    }
+
+    # (2) Always dedup `loc` (regardless of replicate info) for the
+    #     kriging math. The dedup tuple is (loc, covariates) — rows that
+    #     agree on all are collapsed; rows that share location but
+    #     disagree on covariates are flagged as a hard error because
+    #     the prediction would be ambiguous.
+    if (any(duplicated(loc))) {
+      cov_aligned <- nrow(X_cov_pred) == nrow(loc) && ncol(X_cov_pred) > 0
+      loc_df <- data.frame(.e = loc[, 1], .d = loc[, 2])
+      full_df <- if (cov_aligned) {
+        cbind(loc_df, as.data.frame(X_cov_pred))
+      } else {
+        loc_df
+      }
+      keep_mask <- !duplicated(full_df)
+      if (any(duplicated(loc_df[keep_mask, , drop = FALSE]))) {
+        stop("Data processing failed, please provide a data with unique locations.")
+      }
+      loc <- loc[keep_mask, , drop = FALSE]
+      if (cov_aligned) {
+        X_cov_pred <- X_cov_pred[keep_mask, , drop = FALSE]
+      }
     }
   }
 
