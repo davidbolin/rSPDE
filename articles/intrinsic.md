@@ -184,9 +184,9 @@ the following:
 
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
-#>         mean        sd 0.025quant 0.5quant 0.975quant     mode
-#> tau 0.124844 0.0285147  0.0768301 0.122253   0.188286 0.117204
-#> nu  0.970298 0.0799186  0.8182250 0.968412   1.131280 0.962557
+#>         mean        sd 0.025quant 0.5quant 0.975quant    mode
+#> tau 0.125300 0.0268335  0.0815218 0.122204   0.186509 0.11611
+#> nu  0.968387 0.0742094  0.8212950 0.969153   1.112160 0.97198
 tau <- op$tau
 nu <- op$beta - 1 #beta = nu + d/2 
 result_df <- data.frame(
@@ -199,9 +199,9 @@ result_df <- data.frame(
 )
 print(result_df)
 #>   parameter true       mean       mode
-#> 1       tau  0.2 0.12484420 0.11720389
-#> 2        nu  0.8 0.97029819 0.96255719
-#> 3   sigma.e  0.1 0.09780602 0.09811606
+#> 1       tau  0.2 0.12530031 0.11611006
+#> 2        nu  0.8 0.96838744 0.97198049
+#> 3   sigma.e  0.1 0.09788431 0.09855011
 ```
 
 ### Extreme value models
@@ -311,9 +311,9 @@ We then compare with the true parameter estimates as before
 
 result_fit <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 summary(result_fit)
-#>         mean         sd 0.025quant 0.5quant 0.975quant     mode
-#> tau 0.177533 0.00555501   0.166368 0.177670   0.188140 0.178246
-#> nu  0.923885 0.00796276   0.908825 0.923646   0.940064 0.922831
+#>         mean        sd 0.025quant 0.5quant 0.975quant     mode
+#> tau 0.177972 0.0120998   0.156196 0.177224   0.203669 0.175270
+#> nu  0.924285 0.0157348   0.892491 0.924686   0.954229 0.926077
 tau <- op$tau
 nu <- op$beta - 1 #beta = nu + d/2 
 result_df <- data.frame(
@@ -325,10 +325,10 @@ result_df <- data.frame(
              sqrt(1/rspde_fit.rep$summary.hyperpar[1,6]))
 )
 print(result_df)
-#>   parameter true       mean       mode
-#> 1       tau  0.2 0.17753282 0.17824621
-#> 2        nu  0.9 0.92388525 0.92283148
-#> 3   sigma.e  0.1 0.09995982 0.09975681
+#>   parameter true       mean      mode
+#> 1       tau  0.2 0.17797229 0.1752703
+#> 2        nu  0.9 0.92428452 0.9260767
+#> 3   sigma.e  0.1 0.09997218 0.1001511
 ```
 
 To see the posterior distributions of the parameters we can do:
@@ -497,22 +497,22 @@ We can get a summary of the fit:
 
 summary(rspde_fit)
 #> Time used:
-#>     Pre = 0.158, Running = 20.7, Post = 0.0558, Total = 20.9 
+#>     Pre = 0.133, Running = 23.7, Post = 0.0549, Total = 23.9 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
 #> 
 #> Model hyperparameters:
 #>                                           mean    sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 100.68 4.483      92.10   100.60
+#> Precision for the Gaussian observations 100.64 4.494      92.09   100.53
 #> Theta1 for field                         -5.98 0.048      -6.07    -5.98
-#> Theta2 for field                          2.35 0.086       2.17     2.35
+#> Theta2 for field                          2.35 0.087       2.17     2.35
 #>                                         0.975quant   mode
-#> Precision for the Gaussian observations     109.75 100.46
+#> Precision for the Gaussian observations     109.79 100.31
 #> Theta1 for field                             -5.88  -5.98
-#> Theta2 for field                              2.51   2.35
+#> Theta2 for field                              2.52   2.35
 #> 
-#> Marginal log-Likelihood:  727.86 
+#> Marginal log-Likelihood:  727.87 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -525,9 +525,9 @@ following:
 
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
-#>              mean          sd 0.025quant    0.5quant  0.975quant        mode
-#> tau    0.00253201 0.000121283  0.0023058  0.00252665  0.00278205  0.00251457
-#> kappa 10.48850000 0.897145000  8.7934200 10.46950000 12.31240000 10.45380000
+#>              mean          sd 0.025quant    0.5quant 0.975quant       mode
+#> tau    0.00253261 0.000121537 0.00230348  0.00252838  0.0027803  0.0025204
+#> kappa 10.49390000 0.906654000 8.80846000 10.46260000 12.3666000 10.4090000
 tau <- op$tau
 result_df <- data.frame(
   parameter = c("tau", "kappa"),
@@ -537,8 +537,8 @@ result_df <- data.frame(
 )
 print(result_df)
 #>   parameter    true         mean         mode
-#> 1       tau  0.0025  0.002532007  0.002514565
-#> 2     kappa 10.0000 10.488511443 10.453801844
+#> 1       tau  0.0025  0.002532613  0.002520404
+#> 2     kappa 10.0000 10.493915324 10.409008731
 ```
 
 ### Kriging with `R-INLA` implementation

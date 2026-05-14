@@ -206,8 +206,8 @@ summary(res)
 #> Number of function calls by 'optim' = 46
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  27.55245 secs 
-#>   set up the parallelization = 2.95408 secs
+#> Time used to:     fit the model =  27.19074 secs 
+#>   set up the parallelization = 2.6026 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -309,10 +309,10 @@ results <- data.frame(
 )
 
 print(results)
-#>                  hx         hy       hxy    sigma        nu   sigma.e
-#> True           0.08       0.08       0.5        1       0.5 0.1000000
-#> Estimate 0.09130023 0.09076096 0.5678515 0.973983 0.4562343 0.1001814
+#>                  hx         hy       hxy     sigma       nu   sigma.e
+#> True           0.08       0.08       0.5         1      0.5 0.1000000
+#> Estimate 0.09125866 0.09064729 0.5704675 0.9686849 0.444128 0.1000031
 #>           intercept
 #> True      0.0000000
-#> Estimate -0.1604359
+#> Estimate -0.1610218
 ```
