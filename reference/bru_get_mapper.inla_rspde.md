@@ -113,28 +113,28 @@ if (requireNamespace("INLA", quietly = TRUE) &&
 #>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 #>     Used components: effect[Intercept, field], latent[] 
 #> Time used:
-#>     Pre = 0.325, Running = 1.38, Post = 0.363, Total = 2.07 
+#>     Pre = 0.332, Running = 1.34, Post = 0.4, Total = 2.07 
 #> Fixed effects:
 #>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-#> Intercept 0.305 0.167     -0.026    0.305      0.639 0.305   0
+#> Intercept 0.306 0.165     -0.022    0.306      0.635 0.306   0
 #> 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
 #> 
 #> Model hyperparameters:
-#>                                            mean     sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 165.736 87.481     51.749  147.431
-#> Theta1 for field                         -3.830  0.494     -4.926   -3.787
-#> Theta2 for field                          2.890  0.212      2.485    2.886
-#> Theta3 for field                         -0.127  0.263     -0.572   -0.147
-#>                                         0.975quant    mode
-#> Precision for the Gaussian observations    385.866 114.881
-#> Theta1 for field                            -3.015  -3.569
-#> Theta2 for field                             3.319   2.869
-#> Theta3 for field                             0.451  -0.248
+#>                                           mean      sd 0.025quant 0.5quant
+#> Precision for the Gaussian observations 178.24 100.829      57.96   154.47
+#> Theta1 for field                         -7.31   3.655     -15.89    -6.76
+#> Theta2 for field                          3.21   0.421       2.57     3.17
+#> Theta3 for field                          1.73   1.937      -0.99     1.45
+#>                                         0.975quant   mode
+#> Precision for the Gaussian observations     440.38 117.34
+#> Theta1 for field                             -2.18  -3.66
+#> Theta2 for field                              4.18   2.90
+#> Theta3 for field                              6.28  -0.20
 #> 
-#> Marginal log-Likelihood:  -108.60 
+#> Marginal log-Likelihood:  -106.91 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')

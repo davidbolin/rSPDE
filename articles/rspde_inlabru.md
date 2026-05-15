@@ -324,10 +324,10 @@ summary(rspde_fit)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[Intercept, distSea, field], latent[] 
     ## Time used:
-    ##     Pre = 0.283, Running = 5.97, Post = 0.0858, Total = 6.34 
+    ##     Pre = 0.269, Running = 6.36, Post = 0.0918, Total = 6.72 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-    ## Intercept 1.941 0.041       1.86    1.941      2.022 1.941   0
+    ## Intercept 1.941 0.041       1.86    1.941      2.023 1.941   0
     ## 
     ## Random effects:
     ##   Name     Model
@@ -335,20 +335,20 @@ summary(rspde_fit)
     ##    field CGeneric
     ## 
     ## Model hyperparameters:
-    ##                                                   mean      sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.45    1.04     12.484
-    ## Precision for distSea                          6288.05 3788.49   1370.018
-    ## Theta1 for field                                 -4.54    4.06    -13.987
-    ## Theta2 for field                                  2.24    1.01      0.716
-    ## Theta3 for field                                  2.78    3.60     -2.482
+    ##                                                    mean       sd 0.025quant
+    ## Precision-parameter for the Gamma observations   14.439    1.041     12.488
+    ## Precision for distSea                          7661.655 4422.756   2348.569
+    ## Theta1 for field                                 -2.068    1.809     -6.139
+    ## Theta2 for field                                  1.635    0.488      0.799
+    ## Theta3 for field                                  0.602    1.614     -1.991
     ##                                                0.5quant 0.975quant     mode
-    ## Precision-parameter for the Gamma observations    14.42      16.57   14.388
-    ## Precision for distSea                           5445.55   15672.31 3724.232
-    ## Theta1 for field                                  -3.98       1.39   -1.172
-    ## Theta2 for field                                   2.11       4.56    1.461
-    ## Theta3 for field                                   2.29      11.16   -0.199
+    ## Precision-parameter for the Gamma observations   14.405   1.66e+01   14.345
+    ## Precision for distSea                          6625.840   1.91e+04 4978.146
+    ## Theta1 for field                                 -1.881   8.31e-01   -0.970
+    ## Theta2 for field                                  1.601   2.70e+00    1.426
+    ## Theta3 for field                                  0.436   4.23e+00   -0.371
     ## 
-    ## Marginal log-Likelihood:  -1254.48 
+    ## Marginal log-Likelihood:  -1255.12 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -405,10 +405,10 @@ result_fit <- rspde.result(rspde_fit, "field",
 summary(result_fit)
 ```
 
-    ##            mean        sd  0.025quant  0.5quant 0.975quant        mode
-    ## tau    0.472806  1.648320 9.32364e-07 0.0211166    3.95856 4.15517e-10
-    ## kappa 17.368300 31.600300 2.06784e+00 7.9919500   92.84680 3.36456e+00
-    ## nu     1.470190  0.618171 1.56675e-01 1.7956700    1.99996 1.99999e+00
+    ##           mean       sd 0.025quant 0.5quant 0.975quant       mode
+    ## tau   0.407529 0.684381 0.00226503 0.160271    2.26624 0.00099774
+    ## kappa 5.812730 3.313680 2.23206000 4.892330   14.70820 3.63675000
+    ## nu    1.173290 0.535362 0.24283200 1.193180    1.97008 1.97566000
 
 We can also plot the posterior densities. To this end we will use the
 [`gg_df()`](https://davidbolin.github.io/rSPDE/reference/gg_df.md)
@@ -444,10 +444,10 @@ result_fit_matern <- rspde.result(rspde_fit, "field",
 summary(result_fit_matern)
 ```
 
-    ##             mean        sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 3.884120 25.520100 -0.1232290 0.968599  26.891900 0.938946
-    ## range   0.397623  0.258085  0.0118489 0.382518   0.957875 0.106606
-    ## nu      1.470190  0.618171  0.1566750 1.795670   1.999960 1.999990
+    ##             mean       sd 0.025quant 0.5quant 0.975quant     mode
+    ## std.dev 0.317266 0.195518   0.125999 0.295013   0.690219 0.300184
+    ## range   0.559488 0.210437   0.215986 0.532883   1.049730 0.504199
+    ## nu      1.173290 0.535362   0.242832 1.193180   1.970080 1.975660
 
 In a similar manner, we can obtain posterior plots on the `matern`
 parameterization:
@@ -786,7 +786,7 @@ summary(rspde_fit.rep)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.166, Running = 85.2, Post = 2.78, Total = 88.1 
+    ##     Pre = 0.152, Running = 86.5, Post = 3.01, Total = 89.7 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1065,7 +1065,7 @@ summary(rspde_fit_nonstat)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.141, Running = 17.2, Post = 0.141, Total = 17.5 
+    ##     Pre = 0.138, Running = 17.7, Post = 0.138, Total = 18 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1221,12 +1221,12 @@ cv_result
 ```
 
     ##           Model               mse               mae               dss
-    ## 1    stationary 0.135788234911742 0.270779765163287 -1.11913219574046
-    ## 2 nonstationary 0.135656632160608 0.271528650942914 -1.06128392361946
+    ## 1    stationary  0.13639482514917 0.271107352710732 -1.11699067079278
+    ## 2 nonstationary 0.135429235063549 0.271250776676959 -1.06785272743959
     ##            Best     nonstationary        stationary        stationary
     ##                crps             scrps
-    ## 1 0.191708483690415 0.499334597748799
-    ## 2 0.191946145376052 0.504274730338615
+    ## 1 0.191858046086095 0.499383439749777
+    ## 2  0.19268130961601 0.505256394285772
     ##          stationary        stationary
 
 The

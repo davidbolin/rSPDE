@@ -124,10 +124,10 @@ if (requireNamespace("INLA", quietly = TRUE)) {
   summary(result)
 }
 #> Warning: the mean or mode of nu is very close to nu.upper.bound, please consider increasing nu.upper.bound, and refitting the model.
-#>             mean        sd  0.025quant    0.5quant 0.975quant        mode
-#> tau    0.0119847 0.0232065 8.59151e-07  0.00216764  0.0782021 3.64112e-09
-#> kappa 22.6424000 8.8378000 1.26831e+01 20.25290000 46.0515000 1.59843e+01
-#> nu     1.4471200 0.4240960 6.27145e-01  1.52444000  1.9891200 1.99448e+00
+#>             mean         sd  0.025quant    0.5quant 0.975quant        mode
+#> tau    0.0125662  0.0285555 6.70298e-11  0.00114069  0.0941847 6.70298e-11
+#> kappa 25.1559000 12.0802000 1.27138e+01 21.63980000 57.7682000 1.60261e+01
+#> nu     1.5046500  0.4484440 5.82802e-01  1.63948000  1.9972700 1.99986e+00
 # devel.tag
 # }
 ```
