@@ -135,6 +135,8 @@ When the last commit message in the push ends with `INLA UPDATE`, the GitHub Act
 
 The workflow then commits the copied files on the `inla` branch and pushes that branch. Only the head commit message of the push is checked, so if several commits are pushed at once, the last commit in the push must be the one whose message ends with `INLA UPDATE`. If the workflow file itself is being added for the first time, first push the workflow to `devel`, and then make a second push whose commit message ends with `INLA UPDATE`.
 
+## Tests involving INLA ##
+
 The tests that depend on `INLA` should have the following structure:
 
 ```
