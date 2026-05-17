@@ -1415,6 +1415,34 @@ predict.rspde_lme <- function(object,
     normalized <- FALSE
   }
 
+  # advanced_options for cross-validation / precomputation:
+  #   - precompute_data: TRUE returns parameter-dependent structures
+  #     (new_rspde_obj, Q, mu_corr) so they can be reused across folds.
+  #     If set to a list returned by a previous call, those structures
+  #     are reused instead of recomputed (the expensive `update(...)`
+  #     and Q assembly happens once instead of once per fold).
+  #   - na_test_idx: integer positions in the per-row response vector
+  #     to treat as held-out. Their rows in A_list are dropped and
+  #     their Y values are NA-masked so pseudo-CV LOO produces correct
+  #     leave-out predictions.
+  advanced_options <- tmp_args[["advanced_options"]]
+  precompute_data  <- FALSE
+  precomputed      <- NULL
+  na_test_idx      <- NULL
+  if (is.list(advanced_options)) {
+    if (!is.null(advanced_options$precompute_data)) {
+      pd <- advanced_options$precompute_data
+      if (is.logical(pd)) {
+        precompute_data <- isTRUE(pd)
+      } else if (is.list(pd)) {
+        precomputed <- pd
+      }
+    }
+    if (!is.null(advanced_options$na_test_idx)) {
+      na_test_idx <- advanced_options$na_test_idx
+    }
+  }
+
   out <- list()
 
   coeff_fixed <- object$coeff$fixed_effects
@@ -1448,15 +1476,71 @@ predict.rspde_lme <- function(object,
     stop("Covariates not found in data.")
   }
 
-  if (sum(duplicated(loc)) > 0 && !object$spacetime) {
-    warning("There are duplicated locations for prediction, we will try to process the data to extract the unique locations,
-    along with the corresponding covariates.")
-    if (nrow(X_cov_pred) == nrow(loc)) {
-      data_tmp <- cbind(loc, X_cov_pred)
+  # Two separate concerns:
+  #
+  #   1) Warning. The only case worth a user-facing warning is duplicate
+  #      rows at the same (location, replicate) — the original predictor
+  #      ambiguity bug. Same location across different replicates is
+  #      legitimate (e.g. cross-replicate prediction on a graph) and
+  #      should NOT warn. Per-row replicate info is taken from
+  #      `predict(..., repl = "<col>" / <vector>)` first, then from a
+  #      `.group` column in `data` (the MetricGraph convention).
+  #
+  #   2) Deduplication. Independently of (1), if `loc` has duplicated
+  #      rows the downstream kriging spends O(n_loc^2) on the variance
+  #      `Aprd %*% solve(Q_xgiveny, t(Aprd))` etc., so we always collapse
+  #      `loc` to its unique rows (with the corresponding covariates).
+  #      Doing this silently lets cross-replicate `newdata` flow through
+  #      fast without surfacing a misleading warning.
+  if (!object$spacetime) {
+    repl_pred <- tmp_args[["repl"]]
+    if (is.character(repl_pred) && length(repl_pred) == 1) {
+      if (!is.null(data) && repl_pred %in% names(data)) {
+        repl_pred <- data[[repl_pred]]
+      } else {
+        repl_pred <- NULL
+      }
     }
-    data_tmp <- unique(data_tmp)
-    if (sum(duplicated(cbind(data_tmp[, 1:ncol(loc)]))) > 0) {
-      stop("Data processing failed, please provide a data with unique locations.")
+    if (is.null(repl_pred) && !is.null(data) && ".group" %in% names(data)) {
+      repl_pred <- data[[".group"]]
+    }
+    if (!is.null(repl_pred) && length(repl_pred) != nrow(loc)) {
+      repl_pred <- NULL
+    }
+
+    # (1) Within-replicate duplicate warning.
+    if (!is.null(repl_pred)) {
+      loc_repl_df <- data.frame(.e = loc[, 1], .d = loc[, 2], .repl = repl_pred)
+      within_rep_dups <- any(duplicated(loc_repl_df))
+    } else {
+      within_rep_dups <- any(duplicated(loc))
+    }
+    if (within_rep_dups) {
+      warning("There are duplicated locations for prediction, we will try to process the data to extract the unique locations,
+    along with the corresponding covariates.")
+    }
+
+    # (2) Always dedup `loc` (regardless of replicate info) for the
+    #     kriging math. The dedup tuple is (loc, covariates) — rows that
+    #     agree on all are collapsed; rows that share location but
+    #     disagree on covariates are flagged as a hard error because
+    #     the prediction would be ambiguous.
+    if (any(duplicated(loc))) {
+      cov_aligned <- nrow(X_cov_pred) == nrow(loc) && ncol(X_cov_pred) > 0
+      loc_df <- data.frame(.e = loc[, 1], .d = loc[, 2])
+      full_df <- if (cov_aligned) {
+        cbind(loc_df, as.data.frame(X_cov_pred))
+      } else {
+        loc_df
+      }
+      keep_mask <- !duplicated(full_df)
+      if (any(duplicated(loc_df[keep_mask, , drop = FALSE]))) {
+        stop("Data processing failed, please provide a data with unique locations.")
+      }
+      loc <- loc[keep_mask, , drop = FALSE]
+      if (cov_aligned) {
+        X_cov_pred <- X_cov_pred[keep_mask, , drop = FALSE]
+      }
     }
   }
 
@@ -1537,54 +1621,58 @@ predict.rspde_lme <- function(object,
   }
 
   Y <- model_matrix_fit[, 1] - mu
+  # Apply any cross-validation NA mask BEFORE deriving idx_obs_full so
+  # that held-out observations are removed both from the response
+  # vector and from the rows of A_list used below.
+  if (!is.null(na_test_idx) && length(na_test_idx) > 0) {
+    Y[na_test_idx] <- NA
+  }
 
   model_type <- object$latent_model
 
   sigma.e <- coeff_meas[[1]]
   sigma_e <- sigma.e
 
-  ## construct Q
-  # Get parameters from object$coeff$random_effects or object$alt_par_coeff$coeff
-  # based on model type and parameterization
-  
-  # Create a list of parameters to pass to update
-  update_params <- list()
-  
-  # Add parameters based on what's available in coeff_random
-  for (param_name in names(coeff_random)) {
-    param_name_cleaned <- gsub(" \\(fixed\\)$", "", param_name)
-    update_params[[param_name_cleaned]] <- coeff_random[[param_name]]
+  ## construct Q (or pick up precomputed parameter-dependent structures)
+  if (!is.null(precomputed) &&
+      !is.null(precomputed$new_rspde_obj) &&
+      !is.null(precomputed$Q)) {
+    new_rspde_obj <- precomputed$new_rspde_obj
+    Q <- precomputed$Q
+    mu_corr <- if (!is.null(precomputed$mu_corr)) precomputed$mu_corr else 0
+    have_precomputed_Q <- TRUE
+  } else {
+    # Get parameters from object$coeff$random_effects or
+    # object$alt_par_coeff$coeff based on model type and parameterization.
+    update_params <- list()
+    for (param_name in names(coeff_random)) {
+      param_name_cleaned <- gsub(" \\(fixed\\)$", "", param_name)
+      update_params[[param_name_cleaned]] <- coeff_random[[param_name]]
+    }
+    update_params$check_stationarity <- FALSE
+
+    # Update the model with all available parameters
+    new_rspde_obj <- do.call(update, c(list(object$latent_model), update_params))
+
+    if (object$mean_correction) {
+      mu_corr <- new_rspde_obj$mean_correction(full = TRUE)
+    } else {
+      mu_corr <- 0
+    }
+    have_precomputed_Q <- FALSE
   }
 
-  update_params$check_stationarity <- FALSE
-  
-  # # If alt_par_coeff exists, also consider those parameters
-  # if (!is.null(object$alt_par_coeff) && !is.null(object$alt_par_coeff$coeff)) {
-  #   for (param_name in names(object$alt_par_coeff$coeff)) {
-  #     if (!(param_name %in% names(update_params))) {
-  #       update_params[[param_name]] <- object$alt_par_coeff$coeff[[param_name]]
-  #     }
-  #   }
-  # }
-  
-  # Update the model with all available parameters
-  new_rspde_obj <- do.call(update, c(list(object$latent_model), update_params))
-  
-  if(object$mean_correction) {
-      mu_corr <- new_rspde_obj$mean_correction(full=TRUE)
-  } else {
-      mu_corr <- 0
-  }
-  
   idx_obs_full <- as.vector(!is.na(Y))
 
   if(!inherits(object$latent_model, "rSPDEobj1d") && !inherits(object$latent_model, "spacetimeobj")) {
-      Q <- new_rspde_obj$Q
+      if (!have_precomputed_Q) {
+        Q <- new_rspde_obj$Q
+      }
       if(!inherits(object$latent_model, "CBrSPDEobj2d") && !inherits(object$latent_model, "intrinsicCBrSPDEobj")) {
           # Extract alpha or nu from random effects
           alpha_param <- grep("^alpha", names(coeff_random), value = TRUE)
           nu_param <- grep("^nu", names(coeff_random), value = TRUE)
-          
+
           if (length(alpha_param) > 0) {
             alpha <- coeff_random[[alpha_param]]
           } else if (length(nu_param) > 0) {
@@ -1593,16 +1681,18 @@ predict.rspde_lme <- function(object,
           } else {
             stop("Neither alpha nor nu parameter found in random effects")
           }
-          
+
           # Check if alpha is integer
           if (alpha %% 1 != 0) {
-            Aprd <- kronecker(matrix(1, 1, object$rspde_order + 1), Aprd)        
+            Aprd <- kronecker(matrix(1, 1, object$rspde_order + 1), Aprd)
           }
       }
   } else if(inherits(object$latent_model, "spacetimeobj")) {
-      Q <- new_rspde_obj$Q
+      if (!have_precomputed_Q) {
+        Q <- new_rspde_obj$Q
+      }
   }
-  
+
   for (repl_y in u_repl) {
     idx_repl <- repl_vec == repl_y
 
@@ -1610,33 +1700,41 @@ predict.rspde_lme <- function(object,
 
     y_repl <- Y[idx_repl]
     y_repl <- y_repl[idx_obs]
-    
-    
+
+
     if(inherits(object$latent_model, "rSPDEobj1d")) {
         loc_repl <- object$loc[idx_repl]
         loc_repl <- loc_repl[idx_obs]
-        
+
         loc_full <- c(loc_repl, loc)
         tmp <- sort(loc_full, index.return = TRUE)
         reo <- tmp$ix
         loc_sort <- tmp$x
         ireo <- 1:length(loc_sort)
         ireo[reo] <- 1:length(loc_sort)
-        
+
         ind.obs <- ireo[1:length(loc_repl)]
         ind.pre <- ireo[(length(loc_repl)+1):length(loc_full)]
-        tmp <- matern.rational.ldl(loc = loc_full, 
-                                   order = new_rspde_obj$m, 
-                                   nu = new_rspde_obj$nu, 
-                                   kappa = new_rspde_obj$kappa, 
-                                   sigma = new_rspde_obj$sigma, 
-                                   type_rational = new_rspde_obj$type_rational_approx, 
-                                   type_interp =  new_rspde_obj$type_interp)    
-        A_repl <- tmp$A[ind.obs, ] 
-        Aprd <- tmp$A[ind.pre, ] 
+        tmp <- matern.rational.ldl(loc = loc_full,
+                                   order = new_rspde_obj$m,
+                                   nu = new_rspde_obj$nu,
+                                   kappa = new_rspde_obj$kappa,
+                                   sigma = new_rspde_obj$sigma,
+                                   type_rational = new_rspde_obj$type_rational_approx,
+                                   type_interp =  new_rspde_obj$type_interp)
+        A_repl <- tmp$A[ind.obs, ]
+        Aprd <- tmp$A[ind.pre, ]
         Q <- t(tmp$L)%*%tmp$D%*%tmp$L
     } else {
         A_repl <- object$A_list[[repl_y]]
+        # A_list is built (at fit time) for all observations in the
+        # replicate. If any held-out / runtime NAs are present in Y
+        # (e.g. from posterior cross-validation), drop the matching
+        # rows of A_repl so that t(A_repl) %*% y_repl conforms and the
+        # held-out points truly do not contribute to the posterior.
+        if (nrow(A_repl) == length(idx_obs) && any(!idx_obs)) {
+          A_repl <- A_repl[idx_obs, , drop = FALSE]
+        }
     }
     
     if(object$mean_correction) {
@@ -1677,11 +1775,14 @@ predict.rspde_lme <- function(object,
       var_tmp <- pmax(diag(post_cov), 0)
 
       if (!return_as_list) {
-        out$variance <- rep(var_tmp, length(u_repl))
+        # Append the current replicate's variance to the running vector,
+        # mirroring how $mean is built up across the per-replicate loop.
+        # The previous code replaced $variance with rep(var_tmp,
+        # length(u_repl)) on every iteration, so every replicate ended up
+        # reporting the LAST replicate's kriging variance.
+        out$variance <- c(out$variance, var_tmp)
       } else {
-        for (repl_y in u_repl) {
-          out$variance[[repl_y]] <- var_tmp
-        }
+        out$variance[[repl_y]] <- var_tmp
       }
     }
 
@@ -1717,6 +1818,18 @@ predict.rspde_lme <- function(object,
         out$samples[[repl_y]] <- X
       }
     }
+  }
+
+  # Optionally export the parameter-dependent structures so a downstream
+  # cross-validation loop can pass them back via
+  # advanced_options$precompute_data and skip the expensive update() /
+  # Q assembly on each fold.
+  if (isTRUE(precompute_data)) {
+    out$precomputed_data <- list(
+      new_rspde_obj = new_rspde_obj,
+      Q             = Q,
+      mu_corr       = mu_corr
+    )
   }
 
   return(out)

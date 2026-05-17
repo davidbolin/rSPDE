@@ -313,6 +313,30 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
       new_object$kappa <- rspde_check_user_input(kappa, "kappa", 0)
     }
 
+    # Callers that work from the fit's `coeff$random_effects` (e.g.
+    # predict.rspde_lme) pass the non-stationary thetas as individual
+    # named arguments `theta1`, `theta2`, ... rather than as a single
+    # `theta = c(...)` vector. Before this assembly step those names hit
+    # `...` and were silently dropped — `spde.matern.operators` was then
+    # called with the stale stored theta and Q never reflected the
+    # fitted parameters, producing predictions tuned to whatever theta
+    # happened to be cached on `object`. Convert them into the `theta`
+    # vector here so downstream code sees the right values.
+    if (is.null(theta)) {
+      .dots <- list(...)
+      .theta_names <- grep("^theta[0-9]+$", names(.dots), value = TRUE)
+      if (length(.theta_names) > 0) {
+        .idx <- as.integer(sub("^theta", "", .theta_names))
+        if (any(is.na(.idx)) || any(.idx < 1)) {
+          stop("Invalid theta index in update arguments.")
+        }
+        theta <- numeric(max(.idx))
+        for (k in seq_along(.theta_names)) {
+          theta[.idx[k]] <- .dots[[.theta_names[k]]]
+        }
+      }
+    }
+
     if (!is.null(theta)) {
       if (!is.numeric(theta)) {
         stop("theta must be numeric!")
@@ -360,10 +384,23 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
       alpha <- new_object$nu + d / 2
       new_object$alpha <- alpha
     }
+    # When the caller updates theta but not kappa/tau, the stored kappa/tau
+    # are stale relative to the new theta. Passing them through to
+    # spde.matern.operators causes that function to skip the recomputation
+    # from theta and the B matrices (see the `is.null(tau) || is.null(kappa)`
+    # branch there), leaving the precision matrix unchanged with respect to
+    # theta. Pass NULL in that case so the new theta is honoured.
+    if (!is.null(theta) && is.null(kappa) && is.null(tau)) {
+      kappa_arg <- NULL
+      tau_arg   <- NULL
+    } else {
+      kappa_arg <- new_object$kappa
+      tau_arg   <- new_object$tau
+    }
     if (parameterization == "spde") {
       new_object <- spde.matern.operators(
-        kappa = new_object$kappa,
-        tau = new_object$tau,
+        kappa = kappa_arg,
+        tau = tau_arg,
         theta = new_object$theta,
         alpha = new_object$alpha,
         B.tau = new_object$B.tau,
@@ -383,8 +420,8 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
       )
     } else {
       new_object <- spde.matern.operators(
-        kappa = new_object$kappa,
-        tau = new_object$tau,
+        kappa = kappa_arg,
+        tau = tau_arg,
         theta = new_object$theta,
         nu = new_object$nu,
         G = new_object$G,
@@ -722,10 +759,20 @@ update.rSPDEobj <- function(object, nu = NULL,
       new_object$alpha <- alpha
     }
 
+    # Same fix as in update.CBrSPDEobj: when theta is updated but kappa/tau
+    # are not, the stored kappa/tau are stale; pass NULL so they are
+    # recomputed from theta and the B matrices.
+    if (!is.null(theta) && is.null(kappa) && is.null(tau)) {
+      kappa_arg <- NULL
+      tau_arg   <- NULL
+    } else {
+      kappa_arg <- new_object$kappa
+      tau_arg   <- new_object$tau
+    }
     if (parameterization == "spde") {
       new_object <- spde.matern.operators(
-        kappa = new_object$kappa,
-        tau = new_object$tau,
+        kappa = kappa_arg,
+        tau = tau_arg,
         theta = new_object$theta,
         alpha = new_object$alpha,
         B.tau = new_object$B.tau,
@@ -744,8 +791,8 @@ update.rSPDEobj <- function(object, nu = NULL,
       )
     } else {
       new_object <- spde.matern.operators(
-        kappa = new_object$kappa,
-        tau = new_object$tau,
+        kappa = kappa_arg,
+        tau = tau_arg,
         theta = new_object$theta,
         nu = new_object$nu,
         B.range = new_object$B.range,
