@@ -112,6 +112,29 @@ The examples that depend on `INLA` should have the following structure:
 #' }
 ```
 
+## Updating the INLA source branch ##
+
+The `inla` branch is used to mirror the source files that need to be available under `src/` for INLA. These files should be maintained on the `devel` branch under `inst/src-optional/`; they should not be edited manually on the `inla` branch.
+
+To send the source files from `devel` to `inla`, commit the changes on `devel` with a commit message that ends with `INLA UPDATE`, and push to `devel`:
+
+```bash
+git checkout devel
+# Edit the relevant files in inst/src-optional/
+git add inst/src-optional
+git commit -m "Update INLA cgeneric sources INLA UPDATE"
+git push origin devel
+```
+
+When the last commit message in the push ends with `INLA UPDATE`, the GitHub Actions workflow copies the following files from `inst/src-optional/` on `devel` into `src/` on `inla`:
+
+- all `.c` files;
+- all `.cpp` files;
+- `cgeneric_cpp.h`;
+- `cgeneric_defs.h`.
+
+The workflow then commits the copied files on the `inla` branch and pushes that branch. Only the head commit message of the push is checked, so if several commits are pushed at once, the last commit in the push must be the one whose message ends with `INLA UPDATE`. If the workflow file itself is being added for the first time, first push the workflow to `devel`, and then make a second push whose commit message ends with `INLA UPDATE`.
+
 The tests that depend on `INLA` should have the following structure:
 
 ```
