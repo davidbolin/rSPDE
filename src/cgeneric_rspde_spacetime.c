@@ -100,7 +100,7 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
     }
 
     // Process list of matrices (Gtlist, Ctlist, B0list, M2list, M2list2)
-    inla_cgeneric_smat_tp **Gtlist = malloc(n_Gtlist * sizeof(inla_cgeneric_smat_tp *));
+    inla_cgeneric_smat_tp **Gtlist = (inla_cgeneric_smat_tp **) malloc(n_Gtlist * sizeof(inla_cgeneric_smat_tp *));
     for (int i = 0; i < n_Gtlist; i++) {
         char expected_name[20];
         sprintf(expected_name, "Gtlist%d", i + 1);
@@ -108,7 +108,7 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
         Gtlist[i] = data->smats[smat_index++];
     }
 
-    inla_cgeneric_smat_tp **Ctlist = malloc(n_Ctlist * sizeof(inla_cgeneric_smat_tp *));
+    inla_cgeneric_smat_tp **Ctlist = (inla_cgeneric_smat_tp **) malloc(n_Ctlist * sizeof(inla_cgeneric_smat_tp *));
     for (int i = 0; i < n_Ctlist; i++) {
         char expected_name[20];
         sprintf(expected_name, "Ctlist%d", i + 1);
@@ -116,7 +116,7 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
         Ctlist[i] = data->smats[smat_index++];
     }
 
-    inla_cgeneric_smat_tp **B0list = malloc(n_B0list * sizeof(inla_cgeneric_smat_tp *));
+    inla_cgeneric_smat_tp **B0list = (inla_cgeneric_smat_tp **) malloc(n_B0list * sizeof(inla_cgeneric_smat_tp *));
     for (int i = 0; i < n_B0list; i++) {
         char expected_name[20];
         sprintf(expected_name, "B0list%d", i + 1);
@@ -125,7 +125,7 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
     }
 
     // Two-level structure for M2list and M2list2
-    inla_cgeneric_smat_tp ***M2list = malloc(n_M2list * sizeof(inla_cgeneric_smat_tp **));
+    inla_cgeneric_smat_tp ***M2list = (inla_cgeneric_smat_tp ***) malloc(n_M2list * sizeof(inla_cgeneric_smat_tp **));
     for (int i = 0; i < n_M2list; i++) {
         char length_name[20];
         sprintf(length_name, "n_M2list_%d", i + 1);
@@ -139,7 +139,7 @@ double *inla_cgeneric_rspde_spacetime_model(inla_cgeneric_cmd_tp cmd, double *th
         }
         assert(n_M2list_i > 0);
 
-        M2list[i] = malloc(n_M2list_i * sizeof(inla_cgeneric_smat_tp *));
+        M2list[i] = (inla_cgeneric_smat_tp **) malloc(n_M2list_i * sizeof(inla_cgeneric_smat_tp *));
         for (int j = 0; j < n_M2list_i; j++) {
             char element_name[30];
             sprintf(element_name, "M2list%d_%d", i + 1, j + 1);
