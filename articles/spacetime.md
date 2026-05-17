@@ -248,8 +248,8 @@ summary(res)
 #> Number of function calls by 'optim' = 50
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  22.09821 secs 
-#>   set up the parallelization = 5.16557 secs
+#> Time used to:     fit the model =  22.88309 secs 
+#>   set up the parallelization = 5.32631 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -548,8 +548,8 @@ summary(res_2d)
 #> Number of function calls by 'optim' = 81
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  2.65306 mins 
-#>   set up the parallelization = 5.67082 secs
+#> Time used to:     fit the model =  2.67156 mins 
+#>   set up the parallelization = 5.84979 secs
 ```
 
 Let us compare the estimated results with the true values:

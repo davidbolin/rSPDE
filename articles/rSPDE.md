@@ -243,7 +243,7 @@ We can get a summary of the fit:
 
 summary(rspde_fit)
 #> Time used:
-#>     Pre = 0.316, Running = 2.13, Post = 0.0391, Total = 2.48 
+#>     Pre = 0.322, Running = 2.14, Post = 0.0409, Total = 2.51 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
@@ -530,7 +530,7 @@ summary(rspde_bru_fit)
 #>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 #>     Used components: effect[field], latent[] 
 #> Time used:
-#>     Pre = 0.14, Running = 2.18, Post = 0.105, Total = 2.43 
+#>     Pre = 0.144, Running = 2.21, Post = 0.136, Total = 2.49 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
@@ -756,8 +756,8 @@ summary(fit_rspde)
 #> Number of function calls by 'optim' = 145
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  47.73089 secs 
-#>   set up the parallelization = 2.61933 secs
+#> Time used to:     fit the model =  48.41477 secs 
+#>   set up the parallelization = 2.68603 secs
 ```
 
 Let us compare with the true values:
@@ -776,7 +776,7 @@ print(data.frame(
 
 # Time to fit
 print(fit_rspde$fitting_tim)
-#> Time difference of 47.73089 secs
+#> Time difference of 48.41478 secs
 ```
 
 ### Kriging with `rSPDE`

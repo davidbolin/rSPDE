@@ -529,7 +529,7 @@ summary(fit)
     ## Number of function calls by 'optim' = 52
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  10.05682 secs
+    ## Time used to:     fit the model =  10.29085 secs
 
 Let us compare the parameters of the latent model:
 
@@ -553,7 +553,7 @@ print(data.frame(
 print(fit$fitting_time)
 ```
 
-    ## Time difference of 10.05682 secs
+    ## Time difference of 10.29086 secs
 
 Let us take a glance at the fit:
 
@@ -617,8 +617,8 @@ summary(fit_par)
     ## Number of function calls by 'optim' = 52
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  8.09435 secs 
-    ##   set up the parallelization = 2.57891 secs
+    ## Time used to:     fit the model =  8.38291 secs 
+    ##   set up the parallelization = 2.59463 secs
 
 Let us compare with the true values and compare the time:
 
@@ -643,7 +643,7 @@ total_time <- fit_par$fitting_time + fit_par$time_par
 print(total_time)
 ```
 
-    ## Time difference of 10.67328 secs
+    ## Time difference of 10.97755 secs
 
 ### Kriging
 
@@ -797,8 +797,8 @@ summary(fit_repl)
     ## Number of function calls by 'optim' = 36
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  13.38817 secs 
-    ##   set up the parallelization = 2.59417 secs
+    ## Time used to:     fit the model =  13.39224 secs 
+    ##   set up the parallelization = 2.69186 secs
 
 and glance:
 
@@ -834,7 +834,7 @@ Let us compare with the true values:
 print(fit_repl$fitting_time)
 ```
 
-    ## Time difference of 13.38818 secs
+    ## Time difference of 13.39225 secs
 
 We can obtain better estimates of the Hessian by setting
 `improve_hessian` to `TRUE`, however this might make the process take
@@ -887,9 +887,9 @@ summary(fit_repl2)
     ## Number of function calls by 'optim' = 36
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  10.93715 secs 
-    ##   compute the Hessian = 6.35215 secs 
-    ##   set up the parallelization = 2.60961 secs
+    ## Time used to:     fit the model =  10.99895 secs 
+    ##   compute the Hessian = 6.27914 secs 
+    ##   set up the parallelization = 2.68102 secs
 
 ## Spatial data and parameter estimation
 
@@ -1078,8 +1078,8 @@ summary(fit_2d)
     ## Number of function calls by 'optim' = 69
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  2.72177 mins 
-    ##   set up the parallelization = 2.51484 secs
+    ## Time used to:     fit the model =  2.77369 mins 
+    ##   set up the parallelization = 2.73639 secs
 
 and glance:
 
@@ -1115,7 +1115,7 @@ print(data.frame(
 print(fit_2d$fitting_time)
 ```
 
-    ## Time difference of 2.72177 mins
+    ## Time difference of 2.773697 mins
 
 Let us now plot the prediction for replicate 3 by using the `augment`
 function. We begin by creating the `data.frame` we want to do
@@ -1249,8 +1249,8 @@ summary(fit_2d_fixed)
     ## Number of function calls by 'optim' = 8
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  15.16064 secs 
-    ##   set up the parallelization = 2.522 secs
+    ## Time used to:     fit the model =  15.61297 secs 
+    ##   set up the parallelization = 2.59091 secs
 
 Notice in the summary that ν and σ are fixed at the specified values,
 and only the range parameter is estimated. When parameters are fixed,
@@ -1337,7 +1337,7 @@ summary(fit_2d_start)
     ## Number of function calls by 'optim' = 125
     ## Optimization method used in 'optim' = Nelder-Mead
     ## 
-    ## Time used to:     fit the model =  1.62447 mins
+    ## Time used to:     fit the model =  1.63825 mins
 
 ## An example with a non-stationary model
 
@@ -1516,8 +1516,8 @@ summary(fit_ns)
     ## Number of function calls by 'optim' = 42
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  10.50995 secs 
-    ##   set up the parallelization = 2.62937 secs
+    ## Time used to:     fit the model =  10.89375 secs 
+    ##   set up the parallelization = 2.68612 secs
 
 Let us now compare with the true values:
 
@@ -1588,8 +1588,8 @@ summary(fit_ns_fixed_theta1)
     ## Number of function calls by 'optim' = 64
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  11.57164 secs 
-    ##   set up the parallelization = 2.64904 secs
+    ## Time used to:     fit the model =  11.93672 secs 
+    ##   set up the parallelization = 2.66603 secs
 
 We can also fix the entire theta vector at once using the `fix_theta`
 parameter. This is particularly useful when we have strong prior
@@ -1637,8 +1637,8 @@ summary(fit_ns_fixed_all)
     ## Number of function calls by 'optim' = 94
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  9.30733 secs 
-    ##   set up the parallelization = 2.64113 secs
+    ## Time used to:     fit the model =  9.6388 secs 
+    ##   set up the parallelization = 2.67725 secs
 
 Similarly, we can provide starting values for the entire theta vector
 with `start_theta`:
@@ -1685,8 +1685,8 @@ summary(fit_ns_start)
     ## Number of function calls by 'optim' = 72
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  16.51833 secs 
-    ##   set up the parallelization = 2.62354 secs
+    ## Time used to:     fit the model =  17.30299 secs 
+    ##   set up the parallelization = 2.67738 secs
 
 ## Changing the type and the order of the rational approximation
 
@@ -1787,8 +1787,8 @@ summary(fit_order1)
     ## Number of function calls by 'optim' = 43
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  49.54056 secs 
-    ##   set up the parallelization = 2.51225 secs
+    ## Time used to:     fit the model =  49.66913 secs 
+    ##   set up the parallelization = 2.58044 secs
 
 Let us compare with the true values:
 
@@ -1879,8 +1879,8 @@ summary(fit_brasil)
     ## Number of function calls by 'optim' = 50
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  55.40411 secs 
-    ##   set up the parallelization = 2.61644 secs
+    ## Time used to:     fit the model =  56.21807 secs 
+    ##   set up the parallelization = 2.59233 secs
 
 Let us compare with the true values:
 
