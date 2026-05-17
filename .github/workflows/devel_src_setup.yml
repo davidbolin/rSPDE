@@ -1,56 +1,65 @@
 on:
   push:
     branches:
-      - devel-src
+      - devel
 
-name: devel_src_setup
+name: inla_src_setup
 
 permissions:
   contents: write
 
-  
 jobs:
-    devel_src_setup:
-      if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'Doing the setup')
-      runs-on: ubuntu-latest
-      env:
-        GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      steps:
-        - uses: actions/checkout@v6      
-        
-        - name: Merge with devel, remove src and accept all incoming changes
-          run: |
-            set -euo pipefail
-            git config --local user.email "actions@github.com"
-            git config --local user.name "GitHub Actions"
-            if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
-              echo "Event is push; pushing updates"
-              if [ -z "${GITHUB_PAT:-}" ]; then
-                echo "GITHUB_PAT is empty; cannot push"
-                exit 1
-              fi
-              git remote set-url origin https://x-access-token:${GITHUB_PAT}@github.com/${{ github.repository }}.git
-            fi
-            git fetch origin devel-src
-            git checkout devel
-            git reset --hard origin/devel-src
+  inla_src_setup:
+    if: github.actor != 'github-actions[bot]' && endsWith(github.event.head_commit.message, 'INLA UPDATE')
+    runs-on: ubuntu-latest
 
-            if [ -f DESCRIPTION ]; then
-              sed -i 's/NeedsCompilation: yes/NeedsCompilation: no/' DESCRIPTION
-              git add DESCRIPTION
-            fi
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
-            git rm -rf --ignore-unmatch src
-            rm -rf src
-            git add -A
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: devel
 
-            if ! git diff-index --quiet HEAD --; then
-              git commit -m "Doing the setup"
-              if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
-                echo "Event is push; pushing updates"
-                if ! git push origin devel; then
-                  git push origin devel --force-with-lease
-                fi
-              fi
-            fi
-          shell: bash
+      - name: Copy INLA source files from devel to inla
+        run: |
+          set -euo pipefail
+
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+
+          git remote set-url origin https://x-access-token:${GITHUB_PAT}@github.com/${{ github.repository }}.git
+
+          tmpdir="$(mktemp -d)"
+          shopt -s nullglob
+
+          files=(
+            inst/src-optional/*.c
+            inst/src-optional/*.cpp
+            inst/src-optional/cgeneric_cpp.h
+            inst/src-optional/cgeneric_defs.h
+          )
+
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No files found to copy."
+            exit 0
+          fi
+
+          cp "${files[@]}" "$tmpdir/"
+
+          git fetch origin inla
+          git checkout -B inla origin/inla
+
+          mkdir -p src
+          cp "$tmpdir"/* src/
+
+          git add src
+
+          if ! git diff --cached --quiet; then
+            git commit -m "Copy INLA source files from devel"
+            git push origin inla
+          else
+            echo "No changes to commit."
+          fi
+        shell: bash
