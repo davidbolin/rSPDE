@@ -2574,25 +2574,43 @@ transform_parameters_spacetime <- function(theta, st_model) {
 #' @noRd 
 
 extract_possible_parameters <- function(model) {
+  params <- NULL
   if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
     if(model$stationary) {
-      return(c("alpha", "tau", "kappa", "nu", "sigma", "range", "theta"))
+      params <- c("alpha", "tau", "kappa", "nu", "sigma", "range", "theta")
     } else {
       n_theta <- length(model$theta)
       if(n_theta == 0){
         stop("Non-stationary models must have a non-NULL theta parameter.")
       }
-      return(c("alpha", "nu", paste0("theta", 1:n_theta)))
+      params <- c("alpha", "nu", paste0("theta", 1:n_theta))
     }
   } else if (inherits(model, "spacetimeobj")) {
-    return(c("kappa", "sigma", "gamma", "rho", "rho2", "alpha", "beta"))
+    params <- c("kappa", "sigma", "gamma", "rho", "rho2", "alpha", "beta")
   } else if (inherits(model, "intrinsicCBrSPDEobj")) {
-    return(c("tau", "kappa", "alpha", "beta"))
+    params <- c("tau", "kappa", "alpha", "beta")
   } else if (inherits(model, "CBrSPDEobj2d")) {
-    return(c("nu", "sigma", "hx", "hy", "hxy"))
-  } else {
+    params <- c("nu", "sigma", "hx", "hy", "hxy")
+  }
+
+  # Hybrid SPDE models additionally estimate the beta_X regression
+  # coefficients. They live in the model as model$beta_X and are exposed
+  # as individual scalar parameters named beta_x1, beta_x2, ... in the
+  # optimizer so that they can be fixed individually via
+  # model_options$fix_beta_xj. The aggregated name "beta_x" is also
+  # recognised to allow fix_beta_x / start_beta_x to be supplied as a
+  # vector covering all coefficients at once.
+  if (inherits(model, "hybrid_spde") && !is.null(model$beta_X)) {
+    p <- length(model$beta_X)
+    if (p > 0) {
+      params <- c(params, "beta_x", paste0("beta_x", seq_len(p)))
+    }
+  }
+
+  if (is.null(params)) {
     return(NULL)
   }
+  return(params)
 }
 #' @title Process Model Options
 #' @description Processes the model options for a given model type, with special handling for nonstationary models
@@ -2659,6 +2677,40 @@ process_model_options <- function(model, model_options) {
         model_options$fix_alpha <- 0
         model_options$fix_kappa <- 0
       }
+    }
+  }
+
+  # Hybrid SPDE: expand vector-valued fix_beta_x / start_beta_x into
+  # individual scalar entries fix_beta_x1, fix_beta_x2, ... so that the
+  # downstream code can treat each coefficient as an independent
+  # parameter.
+  if (inherits(model, "hybrid_spde") && !is.null(model$beta_X)) {
+    p <- length(model$beta_X)
+    if (!is.null(model_options[["fix_beta_x"]])) {
+      fbx <- model_options[["fix_beta_x"]]
+      if (length(fbx) != p) {
+        stop(paste0("'fix_beta_x' must have length equal to the number of ",
+                    "covariate fields (", p, ")."))
+      }
+      for (i in seq_len(p)) {
+        if (is.null(model_options[[paste0("fix_beta_x", i)]])) {
+          model_options[[paste0("fix_beta_x", i)]] <- fbx[i]
+        }
+      }
+      model_options[["fix_beta_x"]] <- NULL
+    }
+    if (!is.null(model_options[["start_beta_x"]])) {
+      sbx <- model_options[["start_beta_x"]]
+      if (length(sbx) != p) {
+        stop(paste0("'start_beta_x' must have length equal to the number of ",
+                    "covariate fields (", p, ")."))
+      }
+      for (i in seq_len(p)) {
+        if (is.null(model_options[[paste0("start_beta_x", i)]])) {
+          model_options[[paste0("start_beta_x", i)]] <- sbx[i]
+        }
+      }
+      model_options[["start_beta_x"]] <- NULL
     }
   }
   return(model_options)
@@ -3017,21 +3069,39 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
     }
   }
 
+  # Insert starting values for the beta_X regression coefficients of a
+  # hybrid SPDE model (no transformation, identity on the real line).
+  # We default to zero, regardless of the value stored in the model
+  # object: when the SPDE parameters (kappa, alpha) are still far from
+  # the truth, the deterministic mean computed at a non-zero beta_X
+  # uses a badly mis-specified L^{-alpha/2}, which tends to drive the
+  # joint optimiser into a poor local mode (typically with a large
+  # intercept absorbing the misfit). Starting beta_X at zero first
+  # lets the SPDE parameters settle before the mean component is
+  # fit. Users who want to start at a specific beta_X can supply
+  # `model_options = list(start_beta_x = ...)` or `start_beta_xj`.
+  if (inherits(model, "hybrid_spde") && !is.null(model$beta_X)) {
+    bx <- as.numeric(model$beta_X)
+    for (i in seq_along(bx)) {
+      starting_values[paste0("beta_x", i)] <- 0
+    }
+  }
+
   starting_values["sigma_e"] <- log(0.1 * sd(y_resp))
-  
+
   # Update starting values with model_options if provided
-  if (!is.null(model_options)) {        
-        
+  if (!is.null(model_options)) {
+
     # Update all parameters from model_options
     for (param_name in names(starting_values)) {
       fix_param <- paste0("fix_", param_name)
       start_param <- paste0("start_", param_name)
-      
+
       if (!is.null(model_options[[fix_param]])) {
         # Special handling for parameters with transformations
         if (param_name == "hxy") {
           starting_values[param_name] <- -log(2/(model_options[[fix_param]]+1) - 1)
-        } else if ((param_name == "rho" || param_name == "rho2") && 
+        } else if ((param_name == "rho" || param_name == "rho2") &&
                    inherits(model, "spacetimeobj") && model$is_bounded_rho) {
           # Apply logit transformation for bounded rho parameters
           bound <- model$bound_rho
@@ -3043,13 +3113,16 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
         } else if (grepl("^theta[0-9]+$", param_name)) {
           # For theta parameters (theta1, theta2, etc.), use as-is without log transformation
           starting_values[param_name] <- model_options[[fix_param]]
+        } else if (grepl("^beta_x[0-9]+$", param_name)) {
+          # Hybrid SPDE regression coefficients: no transformation.
+          starting_values[param_name] <- model_options[[fix_param]]
         } else {
           starting_values[param_name] <- log(model_options[[fix_param]])
         }
       } else if (!is.null(model_options[[start_param]])) {
         if (param_name == "hxy") {
           starting_values[param_name] <- -log(2/(model_options[[start_param]]+1) - 1)
-        } else if ((param_name == "rho" || param_name == "rho2") && 
+        } else if ((param_name == "rho" || param_name == "rho2") &&
                    inherits(model, "spacetimeobj") && model$is_bounded_rho) {
           # Apply logit transformation for bounded rho parameters
           bound <- model$bound_rho
@@ -3060,6 +3133,8 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
           starting_values[param_name] <- model_options[[start_param]]
         } else if (grepl("^theta[0-9]+$", param_name)) {
           # For theta parameters (theta1, theta2, etc.), use as-is without log transformation
+          starting_values[param_name] <- model_options[[start_param]]
+        } else if (grepl("^beta_x[0-9]+$", param_name)) {
           starting_values[param_name] <- model_options[[start_param]]
         } else {
           starting_values[param_name] <- log(model_options[[start_param]])
@@ -3119,6 +3194,94 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
   return(starting_values)
 }
 
+
+#' @noRd
+#'
+#' Data-driven starting values for the regression coefficients
+#' \eqn{\beta_X} of a `hybrid_spde` model.
+#'
+#' The default starting value used by `get_model_starting_values()` is
+#' \eqn{\beta_X = 0}, which can leave the optimiser stuck in a poor
+#' local mode (the deterministic mean turns off and the field absorbs
+#' all elevation-like structure). This helper computes a one-shot OLS
+#' starting value by regressing the response on the fixed effects and
+#' on the smoothed covariate field \eqn{A L^{-\alpha/2} X} evaluated at
+#' the model's current (starting) \eqn{\kappa,\alpha} via the cached
+#' `op_mean` operator.
+#'
+#' Only entries that the user has not explicitly pinned via
+#' `start_beta_xj` / `fix_beta_xj` are touched. Returns `NULL` when the
+#' init is not applicable (non-hybrid model, no `X`, missing `op_mean`,
+#' all entries already user-specified, or a degenerate OLS).
+init_beta_X_hybrid_ols <- function(model, A_list, X_cov, y_resp, repl,
+                                   model_options) {
+  if (!inherits(model, "hybrid_spde")) return(NULL)
+  if (is.null(model$X) || is.null(model$op_mean)) return(NULL)
+
+  X_mat <- as.matrix(model$X)
+  p <- ncol(X_mat)
+  if (p == 0) return(NULL)
+
+  needs_init <- vapply(seq_len(p), function(i) {
+    nm <- paste0("beta_x", i)
+    is.null(model_options[[paste0("start_", nm)]]) &&
+      is.null(model_options[[paste0("fix_",   nm)]])
+  }, logical(1))
+  if (!any(needs_init)) return(NULL)
+
+  ## Smoothed covariate field at mesh nodes: s_j = L^{-alpha/2} X_j.
+  ## compute_hybrid_mean weights X by the mass-lumped C diagonal; we
+  ## mirror that here so the smoothing is consistent with how the mean
+  ## is evaluated inside the likelihood.
+  op_mean <- model$op_mean
+  C_diag  <- Matrix::diag(op_mean$C)
+  CX      <- C_diag * X_mat
+  s_nodes <- tryCatch(
+    as.matrix(Pr.mult(op_mean, Pl.solve(op_mean, CX))),
+    error = function(e) NULL
+  )
+  if (is.null(s_nodes)) return(NULL)
+
+  ## Project to observation locations, replicate by replicate, in the
+  ## order that matches y_resp / X_cov.
+  n_obs <- length(y_resp)
+  Z <- matrix(0, nrow = n_obs, ncol = p)
+  repl_val <- unique(repl)
+  for (j in repl_val) {
+    idx_j <- which(repl == j)
+    A_j <- A_list[[as.character(j)]]
+    if (is.null(A_j)) return(NULL)
+    ## The model-build path filters NA rows out of A_j; mirror that
+    ## by aligning to the non-NA observations in this replicate.
+    y_j <- y_resp[idx_j]
+    keep <- which(!is.na(y_j))
+    if (length(keep) != nrow(A_j)) return(NULL)
+    Z[idx_j[keep], ] <- as.matrix(A_j %*% s_nodes)
+  }
+
+  ## OLS on the non-NA observations.
+  keep_all <- !is.na(y_resp)
+  y_fit <- y_resp[keep_all]
+  Z_fit <- Z[keep_all, , drop = FALSE]
+  if (!is.null(X_cov) && ncol(X_cov) > 0 && nrow(X_cov) == n_obs) {
+    Xc_fit <- as.matrix(X_cov)[keep_all, , drop = FALSE]
+    design <- cbind(Xc_fit, Z_fit)
+  } else {
+    design <- Z_fit
+  }
+  if (any(!is.finite(design)) || any(!is.finite(y_fit))) return(NULL)
+
+  fit <- tryCatch(stats::lm.fit(x = design, y = y_fit),
+                  error = function(e) NULL)
+  if (is.null(fit) || any(is.na(fit$coefficients))) return(NULL)
+
+  beta_x_hat <- tail(as.numeric(fit$coefficients), p)
+  if (any(!is.finite(beta_x_hat))) return(NULL)
+
+  out <- setNames(rep(NA_real_, p), paste0("beta_x", seq_len(p)))
+  out[needs_init] <- beta_x_hat[needs_init]
+  out[!is.na(out)]
+}
 
 
 #' Get appropriate auxiliary likelihood function based on model type
@@ -3344,7 +3507,14 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
   if (inherits(model, "spacetimeobj")) {
     args_list$rho <- numeric(model$d)
   }
-  
+
+  # For hybrid SPDE models, initialize beta_X vector with the current
+  # value stored in the model. This becomes the destination for the
+  # individual beta_xj parameters (whether estimated or fixed).
+  if (inherits(model, "hybrid_spde") && !is.null(model$beta_X)) {
+    args_list$beta_X <- as.numeric(model$beta_X)
+  }
+
   # Initialize index tracker
   index <- 1
   
@@ -3445,6 +3615,12 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
           stop("Processing error. rho2 parameter should not be estimated for non-spacetime models.")
         }
       }
+      else if (grepl("^beta_x[0-9]+$", param_name)) {
+        # Hybrid SPDE: store into the args_list$beta_X vector.
+        bx_idx <- as.integer(gsub("beta_x([0-9]+)", "\\1", param_name))
+        args_list$beta_X[bx_idx] <- theta[index]
+        index <- index + 1
+      }
       else if (startsWith(param_name, "theta")) {
         # Handle individual theta parameters for non-stationary models
         if (!model$stationary) {
@@ -3459,9 +3635,17 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
     } else {
       # If parameter is fixed, get from model_options or model
       fix_param_name <- paste0("fix_", param_name)
-      
+
       if (param_name == "sigma_e") {
         result$sigma_e <- model_options[[fix_param_name]]
+      }
+      else if (grepl("^beta_x[0-9]+$", param_name)) {
+        bx_idx <- as.integer(gsub("beta_x([0-9]+)", "\\1", param_name))
+        if (!is.null(model_options[[fix_param_name]])) {
+          args_list$beta_X[bx_idx] <- model_options[[fix_param_name]]
+        } else {
+          stop("Processing error. ", param_name, " is marked as fixed but no value is provided.")
+        }
       }
       else if (param_name != "sigma_e" && !startsWith(param_name, "theta")) {
         # For other parameters, just get from model_options or model
@@ -3560,56 +3744,79 @@ get_aux_lik_fun_args <- function(model, y_resp, X_cov, repl, A_list,
 #' @param loc_df Location data frame
 #' @return List containing likelihood function and parameter estimation flags
 #' @noRd
-create_likelihood <- function(model, model_options, y_resp, 
+create_likelihood <- function(model, model_options, y_resp,
                              X_cov, A_list,
                              repl, start_values,
                              mean_correction, smoothness_upper_bound,
-                             loc_df) {
-  
+                             loc_df, A_orig_list = NULL) {
+
   # Initialize X_cov if NULL
   if(is.null(X_cov)) {
     X_cov <- matrix(0, nrow = length(y_resp), ncol = 0)
   }
-  
+
   # Get appropriate auxiliary likelihood function
-  aux_lik_fun <- get_aux_likelihood_function(model) 
+  aux_lik_fun <- get_aux_likelihood_function(model)
   # Determine which parameters to estimate
   estimate_params <- determine_estimate_params(model, model_options, start_values)
-  
+
   # Count number of non-fixed coefficients from model parameters
   n_coeff_nonfixed <- sum(estimate_params)
-  
+
+  # Whether the model is a hybrid SPDE model with a non-zero mean.
+  is_hybrid <- inherits(model, "hybrid_spde")
+
   # Create the likelihood function
   likelihood <- function(theta) {
     # Create a working copy of the model
     model_tmp <- model
-    
+
     # Extract model update arguments
     result <- extract_model_update_args(
-      model = model_tmp, 
-      theta = theta, 
+      model = model_tmp,
+      theta = theta,
       estimate_params = estimate_params,
       model_options = model_options,
       start_values = start_values,
       n_coeff_nonfixed = n_coeff_nonfixed,
       smoothness_upper_bound = smoothness_upper_bound
     )
-    
+
     # Check for early return (e.g., nu at upper bound for rSPDEobj1d)
     if(!is.null(result$early_return)) {
       return(result$early_return)
     }
-    
+
     # Update the model with the extracted parameters
     model_tmp <- do.call(update, c(
       list(object = model_tmp, check_stationarity = FALSE),
       result$args_list
     ))
-    
+
+    # For hybrid SPDE models, subtract the deterministic mean
+    #   mu(s) = tau^{-1} beta_X L^{-alpha/2} X(s)
+    # evaluated at the observation locations from y_resp before passing
+    # the centred observations to the underlying aux likelihood. The
+    # regression coefficients beta_X are kept fixed at the values stored
+    # in the model object.
+    y_used <- y_resp
+    if (is_hybrid) {
+      mu_mesh <- compute_hybrid_mean(model_tmp)
+      if (length(A_orig_list) > 0) {
+        for (rj in names(A_orig_list)) {
+          A_orig <- A_orig_list[[rj]]
+          if (is.null(A_orig)) next
+          idx <- (as.character(repl) == rj)
+          mu_obs <- as.vector(A_orig %*% mu_mesh)
+          y_used[idx] <- y_used[idx] - mu_obs
+        }
+      }
+    }
+
     # Get arguments for auxiliary likelihood function
     aux_args <- get_aux_lik_fun_args(
       model = model_tmp,
-      y_resp = y_resp,
+      y_resp = y_used,
       X_cov = X_cov,
       repl = repl,
       A_list = A_list,
@@ -3618,10 +3825,10 @@ create_likelihood <- function(model, model_options, y_resp,
       mean_correction = mean_correction,
       loc_df = loc_df
     )
-    
+
     # Call the auxiliary likelihood function with the appropriate arguments
     loglik <- do.call(aux_lik_fun, aux_args)
-    
+
     return(-loglik)
   }
   

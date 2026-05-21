@@ -29,6 +29,11 @@
 #' @param which_repl Which replicates to use? If `NULL` all replicates will be used.
 #' @param optim_method The method to be used with `optim` function.
 #' @param possible_methods The optimization methods to try if the model fitting fails.
+#' @param nelder_mead_init Logical. If `TRUE` (the default) and `optim_method`
+#' is not `"Nelder-Mead"` and `parallel = FALSE`, a short Nelder-Mead pass is
+#' run from the starting values before the main optimisation. This is robust
+#' to poor starting values (the main optimiser then refines the result) and
+#' typically adds only a few hundred extra likelihood evaluations.
 #' @param use_data_from_graph Logical. Only for models generated from graphs from 
 #' `metric_graph` class. In this case, should the data, the locations and the 
 #' replicates be obtained from the graph object?
@@ -73,6 +78,7 @@ rspde_lme <- function(formula,
                       which_repl = NULL,
                       optim_method = "L-BFGS-B",
                       possible_methods = c("L-BFGS-B", "Nelder-Mead"),
+                      nelder_mead_init = TRUE,
                       use_data_from_graph = TRUE,
                       rspde_order = NULL,
                       mean_correction = FALSE,
@@ -480,6 +486,10 @@ rspde_lme <- function(formula,
     
     has_make_A <- is.function(model$make_A) ||
       inherits(model, c("matern_operator", "spde_matern_operator", "matern2d_operator", "intrinsicCBrSPDEobj"))
+    # For hybrid_spde models we also store the un-kroneckered projection
+    # matrices so that we can subtract the deterministic mean A %*% mu
+    # from the observations inside the likelihood.
+    A_orig_list <- list()
     if (has_make_A && !spacetime) {
       for (j in repl_val) {
         ind_tmp <- (repl %in% j)
@@ -487,6 +497,8 @@ rspde_lme <- function(formula,
         na_obs <- is.na(y_tmp)
         A_list[[as.character(j)]] <- make_A(model, loc_df[ind_tmp, , drop = FALSE])
         A_list[[as.character(j)]] <- A_list[[as.character(j)]][!na_obs, , drop = FALSE]
+
+        A_orig_list[[as.character(j)]] <- A_list[[as.character(j)]]
 
         if (inherits(model, "CBrSPDEobj")) {
           alpha <- NULL
@@ -525,14 +537,34 @@ rspde_lme <- function(formula,
         model_tmp$make_A <- NULL    
     }
 
-    like_aux <- create_likelihood(model = model, model_options = model_options, y_resp = y_resp, X_cov = X_cov, A_list = A_list, 
-                                    repl = repl, start_values = start_values, mean_correction = mean_correction, 
+    like_aux <- create_likelihood(model = model, model_options = model_options, y_resp = y_resp, X_cov = X_cov, A_list = A_list,
+                                    repl = repl, start_values = start_values, mean_correction = mean_correction,
                                     smoothness_upper_bound = smoothness_upper_bound,
-                                    loc_df = loc_df)
+                                    loc_df = loc_df, A_orig_list = A_orig_list)
 
     likelihood <- like_aux$likelihood
     estimate_pars <- like_aux$estimate_params
     n_coeff_nonfixed <- like_aux$n_coeff_nonfixed
+
+    ## Data-driven init for hybrid_spde beta_X entries that the user has
+    ## not explicitly pinned. Falls back silently if anything is off
+    ## (multi-replicate edge cases, NA mismatches, singular OLS), in
+    ## which case the default zeros from get_model_starting_values stay.
+    if (inherits(model, "hybrid_spde")) {
+      beta_x_init <- init_beta_X_hybrid_ols(model = model,
+                                            A_list = A_orig_list,
+                                            X_cov = X_cov,
+                                            y_resp = y_resp,
+                                            repl = repl,
+                                            model_options = model_options)
+      if (!is.null(beta_x_init) && length(beta_x_init) > 0) {
+        for (nm in names(beta_x_init)) {
+          if (nm %in% names(start_values)) {
+            start_values[nm] <- beta_x_init[nm]
+          }
+        }
+      }
+    }
 
     if (ncol(X_cov) > 0 && !is.null(model)) {
       names_tmp <- colnames(X_cov)
@@ -769,12 +801,43 @@ rspde_lme <- function(formula,
         }
 
         start_fit <- Sys.time()
+
+        ## Optional short Nelder-Mead pre-pass to escape poor local basins
+        ## before handing off to the (typically gradient-based) main
+        ## optimiser. Uses tighter controls than the main fit so the cost
+        ## is bounded; the result becomes the warm start for run_optim()
+        ## only when it actually improves the objective (NM truncated
+        ## mid-shrink can otherwise hand off a worse point than the
+        ## original start, which would mislead the gradient method).
+        if (nelder_mead_init && optim_method != "Nelder-Mead" &&
+            length(start_values_aux) >= 2L) {
+          nm_controls <- optim_controls
+          if (is.null(nm_controls$maxit))  nm_controls$maxit  <- 500
+          if (is.null(nm_controls$reltol)) nm_controls$reltol <- 1e-6
+          nm_start_val <- tryCatch(likelihood_new(start_values_aux),
+                                   error = function(e) Inf)
+          nm_out <- withCallingHandlers(
+            tryCatch(
+              optim(start_values_aux, likelihood_new,
+                    method = "Nelder-Mead",
+                    control = nm_controls,
+                    hessian = FALSE),
+              error = function(e) NULL
+            ),
+            warning = function(w) invokeRestart("muffleWarning")
+          )
+          if (!is.null(nm_out) && is.finite(nm_out$value) &&
+              nm_out$value < nm_start_val) {
+            start_values_aux <- nm_out$par
+          }
+        }
+
         optim_out <- run_optim(optim_method)
         res <- optim_out$res
         optim_error <- optim_out$error
         end_fit <- Sys.time()
         time_fit <- end_fit - start_fit
-  
+
         cond_pos_hes <- FALSE
         time_hessian <- NULL
   
@@ -966,6 +1029,13 @@ rspde_lme <- function(formula,
     time_hessian <- NULL
     time_par <- NULL
     A_list <- NULL
+    coeff_alt_par_result <- NULL
+    time_alt_par <- NULL
+    observed_fisher <- NULL
+    estimate_pars <- NULL
+    start_values_aux <- NULL
+    loc_df <- NULL
+    likelihood_new <- NULL
 
     if (ncol(X_cov) == 0) {
       stop("The model does not have either random nor fixed effects.")
@@ -1011,7 +1081,11 @@ rspde_lme <- function(formula,
   object$repl <- repl
   object$idx_repl <- idx_repl
   object$optim_controls <- optim_controls
-  object$latent_model <- model
+  # For pure OLS fits (null_model = TRUE) the local `model` variable was
+  # replaced by a dummy list earlier; expose `latent_model = NULL` to
+  # callers so that print/summary/etc. recognise the fit as a plain
+  # linear regression.
+  object$latent_model <- if (null_model) NULL else model
   object$nobs <- sum(idx_repl)
   object$null_model <- null_model
   object$start_values <- start_values
