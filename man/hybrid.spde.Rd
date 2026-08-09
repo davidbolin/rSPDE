@@ -9,6 +9,7 @@ hybrid.spde(
   beta_X = NULL,
   kappa = NULL,
   tau = NULL,
+  kappa_mu = NULL,
   theta = NULL,
   B.tau = NULL,
   B.kappa = NULL,
@@ -45,6 +46,13 @@ to the columns of \code{X}. Defaults to a vector of zeros of length
 to be returned as a stationary \code{\link[=matern.operators]{matern.operators()}} object whenever
 \code{tau} and \code{kappa} are constant after the log-linear regression on
 \code{theta} is applied.}
+
+\item{kappa_mu}{Optional. If \code{NULL} (the default), the operator
+\eqn{L_\mu = \kappa^2 - \Delta} used for the deterministic mean
+\eqn{\mu = \beta L_\mu^{-\alpha/2} X} shares the range parameter
+\code{kappa} with the random component. If a positive scalar (or vector
+of length n_mesh for non-stationary models) is supplied,
+\eqn{L_\mu = \kappa_\mu^2 - \Delta} is used instead.}
 }
 \value{
 \code{hybrid.spde} returns an object of class \code{"hybrid_spde"}
@@ -64,18 +72,7 @@ Whittle-Matern differential operator, \eqn{\tau} is a positive scale
 that affects only the random component, \eqn{X} is a (matrix of)
 covariate field(s) supplied at the mesh nodes, \eqn{\beta} is a
 vector of regression coefficients and \eqn{W} is Gaussian white
-noise. In this parameterisation the deterministic mean
-\eqn{\mu(s) = \beta L^{-\alpha/2} X(s)} does not depend on \eqn{\tau},
-which improves identifiability when both \eqn{\beta} and \eqn{\tau}
-are estimated jointly.
-}
-\details{
-Internally the function calls \code{\link[=spde.matern.operators]{spde.matern.operators()}} to construct
-the covariance part of the model (which may use either the
-operator-based or the covariance-based rational approximation), and
-separately builds an operator-based rational approximation of
-\eqn{L^{-\alpha/2}} that is used to compute the mean component
-\eqn{\mu(s) = \beta L^{-\alpha/2} X(s)} at the mesh nodes.
+noise.
 }
 \examples{
 set.seed(1)

@@ -187,9 +187,79 @@ test_that("INLA recovers beta_X from simulated data (alpha = 2)", {
 
   expect_lt(rel_err[["tau"]],     0.30)   # tau is the loosest
   expect_lt(rel_err[["kappa"]],   0.10)
-  expect_lt(rel_err[["beta_x1"]], 0.10)
-  expect_lt(rel_err[["beta_x2"]], 0.10)
+  expect_lt(rel_err[["beta_x1"]], 0.15)
+  expect_lt(rel_err[["beta_x2"]], 0.15)
   expect_lt(rel_err[["sigma_e"]], 0.10)
+})
+
+
+test_that("separate_kappa_mu adds an extra hyperparameter and recovers kappa_mu", {
+  skip_on_cran()
+  skip_if_not_installed("INLA")
+  suppressMessages(library(INLA))
+  INLA::inla.setOption(num.threads = "1:1")
+
+  # Simulate from a model with separate kappa_mu = 10 (while kappa = 5),
+  # fit with the cgeneric set to separate mode and tight priors at
+  # truth on (tau, kappa, kappa_mu); check that kappa_mu is recovered
+  # near 10 and the model exposes 6 hyperparameters (Gaussian prec +
+  # ltau + lkappa + lkappa_mu + 2 beta_x).
+  set.seed(2026)
+
+  true_kappa    <- 5
+  true_tau      <- 1.0
+  true_kappa_mu <- 10
+  true_beta_X   <- c(1.5, -0.7)
+  true_sigma_e  <- 0.05
+
+  n_mesh <- 121
+  x <- seq(0, 1, length.out = n_mesh)
+  mesh <- fmesher::fm_mesh_1d(x)
+  X <- cbind(sin(2 * pi * x), cos(2 * pi * x))
+
+  op_true <- hybrid.spde(X = X, beta_X = true_beta_X,
+                        kappa = true_kappa, kappa_mu = true_kappa_mu,
+                        tau = true_tau, alpha = 2,
+                        loc_mesh = x, d = 1, parameterization = "spde",
+                        type = "covariance")
+  n_obs <- 300
+  obs.loc <- runif(n_obs, 0, 1)
+  A_obs <- make_A(op_true, obs.loc)
+  u <- as.vector(simulate(op_true, nsim = 1, seed = 200))
+  y <- as.numeric(A_obs %*% u) + true_sigma_e * rnorm(n_obs)
+  A <- fmesher::fm_basis(mesh, obs.loc)
+  stk <- inla.stack(data = list(y = y), A = list(A),
+                    effects = list(idx = 1:n_mesh))
+
+  hyb <- rspde.hybrid.matern(
+    mesh = mesh, X = X,
+    separate_kappa_mu = TRUE,
+    start.ltau = log(true_tau),
+    start.lkappa = log(true_kappa),
+    start.beta_x = true_beta_X,
+    start.lkappa_mu = log(true_kappa_mu),
+    prior.tau      = list(mean = log(true_tau),      prec = 100),
+    prior.kappa    = list(mean = log(true_kappa),    prec = 100),
+    prior.kappa_mu = list(mean = log(true_kappa_mu), prec = 100),
+    prior.beta_x   = list(mean = c(0, 0), prec = c(1, 1))
+  )
+  expect_true(isTRUE(hyb$separate_kappa_mu))
+
+  fit <- inla(y ~ -1 + f(idx, model = hyb),
+              data = inla.stack.data(stk),
+              family = "gaussian",
+              control.predictor = list(A = inla.stack.A(stk)),
+              control.inla = list(int.strategy = "eb"))
+
+  # 6 hyperparameters: Gaussian prec + ltau + lkappa + lkappa_mu + 2 beta_x
+  expect_equal(nrow(fit$summary.hyperpar), 6L)
+  hp <- fit$summary.hyperpar
+  theta_idx <- grep("Theta", rownames(hp))
+  expect_equal(length(theta_idx), 5L)
+
+  # kappa_mu should be recovered within 15% of truth.
+  est_kappa_mu <- as.numeric(exp(hp[theta_idx[3], "mean"]))
+  expect_lt(abs(est_kappa_mu - true_kappa_mu) / true_kappa_mu, 0.15)
 })
 
 

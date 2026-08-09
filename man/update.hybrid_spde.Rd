@@ -4,7 +4,7 @@
 \alias{update.hybrid_spde}
 \title{Update parameters of hybrid_spde objects}
 \usage{
-\method{update}{hybrid_spde}(object, X = NULL, beta_X = NULL, ...)
+\method{update}{hybrid_spde}(object, X = NULL, beta_X = NULL, ..., kappa_mu = NULL)
 }
 \arguments{
 \item{object}{A \code{hybrid_spde} object.}
@@ -15,6 +15,13 @@
 
 \item{...}{Additional arguments passed to the underlying update
 method of \code{\link[=spde.matern.operators]{spde.matern.operators()}}.}
+
+\item{kappa_mu}{If non-null, update the range parameter of the
+operator used for the deterministic mean. Only meaningful when the
+model was constructed with a separate \code{kappa_mu}; if the model was
+built with \code{kappa_mu = NULL} (linked to \code{kappa}), any explicit
+update is honoured but the model remains in linked mode unless
+\code{separate_kappa_mu} is also set.}
 }
 \value{
 An object of class \code{"hybrid_spde"} with the updated

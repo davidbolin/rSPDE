@@ -2497,8 +2497,7 @@ summary.rspde_result <- function(object,
 #' @name rspde.mesh.project
 #' @title Calculate a lattice projection to/from an `inla.mesh` for
 #' rSPDE objects
-#' @aliases rspde.mesh.project rspde.mesh.projector rspde.mesh.project.inla.mesh
-#' rspde.mesh.project.rspde.mesh.projector rspde.mesh.project.inla.mesh.1d
+#' @aliases rspde.mesh.project rspde.mesh.projector rspde.mesh.project.inla.mesh rspde.mesh.project.rspde.mesh.projector rspde.mesh.project.inla.mesh.1d
 #' @description Calculate a lattice projection to/from an `inla.mesh` for
 #' rSPDE objects
 #' @param mesh An `inla.mesh` or `inla.mesh.1d` object.

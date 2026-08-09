@@ -13,6 +13,10 @@ rspde.hybrid.matern(
   start.ltau = NULL,
   start.lkappa = NULL,
   start.beta_x = NULL,
+  ...,
+  separate_kappa_mu = FALSE,
+  prior.kappa_mu = NULL,
+  start.lkappa_mu = NULL,
   debug = FALSE,
   shared_lib = "detect"
 )
@@ -47,11 +51,7 @@ Default: zeros.}
 }
 \value{
 An INLA cgeneric latent model that can be used in INLA
-formulae as \verb{f(idx, model = <model>)}. The latent dimension equals
-the number of mesh nodes. The model also carries the inlabru
-attributes (\code{mesh}, \code{rspde.order}, \code{est_nu}, \code{integer.nu}) so that
-\code{inlabru::bru()} can find the appropriate \code{bru_get_mapper.inla_rspde}
-mapper automatically.
+formulae as \verb{f(idx, model = <model>)}.
 }
 \description{
 Creates an INLA cgeneric latent model for the hybrid Whittle-Matern

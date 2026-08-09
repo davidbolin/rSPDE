@@ -22,7 +22,8 @@ posterior_crossvalidation(
   seed = NULL,
   return_indices = FALSE,
   use_precomputed = TRUE,
-  data = NULL
+  data = NULL,
+  nelder_mead_init = FALSE
 )
 }
 \arguments{
@@ -86,6 +87,13 @@ fit the model. Required for non-graph fits with non-trivial covariates
 \code{object$model_matrix} is insufficient to rebuild the covariates at
 the test locations. Ignored for graph-based fits, where the data is taken
 from the metric graph.}
+
+\item{nelder_mead_init}{Logical, forwarded to \code{\link{rspde_lme}} when
+\code{true_CV = TRUE}. Default is \code{FALSE}: per-fold refits warm-start
+from the full-fit parameters via \code{previous_fit}, so the Nelder-Mead
+pre-pass adds little except cost. Set to \code{TRUE} to re-enable it for
+robustness if the full fit is itself suspected of being a poor local
+optimum.}
 }
 \value{
 A list with elements

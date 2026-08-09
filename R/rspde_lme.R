@@ -568,13 +568,33 @@ rspde_lme <- function(formula,
 
     if (ncol(X_cov) > 0 && !is.null(model)) {
       names_tmp <- colnames(X_cov)
-      data_tmp <- cbind(y_resp, X_cov)
-      data_tmp <- na.omit(data_tmp)
-      temp_coeff <- lm(data_tmp[, 1] ~ data_tmp[, -1] - 1)$coeff
-      names(temp_coeff) <- names_tmp
+      ## Warm-start fixed effects from `previous_fit` when available.
+      ## The fresh-OLS fallback below regresses the *raw* response on
+      ## X_cov, which for a `y ~ 1` model with a non-trivial latent
+      ## deterministic mean (e.g. a hybrid_spde with non-zero beta_X)
+      ## gives an intercept ~ mean(y) — far from the true MLE intercept,
+      ## which must compensate for the average forcing. From that
+      ## misplaced start the gradient optimiser can shut off beta_X and
+      ## get stuck in an alternative basin. When previous_fit carries
+      ## fixed_effects of the same shape we use them directly; this
+      ## matters in particular for posterior_crossvalidation(true_CV =
+      ## TRUE), where each fold inherits the full-fit warm start.
+      pf_fixed <- if (!is.null(previous_fit) && inherits(previous_fit, "rspde_lme")) {
+        previous_fit$coeff$fixed_effects
+      } else NULL
+      if (!is.null(pf_fixed) && length(pf_fixed) == length(names_tmp) &&
+          all(names(pf_fixed) == names_tmp)) {
+        temp_coeff <- as.numeric(pf_fixed)
+        names(temp_coeff) <- names_tmp
+      } else {
+        data_tmp <- cbind(y_resp, X_cov)
+        data_tmp <- na.omit(data_tmp)
+        temp_coeff <- lm(data_tmp[, 1] ~ data_tmp[, -1] - 1)$coeff
+        names(temp_coeff) <- names_tmp
+        rm(data_tmp)
+      }
       start_values_aux <- start_values[estimate_pars]
       start_values_aux <- c(start_values_aux, temp_coeff)
-      rm(data_tmp)
     } else{
       start_values_aux <- start_values[estimate_pars]
     }
@@ -1736,6 +1756,30 @@ predict.rspde_lme <- function(object,
     have_precomputed_Q <- FALSE
   }
 
+  ## For a hybrid_spde latent model, the latent field has a non-zero
+  ## prior mean mu_hyb = sum_j beta_{x,j} * L^{-alpha/2} X_j(s), evaluated
+  ## at the mesh nodes. predict.hybrid_spde handles this by centering
+  ## y and adding A_prd %*% mu_hyb back to the kriged prediction, but
+  ## predict.rspde_lme historically did not, which silently dropped the
+  ## entire deterministic-forcing contribution in CV and ordinary
+  ## prediction for rspde_lme fits with hybrid latent models. The
+  ## beta_{x,j} live in coeff_random as `beta_x1, beta_x2, ...` and are
+  ## not carried by update.hybrid_spde, so we install them on the
+  ## post-update model and recompute mu_hyb here using the current kappa/alpha 
+  hybrid_mu <- NULL
+  if (inherits(new_rspde_obj, "hybrid_spde") && !is.null(new_rspde_obj$op_mean)) {
+    bx_names <- grep("^beta_x[0-9]+$", names(coeff_random), value = TRUE)
+    if (length(bx_names) > 0 && !is.null(new_rspde_obj$X)) {
+      ## Order the coefficients to match the columns of X.
+      ord <- order(as.integer(sub("^beta_x", "", bx_names)))
+      bx_names <- bx_names[ord]
+      bx_vals <- vapply(bx_names, function(nm) as.numeric(coeff_random[[nm]]),
+                        numeric(1))
+      new_rspde_obj$beta_X <- bx_vals
+      hybrid_mu <- compute_hybrid_mean(new_rspde_obj)
+    }
+  }
+
   idx_obs_full <- as.vector(!is.na(Y))
 
   if(!inherits(object$latent_model, "rSPDEobj1d") && !inherits(object$latent_model, "spacetimeobj")) {
@@ -1812,21 +1856,47 @@ predict.rspde_lme <- function(object,
     }
     
     if(object$mean_correction) {
-        y_repl <- y_repl - A_repl %*% mu_corr    
+        y_repl <- y_repl - A_repl %*% mu_corr
     }
-    
+    if (!is.null(hybrid_mu)) {
+        ## Centre observations by the hybrid deterministic mean so that
+        ## the kriging operates on the zero-mean residual field
+        ## u - beta_X' L^{-alpha/2} X. For non-integer alpha rational
+        ## approximations A_repl is kronecker-expanded to (m+1) stacked
+        ## copies of the base A; hybrid_mu lives in the base-mesh basis,
+        ## so use the first n_mu columns (= un-kroneckered A).
+        n_mu <- length(hybrid_mu)
+        A_for_mu <- if (ncol(A_repl) == n_mu) A_repl
+                    else if (ncol(A_repl) %% n_mu == 0) A_repl[, seq_len(n_mu), drop = FALSE]
+                    else stop("Internal error: A_repl has ", ncol(A_repl),
+                              " cols, hybrid mean length is ", n_mu, ".")
+        y_repl <- y_repl - as.numeric(A_for_mu %*% hybrid_mu)
+    }
+
     Q_xgiveny <- t(A_repl) %*% A_repl / sigma_e^2 + Q
     mu_krig <- solve(Q_xgiveny, as.vector(t(A_repl) %*% y_repl / sigma_e^2))
 
     mu_krig <- Aprd %*% mu_krig
-    
+
     mu_re <- mu_krig
     mu_fe <- mu_prd
     mu_krig <- mu_prd + mu_krig
-    
+
     if(object$mean_correction) {
         mu_krig <- mu_krig + Aprd %*% mu_corr
         mu_re <- mu_re + Aprd %*% mu_corr
+    }
+    if (!is.null(hybrid_mu)) {
+        ## Same kronecker handling as above: pick the first n_mu columns
+        ## of Aprd to map the deterministic mean back to prediction locs.
+        n_mu <- length(hybrid_mu)
+        Aprd_for_mu <- if (ncol(Aprd) == n_mu) Aprd
+                       else if (ncol(Aprd) %% n_mu == 0) Aprd[, seq_len(n_mu), drop = FALSE]
+                       else stop("Internal error: Aprd has ", ncol(Aprd),
+                                 " cols, hybrid mean length is ", n_mu, ".")
+        hyb_add <- Aprd_for_mu %*% hybrid_mu
+        mu_krig <- mu_krig + hyb_add
+        mu_re   <- mu_re   + hyb_add
     }
 
     mean_tmp <- as.vector(mu_krig)

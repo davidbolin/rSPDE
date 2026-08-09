@@ -66,6 +66,10 @@ rspde.hybrid.matern <- function(mesh,
                                 start.ltau = NULL,
                                 start.lkappa = NULL,
                                 start.beta_x = NULL,
+                                ...,
+                                separate_kappa_mu = FALSE,
+                                prior.kappa_mu = NULL,
+                                start.lkappa_mu = NULL,
                                 debug = FALSE,
                                 shared_lib = "detect") {
 
@@ -139,6 +143,19 @@ rspde.hybrid.matern <- function(mesh,
   if (length(prior.beta_x$prec) != p)
     stop("'prior.beta_x$prec' must have length ncol(X).")
 
+  # kappa_mu prior / start (only used when separate).
+  separate_kappa_mu <- isTRUE(separate_kappa_mu)
+  if (separate_kappa_mu) {
+    if (is.null(prior.kappa_mu$mean)) prior.kappa_mu$mean <- prior.kappa$mean
+    if (is.null(prior.kappa_mu$prec)) prior.kappa_mu$prec <- prior.kappa$prec
+    if (is.null(start.lkappa_mu))     start.lkappa_mu     <- prior.kappa_mu$mean
+  } else {
+    # Provide dummy values so the cgeneric C asserts succeed; the C code
+    # ignores them when separate_kappa_mu = 0.
+    prior.kappa_mu       <- list(mean = 0, prec = 1)
+    start.lkappa_mu      <- 0
+  }
+
   # Starting values.
   if (is.null(start.ltau))   start.ltau   <- prior.tau$mean
   if (is.null(start.lkappa)) start.lkappa <- prior.kappa$mean
@@ -146,7 +163,12 @@ rspde.hybrid.matern <- function(mesh,
   if (length(start.beta_x) != p)
     stop("'start.beta_x' must have length ncol(X).")
 
-  start_theta <- c(start.ltau, start.lkappa, as.numeric(start.beta_x))
+  if (separate_kappa_mu) {
+    start_theta <- c(start.ltau, start.lkappa, start.lkappa_mu,
+                     as.numeric(start.beta_x))
+  } else {
+    start_theta <- c(start.ltau, start.lkappa, as.numeric(start.beta_x))
+  }
   theta.prior.mean <- c(prior.tau$mean, prior.kappa$mean)
   theta.prior.prec <- diag(c(prior.tau$prec, prior.kappa$prec))
 
@@ -162,6 +184,7 @@ rspde.hybrid.matern <- function(mesh,
       graph_opt_i = as.integer(graph_i),
       graph_opt_j = as.integer(graph_j),
       p           = as.integer(p),
+      separate_kappa_mu = as.integer(separate_kappa_mu),
       C_diag      = as.double(C_diag),
       G_mat       = G_dgT,
       X_mat       = as.matrix(X),
@@ -169,7 +192,9 @@ rspde.hybrid.matern <- function(mesh,
       theta.prior.prec = as.matrix(theta.prior.prec),
       start.theta      = as.double(start_theta),
       beta_x.prior.mean = as.double(prior.beta_x$mean),
-      beta_x.prior.prec = as.double(prior.beta_x$prec)
+      beta_x.prior.prec = as.double(prior.beta_x$prec),
+      kappa_mu.prior.mean = as.double(prior.kappa_mu$mean),
+      kappa_mu.prior.prec = as.double(prior.kappa_mu$prec)
     )
   )
 
@@ -185,6 +210,7 @@ rspde.hybrid.matern <- function(mesh,
   model$d           <- d
   model$p           <- p
   model$X           <- X
+  model$separate_kappa_mu <- separate_kappa_mu
   model$cgeneric_type <- "hybrid_alpha2"
   class(model) <- c("inla_rspde_hybrid_alpha2", "inla_rspde",
                     class(model))
@@ -197,12 +223,19 @@ rspde.hybrid.matern <- function(mesh,
 #' @method print inla_rspde_hybrid_alpha2
 print.inla_rspde_hybrid_alpha2 <- function(x, ...) {
   cat("Hybrid Whittle-Matern SPDE model for INLA / inlabru (alpha = 2)\n")
-  cat("  Y = beta_X^T L^{-1} X + tau^{-1} L^{-1} W\n")
+  cat("  Y = beta_X^T L_mu^{-1} X + tau^{-1} L^{-1} W\n")
   cat("  Number of covariate fields (p):", x$p, "\n")
   cat("  Number of mesh nodes:          ", x$n.spde, "\n")
   cat("  Dimension d:                   ", x$d, "\n")
   cat("  Smoothness nu = 2 - d/2:       ", format(x$nu), "\n")
-  cat("\nHyperparameters: log(tau), log(kappa), beta_x1, ..., beta_x",
-      x$p, "\n", sep = "")
+  if (isTRUE(x$separate_kappa_mu)) {
+    cat("  Mean operator: separate kappa_mu (its own hyperparameter)\n")
+    cat("\nHyperparameters: log(tau), log(kappa), log(kappa_mu), ",
+        "beta_x1, ..., beta_x", x$p, "\n", sep = "")
+  } else {
+    cat("  Mean operator: kappa_mu tied to kappa\n")
+    cat("\nHyperparameters: log(tau), log(kappa), beta_x1, ..., beta_x",
+        x$p, "\n", sep = "")
+  }
   invisible(x)
 }

@@ -126,6 +126,131 @@ test_that("Mean computed via the hybrid model approximates beta * L^{-alpha/2} X
 })
 
 
+test_that("Separate kappa_mu: constructor and update preserve mode and parameters", {
+  set.seed(1)
+  n_mesh <- 51
+  x <- seq(0, 1, length.out = n_mesh)
+  X <- matrix(sin(2 * pi * x), n_mesh, 1)
+
+  # Linked (default)
+  op_lk <- hybrid.spde(X = X, beta_X = 1.0,
+                      kappa = 5, tau = 1, alpha = 2,
+                      loc_mesh = x, d = 1, parameterization = "spde",
+                      type = "covariance")
+  expect_false(isTRUE(op_lk$separate_kappa_mu))
+  expect_equal(as.numeric(op_lk$kappa_mu), as.numeric(op_lk$kappa))
+
+  # Separate (kappa_mu = 10, kappa = 5)
+  op_sep <- hybrid.spde(X = X, beta_X = 1.0,
+                       kappa = 5, kappa_mu = 10, tau = 1, alpha = 2,
+                       loc_mesh = x, d = 1, parameterization = "spde",
+                       type = "covariance")
+  expect_true(isTRUE(op_sep$separate_kappa_mu))
+  expect_equal(op_sep$kappa, 5)
+  expect_equal(op_sep$kappa_mu, 10)
+  # The mu values should differ from the linked case at kappa = 5.
+  expect_true(max(abs(op_sep$mu - op_lk$mu)) > 1e-6)
+
+  # Updating kappa on linked: kappa_mu follows.
+  op_lk2 <- update(op_lk, kappa = 8, check_stationarity = FALSE)
+  expect_false(isTRUE(op_lk2$separate_kappa_mu))
+  expect_equal(as.numeric(op_lk2$kappa_mu), as.numeric(op_lk2$kappa))
+  expect_equal(as.numeric(op_lk2$kappa), 8)
+
+  # Update kappa on separate: kappa changes but kappa_mu stays.
+  op_sep2 <- update(op_sep, kappa = 7, check_stationarity = FALSE)
+  expect_true(isTRUE(op_sep2$separate_kappa_mu))
+  expect_equal(as.numeric(op_sep2$kappa), 7)
+  expect_equal(as.numeric(op_sep2$kappa_mu), 10)
+
+  # Update kappa_mu on linked: switches to separate.
+  op_lk3 <- update(op_lk, kappa_mu = 12, check_stationarity = FALSE)
+  expect_true(isTRUE(op_lk3$separate_kappa_mu))
+  expect_equal(as.numeric(op_lk3$kappa), 5)
+  expect_equal(as.numeric(op_lk3$kappa_mu), 12)
+})
+
+
+test_that("rspde_lme exposes kappa_mu as a parameter only when separate", {
+  set.seed(11)
+  n_mesh <- 31
+  x <- seq(0, 1, length.out = n_mesh)
+  X <- matrix(sin(2 * pi * x), n_mesh, 1)
+
+  # Linked: no kappa_mu in possible_params
+  op_lk <- hybrid.spde(X = X, beta_X = 1.0,
+                      kappa = 5, tau = 1, alpha = 2,
+                      loc_mesh = x, d = 1, parameterization = "spde",
+                      type = "covariance")
+  params_lk <- rSPDE:::extract_possible_parameters(op_lk)
+  expect_false("kappa_mu" %in% params_lk)
+
+  # Separate: kappa_mu appears as a parameter
+  op_sep <- hybrid.spde(X = X, beta_X = 1.0,
+                       kappa = 5, kappa_mu = 10, tau = 1, alpha = 2,
+                       loc_mesh = x, d = 1, parameterization = "spde",
+                       type = "covariance")
+  params_sep <- rSPDE:::extract_possible_parameters(op_sep)
+  expect_true("kappa_mu" %in% params_sep)
+})
+
+
+test_that("rspde_lme with fix_kappa_mu recovers parameters", {
+  skip_on_cran()
+  set.seed(42)
+
+  true_kappa <- 5
+  true_tau <- 1.0
+  true_kappa_mu <- 10
+  true_beta_X <- 1.5
+  true_sigma_e <- 0.05
+
+  n_mesh <- 121
+  x <- seq(0, 1, length.out = n_mesh)
+  X <- matrix(sin(2 * pi * x), n_mesh, 1)
+  op_true <- hybrid.spde(X = X, beta_X = true_beta_X,
+                        kappa = true_kappa, kappa_mu = true_kappa_mu,
+                        tau = true_tau, alpha = 2,
+                        loc_mesh = x, d = 1, parameterization = "spde",
+                        type = "covariance")
+
+  n_rep <- 10
+  n_obs <- 200
+  obs.loc <- runif(n_obs, 0, 1)
+  A_obs <- make_A(op_true, obs.loc)
+  Y <- matrix(NA, n_obs, n_rep)
+  for (r in seq_len(n_rep)) {
+    u <- as.vector(simulate(op_true, nsim = 1, seed = 100 + r))
+    Y[, r] <- as.numeric(A_obs %*% u) + true_sigma_e * rnorm(n_obs)
+  }
+  dat <- data.frame(
+    y = as.vector(Y),
+    loc = rep(obs.loc, n_rep),
+    repl = rep(seq_len(n_rep), each = n_obs)
+  )
+
+  op_start <- hybrid.spde(X = X, beta_X = true_beta_X,
+                         kappa = 5, kappa_mu = true_kappa_mu,
+                         tau = 1, alpha = 2,
+                         loc_mesh = x, d = 1, parameterization = "spde",
+                         type = "covariance")
+
+  fit <- rspde_lme(
+    y ~ 1, loc = "loc", data = dat,
+    model = op_start, repl = "repl", parallel = FALSE,
+    model_options = list(fix_alpha = 2,
+                         fix_kappa_mu = true_kappa_mu,
+                         start_beta_x = true_beta_X)
+  )
+  re <- fit$coeff$random_effects
+  expect_lt(abs(re[["tau"]]    - true_tau)    / true_tau,    0.15)
+  expect_lt(abs(re[["kappa"]]  - true_kappa)  / true_kappa,  0.15)
+  expect_lt(abs(re[["beta_x1"]] - true_beta_X) / abs(true_beta_X), 0.2)
+  expect_lt(abs(as.numeric(fit$coeff$measurement_error) - true_sigma_e) /
+              true_sigma_e, 0.1)
+})
+
+
 test_that("hybrid mean is FEM-consistent: mu = beta/kappa^2 for X = 1", {
   # Analytical: L mu = beta X with X(s) = 1 has interior solution
   # mu(s) = beta / kappa^2 (ignoring boundary effects).

@@ -14,6 +14,7 @@ rspde_lme(
   which_repl = NULL,
   optim_method = "L-BFGS-B",
   possible_methods = c("L-BFGS-B", "Nelder-Mead"),
+  nelder_mead_init = TRUE,
   use_data_from_graph = TRUE,
   rspde_order = NULL,
   mean_correction = FALSE,
@@ -73,6 +74,12 @@ one replicate.}
 \item{optim_method}{The method to be used with \code{optim} function.}
 
 \item{possible_methods}{The optimization methods to try if the model fitting fails.}
+
+\item{nelder_mead_init}{Logical. If \code{TRUE} (the default) and \code{optim_method}
+is not \code{"Nelder-Mead"} and \code{parallel = FALSE}, a short Nelder-Mead pass is
+run from the starting values before the main optimisation. This is robust
+to poor starting values (the main optimiser then refines the result) and
+typically adds only a few hundred extra likelihood evaluations.}
 
 \item{use_data_from_graph}{Logical. Only for models generated from graphs from
 \code{metric_graph} class. In this case, should the data, the locations and the

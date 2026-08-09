@@ -2607,6 +2607,12 @@ extract_possible_parameters <- function(model) {
     }
   }
 
+  # If the hybrid model uses a separate `kappa_mu` for the operator
+  # applied to the mean, expose it as an estimable scalar parameter.
+  if (inherits(model, "hybrid_spde") && isTRUE(model$separate_kappa_mu)) {
+    params <- c(params, "kappa_mu")
+  }
+
   if (is.null(params)) {
     return(NULL)
   }
@@ -2947,14 +2953,27 @@ extract_starting_values <- function(previous_fit, fix_coeff = FALSE, model_optio
     non_theta_indices <- setdiff(seq_along(random_effects), theta_indices)
     for (i in non_theta_indices) {
       param_name <- param_names[i]
-      model_options_tmp[[paste0(prefix, tolower(param_name))]] <- random_effects[[param_name]]
+      ## Preserve fixed status: parameters tagged " (fixed)" in the
+      ## previous fit's random_effects were held constant during that
+      ## fit, so they must be re-fixed (not just warm-started) in the
+      ## downstream call. Without this, calling rspde_lme(..., previous_fit
+      ## = fit_with_fix_alpha = 2) silently estimates alpha, which can
+      ## drift away from 2 and change the model. Affects in particular
+      ## the per-fold refits done by posterior_crossvalidation(true_CV
+      ## = TRUE), where the per-fold model would otherwise differ from
+      ## the full fit's specification.
+      is_fixed <- grepl(" \\(fixed\\)$", param_name)
+      prefix_use <- if (is_fixed) "fix_" else prefix
+      model_options_tmp[[paste0(prefix_use, tolower(param_name))]] <- random_effects[[param_name]]
     }
   } else {
     random_effects <- previous_fit$coeff$random_effects
-    
+
     # Create named list with appropriate prefix
     for (param_name in names(random_effects)) {
-      model_options_tmp[[paste0(prefix, tolower(param_name))]] <- random_effects[[param_name]]
+      is_fixed <- grepl(" \\(fixed\\)$", param_name)
+      prefix_use <- if (is_fixed) "fix_" else prefix
+      model_options_tmp[[paste0(prefix_use, tolower(param_name))]] <- random_effects[[param_name]]
     }
   }
   
@@ -3087,6 +3106,15 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
     }
   }
 
+  # Starting value for the separate kappa_mu (log scale, exp transform
+  # later). Seed from the stored model$kappa_mu (which by default is
+  # equal to model$kappa).
+  if (inherits(model, "hybrid_spde") && isTRUE(model$separate_kappa_mu)) {
+    kmu <- as.numeric(model$kappa_mu)
+    if (length(kmu) == 0L) kmu <- as.numeric(model$kappa)
+    starting_values["kappa_mu"] <- log(max(kmu[1], 1e-5))
+  }
+
   starting_values["sigma_e"] <- log(0.1 * sd(y_resp))
 
   # Update starting values with model_options if provided
@@ -3195,8 +3223,6 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
 }
 
 
-#' @noRd
-#'
 #' Data-driven starting values for the regression coefficients
 #' \eqn{\beta_X} of a `hybrid_spde` model.
 #'
@@ -3213,6 +3239,7 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
 #' `start_beta_xj` / `fix_beta_xj` are touched. Returns `NULL` when the
 #' init is not applicable (non-hybrid model, no `X`, missing `op_mean`,
 #' all entries already user-specified, or a degenerate OLS).
+#' @noRd
 init_beta_X_hybrid_ols <- function(model, A_list, X_cov, y_resp, repl,
                                    model_options) {
   if (!inherits(model, "hybrid_spde")) return(NULL)
@@ -3583,6 +3610,10 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
         args_list[[param_name]] <- exp(theta[index])
         index <- index + 1
       }
+      else if (param_name == "kappa_mu") {
+        args_list$kappa_mu <- exp(theta[index])
+        index <- index + 1
+      }
       else if (param_name == "hxy") {
         args_list$hxy <- 2*exp(theta[index])/(1+exp(theta[index])) - 1
         index <- index + 1
@@ -3799,6 +3830,15 @@ create_likelihood <- function(model, model_options, y_resp,
     # the centred observations to the underlying aux likelihood. The
     # regression coefficients beta_X are kept fixed at the values stored
     # in the model object.
+    #
+    # A_orig_list[[rj]] is NA-filtered at fit time (nrow = number of
+    # non-NA training observations in replicate rj), while y_resp is the
+    # full per-replicate vector that may carry NAs (e.g. when this
+    # likelihood is built inside a posterior_crossvalidation refit, where
+    # held-out observations are NA-masked). We therefore subtract A_orig
+    # %*% mu_mesh only at the non-NA positions, in the order in which
+    # those positions appear inside the replicate — which matches the
+    # row order of A_orig.
     y_used <- y_resp
     if (is_hybrid) {
       mu_mesh <- compute_hybrid_mean(model_tmp)
@@ -3806,9 +3846,16 @@ create_likelihood <- function(model, model_options, y_resp,
         for (rj in names(A_orig_list)) {
           A_orig <- A_orig_list[[rj]]
           if (is.null(A_orig)) next
-          idx <- (as.character(repl) == rj)
+          pos <- which(as.character(repl) == rj)
+          if (length(pos) == 0L) next
+          non_na_pos <- pos[!is.na(y_used[pos])]
+          if (length(non_na_pos) == 0L) next
           mu_obs <- as.vector(A_orig %*% mu_mesh)
-          y_used[idx] <- y_used[idx] - mu_obs
+          if (length(mu_obs) != length(non_na_pos)) {
+            stop("Internal error: A_orig row count does not match the number ",
+                 "of non-NA observations in replicate ", rj, ".")
+          }
+          y_used[non_na_pos] <- y_used[non_na_pos] - mu_obs
         }
       }
     }
@@ -3873,9 +3920,10 @@ extract_parameters_from_optim <- function(res, start_values, estimate_params, mo
     
     # If parameter is estimated, get from res$par
     if (estimate_params[i]) {
-      if (param_name == "sigma_e" || param_name == "tau" || 
+      if (param_name == "sigma_e" || param_name == "tau" ||
           param_name == "kappa" || param_name == "sigma" || param_name == "range" ||
-          param_name == "gamma" || param_name == "hx" || param_name == "hy" || param_name == "nu") {
+          param_name == "gamma" || param_name == "hx" || param_name == "hy" || param_name == "nu" ||
+          param_name == "kappa_mu") {
         # Parameters with exponential transformation
         coeff[i] <- exp(res$par[index])
         index <- index + 1
@@ -4062,7 +4110,8 @@ calculate_parameter_jacobian <- function(res, estimate_params, model, model_opti
       # Parameter is estimated, get transformation from res$par
       if (param_name == "sigma_e" || param_name == "tau" || param_name == "nu" ||
           param_name == "kappa" || param_name == "sigma" || param_name == "range" ||
-          param_name == "gamma" || param_name == "hx" || param_name == "hy") {
+          param_name == "gamma" || param_name == "hx" || param_name == "hy" ||
+          param_name == "kappa_mu") {
         # Parameters with exp transformation
         par_change[index, index] <- exp(-res$par[index])
         index <- index + 1
@@ -4575,9 +4624,11 @@ convert_parameterization_matern_spde <- function(model, parameterization, params
       # Get indices of parameters that are being estimated
       est_params_indices <- which(estimate_pars)
       
-      # Find positions of tau and kappa in the names vector
-      tau_pos <- which(grepl("^tau", names(estimate_pars)))
-      kappa_pos <- which(grepl("^kappa", names(estimate_pars)))
+      # Find positions of tau and kappa in the names vector. Match
+      # only the exact names "tau" / "kappa" so that "kappa_mu" (used
+      # by the hybrid SPDE model) is excluded.
+      tau_pos <- which(names(estimate_pars) == "tau")
+      kappa_pos <- which(names(estimate_pars) == "kappa")
       
       # Check if both parameters are being estimated
       tau_estimated <- length(tau_pos) > 0 && any(est_params_indices == tau_pos)
