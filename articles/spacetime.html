@@ -12,8 +12,8 @@
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Spatio-temporal models">
@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-10-23. Last
-modified: 2026-05-17.</h4>
+modified: 2026-08-10.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel/vignettes/spacetime.Rmd" class="external-link"><code>vignettes/spacetime.Rmd</code></a></small>
       <div class="d-none name"><code>spacetime.Rmd</code></div>
@@ -310,8 +310,8 @@ model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 50</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  22.88309 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 5.32631 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  22.77816 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 5.27521 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -387,9 +387,9 @@ parameters) with the true values:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa     sigma      gamma     rho     sigma.e  intercept</span></span>
-<span><span class="co">#&gt; True     5.000000 10.000000 0.10000000 1.00000 0.010000000 0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 5.081651  8.948111 0.07988228 1.59596 0.008589387 0.01238519</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa     sigma     gamma     rho   sigma.e  intercept</span></span>
+<span><span class="co">#&gt; True     5.000000 10.000000 0.1000000 1.00000 0.0100000 0.00000000</span></span>
+<span><span class="co">#&gt; Estimate 4.667901  9.177967 0.1070514 1.03885 0.0109618 0.01249396</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -559,8 +559,8 @@ fitting:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 81</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  2.67156 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 5.84979 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  2.69254 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 5.84551 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -614,12 +614,12 @@ parameters) with the true values:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          kappa        sigma     gamma      rho_1      rho_2      sigma.e</span></span>
-<span><span class="co">#&gt; True     9.900 2.900000e+01 1.100e-01 0.20000000 0.30000000 0.0100000000</span></span>
-<span><span class="co">#&gt; Estimate 0.297 3.921411e-05 9.078e-09 0.01821738 0.01381615 0.0005198445</span></span>
-<span><span class="co">#&gt;          intercept</span></span>
-<span><span class="co">#&gt; True     0.0000000</span></span>
-<span><span class="co">#&gt; Estimate 0.4935684</span></span></code></pre></div>
+<span><span class="co">#&gt;              kappa        sigma        gamma      rho_1        rho_2</span></span>
+<span><span class="co">#&gt; True     9.9000000 2.900000e+01 1.100000e-01 0.20000000  0.300000000</span></span>
+<span><span class="co">#&gt; Estimate 0.2937595 3.894918e-05 8.955776e-09 0.01632901 -0.009089682</span></span>
+<span><span class="co">#&gt;               sigma.e intercept</span></span>
+<span><span class="co">#&gt; True     0.0100000000 0.0000000</span></span>
+<span><span class="co">#&gt; Estimate 0.0005196822 0.4929327</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -664,9 +664,9 @@ convergence of the optimization.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa     sigma     gamma      rho    sigma.e intercept</span></span>
-<span><span class="co">#&gt; True     9.900000 29.000000 0.1100000 1.000000 0.01000000 0.0000000</span></span>
-<span><span class="co">#&gt; Estimate 4.703064  9.066892 0.1076068 1.030319 0.01399226 0.0122834</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa     sigma     gamma      rho    sigma.e  intercept</span></span>
+<span><span class="co">#&gt; True     9.900000 29.000000 0.1100000 1.000000 0.01000000 0.00000000</span></span>
+<span><span class="co">#&gt; Estimate 4.703103  9.067326 0.1076123 1.030429 0.01399151 0.01225258</span></span></code></pre></div>
 <p>Now, the <code>inlabru</code> implementation:</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">### Fit with bounded_rho = FALSE</span></span>
@@ -699,9 +699,9 @@ convergence of the optimization.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results_unbounded</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa    sigma      gamma      rho     sigma.e  intercept</span></span>
-<span><span class="co">#&gt; True     9.900000 29.00000 0.11000000 1.000000 0.010000000 0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 4.922853  9.12735 0.09723031 1.209845 0.009207415 0.01240725</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa     sigma     gamma      rho     sigma.e  intercept</span></span>
+<span><span class="co">#&gt; True     9.900000 29.000000 0.1100000 1.000000 0.010000000 0.00000000</span></span>
+<span><span class="co">#&gt; Estimate 4.563857  8.994655 0.1125827 1.120419 0.009838172 0.01241676</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2 unnumbered">
@@ -727,7 +727,7 @@ Research Transactions</em> 48 (1): 3–66.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

@@ -34,6 +34,10 @@
   graphs
 - [`spacetime.operators()`](https://davidbolin.github.io/rSPDE/reference/spacetime.operators.md)
   : Space-time random fields
+- [`hybrid.spde()`](https://davidbolin.github.io/rSPDE/reference/hybrid.spde.md)
+  : Hybrid non-stationary Whittle-Matern SPDE model with non-zero mean
+- [`rspde.hybrid.matern()`](https://davidbolin.github.io/rSPDE/reference/rspde.hybrid.matern.md)
+  : Hybrid Whittle-Matern SPDE model for INLA / inlabru (alpha = 2)
 
 ## Linear mixed-effects models
 
@@ -57,6 +61,11 @@
   :
 
   Augment data with information from a `rspde_lme` object
+
+- [`posterior_crossvalidation()`](https://davidbolin.github.io/rSPDE/reference/posterior_crossvalidation.md)
+  :
+
+  Posterior cross-validation for `rspde_lme` models
 
 ## Intrinsic models
 
@@ -171,6 +180,12 @@
   : Summary method for class "intrinsicCBrSPDEobj"
 - [`update(`*`<intrinsicCBrSPDEobj>`*`)`](https://davidbolin.github.io/rSPDE/reference/update.intrinsicCBrSPDEobj.md)
   : Update parameters of intrinsicCBrSPDEobj objects
+- [`predict(`*`<hybrid_spde>`*`)`](https://davidbolin.github.io/rSPDE/reference/predict.hybrid_spde.md)
+  : Kriging prediction for a hybrid Whittle-Matern SPDE model
+- [`simulate(`*`<hybrid_spde>`*`)`](https://davidbolin.github.io/rSPDE/reference/simulate.hybrid_spde.md)
+  : Simulation of a hybrid Whittle-Matern SPDE model
+- [`update(`*`<hybrid_spde>`*`)`](https://davidbolin.github.io/rSPDE/reference/update.hybrid_spde.md)
+  : Update parameters of hybrid_spde objects
 
 ## Functions and methods for R-INLA rSPDE objects
 

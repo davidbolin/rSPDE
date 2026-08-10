@@ -2,6 +2,32 @@
 
 ## rSPDE (development version)
 
+- Added
+  [`posterior_crossvalidation()`](https://davidbolin.github.io/rSPDE/reference/posterior_crossvalidation.md)
+  for objects fitted with
+  [`rspde_lme()`](https://davidbolin.github.io/rSPDE/reference/rspde_lme.md).
+  The function mirrors the interface of
+  [`MetricGraph::posterior_crossvalidation`](https://davidbolin.github.io/MetricGraph/reference/posterior_crossvalidation.html).
+- Added
+  [`hybrid.spde()`](https://davidbolin.github.io/rSPDE/reference/hybrid.spde.md),
+  a new hybrid Whittle-Matern SPDE model with a non-zero deterministic
+  mean.
+- [`rspde_lme()`](https://davidbolin.github.io/rSPDE/reference/rspde_lme.md)
+  now supports `hybrid.spde` models.
+- Added
+  [`rspde.hybrid.matern()`](https://davidbolin.github.io/rSPDE/reference/rspde.hybrid.matern.md),
+  a INLA cgeneric model for the hybrid Whittle-Matern SPDE with alpha =
+  2.
+- Added a `kappa_mu` option that lets the operator applied to the mean
+  use a different range parameter from the one in the covariance.
+  Default (`kappa_mu = NULL` in
+  [`hybrid.spde()`](https://davidbolin.github.io/rSPDE/reference/hybrid.spde.md),
+  `separate_kappa_mu = FALSE` in
+  [`rspde.hybrid.matern()`](https://davidbolin.github.io/rSPDE/reference/rspde.hybrid.matern.md))
+  keeps them linked. When enabled, `kappa_mu` is estimated jointly in
+  `rspde_lme` and INLA, or can be held fixed via
+  `model_options$fix_kappa_mu`.
+
 ## rSPDE 2.5.2
 
 CRAN release: 2026-01-26

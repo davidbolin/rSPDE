@@ -15,6 +15,7 @@ rspde_lme(
   which_repl = NULL,
   optim_method = "L-BFGS-B",
   possible_methods = c("L-BFGS-B", "Nelder-Mead"),
+  nelder_mead_init = TRUE,
   use_data_from_graph = TRUE,
   rspde_order = NULL,
   mean_correction = FALSE,
@@ -100,6 +101,15 @@ rspde_lme(
 - possible_methods:
 
   The optimization methods to try if the model fitting fails.
+
+- nelder_mead_init:
+
+  Logical. If `TRUE` (the default) and `optim_method` is not
+  `"Nelder-Mead"` and `parallel = FALSE`, a short Nelder-Mead pass is
+  run from the starting values before the main optimisation. This is
+  robust to poor starting values (the main optimiser then refines the
+  result) and typically adds only a few hundred extra likelihood
+  evaluations.
 
 - use_data_from_graph:
 

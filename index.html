@@ -12,8 +12,8 @@
 <link rel="icon" sizes="any" href="favicon.ico">
 <link rel="manifest" href="site.webmanifest">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Rational Approximations of Fractional Stochastic Partial Differential Equations">
@@ -193,10 +193,10 @@
 <span>            </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">## Time used:</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="do">##     Pre = 0.353, Running = 3.82, Post = 0.108, Total = 4.28 </span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="do">##     Pre = 0.346, Running = 3.55, Post = 0.103, Total = 4 </span></span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="do">## Fixed effects:</span></span>
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="do">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="do">## Intercept 1.941 0.041       1.86    1.941      2.023 1.941   0</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="do">## Intercept 1.941 0.042      1.859    1.941      2.023 1.941   0</span></span>
 <span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="do">## </span></span>
 <span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="do">## Random effects:</span></span>
 <span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="do">##   Name     Model</span></span>
@@ -204,42 +204,38 @@
 <span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="do">##    field CGeneric</span></span>
 <span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="do">## </span></span>
 <span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="do">## Model hyperparameters:</span></span>
-<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="do">##                                                   mean       sd 0.025quant</span></span>
-<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations   14.45    1.041      12.49</span></span>
-<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="do">## Precision for seaDist                          7517.91 4237.660    2317.57</span></span>
-<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="do">## Theta1 for field                                 -2.71    2.471      -8.33</span></span>
-<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="do">## Theta2 for field                                  1.81    0.655       0.74</span></span>
-<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="do">## Theta3 for field                                  1.14    2.155      -2.24</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="do">##                                                    mean       sd 0.025quant</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations   14.433    1.039     12.481</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="do">## Precision for seaDist                          7614.474 4301.865   2329.010</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="do">## Theta1 for field                                 -1.940    1.534     -5.394</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="do">## Theta2 for field                                  1.584    0.418      0.858</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="do">## Theta3 for field                                  0.495    1.364     -1.695</span></span>
 <span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="do">##                                                0.5quant 0.975quant     mode</span></span>
-<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations   14.414      16.59   14.362</span></span>
-<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="do">## Precision for seaDist                          6551.688   18411.57 4970.338</span></span>
-<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="do">## Theta1 for field                                 -2.424       1.15   -1.043</span></span>
-<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="do">## Theta2 for field                                  1.751       3.27    1.444</span></span>
-<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="do">## Theta3 for field                                  0.888       6.04   -0.307</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations   14.401   1.66e+01   14.348</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="do">## Precision for seaDist                          6635.183   1.87e+04 5025.671</span></span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="do">## Theta1 for field                                 -1.780   5.15e-01   -1.004</span></span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="do">## Theta2 for field                                  1.557   2.49e+00    1.419</span></span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="do">## Theta3 for field                                  0.355   3.56e+00   -0.327</span></span>
 <span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="do">## Marginal log-Likelihood:  -1254.87 </span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="do">## Marginal log-Likelihood:  -1255.31 </span></span>
 <span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="do">##  is computed </span></span>
 <span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="do">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
 <span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="do">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="do">## Warning in rspde.result(rspde_fit, "field", rspde_model): the mean or mode of</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="do">## nu is very close to nu.upper.bound, please consider increasing nu.upper.bound,</span></span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="do">## and refitting the model.</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="do">##           mean       sd 0.025quant 0.5quant 0.975quant       mode</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="do">## tau   0.346175 0.475209 0.00473572 0.175895    1.65559 0.00431991</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="do">## kappa 5.335380 2.510340 2.36823000 4.695160   11.94100 3.71452000</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="do">## nu    1.157960 0.487638 0.31294100 1.157490    1.94283 1.86260000</span></span></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="do">##           mean       sd  0.025quant  0.5quant 0.975quant        mode</span></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="do">## tau   0.449963 1.045410 0.000257475 0.0947645    3.08974 2.89157e-06</span></span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="do">## kappa 7.739820 6.673390 2.106480000 5.6435500   25.97470 3.52753e+00</span></span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="do">## nu    1.279520 0.587251 0.196818000 1.3922000    1.99493 1.99973e+00</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#Plot the posterior densities</span></span>
 <span><span class="va">posterior_df_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/gg_df.html">gg_df</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">posterior_df_fit</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">parameter</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Density"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/unnamed-chunk-8-1.png" alt="" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#Create a grid to predict</span></span>
 <span><span class="va">nxy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">projgrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rspde.mesh.project.html">rspde.mesh.projector</a></span><span class="op">(</span><span class="va">prmesh</span>,</span>
@@ -292,7 +288,7 @@
 <span>  <span class="fu"><a href="https://sjmgarnier.github.io/viridis/reference/scale_viridis.html" class="external-link">scale_fill_viridis</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/unnamed-chunk-9-1.png" alt="" style="display: block; margin: auto;"></p>
 <p>Then, the std. deviations:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pred_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x1</span>, y <span class="op">=</span> <span class="va">x2</span>, fill <span class="op">=</span> <span class="va">sd</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_raster</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://sjmgarnier.github.io/viridis/reference/scale_viridis.html" class="external-link">scale_fill_viridis</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/unnamed-chunk-10-1.png" alt="" style="display: block; margin: auto;"></p>
@@ -303,7 +299,7 @@
 <p>We will now illustrate the <code>rSPDE</code> the same kriging example above with our <code>inlabru</code> interface to <code>rSPDE</code>. We will make this description self-contained, so we will not use any information or codes from the example above.</p>
 <p>The data consist of precipitation measurements from the Paraná region in Brazil and were provided by the Brazilian National Water Agency. The data were collected at 616 gauge stations in Paraná state, south of Brazil, for each day in 2011. We will not analyse the full spatio-temporal data set, but instead look at the total precipitation in January</p>
 <p>For further details on the dataset and on the commands we refer the reader to the <a href="https://davidbolin.github.io/rSPDE//articles/rspde_inlabru.html" title="inlabru vignette">rSPDE-inlabru Vignette</a>.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://davidbolin.github.io/rSPDE/">rSPDE</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span>
@@ -335,7 +331,7 @@
 <span>  <span class="op">]</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://sjmgarnier.github.io/viridis/reference/scale_viridis.html" class="external-link">scale_color_viridis</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/unnamed-chunk-11-1.png"></p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#Get distance from the sea</span></span>
 <span><span class="va">seaDist</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="fu"><a href="https://edzer.github.io/sp/reference/spDistsN1.html" class="external-link">spDists</a></span><span class="op">(</span><span class="va">coords</span>, <span class="va">PRborder</span><span class="op">[</span><span class="fl">1034</span><span class="op">:</span><span class="fl">1078</span>, <span class="op">]</span>, longlat <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">1</span>, </span>
 <span>                 <span class="va">min</span><span class="op">)</span></span>
@@ -348,10 +344,10 @@
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">PRborder</span>, col <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">coords</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">coords</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, pch <span class="op">=</span> <span class="fl">19</span>, cex <span class="op">=</span> <span class="fl">0.5</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/unnamed-chunk-12-1.png"></p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb18"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="do">## Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.4.0; sf_use_s2() is TRUE</span></span></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="do">## Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.4.0; sf_use_s2() is TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#Create the rspde model object</span></span>
 <span><span class="va">rspde_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rspde.matern.html">rspde.matern</a></span><span class="op">(</span>mesh <span class="op">=</span> <span class="va">prmesh</span><span class="op">)</span></span>
 <span></span>
@@ -376,69 +372,69 @@
 <span><span class="op">)</span></span>
 <span>            </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb20"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="do">## inlabru version: 2.14.1 </span></span>
-<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="do">## INLA version: 26.05.10 </span></span>
-<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="do">## Latent components:</span></span>
-<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="do">## Intercept: main = linear(1)</span></span>
-<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a><span class="do">## distSea: main = rw1(seaDist)</span></span>
-<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a><span class="do">## field: main = cgeneric(geometry)</span></span>
-<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a><span class="do">## Observation models:</span></span>
-<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a><span class="do">##   Model tag: &lt;No tag&gt;</span></span>
-<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a><span class="do">##     Family: 'Gamma'</span></span>
-<span id="cb20-10"><a href="#cb20-10" tabindex="-1"></a><span class="do">##     Data class: 'sf', 'data.frame'</span></span>
-<span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a><span class="do">##     Response class: 'numeric'</span></span>
-<span id="cb20-12"><a href="#cb20-12" tabindex="-1"></a><span class="do">##     Predictor: y ~ Intercept + distSea + field</span></span>
-<span id="cb20-13"><a href="#cb20-13" tabindex="-1"></a><span class="do">##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE</span></span>
-<span id="cb20-14"><a href="#cb20-14" tabindex="-1"></a><span class="do">##     Used components: effect[Intercept, distSea, field], latent[] </span></span>
-<span id="cb20-15"><a href="#cb20-15" tabindex="-1"></a><span class="do">## Time used:</span></span>
-<span id="cb20-16"><a href="#cb20-16" tabindex="-1"></a><span class="do">##     Pre = 0.16, Running = 3.04, Post = 0.0321, Total = 3.23 </span></span>
-<span id="cb20-17"><a href="#cb20-17" tabindex="-1"></a><span class="do">## Fixed effects:</span></span>
-<span id="cb20-18"><a href="#cb20-18" tabindex="-1"></a><span class="do">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
-<span id="cb20-19"><a href="#cb20-19" tabindex="-1"></a><span class="do">## Intercept 1.942 0.041      1.861    1.942      2.023 1.942   0</span></span>
-<span id="cb20-20"><a href="#cb20-20" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb20-21"><a href="#cb20-21" tabindex="-1"></a><span class="do">## Random effects:</span></span>
-<span id="cb20-22"><a href="#cb20-22" tabindex="-1"></a><span class="do">##   Name     Model</span></span>
-<span id="cb20-23"><a href="#cb20-23" tabindex="-1"></a><span class="do">##     distSea RW1 model</span></span>
-<span id="cb20-24"><a href="#cb20-24" tabindex="-1"></a><span class="do">##    field CGeneric</span></span>
-<span id="cb20-25"><a href="#cb20-25" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb20-26"><a href="#cb20-26" tabindex="-1"></a><span class="do">## Model hyperparameters:</span></span>
-<span id="cb20-27"><a href="#cb20-27" tabindex="-1"></a><span class="do">##                                                   mean      sd 0.025quant</span></span>
-<span id="cb20-28"><a href="#cb20-28" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations   14.43    1.04     12.489</span></span>
-<span id="cb20-29"><a href="#cb20-29" tabindex="-1"></a><span class="do">## Precision for distSea                          7597.66 4347.01   2457.836</span></span>
-<span id="cb20-30"><a href="#cb20-30" tabindex="-1"></a><span class="do">## Theta1 for field                                 -4.83    4.18    -14.590</span></span>
-<span id="cb20-31"><a href="#cb20-31" tabindex="-1"></a><span class="do">## Theta2 for field                                  2.25    0.98      0.793</span></span>
-<span id="cb20-32"><a href="#cb20-32" tabindex="-1"></a><span class="do">## Theta3 for field                                  3.03    3.69     -2.281</span></span>
-<span id="cb20-33"><a href="#cb20-33" tabindex="-1"></a><span class="do">##                                                0.5quant 0.975quant    mode</span></span>
-<span id="cb20-34"><a href="#cb20-34" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations    14.40      16.57   14.35</span></span>
-<span id="cb20-35"><a href="#cb20-35" tabindex="-1"></a><span class="do">## Precision for distSea                           6561.67   18920.97 4961.59</span></span>
-<span id="cb20-36"><a href="#cb20-36" tabindex="-1"></a><span class="do">## Theta1 for field                                  -4.24       1.18   -1.24</span></span>
-<span id="cb20-37"><a href="#cb20-37" tabindex="-1"></a><span class="do">## Theta2 for field                                   2.13       4.52    1.47</span></span>
-<span id="cb20-38"><a href="#cb20-38" tabindex="-1"></a><span class="do">## Theta3 for field                                   2.51      11.66   -0.13</span></span>
-<span id="cb20-39"><a href="#cb20-39" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb20-40"><a href="#cb20-40" tabindex="-1"></a><span class="do">## Marginal log-Likelihood:  -1254.53 </span></span>
-<span id="cb20-41"><a href="#cb20-41" tabindex="-1"></a><span class="do">##  is computed </span></span>
-<span id="cb20-42"><a href="#cb20-42" tabindex="-1"></a><span class="do">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
-<span id="cb20-43"><a href="#cb20-43" tabindex="-1"></a><span class="do">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre></div>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="do">## inlabru version: 2.15.0 </span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="do">## INLA version: 26.08.07 </span></span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="do">## Latent components:</span></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="do">## Intercept: main = linear(1)</span></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="do">## distSea: main = rw1(seaDist)</span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a><span class="do">## field: main = cgeneric(geometry)</span></span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a><span class="do">## Observation models:</span></span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a><span class="do">##   Model tag: &lt;No tag&gt;</span></span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="do">##     Family: 'Gamma'</span></span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a><span class="do">##     Data class: 'sf', 'data.frame'</span></span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a><span class="do">##     Response class: 'numeric'</span></span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="do">##     Predictor: y ~ Intercept + distSea + field</span></span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a><span class="do">##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE</span></span>
+<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a><span class="do">##     Used components: effect[Intercept, distSea, field], latent[] </span></span>
+<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a><span class="do">## Time used:</span></span>
+<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a><span class="do">##     Pre = 0.174, Running = 3.76, Post = 0.0318, Total = 3.96 </span></span>
+<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a><span class="do">## Fixed effects:</span></span>
+<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a><span class="do">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
+<span id="cb18-19"><a href="#cb18-19" tabindex="-1"></a><span class="do">## Intercept 1.942 0.042       1.86    1.942      2.024 1.942   0</span></span>
+<span id="cb18-20"><a href="#cb18-20" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb18-21"><a href="#cb18-21" tabindex="-1"></a><span class="do">## Random effects:</span></span>
+<span id="cb18-22"><a href="#cb18-22" tabindex="-1"></a><span class="do">##   Name     Model</span></span>
+<span id="cb18-23"><a href="#cb18-23" tabindex="-1"></a><span class="do">##     distSea RW1 model</span></span>
+<span id="cb18-24"><a href="#cb18-24" tabindex="-1"></a><span class="do">##    field CGeneric</span></span>
+<span id="cb18-25"><a href="#cb18-25" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb18-26"><a href="#cb18-26" tabindex="-1"></a><span class="do">## Model hyperparameters:</span></span>
+<span id="cb18-27"><a href="#cb18-27" tabindex="-1"></a><span class="do">##                                                   mean       sd 0.025quant</span></span>
+<span id="cb18-28"><a href="#cb18-28" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations   14.43    1.040     12.475</span></span>
+<span id="cb18-29"><a href="#cb18-29" tabindex="-1"></a><span class="do">## Precision for distSea                          7717.47 4661.998   2482.490</span></span>
+<span id="cb18-30"><a href="#cb18-30" tabindex="-1"></a><span class="do">## Theta1 for field                                 -2.75    2.416     -8.273</span></span>
+<span id="cb18-31"><a href="#cb18-31" tabindex="-1"></a><span class="do">## Theta2 for field                                  1.80    0.633      0.783</span></span>
+<span id="cb18-32"><a href="#cb18-32" tabindex="-1"></a><span class="do">## Theta3 for field                                  1.20    2.126     -2.090</span></span>
+<span id="cb18-33"><a href="#cb18-33" tabindex="-1"></a><span class="do">##                                                0.5quant 0.975quant     mode</span></span>
+<span id="cb18-34"><a href="#cb18-34" tabindex="-1"></a><span class="do">## Precision-parameter for the Gamma observations   14.400      16.57   14.351</span></span>
+<span id="cb18-35"><a href="#cb18-35" tabindex="-1"></a><span class="do">## Precision for distSea                          6550.510   19998.10 4838.804</span></span>
+<span id="cb18-36"><a href="#cb18-36" tabindex="-1"></a><span class="do">## Theta1 for field                                 -2.453       0.98   -0.998</span></span>
+<span id="cb18-37"><a href="#cb18-37" tabindex="-1"></a><span class="do">## Theta2 for field                                  1.742       3.23    1.428</span></span>
+<span id="cb18-38"><a href="#cb18-38" tabindex="-1"></a><span class="do">## Theta3 for field                                  0.939       6.05   -0.323</span></span>
+<span id="cb18-39"><a href="#cb18-39" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb18-40"><a href="#cb18-40" tabindex="-1"></a><span class="do">## Marginal log-Likelihood:  -1254.92 </span></span>
+<span id="cb18-41"><a href="#cb18-41" tabindex="-1"></a><span class="do">##  is computed </span></span>
+<span id="cb18-42"><a href="#cb18-42" tabindex="-1"></a><span class="do">## Posterior summaries for the linear predictor and the fitted values are computed</span></span>
+<span id="cb18-43"><a href="#cb18-43" tabindex="-1"></a><span class="do">## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#Get the summary on the user's scale</span></span>
 <span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="do">## Warning in rspde.result(rspde_fit, "field", rspde_model): the mean or mode of</span></span>
-<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="do">## nu is very close to nu.upper.bound, please consider increasing nu.upper.bound,</span></span>
-<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="do">## and refitting the model.</span></span></code></pre></div>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="do">## Warning in rspde.result(rspde_fit, "field", rspde_model): the mean or mode of</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="do">## nu is very close to nu.upper.bound, please consider increasing nu.upper.bound,</span></span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="do">## and refitting the model.</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb24"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="do">##           mean        sd  0.025quant  0.5quant 0.975quant        mode</span></span>
-<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a><span class="do">## tau    0.38805  1.301140 5.79507e-07 0.0165183    3.26117 1.69263e-10</span></span>
-<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a><span class="do">## kappa 17.11510 30.029800 2.22605e+00 8.1217600   89.61640 3.49049e+00</span></span>
-<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="do">## nu     1.50423  0.600101 1.85161e-01 1.8317700    1.99997 1.99999e+00</span></span></code></pre></div>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="do">##           mean       sd  0.025quant  0.5quant 0.975quant        mode</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="do">## tau   0.393133 0.842916 0.000273464 0.0919954    2.60080 3.23679e-06</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="do">## kappa 7.573430 6.290470 2.200020000 5.5993500   24.78080 3.54895e+00</span></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="do">## nu    1.298530 0.575410 0.224537000 1.4137800    1.99502 1.99973e+00</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#Plot the posterior densities</span></span>
 <span><span class="va">posterior_df_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/gg_df.html">gg_df</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">posterior_df_fit</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">parameter</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Density"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/unnamed-chunk-14-1.png"></p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#Create a grid to predict</span></span>
 <span><span class="va">nxy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">projgrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rspde.mesh.project.html">rspde.mesh.projector</a></span><span class="op">(</span><span class="va">prmesh</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">PRborder</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span>, </span>
@@ -463,13 +459,13 @@
 <span><span class="va">pred_obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="va">coord.prd.df</span>, </span>
 <span>        <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">Intercept</span> <span class="op">+</span> <span class="va">field</span> <span class="op">+</span> <span class="va">distSea</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Finally, we plot the results. First the predicted mean:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/gg.html" class="external-link">gg</a></span><span class="op">(</span><span class="va">pred_obs</span>, geom <span class="op">=</span> <span class="st">"tile"</span>, </span>
 <span>          <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="va">mean</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://sjmgarnier.github.io/viridis/reference/scale_viridis.html" class="external-link">scale_fill_viridis</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/unnamed-chunk-16-1.png"></p>
 <p>Then, the std. deviations:</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/gg.html" class="external-link">gg</a></span><span class="op">(</span><span class="va">pred_obs</span>, geom <span class="op">=</span> <span class="st">"tile"</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="va">sd</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_raster</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://sjmgarnier.github.io/viridis/reference/scale_viridis.html" class="external-link">scale_fill_viridis</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/unnamed-chunk-17-1.png"></p>
@@ -521,7 +517,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

@@ -166,9 +166,9 @@ library(MetricGraph)
 #> - See https://davidbolin.github.io/MetricGraph for vignettes and manuals.
 #> 
 #> Attaching package: ‘MetricGraph’
-#> The following object is masked from ‘package:rSPDE’:
+#> The following objects are masked from ‘package:rSPDE’:
 #> 
-#>     cross_validation
+#>     cross_validation, posterior_crossvalidation
 #> The following object is masked from ‘package:stats’:
 #> 
 #>     filter
@@ -185,7 +185,7 @@ graph <- metric_graph$new()
 #> Setup edges and merge close vertices
 #> Computing the relative positions of the edges...
 #> Snap vertices to close edges
-#> Total construction time: 1.93 secs
+#> Total construction time: 1.99 secs
 #> Creating and updating vertices...
 #> Storing the initial graph...
 #> Computing the relative positions of the edges...
