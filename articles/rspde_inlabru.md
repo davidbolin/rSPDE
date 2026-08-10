@@ -324,7 +324,7 @@ summary(rspde_fit)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[Intercept, distSea, field], latent[] 
     ## Time used:
-    ##     Pre = 0.275, Running = 7.09, Post = 0.0962, Total = 7.46 
+    ##     Pre = 0.284, Running = 7.05, Post = 0.0975, Total = 7.44 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
     ## Intercept 1.942 0.042       1.86    1.942      2.023 1.942   0
@@ -786,7 +786,7 @@ summary(rspde_fit.rep)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.157, Running = 88, Post = 3.16, Total = 91.3 
+    ##     Pre = 0.166, Running = 87.9, Post = 3.66, Total = 91.8 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1065,7 +1065,7 @@ summary(rspde_fit_nonstat)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.14, Running = 20.1, Post = 0.129, Total = 20.4 
+    ##     Pre = 0.143, Running = 20, Post = 0.155, Total = 20.3 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1216,13 +1216,13 @@ cv_result
 ```
 
     ##           Model               mse               mae               dss
-    ## 1    stationary 0.136286669143271 0.271033142367503 -1.10548723839608
-    ## 2 nonstationary 0.134732513253698 0.270227466745414 -1.29128899174047
+    ## 1    stationary   51357227.579201  1800.50121396001  1.31864073513529
+    ## 2 nonstationary 0.134683917155879 0.270175465849909 -1.28870935318337
     ##            Best     nonstationary     nonstationary     nonstationary
     ##                crps             scrps
-    ## 1 0.192948749350124  0.50350836579208
-    ## 2 0.188934092479869 0.478012741683242
-    ##       nonstationary     nonstationary
+    ## 1 -2299.93672207565  1.00797740766066
+    ## 2 0.189302150887936 0.478992363636379
+    ##          stationary     nonstationary
 
 The
 [`cross_validation()`](https://davidbolin.github.io/rSPDE/reference/cross_validation.md)
