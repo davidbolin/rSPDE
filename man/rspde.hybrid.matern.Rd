@@ -44,6 +44,21 @@ regression coefficients. Defaults: mean = 0, prec = 0.001
 \item{start.beta_x}{Numeric vector of starting values for \code{beta_X}.
 Default: zeros.}
 
+\item{...}{Additional arguments passed to the underlying model
+constructor.}
+
+\item{separate_kappa_mu}{Logical. If \code{TRUE}, the deterministic mean
+operator uses its own range parameter \code{kappa_mu}, estimated as an
+extra hyperparameter, rather than sharing \code{kappa} with the random
+field. Default: \code{FALSE}.}
+
+\item{prior.kappa_mu}{A list with \code{mean} and \code{prec} (Gaussian prior on
+\code{log(kappa_mu)}). Only used when \code{separate_kappa_mu = TRUE}. Defaults
+to the same prior as \code{prior.kappa}.}
+
+\item{start.lkappa_mu}{Starting value for \code{log(kappa_mu)}. Only used
+when \code{separate_kappa_mu = TRUE}. Defaults to the prior mean.}
+
 \item{debug}{Passed to INLA.}
 
 \item{shared_lib}{Which shared lib to use for the cgeneric. See

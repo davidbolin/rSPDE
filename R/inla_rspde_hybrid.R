@@ -31,6 +31,17 @@
 #' `log(kappa)`. Default to the prior means.
 #' @param start.beta_x Numeric vector of starting values for `beta_X`.
 #' Default: zeros.
+#' @param ... Additional arguments passed to the underlying model
+#' constructor.
+#' @param separate_kappa_mu Logical. If `TRUE`, the deterministic mean
+#' operator uses its own range parameter `kappa_mu`, estimated as an
+#' extra hyperparameter, rather than sharing `kappa` with the random
+#' field. Default: `FALSE`.
+#' @param prior.kappa_mu A list with `mean` and `prec` (Gaussian prior on
+#' `log(kappa_mu)`). Only used when `separate_kappa_mu = TRUE`. Defaults
+#' to the same prior as `prior.kappa`.
+#' @param start.lkappa_mu Starting value for `log(kappa_mu)`. Only used
+#' when `separate_kappa_mu = TRUE`. Defaults to the prior mean.
 #' @param debug Passed to INLA.
 #' @param shared_lib Which shared lib to use for the cgeneric. See
 #' [rspde.matern()] for details.

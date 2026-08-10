@@ -1874,7 +1874,17 @@ predict.rspde_lme <- function(object,
     }
 
     Q_xgiveny <- t(A_repl) %*% A_repl / sigma_e^2 + Q
-    mu_krig <- solve(Q_xgiveny, as.vector(t(A_repl) %*% y_repl / sigma_e^2))
+    ## Q_xgiveny is SPD but can be numerically ill-conditioned for some
+    ## models. Recent Matrix versions make solve() hard-error on
+    ## near-singular matrices (via .solve.checkCondBound) where older
+    ## versions returned a (possibly inaccurate) solution. Retry with a
+    ## tiny diagonal jitter -- as already done for the posterior sampling
+    ## below -- so those models still predict instead of erroring.
+    solveQ <- function(b) {
+        tryCatch(solve(Q_xgiveny, b), error = function(e)
+            solve(Q_xgiveny + 1e-8 * Matrix::Diagonal(nrow(Q_xgiveny)), b))
+    }
+    mu_krig <- solveQ(as.vector(t(A_repl) %*% y_repl / sigma_e^2))
 
     mu_krig <- Aprd %*% mu_krig
 
@@ -1915,7 +1925,7 @@ predict.rspde_lme <- function(object,
     }
 
     if (compute_variances) {
-      post_cov <- Aprd %*% solve(Q_xgiveny, t(Aprd))
+      post_cov <- Aprd %*% solveQ(t(Aprd))
       var_tmp <- pmax(diag(post_cov), 0)
 
       if (!return_as_list) {
