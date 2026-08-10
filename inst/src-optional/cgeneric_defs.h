@@ -140,7 +140,38 @@ void compute_Q_fintrinsic(double tau, double nu,
                           double*ld_out, double *mean_out,
                           double scaling,
                           const inla_cgeneric_smat_tp *D);
-    
+
+/* ----- hybrid Whittle-Matern (alpha = 2) helpers ------------------ */
+
+/* Fill Q_out with the M lower-triangular entries of
+ *   Q = tau^2 * (G + kappa^2 C) * C^{-1} * (G + kappa^2 C)
+ * at the (graph_i, graph_j) positions, where C is the mass-lumped FEM
+ * mass matrix (passed in via its diagonal C_diag of length N). G is a
+ * sparse triplet (rows G_i, cols G_j, values G_x, length G_n).
+ */
+void compute_Q_hybrid_alpha2(int N,
+                             const double *C_diag,
+                             const int *G_i, const int *G_j,
+                             const double *G_x, int G_n,
+                             double tau, double kappa,
+                             const int *graph_i, const int *graph_j, int M,
+                             double *Q_out);
+
+/* Fill mu_out (length N) with mu = (G + kappa_mu^2 C)^{-1} (C * X * beta_X)
+ * where X is a dense N x p matrix stored row by row and beta_X has
+ * length p. C_diag is the mass-lumped diagonal of length N. The
+ * `kappa_mu` argument lets the operator applied to the mean use a
+ * range parameter that may differ from the kappa of the covariance.
+ */
+void compute_mu_hybrid_alpha2(int N,
+                              const double *C_diag,
+                              const int *G_i, const int *G_j,
+                              const double *G_x, int G_n,
+                              double kappa_mu,
+                              const double *X_x, int p,
+                              const double *beta_x,
+                              double *mu_out);
+
 #ifdef __cplusplus
 }
 #endif

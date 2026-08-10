@@ -15,7 +15,8 @@ obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o 
       cgeneric_aux_intrinsic.o cgeneric_rspde_intrinsic_eigen_cache.o \
       cgeneric_rspde_spacetime.o cgeneric_aux_spacetime.o \
 	  cgeneric_rspde_anisotropic2d.o cgeneric_aux_anisotropic.o \
-	  cgeneric_rspde_1d_general.o cgeneric_aux_1d.o 
+	  cgeneric_rspde_1d_general.o cgeneric_aux_1d.o \
+	  cgeneric_rspde_hybrid_alpha2.o cgeneric_aux_hybrid_alpha2.o
 
 # Compiler settings
 CC = /opt/homebrew/bin/gcc-14
