@@ -10,6 +10,7 @@ name: R-CMD-check-windows
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   R-CMD-check-windows:
@@ -36,7 +37,7 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           rtools-version: "44"
-          extra-repositories: 'https://inla.r-inla-download.org/R/testing https://davidbolin.github.io/ngme2/'
+          extra-repositories: 'https://inla.r-inla-download.org/R/testing'
           use-public-rspm: true
 
       - uses: r-lib/actions/setup-pandoc@v2
