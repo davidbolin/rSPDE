@@ -10,6 +10,7 @@ name: R-CMD-check
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   R-CMD-check:
@@ -39,7 +40,7 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
-          extra-repositories: 'https://inla.r-inla-download.org/R/testing https://davidbolin.github.io/ngme2/'
+          extra-repositories: 'https://inla.r-inla-download.org/R/testing'
 
       - name: Install system dependencies on Linux
         if: runner.os == 'Linux'
