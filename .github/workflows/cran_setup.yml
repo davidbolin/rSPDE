@@ -102,6 +102,11 @@ jobs:
           if [ ! -f vignettes/rSPDE_package.Rmd ]; then
             git rm -rf --ignore-unmatch vignettes
             rm -rf vignettes
+          else
+            # The CRAN source must contain exactly the canonical vignette;
+            # remove any extra files or subdirectories left by a merge.
+            find vignettes -mindepth 1 -maxdepth 1 \
+              ! -name rSPDE_package.Rmd -exec rm -rf {} +
           fi
 
           if [ -d man/figures ]; then
