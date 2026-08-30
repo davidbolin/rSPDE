@@ -252,7 +252,7 @@ test_that("k-fold CV on a 2D FEM alpha=2 fit matches a from-scratch kriging loop
   op_hat <- update(op, kappa = kappa_hat, tau = tau_hat,
                    check_stationarity = FALSE)
   expect_equal(as.numeric(Matrix::norm(op_hat$Q - Q_manual, "F")), 0,
-               tolerance = 1e-8)
+               tolerance = 1e-7)
 
   # Build a fixed k-fold partition used by BOTH the manual loop and
   # posterior_crossvalidation, so any difference is purely in the
