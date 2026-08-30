@@ -63,7 +63,6 @@ The \\A\\ matrix for rSPDE models.
 
 ``` r
 # \donttest{
-# devel version
 if (requireNamespace("fmesher", quietly = TRUE)) {
   library(fmesher)
 
@@ -76,6 +75,5 @@ if (requireNamespace("fmesher", quietly = TRUE)) {
   )
   A <- spde.make.A(mesh, loc = loc)
 }
-# devel.tag
 # }
 ```

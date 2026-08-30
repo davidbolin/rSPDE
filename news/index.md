@@ -2,6 +2,8 @@
 
 ## rSPDE (development version)
 
+## rSPDE 2.6.0
+
 - Added
   [`posterior_crossvalidation()`](https://davidbolin.github.io/rSPDE/reference/posterior_crossvalidation.md)
   for objects fitted with

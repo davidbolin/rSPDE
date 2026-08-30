@@ -9,7 +9,7 @@ general smoothness parameter."><meta property="og:image" content="https://davidb
 
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.5.2.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -216,11 +216,10 @@ should be used? The current types are "brasil", "chebfun" or "chebfunLB".</p></d
 
 <dt id="arg-shared-lib">shared_lib<a class="anchor" aria-label="anchor" href="#arg-shared-lib"></a></dt>
 <dd><p>Which shared lib to use for the cgeneric implementation?
-If "detect", it will check if the shared lib exists locally, in which case it will
-use it. Otherwise it will use INLA's shared library.
-If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
-it will use the local installation (does not work if your installation is from CRAN).
-Otherwise, you can directly supply the path of the .so (or .dll) file.</p></dd>
+<code>"detect"</code> and <code>"INLA"</code> prefer the model compiled into the INLA binary and
+fall back to a compiled local rSPDE library when the symbol is unavailable.
+<code>"rSPDE"</code> requires the local library. An existing <code>.so</code> or <code>.dll</code> path can
+also be supplied directly.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

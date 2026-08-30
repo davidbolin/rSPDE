@@ -243,7 +243,7 @@ We can get a summary of the fit:
 
 summary(rspde_fit)
 #> Time used:
-#>     Pre = 0.365, Running = 2.32, Post = 0.0416, Total = 2.73 
+#>     Pre = 0.145, Running = 2.3, Post = 0.0413, Total = 2.49 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
@@ -307,8 +307,8 @@ result_fit_matern <- rspde.result(rspde_fit, "field", rspde_model,
                                   parameterization = "matern")
 summary(result_fit_matern)
 #>             mean        sd 0.025quant 0.5quant 0.975quant     mode
-#> std.dev 2.583210 0.3150490   2.036540 2.555430   3.268570 2.465450
-#> range   0.271764 0.0437126   0.197072 0.268036   0.367463 0.264784
+#> std.dev 2.584810 0.3052880   2.046820 2.559940   3.231860 2.464640
+#> range   0.272169 0.0426201   0.198283 0.268313   0.363259 0.253545
 #> nu      0.842128 0.0425313   0.750413 0.846012   0.915285 0.860241
 result_df_matern <- data.frame(
   parameter = c("sigma", "range", "nu"),
@@ -325,8 +325,8 @@ result_df_matern <- data.frame(
 )
 print(result_df_matern)
 #>   parameter true      mean      mode
-#> 1     sigma 2.00 2.5832053 2.4654536
-#> 2     range 0.25 0.2717644 0.2647844
+#> 1     sigma 2.00 2.5848052 2.4646373
+#> 2     range 0.25 0.2721688 0.2535446
 #> 3        nu 1.30 0.8421276 0.8602406
 ```
 
@@ -518,7 +518,7 @@ case:
 
 summary(rspde_bru_fit)
 #> inlabru version: 2.15.0 
-#> INLA version: 26.08.07 
+#> INLA version: 26.08.22 
 #> Latent components:
 #> field: main = cgeneric(geometry)
 #> Observation models:
@@ -530,7 +530,7 @@ summary(rspde_bru_fit)
 #>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 #>     Used components: effect[field], latent[] 
 #> Time used:
-#>     Pre = 0.154, Running = 2.44, Post = 0.158, Total = 2.75 
+#>     Pre = 0.137, Running = 2.35, Post = 0.154, Total = 2.64 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
@@ -593,8 +593,8 @@ result_fit_matern <- rspde.result(rspde_bru_fit, "field", rspde_model,
                                   parameterization = "matern")
 summary(result_fit_matern)
 #>             mean        sd 0.025quant 0.5quant 0.975quant     mode
-#> std.dev 2.580100 0.3055700   2.049360 2.560270   3.240580 2.597470
-#> range   0.271562 0.0424036   0.199525 0.268208   0.364178 0.251402
+#> std.dev 2.581450 0.3093470   2.049830 2.556990   3.250440 2.509160
+#> range   0.271476 0.0427707   0.198177 0.268377   0.365765 0.272486
 #> nu      0.842128 0.0425313   0.750413 0.846012   0.915285 0.860241
 result_df_matern <- data.frame(
   parameter = c("sigma", "range", "nu"),
@@ -611,8 +611,8 @@ result_df_matern <- data.frame(
 )
 print(result_df_matern)
 #>   parameter true      mean      mode
-#> 1     sigma 2.00 2.5800996 2.5974698
-#> 2     range 0.25 0.2715623 0.2514016
+#> 1     sigma 2.00 2.5814469 2.5091592
+#> 2     range 0.25 0.2714759 0.2724861
 #> 3        nu 1.30 0.8421276 0.8602406
 ```
 
@@ -756,8 +756,8 @@ summary(fit_rspde)
 #> Number of function calls by 'optim' = 145
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  49.77314 secs 
-#>   set up the parallelization = 2.78144 secs
+#> Time used to:     fit the model =  48.70528 secs 
+#>   set up the parallelization = 2.73246 secs
 ```
 
 Let us compare with the true values:
@@ -776,7 +776,7 @@ print(data.frame(
 
 # Time to fit
 print(fit_rspde$fitting_tim)
-#> Time difference of 49.77314 secs
+#> Time difference of 48.70529 secs
 ```
 
 ### Kriging with `rSPDE`

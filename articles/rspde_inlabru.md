@@ -310,7 +310,7 @@ summary(rspde_fit)
 ```
 
     ## inlabru version: 2.15.0 
-    ## INLA version: 26.08.07 
+    ## INLA version: 26.08.22 
     ## Latent components:
     ## Intercept: main = linear(1)
     ## distSea: main = rw1(seaDist)
@@ -324,7 +324,7 @@ summary(rspde_fit)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[Intercept, distSea, field], latent[] 
     ## Time used:
-    ##     Pre = 0.284, Running = 7.05, Post = 0.0975, Total = 7.44 
+    ##     Pre = 0.159, Running = 7.05, Post = 0.102, Total = 7.31 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
     ## Intercept 1.942 0.042       1.86    1.942      2.023 1.942   0
@@ -445,9 +445,9 @@ summary(result_fit_matern)
 ```
 
     ##             mean        sd 0.025quant 0.5quant 0.975quant      mode
-    ## std.dev 4.933680 32.321900  -0.131446 1.451630   31.20170 -0.210957
-    ## range   0.437971  0.242207   0.049421 0.425594    0.96111  0.445463
-    ## nu      1.466000  0.588442   0.209108 1.741890    1.99985  1.999990
+    ## std.dev 5.361980 47.654600 -0.0953519 1.741870  28.209300 -0.176325
+    ## range   0.438883  0.233215  0.0557886 0.428024   0.942785  0.428129
+    ## nu      1.466000  0.588442  0.2091080 1.741890   1.999850  1.999990
 
 In a similar manner, we can obtain posterior plots on the `matern`
 parameterization:
@@ -774,7 +774,7 @@ summary(rspde_fit.rep)
 ```
 
     ## inlabru version: 2.15.0 
-    ## INLA version: 26.08.07 
+    ## INLA version: 26.08.22 
     ## Latent components:
     ## field: main = cgeneric(geometry), replicate = iid(repl)
     ## Observation models:
@@ -786,24 +786,24 @@ summary(rspde_fit.rep)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.166, Running = 87.9, Post = 3.66, Total = 91.8 
+    ##     Pre = 0.152, Running = 51.3, Post = 3.25, Total = 54.7 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
     ## 
     ## Model hyperparameters:
-    ##                                          mean    sd 0.025quant 0.5quant
-    ## Precision for the Gaussian observations 94.36 4.699     85.872   94.108
-    ## Theta1 for field                        -3.25 0.074     -3.429   -3.240
-    ## Theta2 for field                         3.17 0.031      3.107    3.164
-    ## Theta3 for field                        -0.63 0.030     -0.673   -0.633
+    ##                                           mean    sd 0.025quant 0.5quant
+    ## Precision for the Gaussian observations 91.179 4.582     82.462   91.075
+    ## Theta1 for field                        -3.264 0.049     -3.372   -3.260
+    ## Theta2 for field                         3.095 0.032      3.033    3.094
+    ## Theta3 for field                        -0.575 0.027     -0.623   -0.577
     ##                                         0.975quant   mode
-    ## Precision for the Gaussian observations    104.351 93.277
-    ## Theta1 for field                            -3.152 -3.176
-    ## Theta2 for field                             3.227  3.162
-    ## Theta3 for field                            -0.561 -0.654
+    ## Precision for the Gaussian observations    100.499 90.888
+    ## Theta1 for field                            -3.184 -3.239
+    ## Theta2 for field                             3.158  3.094
+    ## Theta3 for field                            -0.516 -0.586
     ## 
-    ## Marginal log-Likelihood:  -4498.14 
+    ## Marginal log-Likelihood:  -4533.21 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -817,9 +817,9 @@ summary(result_fit_rep)
 ```
 
     ##             mean         sd 0.025quant   0.5quant 0.975quant      mode
-    ## tau    0.0388115 0.00279194  0.0324887  0.0392439  0.0427887  0.041771
-    ## kappa 23.6990000 0.72015500 22.3565000 23.6711000 25.1830000 23.594300
-    ## nu     0.6950800 0.01342710  0.6755410  0.6928620  0.7262400  0.684130
+    ## tau    0.0382766 0.00183027   0.034362  0.0384385   0.041427  0.039104
+    ## kappa 22.0906000 0.69457900  20.771600 22.0739000  23.498900 22.032800
+    ## nu     0.7200830 0.01254460   0.698454  0.7189400   0.747260  0.714998
 
 ``` r
 
@@ -841,9 +841,9 @@ print(result_df)
 ```
 
     ##   parameter        true        mean        mode
-    ## 1       tau  0.08920621  0.03881151  0.04177099
-    ## 2     kappa 20.00000000 23.69902547 23.59425534
-    ## 3        nu  0.50000000  0.69508040  0.68412995
+    ## 1       tau  0.08920621  0.03827659  0.03910402
+    ## 2     kappa 20.00000000 22.09063571 22.03283196
+    ## 3        nu  0.50000000  0.72008262  0.71499750
 
 Let us also obtain the summary on the `matern` parameterization:
 
@@ -854,10 +854,10 @@ result_fit_rep_matern <- rspde.result(rspde_fit.rep, "field", rspde_model.rep,
 summary(result_fit_rep_matern)
 ```
 
-    ##              mean         sd 0.025quant  0.5quant 0.975quant      mode
-    ## std.dev 1.0895900 0.01321870  1.0645400 1.0891600   1.116550 1.0891400
-    ## range   0.0991404 0.00356407  0.0924472 0.0990584   0.106285 0.0985392
-    ## nu      0.6950800 0.01342710  0.6755410 0.6928620   0.726240 0.6841300
+    ##             mean         sd 0.025quant 0.5quant 0.975quant     mode
+    ## std.dev 1.100150 0.01199380   1.077190 1.099990   1.124300 1.099950
+    ## range   0.108489 0.00381035   0.101274 0.108385   0.116115 0.107466
+    ## nu      0.720083 0.01254460   0.698454 0.718940   0.747260 0.714998
 
 ``` r
 
@@ -878,10 +878,10 @@ result_df_matern <- data.frame(
 print(result_df_matern)
 ```
 
-    ##   parameter true       mean      mode
-    ## 1   std_dev  1.0 1.08959138 0.6841299
-    ## 2     range  0.1 0.09914037 0.6841299
-    ## 3        nu  0.5 0.69508040 0.6841299
+    ##   parameter true      mean      mode
+    ## 1   std_dev  1.0 1.1001484 0.7149975
+    ## 2     range  0.1 0.1084893 0.7149975
+    ## 3        nu  0.5 0.7200826 0.7149975
 
 ## An example with a non-stationary model
 
@@ -1053,7 +1053,7 @@ summary(rspde_fit_nonstat)
 ```
 
     ## inlabru version: 2.15.0 
-    ## INLA version: 26.08.07 
+    ## INLA version: 26.08.22 
     ## Latent components:
     ## field: main = cgeneric(geometry)
     ## Observation models:
@@ -1065,7 +1065,7 @@ summary(rspde_fit_nonstat)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.143, Running = 20, Post = 0.155, Total = 20.3 
+    ##     Pre = 0.131, Running = 20, Post = 0.128, Total = 20.3 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1216,13 +1216,13 @@ cv_result
 ```
 
     ##           Model               mse               mae               dss
-    ## 1    stationary   51357227.579201  1800.50121396001  1.31864073513529
-    ## 2 nonstationary 0.134683917155879 0.270175465849909 -1.28870935318337
+    ## 1    stationary 0.138460140723334 0.273559199620218   -1.149413909459
+    ## 2 nonstationary 0.136977786818011 0.272858063766952 -1.24978752077686
     ##            Best     nonstationary     nonstationary     nonstationary
     ##                crps             scrps
-    ## 1 -2299.93672207565  1.00797740766066
-    ## 2 0.189302150887936 0.478992363636379
-    ##          stationary     nonstationary
+    ## 1 0.193720546781071 0.499388244606403
+    ## 2 0.190871127196939 0.484981786052915
+    ##       nonstationary     nonstationary
 
 The
 [`cross_validation()`](https://davidbolin.github.io/rSPDE/reference/cross_validation.md)

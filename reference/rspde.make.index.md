@@ -73,8 +73,7 @@ A list of named index vectors.
 
 ``` r
 # \donttest{
-# devel version
-if (requireNamespace("INLA", quietly = TRUE)) {
+if (rspde_safe_inla()) {
   library(INLA)
 
   set.seed(123)
@@ -109,25 +108,6 @@ if (requireNamespace("INLA", quietly = TRUE)) {
     A = Abar,
     effects = mesh.index
   )
-  rspde_model <- rspde.matern(
-    mesh = mesh_2d,
-    nu.upper.bound = 2
-  )
-  f <- y ~ -1 + f(field, model = rspde_model)
-  rspde_fit <- inla(f,
-    data = inla.stack.data(st.dat),
-    family = "gaussian",
-    control.predictor =
-      list(A = inla.stack.A(st.dat))
-  )
-  result <- rspde.result(rspde_fit, "field", rspde_model)
-  summary(result)
 }
-#> Warning: the mean or mode of nu is very close to nu.upper.bound, please consider increasing nu.upper.bound, and refitting the model.
-#>             mean        sd  0.025quant    0.5quant 0.975quant        mode
-#> tau    0.0131117  0.031975 3.99939e-11  0.00107059   0.100709 3.99939e-11
-#> kappa 25.7081000 12.928900 1.26271e+01 21.90020000  60.724000 1.59911e+01
-#> nu     1.5087300  0.453499 5.68376e-01  1.65180000   1.997740 1.99992e+00
-# devel.tag
 # }
 ```

@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.5.2.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2024-10-23. Last
-modified: 2026-08-10.</h4>
+modified: 2026-08-30.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel/vignettes/spacetime.Rmd" class="external-link"><code>vignettes/spacetime.Rmd</code></a></small>
       <div class="d-none name"><code>spacetime.Rmd</code></div>
@@ -310,8 +310,8 @@ model:</p>
 <span><span class="co">#&gt; Number of function calls by 'optim' = 50</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  23.40762 secs </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 5.37599 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  23.34826 secs </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 5.47036 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -537,30 +537,30 @@ fitting:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Fixed effects:</span></span>
 <span><span class="co">#&gt;             Estimate Std.error z-value Pr(&gt;|z|)</span></span>
-<span><span class="co">#&gt; (Intercept)  0.03702   0.04815   0.769    0.442</span></span>
+<span><span class="co">#&gt; (Intercept) -0.06204   0.05254  -1.181    0.238</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;               Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; kappa          9.71690   0.74406  13.059</span></span>
-<span><span class="co">#&gt; sigma         11.91772   6.46226   1.844</span></span>
-<span><span class="co">#&gt; gamma          0.06230   0.03416   1.824</span></span>
-<span><span class="co">#&gt; rho            0.07952   0.60347   0.132</span></span>
-<span><span class="co">#&gt; rho2           0.12814   0.76728   0.167</span></span>
+<span><span class="co">#&gt; kappa          9.07478   0.77151  11.762</span></span>
+<span><span class="co">#&gt; sigma         17.02583  24.20140   0.704</span></span>
+<span><span class="co">#&gt; gamma          0.09088   0.12872   0.706</span></span>
+<span><span class="co">#&gt; rho           -0.16257   0.98204  -0.166</span></span>
+<span><span class="co">#&gt; rho2          -0.13612   0.81533  -0.167</span></span>
 <span><span class="co">#&gt; alpha (fixed)  1.00000        NA      NA</span></span>
 <span><span class="co">#&gt; beta (fixed)   1.00000        NA      NA</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Measurement error:</span></span>
 <span><span class="co">#&gt;          Estimate Std.error z-value</span></span>
-<span><span class="co">#&gt; std. dev  0.04683   0.10797   0.434</span></span>
+<span><span class="co">#&gt; std. dev  0.04151   0.11110   0.374</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Log-Likelihood:  149.8674 </span></span>
-<span><span class="co">#&gt; Number of function calls by 'optim' = 81</span></span>
+<span><span class="co">#&gt; Log-Likelihood:  160.9372 </span></span>
+<span><span class="co">#&gt; Number of function calls by 'optim' = 97</span></span>
 <span><span class="co">#&gt; Optimization method used in 'optim' = L-BFGS-B</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Time used to:     fit the model =  2.72746 mins </span></span>
-<span><span class="co">#&gt;   set up the parallelization = 6.09115 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time used to:     fit the model =  2.86403 mins </span></span>
+<span><span class="co">#&gt;   set up the parallelization = 5.9755 secs</span></span></code></pre></div>
 <p>Let us compare the estimated results with the true values:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -575,9 +575,12 @@ fitting:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             kappa    sigma      gamma      rho_1    rho_2    sigma.e  intercept</span></span>
-<span><span class="co">#&gt; True     9.900000 29.00000 0.11000000 0.20000000 0.300000 0.01000000 0.00000000</span></span>
-<span><span class="co">#&gt; Estimate 9.716897 11.91772 0.06229696 0.07952028 0.128144 0.04683421 0.03702207</span></span></code></pre></div>
+<span><span class="co">#&gt;             kappa    sigma      gamma      rho_1      rho_2    sigma.e</span></span>
+<span><span class="co">#&gt; True     9.900000 29.00000 0.11000000  0.2000000  0.3000000 0.01000000</span></span>
+<span><span class="co">#&gt; Estimate 9.074785 17.02583 0.09087809 -0.1625653 -0.1361213 0.04150663</span></span>
+<span><span class="co">#&gt;            intercept</span></span>
+<span><span class="co">#&gt; True      0.00000000</span></span>
+<span><span class="co">#&gt; Estimate -0.06203761</span></span></code></pre></div>
 <p>Let us now use our <code>inlabru</code> implementation. We first
 define the model.</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
@@ -614,12 +617,12 @@ parameters) with the true values:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              kappa        sigma        gamma      rho_1        rho_2</span></span>
-<span><span class="co">#&gt; True     9.9000000 2.900000e+01 1.100000e-01 0.20000000  0.300000000</span></span>
-<span><span class="co">#&gt; Estimate 0.2937595 3.894918e-05 8.955776e-09 0.01632901 -0.009089682</span></span>
-<span><span class="co">#&gt;               sigma.e intercept</span></span>
-<span><span class="co">#&gt; True     0.0100000000 0.0000000</span></span>
-<span><span class="co">#&gt; Estimate 0.0005196822 0.4929327</span></span></code></pre></div>
+<span><span class="co">#&gt;              kappa        sigma        gamma       rho_1       rho_2</span></span>
+<span><span class="co">#&gt; True     9.9000000 2.900000e+01 1.100000e-01  0.20000000  0.30000000</span></span>
+<span><span class="co">#&gt; Estimate 0.2970484 3.925928e-05 9.066803e-09 -0.01537585 -0.03274914</span></span>
+<span><span class="co">#&gt;              sigma.e intercept</span></span>
+<span><span class="co">#&gt; True     0.010000000 0.0000000</span></span>
+<span><span class="co">#&gt; Estimate 0.000520211 0.4932864</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">

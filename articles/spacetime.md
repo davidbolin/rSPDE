@@ -248,8 +248,8 @@ summary(res)
 #> Number of function calls by 'optim' = 50
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  23.40762 secs 
-#>   set up the parallelization = 5.37599 secs
+#> Time used to:     fit the model =  23.34826 secs 
+#>   set up the parallelization = 5.47036 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -526,30 +526,30 @@ summary(res_2d)
 #> 
 #> Fixed effects:
 #>             Estimate Std.error z-value Pr(>|z|)
-#> (Intercept)  0.03702   0.04815   0.769    0.442
+#> (Intercept) -0.06204   0.05254  -1.181    0.238
 #> 
 #> Random effects:
 #>               Estimate Std.error z-value
-#> kappa          9.71690   0.74406  13.059
-#> sigma         11.91772   6.46226   1.844
-#> gamma          0.06230   0.03416   1.824
-#> rho            0.07952   0.60347   0.132
-#> rho2           0.12814   0.76728   0.167
+#> kappa          9.07478   0.77151  11.762
+#> sigma         17.02583  24.20140   0.704
+#> gamma          0.09088   0.12872   0.706
+#> rho           -0.16257   0.98204  -0.166
+#> rho2          -0.13612   0.81533  -0.167
 #> alpha (fixed)  1.00000        NA      NA
 #> beta (fixed)   1.00000        NA      NA
 #> 
 #> Measurement error:
 #>          Estimate Std.error z-value
-#> std. dev  0.04683   0.10797   0.434
+#> std. dev  0.04151   0.11110   0.374
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
 #> 
-#> Log-Likelihood:  149.8674 
-#> Number of function calls by 'optim' = 81
+#> Log-Likelihood:  160.9372 
+#> Number of function calls by 'optim' = 97
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  2.72746 mins 
-#>   set up the parallelization = 6.09115 secs
+#> Time used to:     fit the model =  2.86403 mins 
+#>   set up the parallelization = 5.9755 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -568,9 +568,12 @@ results <- data.frame(
 )
 
 print(results)
-#>             kappa    sigma      gamma      rho_1    rho_2    sigma.e  intercept
-#> True     9.900000 29.00000 0.11000000 0.20000000 0.300000 0.01000000 0.00000000
-#> Estimate 9.716897 11.91772 0.06229696 0.07952028 0.128144 0.04683421 0.03702207
+#>             kappa    sigma      gamma      rho_1      rho_2    sigma.e
+#> True     9.900000 29.00000 0.11000000  0.2000000  0.3000000 0.01000000
+#> Estimate 9.074785 17.02583 0.09087809 -0.1625653 -0.1361213 0.04150663
+#>            intercept
+#> True      0.00000000
+#> Estimate -0.06203761
 ```
 
 Let us now use our `inlabru` implementation. We first define the model.
@@ -622,12 +625,12 @@ results <- data.frame(
 )
 
 print(results)
-#>              kappa        sigma        gamma      rho_1        rho_2
-#> True     9.9000000 2.900000e+01 1.100000e-01 0.20000000  0.300000000
-#> Estimate 0.2937595 3.894918e-05 8.955776e-09 0.01632901 -0.009089682
-#>               sigma.e intercept
-#> True     0.0100000000 0.0000000
-#> Estimate 0.0005196822 0.4929327
+#>              kappa        sigma        gamma       rho_1       rho_2
+#> True     9.9000000 2.900000e+01 1.100000e-01  0.20000000  0.30000000
+#> Estimate 0.2970484 3.925928e-05 9.066803e-09 -0.01537585 -0.03274914
+#>              sigma.e intercept
+#> True     0.010000000 0.0000000
+#> Estimate 0.000520211 0.4932864
 ```
 
 ## Fit with `bounded_rho = FALSE`

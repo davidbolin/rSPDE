@@ -86,13 +86,11 @@ rspde.intrinsic.matern(
 
 - shared_lib:
 
-  Which shared lib to use for the cgeneric implementation? If "detect",
-  it will check if the shared lib exists locally, in which case it will
-  use it. Otherwise it will use INLA's shared library. If "INLA", it
-  will use the shared lib from INLA's installation. If 'rSPDE', then it
-  will use the local installation (does not work if your installation is
-  from CRAN). Otherwise, you can directly supply the path of the .so (or
-  .dll) file.
+  Which shared lib to use for the cgeneric implementation? `"detect"`
+  and `"INLA"` prefer the model compiled into the INLA binary and fall
+  back to a compiled local rSPDE library when the symbol is unavailable.
+  `"rSPDE"` requires the local library. An existing `.so` or `.dll` path
+  can also be supplied directly.
 
 - ...:
 

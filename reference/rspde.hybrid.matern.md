@@ -124,12 +124,10 @@ Eigen.
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 library(INLA)
 x <- seq(0, 1, length.out = 81)
 mesh <- fmesher::fm_mesh_1d(x)
 X <- cbind(sin(2 * pi * x), cos(2 * pi * x))
 hyb <- rspde.hybrid.matern(mesh = mesh, X = X)
 # ... use in formula: y ~ -1 + f(idx, model = hyb)
-} # }
 ```

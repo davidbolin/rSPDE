@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.5.2.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -92,19 +92,18 @@
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
-<span class="r-in"><span><span class="co"># devel version</span></span></span>
-<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"INLA"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">&amp;&amp;</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="rspde_safe_inla.html">rspde_safe_inla</a></span><span class="op">(</span><span class="op">)</span> <span class="op">&amp;&amp;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"inlabru"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://www.inlabru.org" class="external-link">inlabru</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="va">m</span> <span class="op">&lt;-</span> <span class="fl">100</span></span></span>
+<span class="r-in"><span>  <span class="va">m</span> <span class="op">&lt;-</span> <span class="fl">50</span></span></span>
 <span class="r-in"><span>  <span class="va">loc_2d_mesh</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">m</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span>, <span class="va">m</span>, <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">mesh_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.2d.html" class="external-link">inla.mesh.2d</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    loc <span class="op">=</span> <span class="va">loc_2d_mesh</span>,</span></span>
-<span class="r-in"><span>    cutoff <span class="op">=</span> <span class="fl">0.05</span>,</span></span>
-<span class="r-in"><span>    max.edge <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    cutoff <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
+<span class="r-in"><span>    max.edge <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span>  <span class="va">range</span> <span class="op">&lt;-</span> <span class="fl">0.2</span></span></span>
@@ -112,7 +111,7 @@
 <span class="r-in"><span>  <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">8</span> <span class="op">*</span> <span class="va">nu</span><span class="op">)</span> <span class="op">/</span> <span class="va">range</span></span></span>
 <span class="r-in"><span>  <span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="matern.operators.html">matern.operators</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    mesh <span class="op">=</span> <span class="va">mesh_2d</span>, nu <span class="op">=</span> <span class="va">nu</span>,</span></span>
-<span class="r-in"><span>    range <span class="op">=</span> <span class="va">range</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, m <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>    range <span class="op">=</span> <span class="va">range</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, m <span class="op">=</span> <span class="fl">1</span>,</span></span>
 <span class="r-in"><span>    parameterization <span class="op">=</span> <span class="st">"matern"</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></span>
@@ -130,7 +129,7 @@
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">rspde_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="rspde.matern.html">rspde.matern</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    mesh <span class="op">=</span> <span class="va">mesh_2d</span>,</span></span>
-<span class="r-in"><span>    nu_upper_bound <span class="op">=</span> <span class="fl">2</span></span></span>
+<span class="r-in"><span>    nu_upper_bound <span class="op">=</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="va">cmp</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="fu">Intercept</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span></span>
@@ -140,6 +139,7 @@
 <span class="r-in"><span>  <span class="va">rspde_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru</a></span><span class="op">(</span><span class="va">cmp</span>, data <span class="op">=</span> <span class="va">data_df</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Changing INLA option num.threads from '4:1' to '1:1:1'.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`inla.mesh.2d()` was deprecated in INLA 23.08.18.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Please use `fmesher::fm_mesh_2d_inla()` instead.</span>
@@ -150,7 +150,7 @@
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> To ensure visibility of these messages in package tests, also set</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>   `inla.setOption(fmesher.evolution.verbosity = 'warn')`.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> inlabru version: 2.15.0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> INLA version: 26.08.07 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> INLA version: 26.08.22 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Latent components:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Intercept: main = linear(1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> field: main = cgeneric(cbind(x1, x2))</span>
@@ -163,10 +163,10 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Used components: effect[Intercept, field], latent[] </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Time used:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 0.682, Running = 1.51, Post = 0.0687, Total = 2.26 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 0.149, Running = 0.408, Post = 0.0621, Total = 0.619 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.305 0.165     -0.023    0.305      0.634 0.305   0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.315 0.196     -0.084    0.317        0.7 0.317   0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name	  Model</span>
@@ -174,22 +174,21 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Model hyperparameters:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                           mean     sd 0.025quant 0.5quant</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 129.30 79.901      21.91   111.68</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                        -10.41  6.256     -25.25    -9.38</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                          3.47  0.627       2.59     3.39</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                          3.49  3.422      -1.14     2.93</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                         0.975quant   mode</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations     321.24 66.804</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                             -1.95 -3.998</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                              4.95  2.875</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                             11.61 -0.013</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations 143.14 51.940      64.60   135.38</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                         -5.60  2.817     -12.03    -5.27</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                          2.69  0.467       1.89     2.66</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                          1.21  1.700      -1.45     1.02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                         0.975quant    mode</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Precision for the Gaussian observations     266.15 121.059</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta1 for field                             -1.22  -3.659</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta2 for field                              3.71   2.500</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta3 for field                              5.08   0.082</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Marginal log-Likelihood:  -106.40 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Marginal log-Likelihood:  -34.34 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  is computed </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Posterior summaries for the linear predictor and the fitted values are computed</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="co"># devel.tag</span></span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

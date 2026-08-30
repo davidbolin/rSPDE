@@ -32,18 +32,17 @@ Returns a `data.frame` containing the summary.
 
 ``` r
 # \donttest{
-# devel version
-if (requireNamespace("INLA", quietly = TRUE)) {
+if (rspde_safe_inla()) {
   library(INLA)
 
   set.seed(123)
 
-  m <- 100
+  m <- 50
   loc_2d_mesh <- matrix(runif(m * 2), m, 2)
   mesh_2d <- inla.mesh.2d(
     loc = loc_2d_mesh,
-    cutoff = 0.05,
-    max.edge = c(0.1, 0.5)
+    cutoff = 0.1,
+    max.edge = c(0.5, 0.5)
   )
   sigma <- 1
   range <- 0.2
@@ -51,7 +50,7 @@ if (requireNamespace("INLA", quietly = TRUE)) {
   kappa <- sqrt(8 * nu) / range
   op <- matern.operators(
     mesh = mesh_2d, nu = nu,
-    range = range, sigma = sigma, m = 2,
+    range = range, sigma = sigma, m = 1,
     parameterization = "matern"
   )
   u <- simulate(op)
@@ -70,7 +69,7 @@ if (requireNamespace("INLA", quietly = TRUE)) {
   )
   rspde_model <- rspde.matern(
     mesh = mesh_2d,
-    nu.upper.bound = 2
+    nu.upper.bound = 1
   )
   f <- y ~ -1 + f(field, model = rspde_model)
   rspde_fit <- inla(f,
@@ -83,10 +82,9 @@ if (requireNamespace("INLA", quietly = TRUE)) {
   summary(result)
 }
 #> Warning: the mean or mode of nu is very close to nu.upper.bound, please consider increasing nu.upper.bound, and refitting the model.
-#>             mean         sd  0.025quant    0.5quant 0.975quant        mode
-#> tau    0.0125688  0.0285606 6.72198e-11  0.00114403  0.0941992 6.72198e-11
-#> kappa 25.1492000 12.0707000 1.27140e+01 21.63640000 57.7347000 1.60254e+01
-#> nu     1.5046100  0.4484560 5.82755e-01  1.63943000  1.9972700 1.99986e+00
-# devel.tag
+#>            mean        sd 0.025quant   0.5quant 0.975quant        mode
+#> tau    0.146132  0.309758 0.00009511  0.0341516   0.963156 1.06359e-06
+#> kappa 14.892600 13.024600 4.01405000 10.7904000  50.476100 6.69931e+00
+#> nu     0.736905  0.294736 0.09246090  0.8774770   0.999912 9.99990e-01
 # }
 ```

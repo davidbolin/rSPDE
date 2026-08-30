@@ -42,19 +42,18 @@ ibm_jacobian.bru_mapper_inla_rspde(mapper, input, ...)
 
 ``` r
 # \donttest{
-# devel version
-if (requireNamespace("INLA", quietly = TRUE) &&
+if (rspde_safe_inla() &&
   requireNamespace("inlabru", quietly = TRUE)) {
   library(INLA)
   library(inlabru)
 
   set.seed(123)
-  m <- 100
+  m <- 50
   loc_2d_mesh <- matrix(runif(m * 2), m, 2)
   mesh_2d <- inla.mesh.2d(
     loc = loc_2d_mesh,
-    cutoff = 0.05,
-    max.edge = c(0.1, 0.5)
+    cutoff = 0.1,
+    max.edge = c(0.5, 0.5)
   )
   sigma <- 1
   range <- 0.2
@@ -62,7 +61,7 @@ if (requireNamespace("INLA", quietly = TRUE) &&
   kappa <- sqrt(8 * nu) / range
   op <- matern.operators(
     mesh = mesh_2d, nu = nu,
-    range = range, sigma = sigma, m = 2,
+    range = range, sigma = sigma, m = 1,
     parameterization = "matern"
   )
   u <- simulate(op)
@@ -80,7 +79,7 @@ if (requireNamespace("INLA", quietly = TRUE) &&
   )
   rspde_model <- rspde.matern(
     mesh = mesh_2d,
-    nu_upper_bound = 2
+    nu_upper_bound = 1
   )
 
   cmp <- y ~ Intercept(1) +
@@ -90,6 +89,7 @@ if (requireNamespace("INLA", quietly = TRUE) &&
   rspde_fit <- bru(cmp, data = data_df)
   summary(rspde_fit)
 }
+#> Changing INLA option num.threads from '4:1' to '1:1:1'.
 #> 
 #> Warning: `inla.mesh.2d()` was deprecated in INLA 23.08.18.
 #> ℹ Please use `fmesher::fm_mesh_2d_inla()` instead.
@@ -100,7 +100,7 @@ if (requireNamespace("INLA", quietly = TRUE) &&
 #> ℹ To ensure visibility of these messages in package tests, also set
 #>   `inla.setOption(fmesher.evolution.verbosity = 'warn')`.
 #> inlabru version: 2.15.0 
-#> INLA version: 26.08.07 
+#> INLA version: 26.08.22 
 #> Latent components:
 #> Intercept: main = linear(1)
 #> field: main = cgeneric(cbind(x1, x2))
@@ -113,10 +113,10 @@ if (requireNamespace("INLA", quietly = TRUE) &&
 #>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 #>     Used components: effect[Intercept, field], latent[] 
 #> Time used:
-#>     Pre = 0.682, Running = 1.51, Post = 0.0687, Total = 2.26 
+#>     Pre = 0.149, Running = 0.408, Post = 0.0621, Total = 0.619 
 #> Fixed effects:
 #>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-#> Intercept 0.305 0.165     -0.023    0.305      0.634 0.305   0
+#> Intercept 0.315 0.196     -0.084    0.317        0.7 0.317   0
 #> 
 #> Random effects:
 #>   Name     Model
@@ -124,21 +124,20 @@ if (requireNamespace("INLA", quietly = TRUE) &&
 #> 
 #> Model hyperparameters:
 #>                                           mean     sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 129.30 79.901      21.91   111.68
-#> Theta1 for field                        -10.41  6.256     -25.25    -9.38
-#> Theta2 for field                          3.47  0.627       2.59     3.39
-#> Theta3 for field                          3.49  3.422      -1.14     2.93
-#>                                         0.975quant   mode
-#> Precision for the Gaussian observations     321.24 66.804
-#> Theta1 for field                             -1.95 -3.998
-#> Theta2 for field                              4.95  2.875
-#> Theta3 for field                             11.61 -0.013
+#> Precision for the Gaussian observations 143.14 51.940      64.60   135.38
+#> Theta1 for field                         -5.60  2.817     -12.03    -5.27
+#> Theta2 for field                          2.69  0.467       1.89     2.66
+#> Theta3 for field                          1.21  1.700      -1.45     1.02
+#>                                         0.975quant    mode
+#> Precision for the Gaussian observations     266.15 121.059
+#> Theta1 for field                             -1.22  -3.659
+#> Theta2 for field                              3.71   2.500
+#> Theta3 for field                              5.08   0.082
 #> 
-#> Marginal log-Likelihood:  -106.40 
+#> Marginal log-Likelihood:  -34.34 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
 #> 
-# devel.tag
 # }
 ```
