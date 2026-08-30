@@ -324,7 +324,7 @@ summary(rspde_fit)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[Intercept, distSea, field], latent[] 
     ## Time used:
-    ##     Pre = 0.159, Running = 7.05, Post = 0.102, Total = 7.31 
+    ##     Pre = 0.165, Running = 6.93, Post = 0.0956, Total = 7.19 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
     ## Intercept 1.942 0.042       1.86    1.942      2.023 1.942   0
@@ -786,7 +786,7 @@ summary(rspde_fit.rep)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.152, Running = 51.3, Post = 3.25, Total = 54.7 
+    ##     Pre = 0.148, Running = 50, Post = 2.88, Total = 53 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1065,7 +1065,7 @@ summary(rspde_fit_nonstat)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.131, Running = 20, Post = 0.128, Total = 20.3 
+    ##     Pre = 0.136, Running = 19.8, Post = 0.133, Total = 20 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1216,12 +1216,12 @@ cv_result
 ```
 
     ##           Model               mse               mae               dss
-    ## 1    stationary 0.138460140723334 0.273559199620218   -1.149413909459
-    ## 2 nonstationary 0.136977786818011 0.272858063766952 -1.24978752077686
+    ## 1    stationary 0.138810359579694 0.273947709644101 -1.15540733448085
+    ## 2 nonstationary 0.137079943192686 0.273242273617091 -1.25410147946782
     ##            Best     nonstationary     nonstationary     nonstationary
     ##                crps             scrps
-    ## 1 0.193720546781071 0.499388244606403
-    ## 2 0.190871127196939 0.484981786052915
+    ## 1 0.193950246717686 0.499396534993666
+    ## 2 0.192089082233756 0.488221005774205
     ##       nonstationary     nonstationary
 
 The

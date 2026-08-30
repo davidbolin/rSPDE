@@ -713,8 +713,8 @@ summary(fit_2d)
 #> Number of function calls by 'optim' = 61
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  1.25447 mins 
-#>   set up the parallelization = 2.6526 secs
+#> Time used to:     fit the model =  1.27961 mins 
+#>   set up the parallelization = 2.64173 secs
 ```
 
 and glance:
@@ -744,7 +744,7 @@ print(data.frame(
 
 # Total time
 print(fit_2d$fitting_time)
-#> Time difference of 1.254472 mins
+#> Time difference of 1.279614 mins
 ```
 
 Finally, we observe that we can use the
@@ -808,8 +808,8 @@ summary(fit_2d)
 #> Number of function calls by 'optim' = 28
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  1.21149 mins 
-#>   set up the parallelization = 2.60545 secs
+#> Time used to:     fit the model =  1.22819 mins 
+#>   set up the parallelization = 2.68083 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -828,7 +828,7 @@ print(data.frame(
 
 # Total time
 print(fit_2d$fitting_time)
-#> Time difference of 1.211495 mins
+#> Time difference of 1.228196 mins
 ```
 
 ## References
