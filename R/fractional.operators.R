@@ -1045,6 +1045,9 @@ CBrSPDE.matern.operators <- function(C,
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are
 #' "brasil", "chebfun" or "chebfunLB".
+#' @param check_stationarity Logical; if TRUE, automatically returns a stationary
+#' model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
+#' non-stationary model even when parameters are constant.
 #'
 #'
 #' @details The approximation is based on a rational approximation of the
@@ -1120,7 +1123,8 @@ spde.matern.operators <- function(kappa = NULL,
                                     "brasil",
                                     "chebfun",
                                     "chebfunLB"
-                                  )) {
+                                  ),
+                                  check_stationarity = TRUE) {
   is_constant_param <- function(x) {
     x <- as.numeric(x)
     length(unique(x)) == 1
@@ -1387,7 +1391,13 @@ spde.matern.operators <- function(kappa = NULL,
     }
   }
 
-  if (!is.null(tau) && !is.null(kappa) &&
+  has_spatially_varying_B <- nrow(B.tau) > 1 && ncol(B.tau) > 1 && (
+    any(apply(B.tau[, -1, drop = FALSE], 2, function(x) length(unique(x)) > 1)) ||
+    any(apply(B.kappa[, -1, drop = FALSE], 2, function(x) length(unique(x)) > 1)))
+
+  if (check_stationarity &&
+      !has_spatially_varying_B &&
+      !is.null(tau) && !is.null(kappa) &&
       is_constant_param(tau) && is_constant_param(kappa)) {
     if (parameterization == "spde") {
       return(matern.operators(

@@ -52,12 +52,13 @@ Useful links:
 
 Authors:
 \itemize{
+  \item David Bolin \email{davidbolin@gmail.com}
   \item Alexandre Simas \email{alexandre.impa@gmail.com}
 }
 
 Other contributors:
 \itemize{
-  \item Finn Lindgren \email{finn.lindgren@ed.ac.uk} [contributor]
+  \item Finn Lindgren \email{finn.lindgren@gmail.com} [contributor]
 }
 
 }

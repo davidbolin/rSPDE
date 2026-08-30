@@ -71,7 +71,7 @@ direct path to a .so (or .dll) file.}
 If NULL (default), it will be computed using RSpectra::eigs.
 Must be positive if provided.}
 
-\item{opts}{A list of options passed to RSpectra::eigs function.
+\item{opts}{A list of options passed to \code{RSpectra::eigs} function.
 See RSpectra documentation for available options.}
 
 \item{...}{Additional arguments passed internally for configuration purposes.}
@@ -87,10 +87,11 @@ differential equation (SPDE):
 \deqn{(-\Delta)^{(\nu+d/2)/2}\tau u = W}.
 }
 \examples{
+\dontshow{if (rspde_safe_inla()) withAutoprint(\{ # examplesIf}
 library(fmesher)
 n_loc <- 2000
 loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
 mesh_2d <- fm_mesh_2d(loc = loc_2d_mesh, cutoff = 0.03, max.edge = c(0.1, 0.5))
 model <- rspde.intrinsic(mesh = mesh_2d)
-
+\dontshow{\}) # examplesIf}
 }

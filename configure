@@ -1,0 +1,40 @@
+#!/bin/sh
+# rSPDE optional-compilation configure script.
+#
+# Compilation of the C/C++ cgeneric sources is opt-in. The default
+# install is pure-R, matching the CRAN release. Users who want the
+# compiled INLA cgeneric shared library can request it explicitly:
+#
+#     remotes::install_github(
+#         "davidbolin/rSPDE",
+#         configure.args = "--enable-compiled"
+#     )
+#
+# or
+#
+#     RSPDE_COMPILE=1 R CMD INSTALL .
+#
+# The CRAN build farm passes neither, so the CRAN binary stays pure-R.
+
+COMPILE="${RSPDE_COMPILE:-0}"
+
+for arg in "$@"; do
+    case "$arg" in
+        --enable-compiled)  COMPILE=1 ;;
+        --disable-compiled) COMPILE=0 ;;
+    esac
+done
+
+mkdir -p src
+
+if [ "$COMPILE" = "1" ] || [ "$COMPILE" = "TRUE" ] || [ "$COMPILE" = "true" ]; then
+    echo "*** rSPDE: compiling C/C++ cgeneric sources"
+    cp inst/src-optional/* src/
+else
+    echo "*** rSPDE: pure-R install (set RSPDE_COMPILE=1 or pass --configure-args='--enable-compiled' to compile)"
+    cat > src/Makevars <<'EOF'
+all:
+	@true
+
+EOF
+fi

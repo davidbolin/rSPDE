@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - devel-src
+      - devel
 
 name: R-CMD-check-mac
 
@@ -12,6 +12,8 @@ permissions:
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
+    env:
+      RSPDE_COMPILE: "1"    
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})    
 
@@ -31,7 +33,7 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
-          extra-repositories: 'https://inla.r-inla-download.org/R/testing https://inlabru-org.r-universe.dev https://mugglejinx.github.io/drat/'
+          extra-repositories: 'https://inla.r-inla-download.org/R/testing'
 
       - name: Install system dependencies on macOS
         if: runner.os == 'macOS'
@@ -41,16 +43,16 @@ jobs:
           brew install pkg-config
           brew install proj@9
           brew install gdal
-          brew install gcc
           brew install eigen
           brew install gcc@14
           sudo mkdir -p /usr/local/include
           sudo mkdir -p /usr/local/bin
-          sudo ln -s $(brew --prefix gcc@14)/bin/gcc-14 /usr/local/bin/gcc
-          sudo ln -s $(brew --prefix gcc@14)/bin/g++-14 /usr/local/bin/g++
-          sudo ln -s $(brew --prefix eigen)/include/eigen3 /usr/local/include/eigen3
-          sudo ln -s $(brew --prefix)/lib /usr/local/brewlib
-          sudo ln -s $(brew --prefix)/include /usr/local/brewinclude
+          sudo ln -sf $(brew --prefix gcc@14)/bin/gcc-14 /usr/local/bin/gcc
+          sudo ln -sf $(brew --prefix gcc@14)/bin/g++-14 /usr/local/bin/g++
+          sudo ln -sf $(brew --prefix gcc@14)/bin/gfortran-14 /usr/local/bin/gfortran
+          sudo ln -sfn $(brew --prefix eigen)/include/eigen3 /usr/local/include/eigen3
+          sudo ln -sfn $(brew --prefix)/lib /usr/local/brewlib
+          sudo ln -sfn $(brew --prefix)/include /usr/local/brewinclude
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -67,5 +69,5 @@ jobs:
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
         with:
-          args: 'c("--no-manual", "--as-cran")'
+          args: 'c("--no-manual", "--as-cran", "--configure-args=--enable-compiled")'
           error-on: '"error"'

@@ -19,6 +19,7 @@
   graph = NULL,
   range_mesh = NULL,
   parameterization = NULL,
+  check_stationarity = TRUE,
   ...
 )
 }
@@ -57,6 +58,10 @@ approximation, which needs to be a positive integer.}
 \item{range_mesh}{The range of the mesh. Will be used to provide starting values for the parameters. Will be used if \code{mesh} and \code{graph} are \code{NULL}, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.}
 
 \item{parameterization}{If non-null, update the parameterization. Only works for stationary models.}
+
+\item{check_stationarity}{Logical; if TRUE, automatically returns a stationary
+model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
+non-stationary model even when parameters are constant.}
 
 \item{...}{Currently not used.}
 }

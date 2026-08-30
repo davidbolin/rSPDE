@@ -1,19 +1,22 @@
 on:
   push:
     branches:
-      - devel-src
+      - devel
 
 name: pkgdown
 
 permissions:
   contents: write
 
-
 jobs:
   pkgdown:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      RSPDE_COMPILE: "1"
+      FLEXIBLAS_LIBRARY_PATH: /usr/local/lib/flexiblas:/opt/intel/oneapi/mkl/latest/lib:/opt/intel/oneapi/mkl/latest/lib/intel64
+      LD_LIBRARY_PATH: /usr/local/lib:/opt/intel/oneapi/mkl/latest/lib:/opt/intel/oneapi/mkl/latest/lib/intel64
+
     steps:
       - uses: actions/checkout@v6
 
@@ -22,21 +25,100 @@ jobs:
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: "release"
-          extra-repositories: "https://inla.r-inla-download.org/R/testing https://mugglejinx.github.io/drat/ https://inlabru-org.r-universe.dev/"
+          extra-repositories: 'https://inla.r-inla-download.org/R/testing'
 
-      - name: Install system dependencies on Linux (GL)
+      - name: Install system dependencies on Linux
         if: runner.os == 'Linux'
         run: |
           set -euo pipefail
-          sudo apt-get update -y && sudo apt-get install -y libglu1-mesa-dev libeigen3-dev
-          sudo ln -s /usr/bin/gcc /usr/local/bin/gcc
-          sudo ln -s /usr/bin/g++ /usr/local/bin/g++          
+
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            gpg-agent \
+            ca-certificates \
+            software-properties-common
+
+          sudo add-apt-repository -y universe
+
+          # Intel oneAPI MKL repo
+          curl -fsSL https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+            | sudo gpg --dearmor -o /usr/share/keyrings/intel-oneapi-archive-keyring.gpg
+
+          echo "deb [signed-by=/usr/share/keyrings/intel-oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+            | sudo tee /etc/apt/sources.list.d/oneapi.list
+
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            libglu1-mesa-dev \
+            libeigen3-dev \
+            build-essential \
+            gfortran \
+            cmake \
+            git \
+            libblas3 \
+            liblapack3 \
+            libopenblas0-pthread \
+            intel-oneapi-mkl \
+            intel-oneapi-mkl-devel \
+            intel-oneapi-openmp
+
+          # Build and install FlexiBLAS from source.
+          git clone --depth 1 https://github.com/mpimd-csc/flexiblas.git /tmp/flexiblas
+
+          cmake -S /tmp/flexiblas -B /tmp/flexiblas/build \
+            -DCMAKE_C_COMPILER=/usr/bin/gcc \
+            -DCMAKE_Fortran_COMPILER=/usr/bin/gfortran \
+            -DCMAKE_INSTALL_PREFIX=/usr/local \
+            -DMKL_BUILDER=OFF \
+            -DENABLE_INTEL_MKL=OFF
+
+          cmake --build /tmp/flexiblas/build -j"$(nproc)"
+          sudo cmake --install /tmp/flexiblas/build
+          sudo ldconfig
+
+          sudo update-alternatives --install \
+            /usr/lib/x86_64-linux-gnu/libblas.so.3 \
+            libblas.so.3-x86_64-linux-gnu \
+            /usr/local/lib/libflexiblas.so.3 100
+
+          sudo update-alternatives --set \
+            libblas.so.3-x86_64-linux-gnu /usr/local/lib/libflexiblas.so.3
+
+          sudo update-alternatives --install \
+            /usr/lib/x86_64-linux-gnu/liblapack.so.3 \
+            liblapack.so.3-x86_64-linux-gnu \
+            /usr/local/lib/libflexiblas.so.3 100
+
+          sudo update-alternatives --set \
+            liblapack.so.3-x86_64-linux-gnu /usr/local/lib/libflexiblas.so.3
+
+          sudo ln -sf /usr/bin/gcc /usr/local/bin/gcc
+          sudo ln -sf /usr/bin/g++ /usr/local/bin/g++
+          sudo ln -sf /usr/bin/gfortran /usr/local/bin/gfortran
+
+      - name: Configure Linux compiler paths in optional Makefile
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+
+          sed -i 's|/opt/homebrew/bin/g++-14|/usr/bin/g++|g' inst/src-optional/Makefile
+          sed -i 's|/opt/homebrew/bin/gcc-14|/usr/bin/gcc|g' inst/src-optional/Makefile
+          sed -i 's|/opt/homebrew/bin/gfortran-14|/usr/bin/gfortran|g' inst/src-optional/Makefile
+          sed -i 's|/opt/homebrew|/usr|g' inst/src-optional/Makefile
+
+          if grep -n "/opt/homebrew" inst/src-optional/Makefile; then
+            echo "Found remaining macOS Homebrew paths in inst/src-optional/Makefile"
+            exit 1
+          fi
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           dependencies: '"all"'
           extra-packages: |
-             pkgdown
+            pkgdown
+            flexiblas
+            INLA
+
       - name: Session info
         run: |
           options(width = 100)
@@ -44,18 +126,59 @@ jobs:
           sessioninfo::session_info(pkgs, include_base = TRUE)
         shell: Rscript {0}
 
+      - name: Verify FlexiBLAS backends
+        run: |
+          options(width = 100)
+
+          if (!requireNamespace("flexiblas", quietly = TRUE)) {
+            stop("flexiblas R package not installed; cannot verify backends")
+          }
+
+          backends <- flexiblas::flexiblas_list()
+          message("FlexiBLAS backends: ", paste(backends, collapse = ", "))
+
+          if (!any(grepl("netlib", tolower(backends)))) {
+            stop("Netlib backend not found in FlexiBLAS list")
+          }
+
+          mkl_candidates <- c(
+            "/opt/intel/oneapi/mkl/latest/lib/libmkl_rt.so",
+            "/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_rt.so"
+          )
+
+          mkl_path <- mkl_candidates[file.exists(mkl_candidates)][1]
+
+          if (is.na(mkl_path) || !file.exists(mkl_path)) {
+            stop("MKL runtime not found")
+          }
+
+          flexiblas::flexiblas_load_backend(mkl_path)
+
+          loaded <- flexiblas::flexiblas_list_loaded()
+          message("Loaded backends: ", paste(loaded, collapse = ", "))
+
+          if (!any(grepl("mkl_rt\\.so", loaded))) {
+            stop("MKL backend not loaded from libmkl_rt.so")
+          }
+        shell: Rscript {0}
+
       - name: Install package
-        run: R CMD INSTALL .
+        run: R CMD INSTALL --configure-args=--enable-compiled .
 
       - name: Deploy package
         run: |
           set -euo pipefail
+
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          Rscript -e 'library(rmarkdown); rmarkdown::render("index.Rmd", "md_document")'     
+
+          Rscript -e 'library(rmarkdown); rmarkdown::render("index.Rmd", "md_document")'
+
           cp index_files/figure-markdown_mmd/* man/figures/
           sed -i 's/index_files/man/' index.md
           sed -i 's/figure-markdown_mmd/figures/' index.md
+
           git add *
-          git commit -m "adding index.md and figures"
+          git commit -m "adding index.md and figures" || echo "No changes to commit"
+
           Rscript -e 'pkgdown::deploy_to_branch(new_process = FALSE)'

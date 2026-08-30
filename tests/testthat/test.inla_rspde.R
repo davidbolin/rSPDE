@@ -3,11 +3,7 @@ context("inla_rspde")
 test_that("testing cgeneric_integer", {
 
   testthat::skip_on_cran()
-if (!requireNamespace("INLA", quietly=TRUE))
-    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
-
-  old_threads <- INLA::inla.getOption("num.threads")
-  INLA::inla.setOption(num.threads = "1:1")
+  local_rspde_safe_inla()
 
 
 data(PRprec, package = "INLA")
@@ -18,7 +14,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 prmesh <- fmesher::fm_mesh_2d_inla(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -52,7 +48,6 @@ Q_tmp2 <- precision(rspde_model)
 
 testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
 
-  INLA::inla.setOption(num.threads = old_threads)
 })
 
 
@@ -75,7 +70,7 @@ testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
 # Y <- Y[ind]
 # coords <- as.matrix(PRprec[ind, 1:2])
 
-# prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+# prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 # prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -133,7 +128,7 @@ testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
 # Y <- Y[ind]
 # coords <- as.matrix(PRprec[ind, 1:2])
 
-# prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+# prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 # prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -176,11 +171,7 @@ testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
 test_that("testing cgeneric_rspde_fixed_gen", {
 
   testthat::skip_on_cran()
-if (!requireNamespace("INLA", quietly=TRUE))
-    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
-
-  old_threads <- INLA::inla.getOption("num.threads")
-  INLA::inla.setOption(num.threads = "1:1")
+  local_rspde_safe_inla()
 
 
 data(PRprec, package = "INLA")
@@ -191,7 +182,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -225,17 +216,12 @@ Q_tmp2 <- precision(rspde_model)
 
 testthat::expect_equal(sum((Q_tmp$Q - Q_tmp2)^2), 0)
 
-  INLA::inla.setOption(num.threads = old_threads)
 })
 
 test_that("testing cgeneric_rspde_gen", {
 
   testthat::skip_on_cran()
-if (!requireNamespace("INLA", quietly=TRUE))
-    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
-
-  old_threads <- INLA::inla.getOption("num.threads")
-  INLA::inla.setOption(num.threads = "1:1")
+  local_rspde_safe_inla()
 
 
 data(PRprec, package = "INLA")
@@ -246,7 +232,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -272,18 +258,13 @@ Q_1 <- precision(rspde_model)
 
 testthat::expect_equal(sum( (Q_1 - Q_tmp$Q)^2), 0)
 
-  INLA::inla.setOption(num.threads = old_threads)
 })
 
 
 test_that("testing cgeneric_nonstat_gen", {
 
   testthat::skip_on_cran()
-if (!requireNamespace("INLA", quietly=TRUE))
-    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
-
-  old_threads <- INLA::inla.getOption("num.threads")
-  INLA::inla.setOption(num.threads = "1:1")
+  local_rspde_safe_inla()
 
 data(PRprec, package = "INLA")
 
@@ -293,7 +274,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -331,17 +312,12 @@ Q_tmp2 <- precision(rspde_model)
 
 testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
 
-  INLA::inla.setOption(num.threads = old_threads)
 })
 
 test_that("testing cgeneric_nonstat_fixed", {
 
   testthat::skip_on_cran()
-if (!requireNamespace("INLA", quietly=TRUE))
-    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
-
-  old_threads <- INLA::inla.getOption("num.threads")
-  INLA::inla.setOption(num.threads = "1:1")
+  local_rspde_safe_inla()
 
 data(PRprec, package = "INLA")
 
@@ -351,7 +327,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -388,17 +364,12 @@ Q_tmp2 <- precision(rspde_model)
 
 testthat::expect_equal(sum( (Q_tmp2 - Q_tmp$Q)^2), 0)
 
-  INLA::inla.setOption(num.threads = old_threads)
 })
 
 test_that("testing cgeneric_nonstat_integer", {
 
   testthat::skip_on_cran()
-if (!requireNamespace("INLA", quietly=TRUE))
-    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
-
-  old_threads <- INLA::inla.getOption("num.threads")
-  INLA::inla.setOption(num.threads = "1:1")
+  local_rspde_safe_inla()
 
 data(PRprec, package = "INLA")
 
@@ -408,7 +379,7 @@ ind <- !is.na(Y)
 Y <- Y[ind]
 coords <- as.matrix(PRprec[ind, 1:2])
 
-prdomain <- fmesher::fm_nonconvex_hull_inla(coords, -0.03, -0.05, resolution = c(50, 50))
+prdomain <- fmesher::fm_nonconvex_hull(coords, -0.03, -0.05, resolution = c(50, 50))
 prmesh <- fmesher::fm_mesh_2d(boundary = prdomain, max.edge = c(0.45, 1), cutoff = 0.5)
 
 
@@ -445,5 +416,4 @@ Q_tmp2 <- precision(rspde_model)
 
 testthat::expect_equal(sum( (Q_tmp$Q - Q_tmp2)^2), 0)
 
-  INLA::inla.setOption(num.threads = old_threads)
 })

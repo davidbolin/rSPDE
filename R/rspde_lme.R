@@ -29,6 +29,11 @@
 #' @param which_repl Which replicates to use? If `NULL` all replicates will be used.
 #' @param optim_method The method to be used with `optim` function.
 #' @param possible_methods The optimization methods to try if the model fitting fails.
+#' @param nelder_mead_init Logical. If `TRUE` (the default) and `optim_method`
+#' is not `"Nelder-Mead"` and `parallel = FALSE`, a short Nelder-Mead pass is
+#' run from the starting values before the main optimisation. This is robust
+#' to poor starting values (the main optimiser then refines the result) and
+#' typically adds only a few hundred extra likelihood evaluations.
 #' @param use_data_from_graph Logical. Only for models generated from graphs from 
 #' `metric_graph` class. In this case, should the data, the locations and the 
 #' replicates be obtained from the graph object?
@@ -73,6 +78,7 @@ rspde_lme <- function(formula,
                       which_repl = NULL,
                       optim_method = "L-BFGS-B",
                       possible_methods = c("L-BFGS-B", "Nelder-Mead"),
+                      nelder_mead_init = TRUE,
                       use_data_from_graph = TRUE,
                       rspde_order = NULL,
                       mean_correction = FALSE,
@@ -366,12 +372,12 @@ rspde_lme <- function(formula,
     # General updates for the different models
 
     if (!inherits(model, "spacetimeobj") && !inherits(model, "CBrSPDEobj2d") && !inherits(model, "intrinsicCBrSPDEobj")) {
-        model <- update(model, parameterization = parameterization)    
+        model <- update(model, parameterization = parameterization, check_stationarity = FALSE)    
     }
 
     if (!is.null(rspde_order) && !is.null(model)) {
         if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
-          model <- update(model, m = rspde_order)      
+          model <- update(model, m = rspde_order, check_stationarity = FALSE)      
         }
     } else if (!is.null(model)) {
       rspde_order <- model$m
@@ -480,6 +486,10 @@ rspde_lme <- function(formula,
     
     has_make_A <- is.function(model$make_A) ||
       inherits(model, c("matern_operator", "spde_matern_operator", "matern2d_operator", "intrinsicCBrSPDEobj"))
+    # For hybrid_spde models we also store the un-kroneckered projection
+    # matrices so that we can subtract the deterministic mean A %*% mu
+    # from the observations inside the likelihood.
+    A_orig_list <- list()
     if (has_make_A && !spacetime) {
       for (j in repl_val) {
         ind_tmp <- (repl %in% j)
@@ -487,6 +497,8 @@ rspde_lme <- function(formula,
         na_obs <- is.na(y_tmp)
         A_list[[as.character(j)]] <- make_A(model, loc_df[ind_tmp, , drop = FALSE])
         A_list[[as.character(j)]] <- A_list[[as.character(j)]][!na_obs, , drop = FALSE]
+
+        A_orig_list[[as.character(j)]] <- A_list[[as.character(j)]]
 
         if (inherits(model, "CBrSPDEobj")) {
           alpha <- NULL
@@ -525,24 +537,64 @@ rspde_lme <- function(formula,
         model_tmp$make_A <- NULL    
     }
 
-    like_aux <- create_likelihood(model = model, model_options = model_options, y_resp = y_resp, X_cov = X_cov, A_list = A_list, 
-                                    repl = repl, start_values = start_values, mean_correction = mean_correction, 
+    like_aux <- create_likelihood(model = model, model_options = model_options, y_resp = y_resp, X_cov = X_cov, A_list = A_list,
+                                    repl = repl, start_values = start_values, mean_correction = mean_correction,
                                     smoothness_upper_bound = smoothness_upper_bound,
-                                    loc_df = loc_df)
+                                    loc_df = loc_df, A_orig_list = A_orig_list)
 
     likelihood <- like_aux$likelihood
     estimate_pars <- like_aux$estimate_params
     n_coeff_nonfixed <- like_aux$n_coeff_nonfixed
 
+    ## Data-driven init for hybrid_spde beta_X entries that the user has
+    ## not explicitly pinned. Falls back silently if anything is off
+    ## (multi-replicate edge cases, NA mismatches, singular OLS), in
+    ## which case the default zeros from get_model_starting_values stay.
+    if (inherits(model, "hybrid_spde")) {
+      beta_x_init <- init_beta_X_hybrid_ols(model = model,
+                                            A_list = A_orig_list,
+                                            X_cov = X_cov,
+                                            y_resp = y_resp,
+                                            repl = repl,
+                                            model_options = model_options)
+      if (!is.null(beta_x_init) && length(beta_x_init) > 0) {
+        for (nm in names(beta_x_init)) {
+          if (nm %in% names(start_values)) {
+            start_values[nm] <- beta_x_init[nm]
+          }
+        }
+      }
+    }
+
     if (ncol(X_cov) > 0 && !is.null(model)) {
       names_tmp <- colnames(X_cov)
-      data_tmp <- cbind(y_resp, X_cov)
-      data_tmp <- na.omit(data_tmp)
-      temp_coeff <- lm(data_tmp[, 1] ~ data_tmp[, -1] - 1)$coeff
-      names(temp_coeff) <- names_tmp
+      ## Warm-start fixed effects from `previous_fit` when available.
+      ## The fresh-OLS fallback below regresses the *raw* response on
+      ## X_cov, which for a `y ~ 1` model with a non-trivial latent
+      ## deterministic mean (e.g. a hybrid_spde with non-zero beta_X)
+      ## gives an intercept ~ mean(y) — far from the true MLE intercept,
+      ## which must compensate for the average forcing. From that
+      ## misplaced start the gradient optimiser can shut off beta_X and
+      ## get stuck in an alternative basin. When previous_fit carries
+      ## fixed_effects of the same shape we use them directly; this
+      ## matters in particular for posterior_crossvalidation(true_CV =
+      ## TRUE), where each fold inherits the full-fit warm start.
+      pf_fixed <- if (!is.null(previous_fit) && inherits(previous_fit, "rspde_lme")) {
+        previous_fit$coeff$fixed_effects
+      } else NULL
+      if (!is.null(pf_fixed) && length(pf_fixed) == length(names_tmp) &&
+          all(names(pf_fixed) == names_tmp)) {
+        temp_coeff <- as.numeric(pf_fixed)
+        names(temp_coeff) <- names_tmp
+      } else {
+        data_tmp <- cbind(y_resp, X_cov)
+        data_tmp <- na.omit(data_tmp)
+        temp_coeff <- lm(data_tmp[, 1] ~ data_tmp[, -1] - 1)$coeff
+        names(temp_coeff) <- names_tmp
+        rm(data_tmp)
+      }
       start_values_aux <- start_values[estimate_pars]
       start_values_aux <- c(start_values_aux, temp_coeff)
-      rm(data_tmp)
     } else{
       start_values_aux <- start_values[estimate_pars]
     }
@@ -769,12 +821,43 @@ rspde_lme <- function(formula,
         }
 
         start_fit <- Sys.time()
+
+        ## Optional short Nelder-Mead pre-pass to escape poor local basins
+        ## before handing off to the (typically gradient-based) main
+        ## optimiser. Uses tighter controls than the main fit so the cost
+        ## is bounded; the result becomes the warm start for run_optim()
+        ## only when it actually improves the objective (NM truncated
+        ## mid-shrink can otherwise hand off a worse point than the
+        ## original start, which would mislead the gradient method).
+        if (nelder_mead_init && optim_method != "Nelder-Mead" &&
+            length(start_values_aux) >= 2L) {
+          nm_controls <- optim_controls
+          if (is.null(nm_controls$maxit))  nm_controls$maxit  <- 500
+          if (is.null(nm_controls$reltol)) nm_controls$reltol <- 1e-6
+          nm_start_val <- tryCatch(likelihood_new(start_values_aux),
+                                   error = function(e) Inf)
+          nm_out <- withCallingHandlers(
+            tryCatch(
+              optim(start_values_aux, likelihood_new,
+                    method = "Nelder-Mead",
+                    control = nm_controls,
+                    hessian = FALSE),
+              error = function(e) NULL
+            ),
+            warning = function(w) invokeRestart("muffleWarning")
+          )
+          if (!is.null(nm_out) && is.finite(nm_out$value) &&
+              nm_out$value < nm_start_val) {
+            start_values_aux <- nm_out$par
+          }
+        }
+
         optim_out <- run_optim(optim_method)
         res <- optim_out$res
         optim_error <- optim_out$error
         end_fit <- Sys.time()
         time_fit <- end_fit - start_fit
-  
+
         cond_pos_hes <- FALSE
         time_hessian <- NULL
   
@@ -966,6 +1049,13 @@ rspde_lme <- function(formula,
     time_hessian <- NULL
     time_par <- NULL
     A_list <- NULL
+    coeff_alt_par_result <- NULL
+    time_alt_par <- NULL
+    observed_fisher <- NULL
+    estimate_pars <- NULL
+    start_values_aux <- NULL
+    loc_df <- NULL
+    likelihood_new <- NULL
 
     if (ncol(X_cov) == 0) {
       stop("The model does not have either random nor fixed effects.")
@@ -1011,7 +1101,11 @@ rspde_lme <- function(formula,
   object$repl <- repl
   object$idx_repl <- idx_repl
   object$optim_controls <- optim_controls
-  object$latent_model <- model
+  # For pure OLS fits (null_model = TRUE) the local `model` variable was
+  # replaced by a dummy list earlier; expose `latent_model = NULL` to
+  # callers so that print/summary/etc. recognise the fit as a plain
+  # linear regression.
+  object$latent_model <- if (null_model) NULL else model
   object$nobs <- sum(idx_repl)
   object$null_model <- null_model
   object$start_values <- start_values
@@ -1415,6 +1509,34 @@ predict.rspde_lme <- function(object,
     normalized <- FALSE
   }
 
+  # advanced_options for cross-validation / precomputation:
+  #   - precompute_data: TRUE returns parameter-dependent structures
+  #     (new_rspde_obj, Q, mu_corr) so they can be reused across folds.
+  #     If set to a list returned by a previous call, those structures
+  #     are reused instead of recomputed (the expensive `update(...)`
+  #     and Q assembly happens once instead of once per fold).
+  #   - na_test_idx: integer positions in the per-row response vector
+  #     to treat as held-out. Their rows in A_list are dropped and
+  #     their Y values are NA-masked so pseudo-CV LOO produces correct
+  #     leave-out predictions.
+  advanced_options <- tmp_args[["advanced_options"]]
+  precompute_data  <- FALSE
+  precomputed      <- NULL
+  na_test_idx      <- NULL
+  if (is.list(advanced_options)) {
+    if (!is.null(advanced_options$precompute_data)) {
+      pd <- advanced_options$precompute_data
+      if (is.logical(pd)) {
+        precompute_data <- isTRUE(pd)
+      } else if (is.list(pd)) {
+        precomputed <- pd
+      }
+    }
+    if (!is.null(advanced_options$na_test_idx)) {
+      na_test_idx <- advanced_options$na_test_idx
+    }
+  }
+
   out <- list()
 
   coeff_fixed <- object$coeff$fixed_effects
@@ -1448,15 +1570,71 @@ predict.rspde_lme <- function(object,
     stop("Covariates not found in data.")
   }
 
-  if (sum(duplicated(loc)) > 0 && !object$spacetime) {
-    warning("There are duplicated locations for prediction, we will try to process the data to extract the unique locations,
-    along with the corresponding covariates.")
-    if (nrow(X_cov_pred) == nrow(loc)) {
-      data_tmp <- cbind(loc, X_cov_pred)
+  # Two separate concerns:
+  #
+  #   1) Warning. The only case worth a user-facing warning is duplicate
+  #      rows at the same (location, replicate) — the original predictor
+  #      ambiguity bug. Same location across different replicates is
+  #      legitimate (e.g. cross-replicate prediction on a graph) and
+  #      should NOT warn. Per-row replicate info is taken from
+  #      `predict(..., repl = "<col>" / <vector>)` first, then from a
+  #      `.group` column in `data` (the MetricGraph convention).
+  #
+  #   2) Deduplication. Independently of (1), if `loc` has duplicated
+  #      rows the downstream kriging spends O(n_loc^2) on the variance
+  #      `Aprd %*% solve(Q_xgiveny, t(Aprd))` etc., so we always collapse
+  #      `loc` to its unique rows (with the corresponding covariates).
+  #      Doing this silently lets cross-replicate `newdata` flow through
+  #      fast without surfacing a misleading warning.
+  if (!object$spacetime) {
+    repl_pred <- tmp_args[["repl"]]
+    if (is.character(repl_pred) && length(repl_pred) == 1) {
+      if (!is.null(data) && repl_pred %in% names(data)) {
+        repl_pred <- data[[repl_pred]]
+      } else {
+        repl_pred <- NULL
+      }
     }
-    data_tmp <- unique(data_tmp)
-    if (sum(duplicated(cbind(data_tmp[, 1:ncol(loc)]))) > 0) {
-      stop("Data processing failed, please provide a data with unique locations.")
+    if (is.null(repl_pred) && !is.null(data) && ".group" %in% names(data)) {
+      repl_pred <- data[[".group"]]
+    }
+    if (!is.null(repl_pred) && length(repl_pred) != nrow(loc)) {
+      repl_pred <- NULL
+    }
+
+    # (1) Within-replicate duplicate warning.
+    if (!is.null(repl_pred)) {
+      loc_repl_df <- data.frame(.e = loc[, 1], .d = loc[, 2], .repl = repl_pred)
+      within_rep_dups <- any(duplicated(loc_repl_df))
+    } else {
+      within_rep_dups <- any(duplicated(loc))
+    }
+    if (within_rep_dups) {
+      warning("There are duplicated locations for prediction, we will try to process the data to extract the unique locations,
+    along with the corresponding covariates.")
+    }
+
+    # (2) Always dedup `loc` (regardless of replicate info) for the
+    #     kriging math. The dedup tuple is (loc, covariates) — rows that
+    #     agree on all are collapsed; rows that share location but
+    #     disagree on covariates are flagged as a hard error because
+    #     the prediction would be ambiguous.
+    if (any(duplicated(loc))) {
+      cov_aligned <- nrow(X_cov_pred) == nrow(loc) && ncol(X_cov_pred) > 0
+      loc_df <- data.frame(.e = loc[, 1], .d = loc[, 2])
+      full_df <- if (cov_aligned) {
+        cbind(loc_df, as.data.frame(X_cov_pred))
+      } else {
+        loc_df
+      }
+      keep_mask <- !duplicated(full_df)
+      if (any(duplicated(loc_df[keep_mask, , drop = FALSE]))) {
+        stop("Data processing failed, please provide a data with unique locations.")
+      }
+      loc <- loc[keep_mask, , drop = FALSE]
+      if (cov_aligned) {
+        X_cov_pred <- X_cov_pred[keep_mask, , drop = FALSE]
+      }
     }
   }
 
@@ -1537,52 +1715,82 @@ predict.rspde_lme <- function(object,
   }
 
   Y <- model_matrix_fit[, 1] - mu
+  # Apply any cross-validation NA mask BEFORE deriving idx_obs_full so
+  # that held-out observations are removed both from the response
+  # vector and from the rows of A_list used below.
+  if (!is.null(na_test_idx) && length(na_test_idx) > 0) {
+    Y[na_test_idx] <- NA
+  }
 
   model_type <- object$latent_model
 
   sigma.e <- coeff_meas[[1]]
   sigma_e <- sigma.e
 
-  ## construct Q
-  # Get parameters from object$coeff$random_effects or object$alt_par_coeff$coeff
-  # based on model type and parameterization
-  
-  # Create a list of parameters to pass to update
-  update_params <- list()
-  
-  # Add parameters based on what's available in coeff_random
-  for (param_name in names(coeff_random)) {
-    param_name_cleaned <- gsub(" \\(fixed\\)$", "", param_name)
-    update_params[[param_name_cleaned]] <- coeff_random[[param_name]]
-  }
-  
-  # # If alt_par_coeff exists, also consider those parameters
-  # if (!is.null(object$alt_par_coeff) && !is.null(object$alt_par_coeff$coeff)) {
-  #   for (param_name in names(object$alt_par_coeff$coeff)) {
-  #     if (!(param_name %in% names(update_params))) {
-  #       update_params[[param_name]] <- object$alt_par_coeff$coeff[[param_name]]
-  #     }
-  #   }
-  # }
-  
-  # Update the model with all available parameters
-  new_rspde_obj <- do.call(update, c(list(object$latent_model), update_params))
-  
-  if(object$mean_correction) {
-      mu_corr <- new_rspde_obj$mean_correction(full=TRUE)
+  ## construct Q (or pick up precomputed parameter-dependent structures)
+  if (!is.null(precomputed) &&
+      !is.null(precomputed$new_rspde_obj) &&
+      !is.null(precomputed$Q)) {
+    new_rspde_obj <- precomputed$new_rspde_obj
+    Q <- precomputed$Q
+    mu_corr <- if (!is.null(precomputed$mu_corr)) precomputed$mu_corr else 0
+    have_precomputed_Q <- TRUE
   } else {
+    # Get parameters from object$coeff$random_effects or
+    # object$alt_par_coeff$coeff based on model type and parameterization.
+    update_params <- list()
+    for (param_name in names(coeff_random)) {
+      param_name_cleaned <- gsub(" \\(fixed\\)$", "", param_name)
+      update_params[[param_name_cleaned]] <- coeff_random[[param_name]]
+    }
+    update_params$check_stationarity <- FALSE
+
+    # Update the model with all available parameters
+    new_rspde_obj <- do.call(update, c(list(object$latent_model), update_params))
+
+    if (object$mean_correction) {
+      mu_corr <- new_rspde_obj$mean_correction(full = TRUE)
+    } else {
       mu_corr <- 0
+    }
+    have_precomputed_Q <- FALSE
   }
-  
+
+  ## For a hybrid_spde latent model, the latent field has a non-zero
+  ## prior mean mu_hyb = sum_j beta_{x,j} * L^{-alpha/2} X_j(s), evaluated
+  ## at the mesh nodes. predict.hybrid_spde handles this by centering
+  ## y and adding A_prd %*% mu_hyb back to the kriged prediction, but
+  ## predict.rspde_lme historically did not, which silently dropped the
+  ## entire deterministic-forcing contribution in CV and ordinary
+  ## prediction for rspde_lme fits with hybrid latent models. The
+  ## beta_{x,j} live in coeff_random as `beta_x1, beta_x2, ...` and are
+  ## not carried by update.hybrid_spde, so we install them on the
+  ## post-update model and recompute mu_hyb here using the current kappa/alpha 
+  hybrid_mu <- NULL
+  if (inherits(new_rspde_obj, "hybrid_spde") && !is.null(new_rspde_obj$op_mean)) {
+    bx_names <- grep("^beta_x[0-9]+$", names(coeff_random), value = TRUE)
+    if (length(bx_names) > 0 && !is.null(new_rspde_obj$X)) {
+      ## Order the coefficients to match the columns of X.
+      ord <- order(as.integer(sub("^beta_x", "", bx_names)))
+      bx_names <- bx_names[ord]
+      bx_vals <- vapply(bx_names, function(nm) as.numeric(coeff_random[[nm]]),
+                        numeric(1))
+      new_rspde_obj$beta_X <- bx_vals
+      hybrid_mu <- compute_hybrid_mean(new_rspde_obj)
+    }
+  }
+
   idx_obs_full <- as.vector(!is.na(Y))
 
   if(!inherits(object$latent_model, "rSPDEobj1d") && !inherits(object$latent_model, "spacetimeobj")) {
-      Q <- new_rspde_obj$Q
+      if (!have_precomputed_Q) {
+        Q <- new_rspde_obj$Q
+      }
       if(!inherits(object$latent_model, "CBrSPDEobj2d") && !inherits(object$latent_model, "intrinsicCBrSPDEobj")) {
           # Extract alpha or nu from random effects
           alpha_param <- grep("^alpha", names(coeff_random), value = TRUE)
           nu_param <- grep("^nu", names(coeff_random), value = TRUE)
-          
+
           if (length(alpha_param) > 0) {
             alpha <- coeff_random[[alpha_param]]
           } else if (length(nu_param) > 0) {
@@ -1591,16 +1799,18 @@ predict.rspde_lme <- function(object,
           } else {
             stop("Neither alpha nor nu parameter found in random effects")
           }
-          
+
           # Check if alpha is integer
           if (alpha %% 1 != 0) {
-            Aprd <- kronecker(matrix(1, 1, object$rspde_order + 1), Aprd)        
+            Aprd <- kronecker(matrix(1, 1, object$rspde_order + 1), Aprd)
           }
       }
   } else if(inherits(object$latent_model, "spacetimeobj")) {
-      Q <- new_rspde_obj$Q
+      if (!have_precomputed_Q) {
+        Q <- new_rspde_obj$Q
+      }
   }
-  
+
   for (repl_y in u_repl) {
     idx_repl <- repl_vec == repl_y
 
@@ -1608,51 +1818,93 @@ predict.rspde_lme <- function(object,
 
     y_repl <- Y[idx_repl]
     y_repl <- y_repl[idx_obs]
-    
-    
+
+
     if(inherits(object$latent_model, "rSPDEobj1d")) {
         loc_repl <- object$loc[idx_repl]
         loc_repl <- loc_repl[idx_obs]
-        
+
         loc_full <- c(loc_repl, loc)
         tmp <- sort(loc_full, index.return = TRUE)
         reo <- tmp$ix
         loc_sort <- tmp$x
         ireo <- 1:length(loc_sort)
         ireo[reo] <- 1:length(loc_sort)
-        
+
         ind.obs <- ireo[1:length(loc_repl)]
         ind.pre <- ireo[(length(loc_repl)+1):length(loc_full)]
-        tmp <- matern.rational.ldl(loc = loc_full, 
-                                   order = new_rspde_obj$m, 
-                                   nu = new_rspde_obj$nu, 
-                                   kappa = new_rspde_obj$kappa, 
-                                   sigma = new_rspde_obj$sigma, 
-                                   type_rational = new_rspde_obj$type_rational_approx, 
-                                   type_interp =  new_rspde_obj$type_interp)    
-        A_repl <- tmp$A[ind.obs, ] 
-        Aprd <- tmp$A[ind.pre, ] 
+        tmp <- matern.rational.ldl(loc = loc_full,
+                                   order = new_rspde_obj$m,
+                                   nu = new_rspde_obj$nu,
+                                   kappa = new_rspde_obj$kappa,
+                                   sigma = new_rspde_obj$sigma,
+                                   type_rational = new_rspde_obj$type_rational_approx,
+                                   type_interp =  new_rspde_obj$type_interp)
+        A_repl <- tmp$A[ind.obs, ]
+        Aprd <- tmp$A[ind.pre, ]
         Q <- t(tmp$L)%*%tmp$D%*%tmp$L
     } else {
         A_repl <- object$A_list[[repl_y]]
+        # A_list is built (at fit time) for all observations in the
+        # replicate. If any held-out / runtime NAs are present in Y
+        # (e.g. from posterior cross-validation), drop the matching
+        # rows of A_repl so that t(A_repl) %*% y_repl conforms and the
+        # held-out points truly do not contribute to the posterior.
+        if (nrow(A_repl) == length(idx_obs) && any(!idx_obs)) {
+          A_repl <- A_repl[idx_obs, , drop = FALSE]
+        }
     }
     
     if(object$mean_correction) {
-        y_repl <- y_repl - A_repl %*% mu_corr    
+        y_repl <- y_repl - A_repl %*% mu_corr
     }
-    
+    if (!is.null(hybrid_mu)) {
+        ## Centre observations by the hybrid deterministic mean so that
+        ## the kriging operates on the zero-mean residual field
+        ## u - beta_X' L^{-alpha/2} X. For non-integer alpha rational
+        ## approximations A_repl is kronecker-expanded to (m+1) stacked
+        ## copies of the base A; hybrid_mu lives in the base-mesh basis,
+        ## so use the first n_mu columns (= un-kroneckered A).
+        n_mu <- length(hybrid_mu)
+        A_for_mu <- if (ncol(A_repl) == n_mu) A_repl
+                    else if (ncol(A_repl) %% n_mu == 0) A_repl[, seq_len(n_mu), drop = FALSE]
+                    else stop("Internal error: A_repl has ", ncol(A_repl),
+                              " cols, hybrid mean length is ", n_mu, ".")
+        y_repl <- y_repl - as.numeric(A_for_mu %*% hybrid_mu)
+    }
+
     Q_xgiveny <- t(A_repl) %*% A_repl / sigma_e^2 + Q
-    mu_krig <- solve(Q_xgiveny, as.vector(t(A_repl) %*% y_repl / sigma_e^2))
+    ## Q_xgiveny is SPD but can be numerically ill-conditioned for some
+    ## models. Recent Matrix versions make solve() hard-error on
+    ## near-singular matrices via a reciprocal-condition check
+    ## (.solve.checkCondBound) where older versions simply returned the
+    ## solution. Passing tol = 0 disables that guard and restores the
+    ## previous behaviour; for well-conditioned systems the result is
+    ## identical.
+    solveQ <- function(b) solve(Q_xgiveny, b, tol = 0)
+    mu_krig <- solveQ(as.vector(t(A_repl) %*% y_repl / sigma_e^2))
 
     mu_krig <- Aprd %*% mu_krig
-    
+
     mu_re <- mu_krig
     mu_fe <- mu_prd
     mu_krig <- mu_prd + mu_krig
-    
+
     if(object$mean_correction) {
         mu_krig <- mu_krig + Aprd %*% mu_corr
         mu_re <- mu_re + Aprd %*% mu_corr
+    }
+    if (!is.null(hybrid_mu)) {
+        ## Same kronecker handling as above: pick the first n_mu columns
+        ## of Aprd to map the deterministic mean back to prediction locs.
+        n_mu <- length(hybrid_mu)
+        Aprd_for_mu <- if (ncol(Aprd) == n_mu) Aprd
+                       else if (ncol(Aprd) %% n_mu == 0) Aprd[, seq_len(n_mu), drop = FALSE]
+                       else stop("Internal error: Aprd has ", ncol(Aprd),
+                                 " cols, hybrid mean length is ", n_mu, ".")
+        hyb_add <- Aprd_for_mu %*% hybrid_mu
+        mu_krig <- mu_krig + hyb_add
+        mu_re   <- mu_re   + hyb_add
     }
 
     mean_tmp <- as.vector(mu_krig)
@@ -1671,15 +1923,18 @@ predict.rspde_lme <- function(object,
     }
 
     if (compute_variances) {
-      post_cov <- Aprd %*% solve(Q_xgiveny, t(Aprd))
+      post_cov <- Aprd %*% solveQ(t(Aprd))
       var_tmp <- pmax(diag(post_cov), 0)
 
       if (!return_as_list) {
-        out$variance <- rep(var_tmp, length(u_repl))
+        # Append the current replicate's variance to the running vector,
+        # mirroring how $mean is built up across the per-replicate loop.
+        # The previous code replaced $variance with rep(var_tmp,
+        # length(u_repl)) on every iteration, so every replicate ended up
+        # reporting the LAST replicate's kriging variance.
+        out$variance <- c(out$variance, var_tmp)
       } else {
-        for (repl_y in u_repl) {
-          out$variance[[repl_y]] <- var_tmp
-        }
+        out$variance[[repl_y]] <- var_tmp
       }
     }
 
@@ -1715,6 +1970,18 @@ predict.rspde_lme <- function(object,
         out$samples[[repl_y]] <- X
       }
     }
+  }
+
+  # Optionally export the parameter-dependent structures so a downstream
+  # cross-validation loop can pass them back via
+  # advanced_options$precompute_data and skip the expensive update() /
+  # Q assembly on each fold.
+  if (isTRUE(precompute_data)) {
+    out$precomputed_data <- list(
+      new_rspde_obj = new_rspde_obj,
+      Q             = Q,
+      mu_corr       = mu_corr
+    )
   }
 
   return(out)

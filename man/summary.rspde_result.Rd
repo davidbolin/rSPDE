@@ -24,18 +24,17 @@ their original scales.
 }
 \examples{
 \donttest{
-# devel version
-if (requireNamespace("INLA", quietly = TRUE)) {
+if (rspde_safe_inla()) {
   library(INLA)
 
   set.seed(123)
 
-  m <- 100
+  m <- 50
   loc_2d_mesh <- matrix(runif(m * 2), m, 2)
   mesh_2d <- inla.mesh.2d(
     loc = loc_2d_mesh,
-    cutoff = 0.05,
-    max.edge = c(0.1, 0.5)
+    cutoff = 0.1,
+    max.edge = c(0.5, 0.5)
   )
   sigma <- 1
   range <- 0.2
@@ -43,7 +42,7 @@ if (requireNamespace("INLA", quietly = TRUE)) {
   kappa <- sqrt(8 * nu) / range
   op <- matern.operators(
     mesh = mesh_2d, nu = nu,
-    range = range, sigma = sigma, m = 2,
+    range = range, sigma = sigma, m = 1,
     parameterization = "matern"
   )
   u <- simulate(op)
@@ -62,7 +61,7 @@ if (requireNamespace("INLA", quietly = TRUE)) {
   )
   rspde_model <- rspde.matern(
     mesh = mesh_2d,
-    nu.upper.bound = 2
+    nu.upper.bound = 1
   )
   f <- y ~ -1 + f(field, model = rspde_model)
   rspde_fit <- inla(f,
@@ -74,7 +73,6 @@ if (requireNamespace("INLA", quietly = TRUE)) {
   result <- rspde.result(rspde_fit, "field", rspde_model)
   summary(result)
 }
-# devel.tag
 }
 
 }

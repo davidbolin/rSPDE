@@ -2,7 +2,7 @@ context("inlabru_rspde")
 
 test_that("Inlabru predict method works for rspde.matern1d with nu = 0.7", {
     testthat::skip_on_cran()
-    skip_if_not_installed("INLA")
+    local_rspde_safe_inla()
     skip_if_not_installed("inlabru")
 
     set.seed(1)
@@ -54,7 +54,7 @@ test_that("Inlabru predict method works for rspde.matern1d with nu = 0.7", {
 
 test_that("Inlabru predict method works for rspde.matern1d with Intercept and nu = 1.1", {
     testthat::skip_on_cran()
-    skip_if_not_installed("INLA")
+    local_rspde_safe_inla()
     skip_if_not_installed("inlabru")
 
     set.seed(2)

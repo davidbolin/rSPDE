@@ -27,6 +27,8 @@ navbar:
         href: articles/rspde_inlabru.html
       - text: Rational approximation with the rSPDE package
         href: articles/rspde_cov.html
+      - text: rSPDE vs exact Matern covariance - timing and memory
+        href: articles/rspde_vs_exact.html
       - text: Operator-based rational approximation
         href: articles/rspde_base.html
       - text: Intrinsic models
@@ -68,6 +70,8 @@ reference:
     - fractional.operators
     - matern.rational
     - spacetime.operators
+    - hybrid.spde 
+    - rspde.hybrid.matern 
   - title: Linear mixed-effects models
     contents:    
     - rspde_lme
@@ -75,6 +79,7 @@ reference:
     - summary.rspde_lme
     - glance.rspde_lme
     - augment.rspde_lme
+    - posterior_crossvalidation
   - title: Intrinsic models
     contents:
     - intrinsic.matern.operators
@@ -123,6 +128,9 @@ reference:
     - predict.intrinsicCBrSPDEobj
     - summary.intrinsicCBrSPDEobj
     - update.intrinsicCBrSPDEobj
+    - predict.hybrid_spde
+    - simulate.hybrid_spde
+    - update.hybrid_spde
   - title: Functions and methods for R-INLA rSPDE objects
     contents:
     - rspde.make.A
@@ -144,6 +152,7 @@ reference:
     - bru_get_mapper.inla_rspde_anisotropic2d
     - bru_get_mapper.inla_rspde_matern1d
     - bru_get_mapper.inla_rspde_fintrinsic
+    - bru_get_mapper.intrinsic_matern
   - title: Finite element-related functions
     contents:
     - rSPDE.A1d
@@ -167,6 +176,9 @@ reference:
     - rational.type
     - transform_parameters_anisotropic
     - transform_parameters_spacetime
+    - cov_function_mesh
+    - covariance_mesh
+    - make_A
   - title: Operator operations
     contents:
     - operator.operations

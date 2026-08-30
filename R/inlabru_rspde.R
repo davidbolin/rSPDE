@@ -13,19 +13,18 @@
 #'
 #' @examples
 #' \donttest{
-#' # devel version
-#' if (requireNamespace("INLA", quietly = TRUE) &&
+#' if (rspde_safe_inla() &&
 #'   requireNamespace("inlabru", quietly = TRUE)) {
 #'   library(INLA)
 #'   library(inlabru)
 #'
 #'   set.seed(123)
-#'   m <- 100
+#'   m <- 50
 #'   loc_2d_mesh <- matrix(runif(m * 2), m, 2)
 #'   mesh_2d <- inla.mesh.2d(
 #'     loc = loc_2d_mesh,
-#'     cutoff = 0.05,
-#'     max.edge = c(0.1, 0.5)
+#'     cutoff = 0.1,
+#'     max.edge = c(0.5, 0.5)
 #'   )
 #'   sigma <- 1
 #'   range <- 0.2
@@ -33,7 +32,7 @@
 #'   kappa <- sqrt(8 * nu) / range
 #'   op <- matern.operators(
 #'     mesh = mesh_2d, nu = nu,
-#'     range = range, sigma = sigma, m = 2,
+#'     range = range, sigma = sigma, m = 1,
 #'     parameterization = "matern"
 #'   )
 #'   u <- simulate(op)
@@ -51,7 +50,7 @@
 #'   )
 #'   rspde_model <- rspde.matern(
 #'     mesh = mesh_2d,
-#'     nu_upper_bound = 2
+#'     nu_upper_bound = 1
 #'   )
 #'
 #'   cmp <- y ~ Intercept(1) +
@@ -61,21 +60,14 @@
 #'   rspde_fit <- bru(cmp, data = data_df)
 #'   summary(rspde_fit)
 #' }
-#' # devel.tag
 #' }
 bru_get_mapper.inla_rspde <- function(model, ...) {
   stopifnot(requireNamespace("inlabru"))
-  inlabru_version <- as.character(packageVersion("inlabru"))
-  if(inlabru_version >= "2.11.1.9022"){
-      n_rep <- model[["rspde.order"]] + 1
-      if((model[["est_nu"]] == 0L) && (model[["integer.nu"]])){
-          n_rep <- 1
-      }
-    inlabru::bru_mapper_repeat(inlabru::bru_mapper(model[["mesh"]]), n_rep = n_rep)
-  } else{
-    mapper <- list(model = model)
-    inlabru::bru_mapper_define(mapper, new_class = "bru_mapper_inla_rspde")
+  n_rep <- model[["rspde.order"]] + 1
+  if((model[["est_nu"]] == 0L) && (model[["integer.nu"]])){
+    n_rep <- 1
   }
+  inlabru::bru_mapper_repeat(inlabru::bru_mapper(model[["mesh"]]), n_rep = n_rep)
 }
 
 #' @param mapper A `bru_mapper_inla_rspde` object
@@ -138,7 +130,7 @@ process_formula <- function(bru_result) {
 #' @noRd
 
 process_formula_lhoods <- function(bru_result, like_number) {
-      form <- bru_result$bru_info$lhoods[[like_number]]$formula[3]
+      form <- inlabru::as_bru_obs_list(bru_result)[[like_number]]$formula[3]
       form <- as.character(form)
       if(form == "."){
         return(process_formula(bru_result))
@@ -208,46 +200,20 @@ bru_rerun_with_data <- function(result, idx_data, true_CV, fit_verbose, model_op
       theta = result$mode$theta,
       fixed=TRUE
     )
-  } 
-
-  if (fit_verbose) {
-    options$verbose <- TRUE
-  } else {
-    options$verbose <- FALSE
   }
 
-  info <- result[["bru_info"]]
-  info[["options"]] <- inlabru::bru_call_options(
-    inlabru::bru_options(
-      info[["options"]],
-      inlabru::as.bru_options(options)
-    )
+  options$verbose <- isTRUE(fit_verbose)
+
+  info <- inlabru::as_bru_info(result)
+  options <- inlabru::bru_options(
+    info[["options"]],
+    inlabru::as.bru_options(options)
   )
 
-  original_timings <- result[["bru_timings"]]
+  result <- inlabru::bru_set_missing(result, keep = idx_data)
 
-  for(i_like in seq_along(info[["lhoods"]])){
-    info[["lhoods"]][[i_like]]$response_data$BRU_response[-idx_data[[i_like]]] <- NA
-  }
+  result <- inlabru::bru_rerun(result, options = options)
 
-  result <- inlabru::iinla(
-      model = info[["model"]],
-      lhoods = info[["lhoods"]],
-      initial = result,
-      options = info[["options"]]
-    )
-
-  new_timings <- result[["bru_iinla"]][["timings"]]$Iteration >
-    max(original_timings$Iteration)
-  result$bru_timings <-
-    rbind(
-      original_timings,
-      result[["bru_iinla"]][["timings"]][new_timings, , drop = FALSE]
-    )
-
-  # Add bru information to the result
-  result$bru_info <- info
-  class(result) <- c("bru", class(result))
   return(result)
 }
 
@@ -390,10 +356,11 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
 
   # The number of likelihoods. All models must have the same number of likelihoods.
 
-  n_likelihoods <- length(models[[1]]$bru_info$lhoods)
+  lhoods <- inlabru::as_bru_obs_list(models[[1]])
+  n_likelihoods <- length(lhoods)
 
   for (model_number in seq_along(models)) {
-      if (length(models[[model_number]]$bru_info$lhoods) != n_likelihoods) {
+      if (length(inlabru::as_bru_obs_list(models[[model_number]])) != n_likelihoods) {
           stop(paste("Model", model_number, "does not have the same number of likelihoods as the first model."))
       }
   }
@@ -439,8 +406,9 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
   if (is.null(train_test_indexes)) {
     # Observe that here we are assuming that all models use the same data, which we added in the description as an assumption.
 
+    lhoods <- inlabru::as_bru_obs_list(models[[1]])
     data_list <- lapply(seq_len(n_likelihoods), function(i) {
-        models[[1]]$bru_info$lhoods[[i]]$data
+        lhoods[[i]]$data
     })
     train_test_indexes <- create_train_test_indices(data_list,
       cv_type = cv_type,
@@ -489,16 +457,17 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
   true_test_values = list()
 
   for (model_number in 1:length(models)) {
-    n_likelihoods <- length(models[[model_number]]$bru_info$lhoods)
+    lhoods <- inlabru::as_bru_obs_list(models[[model_number]])
+    n_likelihoods <- length(lhoods)
     post_samples[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_test_indexes))
     if(return_true_test_values){
       true_test_values[[model_names[[model_number]]]] <- vector(mode = "list", length = length(train_test_indexes))
-    }    
+    }
     for(j in seq_along(train_test_indexes)){
       post_samples[[model_names[[model_number]]]][[j]] <- vector(mode = "list", length = n_likelihoods)
       if(return_true_test_values){
         true_test_values[[model_names[[model_number]]]][[j]] <- vector(mode = "list", length = n_likelihoods)
-      }    
+      }
     }
   }
   # Perform the cross-validation
@@ -507,7 +476,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
 
   n_folds <- length(train_test_indexes)
   n_models <- length(models)
-  
+
   dss <- lapply(1:n_likelihoods, function(i) matrix(numeric(n_folds * n_models), ncol = n_models))
   mse <- lapply(1:n_likelihoods, function(i) matrix(numeric(n_folds * n_models), ncol = n_models))
   mae <- lapply(1:n_likelihoods, function(i) matrix(numeric(n_folds * n_models), ncol = n_models))
@@ -545,15 +514,16 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
           post_linear_predictors <- sample_posterior_linear_predictor(new_model, i_lik, test_list, new_n_samples, print)
 
           post_samples[[model_names[[model_number]]]][[fold]][[i_lik]] <- get_posterior_samples(
-                      post_linear_predictors = post_linear_predictors, new_model = new_model, 
-                      i_lik = i_lik, new_n_samples = new_n_samples, 
-                      full_model = models[[model_number]], 
+                      post_linear_predictors = post_linear_predictors, new_model = new_model,
+                      i_lik = i_lik, new_n_samples = new_n_samples,
+                      full_model = models[[model_number]],
                       true_CV = true_CV, print = print)
 
           post_samples[[model_names[[model_number]]]][[fold]][[i_lik]] <-  do.call(rbind, post_samples[[model_names[[model_number]]]][[fold]][[i_lik]])
-          
-          test_data <- models[[model_number]]$bru_info$lhoods[[i_lik]]$response_data$BRU_response[test_list[[i_lik]]]
-          
+
+          lhoods <- inlabru::as_bru_obs_list(models[[model_number]])
+          test_data <- lhoods[[i_lik]]$response_data$BRU_response[test_list[[i_lik]]]
+
           if(return_true_test_values){
             true_test_values[[model_names[[model_number]]]][[fold]] <- test_data
           }
@@ -1020,7 +990,7 @@ sample_posterior_linear_predictor <- function(model, i_lik, test_list, n_samples
           cat("Generating samples...\n")
         }
 
-        data <- model$bru_info$lhoods[[i_lik]]$data
+        data <- inlabru::as_bru_obs_list(model)[[i_lik]]$data
 
         post_samples <- inlabru::generate(model, newdata = data, formula = formula_tmp, n.samples = n_samples)
 
@@ -1155,4 +1125,3 @@ map_models_to_strings <- function(models) {
  
  return(result)
 }
-
