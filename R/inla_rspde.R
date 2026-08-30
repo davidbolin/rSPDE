@@ -1684,12 +1684,12 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #'
 #'   set.seed(123)
 #'
-#'   m <- 100
+#'   m <- 50
 #'   loc_2d_mesh <- matrix(runif(m * 2), m, 2)
 #'   mesh_2d <- inla.mesh.2d(
 #'     loc = loc_2d_mesh,
-#'     cutoff = 0.05,
-#'     max.edge = c(0.1, 0.5)
+#'     cutoff = 0.1,
+#'     max.edge = c(0.5, 0.5)
 #'   )
 #'   sigma <- 1
 #'   range <- 0.2
@@ -1697,7 +1697,7 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #'   kappa <- sqrt(8 * nu) / range
 #'   op <- matern.operators(
 #'     mesh = mesh_2d, nu = nu,
-#'     range = range, sigma = sigma, m = 2,
+#'     range = range, sigma = sigma, m = 1,
 #'     parameterization = "matern"
 #'   )
 #'   u <- simulate(op)
@@ -1716,7 +1716,7 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #'   )
 #'   rspde_model <- rspde.matern(
 #'     mesh = mesh_2d,
-#'     nu.upper.bound = 2
+#'     nu.upper.bound = 1
 #'   )
 #'   f <- y ~ -1 + f(field, model = rspde_model)
 #'   rspde_fit <- inla(f,
@@ -2409,12 +2409,12 @@ gg_df.rspde_result <- function(result,
 #'
 #'   set.seed(123)
 #'
-#'   m <- 100
+#'   m <- 50
 #'   loc_2d_mesh <- matrix(runif(m * 2), m, 2)
 #'   mesh_2d <- inla.mesh.2d(
 #'     loc = loc_2d_mesh,
-#'     cutoff = 0.05,
-#'     max.edge = c(0.1, 0.5)
+#'     cutoff = 0.1,
+#'     max.edge = c(0.5, 0.5)
 #'   )
 #'   sigma <- 1
 #'   range <- 0.2
@@ -2422,7 +2422,7 @@ gg_df.rspde_result <- function(result,
 #'   kappa <- sqrt(8 * nu) / range
 #'   op <- matern.operators(
 #'     mesh = mesh_2d, nu = nu,
-#'     range = range, sigma = sigma, m = 2,
+#'     range = range, sigma = sigma, m = 1,
 #'     parameterization = "matern"
 #'   )
 #'   u <- simulate(op)
@@ -2441,7 +2441,7 @@ gg_df.rspde_result <- function(result,
 #'   )
 #'   rspde_model <- rspde.matern(
 #'     mesh = mesh_2d,
-#'     nu.upper.bound = 2
+#'     nu.upper.bound = 1
 #'   )
 #'   f <- y ~ -1 + f(field, model = rspde_model)
 #'   rspde_fit <- inla(f,
