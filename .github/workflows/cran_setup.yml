@@ -5,6 +5,9 @@ on:
 
 name: cran_setup
 
+permissions:
+  contents: write
+
 jobs:
   cran_setup:
     runs-on: macOS-latest
@@ -15,34 +18,6 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - name: Update src folder on inla branch
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-
-          git fetch origin devel-src inla cran
-
-          git checkout devel-src
-
-          grep -hE '^(double \*|extern "C".*)?(inla_cgeneric_[A-Za-z0-9_]+_model)\(' \
-            src/*.c src/*.cpp | \
-            grep -oE 'inla_cgeneric_[A-Za-z0-9_]+_model' | sort -u > src/FUNCTIONS
-
-          git checkout inla
-
-          git rm -rf src
-          git checkout devel-src -- src
-
-          git add src
-
-          if ! git diff-index --quiet HEAD --; then
-            git commit -m "Update src from devel-src"
-            git push origin inla
-          fi
-
-          git checkout cran
-        shell: bash
 
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -64,7 +39,6 @@ jobs:
           brew install pkg-config
           brew install proj@9
           brew install gdal
-          brew install eigen
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -81,29 +55,53 @@ jobs:
           sessioninfo::session_info(pkgs, include_base = TRUE)
         shell: Rscript {0}
 
-      - name: Install package
-        run: R CMD INSTALL .
-
-      - name: Delete vignettes and pkgdown, then copy cran vign
+      - name: Prepare the pure-R CRAN source
         run: |
+          set -euo pipefail
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
 
-          if [ -d vignettes ]; then
-            git rm -rf vignettes
-            rm -rf vignettes
-          fi
+          # Compilation is deliberately unavailable on the CRAN branch. INLA
+          # provides the Cgeneric models, and rspde_safe_inla() protects tests
+          # and examples when a required INLA model is temporarily unavailable.
+          git rm -rf --ignore-unmatch \
+            configure configure.win cleanup cleanup.win \
+            src inst/src-optional inst/shared
+          rm -rf \
+            configure configure.win cleanup cleanup.win \
+            src inst/src-optional inst/shared
 
-          mkdir -p vignettes
+          # These legacy workflows only support compiled source branches and
+          # are not part of the pure-R CRAN branch.
+          git rm -f --ignore-unmatch \
+            .github/workflows/R-CMD-check.yaml \
+            .github/workflows/R-CMD-check-mac.yaml \
+            .github/workflows/R-CMD-check-windows.yaml \
+            .github/workflows/devel_setup.yml \
+            .github/workflows/devel_src_setup.yml \
+            .github/workflows/stable_setup.yml \
+            .github/workflows/stable_src_setup.yml \
+            .github/workflows/pkgdown.yaml
 
-          if [ ! -d cran_vignettes ]; then
-            git fetch origin stable
-            git checkout origin/stable -- cran_vignettes || true
+          # Keep a directly merged CRAN vignette when no cran_vignettes
+          # directory is present. If cran_vignettes contains the canonical
+          # file, replace only that file and preserve the vignettes directory.
+          if [ -f cran_vignettes/rSPDE_package.Rmd ]; then
+            mkdir -p vignettes
+            cp cran_vignettes/rSPDE_package.Rmd vignettes/rSPDE_package.Rmd
           fi
 
           if [ -d cran_vignettes ]; then
-            cp -R cran_vignettes/. vignettes/ || true
-            git rm -rf cran_vignettes
+            git rm -rf --ignore-unmatch cran_vignettes
+            rm -rf cran_vignettes
+          fi
+
+          # A CRAN package without the canonical vignette should not retain a
+          # stale or incomplete vignettes directory. A missing cran_vignettes
+          # directory is intentionally harmless.
+          if [ ! -f vignettes/rSPDE_package.Rmd ]; then
+            git rm -rf --ignore-unmatch vignettes
+            rm -rf vignettes
           fi
 
           if [ -d man/figures ]; then
@@ -111,35 +109,17 @@ jobs:
             rm -rf man/figures
           fi
 
-          git add vignettes
-
-          sed -i .bak 's/#devel\.tag/#stable\.tag/' R/inla_rspde.R
-          sed -i .bak '/donttest{ #devel version$/a\
-          #'\'' tryCatch({
-          ' R/inla_rspde.R
-          sed -i .bak 's/donttest{ #devel version/donttest{ #tryCatch version/' R/inla_rspde.R
-          sed -i .bak '/#stable\.tag$/a\
-          #'\'' }, error = function(e){print("Could not run the example")})
-          ' R/inla_rspde.R
-          sed -i .bak 's/#stable\.tag/#stable\.tryCatch/' R/inla_rspde.R
-
-          sed -i .bak 's/#devel\.tag/#stable\.tag/' R/inlabru_rspde.R
-          sed -i .bak '/donttest{ #devel version$/a\
-          #'\'' tryCatch({
-          ' R/inlabru_rspde.R
-          sed -i .bak 's/donttest{ #devel version/donttest{ #tryCatch version/' R/inlabru_rspde.R
-          sed -i .bak '/#stable\.tag$/a\
-          #'\'' }, error = function(e){print("Could not run the example")})
-          ' R/inlabru_rspde.R
-          sed -i .bak 's/#stable\.tag/#stable\.tryCatch/' R/inlabru_rspde.R
+          if [ -d vignettes ]; then
+            git add vignettes
+          fi
 
           Rscript -e "devtools::document()"
+          R CMD INSTALL .
 
           git add man
+          git add NAMESPACE
           git add .Rbuildignore
           git add DESCRIPTION
-          git add R/inla_rspde.R
-          git add R/inlabru_rspde.R
 
           if ! git diff-index --quiet HEAD --; then
             git commit -m "Doing the setup"
