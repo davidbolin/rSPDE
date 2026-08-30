@@ -24,7 +24,8 @@ spde.matern.operators(
   loc_mesh = NULL,
   m = 1,
   type = c("covariance", "operator"),
-  type_rational_approximation = c("brasil", "chebfun", "chebfunLB")
+  type_rational_approximation = c("brasil", "chebfun", "chebfunLB"),
+  check_stationarity = TRUE
 )
 }
 \arguments{
@@ -81,6 +82,10 @@ positive integer. The default value is 1.}
 \item{type_rational_approximation}{Which type of rational
 approximation should be used? The current types are
 "brasil", "chebfun" or "chebfunLB".}
+
+\item{check_stationarity}{Logical; if TRUE, automatically returns a stationary
+model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
+non-stationary model even when parameters are constant.}
 }
 \value{
 \code{spde.matern.operators} returns an object of

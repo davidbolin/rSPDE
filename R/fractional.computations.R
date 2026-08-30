@@ -106,6 +106,9 @@ simulate.rSPDEobj <- function(object,
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are "chebfun",
 #' "brasil" or "chebfunLB".
+#' @param check_stationarity Logical; if TRUE, automatically returns a stationary
+#' model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
+#' non-stationary model even when parameters are constant.
 #' @param ... Currently not used.
 #' @return It returns an object of class "CBrSPDEobj. This object contains the
 #' same quantities listed in the output of [matern.operators()].
@@ -152,6 +155,7 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
                               type_rational_approximation =
                                 object$type_rational_approximation,
                               return_block_list = object$return_block_list,
+                              check_stationarity = TRUE,
                               ...) {
   new_object <- object
   d <- object$d
@@ -309,6 +313,30 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
       new_object$kappa <- rspde_check_user_input(kappa, "kappa", 0)
     }
 
+    # Callers that work from the fit's `coeff$random_effects` (e.g.
+    # predict.rspde_lme) pass the non-stationary thetas as individual
+    # named arguments `theta1`, `theta2`, ... rather than as a single
+    # `theta = c(...)` vector. Before this assembly step those names hit
+    # `...` and were silently dropped — `spde.matern.operators` was then
+    # called with the stale stored theta and Q never reflected the
+    # fitted parameters, producing predictions tuned to whatever theta
+    # happened to be cached on `object`. Convert them into the `theta`
+    # vector here so downstream code sees the right values.
+    if (is.null(theta)) {
+      .dots <- list(...)
+      .theta_names <- grep("^theta[0-9]+$", names(.dots), value = TRUE)
+      if (length(.theta_names) > 0) {
+        .idx <- as.integer(sub("^theta", "", .theta_names))
+        if (any(is.na(.idx)) || any(.idx < 1)) {
+          stop("Invalid theta index in update arguments.")
+        }
+        theta <- numeric(max(.idx))
+        for (k in seq_along(.theta_names)) {
+          theta[.idx[k]] <- .dots[[.theta_names[k]]]
+        }
+      }
+    }
+
     if (!is.null(theta)) {
       if (!is.numeric(theta)) {
         stop("theta must be numeric!")
@@ -356,10 +384,23 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
       alpha <- new_object$nu + d / 2
       new_object$alpha <- alpha
     }
+    # When the caller updates theta but not kappa/tau, the stored kappa/tau
+    # are stale relative to the new theta. Passing them through to
+    # spde.matern.operators causes that function to skip the recomputation
+    # from theta and the B matrices (see the `is.null(tau) || is.null(kappa)`
+    # branch there), leaving the precision matrix unchanged with respect to
+    # theta. Pass NULL in that case so the new theta is honoured.
+    if (!is.null(theta) && is.null(kappa) && is.null(tau)) {
+      kappa_arg <- NULL
+      tau_arg   <- NULL
+    } else {
+      kappa_arg <- new_object$kappa
+      tau_arg   <- new_object$tau
+    }
     if (parameterization == "spde") {
       new_object <- spde.matern.operators(
-        kappa = new_object$kappa,
-        tau = new_object$tau,
+        kappa = kappa_arg,
+        tau = tau_arg,
         theta = new_object$theta,
         alpha = new_object$alpha,
         B.tau = new_object$B.tau,
@@ -374,12 +415,13 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
         graph = graph,
         parameterization = parameterization,
         type = "covariance",
-        type_rational_approximation = new_object$type_rational_approximation
+        type_rational_approximation = new_object$type_rational_approximation,
+        check_stationarity = check_stationarity
       )
     } else {
       new_object <- spde.matern.operators(
-        kappa = new_object$kappa,
-        tau = new_object$tau,
+        kappa = kappa_arg,
+        tau = tau_arg,
         theta = new_object$theta,
         nu = new_object$nu,
         G = new_object$G,
@@ -394,7 +436,8 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
         B.sigma = new_object$B.sigma,
         B.range = new_object$B.range,
         type = "covariance",
-        type_rational_approximation = new_object$type_rational_approximation
+        type_rational_approximation = new_object$type_rational_approximation,
+        check_stationarity = check_stationarity
       )
     }
   }
@@ -501,6 +544,9 @@ update.CBrSPDEobj2d <- function(object,
 #' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
 #' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument.
 #' @param parameterization If non-null, update the parameterization. Only works for stationary models.
+#' @param check_stationarity Logical; if TRUE, automatically returns a stationary
+#' model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
+#' non-stationary model even when parameters are constant.
 #' @param ... Currently not used.
 #' @return It returns an object of class "rSPDEobj. This object contains the
 #' same quantities listed in the output of [matern.operators()].
@@ -543,7 +589,9 @@ update.rSPDEobj <- function(object, nu = NULL,
                             loc_mesh = NULL,
                             graph = NULL,
                             range_mesh = NULL,
-                            parameterization = NULL, ...) {
+                            parameterization = NULL,
+                            check_stationarity = TRUE,
+                            ...) {
   new_object <- object
 
   ## get parameters
@@ -711,10 +759,20 @@ update.rSPDEobj <- function(object, nu = NULL,
       new_object$alpha <- alpha
     }
 
+    # Same fix as in update.CBrSPDEobj: when theta is updated but kappa/tau
+    # are not, the stored kappa/tau are stale; pass NULL so they are
+    # recomputed from theta and the B matrices.
+    if (!is.null(theta) && is.null(kappa) && is.null(tau)) {
+      kappa_arg <- NULL
+      tau_arg   <- NULL
+    } else {
+      kappa_arg <- new_object$kappa
+      tau_arg   <- new_object$tau
+    }
     if (parameterization == "spde") {
       new_object <- spde.matern.operators(
-        kappa = new_object$kappa,
-        tau = new_object$tau,
+        kappa = kappa_arg,
+        tau = tau_arg,
         theta = new_object$theta,
         alpha = new_object$alpha,
         B.tau = new_object$B.tau,
@@ -728,12 +786,13 @@ update.rSPDEobj <- function(object, nu = NULL,
         range_mesh = range_mesh,
         parameterization = parameterization,
         graph = graph,
-        type = "operator"
+        type = "operator",
+        check_stationarity = check_stationarity
       )
     } else {
       new_object <- spde.matern.operators(
-        kappa = new_object$kappa,
-        tau = new_object$tau,
+        kappa = kappa_arg,
+        tau = tau_arg,
         theta = new_object$theta,
         nu = new_object$nu,
         B.range = new_object$B.range,
@@ -747,7 +806,8 @@ update.rSPDEobj <- function(object, nu = NULL,
         range_mesh = range_mesh,
         parameterization = parameterization,
         graph = graph,
-        type = "operator"
+        type = "operator",
+        check_stationarity = check_stationarity
       )
     }
   }

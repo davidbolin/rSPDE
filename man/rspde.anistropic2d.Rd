@@ -89,3 +89,12 @@ h_x^2 & h_xh_yh_{xy} \\
 h_xh_yh_{xy} & h_y^2
 \end{bmatrix}}
 }
+\examples{
+\dontshow{if (rspde_safe_inla()) withAutoprint(\{ # examplesIf}
+library(fmesher)
+n_loc <- 2000
+loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
+mesh_2d <- fm_mesh_2d(loc = loc_2d_mesh, cutoff = 0.03, max.edge = c(0.1, 0.5))
+aniso_model <- rspde.anistropic2d(mesh = mesh_2d)
+\dontshow{\}) # examplesIf}
+}

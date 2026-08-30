@@ -22,6 +22,7 @@
   parameterization = NULL,
   type_rational_approximation = object$type_rational_approximation,
   return_block_list = object$return_block_list,
+  check_stationarity = TRUE,
   ...
 )
 }
@@ -69,6 +70,10 @@ approximation should be used? The current types are "chebfun",
 \item{return_block_list}{Logical. For \code{type = "covariance"},
 should the block parts of the precision matrix be returned
 separately as a list?}
+
+\item{check_stationarity}{Logical; if TRUE, automatically returns a stationary
+model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
+non-stationary model even when parameters are constant.}
 
 \item{...}{Currently not used.}
 }

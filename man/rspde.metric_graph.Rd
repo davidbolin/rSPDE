@@ -33,7 +33,7 @@ rspde.metric_graph(
   prior.nu.dist = c("lognormal", "beta"),
   nu.prec.inc = 1,
   type.rational.approx = c("brasil", "chebfun", "chebfunLB"),
-  shared_lib = "INLA"
+  shared_lib = "detect"
 )
 }
 \arguments{

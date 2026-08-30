@@ -2,7 +2,7 @@
 
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version-last-release/rSPDE)](https://cran.r-project.org/package=rSPDE)
 [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)](https://cranlogs.r-pkg.org/badges/grand-total/rSPDE)
-[![R-CMD-check](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml/badge.svg?branch=devel-src)](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml/badge.svg?branch=devel)](https://github.com/davidbolin/rSPDE/actions/workflows/R-CMD-check.yaml)
 
 # Description #
 `rSPDE` is an R package used for computing rational approximations of fractional SPDEs. These rational approximations can be used for computationally efficient statistical inference.
@@ -46,48 +46,112 @@ in R. The development version can be installed using the command
 remotes::install_github("davidbolin/rspde", ref = "devel")
 ```
 
-*The following is intended for expert use only:* 
+*The following is intended for expert use only:*
 
-In case you want to build the source, the `stable-src` and `devel-src` branches require compilation, which is not the case for the `cran`, `stable` and `devel` branches. Observe that it is possible that some features will only be available (for a while) for those using the `devel-src` branch. But within a month or so, after such feature was implemented, it will also be available for those using the `devel` branch.
+The `devel` branch ships pure R by default but also carries the C/C++ `cgeneric` sources, which can be compiled on demand to build the local INLA shared object (`inst/shared/rspde_cgeneric_models.so`). Compilation is opt-in and controlled by either an environment variable or a `--enable-compiled` flag passed to `remotes::install_github()`:
 
-For Windows operating systems, we recommend the user to install from either of the `cran`, `stable` or `devel` branches, which require no compilation. 
+```r
+# Pure R install (default; matches CRAN):
+remotes::install_github("davidbolin/rSPDE", ref = "devel")
 
-The compilation is required to create a shared object to be used by `INLA`. However, the `INLA` installation comes with such a shared object. Thus, unless there is some specific reason for the user to want to compile from source, it is not required.
+# Opt in to the compiled cgeneric library:
+remotes::install_github(
+  "davidbolin/rSPDE",
+  ref = "devel",
+  configure.args = "--enable-compiled"
+)
 
-Finally, we have the vignette [Building the rSPDE package from source on Mac and Linux](https://davidbolin.github.io/rSPDE//articles/build_source.html) to help you if you want to build the `rSPDE` package from source on Mac or Linux.
+# Or via an environment variable:
+withr::with_envvar(
+  c(RSPDE_COMPILE = "1"),
+  remotes::install_github("davidbolin/rSPDE", ref = "devel")
+)
+```
+
+If you have already cloned the repository locally, `devtools::install()` works the same way. The most reliable form is to set the `RSPDE_COMPILE` environment variable before installing — `devtools::install()` does **not** accept a `configure.args` argument directly; configure flags must be forwarded through `args = "--configure-args=..."`:
+
+```r
+# From the cloned repo root, pure R (default, no compilation):
+devtools::install()
+
+# From the cloned repo root, with compilation (env-var form, recommended):
+Sys.setenv(RSPDE_COMPILE = "1")
+devtools::install()
+
+# Or scoped to a single call:
+withr::with_envvar(
+  c(RSPDE_COMPILE = "1"),
+  devtools::install()
+)
+
+# Equivalent --configure-args form (note: pass via `args`, not `configure.args`):
+devtools::install(args = "--configure-args=--enable-compiled")
+```
+
+The compiled C/C++ sources live in `inst/src-optional/`. The `configure` (POSIX) and `configure.win` (Windows) scripts copy them into `src/` only when compilation is requested; otherwise they write a no-op `Makevars` so the install stays pure R. CRAN passes neither flag, so the CRAN tarball is unaffected.
+
+At runtime the package checks the requested Cgeneric symbol in the installed INLA binary. If INLA does not provide it, rSPDE looks for the locally compiled shared object; if neither is available, it reports how to update INLA, compile rSPDE from source, or open an rSPDE issue.
+
+For Windows users without Rtools, leave compilation disabled — the default pure-R install does not require a toolchain.
+
+The compilation is only required to create the shared object used by `INLA`'s `cgeneric` interface; `INLA` itself ships such a shared object, so most users do not need to compile. The `stable-src` and `devel-src` branches are deprecated in favour of this single-branch `devel` workflow.
+
+See the vignette [Building the rSPDE package from source on Mac and Linux](https://davidbolin.github.io/rSPDE//articles/build_source.html) for the toolchain prerequisites (gcc-14 on macOS, etc.) used by the optional compile path.
 
 # Repository branch workflows #
-The package version format for released versions is `major.minor.bugfix`. All regular development on the `R` part of the code should be performed on the `devel` branch or in a feature branch, managed with `git flow feature`, similarly, all the development in the `C` (or `C++`) part of the code should be performed on the `devel-src` branch. After finishing the `C` (or `C++`) implementations, the changes in the `R` code, should preferably be made on the `devel` branch. After pushing to `devel`, a merge with `devel-src` will be automatically done. Similarly, after pushing to `devel-src`, a merge with `devel` will also be automatically done. Ideally, all the changes should be made on the `devel` or `devel-src` branches. The `devel` version of the package should contain unit tests and examples for all important functions. Several functions may depend on `INLA`. Examples and tests for such functions might create problems when submitting to CRAN. To solve this problem, we created some Github Actions scripts that get the examples and tests depending on `INLA` on the `devel` branch and adapt to versions that will not fail on CRAN. Therefore, the best way to handle these situations is to avoid as much as possible to do any push to the `stable` branch. The idea is to update the `stable` branch by merges following the workflow that will be described below. 
-The examples that depend on `INLA` should have the following structure:
+The package version format for released versions is `major.minor.bugfix`. All regular development — both the `R` code and the `C`/`C++` `cgeneric` sources in `inst/src-optional/` — should be performed on the `devel` branch or in a feature branch managed with `git flow feature`. The legacy `devel-src` / `stable-src` branches are deprecated; the optional-compile machinery on `devel` (see *Installation instructions* above) replaces them. The `devel` version of the package should contain unit tests and examples for all important functions. Avoid direct pushes to `stable`; update it through the merge workflow described below.
 
-```
-#' \donttest{ #devel version
+Examples that depend on `INLA` stay in the package unchanged across branches. Guard them with `rspde_safe_inla()` so an unavailable, incompatible, or temporarily incomplete INLA installation does not fail a package check:
+
+```r
+#' @examplesIf rspde_safe_inla()
 #' library(INLA)
-#' 
-#' # The contents of the example
 #'
-#' #devel.tag
-#' }
+#' # The contents of the example
 ```
+
+If an example requires a Cgeneric model that may not yet be present in every INLA build, pass its model symbol through `required_symbol`. Availability is detected dynamically; there is no static list of supported symbols.
+
+## Updating the INLA source branch ##
+
+The `inla` branch is used to mirror the source files that need to be available under `src/` for INLA. These files should be maintained on the `devel` branch under `inst/src-optional/`; they should not be edited manually on the `inla` branch.
+
+To send the source files from `devel` to `inla`, commit the changes on `devel` with a commit message that ends with `INLA UPDATE`, and push to `devel`:
+
+```bash
+git checkout devel
+# Edit the relevant files in inst/src-optional/
+git add inst/src-optional
+git commit -m "Update INLA cgeneric sources INLA UPDATE"
+git push origin devel
+```
+
+When the last commit message in the push ends with `INLA UPDATE`, the GitHub Actions workflow copies the following files from `inst/src-optional/` on `devel` into `src/` on `inla`:
+
+- all `.c` files;
+- all `.cpp` files;
+- `cgeneric_cpp.h`;
+- `cgeneric_defs.h`.
+
+The workflow then commits the copied files on the `inla` branch and pushes that branch. Only the head commit message of the push is checked, so if several commits are pushed at once, the last commit in the push must be the one whose message ends with `INLA UPDATE`. If the workflow file itself is being added for the first time, first push the workflow to `devel`, and then make a second push whose commit message ends with `INLA UPDATE`.
+
+Every push produced by the normal `stable` merge workflow also refreshes the `inla` branch from `inst/src-optional/` on `stable`. This ensures that completing a stable release automatically publishes the matching Cgeneric sources to `inla`, without requiring a separate `INLA UPDATE` commit.
+
+## Tests involving INLA ##
 
 The tests that depend on `INLA` should have the following structure:
 
 ```
 test_that("Description of the test", {
-  testthat::skip_on_cran()
-  if (!requireNamespace("INLA", quietly=TRUE))
-    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
-  
-  old_threads <- INLA::inla.getOption("num.threads")
-  INLA::inla.setOption(num.threads = "1:1")
-  
+  local_rspde_safe_inla()
+
   # The contents of the test
-  
-  INLA::inla.setOption(num.threads = old_threads)
 })
 ```
 
-On the `devel` and `devel-src` branches, the vestion number is `major.minor.bugfix.9000`, where the first three components reflect the latest released version with changes present in the `default` branch. Bugfixes should be applied via the `git flow bugfix` and `git flow hotfix` methods, as indicated below. For `git flow` configuration, use `master` as the stable master branch, `devel` as the develop branch, and `v` as the version tag prefix. Hotfixes directly `stable` should be avoided whenever possible to minimize conflicts on merges. See [the `git flow` tutorial](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) for more information.
+`local_rspde_safe_inla()` checks the INLA package and executable, uses safe single-threaded test options, and restores the previous options after the test. For a test that needs a potentially newer Cgeneric model, use `local_rspde_safe_inla(required_symbol = "<model symbol>")`; the test is skipped if neither the installed INLA binary nor a locally compiled rSPDE library provides it. A separate `testthat::skip_on_cran()` may still be used when the test is intrinsically too slow for CRAN, but it is no longer needed merely to protect against INLA installation failures.
+
+On the `devel` branch, the version number is `major.minor.bugfix.9000`, where the first three components reflect the latest released version with changes present in the `default` branch. Bugfixes should be applied via the `git flow bugfix` and `git flow hotfix` methods, as indicated below. For `git flow` configuration, use `master` as the stable master branch, `devel` as the develop branch, and `v` as the version tag prefix. Hotfixes directly `stable` should be avoided whenever possible to minimize conflicts on merges. See [the `git flow` tutorial](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) for more information.
 
 For non `devel` branches that collaborators need access to (e.g. release branches, feature branches, etc, use the `git flow publish` mechanism).
 

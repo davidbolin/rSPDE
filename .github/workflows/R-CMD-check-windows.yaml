@@ -1,0 +1,87 @@
+# For help debugging build failures open an issue on the RStudio community with the 'github-actions' tag.
+# https://community.rstudio.com/new-topic?category=Package%20development&tags=github-actions
+
+on:
+  push:
+    branches:
+      - devel
+
+name: R-CMD-check-windows
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  R-CMD-check-windows:
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: windows-latest, r: 'release'}
+
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      RSPM: ${{ matrix.config.rspm }}
+      NOT_CRAN: false
+      RSPDE_COMPILE: "0"
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          rtools-version: "44"
+          extra-repositories: 'https://inla.r-inla-download.org/R/testing'
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: '"all"'
+          extra-packages: |
+            rcmdcheck
+
+      - name: Session info
+        run: |
+          options(width = 100)
+          pkgs <- installed.packages()[, "Package"]
+          sessioninfo::session_info(pkgs, include_base = TRUE)
+        shell: Rscript {0}
+
+      - name: Ensure pure-R install
+        run: |
+          unlink("src", recursive = TRUE, force = TRUE)
+          unlink("inst/shared/.description", force = TRUE)
+          Sys.setenv(RSPDE_COMPILE = "0")
+        shell: Rscript {0}
+
+      - name: Exclude non-CRAN files on Windows
+        run: |
+          cat("Excluding non-CRAN files for Windows pure-R check\n")
+          write("^inst/src-optional/Makefile$", file = ".Rbuildignore", append = TRUE)
+          write("^cran_vignettes$", file = ".Rbuildignore", append = TRUE)
+        shell: Rscript {0}
+
+      - uses: r-lib/actions/check-r-package@v2
+        env:
+          _R_CHECK_CRAN_INCOMING_REMOTE_: false
+        with:
+          build_args: 'c("--no-manual", "--no-build-vignettes")'
+          args: 'c("--no-manual", "--ignore-vignettes", "--as-cran")'
+
+  retry-on-failure:
+    if: failure() && fromJSON(github.run_attempt) < 3
+    needs: [R-CMD-check-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run retry-workflow.yml -F run_id=${{ github.run_id }}

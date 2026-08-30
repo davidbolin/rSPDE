@@ -2,10 +2,12 @@
 
 S3method(augment,rspde_lme)
 S3method(cov_function_mesh,default)
+S3method(cov_function_mesh,hybrid_spde)
 S3method(cov_function_mesh,matern2d_operator)
 S3method(cov_function_mesh,matern_operator)
 S3method(cov_function_mesh,spde_matern_operator)
 S3method(covariance_mesh,default)
+S3method(covariance_mesh,hybrid_spde)
 S3method(covariance_mesh,matern2d_operator)
 S3method(covariance_mesh,matern_operator)
 S3method(covariance_mesh,spde_matern_operator)
@@ -14,6 +16,7 @@ S3method(gg_df,rspde_result)
 S3method(glance,rspde_lme)
 S3method(logLik,rspde_lme)
 S3method(make_A,default)
+S3method(make_A,hybrid_spde)
 S3method(make_A,intrinsicCBrSPDEobj)
 S3method(make_A,matern2d_operator)
 S3method(make_A,matern_operator)
@@ -28,6 +31,7 @@ S3method(precision,rSPDEobj1d)
 S3method(precision,spacetimeobj)
 S3method(predict,CBrSPDEobj)
 S3method(predict,CBrSPDEobj2d)
+S3method(predict,hybrid_spde)
 S3method(predict,inla_rspde_matern1d)
 S3method(predict,intrinsicCBrSPDEobj)
 S3method(predict,rSPDEobj)
@@ -35,6 +39,8 @@ S3method(predict,rspde_lme)
 S3method(predict,spacetimeobj)
 S3method(print,CBrSPDEobj)
 S3method(print,CBrSPDEobj2d)
+S3method(print,hybrid_spde)
+S3method(print,inla_rspde_hybrid_alpha2)
 S3method(print,intrinsicCBrSPDEobj)
 S3method(print,rSPDEobj)
 S3method(print,rSPDEobj1d)
@@ -52,6 +58,7 @@ S3method(rspde.mesh.project,inla.mesh.1d)
 S3method(rspde.mesh.project,rspde.mesh.projector)
 S3method(simulate,CBrSPDEobj)
 S3method(simulate,CBrSPDEobj2d)
+S3method(simulate,hybrid_spde)
 S3method(simulate,intrinsicCBrSPDEobj)
 S3method(simulate,rSPDEobj)
 S3method(simulate,rSPDEobj1d)
@@ -66,6 +73,7 @@ S3method(summary,rspde_result)
 S3method(summary,spacetimeobj)
 S3method(update,CBrSPDEobj)
 S3method(update,CBrSPDEobj2d)
+S3method(update,hybrid_spde)
 S3method(update,intrinsicCBrSPDEobj)
 S3method(update,rSPDEobj)
 S3method(update,rSPDEobj1d)
@@ -95,14 +103,17 @@ export(get.initial.values.rSPDE)
 export(gg_df)
 export(glance)
 export(graph_data_rspde)
+export(hybrid.spde)
 export(intrinsic.matern.operators)
 export(intrinsic.operators)
+export(local_rspde_safe_inla)
 export(make_A)
 export(matern.covariance)
 export(matern.operators)
 export(matern.rational)
 export(matern.rational.cov)
 export(matern2d.operators)
+export(posterior_crossvalidation)
 export(precision)
 export(rSPDE.A1d)
 export(rSPDE.Ast)
@@ -115,6 +126,7 @@ export(rational.order)
 export(rational.type)
 export(require.nowarnings)
 export(rspde.anistropic2d)
+export(rspde.hybrid.matern)
 export(rspde.intrinsic)
 export(rspde.intrinsic.matern)
 export(rspde.make.A)
@@ -131,6 +143,7 @@ export(rspde.metric_graph)
 export(rspde.result)
 export(rspde.spacetime)
 export(rspde_lme)
+export(rspde_safe_inla)
 export(spacetime.operators)
 export(spde.make.A)
 export(spde.matern.loglike)
@@ -180,39 +193,45 @@ if (getRversion() >= "3.6.0") {
   S3method(inlabru::ibm_jacobian, bru_mapper_intrinsic_matern)
 }
 import(Matrix)
-importFrom(broom,augment)
-importFrom(broom,glance)
-importFrom(fmesher,fm_basis)
-importFrom(fmesher,fm_block)
-importFrom(fmesher,fm_evaluate)
-importFrom(fmesher,fm_evaluator)
-importFrom(fmesher,fm_fem)
-importFrom(fmesher,fm_mesh_1d)
-importFrom(fmesher,fm_mesh_2d)
-importFrom(fmesher,fm_row_kron)
+importFrom(broom,
+  augment,
+  glance
+)
+importFrom(fmesher,
+  fm_basis,
+  fm_block,
+  fm_evaluate,
+  fm_evaluator,
+  fm_fem,
+  fm_mesh_1d,
+  fm_mesh_2d,
+  fm_row_kron
+)
 importFrom(lifecycle,deprecated)
 importFrom(methods,as)
-importFrom(stats,approx)
-importFrom(stats,as.formula)
-importFrom(stats,cov)
-importFrom(stats,dbeta)
-importFrom(stats,deviance)
-importFrom(stats,dist)
-importFrom(stats,dnorm)
-importFrom(stats,lm)
-importFrom(stats,logLik)
-importFrom(stats,na.omit)
-importFrom(stats,nobs)
-importFrom(stats,optim)
-importFrom(stats,pnorm)
-importFrom(stats,predict)
-importFrom(stats,quantile)
-importFrom(stats,rnorm)
-importFrom(stats,rt)
-importFrom(stats,sd)
-importFrom(stats,setNames)
-importFrom(stats,simulate)
-importFrom(stats,spline)
-importFrom(stats,terms)
-importFrom(stats,var)
+importFrom(stats,
+  approx,
+  as.formula,
+  cov,
+  dbeta,
+  deviance,
+  dist,
+  dnorm,
+  lm,
+  logLik,
+  na.omit,
+  nobs,
+  optim,
+  pnorm,
+  predict,
+  quantile,
+  rnorm,
+  rt,
+  sd,
+  setNames,
+  simulate,
+  spline,
+  terms,
+  var
+)
 importFrom(utils,packageVersion)

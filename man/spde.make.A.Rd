@@ -45,8 +45,7 @@ for rSPDE models with integer smoothness based on \code{inla.mesh} or
 \code{inla.mesh.1d} objects.
 }
 \examples{
-\donttest{ #tryCatch version
-tryCatch({
+\donttest{
 if (requireNamespace("fmesher", quietly = TRUE)) {
   library(fmesher)
 
@@ -59,7 +58,5 @@ if (requireNamespace("fmesher", quietly = TRUE)) {
   )
   A <- spde.make.A(mesh, loc = loc)
 }
-#stable.tryCatch
-}, error = function(e){print("Could not run the example")})
 }
 }

@@ -1,0 +1,21 @@
+#!/bin/sh
+# Windows counterpart of ./configure. Same logic: pure-R by default,
+# compile only when RSPDE_COMPILE=1 or --enable-compiled is passed.
+
+COMPILE="${RSPDE_COMPILE:-0}"
+
+for arg in "$@"; do
+    case "$arg" in
+        --enable-compiled)  COMPILE=1 ;;
+        --disable-compiled) COMPILE=0 ;;
+    esac
+done
+
+if [ "$COMPILE" = "1" ] || [ "$COMPILE" = "TRUE" ] || [ "$COMPILE" = "true" ]; then
+    echo "*** rSPDE: compiling C/C++ cgeneric sources"
+    mkdir -p src
+    cp inst/src-optional/* src/
+else
+    echo "*** rSPDE: pure-R install; no src directory will be created"
+    rm -rf src
+fi

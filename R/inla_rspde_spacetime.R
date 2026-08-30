@@ -54,6 +54,24 @@
 #' @return An object of class `inla_rspde_spacetime` representing the FEM approximation of
 #' the space-time Gaussian random field.
 #' @export
+#'
+#' @examplesIf rspde_safe_inla() && requireNamespace("MetricGraph", quietly = TRUE)
+#' library(INLA)
+#' library(MetricGraph)
+#' graph <- metric_graph$new()
+#' graph$build_mesh(h = 0.1)
+#' graph$compute_fem()
+#'
+#' # Define the time locations
+#' time_loc <- seq(from = 0, to = 10, length.out = 11)
+#'
+#' # Create the model
+#' model <- rspde.spacetime(mesh_space = graph,
+#'                          time_loc = time_loc,
+#'                          alpha = 2,
+#'                          beta = 1)
+#'
+
 rspde.spacetime <- function(mesh_space = NULL,
                             mesh_time = NULL,
                             space_loc = NULL,
@@ -203,6 +221,7 @@ rspde.spacetime <- function(mesh_space = NULL,
     )
 
   model <- do.call(INLA::inla.cgeneric.define, list_args)
+  model <- rspde_resolve_cgeneric_model(model)
 
   model$A <- function(...) {
     make_A(op, ...)
@@ -260,12 +279,8 @@ rspde.spacetime <- function(mesh_space = NULL,
 bru_get_mapper.inla_rspde_spacetime <- function(model, ...) {
   stopifnot(requireNamespace("inlabru"))
   inlabru::bru_mapper_multi(list(
-    space = if(inherits(model[["mesh"]], c("fm_mesh_1d", "inla.mesh.1d"))){
-      inlabru::bru_mapper(model[["mesh"]], indexed = TRUE)
-    } else{
-      inlabru::bru_mapper(model[["mesh"]])
-    },
-    time = inlabru::bru_mapper(model[["time_mesh"]], indexed = TRUE)
+    space = inlabru::bm_fmesher(model[["mesh"]]),
+    time = inlabru::bm_fmesher(model[["time_mesh"]])
   ))
 }
 

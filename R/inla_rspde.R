@@ -52,11 +52,10 @@
 #' should be used? The current types are "brasil", "chebfun" or "chebfunLB".
 #' @param debug INLA debug argument
 #' @param shared_lib Which shared lib to use for the cgeneric implementation?
-#' If "detect", it will check if the shared lib exists locally, in which case it will
-#' use it. Otherwise it will use INLA's shared library.
-#' If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
-#' it will use the local installation (does not work if your installation is from CRAN).
-#' Otherwise, you can directly supply the path of the .so (or .dll) file.
+#' `"detect"` and `"INLA"` prefer the model compiled into the INLA binary and
+#' fall back to a compiled local rSPDE library when the symbol is unavailable.
+#' `"rSPDE"` requires the local library. An existing `.so` or `.dll` path can
+#' also be supplied directly.
 #' @param ... Only being used internally.
 #'
 #' @return An INLA model.
@@ -860,6 +859,7 @@ rspde.matern <- function(mesh,
   model$rspde.order <- rspde.order
   class(model) <- c("inla_rspde", class(model))
 
+  model <- rspde_resolve_cgeneric_model(model)
   rspde_check_cgeneric_symbol(model)
 
   model$dim <- d
@@ -927,8 +927,7 @@ restructure_matrices_less <- function(matrices_less, m_alpha) {
 #' @return The \eqn{A} matrix for rSPDE models.
 #' @export
 #' @examples
-#' \donttest{ #tryCatch version
-          #' tryCatch({
+#' \donttest{
 #' if (requireNamespace("fmesher", quietly = TRUE)) {
 #'   library(fmesher)
 #'
@@ -941,8 +940,6 @@ restructure_matrices_less <- function(matrices_less, m_alpha) {
 #'   )
 #'   A <- spde.make.A(mesh, loc = loc)
 #' }
-#' #stable.tryCatch
-          #' }, error = function(e){print("Could not run the example")})
 #' }
 spde.make.A <- function(mesh = NULL,
                         loc = NULL,
@@ -1052,9 +1049,8 @@ spde.make.A <- function(mesh = NULL,
 #' @return The \eqn{A} matrix for rSPDE models.
 #' @export
 #' @examples
-#' \donttest{ #tryCatch version
-          #' tryCatch({
-#' if (requireNamespace("INLA", quietly = TRUE)) {
+#' \donttest{
+#' if (rspde_safe_inla()) {
 #'   library(INLA)
 #'
 #'   set.seed(123)
@@ -1066,8 +1062,6 @@ spde.make.A <- function(mesh = NULL,
 #'   )
 #'   A <- rspde.make.A(mesh, loc = loc, rspde.order = 3)
 #' }
-#' #stable.tryCatch
-          #' }, error = function(e){print("Could not run the example")})
 #' }
 rspde.make.A <- function(mesh = NULL,
                          loc = NULL,
@@ -1230,9 +1224,8 @@ rspde.make.A <- function(mesh = NULL,
 #' \item{name.repl}{Indices for replicates}
 #' @export
 #' @examples
-#' \donttest{ #tryCatch version
-          #' tryCatch({
-#' if (requireNamespace("INLA", quietly = TRUE)) {
+#' \donttest{
+#' if (rspde_safe_inla()) {
 #'   library(INLA)
 #'
 #'   set.seed(123)
@@ -1267,22 +1260,7 @@ rspde.make.A <- function(mesh = NULL,
 #'     A = Abar,
 #'     effects = mesh.index
 #'   )
-#'   rspde_model <- rspde.matern(
-#'     mesh = mesh_2d,
-#'     nu.upper.bound = 2
-#'   )
-#'   f <- y ~ -1 + f(field, model = rspde_model)
-#'   rspde_fit <- inla(f,
-#'     data = inla.stack.data(st.dat),
-#'     family = "gaussian",
-#'     control.predictor =
-#'       list(A = inla.stack.A(st.dat))
-#'   )
-#'   result <- rspde.result(rspde_fit, "field", rspde_model)
-#'   summary(result)
 #' }
-#' #stable.tryCatch
-          #' }, error = function(e){print("Could not run the example")})
 #' }
 rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
                              n.repl = 1, mesh = NULL,
@@ -1693,19 +1671,18 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #' \item{summary.nu}{Summary statistics for nu}
 #' @export
 #' @examples
-#' \donttest{ #tryCatch version
-          #' tryCatch({
-#' if (requireNamespace("INLA", quietly = TRUE)) {
+#' \donttest{
+#' if (rspde_safe_inla()) {
 #'   library(INLA)
 #'
 #'   set.seed(123)
 #'
-#'   m <- 100
+#'   m <- 50
 #'   loc_2d_mesh <- matrix(runif(m * 2), m, 2)
 #'   mesh_2d <- inla.mesh.2d(
 #'     loc = loc_2d_mesh,
-#'     cutoff = 0.05,
-#'     max.edge = c(0.1, 0.5)
+#'     cutoff = 0.1,
+#'     max.edge = c(0.5, 0.5)
 #'   )
 #'   sigma <- 1
 #'   range <- 0.2
@@ -1713,7 +1690,7 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #'   kappa <- sqrt(8 * nu) / range
 #'   op <- matern.operators(
 #'     mesh = mesh_2d, nu = nu,
-#'     range = range, sigma = sigma, m = 2,
+#'     range = range, sigma = sigma, m = 1,
 #'     parameterization = "matern"
 #'   )
 #'   u <- simulate(op)
@@ -1732,7 +1709,7 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #'   )
 #'   rspde_model <- rspde.matern(
 #'     mesh = mesh_2d,
-#'     nu.upper.bound = 2
+#'     nu.upper.bound = 1
 #'   )
 #'   f <- y ~ -1 + f(field, model = rspde_model)
 #'   rspde_fit <- inla(f,
@@ -1744,8 +1721,6 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #'   result <- rspde.result(rspde_fit, "field", rspde_model)
 #'   summary(result)
 #' }
-#' #stable.tryCatch
-          #' }, error = function(e){print("Could not run the example")})
 #' }
 rspde.result <- function(inla, name, rspde, compute.summary = TRUE, 
                          parameterization = "detect", 
@@ -2419,19 +2394,18 @@ gg_df.rspde_result <- function(result,
 #' @export
 #' @method summary rspde_result
 #' @examples
-#' \donttest{ #tryCatch version
-          #' tryCatch({
-#' if (requireNamespace("INLA", quietly = TRUE)) {
+#' \donttest{
+#' if (rspde_safe_inla()) {
 #'   library(INLA)
 #'
 #'   set.seed(123)
 #'
-#'   m <- 100
+#'   m <- 50
 #'   loc_2d_mesh <- matrix(runif(m * 2), m, 2)
 #'   mesh_2d <- inla.mesh.2d(
 #'     loc = loc_2d_mesh,
-#'     cutoff = 0.05,
-#'     max.edge = c(0.1, 0.5)
+#'     cutoff = 0.1,
+#'     max.edge = c(0.5, 0.5)
 #'   )
 #'   sigma <- 1
 #'   range <- 0.2
@@ -2439,7 +2413,7 @@ gg_df.rspde_result <- function(result,
 #'   kappa <- sqrt(8 * nu) / range
 #'   op <- matern.operators(
 #'     mesh = mesh_2d, nu = nu,
-#'     range = range, sigma = sigma, m = 2,
+#'     range = range, sigma = sigma, m = 1,
 #'     parameterization = "matern"
 #'   )
 #'   u <- simulate(op)
@@ -2458,7 +2432,7 @@ gg_df.rspde_result <- function(result,
 #'   )
 #'   rspde_model <- rspde.matern(
 #'     mesh = mesh_2d,
-#'     nu.upper.bound = 2
+#'     nu.upper.bound = 1
 #'   )
 #'   f <- y ~ -1 + f(field, model = rspde_model)
 #'   rspde_fit <- inla(f,
@@ -2470,8 +2444,6 @@ gg_df.rspde_result <- function(result,
 #'   result <- rspde.result(rspde_fit, "field", rspde_model)
 #'   summary(result)
 #' }
-#' #stable.tryCatch
-          #' }, error = function(e){print("Could not run the example")})
 #' }
 #'
 summary.rspde_result <- function(object,
@@ -2502,8 +2474,7 @@ summary.rspde_result <- function(object,
 #' @name rspde.mesh.project
 #' @title Calculate a lattice projection to/from an `inla.mesh` for
 #' rSPDE objects
-#' @aliases rspde.mesh.project rspde.mesh.projector rspde.mesh.project.inla.mesh
-#' rspde.mesh.project.rspde.mesh.projector rspde.mesh.project.inla.mesh.1d
+#' @aliases rspde.mesh.project rspde.mesh.projector rspde.mesh.project.inla.mesh rspde.mesh.project.rspde.mesh.projector rspde.mesh.project.inla.mesh.1d
 #' @description Calculate a lattice projection to/from an `inla.mesh` for
 #' rSPDE objects
 #' @param mesh An `inla.mesh` or `inla.mesh.1d` object.
@@ -2612,13 +2583,8 @@ rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
   smorg <- fmesher::fm_bary(mesh, loc = mesh$loc)
   ti <- matrix(0L, nrow(loc), 1)
   b <- matrix(0, nrow(loc), 3)
-  if (utils::packageVersion("fmesher") <= "0.2.0.9000") {
-    ti[jj, 1L] <- as.vector(smorg$t)
-    b[jj, ] <- smorg$bary
-  } else {
-    ti[jj, 1L] <- smorg$index
-    b[jj, ] <- smorg$where
-  }
+  ti[jj, 1L] <- smorg$index
+  b[jj, ] <- smorg$where
   ok <- !is.na(ti[, 1L])
   ii <- which(ok)
   A <- (sparseMatrix(dims = c(nrow(loc), mesh$n), i = rep(
@@ -3335,7 +3301,7 @@ rspde.metric_graph <- function(graph_obj,
                                  "chebfun",
                                  "chebfunLB"
                                ),
-                               shared_lib = "INLA") {
+                               shared_lib = "detect") {
   if (!inherits(graph_obj, "metric_graph")) {
     stop("The graph object should be of class metric_graph!")
   }
@@ -3461,7 +3427,8 @@ rspde.metric_graph <- function(graph_obj,
       nu.prec.inc = nu.prec.inc,
       type.rational.approx = type.rational.approx,
       vec_param = param,
-      prior.theta.param = prior.theta.param
+      prior.theta.param = prior.theta.param,
+      shared_lib = shared_lib
     )
   } else {
     rspde_model <- rspde.matern(
@@ -3480,7 +3447,8 @@ rspde.metric_graph <- function(graph_obj,
       nu.prec.inc = nu.prec.inc,
       type.rational.approx = type.rational.approx,
       vec_param = param,
-      prior.theta.param = prior.theta.param
+      prior.theta.param = prior.theta.param,
+      shared_lib = shared_lib
     )
   }
 

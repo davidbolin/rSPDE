@@ -1732,7 +1732,7 @@ convert_B_matrices <- function(B.sigma, B.range, n.spde, nu.nominal, d) {
 #'
 #' @param d The dimension of the spatial domain
 #' @param nu The smoothness parameter
-#' @param par Vector of parameters to convert (either [tau, kappa] or [sigma, range])
+#' @param par Vector of parameters to convert (either `[tau, kappa]` or `[sigma, range]`)
 #' @param hessian The observed Fisher information matrix (can be NULL if all parameters are fixed)
 #' @param fixed_params Named logical vector indicating which parameters are fixed
 #' @param to_spde Logical; if TRUE, convert from Matern to SPDE, otherwise from SPDE to Matern
@@ -1984,7 +1984,7 @@ create_train_test_indices <- function(data_list, cv_type = c("k-fold", "loo", "l
   
   # Get indices for concatenated data as before
   idx <- seq_len(nrow(data))
-    
+
   # Get cumulative sizes to map back to individual datasets
   n_samples <- sapply(data_list, nrow)
   cum_sizes <- cumsum(c(0, n_samples))
@@ -2049,25 +2049,276 @@ check_packages <- function(packages, func) {
 }
 
 #' @noRd
-# Get appropriate shared library
+# Get an explicitly requested shared library. For "INLA" and "detect", the
+# model-specific built-in/local decision is made after model construction by
+# rspde_resolve_cgeneric_model().
 get_shared_library <- function(shared_lib) {
-  if (shared_lib == "INLA") {
-    return(INLA::inla.external.lib("rSPDE"))
+  if (!is.character(shared_lib) || length(shared_lib) != 1L || is.na(shared_lib)) {
+    stop("'shared_lib' must be a single character string.")
+  }
+
+  if (shared_lib %in% c("INLA", "detect")) {
+    return(NULL)
   }
   if (shared_lib == "rSPDE") {
-    rspde_lib <- system.file("shared", package = "rSPDE")
-    return(ifelse(Sys.info()["sysname"] == "Windows",
-                 paste0(rspde_lib, "/rspde_cgeneric_models.dll"),
-                 paste0(rspde_lib, "/rspde_cgeneric_models.so")))
+    lib_path <- rspde_local_shared_library()
+    if (is.null(lib_path)) {
+      rspde_cgeneric_unavailable_error()
+    }
+    return(lib_path)
   }
-  if (shared_lib == "detect") {
-    rspde_lib_local <- system.file("shared", package = "rSPDE")
-    lib_path <- ifelse(Sys.info()["sysname"] == "Windows",
-                      paste0(rspde_lib_local, "/rspde_cgeneric_models.dll"),
-                      paste0(rspde_lib_local, "/rspde_cgeneric_models.so"))
-    return(if (file.exists(lib_path)) lib_path else INLA::inla.external.lib("rSPDE"))
+
+  if (file.exists(shared_lib)) {
+    return(normalizePath(shared_lib, mustWork = TRUE))
   }
-  stop("'shared_lib' must be 'INLA', 'rSPDE', or 'detect'")
+
+  stop("'shared_lib' must be 'INLA', 'rSPDE', 'detect', or an existing file.")
+}
+
+.rspde_cgeneric_cache <- new.env(parent = emptyenv())
+
+# Include both package and executable metadata so an in-place INLA update
+# invalidates all cached symbol results, even within the same R session.
+#' @noRd
+rspde_inla_fingerprint <- function() {
+  if (!requireNamespace("INLA", quietly = TRUE)) {
+    return("INLA-unavailable")
+  }
+  version <- as.character(utils::packageVersion("INLA"))
+  inla_call <- tryCatch(
+    INLA::inla.getOption("inla.call"),
+    error = function(e) character()
+  )
+  binaries <- sub("\\.run$", "", inla_call)
+  binary_info <- file.info(binaries)
+  paste(
+    version,
+    paste(inla_call, collapse = ";"),
+    paste(binary_info$size, collapse = ";"),
+    paste(as.numeric(binary_info$mtime), collapse = ";"),
+    sep = "|"
+  )
+}
+
+#' @noRd
+rspde_inla_builtin_symbols <- function(refresh = FALSE) {
+  fingerprint <- rspde_inla_fingerprint()
+  if (!refresh && exists("builtin_symbols", envir = .rspde_cgeneric_cache,
+                         inherits = FALSE) &&
+      identical(.rspde_cgeneric_cache$builtin_fingerprint, fingerprint)) {
+    return(.rspde_cgeneric_cache$builtin_symbols)
+  }
+
+  symbols <- character()
+  registry_available <- FALSE
+  if (requireNamespace("INLA", quietly = TRUE)) {
+    inla_call <- tryCatch(
+      INLA::inla.getOption("inla.call"),
+      error = function(e) NULL
+    )
+    listing <- if (is.character(inla_call) && length(inla_call) == 1L) {
+      suppressWarnings(tryCatch(
+        system2(inla_call, "-c", stdout = TRUE, stderr = TRUE),
+        error = function(e) character()
+      ))
+    } else {
+      character()
+    }
+    matches <- regmatches(
+      listing,
+      regexec("name = ([^, }]+)", listing)
+    )
+    detected <- vapply(
+      matches,
+      function(x) if (length(x) >= 2L) x[[2L]] else NA_character_,
+      character(1)
+    )
+    symbols <- unique(detected[!is.na(detected)])
+    registry_available <- length(symbols) > 0L
+  }
+
+  attr(symbols, "registry_available") <- registry_available
+  .rspde_cgeneric_cache$builtin_fingerprint <- fingerprint
+  .rspde_cgeneric_cache$builtin_symbols <- symbols
+  symbols
+}
+
+# Probe INLA itself when its platform-specific executable does not implement
+# the `-c` registry listing. The result is cached by symbol for the R session.
+#' @noRd
+rspde_probe_inla_symbol <- function(symbol, model = NULL) {
+  cache_key <- paste0(
+    "inla_symbol:", rspde_inla_fingerprint(), ":", symbol
+  )
+  if (exists(cache_key, envir = .rspde_cgeneric_cache, inherits = FALSE)) {
+    return(get(cache_key, envir = .rspde_cgeneric_cache, inherits = FALSE))
+  }
+  if (!requireNamespace("INLA", quietly = TRUE)) {
+    return(FALSE)
+  }
+
+  if (is.null(model)) {
+    model <- INLA::inla.cgeneric.define(
+      model = symbol,
+      shlib = NULL,
+      n = 1L,
+      rspde_symbol_probe = "probe"
+    )
+    model <- rspde_prepare_cgeneric_model(model)
+  }
+
+  probe_dir <- tempfile("rspde-inla-symbol-")
+  dir.create(probe_dir)
+  on.exit(unlink(probe_dir, recursive = TRUE, force = TRUE), add = TRUE)
+
+  probe_model <- model
+  probe_model$f$cgeneric$.q <- TRUE
+  probe_model$f$cgeneric$.q.file <- file.path(probe_dir, "cgeneric-q.txt")
+  probe_formula <- stats::as.formula(
+    "y ~ -1 + f(index, model = probe_model)",
+    env = environment()
+  )
+  suppressWarnings(suppressMessages(try(
+    INLA::inla(
+      probe_formula,
+      data = data.frame(y = NA_real_, index = 1L),
+      verbose = FALSE,
+      silent = 2L,
+      num.threads = "1:1:1",
+      keep = TRUE,
+      working.directory = probe_dir,
+      control.compute = list(return.marginals = FALSE)
+    ),
+    silent = TRUE
+  )))
+
+  log_files <- list.files(
+    probe_dir,
+    pattern = "^Logfile\\.txt$",
+    recursive = TRUE,
+    full.names = TRUE
+  )
+  log_lines <- unlist(lapply(
+    log_files,
+    function(path) readLines(path, warn = FALSE)
+  ), use.names = FALSE)
+  marker <- paste0("Model [", symbol, "] is built-in")
+  available <- any(grepl(marker, log_lines, fixed = TRUE))
+  assign(cache_key, available, envir = .rspde_cgeneric_cache)
+  available
+}
+
+#' @noRd
+rspde_inla_symbol_available <- function(symbol, model = NULL) {
+  symbols <- rspde_inla_builtin_symbols()
+  if (isTRUE(attr(symbols, "registry_available"))) {
+    return(symbol %in% symbols)
+  }
+  rspde_probe_inla_symbol(symbol, model = model)
+}
+
+#' @noRd
+rspde_local_shared_library <- function() {
+  shared_dir <- system.file("shared", package = "rSPDE")
+  if (!nzchar(shared_dir)) {
+    return(NULL)
+  }
+  extension <- if (.Platform$OS.type == "windows") ".dll" else ".so"
+  path <- file.path(shared_dir, paste0("rspde_cgeneric_models", extension))
+  if (file.exists(path)) normalizePath(path, mustWork = TRUE) else NULL
+}
+
+#' @noRd
+rspde_cgeneric_symbol_available <- function(symbol, model = NULL) {
+  if (rspde_inla_symbol_available(symbol, model = model)) {
+    return(TRUE)
+  }
+
+  shlib <- rspde_local_shared_library()
+  if (is.null(shlib)) {
+    return(FALSE)
+  }
+
+  loaded <- tryCatch(dyn.load(shlib), error = function(e) NULL)
+  if (is.null(loaded)) {
+    return(FALSE)
+  }
+  on.exit(try(dyn.unload(loaded[["path"]]), silent = TRUE), add = TRUE)
+  is.loaded(symbol)
+}
+
+#' @noRd
+rspde_cgeneric_unavailable_error <- function(symbol = NULL) {
+  model_text <- if (is.null(symbol)) {
+    "The requested rSPDE Cgeneric model"
+  } else {
+    paste0("The Cgeneric symbol '", symbol, "'")
+  }
+  stop(
+    model_text,
+    " is not available in the installed INLA binary, and no compiled local ",
+    "rSPDE shared library was found. Install the newest testing version of ",
+    "INLA, or reinstall rSPDE from source and compile its Cgeneric library. ",
+    "If neither resolves the problem, open an issue at ",
+    "https://github.com/davidbolin/rSPDE/issues.",
+    call. = FALSE
+  )
+}
+
+#' Restore the conventional Cgeneric argument layout for built-in models
+#'
+#' `INLA::inla.cgeneric.define()` omits `shlib` from the serialized Cgeneric
+#' data when it is `NULL`.  The built-in rSPDE models use the same argument
+#' layout as their former shared-library versions, where `shlib` is the second
+#' character entry.  Keep the model's actual `shlib` value as `NULL`, so INLA
+#' selects its built-in symbol, but restore the empty named entry in the data
+#' passed to the C function.
+#' @noRd
+rspde_prepare_cgeneric_model <- function(model) {
+  cgeneric <- model$f$cgeneric
+
+  if (!is.null(cgeneric$shlib)) {
+    return(model)
+  }
+
+  characters <- cgeneric$data$characters
+  if ("shlib" %in% names(characters)) {
+    return(model)
+  }
+
+  model_index <- match("model", names(characters))
+  if (is.na(model_index)) {
+    stop("There was a problem with the Cgeneric model creation.")
+  }
+
+  model$f$cgeneric$data$characters <- append(
+    characters,
+    list(shlib = ""),
+    after = model_index
+  )
+  model
+}
+
+#' Select a built-in INLA symbol or fall back to a local rSPDE library
+#' @noRd
+rspde_resolve_cgeneric_model <- function(model) {
+  symbol <- model$f$cgeneric$model
+  shlib <- model$f$cgeneric$shlib
+  model <- rspde_prepare_cgeneric_model(model)
+
+  if (is.null(shlib) &&
+      !rspde_inla_symbol_available(symbol, model = model)) {
+    shlib <- rspde_local_shared_library()
+    if (is.null(shlib)) {
+      rspde_cgeneric_unavailable_error(symbol)
+    }
+    model$f$cgeneric$shlib <- shlib
+  }
+
+  if (!is.null(model$f$cgeneric$shlib)) {
+    model$f$cgeneric$data$characters$shlib <- model$f$cgeneric$shlib
+  }
+  model
 }
 
 #' @noRd
@@ -2339,6 +2590,12 @@ rspde_check_cgeneric_symbol <- function(model) {
     # Extract the shared library path and the symbol name
     shlib <- model$f$cgeneric$shlib
     symbol <- model$f$cgeneric$model
+
+    # A NULL library selects a model compiled directly into the INLA binary.
+    # Such symbols cannot be inspected with dyn.load()/is.loaded().
+    if (is.null(shlib)) {
+        return(invisible(TRUE))
+    }
     
     # Check if the shared library exists
     if (!file.exists(shlib)) {
@@ -2360,6 +2617,7 @@ rspde_check_cgeneric_symbol <- function(model) {
             paste(current_path, r_lib_path, inla_lib_path, sep = ";")
         }
         Sys.setenv(PATH = new_path)
+        on.exit(Sys.setenv(PATH = current_path), add = TRUE)
     } else {
         current_lib_path <- Sys.getenv("LD_LIBRARY_PATH")
         new_lib_path <- if (current_lib_path == "") {
@@ -2368,33 +2626,33 @@ rspde_check_cgeneric_symbol <- function(model) {
             paste(current_lib_path, r_lib_path, inla_lib_path, sep = ":")
         }
         Sys.setenv(LD_LIBRARY_PATH = new_lib_path)
+        on.exit(Sys.setenv(LD_LIBRARY_PATH = current_lib_path), add = TRUE)
     }
     
-    # Use the `dyn.load` and `is.loaded` functions to check for the symbol
-    tryCatch({
-        dyn.load(shlib) # Load the shared library
-        if (is.loaded(symbol)) {
-            dyn.unload(shlib) # Unload if the symbol is available
-            return(invisible(TRUE)) # Return silently
-        } else {
-            warning(paste0("The symbol '", symbol, "' is not available in the shared library. Please install the latest testing version of INLA. 
-      If the problem persists after installing the latest testing version of INLA, please open an issue at https://github.com/davidbolin/rSPDE/issues, 
-      requesting that this model be added to INLA."))
-        }
-        dyn.unload(shlib) # Ensure the library is unloaded
-    }, error = function(e) {
-        warning(paste0("Error while loading the shared library or checking the symbol: ", e$message, 
-                       ". Please install the latest testing version of INLA. If the problem persists after installing the 
-                   latest testing version of INLA, please open an issue at https://github.com/davidbolin/rSPDE/issues, 
-                   requesting that this model be added to INLA."))
-    })
-    
-    # Restore original environment variables
-    if (.Platform$OS.type == "windows") {
-        Sys.setenv(PATH = current_path)
-    } else {
-        Sys.setenv(LD_LIBRARY_PATH = current_lib_path)
+    loaded <- tryCatch(dyn.load(shlib), error = function(e) e)
+    if (inherits(loaded, "error")) {
+        stop(
+            "The local rSPDE shared library could not be loaded: ",
+            conditionMessage(loaded), ". Install the newest testing version ",
+            "of INLA, or reinstall rSPDE from source and compile its Cgeneric ",
+            "library. If neither resolves the problem, open an issue at ",
+            "https://github.com/davidbolin/rSPDE/issues.",
+            call. = FALSE
+        )
     }
+    on.exit(try(dyn.unload(loaded[["path"]]), silent = TRUE), add = TRUE)
+    if (!is.loaded(symbol)) {
+        stop(
+            "The symbol '", symbol, "' is not available in the compiled local ",
+            "rSPDE shared library. Install the newest testing version of INLA, ",
+            "or reinstall rSPDE from source and compile its Cgeneric library. ",
+            "If neither resolves the problem, open an issue at ",
+            "https://github.com/davidbolin/rSPDE/issues.",
+            call. = FALSE
+        )
+    }
+
+    invisible(TRUE)
 }
 
 #' @noRd
@@ -2574,25 +2832,49 @@ transform_parameters_spacetime <- function(theta, st_model) {
 #' @noRd 
 
 extract_possible_parameters <- function(model) {
+  params <- NULL
   if (inherits(model, "CBrSPDEobj") || inherits(model, "rSPDEobj") || inherits(model, "rSPDEobj1d")) {
     if(model$stationary) {
-      return(c("alpha", "tau", "kappa", "nu", "sigma", "range", "theta"))
+      params <- c("alpha", "tau", "kappa", "nu", "sigma", "range", "theta")
     } else {
       n_theta <- length(model$theta)
       if(n_theta == 0){
         stop("Non-stationary models must have a non-NULL theta parameter.")
       }
-      return(c("alpha", "nu", paste0("theta", 1:n_theta)))
+      params <- c("alpha", "nu", paste0("theta", 1:n_theta))
     }
   } else if (inherits(model, "spacetimeobj")) {
-    return(c("kappa", "sigma", "gamma", "rho", "rho2", "alpha", "beta"))
+    params <- c("kappa", "sigma", "gamma", "rho", "rho2", "alpha", "beta")
   } else if (inherits(model, "intrinsicCBrSPDEobj")) {
-    return(c("tau", "kappa", "alpha", "beta"))
+    params <- c("tau", "kappa", "alpha", "beta")
   } else if (inherits(model, "CBrSPDEobj2d")) {
-    return(c("nu", "sigma", "hx", "hy", "hxy"))
-  } else {
+    params <- c("nu", "sigma", "hx", "hy", "hxy")
+  }
+
+  # Hybrid SPDE models additionally estimate the beta_X regression
+  # coefficients. They live in the model as model$beta_X and are exposed
+  # as individual scalar parameters named beta_x1, beta_x2, ... in the
+  # optimizer so that they can be fixed individually via
+  # model_options$fix_beta_xj. The aggregated name "beta_x" is also
+  # recognised to allow fix_beta_x / start_beta_x to be supplied as a
+  # vector covering all coefficients at once.
+  if (inherits(model, "hybrid_spde") && !is.null(model$beta_X)) {
+    p <- length(model$beta_X)
+    if (p > 0) {
+      params <- c(params, "beta_x", paste0("beta_x", seq_len(p)))
+    }
+  }
+
+  # If the hybrid model uses a separate `kappa_mu` for the operator
+  # applied to the mean, expose it as an estimable scalar parameter.
+  if (inherits(model, "hybrid_spde") && isTRUE(model$separate_kappa_mu)) {
+    params <- c(params, "kappa_mu")
+  }
+
+  if (is.null(params)) {
     return(NULL)
   }
+  return(params)
 }
 #' @title Process Model Options
 #' @description Processes the model options for a given model type, with special handling for nonstationary models
@@ -2659,6 +2941,40 @@ process_model_options <- function(model, model_options) {
         model_options$fix_alpha <- 0
         model_options$fix_kappa <- 0
       }
+    }
+  }
+
+  # Hybrid SPDE: expand vector-valued fix_beta_x / start_beta_x into
+  # individual scalar entries fix_beta_x1, fix_beta_x2, ... so that the
+  # downstream code can treat each coefficient as an independent
+  # parameter.
+  if (inherits(model, "hybrid_spde") && !is.null(model$beta_X)) {
+    p <- length(model$beta_X)
+    if (!is.null(model_options[["fix_beta_x"]])) {
+      fbx <- model_options[["fix_beta_x"]]
+      if (length(fbx) != p) {
+        stop(paste0("'fix_beta_x' must have length equal to the number of ",
+                    "covariate fields (", p, ")."))
+      }
+      for (i in seq_len(p)) {
+        if (is.null(model_options[[paste0("fix_beta_x", i)]])) {
+          model_options[[paste0("fix_beta_x", i)]] <- fbx[i]
+        }
+      }
+      model_options[["fix_beta_x"]] <- NULL
+    }
+    if (!is.null(model_options[["start_beta_x"]])) {
+      sbx <- model_options[["start_beta_x"]]
+      if (length(sbx) != p) {
+        stop(paste0("'start_beta_x' must have length equal to the number of ",
+                    "covariate fields (", p, ")."))
+      }
+      for (i in seq_len(p)) {
+        if (is.null(model_options[[paste0("start_beta_x", i)]])) {
+          model_options[[paste0("start_beta_x", i)]] <- sbx[i]
+        }
+      }
+      model_options[["start_beta_x"]] <- NULL
     }
   }
   return(model_options)
@@ -2895,14 +3211,27 @@ extract_starting_values <- function(previous_fit, fix_coeff = FALSE, model_optio
     non_theta_indices <- setdiff(seq_along(random_effects), theta_indices)
     for (i in non_theta_indices) {
       param_name <- param_names[i]
-      model_options_tmp[[paste0(prefix, tolower(param_name))]] <- random_effects[[param_name]]
+      ## Preserve fixed status: parameters tagged " (fixed)" in the
+      ## previous fit's random_effects were held constant during that
+      ## fit, so they must be re-fixed (not just warm-started) in the
+      ## downstream call. Without this, calling rspde_lme(..., previous_fit
+      ## = fit_with_fix_alpha = 2) silently estimates alpha, which can
+      ## drift away from 2 and change the model. Affects in particular
+      ## the per-fold refits done by posterior_crossvalidation(true_CV
+      ## = TRUE), where the per-fold model would otherwise differ from
+      ## the full fit's specification.
+      is_fixed <- grepl(" \\(fixed\\)$", param_name)
+      prefix_use <- if (is_fixed) "fix_" else prefix
+      model_options_tmp[[paste0(prefix_use, tolower(param_name))]] <- random_effects[[param_name]]
     }
   } else {
     random_effects <- previous_fit$coeff$random_effects
-    
+
     # Create named list with appropriate prefix
     for (param_name in names(random_effects)) {
-      model_options_tmp[[paste0(prefix, tolower(param_name))]] <- random_effects[[param_name]]
+      is_fixed <- grepl(" \\(fixed\\)$", param_name)
+      prefix_use <- if (is_fixed) "fix_" else prefix
+      model_options_tmp[[paste0(prefix_use, tolower(param_name))]] <- random_effects[[param_name]]
     }
   }
   
@@ -3017,21 +3346,48 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
     }
   }
 
+  # Insert starting values for the beta_X regression coefficients of a
+  # hybrid SPDE model (no transformation, identity on the real line).
+  # We default to zero, regardless of the value stored in the model
+  # object: when the SPDE parameters (kappa, alpha) are still far from
+  # the truth, the deterministic mean computed at a non-zero beta_X
+  # uses a badly mis-specified L^{-alpha/2}, which tends to drive the
+  # joint optimiser into a poor local mode (typically with a large
+  # intercept absorbing the misfit). Starting beta_X at zero first
+  # lets the SPDE parameters settle before the mean component is
+  # fit. Users who want to start at a specific beta_X can supply
+  # `model_options = list(start_beta_x = ...)` or `start_beta_xj`.
+  if (inherits(model, "hybrid_spde") && !is.null(model$beta_X)) {
+    bx <- as.numeric(model$beta_X)
+    for (i in seq_along(bx)) {
+      starting_values[paste0("beta_x", i)] <- 0
+    }
+  }
+
+  # Starting value for the separate kappa_mu (log scale, exp transform
+  # later). Seed from the stored model$kappa_mu (which by default is
+  # equal to model$kappa).
+  if (inherits(model, "hybrid_spde") && isTRUE(model$separate_kappa_mu)) {
+    kmu <- as.numeric(model$kappa_mu)
+    if (length(kmu) == 0L) kmu <- as.numeric(model$kappa)
+    starting_values["kappa_mu"] <- log(max(kmu[1], 1e-5))
+  }
+
   starting_values["sigma_e"] <- log(0.1 * sd(y_resp))
-  
+
   # Update starting values with model_options if provided
-  if (!is.null(model_options)) {        
-        
+  if (!is.null(model_options)) {
+
     # Update all parameters from model_options
     for (param_name in names(starting_values)) {
       fix_param <- paste0("fix_", param_name)
       start_param <- paste0("start_", param_name)
-      
+
       if (!is.null(model_options[[fix_param]])) {
         # Special handling for parameters with transformations
         if (param_name == "hxy") {
           starting_values[param_name] <- -log(2/(model_options[[fix_param]]+1) - 1)
-        } else if ((param_name == "rho" || param_name == "rho2") && 
+        } else if ((param_name == "rho" || param_name == "rho2") &&
                    inherits(model, "spacetimeobj") && model$is_bounded_rho) {
           # Apply logit transformation for bounded rho parameters
           bound <- model$bound_rho
@@ -3043,13 +3399,16 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
         } else if (grepl("^theta[0-9]+$", param_name)) {
           # For theta parameters (theta1, theta2, etc.), use as-is without log transformation
           starting_values[param_name] <- model_options[[fix_param]]
+        } else if (grepl("^beta_x[0-9]+$", param_name)) {
+          # Hybrid SPDE regression coefficients: no transformation.
+          starting_values[param_name] <- model_options[[fix_param]]
         } else {
           starting_values[param_name] <- log(model_options[[fix_param]])
         }
       } else if (!is.null(model_options[[start_param]])) {
         if (param_name == "hxy") {
           starting_values[param_name] <- -log(2/(model_options[[start_param]]+1) - 1)
-        } else if ((param_name == "rho" || param_name == "rho2") && 
+        } else if ((param_name == "rho" || param_name == "rho2") &&
                    inherits(model, "spacetimeobj") && model$is_bounded_rho) {
           # Apply logit transformation for bounded rho parameters
           bound <- model$bound_rho
@@ -3060,6 +3419,8 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
           starting_values[param_name] <- model_options[[start_param]]
         } else if (grepl("^theta[0-9]+$", param_name)) {
           # For theta parameters (theta1, theta2, etc.), use as-is without log transformation
+          starting_values[param_name] <- model_options[[start_param]]
+        } else if (grepl("^beta_x[0-9]+$", param_name)) {
           starting_values[param_name] <- model_options[[start_param]]
         } else {
           starting_values[param_name] <- log(model_options[[start_param]])
@@ -3119,6 +3480,93 @@ get_model_starting_values <- function(model, model_options, y_resp, parameteriza
   return(starting_values)
 }
 
+
+#' Data-driven starting values for the regression coefficients
+#' \eqn{\beta_X} of a `hybrid_spde` model.
+#'
+#' The default starting value used by `get_model_starting_values()` is
+#' \eqn{\beta_X = 0}, which can leave the optimiser stuck in a poor
+#' local mode (the deterministic mean turns off and the field absorbs
+#' all elevation-like structure). This helper computes a one-shot OLS
+#' starting value by regressing the response on the fixed effects and
+#' on the smoothed covariate field \eqn{A L^{-\alpha/2} X} evaluated at
+#' the model's current (starting) \eqn{\kappa,\alpha} via the cached
+#' `op_mean` operator.
+#'
+#' Only entries that the user has not explicitly pinned via
+#' `start_beta_xj` / `fix_beta_xj` are touched. Returns `NULL` when the
+#' init is not applicable (non-hybrid model, no `X`, missing `op_mean`,
+#' all entries already user-specified, or a degenerate OLS).
+#' @noRd
+init_beta_X_hybrid_ols <- function(model, A_list, X_cov, y_resp, repl,
+                                   model_options) {
+  if (!inherits(model, "hybrid_spde")) return(NULL)
+  if (is.null(model$X) || is.null(model$op_mean)) return(NULL)
+
+  X_mat <- as.matrix(model$X)
+  p <- ncol(X_mat)
+  if (p == 0) return(NULL)
+
+  needs_init <- vapply(seq_len(p), function(i) {
+    nm <- paste0("beta_x", i)
+    is.null(model_options[[paste0("start_", nm)]]) &&
+      is.null(model_options[[paste0("fix_",   nm)]])
+  }, logical(1))
+  if (!any(needs_init)) return(NULL)
+
+  ## Smoothed covariate field at mesh nodes: s_j = L^{-alpha/2} X_j.
+  ## compute_hybrid_mean weights X by the mass-lumped C diagonal; we
+  ## mirror that here so the smoothing is consistent with how the mean
+  ## is evaluated inside the likelihood.
+  op_mean <- model$op_mean
+  C_diag  <- Matrix::diag(op_mean$C)
+  CX      <- C_diag * X_mat
+  s_nodes <- tryCatch(
+    as.matrix(Pr.mult(op_mean, Pl.solve(op_mean, CX))),
+    error = function(e) NULL
+  )
+  if (is.null(s_nodes)) return(NULL)
+
+  ## Project to observation locations, replicate by replicate, in the
+  ## order that matches y_resp / X_cov.
+  n_obs <- length(y_resp)
+  Z <- matrix(0, nrow = n_obs, ncol = p)
+  repl_val <- unique(repl)
+  for (j in repl_val) {
+    idx_j <- which(repl == j)
+    A_j <- A_list[[as.character(j)]]
+    if (is.null(A_j)) return(NULL)
+    ## The model-build path filters NA rows out of A_j; mirror that
+    ## by aligning to the non-NA observations in this replicate.
+    y_j <- y_resp[idx_j]
+    keep <- which(!is.na(y_j))
+    if (length(keep) != nrow(A_j)) return(NULL)
+    Z[idx_j[keep], ] <- as.matrix(A_j %*% s_nodes)
+  }
+
+  ## OLS on the non-NA observations.
+  keep_all <- !is.na(y_resp)
+  y_fit <- y_resp[keep_all]
+  Z_fit <- Z[keep_all, , drop = FALSE]
+  if (!is.null(X_cov) && ncol(X_cov) > 0 && nrow(X_cov) == n_obs) {
+    Xc_fit <- as.matrix(X_cov)[keep_all, , drop = FALSE]
+    design <- cbind(Xc_fit, Z_fit)
+  } else {
+    design <- Z_fit
+  }
+  if (any(!is.finite(design)) || any(!is.finite(y_fit))) return(NULL)
+
+  fit <- tryCatch(stats::lm.fit(x = design, y = y_fit),
+                  error = function(e) NULL)
+  if (is.null(fit) || any(is.na(fit$coefficients))) return(NULL)
+
+  beta_x_hat <- tail(as.numeric(fit$coefficients), p)
+  if (any(!is.finite(beta_x_hat))) return(NULL)
+
+  out <- setNames(rep(NA_real_, p), paste0("beta_x", seq_len(p)))
+  out[needs_init] <- beta_x_hat[needs_init]
+  out[!is.na(out)]
+}
 
 
 #' Get appropriate auxiliary likelihood function based on model type
@@ -3344,7 +3792,14 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
   if (inherits(model, "spacetimeobj")) {
     args_list$rho <- numeric(model$d)
   }
-  
+
+  # For hybrid SPDE models, initialize beta_X vector with the current
+  # value stored in the model. This becomes the destination for the
+  # individual beta_xj parameters (whether estimated or fixed).
+  if (inherits(model, "hybrid_spde") && !is.null(model$beta_X)) {
+    args_list$beta_X <- as.numeric(model$beta_X)
+  }
+
   # Initialize index tracker
   index <- 1
   
@@ -3413,6 +3868,10 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
         args_list[[param_name]] <- exp(theta[index])
         index <- index + 1
       }
+      else if (param_name == "kappa_mu") {
+        args_list$kappa_mu <- exp(theta[index])
+        index <- index + 1
+      }
       else if (param_name == "hxy") {
         args_list$hxy <- 2*exp(theta[index])/(1+exp(theta[index])) - 1
         index <- index + 1
@@ -3445,6 +3904,12 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
           stop("Processing error. rho2 parameter should not be estimated for non-spacetime models.")
         }
       }
+      else if (grepl("^beta_x[0-9]+$", param_name)) {
+        # Hybrid SPDE: store into the args_list$beta_X vector.
+        bx_idx <- as.integer(gsub("beta_x([0-9]+)", "\\1", param_name))
+        args_list$beta_X[bx_idx] <- theta[index]
+        index <- index + 1
+      }
       else if (startsWith(param_name, "theta")) {
         # Handle individual theta parameters for non-stationary models
         if (!model$stationary) {
@@ -3459,9 +3924,17 @@ extract_model_update_args <- function(model, theta, estimate_params, model_optio
     } else {
       # If parameter is fixed, get from model_options or model
       fix_param_name <- paste0("fix_", param_name)
-      
+
       if (param_name == "sigma_e") {
         result$sigma_e <- model_options[[fix_param_name]]
+      }
+      else if (grepl("^beta_x[0-9]+$", param_name)) {
+        bx_idx <- as.integer(gsub("beta_x([0-9]+)", "\\1", param_name))
+        if (!is.null(model_options[[fix_param_name]])) {
+          args_list$beta_X[bx_idx] <- model_options[[fix_param_name]]
+        } else {
+          stop("Processing error. ", param_name, " is marked as fixed but no value is provided.")
+        }
       }
       else if (param_name != "sigma_e" && !startsWith(param_name, "theta")) {
         # For other parameters, just get from model_options or model
@@ -3560,53 +4033,95 @@ get_aux_lik_fun_args <- function(model, y_resp, X_cov, repl, A_list,
 #' @param loc_df Location data frame
 #' @return List containing likelihood function and parameter estimation flags
 #' @noRd
-create_likelihood <- function(model, model_options, y_resp, 
+create_likelihood <- function(model, model_options, y_resp,
                              X_cov, A_list,
                              repl, start_values,
                              mean_correction, smoothness_upper_bound,
-                             loc_df) {
-  
+                             loc_df, A_orig_list = NULL) {
+
   # Initialize X_cov if NULL
   if(is.null(X_cov)) {
     X_cov <- matrix(0, nrow = length(y_resp), ncol = 0)
   }
-  
+
   # Get appropriate auxiliary likelihood function
-  aux_lik_fun <- get_aux_likelihood_function(model) 
+  aux_lik_fun <- get_aux_likelihood_function(model)
   # Determine which parameters to estimate
   estimate_params <- determine_estimate_params(model, model_options, start_values)
-  
+
   # Count number of non-fixed coefficients from model parameters
   n_coeff_nonfixed <- sum(estimate_params)
-  
+
+  # Whether the model is a hybrid SPDE model with a non-zero mean.
+  is_hybrid <- inherits(model, "hybrid_spde")
+
   # Create the likelihood function
   likelihood <- function(theta) {
     # Create a working copy of the model
     model_tmp <- model
-    
+
     # Extract model update arguments
     result <- extract_model_update_args(
-      model = model_tmp, 
-      theta = theta, 
+      model = model_tmp,
+      theta = theta,
       estimate_params = estimate_params,
       model_options = model_options,
       start_values = start_values,
       n_coeff_nonfixed = n_coeff_nonfixed,
       smoothness_upper_bound = smoothness_upper_bound
     )
-    
+
     # Check for early return (e.g., nu at upper bound for rSPDEobj1d)
     if(!is.null(result$early_return)) {
       return(result$early_return)
     }
-    
+
     # Update the model with the extracted parameters
-    model_tmp <- do.call(update, c(list(object = model_tmp), result$args_list))
-    
+    model_tmp <- do.call(update, c(
+      list(object = model_tmp, check_stationarity = FALSE),
+      result$args_list
+    ))
+
+    # For hybrid SPDE models, subtract the deterministic mean
+    #   mu(s) = tau^{-1} beta_X L^{-alpha/2} X(s)
+    # evaluated at the observation locations from y_resp before passing
+    # the centred observations to the underlying aux likelihood. The
+    # regression coefficients beta_X are kept fixed at the values stored
+    # in the model object.
+    #
+    # A_orig_list[[rj]] is NA-filtered at fit time (nrow = number of
+    # non-NA training observations in replicate rj), while y_resp is the
+    # full per-replicate vector that may carry NAs (e.g. when this
+    # likelihood is built inside a posterior_crossvalidation refit, where
+    # held-out observations are NA-masked). We therefore subtract A_orig
+    # %*% mu_mesh only at the non-NA positions, in the order in which
+    # those positions appear inside the replicate — which matches the
+    # row order of A_orig.
+    y_used <- y_resp
+    if (is_hybrid) {
+      mu_mesh <- compute_hybrid_mean(model_tmp)
+      if (length(A_orig_list) > 0) {
+        for (rj in names(A_orig_list)) {
+          A_orig <- A_orig_list[[rj]]
+          if (is.null(A_orig)) next
+          pos <- which(as.character(repl) == rj)
+          if (length(pos) == 0L) next
+          non_na_pos <- pos[!is.na(y_used[pos])]
+          if (length(non_na_pos) == 0L) next
+          mu_obs <- as.vector(A_orig %*% mu_mesh)
+          if (length(mu_obs) != length(non_na_pos)) {
+            stop("Internal error: A_orig row count does not match the number ",
+                 "of non-NA observations in replicate ", rj, ".")
+          }
+          y_used[non_na_pos] <- y_used[non_na_pos] - mu_obs
+        }
+      }
+    }
+
     # Get arguments for auxiliary likelihood function
     aux_args <- get_aux_lik_fun_args(
       model = model_tmp,
-      y_resp = y_resp,
+      y_resp = y_used,
       X_cov = X_cov,
       repl = repl,
       A_list = A_list,
@@ -3615,10 +4130,10 @@ create_likelihood <- function(model, model_options, y_resp,
       mean_correction = mean_correction,
       loc_df = loc_df
     )
-    
+
     # Call the auxiliary likelihood function with the appropriate arguments
     loglik <- do.call(aux_lik_fun, aux_args)
-    
+
     return(-loglik)
   }
   
@@ -3663,9 +4178,10 @@ extract_parameters_from_optim <- function(res, start_values, estimate_params, mo
     
     # If parameter is estimated, get from res$par
     if (estimate_params[i]) {
-      if (param_name == "sigma_e" || param_name == "tau" || 
+      if (param_name == "sigma_e" || param_name == "tau" ||
           param_name == "kappa" || param_name == "sigma" || param_name == "range" ||
-          param_name == "gamma" || param_name == "hx" || param_name == "hy" || param_name == "nu") {
+          param_name == "gamma" || param_name == "hx" || param_name == "hy" || param_name == "nu" ||
+          param_name == "kappa_mu") {
         # Parameters with exponential transformation
         coeff[i] <- exp(res$par[index])
         index <- index + 1
@@ -3852,7 +4368,8 @@ calculate_parameter_jacobian <- function(res, estimate_params, model, model_opti
       # Parameter is estimated, get transformation from res$par
       if (param_name == "sigma_e" || param_name == "tau" || param_name == "nu" ||
           param_name == "kappa" || param_name == "sigma" || param_name == "range" ||
-          param_name == "gamma" || param_name == "hx" || param_name == "hy") {
+          param_name == "gamma" || param_name == "hx" || param_name == "hy" ||
+          param_name == "kappa_mu") {
         # Parameters with exp transformation
         par_change[index, index] <- exp(-res$par[index])
         index <- index + 1
@@ -4365,9 +4882,11 @@ convert_parameterization_matern_spde <- function(model, parameterization, params
       # Get indices of parameters that are being estimated
       est_params_indices <- which(estimate_pars)
       
-      # Find positions of tau and kappa in the names vector
-      tau_pos <- which(grepl("^tau", names(estimate_pars)))
-      kappa_pos <- which(grepl("^kappa", names(estimate_pars)))
+      # Find positions of tau and kappa in the names vector. Match
+      # only the exact names "tau" / "kappa" so that "kappa_mu" (used
+      # by the hybrid SPDE model) is excluded.
+      tau_pos <- which(names(estimate_pars) == "tau")
+      kappa_pos <- which(names(estimate_pars) == "kappa")
       
       # Check if both parameters are being estimated
       tau_estimated <- length(tau_pos) > 0 && any(est_params_indices == tau_pos)
