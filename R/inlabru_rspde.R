@@ -19,12 +19,12 @@
 #'   library(inlabru)
 #'
 #'   set.seed(123)
-#'   m <- 100
+#'   m <- 50
 #'   loc_2d_mesh <- matrix(runif(m * 2), m, 2)
 #'   mesh_2d <- inla.mesh.2d(
 #'     loc = loc_2d_mesh,
-#'     cutoff = 0.05,
-#'     max.edge = c(0.1, 0.5)
+#'     cutoff = 0.1,
+#'     max.edge = c(0.5, 0.5)
 #'   )
 #'   sigma <- 1
 #'   range <- 0.2
@@ -32,7 +32,7 @@
 #'   kappa <- sqrt(8 * nu) / range
 #'   op <- matern.operators(
 #'     mesh = mesh_2d, nu = nu,
-#'     range = range, sigma = sigma, m = 2,
+#'     range = range, sigma = sigma, m = 1,
 #'     parameterization = "matern"
 #'   )
 #'   u <- simulate(op)
@@ -50,7 +50,7 @@
 #'   )
 #'   rspde_model <- rspde.matern(
 #'     mesh = mesh_2d,
-#'     nu_upper_bound = 2
+#'     nu_upper_bound = 1
 #'   )
 #'
 #'   cmp <- y ~ Intercept(1) +
