@@ -1,4 +1,4 @@
-# rSPDE (development version)
+# rSPDE 2.6.0
 
 * Added `posterior_crossvalidation()` for objects fitted with `rspde_lme()`.
   The function mirrors the interface of `MetricGraph::posterior_crossvalidation`.
