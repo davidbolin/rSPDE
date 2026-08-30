@@ -78,7 +78,6 @@ for an rspde effect from an inla result object.
 }
 \examples{
 \donttest{
-# devel version
 if (rspde_safe_inla()) {
   library(INLA)
 
@@ -128,6 +127,5 @@ if (rspde_safe_inla()) {
   result <- rspde.result(rspde_fit, "field", rspde_model)
   summary(result)
 }
-# devel.tag
 }
 }

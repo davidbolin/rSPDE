@@ -57,7 +57,6 @@ for rSPDE models based on \code{inla.mesh} or
 }
 \examples{
 \donttest{
-# devel version
 if (rspde_safe_inla()) {
   library(INLA)
 
@@ -70,6 +69,5 @@ if (rspde_safe_inla()) {
   )
   A <- rspde.make.A(mesh, loc = loc, rspde.order = 3)
 }
-# devel.tag
 }
 }

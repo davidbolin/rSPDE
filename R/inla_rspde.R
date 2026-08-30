@@ -928,7 +928,6 @@ restructure_matrices_less <- function(matrices_less, m_alpha) {
 #' @export
 #' @examples
 #' \donttest{
-#' # devel version
 #' if (requireNamespace("fmesher", quietly = TRUE)) {
 #'   library(fmesher)
 #'
@@ -941,7 +940,6 @@ restructure_matrices_less <- function(matrices_less, m_alpha) {
 #'   )
 #'   A <- spde.make.A(mesh, loc = loc)
 #' }
-#' # devel.tag
 #' }
 spde.make.A <- function(mesh = NULL,
                         loc = NULL,
@@ -1052,7 +1050,6 @@ spde.make.A <- function(mesh = NULL,
 #' @export
 #' @examples
 #' \donttest{
-#' # devel version
 #' if (rspde_safe_inla()) {
 #'   library(INLA)
 #'
@@ -1065,7 +1062,6 @@ spde.make.A <- function(mesh = NULL,
 #'   )
 #'   A <- rspde.make.A(mesh, loc = loc, rspde.order = 3)
 #' }
-#' # devel.tag
 #' }
 rspde.make.A <- function(mesh = NULL,
                          loc = NULL,
@@ -1229,7 +1225,6 @@ rspde.make.A <- function(mesh = NULL,
 #' @export
 #' @examples
 #' \donttest{
-#' # devel version
 #' if (rspde_safe_inla()) {
 #'   library(INLA)
 #'
@@ -1266,7 +1261,6 @@ rspde.make.A <- function(mesh = NULL,
 #'     effects = mesh.index
 #'   )
 #' }
-#' # devel.tag
 #' }
 rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
                              n.repl = 1, mesh = NULL,
@@ -1678,7 +1672,6 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #' @export
 #' @examples
 #' \donttest{
-#' # devel version
 #' if (rspde_safe_inla()) {
 #'   library(INLA)
 #'
@@ -1728,7 +1721,6 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #'   result <- rspde.result(rspde_fit, "field", rspde_model)
 #'   summary(result)
 #' }
-#' # devel.tag
 #' }
 rspde.result <- function(inla, name, rspde, compute.summary = TRUE, 
                          parameterization = "detect", 
@@ -2403,7 +2395,6 @@ gg_df.rspde_result <- function(result,
 #' @method summary rspde_result
 #' @examples
 #' \donttest{
-#' # devel version
 #' if (rspde_safe_inla()) {
 #'   library(INLA)
 #'
@@ -2453,7 +2444,6 @@ gg_df.rspde_result <- function(result,
 #'   result <- rspde.result(rspde_fit, "field", rspde_model)
 #'   summary(result)
 #' }
-#' # devel.tag
 #' }
 #'
 summary.rspde_result <- function(object,

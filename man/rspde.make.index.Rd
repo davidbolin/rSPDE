@@ -46,7 +46,6 @@ Generates a list of named index vectors for an rSPDE model.
 }
 \examples{
 \donttest{
-# devel version
 if (rspde_safe_inla()) {
   library(INLA)
 
@@ -83,6 +82,5 @@ if (rspde_safe_inla()) {
     effects = mesh.index
   )
 }
-# devel.tag
 }
 }

@@ -2220,26 +2220,12 @@ rspde_inla_symbol_available <- function(symbol, model = NULL) {
 #' @noRd
 rspde_local_shared_library <- function() {
   shared_dir <- system.file("shared", package = "rSPDE")
-  if (nzchar(shared_dir)) {
-    extension <- if (.Platform$OS.type == "windows") ".dll" else ".so"
-    path <- file.path(shared_dir, paste0("rspde_cgeneric_models", extension))
-    if (file.exists(path)) {
-      return(normalizePath(path, mustWork = TRUE))
-    }
-  }
-
-  # Source builds made with --enable-compiled use R's standard package DLL.
-  libs_dir <- system.file("libs", package = "rSPDE")
-  if (!nzchar(libs_dir)) {
+  if (!nzchar(shared_dir)) {
     return(NULL)
   }
-  candidates <- list.files(
-    libs_dir,
-    pattern = "^rSPDE\\.(so|dll|dylib)$",
-    recursive = TRUE,
-    full.names = TRUE
-  )
-  if (length(candidates)) normalizePath(candidates[[1L]], mustWork = TRUE) else NULL
+  extension <- if (.Platform$OS.type == "windows") ".dll" else ".so"
+  path <- file.path(shared_dir, paste0("rspde_cgeneric_models", extension))
+  if (file.exists(path)) normalizePath(path, mustWork = TRUE) else NULL
 }
 
 #' @noRd

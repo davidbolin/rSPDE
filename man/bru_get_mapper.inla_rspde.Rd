@@ -38,8 +38,7 @@ rSPDE inlabru mapper
 }
 \examples{
 \donttest{
-# devel version
-if (interactive() && rspde_safe_inla() &&
+if (rspde_safe_inla() &&
   requireNamespace("inlabru", quietly = TRUE)) {
   library(INLA)
   library(inlabru)
@@ -86,6 +85,5 @@ if (interactive() && rspde_safe_inla() &&
   rspde_fit <- bru(cmp, data = data_df)
   summary(rspde_fit)
 }
-# devel.tag
 }
 }

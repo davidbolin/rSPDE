@@ -90,7 +90,7 @@ devtools::install(args = "--configure-args=--enable-compiled")
 
 The compiled C/C++ sources live in `inst/src-optional/`. The `configure` (POSIX) and `configure.win` (Windows) scripts copy them into `src/` only when compilation is requested; otherwise they write a no-op `Makevars` so the install stays pure R. CRAN passes neither flag, so the CRAN tarball is unaffected.
 
-At runtime the package reads `getOption("rspde.compiled")` to know whether the local shared object is available, falling back to the shared library shipped with INLA otherwise.
+At runtime the package checks the requested Cgeneric symbol in the installed INLA binary. If INLA does not provide it, rSPDE looks for the locally compiled shared object; if neither is available, it reports how to update INLA, compile rSPDE from source, or open an rSPDE issue.
 
 For Windows users without Rtools, leave compilation disabled — the default pure-R install does not require a toolchain.
 
@@ -99,18 +99,18 @@ The compilation is only required to create the shared object used by `INLA`'s `c
 See the vignette [Building the rSPDE package from source on Mac and Linux](https://davidbolin.github.io/rSPDE//articles/build_source.html) for the toolchain prerequisites (gcc-14 on macOS, etc.) used by the optional compile path.
 
 # Repository branch workflows #
-The package version format for released versions is `major.minor.bugfix`. All regular development — both the `R` code and the `C`/`C++` `cgeneric` sources in `inst/src-optional/` — should be performed on the `devel` branch or in a feature branch managed with `git flow feature`. The legacy `devel-src` / `stable-src` branches are deprecated; the optional-compile machinery on `devel` (see *Installation instructions* above) replaces them. The `devel` version of the package should contain unit tests and examples for all important functions. Several functions may depend on `INLA`. Examples and tests for such functions might create problems when submitting to CRAN. To solve this problem, we created some Github Actions scripts that get the examples and tests depending on `INLA` on the `devel` branch and adapt to versions that will not fail on CRAN. Therefore, the best way to handle these situations is to avoid as much as possible to do any push to the `stable` branch. The idea is to update the `stable` branch by merges following the workflow that will be described below. 
-The examples that depend on `INLA` should have the following structure:
+The package version format for released versions is `major.minor.bugfix`. All regular development — both the `R` code and the `C`/`C++` `cgeneric` sources in `inst/src-optional/` — should be performed on the `devel` branch or in a feature branch managed with `git flow feature`. The legacy `devel-src` / `stable-src` branches are deprecated; the optional-compile machinery on `devel` (see *Installation instructions* above) replaces them. The `devel` version of the package should contain unit tests and examples for all important functions. Avoid direct pushes to `stable`; update it through the merge workflow described below.
 
-```
-#' \donttest{ #devel version
+Examples that depend on `INLA` stay in the package unchanged across branches. Guard them with `rspde_safe_inla()` so an unavailable, incompatible, or temporarily incomplete INLA installation does not fail a package check:
+
+```r
+#' @examplesIf rspde_safe_inla()
 #' library(INLA)
-#' 
-#' # The contents of the example
 #'
-#' #devel.tag
-#' }
+#' # The contents of the example
 ```
+
+If an example requires a Cgeneric model that may not yet be present in every INLA build, pass its model symbol through `required_symbol`. Availability is detected dynamically; there is no static list of supported symbols.
 
 ## Updating the INLA source branch ##
 
@@ -135,24 +135,21 @@ When the last commit message in the push ends with `INLA UPDATE`, the GitHub Act
 
 The workflow then commits the copied files on the `inla` branch and pushes that branch. Only the head commit message of the push is checked, so if several commits are pushed at once, the last commit in the push must be the one whose message ends with `INLA UPDATE`. If the workflow file itself is being added for the first time, first push the workflow to `devel`, and then make a second push whose commit message ends with `INLA UPDATE`.
 
+Every push produced by the normal `stable` merge workflow also refreshes the `inla` branch from `inst/src-optional/` on `stable`. This ensures that completing a stable release automatically publishes the matching Cgeneric sources to `inla`, without requiring a separate `INLA UPDATE` commit.
+
 ## Tests involving INLA ##
 
 The tests that depend on `INLA` should have the following structure:
 
 ```
 test_that("Description of the test", {
-  testthat::skip_on_cran()
-  if (!requireNamespace("INLA", quietly=TRUE))
-    testthat::skip(message = 'INLA package is not installed. (see www.r-inla.org/download-install)')
-  
-  old_threads <- INLA::inla.getOption("num.threads")
-  INLA::inla.setOption(num.threads = "1:1")
-  
+  local_rspde_safe_inla()
+
   # The contents of the test
-  
-  INLA::inla.setOption(num.threads = old_threads)
 })
 ```
+
+`local_rspde_safe_inla()` checks the INLA package and executable, uses safe single-threaded test options, and restores the previous options after the test. For a test that needs a potentially newer Cgeneric model, use `local_rspde_safe_inla(required_symbol = "<model symbol>")`; the test is skipped if neither the installed INLA binary nor a locally compiled rSPDE library provides it. A separate `testthat::skip_on_cran()` may still be used when the test is intrinsically too slow for CRAN, but it is no longer needed merely to protect against INLA installation failures.
 
 On the `devel` branch, the version number is `major.minor.bugfix.9000`, where the first three components reflect the latest released version with changes present in the `default` branch. Bugfixes should be applied via the `git flow bugfix` and `git flow hotfix` methods, as indicated below. For `git flow` configuration, use `master` as the stable master branch, `devel` as the develop branch, and `v` as the version tag prefix. Hotfixes directly `stable` should be avoided whenever possible to minimize conflicts on merges. See [the `git flow` tutorial](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) for more information.
 

@@ -46,7 +46,6 @@ for rSPDE models with integer smoothness based on \code{inla.mesh} or
 }
 \examples{
 \donttest{
-# devel version
 if (requireNamespace("fmesher", quietly = TRUE)) {
   library(fmesher)
 
@@ -59,6 +58,5 @@ if (requireNamespace("fmesher", quietly = TRUE)) {
   )
   A <- spde.make.A(mesh, loc = loc)
 }
-# devel.tag
 }
 }
