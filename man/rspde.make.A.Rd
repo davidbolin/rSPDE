@@ -58,7 +58,7 @@ for rSPDE models based on \code{inla.mesh} or
 \examples{
 \donttest{
 # devel version
-if (requireNamespace("INLA", quietly = TRUE)) {
+if (rspde_safe_inla()) {
   library(INLA)
 
   set.seed(123)

@@ -106,6 +106,7 @@ export(graph_data_rspde)
 export(hybrid.spde)
 export(intrinsic.matern.operators)
 export(intrinsic.operators)
+export(local_rspde_safe_inla)
 export(make_A)
 export(matern.covariance)
 export(matern.operators)
@@ -142,6 +143,7 @@ export(rspde.metric_graph)
 export(rspde.result)
 export(rspde.spacetime)
 export(rspde_lme)
+export(rspde_safe_inla)
 export(spacetime.operators)
 export(spde.make.A)
 export(spde.matern.loglike)
@@ -191,39 +193,45 @@ if (getRversion() >= "3.6.0") {
   S3method(inlabru::ibm_jacobian, bru_mapper_intrinsic_matern)
 }
 import(Matrix)
-importFrom(broom,augment)
-importFrom(broom,glance)
-importFrom(fmesher,fm_basis)
-importFrom(fmesher,fm_block)
-importFrom(fmesher,fm_evaluate)
-importFrom(fmesher,fm_evaluator)
-importFrom(fmesher,fm_fem)
-importFrom(fmesher,fm_mesh_1d)
-importFrom(fmesher,fm_mesh_2d)
-importFrom(fmesher,fm_row_kron)
+importFrom(broom,
+  augment,
+  glance
+)
+importFrom(fmesher,
+  fm_basis,
+  fm_block,
+  fm_evaluate,
+  fm_evaluator,
+  fm_fem,
+  fm_mesh_1d,
+  fm_mesh_2d,
+  fm_row_kron
+)
 importFrom(lifecycle,deprecated)
 importFrom(methods,as)
-importFrom(stats,approx)
-importFrom(stats,as.formula)
-importFrom(stats,cov)
-importFrom(stats,dbeta)
-importFrom(stats,deviance)
-importFrom(stats,dist)
-importFrom(stats,dnorm)
-importFrom(stats,lm)
-importFrom(stats,logLik)
-importFrom(stats,na.omit)
-importFrom(stats,nobs)
-importFrom(stats,optim)
-importFrom(stats,pnorm)
-importFrom(stats,predict)
-importFrom(stats,quantile)
-importFrom(stats,rnorm)
-importFrom(stats,rt)
-importFrom(stats,sd)
-importFrom(stats,setNames)
-importFrom(stats,simulate)
-importFrom(stats,spline)
-importFrom(stats,terms)
-importFrom(stats,var)
+importFrom(stats,
+  approx,
+  as.formula,
+  cov,
+  dbeta,
+  deviance,
+  dist,
+  dnorm,
+  lm,
+  logLik,
+  na.omit,
+  nobs,
+  optim,
+  pnorm,
+  predict,
+  quantile,
+  rnorm,
+  rt,
+  sd,
+  setNames,
+  simulate,
+  spline,
+  terms,
+  var
+)
 importFrom(utils,packageVersion)

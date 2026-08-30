@@ -36,7 +36,9 @@ make_inla_hybrid_data <- function(seed       = 2026,
 
 
 test_that("rspde.hybrid.matern builds with expected structure", {
-  skip_if_not_installed("INLA")
+  local_rspde_safe_inla(
+    required_symbol = "inla_cgeneric_rspde_hybrid_alpha2_model"
+  )
   s <- make_inla_hybrid_data(n_obs = 30, n_mesh = 31)
   hyb <- rspde.hybrid.matern(mesh = s$mesh, X = s$X)
   expect_s3_class(hyb, "inla_rspde_hybrid_alpha2")
@@ -53,7 +55,7 @@ test_that("rspde.hybrid.matern builds with expected structure", {
 
 test_that("Q from the hybrid cgeneric matches the FEM formula for alpha = 2", {
   skip_on_cran()
-  skip_if_not_installed("INLA")
+  local_rspde_safe_inla()
 
   s <- make_inla_hybrid_data(n_obs = 10, n_mesh = 21)
   # rspde.matern with fixed nu = 1.5 (alpha = 2) — known correct Q
@@ -111,9 +113,10 @@ test_that("Hybrid cgeneric mu formula matches compute_hybrid_mean", {
 
 test_that("INLA recovers beta_X from simulated data (alpha = 2)", {
   skip_on_cran()
-  skip_if_not_installed("INLA")
+  local_rspde_safe_inla(
+    required_symbol = "inla_cgeneric_rspde_hybrid_alpha2_model"
+  )
   suppressMessages(library(INLA))
-  INLA::inla.setOption(num.threads = "1:1")
 
   # Simulate from a hybrid SPDE with non-zero beta_X. With diffuse
   # priors on (tau, kappa) the joint posterior of (tau, kappa, beta_X)
@@ -195,9 +198,10 @@ test_that("INLA recovers beta_X from simulated data (alpha = 2)", {
 
 test_that("separate_kappa_mu adds an extra hyperparameter and recovers kappa_mu", {
   skip_on_cran()
-  skip_if_not_installed("INLA")
+  local_rspde_safe_inla(
+    required_symbol = "inla_cgeneric_rspde_hybrid_alpha2_model"
+  )
   suppressMessages(library(INLA))
-  INLA::inla.setOption(num.threads = "1:1")
 
   # Simulate from a model with separate kappa_mu = 10 (while kappa = 5),
   # fit with the cgeneric set to separate mode and tight priors at
@@ -265,9 +269,10 @@ test_that("separate_kappa_mu adds an extra hyperparameter and recovers kappa_mu"
 
 test_that("Hybrid with beta_X = 0 fixed gives same fit as rspde.matern (nu=1.5)", {
   skip_on_cran()
-  skip_if_not_installed("INLA")
+  local_rspde_safe_inla(
+    required_symbol = "inla_cgeneric_rspde_hybrid_alpha2_model"
+  )
   suppressMessages(library(INLA))
-  INLA::inla.setOption(num.threads = "1:1")
 
   set.seed(11)
   n_mesh <- 81
@@ -350,9 +355,10 @@ test_that("Hybrid with beta_X = 0 fixed gives same fit as rspde.matern (nu=1.5)"
 
 test_that("Hybrid cgeneric fits a full INLA model and recovers sigma_e", {
   skip_on_cran()
-  skip_if_not_installed("INLA")
+  local_rspde_safe_inla(
+    required_symbol = "inla_cgeneric_rspde_hybrid_alpha2_model"
+  )
   suppressMessages(library(INLA))
-  INLA::inla.setOption(num.threads = "1:1")
 
   s <- make_inla_hybrid_data()
   hyb <- rspde.hybrid.matern(
@@ -383,7 +389,9 @@ test_that("Hybrid cgeneric fits a full INLA model and recovers sigma_e", {
 
 test_that("Hybrid model works with inlabru via the inla_rspde mapper", {
   skip_on_cran()
-  skip_if_not_installed("INLA")
+  local_rspde_safe_inla(
+    required_symbol = "inla_cgeneric_rspde_hybrid_alpha2_model"
+  )
   skip_if_not_installed("inlabru")
   suppressMessages({library(INLA); library(inlabru)})
 

@@ -101,6 +101,7 @@ space-time random fields using either 1D spatial models or higher-dimensional
 FEM-based approaches.
 }
 \examples{
+\dontshow{if (rspde_safe_inla() && requireNamespace("MetricGraph", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(INLA)
 library(MetricGraph)
 graph <- metric_graph$new()
@@ -115,5 +116,5 @@ model <- rspde.spacetime(mesh_space = graph,
                          time_loc = time_loc,
                          alpha = 2,
                          beta = 1)
-
+\dontshow{\}) # examplesIf}
 }

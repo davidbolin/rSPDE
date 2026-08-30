@@ -25,7 +25,7 @@ their original scales.
 \examples{
 \donttest{
 # devel version
-if (requireNamespace("INLA", quietly = TRUE)) {
+if (rspde_safe_inla()) {
   library(INLA)
 
   set.seed(123)

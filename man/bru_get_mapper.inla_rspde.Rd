@@ -39,7 +39,7 @@ rSPDE inlabru mapper
 \examples{
 \donttest{
 # devel version
-if (requireNamespace("INLA", quietly = TRUE) &&
+if (interactive() && rspde_safe_inla() &&
   requireNamespace("inlabru", quietly = TRUE)) {
   library(INLA)
   library(inlabru)

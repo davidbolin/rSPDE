@@ -49,7 +49,7 @@
 #' the space-time Gaussian random field.
 #' @export
 #'
-#' @examples
+#' @examplesIf rspde_safe_inla()
 #' library(fmesher)
 #' n_loc <- 2000
 #' loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
@@ -177,6 +177,7 @@ rspde.anistropic2d <- function(mesh,
 
   model <- do.call(INLA::inla.cgeneric.define, list_args)
 
+  model <- rspde_resolve_cgeneric_model(model)
   rspde_check_cgeneric_symbol(model)
 
   model$prior.sigma <- prior.sigma
@@ -226,4 +227,3 @@ bru_get_mapper.inla_rspde_anisotropic2d <- function(model, ...) {
   }
   inlabru::bru_mapper_repeat(inlabru::bm_fmesher(model[["mesh"]]), n_rep = n_rep)
 }
-

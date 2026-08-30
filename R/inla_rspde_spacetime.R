@@ -55,7 +55,7 @@
 #' the space-time Gaussian random field.
 #' @export
 #'
-#' @examples
+#' @examplesIf rspde_safe_inla() && requireNamespace("MetricGraph", quietly = TRUE)
 #' library(INLA)
 #' library(MetricGraph)
 #' graph <- metric_graph$new()
@@ -221,6 +221,7 @@ rspde.spacetime <- function(mesh_space = NULL,
     )
 
   model <- do.call(INLA::inla.cgeneric.define, list_args)
+  model <- rspde_resolve_cgeneric_model(model)
 
   model$A <- function(...) {
     make_A(op, ...)

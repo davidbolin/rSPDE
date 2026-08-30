@@ -60,15 +60,13 @@
 #'
 #' @export
 #' @seealso [hybrid.spde()], [rspde.matern()]
-#' @examples
-#' \dontrun{
+#' @examplesIf rspde_safe_inla(required_symbol = "inla_cgeneric_rspde_hybrid_alpha2_model")
 #' library(INLA)
 #' x <- seq(0, 1, length.out = 81)
 #' mesh <- fmesher::fm_mesh_1d(x)
 #' X <- cbind(sin(2 * pi * x), cos(2 * pi * x))
 #' hyb <- rspde.hybrid.matern(mesh = mesh, X = X)
 #' # ... use in formula: y ~ -1 + f(idx, model = hyb)
-#' }
 rspde.hybrid.matern <- function(mesh,
                                 X,
                                 prior.tau = NULL,
@@ -208,6 +206,8 @@ rspde.hybrid.matern <- function(mesh,
       kappa_mu.prior.prec = as.double(prior.kappa_mu$prec)
     )
   )
+  model <- rspde_resolve_cgeneric_model(model)
+  rspde_check_cgeneric_symbol(model)
 
   # Attributes used by the inlabru mapper for inla_rspde models so that
   # bru_get_mapper.inla_rspde returns a single-replicate mesh mapper.

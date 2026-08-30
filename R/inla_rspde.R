@@ -52,11 +52,10 @@
 #' should be used? The current types are "brasil", "chebfun" or "chebfunLB".
 #' @param debug INLA debug argument
 #' @param shared_lib Which shared lib to use for the cgeneric implementation?
-#' If "detect", it will check if the shared lib exists locally, in which case it will
-#' use it. Otherwise it will use INLA's shared library.
-#' If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
-#' it will use the local installation (does not work if your installation is from CRAN).
-#' Otherwise, you can directly supply the path of the .so (or .dll) file.
+#' `"detect"` and `"INLA"` prefer the model compiled into the INLA binary and
+#' fall back to a compiled local rSPDE library when the symbol is unavailable.
+#' `"rSPDE"` requires the local library. An existing `.so` or `.dll` path can
+#' also be supplied directly.
 #' @param ... Only being used internally.
 #'
 #' @return An INLA model.
@@ -860,6 +859,7 @@ rspde.matern <- function(mesh,
   model$rspde.order <- rspde.order
   class(model) <- c("inla_rspde", class(model))
 
+  model <- rspde_resolve_cgeneric_model(model)
   rspde_check_cgeneric_symbol(model)
 
   model$dim <- d
@@ -1053,7 +1053,7 @@ spde.make.A <- function(mesh = NULL,
 #' @examples
 #' \donttest{
 #' # devel version
-#' if (requireNamespace("INLA", quietly = TRUE)) {
+#' if (rspde_safe_inla()) {
 #'   library(INLA)
 #'
 #'   set.seed(123)
@@ -1230,7 +1230,7 @@ rspde.make.A <- function(mesh = NULL,
 #' @examples
 #' \donttest{
 #' # devel version
-#' if (requireNamespace("INLA", quietly = TRUE)) {
+#' if (rspde_safe_inla()) {
 #'   library(INLA)
 #'
 #'   set.seed(123)
@@ -1265,19 +1265,6 @@ rspde.make.A <- function(mesh = NULL,
 #'     A = Abar,
 #'     effects = mesh.index
 #'   )
-#'   rspde_model <- rspde.matern(
-#'     mesh = mesh_2d,
-#'     nu.upper.bound = 2
-#'   )
-#'   f <- y ~ -1 + f(field, model = rspde_model)
-#'   rspde_fit <- inla(f,
-#'     data = inla.stack.data(st.dat),
-#'     family = "gaussian",
-#'     control.predictor =
-#'       list(A = inla.stack.A(st.dat))
-#'   )
-#'   result <- rspde.result(rspde_fit, "field", rspde_model)
-#'   summary(result)
 #' }
 #' # devel.tag
 #' }
@@ -1692,7 +1679,7 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #' @examples
 #' \donttest{
 #' # devel version
-#' if (requireNamespace("INLA", quietly = TRUE)) {
+#' if (rspde_safe_inla()) {
 #'   library(INLA)
 #'
 #'   set.seed(123)
@@ -2417,7 +2404,7 @@ gg_df.rspde_result <- function(result,
 #' @examples
 #' \donttest{
 #' # devel version
-#' if (requireNamespace("INLA", quietly = TRUE)) {
+#' if (rspde_safe_inla()) {
 #'   library(INLA)
 #'
 #'   set.seed(123)

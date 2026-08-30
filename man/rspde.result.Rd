@@ -79,7 +79,7 @@ for an rspde effect from an inla result object.
 \examples{
 \donttest{
 # devel version
-if (requireNamespace("INLA", quietly = TRUE)) {
+if (rspde_safe_inla()) {
   library(INLA)
 
   set.seed(123)

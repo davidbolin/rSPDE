@@ -95,14 +95,14 @@ matrix \code{X} and (re)computes
 computation is a single sparse Cholesky solve done with Eigen.
 }
 \examples{
-\dontrun{
+\dontshow{if (rspde_safe_inla(required_symbol = "inla_cgeneric_rspde_hybrid_alpha2_model")) withAutoprint(\{ # examplesIf}
 library(INLA)
 x <- seq(0, 1, length.out = 81)
 mesh <- fmesher::fm_mesh_1d(x)
 X <- cbind(sin(2 * pi * x), cos(2 * pi * x))
 hyb <- rspde.hybrid.matern(mesh = mesh, X = X)
 # ... use in formula: y ~ -1 + f(idx, model = hyb)
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=hybrid.spde]{hybrid.spde()}}, \code{\link[=rspde.matern]{rspde.matern()}}

@@ -5,7 +5,7 @@ cat("\n=== rSPDE minimal demo ===\n")
 
 ## ---- Example 1: rspde.matern (spatial, mesh-based) ------------------------------------------
 cat("\n-- Example 1: rspde.matern (spatial) --\n")
-try({
+if (rspde_safe_inla(quietly = TRUE)) try({
   library(INLA); library(rSPDE); library(fmesher)
 
   coords   <- matrix(runif(40), ncol = 2)
@@ -27,7 +27,7 @@ try({
 
 ## ---- Example 2: rspde.spacetime -----------------------------------------------------------
 cat("\n-- Example 2: rspde.spacetime --\n")
-try({
+if (rspde_safe_inla(quietly = TRUE)) try({
   library(rSPDE); library(INLA)
 
   s <- seq(0, 20, length.out = 21)
@@ -56,7 +56,7 @@ try({
 
 ## ---- Example 3: rspde.intrinsic ------------------------------------------------------
 cat("\n-- Example 3: rspde.intrinsic --\n")
-try({
+if (rspde_safe_inla(quietly = TRUE)) try({
   library(rSPDE); library(INLA); library(fmesher)
 
   bnd  <- fm_segm(rbind(c(0,0), c(1,0), c(1,1), c(0,1)), is.bnd = TRUE)
@@ -79,7 +79,7 @@ try({
 
 ## ---- Example 4: rspde.anistropic2d --------------------------------------
 cat("\n-- Example 4: rspde.anistropic2d (anisotropic) --\n")
-try({
+if (rspde_safe_inla(quietly = TRUE)) try({
   library(rSPDE); library(fmesher); library(INLA)
 
   loc  <- matrix(runif(30 * 2), 30, 2)
@@ -104,7 +104,7 @@ try({
 
 ## ---- Example 5: rspde.matern1d (1-D, no FEM) -----------------------------
 cat("\n-- Example 5: rspde.matern1d (1-D rational approximation) --\n")
-try({
+if (rspde_safe_inla(quietly = TRUE)) try({
   library(rSPDE); library(INLA)
 
   s     <- seq(0, 1, length.out = 101)

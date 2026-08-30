@@ -1984,7 +1984,7 @@ create_train_test_indices <- function(data_list, cv_type = c("k-fold", "loo", "l
   
   # Get indices for concatenated data as before
   idx <- seq_len(nrow(data))
-    
+
   # Get cumulative sizes to map back to individual datasets
   n_samples <- sapply(data_list, nrow)
   cum_sizes <- cumsum(c(0, n_samples))
@@ -2049,25 +2049,290 @@ check_packages <- function(packages, func) {
 }
 
 #' @noRd
-# Get appropriate shared library
+# Get an explicitly requested shared library. For "INLA" and "detect", the
+# model-specific built-in/local decision is made after model construction by
+# rspde_resolve_cgeneric_model().
 get_shared_library <- function(shared_lib) {
-  if (shared_lib == "INLA") {
-    return(INLA::inla.external.lib("rSPDE"))
+  if (!is.character(shared_lib) || length(shared_lib) != 1L || is.na(shared_lib)) {
+    stop("'shared_lib' must be a single character string.")
+  }
+
+  if (shared_lib %in% c("INLA", "detect")) {
+    return(NULL)
   }
   if (shared_lib == "rSPDE") {
-    rspde_lib <- system.file("shared", package = "rSPDE")
-    return(ifelse(Sys.info()["sysname"] == "Windows",
-                 paste0(rspde_lib, "/rspde_cgeneric_models.dll"),
-                 paste0(rspde_lib, "/rspde_cgeneric_models.so")))
+    lib_path <- rspde_local_shared_library()
+    if (is.null(lib_path)) {
+      rspde_cgeneric_unavailable_error()
+    }
+    return(lib_path)
   }
-  if (shared_lib == "detect") {
-    rspde_lib_local <- system.file("shared", package = "rSPDE")
-    lib_path <- ifelse(Sys.info()["sysname"] == "Windows",
-                      paste0(rspde_lib_local, "/rspde_cgeneric_models.dll"),
-                      paste0(rspde_lib_local, "/rspde_cgeneric_models.so"))
-    return(if (file.exists(lib_path)) lib_path else INLA::inla.external.lib("rSPDE"))
+
+  if (file.exists(shared_lib)) {
+    return(normalizePath(shared_lib, mustWork = TRUE))
   }
-  stop("'shared_lib' must be 'INLA', 'rSPDE', or 'detect'")
+
+  stop("'shared_lib' must be 'INLA', 'rSPDE', 'detect', or an existing file.")
+}
+
+.rspde_cgeneric_cache <- new.env(parent = emptyenv())
+
+# Include both package and executable metadata so an in-place INLA update
+# invalidates all cached symbol results, even within the same R session.
+#' @noRd
+rspde_inla_fingerprint <- function() {
+  if (!requireNamespace("INLA", quietly = TRUE)) {
+    return("INLA-unavailable")
+  }
+  version <- as.character(utils::packageVersion("INLA"))
+  inla_call <- tryCatch(
+    INLA::inla.getOption("inla.call"),
+    error = function(e) character()
+  )
+  binaries <- sub("\\.run$", "", inla_call)
+  binary_info <- file.info(binaries)
+  paste(
+    version,
+    paste(inla_call, collapse = ";"),
+    paste(binary_info$size, collapse = ";"),
+    paste(as.numeric(binary_info$mtime), collapse = ";"),
+    sep = "|"
+  )
+}
+
+#' @noRd
+rspde_inla_builtin_symbols <- function(refresh = FALSE) {
+  fingerprint <- rspde_inla_fingerprint()
+  if (!refresh && exists("builtin_symbols", envir = .rspde_cgeneric_cache,
+                         inherits = FALSE) &&
+      identical(.rspde_cgeneric_cache$builtin_fingerprint, fingerprint)) {
+    return(.rspde_cgeneric_cache$builtin_symbols)
+  }
+
+  symbols <- character()
+  registry_available <- FALSE
+  if (requireNamespace("INLA", quietly = TRUE)) {
+    inla_call <- tryCatch(
+      INLA::inla.getOption("inla.call"),
+      error = function(e) NULL
+    )
+    listing <- if (is.character(inla_call) && length(inla_call) == 1L) {
+      suppressWarnings(tryCatch(
+        system2(inla_call, "-c", stdout = TRUE, stderr = TRUE),
+        error = function(e) character()
+      ))
+    } else {
+      character()
+    }
+    matches <- regmatches(
+      listing,
+      regexec("name = ([^, }]+)", listing)
+    )
+    detected <- vapply(
+      matches,
+      function(x) if (length(x) >= 2L) x[[2L]] else NA_character_,
+      character(1)
+    )
+    symbols <- unique(detected[!is.na(detected)])
+    registry_available <- length(symbols) > 0L
+  }
+
+  attr(symbols, "registry_available") <- registry_available
+  .rspde_cgeneric_cache$builtin_fingerprint <- fingerprint
+  .rspde_cgeneric_cache$builtin_symbols <- symbols
+  symbols
+}
+
+# Probe INLA itself when its platform-specific executable does not implement
+# the `-c` registry listing. The result is cached by symbol for the R session.
+#' @noRd
+rspde_probe_inla_symbol <- function(symbol, model = NULL) {
+  cache_key <- paste0(
+    "inla_symbol:", rspde_inla_fingerprint(), ":", symbol
+  )
+  if (exists(cache_key, envir = .rspde_cgeneric_cache, inherits = FALSE)) {
+    return(get(cache_key, envir = .rspde_cgeneric_cache, inherits = FALSE))
+  }
+  if (!requireNamespace("INLA", quietly = TRUE)) {
+    return(FALSE)
+  }
+
+  if (is.null(model)) {
+    model <- INLA::inla.cgeneric.define(
+      model = symbol,
+      shlib = NULL,
+      n = 1L,
+      rspde_symbol_probe = "probe"
+    )
+    model <- rspde_prepare_cgeneric_model(model)
+  }
+
+  probe_dir <- tempfile("rspde-inla-symbol-")
+  dir.create(probe_dir)
+  on.exit(unlink(probe_dir, recursive = TRUE, force = TRUE), add = TRUE)
+
+  probe_model <- model
+  probe_model$f$cgeneric$.q <- TRUE
+  probe_model$f$cgeneric$.q.file <- file.path(probe_dir, "cgeneric-q.txt")
+  probe_formula <- stats::as.formula(
+    "y ~ -1 + f(index, model = probe_model)",
+    env = environment()
+  )
+  suppressWarnings(suppressMessages(try(
+    INLA::inla(
+      probe_formula,
+      data = data.frame(y = NA_real_, index = 1L),
+      verbose = FALSE,
+      silent = 2L,
+      num.threads = "1:1:1",
+      keep = TRUE,
+      working.directory = probe_dir,
+      control.compute = list(return.marginals = FALSE)
+    ),
+    silent = TRUE
+  )))
+
+  log_files <- list.files(
+    probe_dir,
+    pattern = "^Logfile\\.txt$",
+    recursive = TRUE,
+    full.names = TRUE
+  )
+  log_lines <- unlist(lapply(
+    log_files,
+    function(path) readLines(path, warn = FALSE)
+  ), use.names = FALSE)
+  marker <- paste0("Model [", symbol, "] is built-in")
+  available <- any(grepl(marker, log_lines, fixed = TRUE))
+  assign(cache_key, available, envir = .rspde_cgeneric_cache)
+  available
+}
+
+#' @noRd
+rspde_inla_symbol_available <- function(symbol, model = NULL) {
+  symbols <- rspde_inla_builtin_symbols()
+  if (isTRUE(attr(symbols, "registry_available"))) {
+    return(symbol %in% symbols)
+  }
+  rspde_probe_inla_symbol(symbol, model = model)
+}
+
+#' @noRd
+rspde_local_shared_library <- function() {
+  shared_dir <- system.file("shared", package = "rSPDE")
+  if (nzchar(shared_dir)) {
+    extension <- if (.Platform$OS.type == "windows") ".dll" else ".so"
+    path <- file.path(shared_dir, paste0("rspde_cgeneric_models", extension))
+    if (file.exists(path)) {
+      return(normalizePath(path, mustWork = TRUE))
+    }
+  }
+
+  # Source builds made with --enable-compiled use R's standard package DLL.
+  libs_dir <- system.file("libs", package = "rSPDE")
+  if (!nzchar(libs_dir)) {
+    return(NULL)
+  }
+  candidates <- list.files(
+    libs_dir,
+    pattern = "^rSPDE\\.(so|dll|dylib)$",
+    recursive = TRUE,
+    full.names = TRUE
+  )
+  if (length(candidates)) normalizePath(candidates[[1L]], mustWork = TRUE) else NULL
+}
+
+#' @noRd
+rspde_cgeneric_symbol_available <- function(symbol, model = NULL) {
+  if (rspde_inla_symbol_available(symbol, model = model)) {
+    return(TRUE)
+  }
+
+  shlib <- rspde_local_shared_library()
+  if (is.null(shlib)) {
+    return(FALSE)
+  }
+
+  loaded <- tryCatch(dyn.load(shlib), error = function(e) NULL)
+  if (is.null(loaded)) {
+    return(FALSE)
+  }
+  on.exit(try(dyn.unload(loaded[["path"]]), silent = TRUE), add = TRUE)
+  is.loaded(symbol)
+}
+
+#' @noRd
+rspde_cgeneric_unavailable_error <- function(symbol = NULL) {
+  model_text <- if (is.null(symbol)) {
+    "The requested rSPDE Cgeneric model"
+  } else {
+    paste0("The Cgeneric symbol '", symbol, "'")
+  }
+  stop(
+    model_text,
+    " is not available in the installed INLA binary, and no compiled local ",
+    "rSPDE shared library was found. Install the newest testing version of ",
+    "INLA, or reinstall rSPDE from source and compile its Cgeneric library. ",
+    "If neither resolves the problem, open an issue at ",
+    "https://github.com/davidbolin/rSPDE/issues.",
+    call. = FALSE
+  )
+}
+
+#' Restore the conventional Cgeneric argument layout for built-in models
+#'
+#' `INLA::inla.cgeneric.define()` omits `shlib` from the serialized Cgeneric
+#' data when it is `NULL`.  The built-in rSPDE models use the same argument
+#' layout as their former shared-library versions, where `shlib` is the second
+#' character entry.  Keep the model's actual `shlib` value as `NULL`, so INLA
+#' selects its built-in symbol, but restore the empty named entry in the data
+#' passed to the C function.
+#' @noRd
+rspde_prepare_cgeneric_model <- function(model) {
+  cgeneric <- model$f$cgeneric
+
+  if (!is.null(cgeneric$shlib)) {
+    return(model)
+  }
+
+  characters <- cgeneric$data$characters
+  if ("shlib" %in% names(characters)) {
+    return(model)
+  }
+
+  model_index <- match("model", names(characters))
+  if (is.na(model_index)) {
+    stop("There was a problem with the Cgeneric model creation.")
+  }
+
+  model$f$cgeneric$data$characters <- append(
+    characters,
+    list(shlib = ""),
+    after = model_index
+  )
+  model
+}
+
+#' Select a built-in INLA symbol or fall back to a local rSPDE library
+#' @noRd
+rspde_resolve_cgeneric_model <- function(model) {
+  symbol <- model$f$cgeneric$model
+  shlib <- model$f$cgeneric$shlib
+  model <- rspde_prepare_cgeneric_model(model)
+
+  if (is.null(shlib) &&
+      !rspde_inla_symbol_available(symbol, model = model)) {
+    shlib <- rspde_local_shared_library()
+    if (is.null(shlib)) {
+      rspde_cgeneric_unavailable_error(symbol)
+    }
+    model$f$cgeneric$shlib <- shlib
+  }
+
+  if (!is.null(model$f$cgeneric$shlib)) {
+    model$f$cgeneric$data$characters$shlib <- model$f$cgeneric$shlib
+  }
+  model
 }
 
 #' @noRd
@@ -2339,6 +2604,12 @@ rspde_check_cgeneric_symbol <- function(model) {
     # Extract the shared library path and the symbol name
     shlib <- model$f$cgeneric$shlib
     symbol <- model$f$cgeneric$model
+
+    # A NULL library selects a model compiled directly into the INLA binary.
+    # Such symbols cannot be inspected with dyn.load()/is.loaded().
+    if (is.null(shlib)) {
+        return(invisible(TRUE))
+    }
     
     # Check if the shared library exists
     if (!file.exists(shlib)) {
@@ -2360,6 +2631,7 @@ rspde_check_cgeneric_symbol <- function(model) {
             paste(current_path, r_lib_path, inla_lib_path, sep = ";")
         }
         Sys.setenv(PATH = new_path)
+        on.exit(Sys.setenv(PATH = current_path), add = TRUE)
     } else {
         current_lib_path <- Sys.getenv("LD_LIBRARY_PATH")
         new_lib_path <- if (current_lib_path == "") {
@@ -2368,33 +2640,33 @@ rspde_check_cgeneric_symbol <- function(model) {
             paste(current_lib_path, r_lib_path, inla_lib_path, sep = ":")
         }
         Sys.setenv(LD_LIBRARY_PATH = new_lib_path)
+        on.exit(Sys.setenv(LD_LIBRARY_PATH = current_lib_path), add = TRUE)
     }
     
-    # Use the `dyn.load` and `is.loaded` functions to check for the symbol
-    tryCatch({
-        dyn.load(shlib) # Load the shared library
-        if (is.loaded(symbol)) {
-            dyn.unload(shlib) # Unload if the symbol is available
-            return(invisible(TRUE)) # Return silently
-        } else {
-            warning(paste0("The symbol '", symbol, "' is not available in the shared library. Please install the latest testing version of INLA. 
-      If the problem persists after installing the latest testing version of INLA, please open an issue at https://github.com/davidbolin/rSPDE/issues, 
-      requesting that this model be added to INLA."))
-        }
-        dyn.unload(shlib) # Ensure the library is unloaded
-    }, error = function(e) {
-        warning(paste0("Error while loading the shared library or checking the symbol: ", e$message, 
-                       ". Please install the latest testing version of INLA. If the problem persists after installing the 
-                   latest testing version of INLA, please open an issue at https://github.com/davidbolin/rSPDE/issues, 
-                   requesting that this model be added to INLA."))
-    })
-    
-    # Restore original environment variables
-    if (.Platform$OS.type == "windows") {
-        Sys.setenv(PATH = current_path)
-    } else {
-        Sys.setenv(LD_LIBRARY_PATH = current_lib_path)
+    loaded <- tryCatch(dyn.load(shlib), error = function(e) e)
+    if (inherits(loaded, "error")) {
+        stop(
+            "The local rSPDE shared library could not be loaded: ",
+            conditionMessage(loaded), ". Install the newest testing version ",
+            "of INLA, or reinstall rSPDE from source and compile its Cgeneric ",
+            "library. If neither resolves the problem, open an issue at ",
+            "https://github.com/davidbolin/rSPDE/issues.",
+            call. = FALSE
+        )
     }
+    on.exit(try(dyn.unload(loaded[["path"]]), silent = TRUE), add = TRUE)
+    if (!is.loaded(symbol)) {
+        stop(
+            "The symbol '", symbol, "' is not available in the compiled local ",
+            "rSPDE shared library. Install the newest testing version of INLA, ",
+            "or reinstall rSPDE from source and compile its Cgeneric library. ",
+            "If neither resolves the problem, open an issue at ",
+            "https://github.com/davidbolin/rSPDE/issues.",
+            call. = FALSE
+        )
+    }
+
+    invisible(TRUE)
 }
 
 #' @noRd

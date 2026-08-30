@@ -46,11 +46,10 @@
 #' should be used? The current types are "brasil", "chebfun" or "chebfunLB".
 #' @param debug INLA debug argument
 #' @param shared_lib Which shared lib to use for the cgeneric implementation?
-#' If "detect", it will check if the shared lib exists locally, in which case it will
-#' use it. Otherwise it will use INLA's shared library.
-#' If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
-#' it will use the local installation (does not work if your installation is from CRAN).
-#' Otherwise, you can directly supply the path of the .so (or .dll) file.
+#' `"detect"` and `"INLA"` prefer the model compiled into the INLA binary and
+#' fall back to a compiled local rSPDE library when the symbol is unavailable.
+#' `"rSPDE"` requires the local library. An existing `.so` or `.dll` path can
+#' also be supplied directly.
 #' @param ... Only being used internally.
 #'
 #' @return An INLA model.
@@ -397,6 +396,7 @@ rspde.matern1d <- function(loc,
     }
     model$rspde.order <- rspde.order
 
+    model <- rspde_resolve_cgeneric_model(model)
     rspde_check_cgeneric_symbol(model)
     
     class(model) <- c("inla_rspde_matern1d", class(model))

@@ -47,7 +47,7 @@ Generates a list of named index vectors for an rSPDE model.
 \examples{
 \donttest{
 # devel version
-if (requireNamespace("INLA", quietly = TRUE)) {
+if (rspde_safe_inla()) {
   library(INLA)
 
   set.seed(123)
@@ -82,19 +82,6 @@ if (requireNamespace("INLA", quietly = TRUE)) {
     A = Abar,
     effects = mesh.index
   )
-  rspde_model <- rspde.matern(
-    mesh = mesh_2d,
-    nu.upper.bound = 2
-  )
-  f <- y ~ -1 + f(field, model = rspde_model)
-  rspde_fit <- inla(f,
-    data = inla.stack.data(st.dat),
-    family = "gaussian",
-    control.predictor =
-      list(A = inla.stack.A(st.dat))
-  )
-  result <- rspde.result(rspde_fit, "field", rspde_model)
-  summary(result)
 }
 # devel.tag
 }

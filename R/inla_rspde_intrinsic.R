@@ -44,7 +44,7 @@
 #' the intrinsic Gaussian random field.
 #' @export
 #'
-#' @examples
+#' @examplesIf rspde_safe_inla()
 #' library(fmesher)
 #' n_loc <- 2000
 #' loc_2d_mesh <- matrix(runif(n_loc * 2), n_loc, 2)
@@ -189,6 +189,7 @@ rspde.intrinsic <- function(mesh,
     
     model <- do.call(INLA::inla.cgeneric.define, list_args)
     
+    model <- rspde_resolve_cgeneric_model(model)
     rspde_check_cgeneric_symbol(model)
     
     model$prior.tau <- prior.tau
@@ -237,11 +238,10 @@ rspde.intrinsic <- function(mesh,
 #' @param diagonal Value of diagonal correction for INLA stability. Default 0.
 #' @param debug INLA debug argument
 #' @param shared_lib Which shared lib to use for the cgeneric implementation?
-#' If "detect", it will check if the shared lib exists locally, in which case it will
-#' use it. Otherwise it will use INLA's shared library.
-#' If "INLA", it will use the shared lib from INLA's installation. If 'rSPDE', then
-#' it will use the local installation (does not work if your installation is from CRAN).
-#' Otherwise, you can directly supply the path of the .so (or .dll) file.
+#' `"detect"` and `"INLA"` prefer the model compiled into the INLA binary and
+#' fall back to a compiled local rSPDE library when the symbol is unavailable.
+#' `"rSPDE"` requires the local library. An existing `.so` or `.dll` path can
+#' also be supplied directly.
 #' @param ... Only being used internally.
 #'
 #' @return An INLA model.
@@ -470,6 +470,7 @@ rspde.intrinsic.matern <- function(mesh,
     model$theta.prior.prec <- theta.prior.prec
     model$start.theta <- start.theta
 
+    model <- rspde_resolve_cgeneric_model(model)
     rspde_check_cgeneric_symbol(model)
 
     class(model) <- c("intrinsic_matern", "inla_rspde", class(model))
