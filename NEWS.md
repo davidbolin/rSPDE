@@ -1,3 +1,5 @@
+# rSPDE (development version)
+
 # rSPDE 2.6.0
 
 * Added `posterior_crossvalidation()` for objects fitted with `rspde_lme()`.
