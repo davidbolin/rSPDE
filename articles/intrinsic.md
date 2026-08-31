@@ -184,9 +184,9 @@ the following:
 
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
-#>         mean        sd 0.025quant 0.5quant 0.975quant     mode
-#> tau 0.125129 0.0276378  0.0791997 0.122322   0.187319 0.116816
-#> nu  0.969209 0.0774416  0.8189940 0.968579   1.122550 0.966739
+#>         mean       sd 0.025quant 0.5quant 0.975quant     mode
+#> tau 0.123248 0.022467  0.0811057 0.123005   0.168267 0.123693
+#> nu  0.971314 0.066441  0.8550470 0.965873   1.113560 0.946492
 tau <- op$tau
 nu <- op$beta - 1 #beta = nu + d/2 
 result_df <- data.frame(
@@ -199,9 +199,9 @@ result_df <- data.frame(
 )
 print(result_df)
 #>   parameter true       mean       mode
-#> 1       tau  0.2 0.12512928 0.11681608
-#> 2        nu  0.8 0.96920860 0.96673890
-#> 3   sigma.e  0.1 0.09784227 0.09827558
+#> 1       tau  0.2 0.12324840 0.12369344
+#> 2        nu  0.8 0.97131352 0.94649215
+#> 3   sigma.e  0.1 0.09760497 0.09796053
 ```
 
 ### Extreme value models
@@ -311,9 +311,9 @@ We then compare with the true parameter estimates as before
 
 result_fit <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 summary(result_fit)
-#>         mean        sd 0.025quant 0.5quant 0.975quant     mode
-#> tau 0.177754 0.0100228   0.158086 0.177826   0.197383 0.178432
-#> nu  0.924436 0.0137718   0.898566 0.923955   0.952570 0.922428
+#>         mean         sd 0.025quant 0.5quant 0.975quant     mode
+#> tau 0.177431 0.00871985   0.161062 0.177159   0.195290 0.176548
+#> nu  0.924878 0.01158470   0.901979 0.924941   0.947478 0.925166
 tau <- op$tau
 nu <- op$beta - 1 #beta = nu + d/2 
 result_df <- data.frame(
@@ -326,9 +326,9 @@ result_df <- data.frame(
 )
 print(result_df)
 #>   parameter true       mean      mode
-#> 1       tau  0.2 0.17775425 0.1784321
-#> 2        nu  0.9 0.92443636 0.9224277
-#> 3   sigma.e  0.1 0.09987674 0.1001735
+#> 1       tau  0.2 0.17743102 0.1765481
+#> 2        nu  0.9 0.92487786 0.9251665
+#> 3   sigma.e  0.1 0.09996625 0.1000477
 ```
 
 To see the posterior distributions of the parameters we can do:
@@ -497,18 +497,18 @@ We can get a summary of the fit:
 
 summary(rspde_fit)
 #> Time used:
-#>     Pre = 0.15, Running = 20.5, Post = 0.0551, Total = 20.7 
+#>     Pre = 0.0939, Running = 11.6, Post = 0.0355, Total = 11.7 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
 #> 
 #> Model hyperparameters:
 #>                                           mean    sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 100.68 4.484      92.10   100.60
+#> Precision for the Gaussian observations 100.68 4.483      92.10   100.60
 #> Theta1 for field                         -5.98 0.048      -6.07    -5.98
 #> Theta2 for field                          2.35 0.086       2.17     2.35
 #>                                         0.975quant   mode
-#> Precision for the Gaussian observations     109.75 100.47
+#> Precision for the Gaussian observations     109.75 100.46
 #> Theta1 for field                             -5.88  -5.98
 #> Theta2 for field                              2.51   2.35
 #> 
@@ -525,9 +525,9 @@ following:
 
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
-#>             mean         sd 0.025quant    0.5quant  0.975quant        mode
-#> tau    0.0025319 0.00012134 0.00230566  0.00252651  0.00278214  0.00251442
-#> kappa 10.4880000 0.89739500 8.79251000 10.46900000 12.31250000 10.45330000
+#>              mean          sd 0.025quant    0.5quant 0.975quant        mode
+#> tau    0.00253195 0.000121309 0.00230574  0.00252657  0.0027821  0.00251448
+#> kappa 10.48820000 0.897222000 8.79285000 10.46930000 12.3121000 10.45360000
 tau <- op$tau
 result_df <- data.frame(
   parameter = c("tau", "kappa"),
@@ -537,8 +537,8 @@ result_df <- data.frame(
 )
 print(result_df)
 #>   parameter    true         mean         mode
-#> 1       tau  0.0025  0.002531904  0.002514423
-#> 2     kappa 10.0000 10.488020822 10.453284003
+#> 1       tau  0.0025  0.002531947  0.002514478
+#> 2     kappa 10.0000 10.488207399 10.453552282
 ```
 
 ### Kriging with `R-INLA` implementation
