@@ -23,7 +23,7 @@
 #' }
 rspde_safe_inla <- function(multicore = NULL,
                             quietly = FALSE,
-                            minimum_version = "24.12.01",
+                            minimum_version = "26.08.22",
                             required_symbol = NULL) {
   inla_version <- tryCatch(
     utils::packageVersion("INLA"),
