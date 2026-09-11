@@ -184,9 +184,9 @@ the following:
 
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
-#>         mean       sd 0.025quant 0.5quant 0.975quant     mode
-#> tau 0.123248 0.022467  0.0811057 0.123005   0.168267 0.123693
-#> nu  0.971314 0.066441  0.8550470 0.965873   1.113560 0.946492
+#>         mean        sd 0.025quant 0.5quant 0.975quant     mode
+#> tau 0.125243 0.0259200  0.0842725 0.121696   0.185547 0.114116
+#> nu  0.968181 0.0702081  0.8247460 0.970836   1.099480 0.979590
 tau <- op$tau
 nu <- op$beta - 1 #beta = nu + d/2 
 result_df <- data.frame(
@@ -199,9 +199,9 @@ result_df <- data.frame(
 )
 print(result_df)
 #>   parameter true       mean       mode
-#> 1       tau  0.2 0.12324840 0.12369344
-#> 2        nu  0.8 0.97131352 0.94649215
-#> 3   sigma.e  0.1 0.09760497 0.09796053
+#> 1       tau  0.2 0.12524300 0.11411624
+#> 2        nu  0.8 0.96818150 0.97958988
+#> 3   sigma.e  0.1 0.09798959 0.09844206
 ```
 
 ### Extreme value models
@@ -311,9 +311,9 @@ We then compare with the true parameter estimates as before
 
 result_fit <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 summary(result_fit)
-#>         mean         sd 0.025quant 0.5quant 0.975quant     mode
-#> tau 0.177431 0.00871985   0.161062 0.177159   0.195290 0.176548
-#> nu  0.924878 0.01158470   0.901979 0.924941   0.947478 0.925166
+#>         mean        sd 0.025quant 0.5quant 0.975quant     mode
+#> tau 0.177999 0.0104125   0.158752 0.177557   0.199626 0.176461
+#> nu  0.924368 0.0140394   0.896358 0.924565   0.951482 0.925235
 tau <- op$tau
 nu <- op$beta - 1 #beta = nu + d/2 
 result_df <- data.frame(
@@ -326,9 +326,9 @@ result_df <- data.frame(
 )
 print(result_df)
 #>   parameter true       mean      mode
-#> 1       tau  0.2 0.17743102 0.1765481
-#> 2        nu  0.9 0.92487786 0.9251665
-#> 3   sigma.e  0.1 0.09996625 0.1000477
+#> 1       tau  0.2 0.17799932 0.1764609
+#> 2        nu  0.9 0.92436781 0.9252349
+#> 3   sigma.e  0.1 0.09994045 0.1001400
 ```
 
 To see the posterior distributions of the parameters we can do:
@@ -497,14 +497,14 @@ We can get a summary of the fit:
 
 summary(rspde_fit)
 #> Time used:
-#>     Pre = 0.0939, Running = 11.6, Post = 0.0355, Total = 11.7 
+#>     Pre = 0.13, Running = 20.5, Post = 0.0535, Total = 20.7 
 #> Random effects:
 #>   Name     Model
 #>     field CGeneric
 #> 
 #> Model hyperparameters:
 #>                                           mean    sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 100.68 4.483      92.10   100.60
+#> Precision for the Gaussian observations 100.69 4.483      92.11   100.60
 #> Theta1 for field                         -5.98 0.048      -6.07    -5.98
 #> Theta2 for field                          2.35 0.086       2.17     2.35
 #>                                         0.975quant   mode
@@ -512,7 +512,7 @@ summary(rspde_fit)
 #> Theta1 for field                             -5.88  -5.98
 #> Theta2 for field                              2.51   2.35
 #> 
-#> Marginal log-Likelihood:  727.86 
+#> Marginal log-Likelihood:  727.85 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -525,9 +525,9 @@ following:
 
 result_fit <- rspde.result(rspde_fit, "field", rspde_model)
 summary(result_fit)
-#>              mean          sd 0.025quant    0.5quant 0.975quant        mode
-#> tau    0.00253195 0.000121309 0.00230574  0.00252657  0.0027821  0.00251448
-#> kappa 10.48820000 0.897222000 8.79285000 10.46930000 12.3121000 10.45360000
+#>              mean          sd 0.025quant    0.5quant  0.975quant        mode
+#> tau    0.00253211 0.000121239 0.00230588  0.00252681  0.00278197  0.00251487
+#> kappa 10.48900000 0.897014000 8.79445000 10.46990000 12.31290000 10.45310000
 tau <- op$tau
 result_df <- data.frame(
   parameter = c("tau", "kappa"),
@@ -537,8 +537,8 @@ result_df <- data.frame(
 )
 print(result_df)
 #>   parameter    true         mean         mode
-#> 1       tau  0.0025  0.002531947  0.002514478
-#> 2     kappa 10.0000 10.488207399 10.453552282
+#> 1       tau  0.0025  0.002532113  0.002514869
+#> 2     kappa 10.0000 10.489042455 10.453120196
 ```
 
 ### Kriging with `R-INLA` implementation
@@ -748,14 +748,196 @@ correction when fitting.
 data = data.frame(y = c(Y), loc = rep(obs.loc, n.rep), rep  = rep(1:n.rep, each = n.obs))
 
 fit <- rspde_lme(y ~ -1, loc = "loc", repl  = "rep", data = data,
-                 model = op, mean_correction = TRUE, parallel = TRUE,
+                 model = op, mean_correction = TRUE, parallel = FALSE,
                  model_options = list(fix_alpha = 0))
+#> alpha =  0 , tau =  10 , beta = 1.1 , sigma_e =  0.02269473 , lik =  70591.26 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10 , beta = 1.1 , sigma_e =  0.02269473 , lik =  70591.26 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  14.60184 , beta = 1.1 , sigma_e =  0.02269473 , lik =  70264.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10 , beta = 1.37611 , sigma_e =  0.02269473 , lik =  70478.08 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10 , beta = 1.1 , sigma_e =  0.03313848 , lik =  63196.31 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  12.87078 , beta = 1.272247 , sigma_e =  0.01554238 , lik =  75322.51 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  14.60184 , beta = 1.37611 , sigma_e =  0.01064413 , lik =  74124.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  8.103311 , beta = 1.413748 , sigma_e =  0.01763275 , lik =  74558.94 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.388555 , beta = 1.322541 , sigma_e =  0.01878111 , lik =  73719.13 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.28439 , beta = 1.143572 , sigma_e =  0.01490219 , lik =  76974.11 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.4296 , beta = 1.05159 , sigma_e =  0.01207571 , lik =  78838.41 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.57686 , beta = 1.388481 , sigma_e =  0.009785321 , lik =  77389.32 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.4296 , beta = 1.305422 , sigma_e =  0.01207571 , lik =  78149.18 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  15.44416 , beta = 1.036337 , sigma_e =  0.009785321 , lik =  78469.38 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  13.14434 , beta = 1.112752 , sigma_e =  0.01133734 , lik =  78698.09 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.86077 , beta = 1.04391 , sigma_e =  0.008995806 , lik =  79233.61 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  8.631052 , beta = 0.9564703 , sigma_e =  0.006843863 , lik =  75029.94 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  11.72224 , beta = 0.9014164 , sigma_e =  0.009514736 , lik =  79287.26 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  12.42745 , beta = 0.7833876 , sigma_e =  0.008445761 , lik =  78566.09 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  8.617617 , beta = 0.8979917 , sigma_e =  0.009016852 , lik =  78449.56 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  11.82772 , beta = 1.050088 , sigma_e =  0.01070649 , lik =  79382.24 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  11.81084 , beta = 0.9413198 , sigma_e =  0.007812861 , lik =  77915.57 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  10.75897 , beta = 1.021676 , sigma_e =  0.01083021 , lik =  79343.03 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  13.23967 , beta = 0.9352695 , sigma_e =  0.01186899 , lik =  78667.4 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  10.61457 , beta = 1.01444 , sigma_e =  0.009641254 , lik =  79437.49 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.42411 , beta = 1.195852 , sigma_e =  0.01132092 , lik =  79084.92 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  11.38329 , beta = 0.9606017 , sigma_e =  0.00993729 , lik =  79328.49 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  11.2175 , beta = 0.9933904 , sigma_e =  0.01015555 , lik =  79245.17 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  10.99221 , beta = 0.9867772 , sigma_e =  0.009788153 , lik =  79265.08 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  11.20474 , beta = 1.031966 , sigma_e =  0.01015992 , lik =  79506.39 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.68653 , beta = 1.018045 , sigma_e =  0.01021845 , lik =  79457 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.67437 , beta = 1.058548 , sigma_e =  0.01022285 , lik =  79528.86 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.51891 , beta = 1.098309 , sigma_e =  0.01044739 , lik =  79514.75 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  11.09561 , beta = 1.058307 , sigma_e =  0.01079191 , lik =  79412.65 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.73284 , beta = 1.025073 , sigma_e =  0.009916871 , lik =  79492.19 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  11.05271 , beta = 1.059424 , sigma_e =  0.009980971 , lik =  79534.66 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  11.22261 , beta = 1.075755 , sigma_e =  0.01032877 , lik =  79495.28 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  11.09811 , beta = 1.062643 , sigma_e =  0.01022422 , lik =  79520.97 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.68165 , beta = 1.089938 , sigma_e =  0.01012418 , lik =  79545.56 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.42934 , beta = 1.121252 , sigma_e =  0.01010635 , lik =  79538.58 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.51277 , beta = 1.075669 , sigma_e =  0.009994768 , lik =  79554.1 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.23179 , beta = 1.082294 , sigma_e =  0.00988198 , lik =  79555.12 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.62585 , beta = 1.09621 , sigma_e =  0.009772649 , lik =  79538.44 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.63796 , beta = 1.086563 , sigma_e =  0.009883305 , lik =  79550.18 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.78059 , beta = 1.072683 , sigma_e =  0.009971734 , lik =  79547.43 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.41509 , beta = 1.071182 , sigma_e =  0.009704763 , lik =  79535.84 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.61438 , beta = 1.085192 , sigma_e =  0.01001765 , lik =  79553.47 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.21317 , beta = 1.096929 , sigma_e =  0.009883348 , lik =  79561.94 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.940754 , beta = 1.109433 , sigma_e =  0.009839448 , lik =  79562.91 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.892784 , beta = 1.097856 , sigma_e =  0.009942255 , lik =  79559.42 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.07404 , beta = 1.095013 , sigma_e =  0.009927485 , lik =  79562.07 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.575355 , beta = 1.105942 , sigma_e =  0.009749971 , lik =  79540.84 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.3445 , beta = 1.090312 , sigma_e =  0.009950051 , lik =  79560.92 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.00622 , beta = 1.114536 , sigma_e =  0.009929169 , lik =  79566.49 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.895316 , beta = 1.13132 , sigma_e =  0.009952848 , lik =  79563.96 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.680231 , beta = 1.122661 , sigma_e =  0.009847439 , lik =  79563.66 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.842189 , beta = 1.114411 , sigma_e =  0.009872992 , lik =  79565.11 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.787025 , beta = 1.131096 , sigma_e =  0.009833672 , lik =  79561.99 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.0015 , beta = 1.103835 , sigma_e =  0.009903948 , lik =  79564.62 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.958612 , beta = 1.112383 , sigma_e =  0.009964969 , lik =  79567.49 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.967554 , beta = 1.113864 , sigma_e =  0.01002833 , lik =  79567.17 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.869805 , beta = 1.12388 , sigma_e =  0.009940695 , lik =  79567.28 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.902566 , beta = 1.118807 , sigma_e =  0.009931495 , lik =  79567.41 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.07054 , beta = 1.116063 , sigma_e =  0.01001122 , lik =  79565.42 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  10.01296 , beta = 1.115649 , sigma_e =  0.00997648 , lik =  79566.88 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.909898 , beta = 1.116682 , sigma_e =  0.009986172 , lik =  79567.98 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.862083 , beta = 1.117758 , sigma_e =  0.0100148 , lik =  79567.9 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.835156 , beta = 1.116254 , sigma_e =  0.009945251 , lik =  79567.55 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.879309 , beta = 1.116103 , sigma_e =  0.009953049 , lik =  79567.82 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.929224 , beta = 1.111322 , sigma_e =  0.01000475 , lik =  79567.23 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.909224 , beta = 1.116927 , sigma_e =  0.009949758 , lik =  79567.75 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.840672 , beta = 1.120786 , sigma_e =  0.009960991 , lik =  79568.17 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.892891 , beta = 1.11739 , sigma_e =  0.009958239 , lik =  79567.94 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.882911 , beta = 1.120472 , sigma_e =  0.009983894 , lik =  79568.05 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.88201 , beta = 1.119377 , sigma_e =  0.009976173 , lik =  79568.1 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.862104 , beta = 1.120506 , sigma_e =  0.009990668 , lik =  79568.18 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.846747 , beta = 1.122069 , sigma_e =  0.01000692 , lik =  79568.1 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.8135 , beta = 1.123784 , sigma_e =  0.009965711 , lik =  79568.2 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.765653 , beta = 1.127366 , sigma_e =  0.009955496 , lik =  79568.02 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.795657 , beta = 1.124012 , sigma_e =  0.009968724 , lik =  79568.28 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.752764 , beta = 1.126343 , sigma_e =  0.009965001 , lik =  79568.25 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.806784 , beta = 1.12475 , sigma_e =  0.009989085 , lik =  79568.24 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.815245 , beta = 1.123757 , sigma_e =  0.009982054 , lik =  79568.27 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.754451 , beta = 1.127214 , sigma_e =  0.009953688 , lik =  79568.07 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.83508 , beta = 1.122176 , sigma_e =  0.00998141 , lik =  79568.26 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.817129 , beta = 1.122846 , sigma_e =  0.009989091 , lik =  79568.3 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.818943 , beta = 1.122377 , sigma_e =  0.0100008 , lik =  79568.26 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.817129 , beta = 1.122846 , sigma_e =  0.009989091 , lik =  79568.3 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.826951 , beta = 1.122846 , sigma_e =  0.009989091 , lik =  79568.26 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.807316 , beta = 1.122846 , sigma_e =  0.009989091 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.817129 , beta = 1.123469 , sigma_e =  0.009989091 , lik =  79568.28 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.817129 , beta = 1.122223 , sigma_e =  0.009989091 , lik =  79568.32 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.817129 , beta = 1.122846 , sigma_e =  0.009999085 , lik =  79568.26 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.817129 , beta = 1.122846 , sigma_e =  0.009979106 , lik =  79568.3 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  4.581246 , beta = 0.895969 , sigma_e =  0.006289974 , lik =  68745.35 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  4.585829 , beta = 0.895969 , sigma_e =  0.006289974 , lik =  68753.38 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  4.576667 , beta = 0.895969 , sigma_e =  0.006289974 , lik =  68737.31 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  4.581246 , beta = 0.8963652 , sigma_e =  0.006289974 , lik =  68746.18 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  4.581246 , beta = 0.8955732 , sigma_e =  0.006289974 , lik =  68744.51 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  4.581246 , beta = 0.895969 , sigma_e =  0.006296267 , lik =  68775.56 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  4.581246 , beta = 0.895969 , sigma_e =  0.006283687 , lik =  68715.04 nz =  0 , nz.p =  0 
+#> alpha =  0 , tau =  9.803705 , beta = 1.122339 , sigma_e =  0.009980799 , lik =  79568.34 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.813514 , beta = 1.122339 , sigma_e =  0.009980799 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.793906 , beta = 1.122339 , sigma_e =  0.009980799 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.803705 , beta = 1.122962 , sigma_e =  0.009980799 , lik =  79568.34 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.803705 , beta = 1.121717 , sigma_e =  0.009980799 , lik =  79568.32 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.803705 , beta = 1.122339 , sigma_e =  0.009990785 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.803705 , beta = 1.122339 , sigma_e =  0.009970823 , lik =  79568.31 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.802452 , beta = 1.122507 , sigma_e =  0.009983445 , lik =  79568.34 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.812259 , beta = 1.122507 , sigma_e =  0.009983445 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.792654 , beta = 1.122507 , sigma_e =  0.009983445 , lik =  79568.34 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.802452 , beta = 1.12313 , sigma_e =  0.009983445 , lik =  79568.34 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.802452 , beta = 1.121885 , sigma_e =  0.009983445 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.802452 , beta = 1.122507 , sigma_e =  0.009993433 , lik =  79568.32 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.802452 , beta = 1.122507 , sigma_e =  0.009973466 , lik =  79568.32 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.798275 , beta = 1.122879 , sigma_e =  0.009985136 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.808078 , beta = 1.122879 , sigma_e =  0.009985136 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.788482 , beta = 1.122879 , sigma_e =  0.009985136 , lik =  79568.34 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.798275 , beta = 1.123502 , sigma_e =  0.009985136 , lik =  79568.34 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.798275 , beta = 1.122256 , sigma_e =  0.009985136 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.798275 , beta = 1.122879 , sigma_e =  0.009995126 , lik =  79568.32 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.798275 , beta = 1.122879 , sigma_e =  0.009975156 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786487 , beta = 1.123702 , sigma_e =  0.009985909 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.796279 , beta = 1.123702 , sigma_e =  0.009985909 , lik =  79568.34 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.776706 , beta = 1.123702 , sigma_e =  0.009985909 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786487 , beta = 1.124326 , sigma_e =  0.009985909 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786487 , beta = 1.123079 , sigma_e =  0.009985909 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786487 , beta = 1.123702 , sigma_e =  0.0099959 , lik =  79568.32 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786487 , beta = 1.123702 , sigma_e =  0.009975928 , lik =  79568.34 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.36 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786291 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.766738 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124797 , sigma_e =  0.009984402 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.123548 , sigma_e =  0.009984402 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009994392 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009974423 , lik =  79568.34 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786029 , beta = 1.124231 , sigma_e =  0.0099833 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.766476 , beta = 1.124231 , sigma_e =  0.0099833 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.776248 , beta = 1.124855 , sigma_e =  0.0099833 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.776248 , beta = 1.123607 , sigma_e =  0.0099833 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.36 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786291 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.766738 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124797 , sigma_e =  0.009984402 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.123548 , sigma_e =  0.009984402 , lik =  79568.35 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009994392 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009974423 , lik =  79568.34 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.796082 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.36 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786291 , beta = 1.124797 , sigma_e =  0.009984402 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786291 , beta = 1.123548 , sigma_e =  0.009984402 , lik =  79568.36 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786291 , beta = 1.124172 , sigma_e =  0.009994392 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786291 , beta = 1.124172 , sigma_e =  0.009974423 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.36 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.756976 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.766738 , beta = 1.124797 , sigma_e =  0.009984402 , lik =  79568.36 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.766738 , beta = 1.123548 , sigma_e =  0.009984402 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.766738 , beta = 1.124172 , sigma_e =  0.009994392 , lik =  79568.32 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.766738 , beta = 1.124172 , sigma_e =  0.009974423 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786291 , beta = 1.124797 , sigma_e =  0.009984402 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.766738 , beta = 1.124797 , sigma_e =  0.009984402 , lik =  79568.36 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.125422 , sigma_e =  0.009984402 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.36 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124797 , sigma_e =  0.009994392 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124797 , sigma_e =  0.009974423 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786291 , beta = 1.123548 , sigma_e =  0.009984402 , lik =  79568.36 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.766738 , beta = 1.123548 , sigma_e =  0.009984402 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.36 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.123548 , sigma_e =  0.009994392 , lik =  79568.32 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.123548 , sigma_e =  0.009974423 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786291 , beta = 1.124172 , sigma_e =  0.009994392 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.766738 , beta = 1.124172 , sigma_e =  0.009994392 , lik =  79568.32 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124797 , sigma_e =  0.009994392 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.123548 , sigma_e =  0.009994392 , lik =  79568.32 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.01000439 , lik =  79568.27 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.36 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.786291 , beta = 1.124172 , sigma_e =  0.009974423 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.766738 , beta = 1.124172 , sigma_e =  0.009974423 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124797 , sigma_e =  0.009974423 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.123548 , sigma_e =  0.009974423 , lik =  79568.33 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009984402 , lik =  79568.36 nz =  3 , nz.p =  2 
+#> alpha =  0 , tau =  9.77651 , beta = 1.124172 , sigma_e =  0.009964453 , lik =  79568.28 nz =  3 , nz.p =  2
 
 rbind(c(fit$coeff$random_effects[c("beta", "tau")], fit$coeff$measurement_error), 
       c(beta, tau, sigma.e))
-#>          beta       tau    std. dev
-#> [1,] 1.124194  9.776033 0.009983577
-#> [2,] 1.100000 10.000000 0.010000000
+#>          beta      tau    std. dev
+#> [1,] 1.124172  9.77651 0.009984402
+#> [2,] 1.100000 10.00000 0.010000000
 ```
 
 ### An example with estimated alpha and beta parameters

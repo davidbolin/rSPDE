@@ -48,9 +48,11 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="rspde-development-version">rSPDE (development version)<a class="anchor" aria-label="anchor" href="#rspde-development-version"></a></h2>
-</div>
+<ul><li>Fixed the inlabru mapper for <code><a href="../reference/rspde.spacetime.html">rspde.spacetime()</a></code> models whose spatial mesh is a <code>metric_graph</code>. <code><a href="https://inlabru-org.github.io/inlabru/reference/bru_get_mapper.html" class="external-link">bru_get_mapper()</a></code> used <code><a href="https://inlabru-org.github.io/inlabru/reference/bm_fmesher.html" class="external-link">bm_fmesher()</a></code> for the graph, which has no <code><a href="https://inlabru-org.github.io/fmesher/reference/fm_dof.html" class="external-link">fm_dof()</a></code> method, so <code><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru()</a></code> failed with “invalid subscript type ‘list’”.</li>
+<li>The optional cgeneric <code>Makefile</code> now only uses Homebrew <code>gcc-14</code> on macOS and the compilers R was configured with elsewhere, so compiled installs (<code>RSPDE_COMPILE=1</code>) work on Linux.</li>
+</ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="2.6.0" id="rspde-260">rSPDE 2.6.0<a class="anchor" aria-label="anchor" href="#rspde-260"></a></h2>
+<h2 class="pkg-version" data-toc-text="2.6.0" id="rspde-260">rSPDE 2.6.0<a class="anchor" aria-label="anchor" href="#rspde-260"></a></h2><p class="text-muted">CRAN release: 2026-08-31</p>
 <ul><li>Added <code><a href="../reference/posterior_crossvalidation.html">posterior_crossvalidation()</a></code> for objects fitted with <code><a href="../reference/rspde_lme.html">rspde_lme()</a></code>. The function mirrors the interface of <code><a href="https://davidbolin.github.io/MetricGraph/reference/posterior_crossvalidation.html" class="external-link">MetricGraph::posterior_crossvalidation</a></code>.</li>
 <li>Added <code><a href="../reference/hybrid.spde.html">hybrid.spde()</a></code>, a new hybrid Whittle-Matern SPDE model with a non-zero deterministic mean.</li>
 <li>

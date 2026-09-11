@@ -237,8 +237,8 @@ summary(fit)
     ## Number of function calls by 'optim' = 42
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  1.19519 mins 
-    ##   set up the parallelization = 1.87864 secs
+    ## Time used to:     fit the model =  1.81043 mins 
+    ##   set up the parallelization = 2.50479 secs
 
 Let us compare with the true values and compare the time:
 
@@ -263,7 +263,7 @@ total_time <- fit$fitting_time + fit$time_par
 print(total_time)
 ```
 
-    ## Time difference of 73.59057 secs
+    ## Time difference of 111.1307 secs
 
 ### Kriging
 
@@ -378,8 +378,8 @@ summary(result_fit)
 ```
 
     ##            mean       sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 1.01227 0.320542   0.593499 0.940704    1.81195 0.821313
-    ## range   2.85802 2.138100   0.802272 2.228050    8.44635 1.501880
+    ## std.dev 1.01267 0.321068   0.593324 0.940956    1.81375 0.821768
+    ## range   2.86109 2.143640   0.801503 2.229270    8.46291 1.506030
 
 ``` r
 
@@ -443,10 +443,10 @@ result_fit <- rspde.result(bru_fit, "field", bru_model, parameterization = "mate
 summary(result_fit)
 ```
 
-    ##             mean         sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 0.906289 0.01688340   0.869500 0.907221   0.937216 0.912835
-    ## range   1.606980 0.02196060   1.560140 1.608380   1.646580 1.609090
-    ## nu      0.490260 0.00659999   0.475461 0.491409   0.499261 0.499248
+    ##             mean        sd 0.025quant 0.5quant 0.975quant     mode
+    ## std.dev 1.112760 0.3494480   0.588628 1.060010   1.932100 0.923321
+    ## range   0.855762 0.4789460   0.231842 0.748961   2.044330 0.590948
+    ## nu      0.707864 0.0970378   0.528302 0.704079   0.908031 0.694831
 
 ## Kriging with the inlabru implementation
 

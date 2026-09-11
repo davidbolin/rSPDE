@@ -2,7 +2,24 @@
 
 ## rSPDE (development version)
 
+- Fixed the inlabru mapper for
+  [`rspde.spacetime()`](https://davidbolin.github.io/rSPDE/reference/rspde.spacetime.md)
+  models whose spatial mesh is a `metric_graph`.
+  [`bru_get_mapper()`](https://inlabru-org.github.io/inlabru/reference/bru_get_mapper.html)
+  used
+  [`bm_fmesher()`](https://inlabru-org.github.io/inlabru/reference/bm_fmesher.html)
+  for the graph, which has no
+  [`fm_dof()`](https://inlabru-org.github.io/fmesher/reference/fm_dof.html)
+  method, so
+  [`bru()`](https://inlabru-org.github.io/inlabru/reference/bru.html)
+  failed with “invalid subscript type ‘list’”.
+- The optional cgeneric `Makefile` now only uses Homebrew `gcc-14` on
+  macOS and the compilers R was configured with elsewhere, so compiled
+  installs (`RSPDE_COMPILE=1`) work on Linux.
+
 ## rSPDE 2.6.0
+
+CRAN release: 2026-08-31
 
 - Added
   [`posterior_crossvalidation()`](https://davidbolin.github.io/rSPDE/reference/posterior_crossvalidation.md)

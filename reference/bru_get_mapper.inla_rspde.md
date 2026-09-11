@@ -113,7 +113,7 @@ if (rspde_safe_inla() &&
 #>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 #>     Used components: effect[Intercept, field], latent[] 
 #> Time used:
-#>     Pre = 0.0888, Running = 0.283, Post = 0.0359, Total = 0.408 
+#>     Pre = 0.131, Running = 0.291, Post = 0.0556, Total = 0.477 
 #> Fixed effects:
 #>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 #> Intercept 0.315 0.196     -0.084    0.317        0.7 0.317   0
@@ -123,18 +123,18 @@ if (rspde_safe_inla() &&
 #>     field CGeneric
 #> 
 #> Model hyperparameters:
-#>                                           mean     sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 143.14 51.941      64.59   135.38
-#> Theta1 for field                         -5.60  2.813     -12.01    -5.27
-#> Theta2 for field                          2.69  0.467       1.89     2.66
-#> Theta3 for field                          1.21  1.697      -1.45     1.01
+#>                                           mean    sd 0.025quant 0.5quant
+#> Precision for the Gaussian observations 143.13 51.94      64.60  135.371
+#> Theta1 for field                         -5.51  2.75     -11.77   -5.189
+#> Theta2 for field                          2.68  0.46       1.88    2.650
+#> Theta3 for field                          1.16  1.67      -1.47    0.977
 #>                                         0.975quant    mode
-#> Precision for the Gaussian observations     266.15 121.061
-#> Theta1 for field                             -1.22  -3.659
-#> Theta2 for field                              3.71   2.500
-#> Theta3 for field                              5.07   0.082
+#> Precision for the Gaussian observations     266.14 121.047
+#> Theta1 for field                             -1.20  -3.662
+#> Theta2 for field                              3.67   2.498
+#> Theta3 for field                              4.95   0.081
 #> 
-#> Marginal log-Likelihood:  -34.34 
+#> Marginal log-Likelihood:  -34.35 
 #>  is computed 
 #> Posterior summaries for the linear predictor and the fitted values are computed
 #> (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
