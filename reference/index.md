@@ -63,6 +63,9 @@
   Augment data with information from a `rspde_lme` object
 
 - [`posterior_crossvalidation()`](https://davidbolin.github.io/rSPDE/reference/posterior_crossvalidation.md)
+  : Posterior cross-validation for fitted models
+
+- [`posterior_crossvalidation(`*`<rspde_lme>`*`)`](https://davidbolin.github.io/rSPDE/reference/posterior_crossvalidation.rspde_lme.md)
   :
 
   Posterior cross-validation for `rspde_lme` models

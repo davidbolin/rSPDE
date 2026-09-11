@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rSPDE</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,15 +50,27 @@
 <h2 class="pkg-version" data-toc-text="development version" id="rspde-development-version">rSPDE (development version)<a class="anchor" aria-label="anchor" href="#rspde-development-version"></a></h2>
 <ul><li>Fixed the inlabru mapper for <code><a href="../reference/rspde.spacetime.html">rspde.spacetime()</a></code> models whose spatial mesh is a <code>metric_graph</code>. <code><a href="https://inlabru-org.github.io/inlabru/reference/bru_get_mapper.html" class="external-link">bru_get_mapper()</a></code> used <code><a href="https://inlabru-org.github.io/inlabru/reference/bm_fmesher.html" class="external-link">bm_fmesher()</a></code> for the graph, which has no <code><a href="https://inlabru-org.github.io/fmesher/reference/fm_dof.html" class="external-link">fm_dof()</a></code> method, so <code><a href="https://inlabru-org.github.io/inlabru/reference/bru.html" class="external-link">bru()</a></code> failed with “invalid subscript type ‘list’”.</li>
 <li>The optional cgeneric <code>Makefile</code> now only uses Homebrew <code>gcc-14</code> on macOS and the compilers R was configured with elsewhere, so compiled installs (<code>RSPDE_COMPILE=1</code>) work on Linux.</li>
+<li>
+<code><a href="../reference/posterior_crossvalidation.html">posterior_crossvalidation()</a></code> is now an S3 generic, with methods for <code>rspde_lme</code> fits and for lists of fitted models. MetricGraph provides the <code>graph_lme</code> method, so the two packages no longer mask each other’s function, and a list can mix <code>rspde_lme</code> and <code>graph_lme</code> fits.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.6.0" id="rspde-260">rSPDE 2.6.0<a class="anchor" aria-label="anchor" href="#rspde-260"></a></h2><p class="text-muted">CRAN release: 2026-08-31</p>
 <ul><li>Added <code><a href="../reference/posterior_crossvalidation.html">posterior_crossvalidation()</a></code> for objects fitted with <code><a href="../reference/rspde_lme.html">rspde_lme()</a></code>. The function mirrors the interface of <code><a href="https://davidbolin.github.io/MetricGraph/reference/posterior_crossvalidation.html" class="external-link">MetricGraph::posterior_crossvalidation</a></code>.</li>
 <li>Added <code><a href="../reference/hybrid.spde.html">hybrid.spde()</a></code>, a new hybrid Whittle-Matern SPDE model with a non-zero deterministic mean.</li>
-<li>
-<code><a href="../reference/rspde_lme.html">rspde_lme()</a></code> now supports <code>hybrid.spde</code> models.</li>
 <li>Added <code><a href="../reference/rspde.hybrid.matern.html">rspde.hybrid.matern()</a></code>, a INLA cgeneric model for the hybrid Whittle-Matern SPDE with alpha = 2.</li>
 <li>Added a <code>kappa_mu</code> option that lets the operator applied to the mean use a different range parameter from the one in the covariance. Default (<code>kappa_mu = NULL</code> in <code><a href="../reference/hybrid.spde.html">hybrid.spde()</a></code>, <code>separate_kappa_mu = FALSE</code> in <code><a href="../reference/rspde.hybrid.matern.html">rspde.hybrid.matern()</a></code>) keeps them linked. When enabled, <code>kappa_mu</code> is estimated jointly in <code>rspde_lme</code> and INLA, or can be held fixed via <code>model_options$fix_kappa_mu</code>.</li>
+<li>The INLA cgeneric models now use the rSPDE models built into INLA when they are available, falling back to the local rSPDE shared library otherwise. <code>shared_lib</code> also accepts a path to a shared library file.</li>
+<li>Added <code><a href="../reference/rspde_safe_inla.html">rspde_safe_inla()</a></code> and <code><a href="../reference/rspde_safe_inla.html">local_rspde_safe_inla()</a></code>, which check that a usable INLA installation is available, for use in examples and tests.</li>
+<li>
+<code><a href="../reference/rspde.metric_graph.html">rspde.metric_graph()</a></code> now passes <code>shared_lib</code> on to <code><a href="../reference/rspde.matern.html">rspde.matern()</a></code>, and its default is now <code>"detect"</code>, matching the other INLA models.</li>
+<li>Updated the inlabru interface to the inlabru 2.14 API. rSPDE now requires <code>fmesher (&gt;= 0.7.0)</code> and suggests <code>inlabru (&gt;= 2.14.0)</code>.</li>
+<li>
+<code><a href="../reference/predict.rspde_lme.html">predict.rspde_lme()</a></code> can reuse precomputed parameter-dependent quantities, which speeds up repeated predictions such as in cross-validation.</li>
+<li>Fixed <code><a href="../reference/predict.rspde_lme.html">predict.rspde_lme()</a></code> for models with replicates: the same location in different replicates no longer triggers a duplicated-locations warning.</li>
+<li>Fixed <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> for non-stationary models, where new <code>theta</code> values were ignored, so predictions from non-stationary <code><a href="../reference/rspde_lme.html">rspde_lme()</a></code> fits used stale parameters.</li>
+<li>
+<code><a href="../reference/spde.matern.operators.html">spde.matern.operators()</a></code> no longer converts a model to a stationary one when <code>B.tau</code> or <code>B.kappa</code> vary in space.</li>
+<li>Added a vignette comparing rSPDE with the exact Matern covariance in terms of timing and memory.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.5.2" id="rspde-252">rSPDE 2.5.2<a class="anchor" aria-label="anchor" href="#rspde-252"></a></h2><p class="text-muted">CRAN release: 2026-01-26</p>
