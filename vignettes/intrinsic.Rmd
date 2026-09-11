@@ -603,7 +603,7 @@ We now use `rspde_lme` to fit the parameters based on this data. Since we genera
 data = data.frame(y = c(Y), loc = rep(obs.loc, n.rep), rep  = rep(1:n.rep, each = n.obs))
 
 fit <- rspde_lme(y ~ -1, loc = "loc", repl  = "rep", data = data,
-                 model = op, mean_correction = TRUE, parallel = TRUE,
+                 model = op, mean_correction = TRUE, parallel = FALSE,
                  model_options = list(fix_alpha = 0))
 
 rbind(c(fit$coeff$random_effects[c("beta", "tau")], fit$coeff$measurement_error), 

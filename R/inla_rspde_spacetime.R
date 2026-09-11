@@ -278,8 +278,16 @@ rspde.spacetime <- function(mesh_space = NULL,
 
 bru_get_mapper.inla_rspde_spacetime <- function(model, ...) {
   stopifnot(requireNamespace("inlabru"))
+  mesh_space <- model[["mesh"]]
+  # A metric_graph has no fmesher methods (fm_dof, fm_basis), so it needs the
+  # bru_mapper.metric_graph / bru_mapper.metric_graph_dirichlet mappers below.
+  space_mapper <- if (inherits(mesh_space, "metric_graph")) {
+    inlabru::bru_mapper(mesh_space)
+  } else {
+    inlabru::bm_fmesher(mesh_space)
+  }
   inlabru::bru_mapper_multi(list(
-    space = inlabru::bm_fmesher(model[["mesh"]]),
+    space = space_mapper,
     time = inlabru::bm_fmesher(model[["time_mesh"]])
   ))
 }

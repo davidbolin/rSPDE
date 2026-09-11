@@ -18,9 +18,15 @@ obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o 
 	  cgeneric_rspde_1d_general.o cgeneric_aux_1d.o \
 	  cgeneric_rspde_hybrid_alpha2.o cgeneric_aux_hybrid_alpha2.o
 
-# Compiler settings
-CC = /opt/homebrew/bin/gcc-14
-CXX = /opt/homebrew/bin/g++-14
+# Compiler settings: Homebrew GCC on macOS, and the compilers R was
+# configured with everywhere else.
+ifeq ($(shell uname -s), Darwin)
+    CC = /opt/homebrew/bin/gcc-14
+    CXX = /opt/homebrew/bin/g++-14
+else
+    CC := $(shell "$(R_HOME)/bin/R" CMD config CC)
+    CXX := $(shell "$(R_HOME)/bin/R" CMD config CXX)
+endif
 
 # Eigen and library paths
 EIGEN_MAC = /opt/homebrew/
