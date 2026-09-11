@@ -20,9 +20,11 @@ obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o 
 
 # Compiler settings: Homebrew GCC on macOS, and the compilers R was
 # configured with everywhere else.
+# R CMD INSTALL reads ~/.R/Makevars after this file, so a user-level
+# CC/CXX (e.g. Apple clang, which lacks -fopenmp) would otherwise win.
 ifeq ($(shell uname -s), Darwin)
-    CC = /opt/homebrew/bin/gcc-14
-    CXX = /opt/homebrew/bin/g++-14
+    override CC = /opt/homebrew/bin/gcc-14
+    override CXX = /opt/homebrew/bin/g++-14
 else
     CC := $(shell "$(R_HOME)/bin/R" CMD config CC)
     CXX := $(shell "$(R_HOME)/bin/R" CMD config CXX)

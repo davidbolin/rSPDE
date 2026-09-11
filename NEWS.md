@@ -7,6 +7,10 @@
 * The optional cgeneric `Makefile` now only uses Homebrew `gcc-14` on macOS and
   the compilers R was configured with elsewhere, so compiled installs
   (`RSPDE_COMPILE=1`) work on Linux.
+* `posterior_crossvalidation()` is now an S3 generic, with methods for
+  `rspde_lme` fits and for lists of fitted models. MetricGraph provides the
+  `graph_lme` method, so the two packages no longer mask each other's
+  function, and a list can mix `rspde_lme` and `graph_lme` fits.
 
 # rSPDE 2.6.0
 
@@ -14,7 +18,6 @@
   The function mirrors the interface of `MetricGraph::posterior_crossvalidation`.
 * Added `hybrid.spde()`, a new hybrid Whittle-Matern SPDE model with a
   non-zero deterministic mean. 
-* `rspde_lme()` now supports `hybrid.spde` models. 
 * Added `rspde.hybrid.matern()`, a  INLA cgeneric model for the
   hybrid Whittle-Matern SPDE with alpha = 2.
 * Added a `kappa_mu` option that lets the operator applied to the mean
@@ -23,6 +26,26 @@
   FALSE` in `rspde.hybrid.matern()`) keeps them linked. When enabled,
   `kappa_mu` is estimated jointly in `rspde_lme` and INLA, or can be
   held fixed via `model_options$fix_kappa_mu`. 
+* The INLA cgeneric models now use the rSPDE models built into INLA when they
+  are available, falling back to the local rSPDE shared library otherwise.
+  `shared_lib` also accepts a path to a shared library file.
+* Added `rspde_safe_inla()` and `local_rspde_safe_inla()`, which check that a
+  usable INLA installation is available, for use in examples and tests.
+* `rspde.metric_graph()` now passes `shared_lib` on to `rspde.matern()`, and
+  its default is now `"detect"`, matching the other INLA models.
+* Updated the inlabru interface to the inlabru 2.14 API. rSPDE now requires
+  `fmesher (>= 0.7.0)` and suggests `inlabru (>= 2.14.0)`.
+* `predict.rspde_lme()` can reuse precomputed parameter-dependent quantities,
+  which speeds up repeated predictions such as in cross-validation.
+* Fixed `predict.rspde_lme()` for models with replicates: the same location in
+  different replicates no longer triggers a duplicated-locations warning.
+* Fixed `update()` for non-stationary models, where new `theta` values were
+  ignored, so predictions from non-stationary `rspde_lme()` fits used stale
+  parameters.
+* `spde.matern.operators()` no longer converts a model to a stationary one when
+  `B.tau` or `B.kappa` vary in space.
+* Added a vignette comparing rSPDE with the exact Matern covariance in terms of
+  timing and memory.
 
 # rSPDE 2.5.2
 
