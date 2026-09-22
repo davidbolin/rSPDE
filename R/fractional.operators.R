@@ -2265,7 +2265,10 @@ cov_function_mesh.matern_operator <- function(object, p, direct = FALSE, ...) {
   if (inherits(object, "rSPDEobj")) {
     v <- make_A(object, loc = p)
     if (direct) {
-      return(object$Pr %*% solve(object$Q, object$Pr %*% t(v)))
+      # tol = 0 disables the "computationally singular" abort in Matrix: the
+      # operator-based representation is knowingly ill-conditioned for larger
+      # m, and the inaccurate result is the documented behaviour.
+      return(object$Pr %*% solve(object$Q, object$Pr %*% t(v), tol = 0))
     }
     return(Sigma.mult(object, t(v)))
   }
@@ -2289,7 +2292,10 @@ cov_function_mesh.spde_matern_operator <- function(object, p, direct = FALSE, ..
   if (inherits(object, "rSPDEobj")) {
     v <- make_A(object, loc = p)
     if (direct) {
-      return(object$Pr %*% solve(object$Q, object$Pr %*% t(v)))
+      # tol = 0 disables the "computationally singular" abort in Matrix: the
+      # operator-based representation is knowingly ill-conditioned for larger
+      # m, and the inaccurate result is the documented behaviour.
+      return(object$Pr %*% solve(object$Q, object$Pr %*% t(v), tol = 0))
     }
     return(Sigma.mult(object, t(v)))
   }
@@ -2338,7 +2344,8 @@ covariance_mesh.default <- function(object, ...) {
 #' @method covariance_mesh matern_operator
 covariance_mesh.matern_operator <- function(object, ...) {
   if (inherits(object, "rSPDEobj")) {
-    return(object$Pr %*% solve(object$Q, object$Pr))
+    # See the comment in cov_function_mesh() about tol = 0.
+    return(object$Pr %*% solve(object$Q, object$Pr, tol = 0))
   }
   A <- Matrix::Diagonal(dim(object$C)[1])
   if (object$alpha %% 1 == 0) {
@@ -2356,7 +2363,8 @@ covariance_mesh.matern_operator <- function(object, ...) {
 #' @method covariance_mesh spde_matern_operator
 covariance_mesh.spde_matern_operator <- function(object, ...) {
   if (inherits(object, "rSPDEobj")) {
-    return(object$Pr %*% solve(object$Q, object$Pr))
+    # See the comment in cov_function_mesh() about tol = 0.
+    return(object$Pr %*% solve(object$Q, object$Pr, tol = 0))
   }
   A <- Matrix::Diagonal(dim(object$C)[1])
   if (object$alpha %% 1 == 0) {

@@ -55,9 +55,12 @@ jobs:
           sessioninfo::session_info(pkgs, include_base = TRUE)
         shell: Rscript {0}
 
-      - name: Ensure pure-R install
+      - name: Ensure CRAN-style install (no cgeneric sources)
         run: |
-          unlink("src", recursive = TRUE, force = TRUE)
+          # Do NOT remove src/: src/wl2_fit.cpp is part of the normal build and
+          # provides the routines behind useDynLib(rSPDE). Only the optional
+          # INLA cgeneric sources are skipped, which configure.win already does
+          # when RSPDE_COMPILE is not 1.
           unlink("inst/shared/.description", force = TRUE)
           Sys.setenv(RSPDE_COMPILE = "0")
         shell: Rscript {0}
