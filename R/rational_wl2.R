@@ -122,10 +122,11 @@ wl2_nnls <- function(A, b) {
 #'   + (A_P^+)^T (\partial A_P/\partial\theta_k)^T (-r),}
 #' the Golub-Pereyra derivative. With `u_j = x/(1 + (b_j - 1)x)` and
 #' `b_j = exp(theta_j)` the column derivative is `-b_j u_j^2`, and for the
-#' shifted class `theta_1 = logit(b_0)` moves every column through
-#' `dg/dtheta_1 = -g^2 b_0 (1 - b_0)`. Columns whose residue is zero do not
-#' enter, so their derivative is zero.
-#' @param kind "plain" or "shifted".
+#' shifted classes the integer factor `g^q` with
+#' `g = x/(1 + (b_0 - 1)x)` and `theta_1 = logit(b_0)` moves every column
+#' through `d(g^q)/dtheta_1 = -q g^(q+1) b_0 (1 - b_0)`. Columns whose residue
+#' is zero do not enter, so their derivative is zero.
+#' @param kind `"plain"`, `"shifted"` or `"shifted2"`; see `wl2_q()`.
 #' @param x,sw Quadrature nodes and the square roots of the cell integrals.
 #' @param f The weighted target.
 #' @param theta The outer parameters.
@@ -135,7 +136,8 @@ wl2_nnls <- function(A, b) {
 wl2_resjac <- function(kind, x, sw, f, theta, need_jac = TRUE,
                        k_term = FALSE) {
   mm <- base::`%*%`
-  shifted <- !identical(kind, "plain")
+  q <- wl2_q(kind)
+  shifted <- q > 0
   b <- exp(pmin(pmax(if (shifted) theta[-1] else theta, -5), 60))
   n <- length(x)
   M <- length(b)
@@ -143,7 +145,7 @@ wl2_resjac <- function(kind, x, sw, f, theta, need_jac = TRUE,
   if (shifted) {
     b0 <- 1 / (1 + exp(-theta[1]))
     g <- x / (1 + (b0 - 1) * x)
-    A <- (g * U) * sw
+    A <- (g^q * U) * sw
   } else {
     A <- U * sw
   }
@@ -171,10 +173,11 @@ wl2_resjac <- function(kind, x, sw, f, theta, need_jac = TRUE,
   for (k in seq_along(theta)) {
     D <- matrix(0, n, ncol(A))
     if (shifted && k == 1) {
-      D[, seq_len(M)] <- ((-g^2 * b0 * (1 - b0)) * U) * sw
+      ## d(g^q)/dtheta_0 = q g^(q-1) dg/dtheta_0 = -q g^(q+1) b_0 (1 - b_0)
+      D[, seq_len(M)] <- ((-q * g^(q + 1) * b0 * (1 - b0)) * U) * sw
     } else {
       j <- if (shifted) k - 1 else k
-      D[, j] <- (if (shifted) g else 1) * (-b[j] * U[, j]^2) * sw
+      D[, j] <- (if (shifted) g^q else 1) * (-b[j] * U[, j]^2) * sw
     }
     v <- drop(mm(D, cc))
     t1 <- v - mm(Q, base::crossprod(Q, v))
@@ -306,7 +309,7 @@ wl2_have_cpp <- function() {
 #' @description Dispatches to the compiled solver, falling back to the R
 #' implementation if it is not available or if it fails. The two give the same
 #' answer to roundoff; see the tests.
-#' @param kind "plain" or "shifted".
+#' @param kind One of "plain", "shifted" or "shifted2"; see `wl2_q()`.
 #' @param x,sw,f Nodes, square roots of the cell integrals, weighted target.
 #' @param theta0 Starting value.
 #' @param tol Relative tolerance on the objective and on the step; see
@@ -318,7 +321,7 @@ wl2_lm_run <- function(kind, x, sw, f, theta0, tol = wl2_tol,
   if (wl2_have_cpp()) {
     o <- tryCatch(
       .Call("rspde_wl2_lm", as.double(x), as.double(sw), as.double(f),
-        as.double(theta0), !identical(kind, "plain"), k_term,
+        as.double(theta0), as.integer(wl2_q(kind)), k_term,
         as.double(c(tol, tol, 3000, 400)),
         PACKAGE = "rSPDE"
       ),
@@ -333,22 +336,133 @@ wl2_lm_run <- function(kind, x, sw, f, theta0, tol = wl2_tol,
   }, theta0, ftol = tol, xtol = tol)
 }
 
+#' @name wl2_q
+#' @title Power of the integer factor of a class
+#' @description The covariance classes are
+#' \eqn{r(x) = (x/(1-p_0x))^q \sum_j r_j x/(1-p_jx)} with `q` equal to
+#' \eqn{\lfloor\alpha\rfloor}. `q = 0` is the plain class, which has no
+#' shift parameter at all; `q = 1` and `q = 2` share one shift `p_0` across the
+#' whole factor. A separate shift per factor was tried and is not worth it: at
+#' `q = 2` two free shifts match one shared shift to between 0.98 and 1.00 of
+#' the error over the cases tested, the shared one being a stationary point of
+#' the larger problem.
+#' @param kind `"plain"`, `"shifted"` or `"shifted2"`.
+#' @return 0, 1 or 2.
+#' @noRd
+wl2_q <- function(kind) {
+  switch(kind, plain = 0L, shifted = 1L, shifted2 = 2L,
+    stop("unknown class: ", kind)
+  )
+}
+
+#' @name wl2_block_poly
+#' @title Polynomial of a weighted-L2 precision block
+#' @description The block of the precision matrix belonging to the pole
+#' \eqn{p_i} is
+#' \eqn{(L - p_0C)C^{-1}\cdots(L - p_0C)C^{-1}(L - p_iC)/r_i}, with the
+#' shifted factor repeated `q` times. Writing \eqn{T = C^{-1}L} this is
+#' \eqn{C(T-p_0)^q(T-p_i)/r_i}, so the block is a linear combination of the
+#' matrices \eqn{P_j = CT^j}, `j` from 0 to `q + 1`. This returns the
+#' coefficients of that combination, before the division by \eqn{r_i}.
+#' @param q The power of the integer factor; see `wl2_q()`.
+#' @param p0 The shared shift, unused when `q` is 0.
+#' @param p_i The pole of the block.
+#' @return A numeric vector of length `q + 2`, the coefficient of \eqn{P_j}
+#' in position `j + 1`.
+#' @noRd
+wl2_block_poly <- function(q, p0, p_i) {
+  cf <- 1
+  ## Multiply by (T - p_0) q times, then once by (T - p_i). Coefficients are
+  ## in increasing order of the power, so multiplying by (T - a) shifts and
+  ## subtracts.
+  for (l in seq_len(q)) {
+    cf <- c(0, cf) - p0 * c(cf, 0)
+  }
+  c(0, cf) - p_i * c(cf, 0)
+}
+
+#' @name wl2_mass_powers
+#' @title The matrices \eqn{CT^j} of a finite element discretisation
+#' @description With \eqn{L = C + G/\kappa^2} and \eqn{T = C^{-1}L},
+#' \eqn{P_j = CT^j = \sum_{l=0}^j \binom{j}{l} G_l/\kappa^{2l}}, where
+#' \eqn{G_0 = C}, \eqn{G_1 = G} and \eqn{G_l = GC^{-1}G_{l-1}}. These are
+#' exactly the matrices the finite element assembly provides, so the blocks
+#' need no inverse of the mass matrix.
+#' @param q The power of the integer factor; powers up to `q + 1` are returned.
+#' @param kappa The range parameter.
+#' @param Gl A function of one argument returning \eqn{G_l}; `l = 0` must give
+#' the mass matrix.
+#' @return A list of length `q + 2`, with \eqn{P_j} in position `j + 1`.
+#' @noRd
+wl2_mass_powers <- function(q, kappa, Gl) {
+  lapply(0:(q + 1L), function(j) {
+    out <- Gl(0L)
+    for (l in seq_len(j)) {
+      out <- out + choose(j, l) * Gl(l) / kappa^(2 * l)
+    }
+    out
+  })
+}
+
+#' @name wl2_operator_powers
+#' @title The matrices \eqn{CT^j} from the operator matrices themselves
+#' @description As `wl2_mass_powers()`, but forming
+#' \eqn{P_j = L(C^{-1}L)^{j-1}} by explicit products, for the paths where the
+#' higher finite element matrices \eqn{G_2, G_3, \ldots} are not assembled.
+#' @param q The power of the integer factor; powers up to `q + 1` are returned.
+#' @param L The shifted stiffness matrix \eqn{C + G/\kappa^2}.
+#' @param C0 The mass matrix.
+#' @param Ci The inverse of the mass matrix, usually the lumped one.
+#' @return A list of length `q + 2`, with \eqn{P_j} in position `j + 1`.
+#' @noRd
+wl2_operator_powers <- function(q, L, C0, Ci) {
+  P <- vector("list", q + 2L)
+  P[[1]] <- C0
+  P[[2]] <- L
+  for (j in seq_len(q)) {
+    P[[j + 2L]] <- P[[j + 1L]] %*% Ci %*% L
+  }
+  P
+}
+
+#' @name wl2_block_builder
+#' @title Precision blocks of a weighted-L2 approximation
+#' @description Combines the powers \eqn{P_j} of `wl2_mass_powers()` or
+#' `wl2_operator_powers()` with the coefficients of `wl2_block_poly()` into a
+#' function of the block index.
+#' @param q The power of the integer factor; see `wl2_q()`.
+#' @param P The powers, as returned by `wl2_mass_powers()`.
+#' @param r,p The residues and poles.
+#' @param p0 The shared shift, `NULL` when `q` is 0.
+#' @return A function of `i` returning the `i`th block.
+#' @noRd
+wl2_block_builder <- function(q, P, r, p, p0) {
+  function(i) {
+    cf <- wl2_block_poly(q, p0, p[i])
+    out <- cf[1] * P[[1]]
+    for (j in seq_along(cf)[-1]) {
+      out <- out + cf[j] * P[[j]]
+    }
+    out / r[i]
+  }
+}
+
 #' @name wl2_basis
 #' @title Basis matrix of the rational class
-#' @param kind "plain" or "shifted".
+#' @param kind `"plain"`, `"shifted"` or `"shifted2"`; see `wl2_q()`.
 #' @param x Nodes.
 #' @param theta Outer parameters: log(b) for "plain", and logit(b_0) followed by
-#' log(b) for "shifted".
+#' log(b) for the shifted classes.
 #' @return The basis matrix, with one column per term.
 #' @noRd
 wl2_basis <- function(kind, x, theta, k_term = FALSE) {
-  shifted <- !identical(kind, "plain")
-  b <- exp(pmin(pmax(if (shifted) theta[-1] else theta, -5), 60))
+  q <- wl2_q(kind)
+  b <- exp(pmin(pmax(if (q > 0) theta[-1] else theta, -5), 60))
   n <- length(x)
   A <- matrix(x / (1 + rep(b - 1, each = n) * x), n, length(b))
-  if (shifted) {
+  if (q > 0) {
     b0 <- 1 / (1 + exp(-theta[1]))
-    A <- (x / (1 + (b0 - 1) * x)) * A
+    A <- (x / (1 + (b0 - 1) * x))^q * A
   }
   if (k_term) {
     ## The constant term is the last column, so that the residues keep their
@@ -381,7 +495,7 @@ wl2_starts <- function(M, x_min, n_starts, kind, start, seed) {
       inits[[length(inits) + 1]] <- sort(stats::runif(M, 0, Lp + 1))
     }
   }
-  if (identical(kind, "shifted")) {
+  if (wl2_q(kind) > 0) {
     inits <- lapply(inits, function(t) if (length(t) == M) c(1.5, t) else t)
   }
   inits
@@ -400,14 +514,14 @@ wl2_starts <- function(M, x_min, n_starts, kind, start, seed) {
 #' corresponds to the largest eigenvalue, i.e. to the resolution of the mesh;
 #' `x_min = NULL` gives the mesh-free fit on \eqn{(0,1]}.
 #'
-#' Three classes are supported, all of which are parameterised so that the
-#' resulting model is guaranteed to be valid (all residues are non-negative and
-#' all poles are smaller than one):
+#' The classes are parameterised so that the resulting model is guaranteed to
+#' be valid (all residues are non-negative and all poles are smaller than one).
+#' For the covariance type the class carries an integer factor of order
+#' \eqn{q = \lfloor\alpha\rfloor}, with one shift \eqn{p_0} shared by its
+#' factors:
 #' \describe{
-#' \item{covariance, \eqn{\lfloor\alpha\rfloor = 0}}{
-#' \eqn{r(x) = \sum_{i=1}^m r_i x/(1-p_i x)}.}
-#' \item{covariance, \eqn{\lfloor\alpha\rfloor = 1}}{
-#' \eqn{r(x) = x/(1-p_0 x)\sum_{j=1}^m r_j x/(1-p_j x)}.}
+#' \item{covariance}{\eqn{r(x) = (x/(1-p_0 x))^q\sum_{j=1}^m r_j x/(1-p_j x)},
+#' for \eqn{q = 0}, 1 and 2, the factor being absent when \eqn{q = 0}.}
 #' \item{operator}{\eqn{r(x) = \sum_{i=1}^{m+1} r_i x/(1-p_i x)}, approximating
 #' \eqn{x^{\alpha/2}}.}
 #' }
@@ -423,7 +537,7 @@ wl2_starts <- function(M, x_min, n_starts, kind, start, seed) {
 #' `rSPDE.wl2.use.cpp` is set to `FALSE`.
 #'
 #' @param alpha The exponent, \eqn{\alpha = \nu + d/2}. For the covariance type,
-#' \eqn{\lfloor \alpha\rfloor} must be 0 or 1; for the operator type,
+#' \eqn{\lfloor \alpha\rfloor} must be 0, 1 or 2; for the operator type,
 #' \eqn{\alpha} must be smaller than 2.
 #' @param d The dimension of the domain.
 #' @param m The order of the rational approximation.
@@ -457,13 +571,16 @@ wl2_starts <- function(M, x_min, n_starts, kind, start, seed) {
 #' @return A list with elements
 #' \item{r}{The residues, all non-negative.}
 #' \item{p}{The poles, all smaller than one.}
-#' \item{p0}{The pole of the integer factor, or `NULL` if
+#' \item{p0}{The shift of the integer factor, or `NULL` if
 #' \eqn{\lfloor\alpha\rfloor = 0}.}
+#' \item{q}{The power of the integer factor, \eqn{\lfloor\alpha\rfloor} for
+#' the covariance type and 0 for the operator type.}
 #' \item{k}{The constant term: 0 unless `k_term` is `TRUE`.}
 #' \item{rel_err}{The relative weighted \eqn{L_2} error of the fit.}
 #' \item{x_min}{The lower end of the interval that was used.}
 #' \item{theta}{The internal parameters, for warm starts.}
-#' \item{kind}{`"plain"` or `"shifted"`.}
+#' \item{kind}{`"plain"`, `"shifted"` or `"shifted2"`, for `q` equal to 0, 1
+#' and 2.}
 #' @export
 #' @seealso [rspde.xmin()], [matern.operators()]
 #' @examples
@@ -512,7 +629,7 @@ rational.coefficients.wl2 <- function(alpha, d, m, x_min = NULL,
 #' @name wl2_insert_pole
 #' @title Starting values obtained by adding one pole to a fit
 #' @param theta The internal parameters of a fit of order m - 1.
-#' @param shifted Is this the shifted class?
+#' @param shifted Does the class have a shift, that is, is `q` positive?
 #' @return A list of starting values of order m, one per insertion point.
 #' @noRd
 wl2_insert_pole <- function(theta, shifted) {
@@ -544,15 +661,15 @@ wl2_fit <- function(alpha, d, m, x_min, type, n_starts, n_grid, start, seed,
     }
   } else {
     m_alpha <- floor(alpha)
-    if (!(m_alpha %in% c(0, 1))) {
+    if (!(m_alpha %in% c(0, 1, 2))) {
       stop(paste0(
         "The weighted-L2 coefficients are only implemented for ",
-        "floor(alpha) equal to 0 or 1, but floor(alpha) = ", m_alpha, "."
+        "floor(alpha) equal to 0, 1 or 2, but floor(alpha) = ", m_alpha, "."
       ))
     }
     target <- alpha
     M <- m
-    kind <- if (m_alpha == 0) "plain" else "shifted"
+    kind <- c("plain", "shifted", "shifted2")[m_alpha + 1]
   }
   ## Near x = 0 the integrand is e(x)^2 x^(s - 1 - d/2) with e(x) ~ x^target,
   ## so the objective is finite when 2 * target + s > d / 2. With the data
@@ -594,13 +711,14 @@ wl2_fit <- function(alpha, d, m, x_min, type, n_starts, n_grid, start, seed,
   r <- if (k_term) cc[-length(cc)] else cc
   ## A zero residue would give an infinite precision for that block.
   r <- pmax(r, .Machine$double.eps * max(r))
-  b0 <- if (kind == "plain") NULL else 1 / (1 + exp(-theta[1]))
-  b <- exp(pmin(pmax(if (kind == "plain") theta else theta[-1], -5), 60))
+  qq <- wl2_q(kind)
+  b0 <- if (qq == 0) NULL else 1 / (1 + exp(-theta[1]))
+  b <- exp(pmin(pmax(if (qq == 0) theta else theta[-1], -5), 60))
   o <- order(b)
 
   list(
     r = r[o], p = 1 - b[o], p0 = if (is.null(b0)) NULL else 1 - b0,
-    k = k,
+    q = qq, k = k,
     rel_err = sqrt(2 * best$cost / sum(cells$w * x^(2 * target))),
     x_min = x_min, theta = theta, kind = kind,
     alpha = alpha, d = d, m = m, type = type, s = s, k_term = k_term
@@ -618,7 +736,8 @@ wl2_symbol <- function(cf, x) {
     cf$r[i] * xx / (1 - cf$p[i] * xx)
   }))
   if (!is.null(cf$p0)) {
-    s <- x / (1 - cf$p0 * x) * s
+    q <- if (is.null(cf$q)) 1L else cf$q
+    s <- (x / (1 - cf$p0 * x))^q * s
   }
   k <- if (is.null(cf$k)) 0 else cf$k
   s + k
@@ -1000,10 +1119,10 @@ rspde.wl2.table <- function(m, d = NULL, nu = NULL, alpha = NULL,
     stop("alpha must be positive.")
   }
   m_alpha <- floor(alpha)
-  if (type == "covariance" && !(m_alpha %in% c(0, 1))) {
+  if (type == "covariance" && !(m_alpha %in% c(0, 1, 2))) {
     stop(paste0(
       "The weighted-L2 coefficients are only implemented for floor(alpha) ",
-      "equal to 0 or 1, but floor(alpha) = ", m_alpha, "."
+      "equal to 0, 1 or 2, but floor(alpha) = ", m_alpha, "."
     ))
   }
   if (is.null(x_min)) {
@@ -1068,8 +1187,8 @@ wl2_table_attrs <- function(tab, type, d, m, m_alpha, x_min, n_grid,
   attr(tab, "x_min") <- x_min
   attr(tab, "s") <- s
   attr(tab, "k_term") <- k_term
-  attr(tab, "kind") <- if (type == "covariance" && m_alpha == 1) {
-    "shifted"
+  attr(tab, "kind") <- if (type == "covariance") {
+    c("plain", "shifted", "shifted2")[m_alpha + 1]
   } else {
     "plain"
   }
@@ -1111,7 +1230,7 @@ wl2_shipped_table <- function(d, m, m_alpha, n_grid) {
 #' that varies smoothly along the continuation in `alpha`, which is what makes
 #' it possible to extrapolate from one grid point to the next.
 #' @param cf A fit, as returned by [rational.coefficients.wl2()].
-#' @return The outer parameters: `logit(b_0)` (shifted class only) followed by
+#' @return The outer parameters: `logit(b_0)` (shifted classes only) followed by
 #' `log(b)` in increasing order.
 #' @noRd
 wl2_theta_canonical <- function(cf) {
@@ -1130,7 +1249,7 @@ wl2_theta_canonical <- function(cf) {
 #' the remaining ones. The poles enter the basis symmetrically, so they can be
 #' taken in the sorted order reported by the fit.
 #' @param cf A fit, as returned by [rational.coefficients.wl2()].
-#' @param shifted Is this the shifted class?
+#' @param shifted Does the class have a shift, that is, is `q` positive?
 #' @return A list of starting values for the outer parameters.
 #' @noRd
 wl2_restart_starts <- function(cf, shifted) {
@@ -1167,7 +1286,7 @@ wl2_restart_starts <- function(cf, shifted) {
 #' `FALSE` forces the fits to be run, which is what `data-raw/wl2_tables.R` and
 #' the test that checks the stored tables do.
 #' @return A data frame with columns `alpha`, `r1`, ..., `p1`, ..., `k`, and
-#' `p0` for the shifted class, together with the attributes `type`, `d`, `m`,
+#' `p0` for the shifted classes, together with the attributes `type`, `d`, `m`,
 #' `m_alpha`, `x_min` and `kind`.
 #' @noRd
 wl2_coefficient_table <- function(d, m, m_alpha, x_min = NULL,
@@ -1220,7 +1339,7 @@ wl2_coefficient_table <- function(d, m, m_alpha, x_min = NULL,
   err_vec <- rep(NA_real_, length(alphas))
   theta_list <- vector("list", length(alphas))
 
-  kind_shifted <- type == "covariance" && m_alpha == 1
+  kind_shifted <- type == "covariance" && m_alpha > 0
   is_collapsed <- function(cf) min(cf$r) < 1e-8 * max(cf$r)
 
   prev <- NULL
@@ -1385,7 +1504,8 @@ wl2_interp_coefficients <- function(tab, alpha) {
   theta <- vapply(seq_len(n_col), function(i) {
     sp(log(1 - tab[[paste0("p", i)]]))
   }, numeric(1))
-  if (identical(kind, "shifted")) {
+  qq <- wl2_q(kind)
+  if (qq > 0) {
     b0 <- pmin(pmax(1 - tab$p0, 1e-12), 1 - 1e-12)
     theta <- c(sp(log(b0 / (1 - b0))), theta)
   }
@@ -1405,11 +1525,11 @@ wl2_interp_coefficients <- function(tab, alpha) {
   ## A zero residue would give an infinite precision for that block.
   r <- pmax(r, .Machine$double.eps * max(r))
 
-  b <- exp(pmin(pmax(if (identical(kind, "shifted")) theta[-1] else theta, -5), 60))
+  b <- exp(pmin(pmax(if (qq > 0) theta[-1] else theta, -5), 60))
   list(
     r = r, p = 1 - b,
-    p0 = if (identical(kind, "shifted")) 1 - 1 / (1 + exp(-theta[1])) else NULL,
-    k = k, theta = theta,
+    p0 = if (qq > 0) 1 - 1 / (1 + exp(-theta[1])) else NULL,
+    q = qq, k = k, theta = theta,
     rel_err = sqrt(sum(res^2) / sum(quad$w * quad$x^(2 * target)))
   )
 }
@@ -1763,4 +1883,86 @@ update_rational_coefficients <- function(object, kappa_ref = NULL,
     kappa_ref <- min(object$kappa) / safety
   }
   stats::update(object, kappa_ref = kappa_ref, x_min = NULL, ...)
+}
+
+#' @name wl2_cgeneric_table
+#' @title A dense weighted-L2 table for the INLA cgeneric interface
+#' @description The cgeneric model looks its coefficients up in a table rather
+#' than fitting anything, so the weighted-L2 coefficients reach it the same way
+#' the tabulated ones do: evaluated in R on a fine grid of `alpha` and passed
+#' as a matrix.
+#'
+#' The tabulated types need only 999 rows, indexed by the fractional part of
+#' `alpha`, because they approximate \eqn{x^{\{\alpha\}}} and the integer
+#' factor \eqn{x^{\lfloor\alpha\rfloor}} is exact and built separately. The
+#' weighted-L2 classes are fitted to \eqn{x^\alpha} as a whole, with the
+#' integer factor carrying the shift \eqn{p_0}, so their coefficients depend on
+#' all of `alpha`. The table therefore holds one block of 999 rows per
+#' \eqn{\lfloor\alpha\rfloor} reachable from the prior on `nu`, and the row for
+#' a given `alpha` is
+#' `(floor(alpha) - m_alpha_min) * 999 + round(1000 * frac(alpha))`.
+#'
+#' The columns are those of `get_rational_coefficients()` with the constant
+#' term replaced by the shift: `alpha`, `r1..rm`, `p1..pm`, `p0`. Each row
+#' costs one interpolation, about 0.3 ms, so a block takes a third of a second.
+#' @param d The dimension of the domain.
+#' @param m The order of the rational approximation.
+#' @param nu_upper_bound The upper bound of the prior on `nu`.
+#' @param wl2_table An optional mesh-free table per band; by default the
+#' shipped one.
+#' @return A matrix, with the attribute `m_alpha_min`.
+#' @noRd
+wl2_cgeneric_table <- function(d, m, nu_upper_bound, wl2_table = NULL) {
+  ## alpha = nu + d / 2 with nu in (0, nu_upper_bound)
+  m_alpha_min <- floor(d / 2 + 1e-10)
+  ## nu is strictly below its upper bound, so alpha is strictly below
+  ## nu_upper_bound + d/2 and the top band is the one just under it.
+  m_alpha_max <- floor(nu_upper_bound + d / 2 - 1e-10)
+  if (m_alpha_max > 2) {
+    stop(paste0(
+      "type.rational.approx = 'wl2' is only implemented for floor(alpha) ",
+      "equal to 0, 1 or 2, but nu.upper.bound = ", nu_upper_bound,
+      " with d = ", d, " reaches floor(alpha) = ", m_alpha_max, "."
+    ))
+  }
+  frac <- seq_len(999) / 1000
+  out <- NULL
+  for (ma in m_alpha_min:m_alpha_max) {
+    tab <- if (is.null(wl2_table)) {
+      wl2_coefficient_table(d = d, m = m, m_alpha = ma, type = "covariance")
+    } else {
+      wl2_table
+    }
+    rows <- vapply(ma + frac, function(a) {
+      cf <- wl2_interp_coefficients(tab, a)
+      c(a, cf$r, cf$p, if (is.null(cf$p0)) 0 else cf$p0)
+    }, numeric(2 * m + 2))
+    out <- rbind(out, t(rows))
+  }
+  colnames(out) <- c(
+    "alpha", paste0("r", seq_len(m)), paste0("p", seq_len(m)), "p0"
+  )
+  attr(out, "m_alpha_min") <- m_alpha_min
+  out
+}
+
+#' @name wl2_operator_type
+#' @title The rational type to use for the operator-based construction
+#' @description The operator-based factorisation has a single table of roots,
+#' produced by the chebfun lower-bound method, so `"brasil"` and `"chebfun"`
+#' are refused there rather than quietly given those roots. The default of
+#' [matern.operators()] and [spde.matern.operators()] is `"brasil"`, which is
+#' right for `type = "covariance"`; a caller who never named a type should not
+#' be refused because of it, so an untouched default becomes `"chebfunLB"`
+#' here. A type the caller did name is passed through and refused if it is one
+#' of the two.
+#' @param type The value of `type_rational_approximation`.
+#' @param user_set Did the caller name a type?
+#' @return A single type name.
+#' @noRd
+wl2_operator_type <- function(type, user_set) {
+  if (!user_set) {
+    return("chebfunLB")
+  }
+  type[[1]]
 }

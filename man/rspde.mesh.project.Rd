@@ -21,6 +21,7 @@ rspde.mesh.projector(
   ylim = NULL,
   dims = c(100, 100),
   projection = NULL,
+  type.rational.approx = "brasil",
   ...
 )
 
@@ -30,12 +31,21 @@ rspde.mesh.projector(
   field = NULL,
   rspde.order = 1,
   nu = NULL,
+  type.rational.approx = "brasil",
   ...
 )
 
 \method{rspde.mesh.project}{rspde.mesh.projector}(projector, field, ...)
 
-\method{rspde.mesh.project}{inla.mesh.1d}(mesh, loc, field = NULL, rspde.order = 1, nu = NULL, ...)
+\method{rspde.mesh.project}{inla.mesh.1d}(
+  mesh,
+  loc,
+  field = NULL,
+  rspde.order = 1,
+  nu = NULL,
+  type.rational.approx = "brasil",
+  ...
+)
 }
 \arguments{
 \item{...}{Additional parameters.}

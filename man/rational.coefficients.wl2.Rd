@@ -21,7 +21,7 @@ rational.coefficients.wl2(
 }
 \arguments{
 \item{alpha}{The exponent, \eqn{\alpha = \nu + d/2}. For the covariance type,
-\eqn{\lfloor \alpha\rfloor} must be 0 or 1; for the operator type,
+\eqn{\lfloor \alpha\rfloor} must be 0, 1 or 2; for the operator type,
 \eqn{\alpha} must be smaller than 2.}
 
 \item{d}{The dimension of the domain.}
@@ -67,13 +67,16 @@ for any non-zero constant, and the fit drives it to zero.}
 A list with elements
 \item{r}{The residues, all non-negative.}
 \item{p}{The poles, all smaller than one.}
-\item{p0}{The pole of the integer factor, or \code{NULL} if
+\item{p0}{The shift of the integer factor, or \code{NULL} if
 \eqn{\lfloor\alpha\rfloor = 0}.}
+\item{q}{The power of the integer factor, \eqn{\lfloor\alpha\rfloor} for
+the covariance type and 0 for the operator type.}
 \item{k}{The constant term: 0 unless \code{k_term} is \code{TRUE}.}
 \item{rel_err}{The relative weighted \eqn{L_2} error of the fit.}
 \item{x_min}{The lower end of the interval that was used.}
 \item{theta}{The internal parameters, for warm starts.}
-\item{kind}{\code{"plain"} or \code{"shifted"}.}
+\item{kind}{\code{"plain"}, \code{"shifted"} or \code{"shifted2"}, for \code{q} equal to 0, 1
+and 2.}
 }
 \description{
 Computes the coefficients of a rational approximation of \eqn{x^{\alpha}}
@@ -88,14 +91,14 @@ Here \eqn{x = 1/\lambda}, where \eqn{\lambda} are the eigenvalues of
 corresponds to the largest eigenvalue, i.e. to the resolution of the mesh;
 \code{x_min = NULL} gives the mesh-free fit on \eqn{(0,1]}.
 
-Three classes are supported, all of which are parameterised so that the
-resulting model is guaranteed to be valid (all residues are non-negative and
-all poles are smaller than one):
+The classes are parameterised so that the resulting model is guaranteed to
+be valid (all residues are non-negative and all poles are smaller than one).
+For the covariance type the class carries an integer factor of order
+\eqn{q = \lfloor\alpha\rfloor}, with one shift \eqn{p_0} shared by its
+factors:
 \describe{
-\item{covariance, \eqn{\lfloor\alpha\rfloor = 0}}{
-\eqn{r(x) = \sum_{i=1}^m r_i x/(1-p_i x)}.}
-\item{covariance, \eqn{\lfloor\alpha\rfloor = 1}}{
-\eqn{r(x) = x/(1-p_0 x)\sum_{j=1}^m r_j x/(1-p_j x)}.}
+\item{covariance}{\eqn{r(x) = (x/(1-p_0 x))^q\sum_{j=1}^m r_j x/(1-p_j x)},
+for \eqn{q = 0}, 1 and 2, the factor being absent when \eqn{q = 0}.}
 \item{operator}{\eqn{r(x) = \sum_{i=1}^{m+1} r_i x/(1-p_i x)}, approximating
 \eqn{x^{\alpha/2}}.}
 }

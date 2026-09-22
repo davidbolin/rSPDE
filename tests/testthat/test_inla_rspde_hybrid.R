@@ -96,7 +96,7 @@ test_that("Hybrid cgeneric mu formula matches compute_hybrid_mean", {
     loc_mesh = x, d = 1, parameterization = "spde",
     type = "covariance"
   )
-  mu_R <- compute_hybrid_mean(op)
+  mu_R <- rSPDE:::compute_hybrid_mean(op)
 
   # Manual reference for the FEM variational form:
   #   mu_h = L_d^{-1} (C * X * beta), with C the mass-lumped diagonal.

@@ -54,7 +54,7 @@ test_that("Checking loglike of CBrSPDE", {
       range = range, sigma = sigma, nu = nu,
       loc_mesh = s, d = 1, type = "operator",
       parameterization = "matern",
-      type_rational_approximation = "chebfun"
+      type_rational_approximation = "chebfunLB"
     )
     loglike1 <- rSPDE.matern.loglike(op1, sim_data, A, sigma.e = 0.1)
 

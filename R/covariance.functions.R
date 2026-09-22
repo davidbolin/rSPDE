@@ -413,12 +413,14 @@ matern.rational.cov = function(h,
                                           wl2_table = wl2_table)
     r <- coeff$r
     p <- coeff$p
-    p0 <- coeff$p0
+    ## The shift is repeated once per factor: matern.p.shifted() reads the
+    ## power of the integer factor off the length of p0.
+    p0 <- if (is.null(coeff$p0)) NULL else rep(coeff$p0, coeff$q)
     k <- coeff$k
     n <- length(h)
     
-    ## The weighted-L2 classes have no constant term, and for floor(alpha) = 1
-    ## the integer factor is shifted by p0.
+    ## The weighted-L2 classes have no constant term; the integer factor is
+    ## the shift p0 raised to the power floor(alpha).
     no_k <- identical(type_rational[[1]], "wl2")
     
     sigma_rational <- matrix(0,n,1)

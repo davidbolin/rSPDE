@@ -178,3 +178,180 @@ test_that("Operator construction for non-stationary Matern", {
   c2 <- as.vector(Sigma.mult(op2, v))
   expect_equal(c1, c2, tolerance = 1e-10)
 })
+test_that("the non-stationary covariance model has one block per pole", {
+  ## Regression test. The bdiag that joins the blocks used to sit outside the
+  ## loop over the poles, so every intermediate block was overwritten and the
+  ## precision had three blocks whatever the order: for m >= 3 the model was
+  ## silently the wrong one, missing the poles 2 to m-1.
+  x <- seq(from = 0, to = 1, length.out = 61)
+  fem <- rSPDE.fem1d(x)
+  n <- length(x)
+  d <- 1
+  kappa <- 8
+  tau <- 0.5
+  alpha <- 1.3
+  B.tau <- matrix(c(log(tau), 1, 0), 1, 3)
+  B.kappa <- matrix(c(log(kappa), 0, 1), 1, 3)
+  for (ty in c("brasil", "wl2")) {
+    for (m in 1:4) {
+      ns <- spde.matern.operators(
+        C = fem$C, G = fem$G, d = d, alpha = alpha, m = m,
+        B.tau = B.tau, B.kappa = B.kappa, theta = c(0, 0),
+        parameterization = "spde", type = "covariance",
+        check_stationarity = FALSE, loc_mesh = x,
+        type_rational_approximation = ty
+      )
+      st <- matern.operators(
+        C = fem$C, G = fem$G, d = d, alpha = alpha, m = m,
+        tau = tau, kappa = kappa, parameterization = "spde",
+        type = "covariance", loc_mesh = x,
+        type_rational_approximation = ty
+      )
+      ## with constant coefficients the two constructions are the same model
+      expect_equal(nrow(ns$Q), nrow(st$Q))
+      expect_equal(nrow(ns$Q) / n, rSPDE:::rspde_n_blocks(m, ty))
+      expect_equal(max(abs(ns$Q - st$Q)) / max(abs(st$Q)), 0, tolerance = 1e-12)
+    }
+  }
+})
+
+test_that("the non-stationary models use the rational type they are given", {
+  ## type_rational_approximation used not to reach fractional.operators(), so
+  ## every type gave the same operator-based model.
+  x <- seq(from = 0, to = 1, length.out = 61)
+  fem <- rSPDE.fem1d(x)
+  n <- length(x)
+  B.tau <- matrix(c(log(0.5), 1, 0), 1, 3)
+  B.kappa <- matrix(c(log(8), 0, 1), 1, 3)
+  sig <- function(ty) {
+    op <- spde.matern.operators(
+      C = fem$C, G = fem$G, d = 1, alpha = 1.3, m = 2,
+      B.tau = B.tau, B.kappa = B.kappa, theta = c(0, 0),
+      parameterization = "spde", type = "operator",
+      check_stationarity = FALSE, loc_mesh = x,
+      type_rational_approximation = ty
+    )
+    Sigma.mult(op, diag(n))
+  }
+  expect_gt(max(abs(sig("chebfunLB") - sig("wl2"))), 1e-6)
+  ## and it agrees with the stationary builder given the same constant
+  ## coefficients
+  st <- matern.operators(
+    C = fem$C, G = fem$G, d = 1, alpha = 1.3, m = 2, tau = 0.5, kappa = 8,
+    parameterization = "spde", type = "operator", loc_mesh = x,
+    type_rational_approximation = "chebfunLB"
+  )
+  expect_equal(
+    max(abs(sig("chebfunLB") - Sigma.mult(st, diag(n)))) /
+      max(abs(Sigma.mult(st, diag(n)))),
+    0,
+    tolerance = 1e-10
+  )
+})
+
+test_that("non-stationary weighted-L2 models are valid", {
+  ## genuinely varying kappa, all three covariance classes
+  x <- seq(from = 0, to = 1, length.out = 81)
+  fem <- rSPDE.fem1d(x)
+  n <- length(x)
+  B.tau <- cbind(rep(log(0.5), n), 1, 0, 0)
+  B.kappa <- cbind(rep(log(8), n), 0, 1, x - 0.5)
+  for (nu in c(0.4, 0.8, 2.1)) {
+    op <- spde.matern.operators(
+      C = fem$C, G = fem$G, d = 1, alpha = nu + 0.5, m = 2,
+      B.tau = B.tau, B.kappa = B.kappa, theta = c(0, 0, 0.8),
+      parameterization = "spde", type = "covariance",
+      check_stationarity = FALSE, loc_mesh = x,
+      type_rational_approximation = "wl2"
+    )
+    expect_equal(nrow(op$Q) / n, 2)
+    expect_true(Matrix::isSymmetric(op$Q, tol = 1e-9))
+    for (j in 1:2) {
+      idx <- (j - 1) * n + seq_len(n)
+      expect_gt(
+        min(eigen(as.matrix(op$Q[idx, idx]), only.values = TRUE)$values), 0
+      )
+    }
+  }
+  ## and floor(alpha) beyond 2 is refused
+  expect_error(
+    spde.matern.operators(
+      C = fem$C, G = fem$G, d = 1, alpha = 3.4, m = 2,
+      B.tau = B.tau, B.kappa = B.kappa, theta = c(0, 0, 0.8),
+      parameterization = "spde", type = "covariance",
+      check_stationarity = FALSE, loc_mesh = x,
+      type_rational_approximation = "wl2"
+    ),
+    "0, 1 or 2"
+  )
+})
+
+test_that("type = 'operator' has two sets of coefficients, not four", {
+  ## The operator-based construction factorises into Pl and Pr, and its
+  ## tabulated roots come from a single table (get.roots()), so the three
+  ## tabulated names select the same model there. The choice that matters is
+  ## that one against "wl2".
+  x <- seq(from = 0, to = 1, length.out = 101)
+  fem <- rSPDE.fem1d(x)
+  n <- length(x)
+  sig <- function(ty, m = 3, ...) {
+    op <- matern.operators(
+      C = fem$C, G = fem$G, d = 1, alpha = 1.3, m = m, tau = 0.5, kappa = 8,
+      parameterization = "spde", type = "operator", loc_mesh = x,
+      type_rational_approximation = ty, ...
+    )
+    Sigma.mult(op, diag(n))
+  }
+  ## the tabulated roots come from one table, produced by "chebfunLB"; the
+  ## other two tabulated names are refused rather than quietly given those
+  ## roots, since they did not produce them
+  base <- sig("chebfunLB")
+  expect_error(sig("brasil"), "not available for the operator-based")
+  expect_error(sig("chebfun"), "not available for the operator-based")
+  expect_gt(max(abs(sig("wl2") - base)), 1e-6)
+  ## a caller who does not name a type is not refused: the default is
+  ## "brasil", which is right for type = "covariance", and the operator-based
+  ## construction falls back to the table it does have
+  expect_silent(
+    matern.operators(
+      C = fem$C, G = fem$G, d = 1, alpha = 1.3, m = 3, tau = 0.5, kappa = 8,
+      parameterization = "spde", type = "operator", loc_mesh = x
+    )
+  )
+
+  ## the tabulated roots are stored for m at most 4; wl2 fits them
+  expect_error(sig("chebfunLB", m = 5), "order must be one of")
+  expect_silent(sig("wl2", m = 5))
+
+  ## The object has to store the type that was used, not the nominal default:
+  ## the operator-based construction resolves an untouched default to
+  ## "chebfunLB", and storing "brasil" would make update() refuse the rebuild.
+  mk <- function(...) matern.operators(
+    C = fem$C, G = fem$G, d = 1, alpha = 1.3, m = 2, tau = 0.5, kappa = 8,
+    parameterization = "spde", loc_mesh = x, ...
+  )
+  op <- mk(type = "operator")
+  expect_equal(op$type_rational_approximation, "chebfunLB")
+  expect_silent(update(op, kappa = 9))
+  op <- mk(type = "operator", type_rational_approximation = "wl2",
+           x_min = 1 / 401)
+  expect_equal(op$type_rational_approximation, "wl2")
+  expect_silent(update(op, kappa = 9))
+  ## the covariance type keeps the package default
+  op <- mk(type = "covariance")
+  expect_equal(op$type_rational_approximation, "brasil")
+  expect_silent(update(op, kappa = 9))
+
+  ## the s weight gives a different operator fit: it measures the error of the
+  ## solution operator in H^s rather than in L_2
+  tabs <- lapply(c(0, 1), function(s) {
+    rspde.wl2.table(
+      m = 3, d = 1, alpha = 1.3, x_min = 1 / 401, type = "operator", s = s
+    )
+  })
+  expect_gt(
+    max(abs(sig("wl2", wl2_table = tabs[[1]]) -
+      sig("wl2", wl2_table = tabs[[2]]))),
+    1e-8
+  )
+})

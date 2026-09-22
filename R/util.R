@@ -613,7 +613,8 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
                                      nu,
                                      force_non_integer = FALSE,
                                      rspde.order = 2,
-                                     dim = NULL) {
+                                     dim = NULL,
+                                     wl2 = FALSE) {
   if (!is.null(mesh)) {
     dim <- fmesher::fm_manifold_dim(mesh)
     if (!fmesher::fm_manifold(mesh, c("R1", "R2"))) {
@@ -639,23 +640,19 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
       return(fem_mesh_matrices[[paste0("g", m_alpha)]])
     } else {
       if (sharp) {
-        if (m_alpha > 0) {
-          return(bdiag(
-            kronecker(
-              diag(rep(1, rspde.order)),
-              fem_mesh_matrices[[paste0("g", m_alpha + 1)]]
-            ),
-            fem_mesh_matrices[[paste0("g", m_alpha)]]
-          ))
+        ## The weighted-L2 classes have no constant term, hence no k-block.
+        gfull <- if (m_alpha > 0) {
+          fem_mesh_matrices[[paste0("g", m_alpha + 1)]]
         } else {
-          return(bdiag(
-            kronecker(
-              diag(rep(1, rspde.order)),
-              fem_mesh_matrices[["g1"]]
-            ),
-            fem_mesh_matrices[["c0"]]
-          ))
+          fem_mesh_matrices[["g1"]]
         }
+        gless <- if (m_alpha > 0) {
+          fem_mesh_matrices[[paste0("g", m_alpha)]]
+        } else {
+          fem_mesh_matrices[["c0"]]
+        }
+        blocks <- kronecker(diag(rep(1, rspde.order)), gfull)
+        return(if (wl2) blocks else bdiag(blocks, gless))
       } else {
         return(kronecker(
           diag(rep(1, rspde.order + 1)),
@@ -680,23 +677,19 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
 
 
       if (sharp) {
-        if (m_alpha > 0) {
-          return(bdiag(
-            kronecker(
-              diag(rep(1, rspde.order)),
-              fem_mesh_matrices[[paste0("g", m_alpha + 1)]]
-            ),
-            fem_mesh_matrices[[paste0("g", m_alpha)]]
-          ))
+        ## The weighted-L2 classes have no constant term, hence no k-block.
+        gfull <- if (m_alpha > 0) {
+          fem_mesh_matrices[[paste0("g", m_alpha + 1)]]
         } else {
-          return(bdiag(
-            kronecker(
-              diag(rep(1, rspde.order)),
-              fem_mesh_matrices[["g1"]]
-            ),
-            fem_mesh_matrices[["c0"]]
-          ))
+          fem_mesh_matrices[["g1"]]
         }
+        gless <- if (m_alpha > 0) {
+          fem_mesh_matrices[[paste0("g", m_alpha)]]
+        } else {
+          fem_mesh_matrices[["c0"]]
+        }
+        blocks <- kronecker(diag(rep(1, rspde.order)), gfull)
+        return(if (wl2) blocks else bdiag(blocks, gless))
       } else {
         return(kronecker(
           diag(rep(1, rspde.order + 1)),
@@ -1084,7 +1077,8 @@ get_rational_coefficients <- function(order, type_rational_approx) {
 #' @param d Dimension of the domain, only used for
 #' `type_rational_approx = "wl2"`.
 #' @return A list with rational approximations. The element `p0` is the pole of
-#' the integer factor of the weighted-L2 classes, and `NULL` otherwise.
+#' the integer factor of the weighted-L2 classes, and `NULL` otherwise, and `q`
+#' is the power that factor is raised to.
 #' @noRd
 interp_rational_coefficients <- function(order,
                                          type_rational_approx,
@@ -1101,7 +1095,7 @@ interp_rational_coefficients <- function(order,
             )
         }
         cf <- wl2_interp_coefficients(wl2_table, alpha)
-        return(list(k = 0, r = cf$r, p = cf$p, p0 = cf$p0))
+        return(list(k = 0, r = cf$r, p = cf$p, p0 = cf$p0, q = cf$q))
     }
     mt <- get_rational_coefficients(order = order,
                                     type_rational_approx=type_rational_approx)
@@ -1275,9 +1269,12 @@ rational.type <- function(object) {
   } else if (!is.null(attr(object, "inla_rspde_Amatrix"))) {
     n_temp <- ncol(object)
     old_rspde.order <- attr(object, "rspde.order")
-    orig_dim <- n_temp / (old_rspde.order + 1)
+    ty <- attr(object, "type.rational.approx")
+    if (is.null(ty)) ty <- "brasil"
+    orig_dim <- n_temp / rspde_n_blocks(old_rspde.order, ty)
     A <- object[, 1:orig_dim]
-    Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
+    Abar <- kronecker(matrix(1, 1, rspde_n_blocks(rspde.order, ty)), A)
+    attr(Abar, "type.rational.approx") <- ty
     attr(Abar, "inla_rspde_Amatrix") <- TRUE
     attr(Abar, "rspde.order") <- rspde.order
     integer_nu <- attr(object, "integer_nu")
@@ -1304,7 +1301,9 @@ rational.type <- function(object) {
     n.group <- attr(object, "n.group")
     n.repl <- attr(object, "n.repl")
 
-    factor_rspde <- rspde.order + 1
+    ty <- attr(object, "type.rational.approx")
+    if (is.null(ty)) ty <- "brasil"
+    factor_rspde <- rspde_n_blocks(rspde.order, ty)
 
     name.group <- paste(name, ".group", sep = "")
     name.repl <- paste(name, ".repl", sep = "")
@@ -1324,6 +1323,7 @@ rational.type <- function(object) {
     class(out) <- c("inla_rspde_index", class(out))
     attr(out, "rspde.order") <- rspde.order
     attr(out, "integer_nu") <- integer_nu
+    attr(out, "type.rational.approx") <- ty
     attr(out, "n.mesh") <- n_mesh
     attr(out, "name") <- name
     attr(out, "n.group") <- n.group

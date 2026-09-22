@@ -29,7 +29,7 @@ pkgload::load_all(".", quiet = TRUE)
 CONFIG <- list(
   d = 1:3,
   m = 1:6,
-  m_alpha = 0:1
+  m_alpha = 0:2
 )
 
 build_all <- function(verbose = TRUE) {

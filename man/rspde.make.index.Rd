@@ -12,7 +12,8 @@ rspde.make.index(
   mesh = NULL,
   rspde.order = 1,
   nu = NULL,
-  dim = NULL
+  dim = NULL,
+  type.rational.approx = "brasil"
 )
 }
 \arguments{
@@ -34,6 +35,10 @@ be estimated. If nu is fixed, you should provide the value of nu.}
 
 \item{dim}{the dimension of the domain. Should only be provided if
 \code{mesh} is not provided.}
+
+\item{type.rational.approx}{Which type of rational approximation the model
+uses. \code{"wl2"} has no constant term, so the latent field has \code{rspde.order}
+blocks instead of \code{rspde.order + 1}; the tabulated types are unaffected.}
 }
 \value{
 A list of named index vectors.

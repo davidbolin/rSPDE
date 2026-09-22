@@ -26,7 +26,8 @@ rspde.matern1d(
   prior.theta.param = c("theta", "spde"),
   prior.nu.dist = c("beta", "lognormal"),
   nu.prec.inc = 1,
-  type.rational.approx = c("brasil", "chebfun", "chebfunLB"),
+  type.rational.approx = c("brasil", "chebfun", "chebfunLB", "wl2"),
+  wl2_table = NULL,
   debug = FALSE,
   shared_lib = "detect",
   ...
@@ -35,19 +36,26 @@ rspde.matern1d(
 \arguments{
 \item{loc}{A vector of spatial locations.}
 
-\item{nu.upper.bound}{Upper bound for the smoothness parameter. If \code{NULL}, it will be set to 2.}
+\item{nu.upper.bound}{Upper bound for the smoothness parameter. If \code{NULL},
+it will be set to 2.}
 
-\item{rspde.order}{The order of the covariance-based rational SPDE approach. The default order is 1.}
+\item{rspde.order}{The order of the covariance-based rational SPDE approach.
+The default order is 1.}
 
 \item{nu}{If nu is set to a parameter, nu will be kept fixed and will not
 be estimated. If nu is \code{NULL}, it will be estimated.}
 
-\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). \code{matern2} uses range-like (1/kappa), variance and nu (smoothness). The default is \code{spde}.}
+\item{parameterization}{Which parameterization to use? \code{matern} uses range,
+std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness).
+\code{matern2} uses range-like (1/kappa), variance and nu (smoothness). The default
+is \code{spde}.}
 
 \item{start.nu}{Starting value for nu.}
 
-\item{start.theta}{Starting values for the model parameters. In the stationary case, if \code{parameterization='matern'}, then \code{theta[1]} is the std.dev and \code{theta[2]} is the range parameter.
-If \code{parameterization = 'spde'}, then \code{theta[1]} is \code{tau} and \code{theta[2]} is \code{kappa}.}
+\item{start.theta}{Starting values for the model parameters. In the stationary
+case, if \code{parameterization='matern'}, then \code{theta[1]} is the std.dev and
+\code{theta[2]} is the range parameter. If \code{parameterization = 'spde'}, then
+\code{theta[1]} is \code{tau} and \code{theta[2]} is \code{kappa}.}
 
 \item{prior.nu}{a list containing the elements \code{mean} and \code{prec}
 for beta distribution, or \code{loglocation} and \code{logscale} for a
@@ -61,23 +69,34 @@ distribution on the log scale. Check details below.}
 
 \item{theta.prior.prec}{A precision matrix for the prior of \code{theta}.}
 
-\item{prior.std.dev.nominal}{Prior std. deviation to be used for the priors and for the starting values.}
+\item{prior.std.dev.nominal}{Prior std. deviation to be used for the priors
+and for the starting values.}
 
-\item{prior.range.nominal}{Prior range to be used for the priors and for the starting values.}
+\item{prior.range.nominal}{Prior range to be used for the priors and for the
+starting values.}
 
-\item{prior.kappa.mean}{Prior kappa to be used for the priors and for the starting values.}
+\item{prior.kappa.mean}{Prior kappa to be used for the priors and for the
+starting values.}
 
-\item{prior.tau.mean}{Prior tau to be used for the priors and for the starting values.}
+\item{prior.tau.mean}{Prior tau to be used for the priors and for the
+starting values.}
 
-\item{start.lstd.dev}{Starting value for log of std. deviation. Will not be used if start.ltau is non-null. Will be only used in the stationary case and if \code{parameterization = 'matern'}.}
+\item{start.lstd.dev}{Starting value for log of std. deviation. Will not be
+used if start.ltau is non-null. Will be only used in the stationary case and
+if \code{parameterization = 'matern'}.}
 
-\item{start.lrange}{Starting value for log of range. Will not be used if start.lkappa is non-null. Will be only used in the stationary case and if \code{parameterization = 'matern'}.}
+\item{start.lrange}{Starting value for log of range. Will not be used if
+start.lkappa is non-null. Will be only used in the stationary case and if
+\code{parameterization = 'matern'}.}
 
-\item{start.ltau}{Starting value for log of tau. Will be only used in the stationary case and if \code{parameterization = 'spde'}.}
+\item{start.ltau}{Starting value for log of tau. Will be only used in the
+stationary case and if \code{parameterization = 'spde'}.}
 
-\item{start.lkappa}{Starting value for log of kappa. Will be only used in the stationary case and if \code{parameterization = 'spde'}.}
+\item{start.lkappa}{Starting value for log of kappa. Will be only used in the
+stationary case and if \code{parameterization = 'spde'}.}
 
-\item{prior.theta.param}{Should the lognormal prior be on \code{theta} or on the SPDE parameters (\code{tau} and \code{kappa} on the stationary case)?}
+\item{prior.theta.param}{Should the lognormal prior be on \code{theta} or on the
+SPDE parameters (\code{tau} and \code{kappa} on the stationary case)?}
 
 \item{prior.nu.dist}{The distribution of the smoothness parameter.
 The current options are "beta" or "lognormal". The default is "lognormal".}
@@ -86,7 +105,16 @@ The current options are "beta" or "lognormal". The default is "lognormal".}
 distribution.}
 
 \item{type.rational.approx}{Which type of rational approximation
-should be used? The current types are "brasil", "chebfun" or "chebfunLB".}
+should be used? The current types are "brasil", "chebfun", "chebfunLB" and
+"wl2". The "wl2" coefficients minimise the weighted \eqn{L_2} error, see
+\code{\link[=rational.coefficients.wl2]{rational.coefficients.wl2()}}; they have no constant term, so the field has
+\code{rspde.order} blocks of \eqn{\lfloor\alpha\rfloor + 1} entries per
+location instead of that plus a k-block, and they require \code{rspde.order} at
+least 1, a non-integer \eqn{\alpha = \nu + 1/2} and \eqn{\nu < 5/2}.}
+
+\item{wl2_table}{A table of weighted-L2 coefficients from \code{\link[=rspde.wl2.table]{rspde.wl2.table()}},
+only used for \code{type.rational.approx = "wl2"}. \code{NULL} uses the table shipped
+with the package.}
 
 \item{debug}{INLA debug argument}
 
@@ -105,10 +133,12 @@ also be supplied directly.}
 \code{sdlog}, that is, the mean and standard deviation on the log scale.}
 
 \item{prior.range}{a \code{list} containing the elements \code{meanlog} and
-\code{sdlog}, that is, the mean and standard deviation on the log scale. Will not be used if prior.kappa is non-null.}
+\code{sdlog}, that is, the mean and standard deviation on the log scale. Will not
+be used if prior.kappa is non-null.}
 
 \item{prior.std.dev}{a \code{list} containing the elements \code{meanlog} and
-\code{sdlog}, that is, the mean and standard deviation on the log scale. Will not be used if prior.tau is non-null.}
+\code{sdlog}, that is, the mean and standard deviation on the log scale. Will not
+be used if prior.tau is non-null.}
 }
 \value{
 An INLA model.

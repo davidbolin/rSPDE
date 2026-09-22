@@ -63,7 +63,10 @@
 #' }
 bru_get_mapper.inla_rspde <- function(model, ...) {
   stopifnot(requireNamespace("inlabru"))
-  n_rep <- model[["rspde.order"]] + 1
+  ## the weighted-L2 classes have no constant term, hence one block fewer
+  n_rep <- rspde_n_blocks(
+    model[["rspde.order"]], model[["type.rational.approx"]]
+  )
   if((model[["est_nu"]] == 0L) && (model[["integer.nu"]])){
     n_rep <- 1
   }
@@ -79,7 +82,8 @@ ibm_n.bru_mapper_inla_rspde <- function(mapper, ...) {
   if (integer_nu) {
     factor_rspde <- 1
   } else {
-    factor_rspde <- rspde_order + 1
+    ## the weighted-L2 classes have no constant term, hence one block fewer
+    factor_rspde <- rspde_n_blocks(rspde_order, model$type.rational.approx)
   }
   factor_rspde * model$n.spde
 }
@@ -105,7 +109,8 @@ ibm_jacobian.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   rSPDE::rspde.make.A(
     mesh = model$mesh, loc = input,
     rspde.order = rspde_order,
-    nu = nu
+    nu = nu,
+    type.rational.approx = model$type.rational.approx
   )
 }
 

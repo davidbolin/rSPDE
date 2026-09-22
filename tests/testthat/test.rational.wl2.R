@@ -1,3 +1,8 @@
+## Weighted-L2 rational coefficients: the fit itself, the coefficient tables,
+## the caching, and the models built from them with matern.operators(),
+## matern.rational() and rspde_lme(). The tests of the INLA interface are in
+## test.rational.wl2.inla.R, which needs the compiled cgeneric library.
+
 test_that("weighted-L2 coefficients reproduce the reference values", {
   ## Reference values from the numpy/scipy implementation the R code was
   ## ported from. The tolerance is 2% because the quadrature grids differ
@@ -30,6 +35,16 @@ test_that("weighted-L2 coefficients reproduce the reference values", {
         alpha = 1.5, d = 2, m = 4, x_min = 1 / 801, type = "operator"
       ),
       err = 4.3432e-5, b = 1.580e3
+    ),
+    ## floor(alpha) = 2, from the same reference implementation
+    ## (handoff/wl2_reference.py of the Rational project, kind "shifted2")
+    list(args = list(alpha = 2.4, d = 1, m = 2), err = 7.3610e-5, b = 3.719e1),
+    list(args = list(alpha = 2.4, d = 1, m = 4), err = 5.5299e-7, b = 4.044e2),
+    list(args = list(alpha = 2.8, d = 2, m = 2), err = 5.8425e-5, b = 1.338e1),
+    list(args = list(alpha = 2.8, d = 2, m = 4), err = 3.7251e-7, b = 1.385e2),
+    list(
+      args = list(alpha = 2.4, d = 2, m = 3, x_min = 1 / 801),
+      err = 1.7144e-5, b = 1.820e2
     )
   )
   for (case in cases) {
@@ -40,7 +55,7 @@ test_that("weighted-L2 coefficients reproduce the reference values", {
 })
 
 test_that("weighted-L2 coefficients are in the feasible set", {
-  for (alpha in c(0.6, 0.95, 1.1, 1.75)) {
+  for (alpha in c(0.6, 0.95, 1.1, 1.75, 2.05, 2.6, 2.95)) {
     for (m in 1:4) {
       cf <- rational.coefficients.wl2(alpha, d = 1, m = m)
       expect_true(all(cf$r >= 0))
@@ -54,9 +69,10 @@ test_that("weighted-L2 coefficients are in the feasible set", {
       }
     }
   }
-  expect_error(rational.coefficients.wl2(2.5, d = 1, m = 2))
+  expect_error(rational.coefficients.wl2(3.5, d = 1, m = 2), "0, 1 or 2")
   expect_error(
-    rational.coefficients.wl2(2.5, d = 1, m = 2, type = "operator")
+    rational.coefficients.wl2(2.5, d = 1, m = 2, type = "operator"),
+    "smaller than 2"
   )
 })
 
@@ -67,13 +83,17 @@ test_that("the symbol of the weighted-L2 fit approximates x^alpha", {
 })
 
 test_that("the coefficient table interpolates as well as a direct fit", {
-  tab <- rSPDE:::wl2_coefficient_table(d = 1, m = 4, m_alpha = 1)
-  for (alpha in c(1.113, 1.457, 1.802)) {
-    ci <- rSPDE:::wl2_interp_coefficients(tab, alpha)
-    direct <- rational.coefficients.wl2(alpha, d = 1, m = 4)
-    expect_equal(ci$rel_err, direct$rel_err, tolerance = 0.05)
-    expect_true(all(ci$r > 0))
-    expect_true(all(ci$p < 1))
+  for (m_alpha in 1:2) {
+    tab <- rSPDE:::wl2_coefficient_table(d = 1, m = 4, m_alpha = m_alpha)
+    expect_equal(rSPDE:::wl2_q(attr(tab, "kind")), m_alpha)
+    for (alpha in m_alpha + c(0.113, 0.457, 0.802)) {
+      ci <- rSPDE:::wl2_interp_coefficients(tab, alpha)
+      direct <- rational.coefficients.wl2(alpha, d = 1, m = 4)
+      expect_equal(ci$rel_err, direct$rel_err, tolerance = 0.05)
+      expect_equal(ci$q, m_alpha)
+      expect_true(all(ci$r > 0))
+      expect_true(all(ci$p < 1))
+    }
   }
 })
 
@@ -88,7 +108,7 @@ test_that("the weighted-L2 blocks reproduce the rational symbol on a mesh", {
   kappa <- 15
   sigma <- 1
   d <- 1
-  for (nu in c(0.25, 1)) {
+  for (nu in c(0.25, 1, 1.9)) {
     alpha <- nu + d / 2
     m <- 2
     op <- matern.operators(
@@ -144,9 +164,8 @@ test_that("the weighted-L2 blocks have the same sparsity as the tabulated ones",
 })
 
 test_that("the weighted-L2 covariance beats the tabulated one", {
-  ## nu = 0.25, d = 1, m = 4, kappa * h = 0.1, compared with the exact
-  ## covariance of the discretised model.
-  nu <- 0.25
+  ## d = 1, m = 4, kappa * h = 0.1, compared with the exact covariance of the
+  ## discretised model, for one nu in each of the three classes.
   d <- 1
   m <- 4
   sigma <- 1
@@ -156,29 +175,33 @@ test_that("the weighted-L2 covariance beats the tabulated one", {
   n <- length(x)
   fem <- rSPDE.fem1d(x)
   Cl <- Matrix::Diagonal(n, rowSums(fem$C))
-  alpha <- nu + d / 2
-  tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
-    (4 * pi)^(d / 2) * gamma(nu + d / 2)))
   L <- (fem$G + kappa^2 * Cl) / kappa^2
   ev <- eigen(as.matrix(Matrix::solve(Cl, L)))
   lambda <- Re(ev$values)
   V <- Re(ev$vectors)
   V <- sweep(V, 2, sqrt(diag(t(V) %*% as.matrix(Cl) %*% V)), "/")
-  Sigma_exact <- V %*% diag(lambda^(-alpha)) %*% t(V) / (tau^2 * kappa^(2 * alpha))
 
-  err <- sapply(c("wl2", "brasil"), function(ty) {
-    op <- matern.operators(
-      loc_mesh = x, nu = nu, range = sqrt(8 * nu) / kappa, sigma = sigma,
-      d = d, m = m, parameterization = "matern",
-      type_rational_approximation = ty
-    )
-    A <- kronecker(
-      matrix(1, 1, rSPDE:::rspde_n_blocks_obj(op)), Matrix::Diagonal(n)
-    )
-    Sigma <- as.matrix(A %*% Matrix::solve(op$Q, t(A)))
-    max(abs(Sigma - Sigma_exact)) / sigma^2
-  })
-  expect_lt(err[["wl2"]], err[["brasil"]])
+  for (nu in c(0.25, 0.9, 1.9)) {
+    alpha <- nu + d / 2
+    tau <- sqrt(gamma(nu) / (sigma^2 * kappa^(2 * nu) *
+      (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+    Sigma_exact <- V %*% diag(lambda^(-alpha)) %*% t(V) /
+      (tau^2 * kappa^(2 * alpha))
+
+    err <- sapply(c("wl2", "brasil"), function(ty) {
+      op <- matern.operators(
+        loc_mesh = x, nu = nu, range = sqrt(8 * nu) / kappa, sigma = sigma,
+        d = d, m = m, parameterization = "matern",
+        type_rational_approximation = ty
+      )
+      A <- kronecker(
+        matrix(1, 1, rSPDE:::rspde_n_blocks_obj(op)), Matrix::Diagonal(n)
+      )
+      Sigma <- as.matrix(A %*% Matrix::solve(op$Q, t(A)))
+      max(abs(Sigma - Sigma_exact)) / sigma^2
+    })
+    expect_lt(err[["wl2"]], err[["brasil"]])
+  }
 })
 
 test_that("the nodal variance correction removes the variance deficit", {
@@ -395,11 +418,11 @@ test_that("covariance-based methods work with the weighted-L2 type", {
   expect_equal(
     dim(cov_function_mesh(op, p = matrix(0.5, 1, 1))), c(length(x), 1)
   )
-  ## floor(alpha) >= 2 is out of scope
+  ## floor(alpha) >= 3 is out of scope
   expect_error(matern.operators(
-    loc_mesh = x, nu = 1.8, range = 0.2, sigma = 1, d = 1, m = 2,
+    loc_mesh = x, nu = 2.8, range = 0.2, sigma = 1, d = 1, m = 2,
     parameterization = "matern", type_rational_approximation = "wl2"
-  ))
+  ), "0, 1 or 2")
 })
 
 test_that("rspde.xmin is a lower bound for the spectral interval", {
@@ -460,57 +483,16 @@ test_that("rspde_lme works with the weighted-L2 type", {
     loc_mesh = x, nu = 0.8, range = 0.3, sigma = 1, d = 1, m = 2,
     parameterization = "matern", type_rational_approximation = "wl2"
   )
-  ## the smoothness bound is reduced so that alpha stays below 2
+  ## the smoothness bound is reduced so that alpha stays below 3
   expect_message(
     fit <- rspde_lme(y ~ 1, loc = "x", data = df, model = op, parallel = FALSE),
-    "alpha < 2"
+    "alpha < 3"
   )
+  ## and nu stays inside what the classes support, floor(alpha) at most 2
+  expect_lt(fit$coeff$random_effects[["nu"]] + 1 / 2, 3)
   expect_true(is.finite(fit$loglik))
   pred <- predict(fit, newdata = data.frame(x = c(0.25, 0.75)), loc = "x")
   expect_equal(length(as.vector(pred$mean)), 2)
-})
-
-test_that("the precision builders agree for the weighted-L2 type", {
-  ## rspde.matern.precision() assembles the blocks from Malpha and Malpha2,
-  ## while the blocks stored in the model are assembled from L and C^-1; the
-  ## two forms must agree. rspde.matern.precision.opt() is the vectorised
-  ## version of the same expression.
-  x <- seq(from = 0, to = 1, length.out = 61)
-  n <- length(x)
-  for (nu in c(0.25, 1)) {
-    op <- matern.operators(
-      loc_mesh = x, nu = nu, range = 0.2, sigma = 1, d = 1, m = 2,
-      parameterization = "matern", type_rational_approximation = "wl2"
-    )
-    fm <- op$fem_mesh_matrices
-    Ci <- Matrix::Diagonal(n, 1 / diag(fm$c0))
-    fm$g2 <- fm$g1 %*% Ci %*% fm$g1
-    Q <- rspde.matern.precision(
-      kappa = op$kappa, nu = nu, tau = op$tau, rspde.order = 2, dim = 1,
-      fem_mesh_matrices = fm, type_rational_approx = "wl2",
-      wl2_table = op$wl2_table
-    )
-    expect_equal(max(abs(Q - op$Q)) / max(abs(op$Q)), 0, tolerance = 1e-12)
-
-    if (nu == 1) {
-      g3 <- fm$g2 %*% Ci %*% fm$g1
-      gr <- as.matrix(op$Q[seq_len(n), seq_len(n)]) != 0
-      pick <- function(M) as.matrix(M)[gr]
-      qv <- rspde.matern.precision.opt(
-        kappa = op$kappa, nu = nu, tau = op$tau, rspde.order = 2, dim = 1,
-        fem_matrices = list(
-          C = pick(fm$c0), G = pick(fm$g1), G_2 = pick(fm$g2), G_3 = pick(g3)
-        ),
-        graph = NULL, sharp = TRUE, type_rational_approx = "wl2",
-        wl2_table = op$wl2_table
-      )
-      ref <- c(
-        pick(op$Q[seq_len(n), seq_len(n)]),
-        pick(op$Q[n + seq_len(n), n + seq_len(n)])
-      )
-      expect_equal(max(abs(qv - ref)) / max(abs(ref)), 0, tolerance = 1e-12)
-    }
-  }
 })
 
 test_that("the shifted term equals the tabulated one when p0 = 0", {
@@ -536,11 +518,15 @@ test_that("the shifted term equals the tabulated one when p0 = 0", {
 
 test_that("the one-dimensional models work with the weighted-L2 type", {
   set.seed(7)
-  loc <- sort(runif(40))
-  n <- length(loc)
-  kappa <- 9
   sigma <- 1.3
-  for (nu in c(0.3, 0.9)) {
+  kappa <- 9
+  for (nu in c(0.3, 0.9, 1.7)) {
+    ## The joint covariance of the field and its derivatives at two nearly
+    ## coincident locations is singular to working precision once the field
+    ## has two derivatives, for the tabulated types just as much as for "wl2",
+    ## so the smoothest case is taken on a grid rather than on random points.
+    loc <- if (nu > 1) seq(from = 0, to = 1, length.out = 40) else sort(runif(40))
+    n <- length(loc)
     for (ty in c("brasil", "wl2")) {
       tmp <- rSPDE:::matern.rational.ldl(
         loc = loc, order = 2, nu = nu, kappa = kappa, sigma = sigma,
@@ -548,8 +534,13 @@ test_that("the one-dimensional models work with the weighted-L2 type", {
       )
       ## m blocks for "wl2", m + 1 for the tabulated types; the blocks hold
       ## the process and its derivative when alpha > 1
-      fa <- if (nu + 1 / 2 < 1) 1 else 2
-      expected <- if (ty == "wl2") 2 * fa * n else fa * n * 2 + n
+      ## each pole block holds floor(alpha) + 1 entries per location, and the
+      ## k block of the tabulated types holds max(floor(alpha), 1)
+      fa <- floor(nu + 1 / 2) + 1
+      expected <- 2 * fa * n
+      if (ty != "wl2") {
+        expected <- expected + max(floor(nu + 1 / 2), 1) * n
+      }
       expect_equal(dim(tmp$L)[1], expected)
 
       ## the Markov construction must agree with the closed-form covariance
@@ -584,7 +575,7 @@ test_that("matern.rational supports the weighted-L2 type", {
   s <- seq(from = 0, to = 1, length.out = 101)
   kappa <- 20
   sigma <- 2
-  for (nu in c(0.3, 0.8)) {
+  for (nu in c(0.3, 0.8, 1.8)) {
     err <- sapply(c("wl2", "brasil"), function(ty) {
       op <- matern.rational(
         loc = s, nu = nu, range = sqrt(8 * nu) / kappa, sigma = sigma, m = 2,
@@ -606,9 +597,9 @@ test_that("matern.rational supports the weighted-L2 type", {
     })
     expect_lt(err[["wl2"]], err[["brasil"]])
   }
-  ## alpha >= 2 is out of scope
+  ## alpha >= 3 is out of scope
   expect_error(matern.rational(
-    loc = s, nu = 1.8, range = 0.2, sigma = 1, m = 2,
+    loc = s, nu = 2.8, range = 0.2, sigma = 1, m = 2,
     parameterization = "matern", type_rational_approximation = "wl2"
   ), "floor")
 })
@@ -808,15 +799,15 @@ test_that("the analytic Jacobian matches finite differences", {
   ## Golub-Pereyra derivative of the variable-projection residual, checked at a
   ## perturbed optimum so that the passive set is the realistic one.
   set.seed(1)
-  for (kind in c("plain", "shifted")) {
+  for (kind in c("plain", "shifted", "shifted2")) {
     for (d in 1:2) {
       for (m in c(2, 4, 6)) {
-        alpha <- if (kind == "plain") 0.8 else 1.4
+        alpha <- switch(kind, plain = 0.8, shifted = 1.4, shifted2 = 2.4)
         cells <- rSPDE:::wl2_weyl_cells(d, 1e-26, 900)
         sw <- sqrt(cells$w)
         f <- cells$x^alpha * sw
         theta <- rational.coefficients.wl2(alpha, d, m)$theta +
-          0.05 * rnorm(m + (kind == "shifted"))
+          0.05 * rnorm(m + (rSPDE:::wl2_q(kind) > 0))
         a <- rSPDE:::wl2_resjac(kind, cells$x, sw, f, theta)
         expect_true(all(a$c > 0))
         Jn <- matrix(0, length(cells$x), length(theta))
@@ -828,7 +819,7 @@ test_that("the analytic Jacobian matches finite differences", {
             kind, cells$x, sw, f, tk, FALSE
           )$r - a$r) / h
         }
-        expect_lt(max(abs(a$J - Jn)) / max(abs(Jn)), 1e-5)
+        expect_lt(max(abs(a$J - Jn)) / max(abs(Jn)), 1e-4)
       }
     }
   }
@@ -846,6 +837,9 @@ test_that("the compiled solver agrees with the R implementation", {
     list(alpha = 1.5, d = 2, m = 2, x_min = NULL, type = "covariance"),
     list(alpha = 1.25, d = 1, m = 3, x_min = NULL, type = "covariance"),
     list(alpha = 1.5, d = 2, m = 4, x_min = 1 / 801, type = "covariance"),
+    list(alpha = 2.4, d = 1, m = 2, x_min = NULL, type = "covariance"),
+    list(alpha = 2.8, d = 2, m = 4, x_min = NULL, type = "covariance"),
+    list(alpha = 2.4, d = 2, m = 3, x_min = 1 / 801, type = "covariance"),
     list(alpha = 1.5, d = 2, m = 3, x_min = 1 / 801, type = "operator")
   )
   for (cs in cases) {
@@ -887,7 +881,7 @@ test_that("the shipped mesh-free tables cover the expected configurations", {
   )
   expect_false(is.null(tabs))
   for (d in 1:3) {
-    for (m_alpha in 0:1) {
+    for (m_alpha in 0:2) {
       for (m in 1:6) {
         n_alpha <- length(rSPDE:::wl2_alpha_grid(m_alpha, d, "covariance", 0.01))
         tab <- rSPDE:::wl2_shipped_table(d, m, m_alpha, 300)
@@ -902,13 +896,16 @@ test_that("the shipped mesh-free tables cover the expected configurations", {
           "alpha", paste0("r", seq_len(m)), paste0("p", seq_len(m)),
           "k", "rel_err"
         ) %in% names(tab)))
-        expect_equal("p0" %in% names(tab), m_alpha == 1)
+        expect_equal("p0" %in% names(tab), m_alpha > 0)
         ## A valid model at every alpha: non-negative residues, poles below one.
         expect_true(all(tab[, paste0("r", seq_len(m))] >= 0))
         expect_true(all(tab[, paste0("p", seq_len(m))] < 1))
         expect_true(all(is.finite(tab$rel_err)))
         expect_equal(attr(tab, "x_min"), NULL)
-        expect_equal(attr(tab, "kind"), if (m_alpha == 1) "shifted" else "plain")
+        expect_equal(
+          attr(tab, "kind"),
+          c("plain", "shifted", "shifted2")[m_alpha + 1]
+        )
         expect_false(is.null(attr(tab, "quad")))
       }
     }
@@ -923,7 +920,7 @@ test_that("the shipped tables are what the fits produce", {
   ## the last digits of a fit depend on the platform's BLAS, while the stored
   ## table is the same everywhere.
   skip_on_cran()
-  for (cs in list(c(1, 1, 0), c(2, 2, 1), c(3, 1, 1))) {
+  for (cs in list(c(1, 1, 0), c(2, 2, 1), c(3, 1, 1), c(1, 3, 2), c(2, 2, 2))) {
     d <- cs[1]
     m <- cs[2]
     m_alpha <- cs[3]

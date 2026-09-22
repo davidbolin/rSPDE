@@ -3,11 +3,16 @@
 #' @description Creates an INLA object for a stationary Matern model with
 #' general smoothness parameter.
 #' @param loc A vector of spatial locations.
-#' @param nu.upper.bound Upper bound for the smoothness parameter. If `NULL`, it will be set to 2.
-#' @param rspde.order The order of the covariance-based rational SPDE approach. The default order is 1.
+#' @param nu.upper.bound Upper bound for the smoothness parameter. If `NULL`, 
+#' it will be set to 2.
+#' @param rspde.order The order of the covariance-based rational SPDE approach. 
+#' The default order is 1.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
 #' be estimated. If nu is `NULL`, it will be estimated.
-#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). `matern2` uses range-like (1/kappa), variance and nu (smoothness). The default is `spde`.
+#' @param parameterization Which parameterization to use? `matern` uses range, 
+#' std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). 
+#' `matern2` uses range-like (1/kappa), variance and nu (smoothness). The default 
+#' is `spde`.
 #' @param prior.kappa a `list` containing the elements `meanlog` and
 #' `sdlog`, that is, the mean and standard deviation on the log scale.
 #' @param prior.nu a list containing the elements `mean` and `prec`
@@ -20,30 +25,53 @@
 #' @param prior.tau a list containing the elements `meanlog` and
 #' `sdlog`, that is, the mean and standard deviation on the log scale.
 #' @param prior.range a `list` containing the elements `meanlog` and
-#' `sdlog`, that is, the mean and standard deviation on the log scale. Will not be used if prior.kappa is non-null.
+#' `sdlog`, that is, the mean and standard deviation on the log scale. Will not 
+#' be used if prior.kappa is non-null.
 #' @param prior.std.dev a `list` containing the elements `meanlog` and
-#' `sdlog`, that is, the mean and standard deviation on the log scale. Will not be used if prior.tau is non-null.
+#' `sdlog`, that is, the mean and standard deviation on the log scale. Will not 
+#' be used if prior.tau is non-null.
 #' @param start.lkappa Starting value for log of kappa.
 #' @param start.nu Starting value for nu.
-#' @param start.theta Starting values for the model parameters. In the stationary case, if `parameterization='matern'`, then `theta[1]` is the std.dev and `theta[2]` is the range parameter.
-#' If `parameterization = 'spde'`, then `theta[1]` is `tau` and `theta[2]` is `kappa`.
+#' @param start.theta Starting values for the model parameters. In the stationary 
+#' case, if `parameterization='matern'`, then `theta[1]` is the std.dev and 
+#' `theta[2]` is the range parameter. If `parameterization = 'spde'`, then 
+#' `theta[1]` is `tau` and `theta[2]` is `kappa`.
 #' @param theta.prior.mean A vector for the mean priors of `theta`.
 #' @param theta.prior.prec A precision matrix for the prior of `theta`.
-#' @param prior.std.dev.nominal Prior std. deviation to be used for the priors and for the starting values.
-#' @param prior.range.nominal Prior range to be used for the priors and for the starting values.
-#' @param prior.kappa.mean Prior kappa to be used for the priors and for the starting values.
-#' @param prior.tau.mean Prior tau to be used for the priors and for the starting values.
-#' @param start.lstd.dev Starting value for log of std. deviation. Will not be used if start.ltau is non-null. Will be only used in the stationary case and if `parameterization = 'matern'`.
-#' @param start.lrange Starting value for log of range. Will not be used if start.lkappa is non-null. Will be only used in the stationary case and if `parameterization = 'matern'`.
-#' @param start.ltau Starting value for log of tau. Will be only used in the stationary case and if `parameterization = 'spde'`.
-#' @param start.lkappa Starting value for log of kappa. Will be only used in the stationary case and if `parameterization = 'spde'`.
-#' @param prior.theta.param Should the lognormal prior be on `theta` or on the SPDE parameters (`tau` and `kappa` on the stationary case)?
+#' @param prior.std.dev.nominal Prior std. deviation to be used for the priors 
+#' and for the starting values.
+#' @param prior.range.nominal Prior range to be used for the priors and for the 
+#' starting values.
+#' @param prior.kappa.mean Prior kappa to be used for the priors and for the 
+#' starting values.
+#' @param prior.tau.mean Prior tau to be used for the priors and for the 
+#' starting values.
+#' @param start.lstd.dev Starting value for log of std. deviation. Will not be 
+#' used if start.ltau is non-null. Will be only used in the stationary case and 
+#' if `parameterization = 'matern'`.
+#' @param start.lrange Starting value for log of range. Will not be used if 
+#' start.lkappa is non-null. Will be only used in the stationary case and if 
+#' `parameterization = 'matern'`.
+#' @param start.ltau Starting value for log of tau. Will be only used in the 
+#' stationary case and if `parameterization = 'spde'`.
+#' @param start.lkappa Starting value for log of kappa. Will be only used in the 
+#' stationary case and if `parameterization = 'spde'`.
+#' @param prior.theta.param Should the lognormal prior be on `theta` or on the 
+#' SPDE parameters (`tau` and `kappa` on the stationary case)?
 #' @param prior.nu.dist The distribution of the smoothness parameter.
 #' The current options are "beta" or "lognormal". The default is "lognormal".
 #' @param nu.prec.inc Amount to increase the precision in the beta prior
 #' distribution.
 #' @param type.rational.approx Which type of rational approximation
-#' should be used? The current types are "brasil", "chebfun" or "chebfunLB".
+#' should be used? The current types are "brasil", "chebfun", "chebfunLB" and
+#' "wl2". The "wl2" coefficients minimise the weighted \eqn{L_2} error, see
+#' [rational.coefficients.wl2()]; they have no constant term, so the field has
+#' `rspde.order` blocks of \eqn{\lfloor\alpha\rfloor + 1} entries per
+#' location instead of that plus a k-block, and they require `rspde.order` at
+#' least 1, a non-integer \eqn{\alpha = \nu + 1/2} and \eqn{\nu < 5/2}. 
+#' @param wl2_table A table of weighted-L2 coefficients from [rspde.wl2.table()], 
+#' only used for `type.rational.approx = "wl2"`. `NULL` uses the table shipped 
+#' with the package.
 #' @param debug INLA debug argument
 #' @param shared_lib Which shared lib to use for the cgeneric implementation?
 #' `"detect"` and `"INLA"` prefer the model compiled into the INLA binary and
@@ -78,8 +106,10 @@ rspde.matern1d <- function(loc,
                          type.rational.approx = c(
                              "brasil",
                              "chebfun",
-                             "chebfunLB"
+                             "chebfunLB",
+                             "wl2"
                          ),
+                         wl2_table = NULL,
                          debug = FALSE,
                          shared_lib = "detect",
                          ...) {
@@ -102,14 +132,29 @@ rspde.matern1d <- function(loc,
         stop("parameterization should be either 'matern', 'spde' or 'matern2'!")
     }
     
-    if (identical(type.rational.approx, "wl2")) {
+    if (!type.rational.approx %in% c("brasil", "chebfun", "chebfunLB", "wl2")) {
         stop(paste0(
-            "type.rational.approx = 'wl2' is not yet available for the INLA ",
-            "interface; it can be used with matern.rational()."
+            "type.rational.approx should be 'chebfun', 'brasil', 'chebfunLB' ",
+            "or 'wl2'!"
         ))
     }
-    if (!type.rational.approx %in% c("brasil", "chebfun", "chebfunLB")) {
-        stop("type.rational.approx should be either 'chebfun', 'brasil' or 'chebfunLB'!")
+    wl2 <- identical(type.rational.approx, "wl2")
+    if (wl2 && rspde.order < 1) {
+        stop(paste0(
+            "type.rational.approx = 'wl2' requires rspde.order >= 1."
+        ))
+    }
+    if (wl2 && !rspde_cgeneric_symbol_available(
+        "inla_cgeneric_rspde_1d_general_wl2_model"
+    )) {
+        stop(paste0(
+            "type.rational.approx = 'wl2' needs the cgeneric model ",
+            "'inla_cgeneric_rspde_1d_general_wl2_model', which the available ",
+            "INLA binary does not provide. Install rSPDE with the cgeneric ",
+            "sources compiled,\n    remotes::install_github(\"davidbolin/rSPDE\", ",
+            "configure.args = \"--enable-compiled\")\n",
+            "and pass shared_lib = \"rSPDE\", or use a newer INLA."
+        ))
     }
     
     if(length(unique(diff(loc))) == 1) {
@@ -147,12 +192,35 @@ rspde.matern1d <- function(loc,
         }
     }
     
+    ## The weighted-L2 coefficients are fitted, not tabulated, so the model is
+    ## given a table evaluated in R on a fine grid of alpha: one block of 999
+    ## rows per floor(alpha), since they depend on all of alpha and not on its
+    ## fractional part alone. See wl2_cgeneric_table().
+    wl2_m_alpha_min <- 0L
+    wl2_tab <- function(order, nub) {
+        tb <- wl2_cgeneric_table(
+            d = 1, m = order, nu_upper_bound = nub, wl2_table = wl2_table
+        )
+        wl2_m_alpha_min <<- attr(tb, "m_alpha_min")
+        tb
+    }
     if (fixed_nu) {
         alpha <- nu + d / 2
         integer_alpha <- (alpha %% 1 == 0)
+        if (wl2 && integer_alpha) {
+            stop(paste0(
+                "type.rational.approx = 'wl2' needs a non-integer alpha = ",
+                "nu + 1/2; for an integer alpha the model is exact and no ",
+                "rational approximation is used."
+            ))
+        }
         if (!integer_alpha) {
             if (rspde.order > 0) {
-                rational_table <- get_rational_coefficients(rspde.order, type.rational.approx)
+                rational_table <- if (wl2) {
+                    wl2_tab(rspde.order, nu)
+                } else {
+                    get_rational_coefficients(rspde.order, type.rational.approx)
+                }
             } 
         } else {
             rational_table <- get_rational_coefficients(1, type.rational.approx)
@@ -160,7 +228,11 @@ rspde.matern1d <- function(loc,
     } else {
         integer_alpha <- FALSE
         if (rspde.order > 0) {
-            rational_table <- get_rational_coefficients(rspde.order, type.rational.approx)
+            rational_table <- if (wl2) {
+                wl2_tab(rspde.order, nu.upper.bound)
+            } else {
+                get_rational_coefficients(rspde.order, type.rational.approx)
+            }
         }
     }
     
@@ -263,7 +335,9 @@ rspde.matern1d <- function(loc,
                                          order = rspde.order,
                                          nu = nu.upper.bound,
                                          kappa = 1,
-                                         sigma = 1)
+                                         sigma = 1,
+                                         type_rational = type.rational.approx,
+                                         wl2_table = wl2_table)
         graph_opt <- tmp$Q
         A <- tmp$A
         n_cgeneric <- dim(graph_opt)[1]        
@@ -273,7 +347,11 @@ rspde.matern1d <- function(loc,
         model <- do.call(
                     eval(parse(text = "INLA::inla.cgeneric.define")),
                     list(
-                        model = "inla_cgeneric_rspde_1d_general_model",
+                        model = if (wl2) {
+                    "inla_cgeneric_rspde_1d_general_wl2_model"
+                } else {
+                    "inla_cgeneric_rspde_1d_general_model"
+                },
                         shlib = rspde_lib,
                         n = as.integer(n_cgeneric), 
                         debug = debug,
@@ -295,7 +373,9 @@ rspde.matern1d <- function(loc,
                         prior_theta_param = prior.theta.param,
                         loc = loc,
                         es = as.integer(equally_spaced),
-                        nu_fixed = as.integer(0)
+                        nu_fixed = as.integer(0),
+                wl2 = as.integer(wl2),
+                wl2_m_alpha_min = as.integer(wl2_m_alpha_min)
                     )
                 )
         
@@ -306,7 +386,9 @@ rspde.matern1d <- function(loc,
                                          order = rspde.order,
                                          nu = nu,
                                          kappa = 1,
-                                         sigma = 1)
+                                         sigma = 1,
+                                         type_rational = type.rational.approx,
+                                         wl2_table = wl2_table)
         graph_opt <- tmp$Q
         A <- tmp$A
         n_cgeneric <- dim(graph_opt)[1]
@@ -316,7 +398,11 @@ rspde.matern1d <- function(loc,
         model <- do.call(
             eval(parse(text = "INLA::inla.cgeneric.define")),
             list(
-                model = "inla_cgeneric_rspde_1d_general_model",
+                model = if (wl2) {
+                    "inla_cgeneric_rspde_1d_general_wl2_model"
+                } else {
+                    "inla_cgeneric_rspde_1d_general_model"
+                },
                 shlib = rspde_lib,
                 n = as.integer(n_cgeneric), 
                 debug = debug,
@@ -338,7 +424,9 @@ rspde.matern1d <- function(loc,
                 prior_theta_param = prior.theta.param,
                 loc = loc,
                 es = as.integer(equally_spaced),
-                nu_fixed = as.integer(1)
+                nu_fixed = as.integer(1),
+                wl2 = as.integer(wl2),
+                wl2_m_alpha_min = as.integer(wl2_m_alpha_min)
             )
         )
         
@@ -352,7 +440,9 @@ rspde.matern1d <- function(loc,
                                          order = rspde.order,
                                          nu = nu,
                                          kappa = 1,
-                                         sigma = 1)
+                                         sigma = 1,
+                                         type_rational = type.rational.approx,
+                                         wl2_table = wl2_table)
         graph_opt <- tmp$Q
         A <- tmp$A
         n_cgeneric <- dim(graph_opt)[1]
@@ -362,7 +452,11 @@ rspde.matern1d <- function(loc,
         model <- do.call(
             eval(parse(text = "INLA::inla.cgeneric.define")),
             list(
-                model = "inla_cgeneric_rspde_1d_general_model",
+                model = if (wl2) {
+                    "inla_cgeneric_rspde_1d_general_wl2_model"
+                } else {
+                    "inla_cgeneric_rspde_1d_general_model"
+                },
                 shlib = rspde_lib,
                 n = as.integer(n_cgeneric), 
                 debug = debug,
@@ -384,7 +478,9 @@ rspde.matern1d <- function(loc,
                 prior_theta_param = prior.theta.param,
                 loc = loc,
                 es = as.integer(equally_spaced),
-                nu_fixed = as.integer(1)
+                nu_fixed = as.integer(1),
+                wl2 = as.integer(wl2),
+                wl2_m_alpha_min = as.integer(wl2_m_alpha_min)
             )
         )
         model$cgeneric_type <- "int_alpha"

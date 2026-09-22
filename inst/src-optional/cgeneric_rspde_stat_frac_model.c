@@ -39,6 +39,11 @@ double *inla_cgeneric_rspde_stat_frac_model(inla_cgeneric_cmd_tp cmd, double *th
   assert(!strcasecmp(data->ints[5]->name, "d"));
   d = data->ints[5]->ints[0];
 
+  /* Appended last in the R call, so that the indices above are unchanged and
+     an older compiled model still reads its own arguments correctly. */
+  assert(!strcasecmp(data->ints[6]->name, "wl2"));
+  int wl2 = data->ints[6]->ints[0];
+
   assert(!strcasecmp(data->chars[2]->name, "parameterization"));
   parameterization = &data->chars[2]->chars[0];
 
@@ -58,7 +63,9 @@ double *inla_cgeneric_rspde_stat_frac_model(inla_cgeneric_cmd_tp cmd, double *th
   inla_cgeneric_vec_tp *fem_full = data->doubles[2];
   full_size = (fem_full->len)/(m_alpha+2);
   less_size = (fem_less->len)/(m_alpha+1);
-  assert(M == rspde_order * full_size + less_size);
+  /* The weighted-L2 classes have no constant term, hence no k-block: the
+     precision is rspde_order blocks, not rspde_order + 1. */
+  assert(M == rspde_order * full_size + (wl2 ? 0 : less_size));
 
 
   assert(!strcasecmp(data->doubles[3]->name, "r_ratapprox"));
@@ -80,6 +87,11 @@ double *inla_cgeneric_rspde_stat_frac_model(inla_cgeneric_cmd_tp cmd, double *th
 
   assert(!strcasecmp(data->doubles[7]->name, "start.theta"));
   inla_cgeneric_vec_tp *start_theta = data->doubles[7];
+
+  /* The shared shift of the integer factor of the weighted-L2 classes;
+     unused when wl2 is 0. Appended last, as with the "wl2" flag above. */
+  assert(!strcasecmp(data->doubles[8]->name, "p0_ratapprox"));
+  double p0_rat = data->doubles[8]->doubles[0];
 
   if (theta) {
     // interpretable parameters 
@@ -138,6 +150,26 @@ double *inla_cgeneric_rspde_stat_frac_model(inla_cgeneric_cmd_tp cmd, double *th
       // FORTRAN IMPLEMENTATION
 
       double multQ = pow(kappa, 2*alpha) * SQR(tau);
+
+      if (wl2) {
+        /* Block j is C (T - p_0)^q (T - p_j) / r_j with T = C^-1 L and
+           q = m_alpha, which wl2_block_weights() turns into one pass over
+           the finite element matrices G_0..G_{q+1}. No constant term, so
+           there is no k-block. */
+        double w[8], fact_mult;
+        for (j = 0; j < rspde_order; j++) {
+          wl2_block_weights(m_alpha, p0_rat, p[j], w);
+          fact_mult = multQ * w[0] / r[j];
+          dcopy_(&full_size, &fem_full->doubles[0], &one, &ret[k + j*full_size], &one);
+          dscal_(&full_size, &fact_mult, &ret[k + j*full_size], &one);
+          for (i = 1; i <= m_alpha + 1; i++) {
+            fact_mult = multQ * w[i] / (r[j] * pow(kappa, 2*i));
+            daxpy_(&full_size, &fact_mult, &fem_full->doubles[i*full_size],
+                   &one, &ret[k + j*full_size], &one);
+          }
+        }
+        break;
+      }
 
       switch(m_alpha){
         case 0:
@@ -481,4 +513,12 @@ double *inla_cgeneric_rspde_stat_frac_model(inla_cgeneric_cmd_tp cmd, double *th
   }
   
   return (ret);
+}
+
+/* The weighted-L2 variant is the same model with the "wl2" flag set; it is
+   given its own name only so that its availability can be detected. A binary
+   compiled before the flag existed does not export this symbol, and the caller
+   gets "model not found" instead of an assertion on the block count. */
+double *inla_cgeneric_rspde_stat_frac_wl2_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data) {
+  return inla_cgeneric_rspde_stat_frac_model(cmd, theta, data);
 }

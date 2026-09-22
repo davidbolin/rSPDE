@@ -15,6 +15,44 @@ double nChoosek( int n, int k ){
     return (double) result;
 }
 
+/* Weights of a weighted-L2 precision block.
+ *
+ * The block belonging to the pole p_j is
+ *   (L - p_0 C) C^-1 ... (L - p_0 C) C^-1 (L - p_j C) / r_j
+ * with the shifted factor repeated q = floor(alpha) times. Writing
+ * T = C^-1 L this is C (T - p_0)^q (T - p_j) / r_j, a combination of the
+ * matrices P_i = C T^i = sum_{l<=i} choose(i,l) G_l / kappa^(2l), with
+ * G_0 = C and G_1 = G. Collecting the powers of G_l,
+ *
+ *   C (T - p_0)^q (T - p_j) = sum_{l=0}^{q+1} w_l G_l / kappa^(2l),
+ *   w_l = sum_{i>=l} cf_i choose(i,l),
+ *
+ * where cf are the coefficients of (T - p_0)^q (T - p_j) in T. So one pass
+ * over the q + 2 finite element matrices builds the block, and no inverse of
+ * the mass matrix is ever formed. w must have room for q + 2 entries.
+ */
+void wl2_block_weights(int q, double p0, double pj, double *w) {
+    double cf[8];                    /* q <= 2 here, so q + 2 <= 4 */
+    int n = 1, i, l;
+    cf[0] = 1.0;
+    /* multiply by (T - p_0), q times: shift and subtract */
+    for (i = 0; i < q; i++) {
+        cf[n] = cf[n - 1];
+        for (l = n - 1; l > 0; l--) cf[l] = cf[l - 1] - p0 * cf[l];
+        cf[0] = -p0 * cf[0];
+        n++;
+    }
+    /* and once by (T - p_j) */
+    cf[n] = cf[n - 1];
+    for (l = n - 1; l > 0; l--) cf[l] = cf[l - 1] - pj * cf[l];
+    cf[0] = -pj * cf[0];
+    n++;
+    for (l = 0; l < n; l++) {
+        w[l] = 0.0;
+        for (i = l; i < n; i++) w[l] += cf[i] * nChoosek(i, l);
+    }
+}
+
 // This version uses 'padded' matrices with zeroes
 double *inla_cgeneric_rspde_stat_int_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data) {
 

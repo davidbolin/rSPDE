@@ -180,13 +180,16 @@ void nnls(const double *A, int n, int M, const double *f,
 }
 
 struct Workspace {
-  std::vector<double> U, g, b, A, c, r, J, scl, An, work, sub, coef, qr, tau, Q;
+  std::vector<double> U, g, gq, b, A, c, r, J, scl, An, work, sub, coef, qr, tau, Q;
 };
 
 /* Residual, and optionally the Golub-Pereyra Jacobian. */
 void resjac(const double *x, const double *sw, const double *f, int n,
-            const double *theta, int ntheta, bool shifted, bool kterm,
+            const double *theta, int ntheta, int q, bool kterm,
             bool need_jac, Workspace &ws) {
+  /* q is the power of the integer factor (x/(1 - p0 x))^q: 0 is the plain
+     class, which has no shift parameter, 1 and 2 share one shift. */
+  const bool shifted = (q > 0);
   const int M = shifted ? ntheta - 1 : ntheta;
   /* One extra basis column, constant in x, when a constant term is allowed.
      It has no parameter of its own, so its Jacobian column is zero. */
@@ -207,15 +210,21 @@ void resjac(const double *x, const double *sw, const double *f, int n,
   }
   double b0 = 0.0;
   ws.g.assign(n, 1.0);
+  ws.gq.assign(n, 1.0);
   if (shifted) {
     b0 = 1.0 / (1.0 + std::exp(-theta[0]));
-    for (int i = 0; i < n; i++) ws.g[i] = x[i] / (1.0 + (b0 - 1.0) * x[i]);
+    for (int i = 0; i < n; i++) {
+      ws.g[i] = x[i] / (1.0 + (b0 - 1.0) * x[i]);
+      double t = 1.0;
+      for (int e = 0; e < q; e++) t *= ws.g[i];
+      ws.gq[i] = t;
+    }
   }
   ws.A.assign((size_t)n * ncol, 0.0);
   for (int j = 0; j < M; j++) {
     for (int i = 0; i < n; i++) {
       ws.A[(size_t)j * n + i] = ws.U[(size_t)j * n + i] * sw[i] *
-                                (shifted ? ws.g[i] : 1.0);
+                                (shifted ? ws.gq[i] : 1.0);
     }
   }
   if (kterm) {
@@ -267,11 +276,12 @@ void resjac(const double *x, const double *sw, const double *f, int n,
   for (int k = 0; k < ntheta; k++) {
     std::fill(D.begin(), D.end(), 0.0);
     if (shifted && k == 0) {
-      const double db0 = b0 * (1.0 - b0);
+      /* d(g^q)/dtheta_0 = -q g^(q+1) b0 (1 - b0) */
+      const double db0 = q * b0 * (1.0 - b0);
       for (int j = 0; j < M; j++) {
         for (int i = 0; i < n; i++) {
           D[(size_t)j * n + i] =
-              -ws.g[i] * ws.g[i] * db0 * ws.U[(size_t)j * n + i] * sw[i];
+              -ws.gq[i] * ws.g[i] * db0 * ws.U[(size_t)j * n + i] * sw[i];
         }
       }
     } else {
@@ -279,7 +289,7 @@ void resjac(const double *x, const double *sw, const double *f, int n,
       for (int i = 0; i < n; i++) {
         const double u = ws.U[(size_t)j * n + i];
         D[(size_t)j * n + i] =
-            (shifted ? ws.g[i] : 1.0) * (-ws.b[j] * u * u) * sw[i];
+            (shifted ? ws.gq[i] : 1.0) * (-ws.b[j] * u * u) * sw[i];
       }
     }
     for (int i = 0; i < n; i++) {
@@ -328,11 +338,11 @@ double sumsq(const std::vector<double> &v) {
 } /* namespace */
 
 extern "C" SEXP rspde_wl2_lm(SEXP x_, SEXP sw_, SEXP f_, SEXP theta0_,
-                             SEXP shifted_, SEXP kterm_, SEXP ctrl_) {
+                             SEXP q_, SEXP kterm_, SEXP ctrl_) {
   const int n = LENGTH(x_);
   const double *x = REAL(x_), *sw = REAL(sw_), *f = REAL(f_);
   const int ntheta = LENGTH(theta0_);
-  const bool shifted = (LOGICAL(shifted_)[0] == TRUE);
+  const int q = Rf_asInteger(q_);
   const bool kterm = (LOGICAL(kterm_)[0] == TRUE);
   const double ftol = REAL(ctrl_)[0], xtol = REAL(ctrl_)[1];
   const int maxfev = (int)REAL(ctrl_)[2], maxiter = (int)REAL(ctrl_)[3];
@@ -341,7 +351,7 @@ extern "C" SEXP rspde_wl2_lm(SEXP x_, SEXP sw_, SEXP f_, SEXP theta0_,
   Workspace ws;
   ws.work.assign(std::max(64 * (ntheta + 1), 256), 0.0);
 
-  resjac(x, sw, f, n, theta.data(), ntheta, shifted, kterm, true, ws);
+  resjac(x, sw, f, n, theta.data(), ntheta, q, kterm, true, ws);
   double fval = sumsq(ws.r);
   int nfev = 1;
   double lambda = 1e-3;
@@ -392,7 +402,7 @@ extern "C" SEXP rspde_wl2_lm(SEXP x_, SEXP sw_, SEXP f_, SEXP theta0_,
         continue;
       }
       for (int a = 0; a < np; a++) theta_new[a] = theta[a] + step[a];
-      resjac(x, sw, f, n, theta_new.data(), ntheta, shifted, kterm, true, ws);
+      resjac(x, sw, f, n, theta_new.data(), ntheta, q, kterm, true, ws);
       const double fnew = sumsq(ws.r);
       nfev++;
       if (R_FINITE(fnew) && fnew < fval) {
@@ -421,7 +431,7 @@ extern "C" SEXP rspde_wl2_lm(SEXP x_, SEXP sw_, SEXP f_, SEXP theta0_,
   }
 
   /* final state at the returned theta */
-  resjac(x, sw, f, n, theta.data(), ntheta, shifted, kterm, false, ws);
+  resjac(x, sw, f, n, theta.data(), ntheta, q, kterm, false, ws);
 
   SEXP out = PROTECT(allocVector(VECSXP, 3));
   SEXP th = PROTECT(allocVector(REALSXP, ntheta));

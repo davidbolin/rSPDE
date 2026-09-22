@@ -50,9 +50,9 @@ stationary Matern models on intervals. Other options are "Neumann" or "Dirichlet
 the rational approximation. The tabulated methods are "brasil", "chebfun"
 and "chebfunLB"; "wl2" minimises the weighted \eqn{L_2} error, see
 \code{\link[=rational.coefficients.wl2]{rational.coefficients.wl2()}}. Its coefficients are stored in the package,
-so this costs nothing when the model is created. The "wl2" classes have no constant term, so
-the model has \code{m} instead of \code{m + 1} blocks, and they require
-\eqn{\alpha = \nu + 1/2 < 2}.}
+so this costs nothing when the model is created. The "wl2" classes have no
+constant term, so the model has \code{m} instead of \code{m + 1} blocks, and they
+require \eqn{\alpha = \nu + 1/2 < 3}, that is \eqn{\nu < 5/2}.}
 
 \item{type_interp}{Interpolation method for the rational coefficients.}
 }

@@ -31,10 +31,24 @@ double *inla_cgeneric_rspde_1d_general_model(inla_cgeneric_cmd_tp cmd, double *t
   }
   assert(!strcasecmp(data->doubles[0]->name, "nu_upper_bound"));
   double nu_upper_bound = data->doubles[0]->doubles[0];
+
+  /* Appended last in the R call, so that every index below is unchanged and a
+     binary compiled before these existed still reads its own arguments. */
+  assert(!strcasecmp(data->ints[7]->name, "wl2"));
+  int wl2 = data->ints[7]->ints[0];
+
+  assert(!strcasecmp(data->ints[8]->name, "wl2_m_alpha_min"));
+  int wl2_m_alpha_min = data->ints[8]->ints[0];
   
   assert(!strcasecmp(data->mats[0]->name, "rational_table"));
   inla_cgeneric_mat_tp *rational_table = data->mats[0];
-  assert(rational_table->nrow == 999);  
+  /* The tabulated coefficients approximate x^frac(alpha), so 999 rows indexed
+     by the fractional part serve every floor(alpha). The weighted-L2 classes
+     are fitted to x^alpha as a whole, so their table carries one block of 999
+     rows per floor(alpha) the prior on nu can reach. */
+  if(!wl2) {
+    assert(rational_table->nrow == 999);
+  }
   
   assert(!strcasecmp(data->ints[2]->name, "graph_opt_i"));
   inla_cgeneric_vec_tp *graph_i = data->ints[2];
@@ -185,6 +199,10 @@ double *inla_cgeneric_rspde_1d_general_model(inla_cgeneric_cmd_tp cmd, double *t
           int n_terms = 2*rspde_order + 2;
           double new_alpha = nu + 0.5;
           int row_nu = (int)round(1000*cut_decimals(new_alpha))-1;
+          if(wl2) {
+            /* one block of 999 rows per floor(alpha) */
+            row_nu += 999 * ((int) floor(new_alpha) - wl2_m_alpha_min);
+          }
           
           double *rat_coef = Calloc(n_terms-1, double);
           rat_coef = &rational_table->x[row_nu*n_terms+1];
@@ -194,6 +212,8 @@ double *inla_cgeneric_rspde_1d_general_model(inla_cgeneric_cmd_tp cmd, double *t
           
           r = &rat_coef[0];
           p = &rat_coef[rspde_order];
+          /* the last column is the constant term of the tabulated classes and
+             the shared shift p_0 of the weighted-L2 ones */
           k_rat = rat_coef[2*rspde_order];    
       } else {
           r = Calloc(1, double);
@@ -216,12 +236,14 @@ double *inla_cgeneric_rspde_1d_general_model(inla_cgeneric_cmd_tp cmd, double *t
 
           } else {
               compute_Q1d(n_loc, loc, rspde_order, kappa, sigma, p, r, k_rat, &ret[k],
-                          graph_i->ints, graph_j->ints, nu, M, equally_spaced, nu_upper_bound, N, const_store);
+                          graph_i->ints, graph_j->ints, nu, M, equally_spaced, nu_upper_bound, N, const_store,
+                          wl2 ? k_rat : 0.0, wl2);
               
           }
       } else {
           compute_Q1d(n_loc, loc, rspde_order, kappa, sigma, p, r, k_rat, &ret[k],
-                      graph_i->ints, graph_j->ints, nu, M, equally_spaced, nu_upper_bound, N, const_store);
+                      graph_i->ints, graph_j->ints, nu, M, equally_spaced, nu_upper_bound, N, const_store,
+                          wl2 ? k_rat : 0.0, wl2);
       }
       break;
   }
@@ -259,6 +281,10 @@ double *inla_cgeneric_rspde_1d_general_model(inla_cgeneric_cmd_tp cmd, double *t
           int n_terms = 2*rspde_order + 2;
           double new_alpha = nu + 0.5;
           int row_nu = (int)round(1000*cut_decimals(new_alpha))-1;
+          if(wl2) {
+            /* one block of 999 rows per floor(alpha) */
+            row_nu += 999 * ((int) floor(new_alpha) - wl2_m_alpha_min);
+          }
           
           double *rat_coef = Calloc(n_terms-1, double);
           rat_coef = &rational_table->x[row_nu*n_terms+1];
@@ -268,6 +294,8 @@ double *inla_cgeneric_rspde_1d_general_model(inla_cgeneric_cmd_tp cmd, double *t
           
           r = &rat_coef[0];
           p = &rat_coef[rspde_order];
+          /* the last column is the constant term of the tabulated classes and
+             the shared shift p_0 of the weighted-L2 ones */
           k_rat = rat_coef[2*rspde_order];    
       } else {
           r = Calloc(1, double);
@@ -288,7 +316,8 @@ double *inla_cgeneric_rspde_1d_general_model(inla_cgeneric_cmd_tp cmd, double *t
           } else {
               // new parameters, compute the quantities
               compute_Q1d(n_loc, loc, rspde_order, kappa, sigma, p, r, k_rat, &Q_store[0],
-                          graph_i->ints, graph_j->ints, nu, M, equally_spaced, nu_upper_bound, N, &ret[0]);  
+                          graph_i->ints, graph_j->ints, nu, M, equally_spaced, nu_upper_bound, N, &ret[0],
+                          wl2 ? k_rat : 0.0, wl2);  
               
               //then cache them and update theta
               memcpy(cache->Q, Q_store,  M * sizeof(double));
@@ -298,7 +327,8 @@ double *inla_cgeneric_rspde_1d_general_model(inla_cgeneric_cmd_tp cmd, double *t
       } else {
           // cache empty, compute quantities
           compute_Q1d(n_loc, loc, rspde_order, kappa, sigma, p, r, k_rat, &Q_store[0],
-                      graph_i->ints, graph_j->ints, nu, M, equally_spaced, nu_upper_bound, N, &ret[0]);  
+                      graph_i->ints, graph_j->ints, nu, M, equally_spaced, nu_upper_bound, N, &ret[0],
+                      wl2 ? k_rat : 0.0, wl2);  
           
           //then allocate memory in the cache and store it and theta
           ((my_cache_tp **) data->cache)[cache_idx] = cache = Calloc(1, my_cache_tp);
@@ -346,4 +376,10 @@ double *inla_cgeneric_rspde_1d_general_model(inla_cgeneric_cmd_tp cmd, double *t
   }
   
   return (ret);
+}
+
+/* The weighted-L2 variant is the same model with the "wl2" flag set; it is
+   given its own name only so that its availability can be detected. */
+double *inla_cgeneric_rspde_1d_general_wl2_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data) {
+  return inla_cgeneric_rspde_1d_general_model(cmd, theta, data);
 }

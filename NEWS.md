@@ -7,13 +7,42 @@
   `CBrSPDE.matern.operators()` for both `type = "covariance"` and
   `type = "operator"`, in `matern.rational()` and `matern.rational.cov()` for
   the exact one-dimensional models, and directly through
-  `rational.coefficients.wl2()`. It requires `floor(nu + d/2)` to be 0 or 1 for
-  the covariance type and `nu + d/2 < 2` for the operator type. The existing
-  `"brasil"`, `"chebfun"` and `"chebfunLB"` types are unchanged and remain the
-  default.
+  `rational.coefficients.wl2()`. It requires `floor(nu + d/2)` to be 0, 1 or 2
+  for the covariance type, that is `nu < 3 - d/2`, and `nu + d/2 < 2` for the
+  operator type. The existing `"brasil"`, `"chebfun"` and `"chebfunLB"` types
+  are unchanged and remain the default.
+* `spde.matern.operators()` accepts `type_rational_approximation = "wl2"` for
+  both `type = "covariance"` and `type = "operator"`. The coefficients depend
+  on `alpha` and the dimension only, not on the varying `kappa` and `tau`, so
+  the same ones serve the non-stationary model; the blocks carry the shift in
+  the same way as the stationary ones.
+* Fixed: the non-stationary covariance-based model (`spde.matern.operators()`
+  with `type = "covariance"`) joined its blocks outside the loop over the
+  poles, so the precision had three blocks whatever the order. For `m` at
+  least 3 the model was silently the wrong one, missing the poles 2 to `m-1`.
+* Fixed: `spde.matern.operators()` with `type = "operator"` did not pass
+  `type_rational_approximation` on, so every type gave the same model.
+* `type = "operator"` now accepts only two of the four rational types. Its
+  factorisation has a single table of roots, produced by the chebfun
+  lower-bound method, so `"chebfunLB"` selects that table and `"wl2"` fits
+  its own; `"brasil"` and `"chebfun"` are refused rather than quietly given
+  roots they did not produce, and remain available for `type = "covariance"`.
+  Leaving `type_rational_approximation` at its default is unaffected. The
+  tabulated roots are stored for `m` at most 4, while `"wl2"` fits them at any
+  order. The operator-based models have no INLA interface; `rspde.matern()`
+  is covariance-based throughout.
+* `rspde.matern1d()` accepts `type.rational.approx = "wl2"`, for a fixed `nu`
+  and for an estimated one. The exact one-dimensional model then has
+  `rspde.order` blocks of `floor(alpha) + 1` entries per location instead of
+  that plus a k-block, and the pole blocks carry the shared shift. 
+* `rspde.matern()` accepts `type.rational.approx = "wl2"`, for a fixed `nu`
+  and for an estimated one, with `rspde.order` at least 1. The latent field
+  then has `rspde.order` blocks instead of `rspde.order + 1`, which
+  `rspde.make.A()` and `rspde.make.index()` follow through their new
+  `type.rational.approx` argument. 
 * The mesh-free weighted-L2 coefficients are stored in the package, as the
-  tabulated ones are, for `d` = 1 to 3, `m` = 1 to 6 and `floor(alpha)` = 0 and
-  1. They depend on neither the mesh nor `kappa` and are what a covariance-based 
+  tabulated ones are, for `d` = 1 to 3, `m` = 1 to 6 and `floor(alpha)` = 0, 1
+  and 2. They depend on neither the mesh nor `kappa` and are what a covariance-based 
   model uses by default, so the common case fits nothing at set-up. 
   `data-raw/wl2_tables.R` regenerates them, and the tests check that a fresh fit 
   still reproduces what is stored.

@@ -93,15 +93,29 @@ element matrices be computed?}
 should the block parts of the precision matrix be returned
 separately as a list?}
 
-\item{type_rational_approximation}{Which type of rational
-approximation should be used? The tabulated types are
-"brasil", "chebfun" and "chebfunLB"; "wl2" minimises the weighted
-\eqn{L_2} error over the spectral interval, see
+\item{type_rational_approximation}{Which type of rational approximation
+should be used? The tabulated types are "brasil", "chebfun" and "chebfunLB";
+"wl2" minimises the weighted \eqn{L_2} error over the spectral interval, see
 \code{\link[=rational.coefficients.wl2]{rational.coefficients.wl2()}}. Its mesh-free coefficients are stored in the
 package and cost nothing to obtain, which is the default for
 \code{type = "covariance"}; a fit for a particular spectral interval, that is
 with \code{x_min} or \code{kappa_ref}, is computed when the model is created and can
-be kept between sessions with \code{\link[=rspde.cache]{rspde.cache()}}.}
+be kept between sessions with \code{\link[=rspde.cache]{rspde.cache()}}. The "wl2" type requires
+\eqn{\nu < 3 - d/2} for \code{type = "covariance"} and \eqn{\nu + d/2 < 2} for
+\code{type = "operator"}.
+
+For \code{type = "operator"} only two of the four are available. The
+operator-based construction factorises the rational function into
+\eqn{P_l} and \eqn{P_r}, and its tabulated roots come from a single table
+(\code{get.roots()}) produced by the chebfun lower-bound method, so
+\code{"chebfunLB"} selects that table and \code{"brasil"} and \code{"chebfun"} are refused
+rather than quietly given roots they did not produce. Leaving the argument
+at its default is not refused: the default \code{"brasil"} is the right one for
+\code{type = "covariance"}, and the operator-based construction falls back to
+the table it has. The tabulated roots are stored for \code{m} at most 4, while
+\code{"wl2"} fits the roots and has no such limit. A weighted-\eqn{L_2} fit for
+other weights can be obtained by providing the output of \code{\link[=rspde.wl2.table]{rspde.wl2.table()}}
+as \code{wl2_table}.}
 
 \item{x_min}{Lower end of the spectral interval used by
 \code{type_rational_approximation = "wl2"}, see \code{\link[=rspde.xmin]{rspde.xmin()}}. The default

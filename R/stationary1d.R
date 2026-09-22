@@ -26,9 +26,9 @@
 #' the rational approximation. The tabulated methods are "brasil", "chebfun"
 #' and "chebfunLB"; "wl2" minimises the weighted \eqn{L_2} error, see
 #' [rational.coefficients.wl2()]. Its coefficients are stored in the package,
-#' so this costs nothing when the model is created. The "wl2" classes have no constant term, so
-#' the model has `m` instead of `m + 1` blocks, and they require
-#' \eqn{\alpha = \nu + 1/2 < 2}.
+#' so this costs nothing when the model is created. The "wl2" classes have no
+#' constant term, so the model has `m` instead of `m + 1` blocks, and they
+#' require \eqn{\alpha = \nu + 1/2 < 3}, that is \eqn{\nu < 5/2}.
 #' @param type_interp Interpolation method for the rational coefficients. 
 #'
 #' @return A model object for the the approximation
@@ -198,10 +198,10 @@ matern.rational = function(graph = NULL,
             stop("type_rational_approximation = 'wl2' requires m >= 1.")
         }
         m_alpha <- floor(alpha)
-        if (!(m_alpha %in% c(0, 1))) {
+        if (!(m_alpha %in% c(0, 1, 2))) {
             stop(paste0(
                 "type_rational_approximation = 'wl2' is only implemented for ",
-                "floor(alpha) equal to 0 or 1, but floor(nu + 1/2) = ",
+                "floor(alpha) equal to 0, 1 or 2, but floor(nu + 1/2) = ",
                 m_alpha, "."
             ))
         }
@@ -795,7 +795,9 @@ matern.rational.ldl <- function(loc,
                                               wl2_table = wl2_table)
         r <- coeff$r
         p <- coeff$p
-        p0 <- coeff$p0
+        ## The shift is repeated once per factor: matern.p.shifted() reads the
+        ## power of the integer factor off the length of p0.
+        p0 <- if (is.null(coeff$p0)) NULL else rep(coeff$p0, coeff$q)
         k <- coeff$k
         
         ## k part; the weighted-L2 classes have no constant term
@@ -963,26 +965,43 @@ matern.p.joint <- function(s,t,kappa,p, alpha = 1, p0 = NULL){
 }
 
 
-# Covariance (or its deriv-th derivative) of the symbol term 1/(lambda - p),
-# with the normalisation of a Matern field with smoothness alpha - 1/2.
+# Covariance (or its deriv-th derivative) of the symbol term
+# 1/(lambda - p)^n, with the normalisation of a Matern field with smoothness
+# alpha - 1/2. With lambda = (kappa^2 + w^2)/kappa^2 the term is
+# kappa^(2n)/(kappa^2(1 - p) + w^2)^n, which is the spectral density of a
+# Matern field with nu = n - 1/2 and range parameter kappa*sqrt(1 - p);
+# matching the constants gives the variance below.
 #' @noRd
-matern.p.term <- function(h, kappa, p, alpha, deriv = 0) {
+matern.p.term <- function(h, kappa, p, alpha, deriv = 0, n = 1) {
     ca <- gamma(alpha)/gamma(alpha-0.5)
-    matern.derivative(h, kappa = kappa*sqrt(1-p), nu = 1/2,
-                      sigma = sqrt(ca*sqrt(pi)/sqrt(1-p)), deriv = deriv)
+    s2 <- ca*gamma(n - 0.5)/(gamma(n)*(1 - p)^(n - 0.5))
+    matern.derivative(h, kappa = kappa*sqrt(1-p), nu = n - 0.5,
+                      sigma = sqrt(s2), deriv = deriv)
 }
 
-# The shifted (weighted-L2) term
-#   1/((lambda - p0)(lambda - p)) = (P(p0) - P(p))/(p0 - p),
-# which for p0 = 0 is the term lambda^{-1}/(lambda - p) of the tabulated
-# classes.
+# The shifted (weighted-L2) term 1/((lambda - p0)^q (lambda - p)), where q is
+# the number of shifts given (all equal, one per factor). Expanding
+# 1/(lambda - p) around lambda = p0 gives the partial fractions
+#   1/((lambda - p0)^q (lambda - p))
+#     = sum_{j=1}^q (-1)^(q-j)/(p0 - p)^(q-j+1) * 1/(lambda - p0)^j
+#       + (-1)^q/(p0 - p)^q * 1/(lambda - p),
+# so the covariance is the same combination of the terms above. For q = 1 this
+# is (P(p0) - P(p))/(p0 - p), which for p0 = 0 is the term
+# lambda^{-1}/(lambda - p) of the tabulated classes.
 #' @noRd
 matern.p.shifted <- function(h, kappa, p0, p, alpha, deriv = 0) {
+    q <- length(p0)
+    p0 <- p0[1]
     if (abs(p0 - p) < 1e-10) {
         stop("The shift p0 coincides with a pole of the rational approximation.")
     }
-    (matern.p.term(h, kappa, p0, alpha, deriv) -
-         matern.p.term(h, kappa, p, alpha, deriv)) / (p0 - p)
+    d <- p0 - p
+    out <- ((-1)^q / d^q) * matern.p.term(h, kappa, p, alpha, deriv)
+    for (j in seq_len(q)) {
+        out <- out + ((-1)^(q - j) / d^(q - j + 1)) *
+            matern.p.term(h, kappa, p0, alpha, deriv, n = j)
+    }
+    out
 }
 
 matern.p <- function(s,t,kappa,p,alpha,p0 = NULL){

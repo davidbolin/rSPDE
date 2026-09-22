@@ -233,14 +233,14 @@ rspde_lme <- function(formula,
     null_model <- FALSE
   }
 
-  ## The weighted-L2 coefficients are only implemented for alpha < 2, so the
-  ## smoothness has to stay below 2 - d/2 during the optimisation.
+  ## The weighted-L2 coefficients are only implemented for floor(alpha) up to
+  ## 2, so the smoothness has to stay below 3 - d/2 during the optimisation.
   if (identical(model$type_rational_approximation, "wl2") &&
     !is.null(model$d)) {
-    wl2_bound <- 2 - model$d / 2 - 1e-5
+    wl2_bound <- 3 - model$d / 2 - 1e-5
     if (wl2_bound <= 0) {
       stop(paste0(
-        "type_rational_approximation = 'wl2' requires alpha = nu + d/2 < 2, ",
+        "type_rational_approximation = 'wl2' requires alpha = nu + d/2 < 3, ",
         "which is impossible for d = ", model$d, "."
       ))
     }
@@ -248,7 +248,7 @@ rspde_lme <- function(formula,
       message(paste0(
         "The upper bound for the smoothness was reduced to ",
         signif(wl2_bound, 4),
-        " because type_rational_approximation = 'wl2' requires alpha < 2."
+        " because type_rational_approximation = 'wl2' requires alpha < 3."
       ))
       smoothness_upper_bound <- wl2_bound
     }

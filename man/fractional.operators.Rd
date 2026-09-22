@@ -11,7 +11,7 @@ fractional.operators(
   scale.factor,
   m = 1,
   tau = 1,
-  type_rational_approximation = "chebfun",
+  type_rational_approximation = "chebfunLB",
   d = NULL,
   x_min = NULL,
   wl2_table = NULL
@@ -37,12 +37,19 @@ of m that is implemented is 4.}
 The default value is 1.}
 
 \item{type_rational_approximation}{Which type of rational approximation
-should be used? The tabulated types are "chebfun", "brasil" and
-"chebfunLB"; "wl2" minimises the weighted \eqn{L_2} error over the spectral
-interval, see \code{\link[=rational.coefficients.wl2]{rational.coefficients.wl2()}}. Its mesh-free coefficients are
-stored in the package and cost nothing to obtain; a fit for a particular
-spectral interval is computed when the model is created. The "wl2" type
-requires \eqn{\beta < 1}.}
+should be used? Two are available for the operator-based construction:
+\code{"chebfunLB"}, the tabulated roots of \code{get.roots()}, and \code{"wl2"}, which
+minimises the weighted \eqn{L_2} error over the spectral interval, see
+\code{\link[=rational.coefficients.wl2]{rational.coefficients.wl2()}}. The factorisation into \eqn{P_l} and
+\eqn{P_r} has a single table of roots and that table was produced by the
+chebfun lower-bound method, so \code{"brasil"} and \code{"chebfun"} are refused here
+rather than quietly given roots they did not produce; they are available
+for \code{type = "covariance"}. The tabulated roots are stored for \code{m} at most
+4; \code{"wl2"} fits them and has no such limit, and requires \eqn{\beta < 1}.
+Its mesh-free coefficients are stored in the package and cost nothing to
+obtain; a fit for a particular spectral interval is computed when the model
+is created. Supplying a \code{wl2_table} built by \code{\link[=rspde.wl2.table]{rspde.wl2.table()}} can be used
+to work with other weights.}
 
 \item{d}{The dimension of the domain. Only used for
 \code{type_rational_approximation = "wl2"}.}

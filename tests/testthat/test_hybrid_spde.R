@@ -266,7 +266,7 @@ test_that("hybrid mean is FEM-consistent: mu = beta/kappa^2 for X = 1", {
     loc_mesh = x, d = 1, parameterization = "spde",
     type = "covariance"
   )
-  mu <- compute_hybrid_mean(op)
+  mu <- rSPDE:::compute_hybrid_mean(op)
   # Check at an interior node, away from the boundary.
   expect_equal(mu[40], beta_v / kappa_v^2, tolerance = 1e-12)
 })
@@ -298,7 +298,7 @@ test_that("rspde_lme subtracts A %*% mu correctly: hybrid likelihood at truth eq
   A_obs <- make_A(op_true, obs.loc)
   u <- as.vector(simulate(op_true, nsim = 1, seed = 99))
   y <- as.numeric(A_obs %*% u) + true_sigma_e * rnorm(n_obs)
-  mu_at_obs <- as.numeric(A_obs %*% compute_hybrid_mean(op_true))
+  mu_at_obs <- as.numeric(A_obs %*% rSPDE:::compute_hybrid_mean(op_true))
 
   # Hybrid likelihood at truth (with everything fixed).
   dat <- data.frame(y = y, loc = obs.loc)
