@@ -125,10 +125,12 @@ export(rSPDE.fem1d)
 export(rSPDE.fem2d)
 export(rSPDE.loglike)
 export(rSPDE.matern.loglike)
+export(rational.coefficients.wl2)
 export(rational.order)
 export(rational.type)
 export(require.nowarnings)
 export(rspde.anistropic2d)
+export(rspde.cache)
 export(rspde.hybrid.matern)
 export(rspde.intrinsic)
 export(rspde.intrinsic.matern)
@@ -145,6 +147,8 @@ export(rspde.mesh.projector)
 export(rspde.metric_graph)
 export(rspde.result)
 export(rspde.spacetime)
+export(rspde.wl2.table)
+export(rspde.xmin)
 export(rspde_lme)
 export(rspde_safe_inla)
 export(spacetime.operators)
@@ -153,6 +157,7 @@ export(spde.matern.loglike)
 export(spde.matern.operators)
 export(transform_parameters_anisotropic)
 export(transform_parameters_spacetime)
+export(update_rational_coefficients)
 export(variogram.intrinsic.spde)
 if (getRversion() >= "3.6.0") {
   S3method(inlabru::bru_get_mapper, inla_rspde)
@@ -213,6 +218,7 @@ importFrom(fmesher,
 importFrom(lifecycle,deprecated)
 importFrom(methods,as)
 importFrom(stats,
+  .lm.fit,
   approx,
   as.formula,
   cov,
@@ -238,3 +244,4 @@ importFrom(stats,
   var
 )
 importFrom(utils,packageVersion)
+useDynLib(rSPDE, .registration = TRUE)

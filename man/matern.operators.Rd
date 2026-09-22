@@ -23,22 +23,34 @@ matern.operators(
   parameterization = c("spde", "matern"),
   compute_higher_order = FALSE,
   return_block_list = FALSE,
-  type_rational_approximation = c("brasil", "chebfun", "chebfunLB"),
+  type_rational_approximation = c("brasil", "chebfun", "chebfunLB", "wl2"),
+  x_min = NULL,
+  kappa_ref = NULL,
+  wl2_table = NULL,
+  variance_correction = c("none", "nodal"),
   compute_logdet = FALSE
 )
 }
 \arguments{
-\item{kappa}{Parameter kappa of the SPDE representation. If \code{NULL}, the range parameter will be used. If the range is also \code{NULL}, a starting value based on the mesh will be supplied.}
+\item{kappa}{Parameter kappa of the SPDE representation. If \code{NULL}, the range
+parameter will be used. If the range is also \code{NULL}, a starting value based on
+the mesh will be supplied.}
 
-\item{tau}{Parameter tau of the SPDE representation. If both sigma and tau are \code{NULL}, a starting value based on the mesh will be supplied.}
+\item{tau}{Parameter tau of the SPDE representation. If both sigma and tau are
+\code{NULL}, a starting value based on the mesh will be supplied.}
 
-\item{alpha}{Parameter alpha of the SPDE representation. If \code{alpha} is \code{NULL}, a starting value will be supplied.}
+\item{alpha}{Parameter alpha of the SPDE representation. If \code{alpha} is \code{NULL},
+a starting value will be supplied.}
 
-\item{sigma}{Standard deviation of the covariance function. Used if \code{parameterization} is \code{matern}. If \code{NULL}, tau will be used. If tau is also \code{NULL}, a starting value based on the mesh will be supplied.}
+\item{sigma}{Standard deviation of the covariance function. Used if \code{parameterization}
+is \code{matern}. If \code{NULL}, tau will be used. If tau is also \code{NULL}, a starting
+value based on the mesh will be supplied.}
 
-\item{range}{Range parameter of the covariance function. Used if \code{parameterization} is \code{matern}. If range is \code{NULL}, a starting value based on the mesh will be supplied.}
+\item{range}{Range parameter of the covariance function. Used if \code{parameterization}
+is \code{matern}. If range is \code{NULL}, a starting value based on the mesh will be supplied.}
 
-\item{nu}{Shape parameter of the covariance function. Used if \code{parameterization} is \code{matern}. If \code{NULL}, a starting value will be supplied.}
+\item{nu}{Shape parameter of the covariance function. Used if \code{parameterization}
+is \code{matern}. If \code{NULL}, a starting value will be supplied.}
 
 \item{G}{The stiffness matrix of a finite element discretization of the
 domain of interest. Does not need to be given if either \code{mesh} or \code{graph} is supplied.}
@@ -53,9 +65,16 @@ of interest. Does not need to be given if either \code{mesh} or \code{graph} is 
 
 \item{graph}{An optional \code{metric_graph} object. Replaces \code{d}, \code{C} and \code{G}.}
 
-\item{range_mesh}{The range of the mesh. Will be used to provide starting values for the parameters. Will be used if \code{mesh} and \code{graph} are \code{NULL}, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.}
+\item{range_mesh}{The range of the mesh. Will be used to provide starting values
+for the parameters. Will be used if \code{mesh} and \code{graph} are \code{NULL}, and if one
+of the parameters (kappa or tau for spde parameterization, or sigma or range
+for matern parameterization) are not provided.}
 
-\item{loc_mesh}{The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the \code{rspde_lme()} function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the \code{graph} argument.}
+\item{loc_mesh}{The mesh locations used to construct the matrices C and G.
+This option should be provided if one wants to use the \code{rspde_lme()} function
+and will not provide neither graph nor mesh. Only works for 1d data. Does not
+work for metric graphs. For metric graphs you should supply the graph using
+the \code{graph} argument.}
 
 \item{m}{The order of the rational approximation, which needs to be a
 positive integer. The default value is 1.}
@@ -63,7 +82,9 @@ positive integer. The default value is 1.}
 \item{type}{The type of the rational approximation. The options are
 "covariance" and "operator". The default is "covariance".}
 
-\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and alpha. The default is \code{spde}.}
+\item{parameterization}{Which parameterization to use? \code{matern} uses range,
+std. deviation and nu (smoothness). \code{spde} uses kappa, tau and alpha. The
+default is \code{spde}.}
 
 \item{compute_higher_order}{Logical. Should the higher order finite
 element matrices be computed?}
@@ -73,10 +94,56 @@ should the block parts of the precision matrix be returned
 separately as a list?}
 
 \item{type_rational_approximation}{Which type of rational
-approximation should be used? The current types are
-"brasil", "chebfun" or "chebfunLB".}
+approximation should be used? The tabulated types are
+"brasil", "chebfun" and "chebfunLB"; "wl2" minimises the weighted
+\eqn{L_2} error over the spectral interval, see
+\code{\link[=rational.coefficients.wl2]{rational.coefficients.wl2()}}. Its mesh-free coefficients are stored in the
+package and cost nothing to obtain, which is the default for
+\code{type = "covariance"}; a fit for a particular spectral interval, that is
+with \code{x_min} or \code{kappa_ref}, is computed when the model is created and can
+be kept between sessions with \code{\link[=rspde.cache]{rspde.cache()}}.}
 
-\item{compute_logdet}{Should log determinants be computed while building the model? (For covariance-based models)}
+\item{x_min}{Lower end of the spectral interval used by
+\code{type_rational_approximation = "wl2"}, see \code{\link[=rspde.xmin]{rspde.xmin()}}. The default
+\code{NULL} gives the mesh-free fit for \code{type = "covariance"}, and a value
+derived from the mesh and \code{kappa_ref} for \code{type = "operator"}.}
+
+\item{kappa_ref}{A lower bound for \code{kappa}, used to determine \code{x_min} when
+\code{x_min} is not given. Must be a lower bound: a reference above the true
+\code{kappa} leaves part of the spectrum outside the fitted interval. The default
+corresponds to a range equal to the diameter of the domain.}
+
+\item{wl2_table}{A table of weighted-L2 coefficients from
+\code{\link[=rspde.wl2.table]{rspde.wl2.table()}}, for \code{type_rational_approximation = "wl2"}. Supplying
+one overrides \code{x_min} and \code{kappa_ref} and skips the fits, which is how a
+mesh-specific table is reused across models. \code{NULL} uses the table shipped
+with the package, or computes one if \code{x_min} or \code{kappa_ref} is given.}
+
+\item{variance_correction}{Only available for \code{type = "covariance"} with
+\code{type_rational_approximation = "wl2"}; with any other combination it is
+ignored, with a warning. With \code{"nodal"}, the diagonal
+\eqn{D = \max(\sigma^2 - \mathrm{diag}(\Sigma_{\mathrm{approx}}), 0)} is
+computed on the mesh and stored in the object, and is added to the
+covariance by \code{\link[=covariance_mesh]{covariance_mesh()}}, \code{\link[=cov_function_mesh]{cov_function_mesh()}} and \code{\link[=simulate]{simulate()}}.
+In observation models this is equivalent to adding \verb{A D t(A)} to the
+covariance of the measurement noise; note that the likelihood and prediction
+methods do not include it. The default is \code{"none"}.
+
+What it corrects is mostly the finite element discretisation, not the
+rational approximation. A mesh cannot represent the high frequency content
+of a rough field, so the nodal variance of the \emph{exact} discretised model is
+already below \eqn{\sigma^2}. The correction therefore moves the model towards
+the continuum Matern.
+
+Unlike the rational coefficients, this depends on \code{kappa}, \code{tau} and the
+mesh, so it cannot be tabulated and is recomputed whenever the parameters
+change, including at every \code{\link[=update]{update()}} of a model being fitted. It costs the
+diagonal of the inverse of each block, so it is meant for a model whose
+parameters are known or already estimated, not for use inside a likelihood
+optimisation.}
+
+\item{compute_logdet}{Should log determinants be computed while building the
+model? (For covariance-based models)}
 }
 \value{
 If \code{type} is "covariance", then \code{matern.operators}

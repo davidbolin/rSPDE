@@ -1,5 +1,63 @@
 # rSPDE (development version)
 
+* Added `type_rational_approximation = "wl2"`, a new way of obtaining the
+  rational coefficients. The classes are parameterised so that every fit is a 
+  valid model and have no constant term, so the covariance-based models have `m` 
+  instead of `m + 1` latent blocks. Available in `matern.operators()` and
+  `CBrSPDE.matern.operators()` for both `type = "covariance"` and
+  `type = "operator"`, in `matern.rational()` and `matern.rational.cov()` for
+  the exact one-dimensional models, and directly through
+  `rational.coefficients.wl2()`. It requires `floor(nu + d/2)` to be 0 or 1 for
+  the covariance type and `nu + d/2 < 2` for the operator type. The existing
+  `"brasil"`, `"chebfun"` and `"chebfunLB"` types are unchanged and remain the
+  default.
+* The mesh-free weighted-L2 coefficients are stored in the package, as the
+  tabulated ones are, for `d` = 1 to 3, `m` = 1 to 6 and `floor(alpha)` = 0 and
+  1. They depend on neither the mesh nor `kappa` and are what a covariance-based 
+  model uses by default, so the common case fits nothing at set-up. 
+  `data-raw/wl2_tables.R` regenerates them, and the tests check that a fresh fit 
+  still reproduces what is stored.
+* Added `rspde.xmin()`, which computes the lower end of the spectral interval
+  from the mesh and a lower bound for `kappa`, and the arguments `x_min` and
+  `kappa_ref` to `matern.operators()`. Fitting on that shorter interval is
+  appreciably more accurate than the mesh-free fit, and is done when the model
+  is created. `update_rational_coefficients()` recomputes the coefficients once
+  `kappa` has been estimated.
+* Added `rspde.wl2.table()`, which builds a weighted-L2 table for a given
+  spectral interval, and the `wl2_table` argument of `matern.operators()`,
+  which takes one and overrides `x_min` and `kappa_ref`. A table built for
+  another dimension, order or range of `alpha` is refused rather than used.
+* Added `rspde.cache()`, which keeps generated coefficient tables between
+  sessions, under `tools::R_user_dir("rSPDE", "cache")` or a directory of your
+  choosing. It is off by default, since a package should not write outside the
+  session temporary directory unless asked; the environment variable
+  `RSPDE_CACHE_DIR` sets it for non-interactive use. Lookup is automatic, and a
+  table fitted on a slightly wider spectral interval is reused, since it still
+  covers the whole spectrum.
+* Added `variance_correction = "nodal"` to `matern.operators()`, which adds
+  `max(sigma^2 - diag(Sigma), 0)` to the diagonal of the covariance of a
+  `"wl2"` covariance-based model. What this corrects is mostly the finite
+  element discretisation rather than the rational approximation. It is off by 
+  default, as it depends on the parameters it cannot be tabulated, so it is meant 
+  for a model whose parameters are already estimated.
+* The package now has compiled code in every install, CRAN included:
+  `src/wl2_fit.cpp` holds the inner loop of the weighted-L2 fit. The INLA
+  `cgeneric` sources remain optional and are still built only with
+  `RSPDE_COMPILE=1` or `--configure-args='--enable-compiled'`. The equivalent R
+  implementation is kept as the reference and is used when
+  `options(rSPDE.wl2.use.cpp = FALSE)`.
+* The `RSpectra` dependency is gone. `rspde.xmin(eigenvalue = "exact")` and the
+  scaling of the intrinsic models now use Lanczos iterations in the package.
+  Both are also more robust, and the intrinsic one is faster than the old method.
+* `intrinsic.operators()` now honours its `opts` argument, which was built and
+  then replaced by a hardcoded list. Its entries are `tol` and `maxitr`, as
+  before.
+* Fixed `matern.rational.cov()`, which evaluated the covariance at the lags
+  `h[1] - h`, rather than at `h`. A matrix of lags is now also accepted, and 
+  returns a matrix.
+* `get.roots()` now uses spline interpolation by default. Linear interpolation
+  lost accuracy off the 200-node beta grid of the tables (symbol error 1.6e-4
+  instead of 1.8e-6 at beta = 0.875, m = 4).
 * Fixed the inlabru mapper for `rspde.spacetime()` models whose spatial mesh is
   a `metric_graph`. `bru_get_mapper()` used `bm_fmesher()` for the graph, which
   has no `fm_dof()` method, so `bru()` failed with

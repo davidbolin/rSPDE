@@ -59,7 +59,10 @@ cran_vignettes/*.html
 *.so
 /.quarto/
 
-# Populated by ./configure (sources are tracked in inst/src-optional/)
+# src/ holds the always-compiled sources (tracked below); ./configure copies
+# the optional INLA cgeneric sources here on top of them.
 src/*
-!src/.gitkeep
+!src/wl2_fit.cpp
+!src/Makevars
+!src/Makevars.win
 .positai

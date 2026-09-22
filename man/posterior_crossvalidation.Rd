@@ -35,10 +35,5 @@ A list with elements \code{mu}, \code{var} and \code{scores}, and
 one row per model.
 }
 \description{
-Generic function for posterior cross-validation. rSPDE provides
-methods for \code{\link{rspde_lme}} fits (see
-\code{\link{posterior_crossvalidation.rspde_lme}}) and for lists of fitted
-models, and the \pkg{MetricGraph} package provides a method for
-\code{graph_lme} fits. Because both packages use this generic, loading
-them in either order does not mask one implementation with the other.
+Generic function for posterior cross-validation.
 }

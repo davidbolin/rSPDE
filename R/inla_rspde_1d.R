@@ -102,6 +102,12 @@ rspde.matern1d <- function(loc,
         stop("parameterization should be either 'matern', 'spde' or 'matern2'!")
     }
     
+    if (identical(type.rational.approx, "wl2")) {
+        stop(paste0(
+            "type.rational.approx = 'wl2' is not yet available for the INLA ",
+            "interface; it can be used with matern.rational()."
+        ))
+    }
     if (!type.rational.approx %in% c("brasil", "chebfun", "chebfunLB")) {
         stop("type.rational.approx should be either 'chebfun', 'brasil' or 'chebfunLB'!")
     }

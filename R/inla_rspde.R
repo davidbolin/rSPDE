@@ -112,6 +112,12 @@ rspde.matern <- function(mesh,
     stop("parameterization should be either 'matern', 'spde' or 'matern2'!")
   }
 
+  if (identical(type.rational.approx, "wl2")) {
+    stop(paste0(
+      "type.rational.approx = 'wl2' is not yet available for the INLA ",
+      "interface; it can be used with matern.operators()."
+    ))
+  }
   if (!type.rational.approx %in% c("brasil", "chebfun", "chebfunLB")) {
     stop("type.rational.approx should be either 'chebfun', 'brasil' or 'chebfunLB'!")
   }
@@ -2692,20 +2698,41 @@ rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
 #' @param sharp The sparsity graph should have the correct sparsity (costs
 #' more to perform a sparsity analysis) or an upper bound for the sparsity?
 #' @param type_rational_approx Which type of rational approximation
-#' should be used? The current types are "brasil", "chebfun" or "chebfunLB".
+#' should be used? The current types are "brasil", "chebfun", "chebfunLB" or
+#' "wl2".
+#' @param wl2_table A table of weighted-L2 coefficients, only used for
+#' `type_rational_approx = "wl2"`. If `NULL`, it is taken from the tables
+#' stored in the package where there is one for this configuration, and
+#' computed otherwise.
 #' @return The precision matrix
 #' @export
 
 rspde.matern.precision.opt <- function(
     kappa, nu, tau, rspde.order,
-    dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
+    dim, fem_matrices, graph = NULL, sharp, type_rational_approx,
+    wl2_table = NULL) {
   n_m <- rspde.order
-
-  mt <- get_rational_coefficients(n_m, type_rational_approx)
 
   beta <- nu / 2 + dim / 4
 
   m_alpha <- floor(2 * beta)
+
+  wl2 <- identical(type_rational_approx[[1]], "wl2")
+  p0 <- NULL
+  if (wl2) {
+    if (is.null(wl2_table)) {
+      wl2_table <- wl2_coefficient_table(
+        d = dim, m = n_m, m_alpha = m_alpha, type = "covariance"
+      )
+    }
+    coeff <- wl2_interp_coefficients(wl2_table, 2 * beta)
+    r <- coeff$r
+    p <- coeff$p
+    p0 <- coeff$p0
+    k <- NULL
+  } else {
+    mt <- get_rational_coefficients(n_m, type_rational_approx)
+  }
 
   # r <- sapply(1:(n_m), function(i) {
   #   approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2 * beta))$y
@@ -2717,10 +2744,12 @@ rspde.matern.precision.opt <- function(
 
   # k <- approx(mt$alpha, mt$k, cut_decimals(2 * beta))$y
 
-  row_nu <- round(1000 * cut_decimals(2 * beta))
-  r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
-  p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
-  k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
+  if (!wl2) {
+    row_nu <- round(1000 * cut_decimals(2 * beta))
+    r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
+    p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
+    k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
+  }
 
 
   if (m_alpha == 0) {
@@ -2758,13 +2787,35 @@ rspde.matern.precision.opt <- function(
       stop("Something is wrong with the value of nu!")
     }
 
-    Q <- 1 / r[1] * (Malpha + Malpha2 / kappa^2 - p[1] * Malpha)
+    block <- function(i) {
+      if (is.null(p0)) {
+        return(1 / r[i] * (Malpha + Malpha2 / kappa^2 - p[i] * Malpha))
+      }
+      1 / r[i] * (Malpha + Malpha2 / kappa^2 - (p0 + p[i]) * Malpha +
+        p0 * p[i] * fem_matrices[["C"]])
+    }
+
+    Q <- block(1)
 
     if (length(r) > 1) {
       for (i in 2:length(r)) {
-        Q <- c(Q, 1 / r[i] * (Malpha + Malpha2 / kappa^2 - p[i] * Malpha))
+        Q <- c(Q, block(i))
       }
     }
+  }
+
+  if (wl2) {
+    ## No constant term, hence no k-block.
+    Q <- tau^2 * kappa^(4 * beta) * Q
+    if (!is.null(graph)) {
+      graph <- as(graph, "TsparseMatrix")
+      idx <- which(graph@i <= graph@j)
+      Q <- Matrix::sparseMatrix(
+        i = graph@i[idx], j = graph@j[idx], x = Q,
+        symmetric = TRUE, index1 = FALSE
+      )
+    }
+    return(Q)
   }
 
   # add k_part into Q
@@ -2859,7 +2910,11 @@ rspde.matern.precision.opt <- function(
 #' @param return_block_list Logical. For `type = "covariance"`, should the
 #' block parts of the precision matrix be returned separately as a list?
 #' @param type_rational_approx Which type of rational approximation should be
-#' used? The current types are "brasil", "chebfun" or "chebfunLB".
+#' used? The current types are "brasil", "chebfun", "chebfunLB" or "wl2".
+#' @param wl2_table A table of weighted-L2 coefficients, only used for
+#' `type_rational_approx = "wl2"`. If `NULL`, it is taken from the tables
+#' stored in the package where there is one for this configuration, and
+#' computed otherwise.
 #'
 #' @return The precision matrix
 #' @export
@@ -2901,7 +2956,7 @@ rspde.matern.precision <- function(
     kappa, nu, tau = NULL, sigma = NULL,
     rspde.order, dim, fem_mesh_matrices,
     only_fractional = FALSE, return_block_list = FALSE,
-    type_rational_approx = "brasil") {
+    type_rational_approx = "brasil", wl2_table = NULL) {
   if (is.null(tau) && is.null(sigma)) {
     stop("You should provide either tau or sigma!")
   }
@@ -2913,16 +2968,30 @@ rspde.matern.precision <- function(
 
   n_m <- rspde.order
 
-  mt <- get_rational_coefficients(n_m, type_rational_approx)
-
   beta <- nu / 2 + dim / 4
 
   m_alpha <- floor(2 * beta)
 
-  row_nu <- round(1000 * cut_decimals(2 * beta))
-  r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
-  p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
-  k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
+  wl2 <- identical(type_rational_approx[[1]], "wl2")
+  p0 <- NULL
+  if (wl2) {
+    if (is.null(wl2_table)) {
+      wl2_table <- wl2_coefficient_table(
+        d = dim, m = n_m, m_alpha = m_alpha, type = "covariance"
+      )
+    }
+    coeff <- wl2_interp_coefficients(wl2_table, 2 * beta)
+    r <- coeff$r
+    p <- coeff$p
+    p0 <- coeff$p0
+    k <- NULL
+  } else {
+    mt <- get_rational_coefficients(n_m, type_rational_approx)
+    row_nu <- round(1000 * cut_decimals(2 * beta))
+    r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
+    p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
+    k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
+  }
 
   if (!only_fractional) {
     if (m_alpha == 0) {
@@ -2964,15 +3033,30 @@ rspde.matern.precision <- function(
         stop("Something is wrong with the value of nu!")
       }
 
-      Q <- 1 / r[1] * (Malpha + Malpha2 / kappa^2 - p[1] * Malpha)
+      block <- function(i) {
+        ## (L C^-1 L - p_i L) / r_i, with the shift (L - p_0 C) C^-1 (L - p_i C)
+        ## for the weighted-L2 coefficients.
+        if (is.null(p0)) {
+          return(1 / r[i] * (Malpha + Malpha2 / kappa^2 - p[i] * Malpha))
+        }
+        1 / r[i] * (Malpha + Malpha2 / kappa^2 - (p0 + p[i]) * Malpha +
+          p0 * p[i] * fem_mesh_matrices[["c0"]])
+      }
+
+      Q <- block(1)
 
       if (length(r) > 1) {
         for (i in 2:length(r)) {
-          Q <- bdiag(Q, 1 / r[i] * (Malpha + Malpha2 / kappa^2 - p[i] * Malpha))
+          Q <- bdiag(Q, block(i))
         }
       }
     }
 
+    if (wl2) {
+      ## No constant term, hence no k-block.
+      Q <- Q * kappa^(4 * beta)
+      return(tau^2 * Q)
+    }
 
     # add k_part into Q
 
@@ -3009,6 +3093,34 @@ rspde.matern.precision <- function(
   } else {
     L <- ((kappa^2) * fem_mesh_matrices[["c0"]] +
       fem_mesh_matrices[["g1"]]) / kappa^2
+
+    if (wl2) {
+      ## The weighted-L2 blocks are (L - p_i C) / r_i, and
+      ## (L - p_0 C) C^-1 (L - p_i C) / r_i = (L C^-1 L - (p_0 + p_i) L
+      ## + p_0 p_i C) / r_i when floor(alpha) = 1. The integer factor is
+      ## therefore already included, and there is no k-block.
+      C0 <- fem_mesh_matrices[["c0"]]
+      if (is.null(p0)) {
+        block <- function(i) (L - p[i] * C0) / r[i]
+      } else {
+        Ci <- Matrix::Diagonal(dim(C0)[1], 1 / rowSums(C0))
+        LCiL <- L %*% Ci %*% L
+        block <- function(i) {
+          (LCiL - (p0 + p[i]) * L + p0 * p[i] * C0) / r[i]
+        }
+      }
+      scaling <- kappa^(4 * beta) * tau^2
+      if (return_block_list) {
+        return(lapply(seq_len(n_m), function(i) scaling * block(i)))
+      }
+      Q <- block(1)
+      if (n_m > 1) {
+        for (i in 2:n_m) {
+          Q <- bdiag(Q, block(i))
+        }
+      }
+      return(scaling * Q)
+    }
 
     if (return_block_list) {
       Q <- list()

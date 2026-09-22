@@ -22,7 +22,13 @@
 #' @param sigma Standard deviation
 #' @param tau Precision parameter
 #' @param alpha Smoothness parameter
-#' @param type_rational_approximation Method used to compute the coefficients of the rational approximation.
+#' @param type_rational_approximation Method used to compute the coefficients of
+#' the rational approximation. The tabulated methods are "brasil", "chebfun"
+#' and "chebfunLB"; "wl2" minimises the weighted \eqn{L_2} error, see
+#' [rational.coefficients.wl2()]. Its coefficients are stored in the package,
+#' so this costs nothing when the model is created. The "wl2" classes have no constant term, so
+#' the model has `m` instead of `m + 1` blocks, and they require
+#' \eqn{\alpha = \nu + 1/2 < 2}.
 #' @param type_interp Interpolation method for the rational coefficients. 
 #'
 #' @return A model object for the the approximation
@@ -183,6 +189,29 @@ matern.rational = function(graph = NULL,
             equally_spaced = TRUE
         }
     }
+    
+    ## The weighted-L2 coefficients are computed here, at set-up, rather than
+    ## read off a stored table.
+    wl2_table <- NULL
+    if (identical(type_rational_approximation[[1]], "wl2")) {
+        if (m < 1) {
+            stop("type_rational_approximation = 'wl2' requires m >= 1.")
+        }
+        m_alpha <- floor(alpha)
+        if (!(m_alpha %in% c(0, 1))) {
+            stop(paste0(
+                "type_rational_approximation = 'wl2' is only implemented for ",
+                "floor(alpha) equal to 0 or 1, but floor(nu + 1/2) = ",
+                m_alpha, "."
+            ))
+        }
+        if (alpha %% 1 != 0) {
+            wl2_table <- wl2_coefficient_table(
+                d = 1, m = m, m_alpha = m_alpha, type = "covariance"
+            )
+        }
+    }
+    
     output <- list(
         graph = graph,
         has_graph = has_graph,
@@ -198,6 +227,8 @@ matern.rational = function(graph = NULL,
         d = 1,
         type_rational_approximation = type_rational_approximation, 
         type_interp = type_interp,
+        wl2_table = wl2_table,
+        n_blocks = rspde_n_blocks(m, type_rational_approximation),
         parameterization = parameterization,
         stationary = TRUE,
         equally_spaced = equally_spaced
@@ -223,7 +254,8 @@ matern.rational = function(graph = NULL,
                                      nu = nu, 
                                      sigma = sigma,
                                      type_rational = type_rational_approximation, 
-                                     type_interp = type_interp)
+                                     type_interp = type_interp,
+                                     wl2_table = wl2_table)
         
         return(Sigma)
     }
@@ -442,8 +474,9 @@ simulate.rSPDEobj1d <- function(object,
     ldl <- matern.rational.ldl(loc = loc_sort, order = object$m,
                                nu = object$nu, kappa = object$kappa,
                                sigma = object$sigma,
-                               type_rational = object$type_rational,
-                               type_interp = object$type_interp)
+                               type_rational = object[["type_rational_approximation"]],
+                               type_interp = object$type_interp,
+                               wl2_table = object[["wl2_table"]])
     m <- dim(ldl$L)[1]
     z <- rnorm(nsim * m)
     dim(z) <- c(m, nsim)
@@ -481,8 +514,9 @@ aux2_lme_rSPDE.matern.rational.loglike <- function(object, y, X_cov, repl,
         ## Construct prior Q
         tmp <- matern.rational.ldl(loc = ls$x, order = object$m, nu = object$nu, 
                                    kappa = object$kappa, sigma = object$sigma, 
-                                   type_rational = object$type_rational_approx, 
-                                   type_interp =  object$type_interp)    
+                                   type_rational = object[["type_rational_approximation"]], 
+                                   type_interp =  object$type_interp,
+                                   wl2_table = object[["wl2_table"]])    
 
         prior.ld <- 0.5 * sum(log(diag(tmp$D)))
         
@@ -626,20 +660,22 @@ precision.rSPDEobj1d <- function(object,
                                  nu = object$nu,
                                  kappa = object$kappa,
                                  sigma = object$sigma,
-                                 type_rational = object$type_rational_approx,
+                                 type_rational = object[["type_rational_approximation"]],
                                  type_interp = object$type_interp,
                                  equally_spaced = object$equally_spaced,
-                                 ordering = ordering)
+                                 ordering = ordering,
+                                 wl2_table = object[["wl2_table"]])
     } else {
         Q <- matern.rational.precision(loc = loc,
                                        order = object$m,
                                        nu = object$nu,
                                        kappa = object$kappa,
                                        sigma = object$sigma,
-                                       type_rational = object$type_rational_approx,
+                                       type_rational = object[["type_rational_approximation"]],
                                        type_interp = object$type_interp,
                                        ordering = ordering, 
-                                       equally_spaced = object$equally_spaced)
+                                       equally_spaced = object$equally_spaced,
+                                       wl2_table = object[["wl2_table"]])
     }
     
     if(unsorted) {
@@ -672,7 +708,8 @@ matern.rational.precision <- function(loc,
                                       type_interp = "spline",
                                       equally_spaced = FALSE,
                                       cumsum = FALSE,
-                                      ordering = c("field", "location")) {
+                                      ordering = c("field", "location"),
+                                      wl2_table = NULL) {
     ordering <- ordering[[1]]
     if(!(ordering %in% c("field", "location"))) {
         stop("Ordering must be 'field' or 'location'.")
@@ -682,21 +719,27 @@ matern.rational.precision <- function(loc,
     }
     alpha=nu+1/2
     n <- length(loc)
+    wl2 <- identical(type_rational[[1]], "wl2")
     tmp <- matern.rational.ldl(loc = loc, order = order, nu = nu, kappa = kappa, 
                                sigma = sigma, type_rational = type_rational, 
-                               type_interp =  type_interp, equally_spaced = equally_spaced)
+                               type_interp =  type_interp, equally_spaced = equally_spaced,
+                               wl2_table = wl2_table)
     
     Q <- t(tmp$L)%*%tmp$D%*%tmp$L
     A <- tmp$A
     
     if(cumsum) {
+        if (wl2) {
+            stop(paste0("cumsum is not implemented for ",
+                        "type_rational = 'wl2', which has no constant term."))
+        }
         tmp <- change.of.variables(alpha,n,order,A)
         A <- tmp$A
         Q <- t(tmp$B)%*%Q%*%tmp$B
     }
     
     if(ordering == "location") {
-        reo <- compute.reordering(n,order,alpha)
+        reo <- compute.reordering(n,order,alpha, has_k = !wl2)
         Q <- Q[reo,reo]
         A <- A[,reo]
     } 
@@ -727,7 +770,8 @@ matern.rational.ldl <- function(loc,
                                 type_rational = "brasil",
                                 type_interp = "spline",
                                 equally_spaced = FALSE,
-                                ordering = c("field", "location")) {
+                                ordering = c("field", "location"),
+                                wl2_table = NULL) {
     ordering <- ordering[[1]]
     if(!(ordering %in% c("field", "location"))) {
         stop("Ordering must be 'field' or 'location'.")
@@ -747,28 +791,38 @@ matern.rational.ldl <- function(loc,
         coeff <- interp_rational_coefficients(order = order, 
                                               type_rational_approx = type_rational, 
                                               type_interp = type_interp, 
-                                              alpha = alpha)
+                                              alpha = alpha,
+                                              wl2_table = wl2_table)
         r <- coeff$r
         p <- coeff$p
+        p0 <- coeff$p0
         k <- coeff$k
         
-        ## k part
-        tmp <- matern.k.chol(loc = loc,kappa,equally_spaced = equally_spaced, 
-                             alpha = alpha)
-        L <- tmp$Bs
-        D <- tmp$Fsi/(k*sigma^2)
-        A <- tmp$A
+        ## k part; the weighted-L2 classes have no constant term
+        L <- D <- A <- NULL
+        if (!identical(type_rational[[1]], "wl2")) {
+            tmp <- matern.k.chol(loc = loc,kappa,equally_spaced = equally_spaced, 
+                                 alpha = alpha)
+            L <- tmp$Bs
+            D <- tmp$Fsi/(k*sigma^2)
+            A <- tmp$A
+        }
         
         ## p part
-        t.p <- rep(0,length(p))
         for(i in 1:length(p)){
             tmp <- matern.p.chol(loc = loc, kappa = kappa, p =p[i],
                                  equally_spaced = equally_spaced, 
-                                 alpha = alpha)
+                                 alpha = alpha, p0 = p0)
             
-            L <- bdiag(L, tmp$Bs)
-            D <- bdiag(D, tmp$Fsi/(r[i]*sigma^2))
-            A = cbind(A,tmp$A)
+            if (is.null(L)) {
+                L <- tmp$Bs
+                D <- tmp$Fsi/(r[i]*sigma^2)
+                A <- tmp$A
+            } else {
+                L <- bdiag(L, tmp$Bs)
+                D <- bdiag(D, tmp$Fsi/(r[i]*sigma^2))
+                A = cbind(A,tmp$A)
+            }
         }
     }
     if(ordering == "location") {
@@ -782,7 +836,15 @@ matern.rational.ldl <- function(loc,
 
 # Reorder matern
 #' @noRd
-compute.reordering <- function(n,m,alpha) {
+compute.reordering <- function(n,m,alpha, has_k = TRUE) {
+    if(!has_k) {
+        ## The weighted-L2 classes have m blocks and no k block; each block
+        ## holds fa entries per location, stored consecutively.
+        fa <- if(alpha%%1 == 0) alpha else floor(alpha) + 1
+        starts <- fa*n*(0:(m-1))
+        per_loc <- as.vector(outer(seq_len(fa), starts, "+"))
+        return(rep(per_loc, n) + rep(fa*(0:(n-1)), each = length(per_loc)))
+    }
     if(alpha < 1) {
         return(as.vector(rep(seq(from=1,to=(m+1)*n,by=n),n) + kronecker(0:(n-1),rep(1,m+1))))
     } else if(alpha <2) {
@@ -877,7 +939,7 @@ exp_precision <- function(loc, kappa, boundary = "free") {
 
 
 #Joint covariance of process and derivative for shifted Matern
-matern.p.joint <- function(s,t,kappa,p, alpha = 1){
+matern.p.joint <- function(s,t,kappa,p, alpha = 1, p0 = NULL){
     
     if(alpha%%1 == 0) {
         fa <- alpha
@@ -888,9 +950,9 @@ matern.p.joint <- function(s,t,kappa,p, alpha = 1){
     for(i in 1:fa) {
         for(j in i:fa) {
             if(i==j) {
-                mat[i,i] <- ((-1)^(i-1))*matern.p.deriv(s,t,kappa,p,alpha, deriv = 2*(i-1))
+                mat[i,i] <- ((-1)^(i-1))*matern.p.deriv(s,t,kappa,p,alpha, deriv = 2*(i-1), p0 = p0)
             } else {
-                tmp <- matern.p.deriv(s,t,kappa,p,alpha, deriv = i-1 + j - 1)
+                tmp <- matern.p.deriv(s,t,kappa,p,alpha, deriv = i-1 + j - 1, p0 = p0)
                 mat[i,j] <- (-1)^(j-1)*tmp
                 mat[j,i] <- (-1)^(i-1)*tmp
             }
@@ -901,7 +963,32 @@ matern.p.joint <- function(s,t,kappa,p, alpha = 1){
 }
 
 
-matern.p <- function(s,t,kappa,p,alpha){
+# Covariance (or its deriv-th derivative) of the symbol term 1/(lambda - p),
+# with the normalisation of a Matern field with smoothness alpha - 1/2.
+#' @noRd
+matern.p.term <- function(h, kappa, p, alpha, deriv = 0) {
+    ca <- gamma(alpha)/gamma(alpha-0.5)
+    matern.derivative(h, kappa = kappa*sqrt(1-p), nu = 1/2,
+                      sigma = sqrt(ca*sqrt(pi)/sqrt(1-p)), deriv = deriv)
+}
+
+# The shifted (weighted-L2) term
+#   1/((lambda - p0)(lambda - p)) = (P(p0) - P(p))/(p0 - p),
+# which for p0 = 0 is the term lambda^{-1}/(lambda - p) of the tabulated
+# classes.
+#' @noRd
+matern.p.shifted <- function(h, kappa, p0, p, alpha, deriv = 0) {
+    if (abs(p0 - p) < 1e-10) {
+        stop("The shift p0 coincides with a pole of the rational approximation.")
+    }
+    (matern.p.term(h, kappa, p0, alpha, deriv) -
+         matern.p.term(h, kappa, p, alpha, deriv)) / (p0 - p)
+}
+
+matern.p <- function(s,t,kappa,p,alpha,p0 = NULL){
+    if(!is.null(p0)){
+        return(matern.p.shifted(s-t, kappa, p0, p, alpha, deriv = 0))
+    }
     h <- s-t
     if(p==0){
         return(matern.covariance(h, kappa = kappa, nu = alpha - 1/2, sigma = 1))
@@ -925,7 +1012,10 @@ matern.p <- function(s,t,kappa,p,alpha){
     }
 }
 
-matern.p.deriv <- function(s,t,kappa,p,alpha,deriv = 0){
+matern.p.deriv <- function(s,t,kappa,p,alpha,deriv = 0,p0 = NULL){
+    if(!is.null(p0)){
+        return(matern.p.shifted(s-t, kappa, p0, p, alpha, deriv = deriv))
+    }
     h <- s-t
     if(deriv ==0){
         return(matern.p(s,t,kappa,p,alpha))
@@ -1064,7 +1154,7 @@ matern.p.precision <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
 }
 
 
-matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
+matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1, p0 = NULL) {
     
     n <- length(loc)
     
@@ -1086,9 +1176,9 @@ matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
     val <- numeric(N)
     Sigma <- matrix(0,nrow=2*fa, ncol = 2*fa)
     Stransp <- outer((-1)^(0:(fa-1)),(-1)^(0:(fa-1)))
-    Sdiag <- matern.p.joint(0,0,kappa,p,alpha)
+    Sdiag <- matern.p.joint(0,0,kappa,p,alpha,p0)
     
-    Sod <- matern.p.joint(loc[1],loc[2],kappa,p,alpha)
+    Sod <- matern.p.joint(loc[1],loc[2],kappa,p,alpha,p0)
     di <- abs(loc[2]-loc[1])
     
     Sigma[1:fa,1:fa] <- Sdiag
@@ -1100,10 +1190,10 @@ matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
     Fs.d <- Fsi.d <- numeric(fa*n)
     
     if(equally_spaced){
-        Sigma <- rbind(cbind(matern.p.joint(loc[1],loc[1],kappa,p,alpha), 
-                             matern.p.joint(loc[1],loc[2],kappa,p,alpha)),
-                       cbind(matern.p.joint(loc[2],loc[1],kappa,p,alpha),
-                             matern.p.joint(loc[2],loc[2],kappa,p,alpha)))
+        Sigma <- rbind(cbind(matern.p.joint(loc[1],loc[1],kappa,p,alpha,p0), 
+                             matern.p.joint(loc[1],loc[2],kappa,p,alpha,p0)),
+                       cbind(matern.p.joint(loc[2],loc[1],kappa,p,alpha,p0),
+                             matern.p.joint(loc[2],loc[2],kappa,p,alpha,p0)))
     }
     
     for(i in 1:n){
@@ -1131,13 +1221,13 @@ matern.p.chol <- function(loc,kappa,p,equally_spaced = FALSE, alpha = 1) {
             }
         } else {
             if(!equally_spaced){
-                #Sigma <- rbind(cbind(matern.p.joint(loc[i-1],loc[i-1],kappa,p,alpha),
-                #                     matern.p.joint(loc[i-1],loc[i],kappa,p,alpha)),
-                #               cbind(matern.p.joint(loc[i],loc[i-1],kappa,p,alpha),
-                #                     matern.p.joint(loc[i],loc[i],kappa,p,alpha)))
+                #Sigma <- rbind(cbind(matern.p.joint(loc[i-1],loc[i-1],kappa,p,alpha,p0),
+                #                     matern.p.joint(loc[i-1],loc[i],kappa,p,alpha,p0)),
+                #               cbind(matern.p.joint(loc[i],loc[i-1],kappa,p,alpha,p0),
+                #                     matern.p.joint(loc[i],loc[i],kappa,p,alpha,p0)))
                 if(!(di==abs(loc[i]-loc[i-1]))) {
                     di=abs(loc[i]-loc[i-1])
-                    Sod <- matern.p.joint(loc[i-1],loc[i],kappa,p,alpha)
+                    Sod <- matern.p.joint(loc[i-1],loc[i],kappa,p,alpha,p0)
                     Sigma[1:fa,(fa+1):(2*fa)] <- Sod
                     Sigma[(fa+1):(2*fa),1:fa] <- Stransp*Sod
                 }

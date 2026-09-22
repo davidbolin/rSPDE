@@ -105,7 +105,13 @@ simulate.rSPDEobj <- function(object,
 #' separately as a list?
 #' @param type_rational_approximation Which type of rational
 #' approximation should be used? The current types are "chebfun",
-#' "brasil" or "chebfunLB".
+#' "brasil", "chebfunLB" or "wl2".
+#' @param x_min Lower end of the spectral interval used by
+#' `type_rational_approximation = "wl2"`, see [rspde.xmin()].
+#' @param kappa_ref A lower bound for `kappa`, used to determine `x_min` when
+#' `x_min` is not given.
+#' @param variance_correction Should the nodal variance of the weighted-L2
+#' approximation be corrected? See [matern.operators()].
 #' @param check_stationarity Logical; if TRUE, automatically returns a stationary
 #' model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
 #' non-stationary model even when parameters are constant.
@@ -154,6 +160,10 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
                               parameterization = NULL,
                               type_rational_approximation =
                                 object$type_rational_approximation,
+                              x_min = object$x_min,
+                              kappa_ref = object$kappa_ref,
+                              variance_correction =
+                                object$variance_correction,
                               return_block_list = object$return_block_list,
                               check_stationarity = TRUE,
                               ...) {
@@ -278,6 +288,9 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
         type = "covariance",
         return_block_list = return_block_list,
         type_rational_approximation = type_rational_approximation,
+        x_min = x_min,
+        kappa_ref = kappa_ref,
+        variance_correction = variance_correction,
         # fem_mesh_matrices = new_object$fem_mesh_matrices,
         compute_logdet = new_object$compute_logdet
       )
@@ -298,6 +311,9 @@ update.CBrSPDEobj <- function(object, nu = NULL, alpha = NULL,
         type = "covariance",
         return_block_list = return_block_list,
         type_rational_approximation = type_rational_approximation,
+        x_min = x_min,
+        kappa_ref = kappa_ref,
+        variance_correction = variance_correction,
         # fem_mesh_matrices = new_object$fem_mesh_matrices,
         compute_logdet = new_object$compute_logdet
       )
@@ -544,6 +560,12 @@ update.CBrSPDEobj2d <- function(object,
 #' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
 #' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument.
 #' @param parameterization If non-null, update the parameterization. Only works for stationary models.
+#' @param type_rational_approximation Which type of rational approximation
+#' should be used? See [matern.operators()].
+#' @param x_min Lower end of the spectral interval used by
+#' `type_rational_approximation = "wl2"`, see [rspde.xmin()].
+#' @param kappa_ref A lower bound for `kappa`, used to determine `x_min` when
+#' `x_min` is not given.
 #' @param check_stationarity Logical; if TRUE, automatically returns a stationary
 #' model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
 #' non-stationary model even when parameters are constant.
@@ -590,8 +612,15 @@ update.rSPDEobj <- function(object, nu = NULL,
                             graph = NULL,
                             range_mesh = NULL,
                             parameterization = NULL,
+                            type_rational_approximation =
+                              object$type_rational_approximation,
+                            x_min = object$x_min,
+                            kappa_ref = object$kappa_ref,
                             check_stationarity = TRUE,
                             ...) {
+  if (is.null(type_rational_approximation)) {
+    type_rational_approximation <- "chebfun"
+  }
   new_object <- object
 
   ## get parameters
@@ -683,7 +712,10 @@ update.rSPDEobj <- function(object, nu = NULL,
         range_mesh = range_mesh,
         graph = graph,
         parameterization = parameterization,
-        type = "operator"
+        type = "operator",
+        type_rational_approximation = type_rational_approximation,
+        x_min = x_min,
+        kappa_ref = kappa_ref
       )
     } else {
       new_object <- matern.operators(
@@ -699,7 +731,10 @@ update.rSPDEobj <- function(object, nu = NULL,
         range_mesh = range_mesh,
         graph = graph,
         parameterization = parameterization,
-        type = "operator"
+        type = "operator",
+        type_rational_approximation = type_rational_approximation,
+        x_min = x_min,
+        kappa_ref = kappa_ref
       )
     }
   } else {
@@ -958,11 +993,16 @@ simulate.CBrSPDEobj <- function(object, nsim = 1,
       A <- Diagonal(dim(Q)[1])
       Abar <- A
     } else {
-      A <- Diagonal(dim(Q)[1] / (m + 1))
-      Abar <- kronecker(matrix(1, 1, m + 1), A)
+      n_blocks <- rspde_n_blocks_obj(object)
+      A <- Diagonal(dim(Q)[1] / n_blocks)
+      Abar <- kronecker(matrix(1, 1, n_blocks), A)
     }
 
     X <- Abar %*% X
+    if (!is.null(object$nodal_correction)) {
+      X <- X + sqrt(pmax(object$nodal_correction, 0)) *
+        matrix(rnorm(dim(X)[1] * nsim), dim(X)[1], nsim)
+    }
   }
   return(X)
 }
@@ -1032,8 +1072,8 @@ simulate.CBrSPDEobj2d <- function(object,
     X <- solve(LQ, Z)
     
     if(object$alpha %% 1 != 0) {
-        A <- Diagonal(dim(Q)[1] / (object$m + 1))
-        Abar <- kronecker(matrix(1, 1, object$m + 1), A)
+        A <- Diagonal(dim(Q)[1] / (rspde_n_blocks_obj(object)))
+        Abar <- kronecker(matrix(1, 1, rspde_n_blocks_obj(object)), A)
         X <- Abar %*% X
     }
     
@@ -1630,7 +1670,7 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
       # (m + 1) * (logdetL - logdetC)
 
       logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE, sqrt = TRUE)$modulus) + (Q.int.order) *
-        (m + 1) * (logdetL - logdetC)
+        rspde_n_blocks_obj(object) * (logdetL - logdetC)
     } else {
       logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE, sqrt = TRUE)$modulus)
     }
@@ -1645,7 +1685,7 @@ CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
   if (object$alpha %% 1 == 0) {
     Abar <- A
   } else {
-    Abar <- kronecker(matrix(1, 1, m + 1), A)
+    Abar <- kronecker(matrix(1, 1, rspde_n_blocks_obj(object)), A)
   }
   Q_xgiveny <- t(Abar) %*% Q.e %*% Abar + Q
   ## construct mu_x|y
@@ -1753,7 +1793,7 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
       # (m + 1) * (logdetL - logdetC)
 
       logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE, sqrt = TRUE)$modulus) + (Q.int.order) *
-        (m + 1) * (logdetL - logdetC)
+        rspde_n_blocks_obj(object) * (logdetL - logdetC)
     } else {
       logQ <- 2 * c(determinant(Q.fracR, logarithm = TRUE, sqrt = TRUE)$modulus)
     }
@@ -1768,7 +1808,7 @@ aux_CBrSPDE.matern.loglike <- function(object, Y, A, sigma.e, mu = 0,
   if (object$alpha %% 1 == 0) {
     Abar <- A
   } else {
-    Abar <- kronecker(matrix(1, 1, m + 1), A)
+    Abar <- kronecker(matrix(1, 1, rspde_n_blocks_obj(object)), A)
   }
 
   Q_xgiveny <- t(Abar) %*% Q.e %*% Abar + Q
@@ -2073,7 +2113,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
       mu <- rep(mu, dim(object$Q)[1])
   } else {
       if(length(mu) == dim(object$C)[1] && dim(object$C)[1] < dim(object$Q)[1]) {
-          mu <- rep(mu,object$m+1) / (object$m+1)
+          mu <- rep(mu,rspde_n_blocks_obj(object)) / (rspde_n_blocks_obj(object))
       } else if (length(mu) != dim(object$Q)[1]) {
           stop("the length of mu is wrong.")
       }
@@ -2102,9 +2142,10 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
       Q <- object$Q
 
       ## compute Q_x|y
-      Q_xgiveny <- kronecker(matrix(1, m + 1, m + 1), t(A) %*% Q.e %*% A) + Q
+      n_blocks <- rspde_n_blocks_obj(object)
+      Q_xgiveny <- kronecker(matrix(1, n_blocks, n_blocks), t(A) %*% Q.e %*% A) + Q
       ## construct mu_x|y
-      Abar <- kronecker(matrix(1, 1, m + 1), A)
+      Abar <- kronecker(matrix(1, 1, n_blocks), A)
       
       mu_xgiveny <- t(Abar) %*% Q.e %*% (Y - Abar%*%mu)
       # upper triangle with reordering
@@ -2114,7 +2155,7 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
 
       mu_xgiveny <- mu + mu_xgiveny
 
-      Aprd_bar <- kronecker(matrix(1, 1, m + 1), Aprd)
+      Aprd_bar <- kronecker(matrix(1, 1, n_blocks), Aprd)
 
       out$mean <- Aprd_bar %*% mu_xgiveny
 
@@ -2140,8 +2181,8 @@ predict.CBrSPDEobj <- function(object, A, Aprd, Y, sigma.e, mu = 0,
       Aprd_bar <- Aprd
       Q <- object$Q
     } else {
-      Abar <- kronecker(matrix(1, 1, m + 1), A)
-      Aprd_bar <- kronecker(matrix(1, 1, m + 1), Aprd)
+      Abar <- kronecker(matrix(1, 1, rspde_n_blocks_obj(object)), A)
+      Aprd_bar <- kronecker(matrix(1, 1, rspde_n_blocks_obj(object)), Aprd)
       Q <- object$Q
     }
 

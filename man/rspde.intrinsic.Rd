@@ -68,11 +68,13 @@ direct path to a .so (or .dll) file.}
 \item{cache}{Use caching internally in the estimation?}
 
 \item{scaling}{A positive numeric value of length 1 for scaling the model.
-If NULL (default), it will be computed using RSpectra::eigs.
+If NULL (default), it is computed as the smallest non-zero eigenvalue of
+the scaled stiffness matrix.
 Must be positive if provided.}
 
-\item{opts}{A list of options passed to \code{RSpectra::eigs} function.
-See RSpectra documentation for available options.}
+\item{opts}{A list of options for the computation of the scaling, with
+entries \code{tol} (relative tolerance on the eigenvalue, default 1e-10) and
+\code{maxitr} (maximum number of Lanczos steps, default 300).}
 
 \item{...}{Additional arguments passed internally for configuration purposes.}
 }

@@ -34,10 +34,12 @@
 #' direct path to a .so (or .dll) file.
 #' @param debug Logical value indicating whether to enable INLA debug mode.
 #' @param cache Use caching internally in the estimation?
-#' @param opts A list of options passed to `RSpectra::eigs` function. 
-#' See RSpectra documentation for available options.
+#' @param opts A list of options for the computation of the scaling, with
+#' entries `tol` (relative tolerance on the eigenvalue, default 1e-10) and
+#' `maxitr` (maximum number of Lanczos steps, default 300).
 #' @param scaling A positive numeric value of length 1 for scaling the model.
-#'   If NULL (default), it will be computed using RSpectra::eigs.
+#'   If NULL (default), it is computed as the smallest non-zero eigenvalue of
+#'   the scaled stiffness matrix.
 #'   Must be positive if provided.
 #' @param ... Additional arguments passed internally for configuration purposes.
 #' @return An object of class `inla_rspde_intrinsic` representing the FEM approximation of
@@ -147,12 +149,13 @@ rspde.intrinsic <- function(mesh,
         D <- Diagonal(dim(op$Q)[1], diagonal)
         Cd <- Diagonal(dim(C)[1], 1/sqrt(diag(C)))
         Gg <- Cd%*%G%*%Cd        
-        # Use opts argument with RSpectra::eigs
         if(is.null(opts)) { 
-            opts = list(tol = 1e-10, maxitr = 1e4)
+            opts = list(tol = 1e-10, maxitr = 300)
         }
-        scaling <- RSpectra::eigs_sym(as(Gg, "CsparseMatrix"), 2, which = "SM", 
-                                      opts = opts)$values[1]
+        scaling <- rspde_lambda_min_nonzero(
+            as(Gg, "CsparseMatrix"), sqrt(diag(C)),
+            tol = if (is.null(opts$tol)) 1e-10 else opts$tol,
+            maxit = if (is.null(opts$maxitr)) 300 else opts$maxitr)
         if(is.na(scaling)){
             stop("Computation of scaling failed, provide the scaling manually or change opts to allow for higher maxitr or lower tol")
         }

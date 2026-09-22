@@ -4,7 +4,18 @@
 \alias{fractional.operators}
 \title{Rational approximations of fractional operators}
 \usage{
-fractional.operators(L, beta, C, scale.factor, m = 1, tau = 1)
+fractional.operators(
+  L,
+  beta,
+  C,
+  scale.factor,
+  m = 1,
+  tau = 1,
+  type_rational_approximation = "chebfun",
+  d = NULL,
+  x_min = NULL,
+  wl2_table = NULL
+)
 }
 \arguments{
 \item{L}{A finite element discretization of the operator \eqn{L}{L}.}
@@ -24,6 +35,24 @@ of m that is implemented is 4.}
 
 \item{tau}{The constant or vector that scales the variance of the solution.
 The default value is 1.}
+
+\item{type_rational_approximation}{Which type of rational approximation
+should be used? The tabulated types are "chebfun", "brasil" and
+"chebfunLB"; "wl2" minimises the weighted \eqn{L_2} error over the spectral
+interval, see \code{\link[=rational.coefficients.wl2]{rational.coefficients.wl2()}}. Its mesh-free coefficients are
+stored in the package and cost nothing to obtain; a fit for a particular
+spectral interval is computed when the model is created. The "wl2" type
+requires \eqn{\beta < 1}.}
+
+\item{d}{The dimension of the domain. Only used for
+\code{type_rational_approximation = "wl2"}.}
+
+\item{x_min}{Lower end of the spectral interval used by
+\code{type_rational_approximation = "wl2"}, see \code{\link[=rspde.xmin]{rspde.xmin()}}. \code{NULL} gives the
+mesh-free fit, which is not recommended for the operator-based models.}
+
+\item{wl2_table}{An optional table of weighted-L2 coefficients, supplied by
+\code{\link[=matern.operators]{matern.operators()}}.}
 }
 \value{
 \code{fractional.operators} returns an object of class "rSPDEobj".

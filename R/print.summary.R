@@ -165,6 +165,9 @@ summary.rSPDEobj <- function(object, ...) {
     out$stationary <- object$stationary
     out$parameterization <- object$parameterization
     out$n <- dim(object$L)[1]
+    out[["type_rational_approximation"]] <-
+        object[["type_rational_approximation"]]
+    out["x_min"] <- list(object$x_min)
     return(out)
 }
 
@@ -190,6 +193,23 @@ print.summary.rSPDEobj <- function(x, ...) {
         }
     }
     cat("Order or rational approximation: ", x$m, "\n")
+    ## The tabulated types all share the same table for the operator-based
+    ## form, so the type is only informative when it is "wl2".
+    if (identical(x[["type_rational_approximation"]], "wl2")) {
+        cat(
+            "Type of rational approximation: ",
+            x[["type_rational_approximation"]], "\n"
+        )
+        cat(
+            "Spectral interval: ",
+            if (is.null(x$x_min)) "(0, 1] (mesh-free)" else
+                paste0("[", signif(x$x_min, 4), ", 1]"), "\n"
+        )
+        if (!is.null(x$variance_correction) &&
+            !identical(x$variance_correction, "none")) {
+            cat("Variance correction: ", x$variance_correction, "\n")
+        }
+    }
     cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
     if (x$stationary) {
         cat("Stationary Model\n")
@@ -253,6 +273,8 @@ summary.CBrSPDEobj <- function(object, ...) {
     out$n <- dim(object$C)[1]
     out[["type_rational_approximation"]] <-
         object[["type_rational_approximation"]]
+    out["x_min"] <- list(object$x_min)
+    out$variance_correction <- object$variance_correction
     return(out)
 }
 
@@ -288,6 +310,17 @@ print.summary.CBrSPDEobj <- function(x, ...) {
     }
     
     cat("Order or rational approximation: ", x$m, "\n")
+    if (identical(x[["type_rational_approximation"]], "wl2")) {
+        cat(
+            "Spectral interval: ",
+            if (is.null(x$x_min)) "(0, 1] (mesh-free)" else
+                paste0("[", signif(x$x_min, 4), ", 1]"), "\n"
+        )
+        if (!is.null(x$variance_correction) &&
+            !identical(x$variance_correction, "none")) {
+            cat("Variance correction: ", x$variance_correction, "\n")
+        }
+    }
     cat("Size of discrete operators: ", x$n, " x ", x$n, "\n")
     if (x$stationary) {
         cat("Stationary Model\n")

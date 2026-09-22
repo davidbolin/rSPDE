@@ -110,14 +110,7 @@ aggregated scores}
 }
 \description{
 Performs cross-validation on objects fitted with
-\code{\link{rspde_lme}} and computes common predictive scores. The interface
-mirrors \code{MetricGraph::posterior_crossvalidation} so that the two can be
-used interchangeably for graph-based and non-graph rSPDE fits. Pure OLS
-fits (\code{rspde_lme(formula, data)} with no \code{model}) are also
-supported: predictions reduce to evaluating the covariates at the test
-locations, with predictive variance
-\eqn{\sigma_\epsilon^2 \, (1 + x^\top (X^\top X)^{-1} x)}.
-
+\code{\link{rspde_lme}} and computes common predictive scores.
 For \code{true_CV = FALSE} (default, "pseudo" cross-validation) the model
 parameters are kept fixed at the estimates from the full fit and only the
 held-out points are masked at prediction time. When \code{use_precomputed
@@ -125,7 +118,6 @@ held-out points are masked at prediction time. When \code{use_precomputed
 precision matrix Q) are computed once and reused across folds, mirroring
 the \code{advanced_options$precompute_data} / \code{na_test_idx} path of
 \code{predict.rspde_lme}.
-
 For \code{true_CV = TRUE} the model is refit on each training fold (with
 the held-out response values set to \code{NA}). The previous fit is
 forwarded via \code{previous_fit} so that the optimisation starts from the

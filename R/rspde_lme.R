@@ -232,6 +232,27 @@ rspde_lme <- function(formula,
     }
     null_model <- FALSE
   }
+
+  ## The weighted-L2 coefficients are only implemented for alpha < 2, so the
+  ## smoothness has to stay below 2 - d/2 during the optimisation.
+  if (identical(model$type_rational_approximation, "wl2") &&
+    !is.null(model$d)) {
+    wl2_bound <- 2 - model$d / 2 - 1e-5
+    if (wl2_bound <= 0) {
+      stop(paste0(
+        "type_rational_approximation = 'wl2' requires alpha = nu + d/2 < 2, ",
+        "which is impossible for d = ", model$d, "."
+      ))
+    }
+    if (smoothness_upper_bound > wl2_bound) {
+      message(paste0(
+        "The upper bound for the smoothness was reduced to ",
+        signif(wl2_bound, 4),
+        " because type_rational_approximation = 'wl2' requires alpha < 2."
+      ))
+      smoothness_upper_bound <- wl2_bound
+    }
+  }
   
   if(!inherits(model,"spacetimeobj") && !is.null(loc_time)) {
       warning("loc_time should only be supplied for spatio-temporal models. loc_time will be ignored.")
@@ -510,10 +531,10 @@ rspde_lme <- function(formula,
           }
           if (!is.null(alpha)) {
             if (alpha %% 1 != 0) {
-              A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
+              A_list[[as.character(j)]] <- kronecker(matrix(1, 1, rspde_n_blocks_obj(model)), A_list[[as.character(j)]])
             }
           } else {
-            A_list[[as.character(j)]] <- kronecker(matrix(1, 1, model$m + 1), A_list[[as.character(j)]])
+            A_list[[as.character(j)]] <- kronecker(matrix(1, 1, rspde_n_blocks_obj(model)), A_list[[as.character(j)]])
           }
         }
       }
@@ -1802,7 +1823,9 @@ predict.rspde_lme <- function(object,
 
           # Check if alpha is integer
           if (alpha %% 1 != 0) {
-            Aprd <- kronecker(matrix(1, 1, object$rspde_order + 1), Aprd)
+            Aprd <- kronecker(
+              matrix(1, 1, rspde_n_blocks_obj(object$latent_model)), Aprd
+            )
           }
       }
   } else if(inherits(object$latent_model, "spacetimeobj")) {
@@ -1838,8 +1861,9 @@ predict.rspde_lme <- function(object,
                                    nu = new_rspde_obj$nu,
                                    kappa = new_rspde_obj$kappa,
                                    sigma = new_rspde_obj$sigma,
-                                   type_rational = new_rspde_obj$type_rational_approx,
-                                   type_interp =  new_rspde_obj$type_interp)
+                                   type_rational = new_rspde_obj[["type_rational_approximation"]],
+                                   type_interp =  new_rspde_obj$type_interp,
+                                   wl2_table = new_rspde_obj[["wl2_table"]])
         A_repl <- tmp$A[ind.obs, ]
         Aprd <- tmp$A[ind.pre, ]
         Q <- t(tmp$L)%*%tmp$D%*%tmp$L

@@ -368,13 +368,18 @@ folded.matern.covariance.2d <- function(h, m, kappa, nu, sigma,
 #' Rational approximation of the Matern covariance
 #' 
 #' Computes a rational approximation of the Matern covariance function on intervals. 
-#' @param h Distances to compute the covariance for
+#' @param h Lags at which to compute the covariance. May also be a matrix of
+#' lags, in which case a matrix of the same shape is returned.
 #' @param order The order of the approximation
 #' @param kappa Range parameter
 #' @param nu Smoothness parameter
 #' @param sigma Standard deviation
 #' @param type_rational Method used to compute the coefficients of the rational approximation.
 #' @param type_interp Interpolation method for the rational coefficients. 
+#' @param wl2_table Table of weighted-L2 coefficients, only used for
+#' `type_rational = "wl2"`. If `NULL`, it is taken from the tables stored in
+#' the package where there is one for this configuration, and computed
+#' otherwise.
 #'
 #' @return The covariance matrix of the approximation
 #' @export
@@ -392,58 +397,52 @@ matern.rational.cov = function(h,
                                nu, 
                                sigma,
                                type_rational = "brasil", 
-                               type_interp = "linear")
+                               type_interp = "linear",
+                               wl2_table = NULL)
 {
     
-    if(is.matrix(h) && min(dim(h)) > 1) {
-        stop("Only one dimensional locations supported.")
-    }
+    ## `h` holds the lags at which to evaluate the covariance; it may also be a
+    ## matrix of lags, in which case a matrix of the same shape is returned.
+    h_dim <- dim(h)
+    h <- as.vector(h)
     alpha = nu+1/2
     coeff <- interp_rational_coefficients(order = order, 
                                           type_rational_approx = type_rational, 
                                           type_interp = type_interp, 
-                                          alpha = alpha)
+                                          alpha = alpha,
+                                          wl2_table = wl2_table)
     r <- coeff$r
     p <- coeff$p
+    p0 <- coeff$p0
     k <- coeff$k
     n <- length(h)
-    if (nu>0 && nu<0.5)
-    {
-        sigma_rational = 0
-        for (i in 1:length(p)){
-            Sigma <- matrix(0,n,1)
-            for(kk in 1:n) {
-                Sigma[kk] <- matern.p(h[1],h[kk], kappa = kappa,
-                                      p = p[i], alpha = alpha)
-            }
-            sigma_rational = sigma_rational+ r[i]*sigma^2*Sigma
-        }
-        Sigma <- matrix(0,n,1)
-        for(kk in 1:n) {
-            Sigma[kk] <- matern.k(h[1],h[kk], kappa = kappa, alpha = alpha)
-        }
-        sigma_rational = sigma_rational + k*sigma^2*Sigma
-    }
     
-    else {
-        
-        #k part
+    ## The weighted-L2 classes have no constant term, and for floor(alpha) = 1
+    ## the integer factor is shifted by p0.
+    no_k <- identical(type_rational[[1]], "wl2")
+    
+    sigma_rational <- matrix(0,n,1)
+    
+    if (!no_k) {
         Sigma <- matrix(0,n,1)
         for(kk in 1:n) {
-            Sigma[kk] <- matern.k(h[1],h[kk], kappa = kappa, alpha = alpha)
+            Sigma[kk] <- matern.k(0,h[kk], kappa = kappa, alpha = alpha)
         }
         sigma_rational <- k*sigma^2*Sigma
-        
-        # p part
-        for (i in 1:length(p))
-        {
-            Sigma <- matrix(0,n,1)
-            for(kk in 1:n) {
-                Sigma[kk] <- matern.p(h[1],h[kk], kappa = kappa,
-                                      p = p[i], alpha = alpha)
-            }
-            sigma_rational = sigma_rational+ r[i]*sigma^2*Sigma
+    }
+    
+    for (i in 1:length(p))
+    {
+        Sigma <- matrix(0,n,1)
+        for(kk in 1:n) {
+            Sigma[kk] <- matern.p(0,h[kk], kappa = kappa,
+                                  p = p[i], alpha = alpha, p0 = p0)
         }
+        sigma_rational = sigma_rational+ r[i]*sigma^2*Sigma
+    }
+    
+    if (!is.null(h_dim)) {
+        dim(sigma_rational) <- h_dim
     }
     
     return(sigma_rational)

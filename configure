@@ -1,9 +1,11 @@
 #!/bin/sh
 # rSPDE optional-compilation configure script.
 #
-# Compilation of the C/C++ cgeneric sources is opt-in. The default
-# install is pure-R, matching the CRAN release. Users who want the
-# compiled INLA cgeneric shared library can request it explicitly:
+# src/ always holds wl2_fit.cpp, which is part of every build, CRAN
+# included. Compilation of the C/C++ *cgeneric* sources on top of it is
+# opt-in: they are not shipped to CRAN, where INLA compiles them itself.
+# Users who want the compiled INLA cgeneric shared library can request it
+# explicitly:
 #
 #     remotes::install_github(
 #         "davidbolin/rSPDE",
@@ -29,12 +31,16 @@ mkdir -p src
 
 if [ "$COMPILE" = "1" ] || [ "$COMPILE" = "TRUE" ] || [ "$COMPILE" = "true" ]; then
     echo "*** rSPDE: compiling C/C++ cgeneric sources"
+    # The copied Makefile supersedes src/Makevars; it builds both the
+    # cgeneric shared library and the package library.
     cp inst/src-optional/* src/
 else
-    echo "*** rSPDE: pure-R install (set RSPDE_COMPILE=1 or pass --configure-args='--enable-compiled' to compile)"
-    cat > src/Makevars <<'EOF'
-all:
-	@true
-
-EOF
+    echo "*** rSPDE: cgeneric sources not compiled (set RSPDE_COMPILE=1 or pass --configure-args='--enable-compiled' to compile them)"
+    # Remove anything a previous compiled configure copied in, so that only
+    # the package's own sources are built. Only files that came from
+    # inst/src-optional/ are touched.
+    for f in inst/src-optional/*; do
+        rm -f "src/`basename \"$f\"`"
+    done
+    rm -f src/cgeneric.h
 fi
