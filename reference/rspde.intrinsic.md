@@ -106,14 +106,14 @@ rspde.intrinsic(
 - scaling:
 
   A positive numeric value of length 1 for scaling the model. If NULL
-  (default), it will be computed using RSpectra::eigs. Must be positive
-  if provided.
+  (default), it is computed as the smallest non-zero eigenvalue of the
+  scaled stiffness matrix. Must be positive if provided.
 
 - opts:
 
-  A list of options passed to
-  [`RSpectra::eigs`](https://rdrr.io/pkg/RSpectra/man/eigs.html)
-  function. See RSpectra documentation for available options.
+  A list of options for the computation of the scaling, with entries
+  `tol` (relative tolerance on the eigenvalue, default 1e-10) and
+  `maxitr` (maximum number of Lanczos steps, default 300).
 
 - ...:
 

@@ -21,6 +21,9 @@ update(
   graph = NULL,
   range_mesh = NULL,
   parameterization = NULL,
+  type_rational_approximation = object$type_rational_approximation,
+  x_min = object$x_min,
+  kappa_ref = object$kappa_ref,
   check_stationarity = TRUE,
   ...
 )
@@ -96,6 +99,22 @@ update(
 
   If non-null, update the parameterization. Only works for stationary
   models.
+
+- type_rational_approximation:
+
+  Which type of rational approximation should be used? See
+  [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md).
+
+- x_min:
+
+  Lower end of the spectral interval used by
+  `type_rational_approximation = "wl2"`, see
+  [`rspde.xmin()`](https://davidbolin.github.io/rSPDE/reference/rspde.xmin.md).
+
+- kappa_ref:
+
+  A lower bound for `kappa`, used to determine `x_min` when `x_min` is
+  not given.
 
 - check_stationarity:
 

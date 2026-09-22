@@ -82,6 +82,13 @@ matern.rational(
 - type_rational_approximation:
 
   Method used to compute the coefficients of the rational approximation.
+  The tabulated methods are "brasil", "chebfun" and "chebfunLB"; "wl2"
+  minimises the weighted \\L_2\\ error, see
+  [`rational.coefficients.wl2()`](https://davidbolin.github.io/rSPDE/reference/rational.coefficients.wl2.md).
+  Its coefficients are stored in the package, so this costs nothing when
+  the model is created. The "wl2" classes have no constant term, so the
+  model has `m` instead of `m + 1` blocks, and they require \\\alpha =
+  \nu + 1/2 \< 3\\, that is \\\nu \< 5/2\\.
 
 - type_interp:
 

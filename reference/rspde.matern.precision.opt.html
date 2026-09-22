@@ -77,7 +77,8 @@ K_\nu(\kappa h).$$</p>
 <span>  <span class="va">fem_matrices</span>,</span>
 <span>  graph <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">sharp</span>,</span>
-<span>  <span class="va">type_rational_approx</span></span>
+<span>  <span class="va">type_rational_approx</span>,</span>
+<span>  wl2_table <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -123,7 +124,15 @@ more to perform a sparsity analysis) or an upper bound for the sparsity?</p></dd
 
 <dt id="arg-type-rational-approx">type_rational_approx<a class="anchor" aria-label="anchor" href="#arg-type-rational-approx"></a></dt>
 <dd><p>Which type of rational approximation
-should be used? The current types are "brasil", "chebfun" or "chebfunLB".</p></dd>
+should be used? The current types are "brasil", "chebfun", "chebfunLB" or
+"wl2".</p></dd>
+
+
+<dt id="arg-wl-table">wl2_table<a class="anchor" aria-label="anchor" href="#arg-wl-table"></a></dt>
+<dd><p>A table of weighted-L2 coefficients, only used for
+<code>type_rational_approx = "wl2"</code>. If <code>NULL</code>, it is taken from the tables
+stored in the package where there is one for this configuration, and
+computed otherwise.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -306,6 +306,16 @@
   : Get the order of rational approximation.
 - [`rational.type()`](https://davidbolin.github.io/rSPDE/reference/rational.type.md)
   : Get type of rational approximation.
+- [`rational.coefficients.wl2()`](https://davidbolin.github.io/rSPDE/reference/rational.coefficients.wl2.md)
+  : Weighted-L2 rational coefficients
+- [`rspde.wl2.table()`](https://davidbolin.github.io/rSPDE/reference/rspde.wl2.table.md)
+  : Weighted-L2 coefficients for a given spectral interval
+- [`rspde.xmin()`](https://davidbolin.github.io/rSPDE/reference/rspde.xmin.md)
+  : Lower end of the spectral interval of a rational approximation
+- [`update_rational_coefficients()`](https://davidbolin.github.io/rSPDE/reference/update_rational_coefficients.md)
+  : Recompute the weighted-L2 coefficients for an estimated kappa
+- [`rspde.cache()`](https://davidbolin.github.io/rSPDE/reference/rspde.cache.md)
+  : Where generated coefficient tables are kept between sessions
 - [`transform_parameters_anisotropic()`](https://davidbolin.github.io/rSPDE/reference/transform_parameters_anisotropic.md)
   : Transform Anisotropic SPDE Model Parameters to Original Scale
 - [`transform_parameters_spacetime()`](https://davidbolin.github.io/rSPDE/reference/transform_parameters_spacetime.md)

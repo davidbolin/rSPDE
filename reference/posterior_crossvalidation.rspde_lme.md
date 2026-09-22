@@ -2,26 +2,17 @@
 
 Performs cross-validation on objects fitted with
 [`rspde_lme`](https://davidbolin.github.io/rSPDE/reference/rspde_lme.md)
-and computes common predictive scores. The interface mirrors
-[`MetricGraph::posterior_crossvalidation`](https://davidbolin.github.io/MetricGraph/reference/posterior_crossvalidation.html)
-so that the two can be used interchangeably for graph-based and
-non-graph rSPDE fits. Pure OLS fits (`rspde_lme(formula, data)` with no
-`model`) are also supported: predictions reduce to evaluating the
-covariates at the test locations, with predictive variance
-\\\sigma\_\epsilon^2 \\ (1 + x^\top (X^\top X)^{-1} x)\\.
-
-For `true_CV = FALSE` (default, "pseudo" cross-validation) the model
-parameters are kept fixed at the estimates from the full fit and only
-the held-out points are masked at prediction time. When
-`use_precomputed = TRUE` the parameter-dependent structures (updated
-rSPDE operator and the precision matrix Q) are computed once and reused
-across folds, mirroring the `advanced_options$precompute_data` /
-`na_test_idx` path of `predict.rspde_lme`.
-
-For `true_CV = TRUE` the model is refit on each training fold (with the
-held-out response values set to `NA`). The previous fit is forwarded via
-`previous_fit` so that the optimisation starts from the full-data
-estimates.
+and computes common predictive scores. For `true_CV = FALSE` (default,
+"pseudo" cross-validation) the model parameters are kept fixed at the
+estimates from the full fit and only the held-out points are masked at
+prediction time. When `use_precomputed = TRUE` the parameter-dependent
+structures (updated rSPDE operator and the precision matrix Q) are
+computed once and reused across folds, mirroring the
+`advanced_options$precompute_data` / `na_test_idx` path of
+`predict.rspde_lme`. For `true_CV = TRUE` the model is refit on each
+training fold (with the held-out response values set to `NA`). The
+previous fit is forwarded via `previous_fit` so that the optimisation
+starts from the full-data estimates.
 
 ## Usage
 

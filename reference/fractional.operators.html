@@ -68,7 +68,18 @@ scales the variance of the solution \(u\), and \(W\) is white noise.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">fractional.operators</span><span class="op">(</span><span class="va">L</span>, <span class="va">beta</span>, <span class="va">C</span>, <span class="va">scale.factor</span>, m <span class="op">=</span> <span class="fl">1</span>, tau <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">fractional.operators</span><span class="op">(</span></span>
+<span>  <span class="va">L</span>,</span>
+<span>  <span class="va">beta</span>,</span>
+<span>  <span class="va">C</span>,</span>
+<span>  <span class="va">scale.factor</span>,</span>
+<span>  m <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  tau <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  type_rational_approximation <span class="op">=</span> <span class="st">"chebfunLB"</span>,</span>
+<span>  d <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  x_min <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  wl2_table <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -103,6 +114,39 @@ of m that is implemented is 4.</p></dd>
 <dt id="arg-tau">tau<a class="anchor" aria-label="anchor" href="#arg-tau"></a></dt>
 <dd><p>The constant or vector that scales the variance of the solution.
 The default value is 1.</p></dd>
+
+
+<dt id="arg-type-rational-approximation">type_rational_approximation<a class="anchor" aria-label="anchor" href="#arg-type-rational-approximation"></a></dt>
+<dd><p>Which type of rational approximation
+should be used? Two are available for the operator-based construction:
+<code>"chebfunLB"</code>, the tabulated roots of <code>get.roots()</code>, and <code>"wl2"</code>, which
+minimises the weighted \(L_2\) error over the spectral interval, see
+<code><a href="rational.coefficients.wl2.html">rational.coefficients.wl2()</a></code>. The factorisation into \(P_l\) and
+\(P_r\) has a single table of roots and that table was produced by the
+chebfun lower-bound method, so <code>"brasil"</code> and <code>"chebfun"</code> are refused here
+rather than quietly given roots they did not produce; they are available
+for <code>type = "covariance"</code>. The tabulated roots are stored for <code>m</code> at most
+4; <code>"wl2"</code> fits them and has no such limit, and requires \(\beta &lt; 1\).
+Its mesh-free coefficients are stored in the package and cost nothing to
+obtain; a fit for a particular spectral interval is computed when the model
+is created. Supplying a <code>wl2_table</code> built by <code><a href="rspde.wl2.table.html">rspde.wl2.table()</a></code> can be used
+to work with other weights.</p></dd>
+
+
+<dt id="arg-d">d<a class="anchor" aria-label="anchor" href="#arg-d"></a></dt>
+<dd><p>The dimension of the domain. Only used for
+<code>type_rational_approximation = "wl2"</code>.</p></dd>
+
+
+<dt id="arg-x-min">x_min<a class="anchor" aria-label="anchor" href="#arg-x-min"></a></dt>
+<dd><p>Lower end of the spectral interval used by
+<code>type_rational_approximation = "wl2"</code>, see <code><a href="rspde.xmin.html">rspde.xmin()</a></code>. <code>NULL</code> gives the
+mesh-free fit, which is not recommended for the operator-based models.</p></dd>
+
+
+<dt id="arg-wl-table">wl2_table<a class="anchor" aria-label="anchor" href="#arg-wl-table"></a></dt>
+<dd><p>An optional table of weighted-L2 coefficients, supplied by
+<code><a href="matern.operators.html">matern.operators()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

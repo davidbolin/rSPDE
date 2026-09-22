@@ -1,14 +1,6 @@
 # Posterior cross-validation for fitted models
 
-Generic function for posterior cross-validation. rSPDE provides methods
-for
-[`rspde_lme`](https://davidbolin.github.io/rSPDE/reference/rspde_lme.md)
-fits (see
-[`posterior_crossvalidation.rspde_lme`](https://davidbolin.github.io/rSPDE/reference/posterior_crossvalidation.rspde_lme.md))
-and for lists of fitted models, and the MetricGraph package provides a
-method for `graph_lme` fits. Because both packages use this generic,
-loading them in either order does not mask one implementation with the
-other.
+Generic function for posterior cross-validation.
 
 ## Usage
 

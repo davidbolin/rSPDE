@@ -316,7 +316,7 @@ for (i in 1:4) {
   errors[i] <- norm(c.true - c.app)
 }
 print(errors)
-#> [1]   1.0113068   0.1100836 576.3166935  54.6482253
+#> [1]   1.0115072   0.1039582 390.9870693  67.5952923
 ```
 
 We see that, when we used the direct method to compute the covariance
@@ -368,7 +368,7 @@ for (i in 1:4) {
   errors2[i] <- norm(c.true - c.app)
 }
 print(errors2)
-#> [1] 1.01130750 0.10425661 0.02356591 0.01717388
+#> [1] 1.01150695 0.10418802 0.02222648 0.01317499
 ```
 
 ## A non-stationary model
@@ -693,28 +693,28 @@ summary(fit_2d)
 #> 
 #> Random effects:
 #>       Estimate Std.error z-value
-#> alpha  1.88916   0.07026  26.886
-#> tau    0.01809   0.00491   3.683
-#> kappa 17.79484   0.93918  18.947
+#> alpha  1.90080   0.14911  12.747
+#> tau    0.01731   0.01001   1.729
+#> kappa 17.89393   1.73825  10.294
 #> 
 #> Random effects (Matern parameterization):
 #>       Estimate Std.error z-value
-#> nu    0.889161  0.070265   12.65
-#> sigma 1.278916  0.016080   79.53
-#> range 0.149879  0.004622   32.42
+#> nu    0.900801  0.149114   6.041
+#> sigma 1.277085  0.016099  79.329
+#> range 0.150022  0.004596  32.639
 #> 
 #> Measurement error:
 #>          Estimate Std.error z-value
-#> std. dev 0.100523  0.002495   40.29
+#> std. dev 0.100592  0.002503   40.18
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
 #> 
-#> Log-Likelihood:  -5820.19 
-#> Number of function calls by 'optim' = 61
+#> Log-Likelihood:  -5820.185 
+#> Number of function calls by 'optim' = 74
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  1.25464 mins 
-#>   set up the parallelization = 2.60477 secs
+#> Time used to:     fit the model =  1.38179 mins 
+#>   set up the parallelization = 2.67281 secs
 ```
 
 and glance:
@@ -740,11 +740,11 @@ print(data.frame(
 ))
 #>              sigma     range        nu
 #> Truth     1.300000 0.1500000 0.8000000
-#> Estimates 1.278916 0.1498791 0.8891609
+#> Estimates 1.277085 0.1500216 0.9008015
 
 # Total time
 print(fit_2d$fitting_time)
-#> Time difference of 1.254647 mins
+#> Time difference of 1.381794 mins
 ```
 
 Finally, we observe that we can use the
@@ -787,29 +787,29 @@ summary(fit_2d)
 #> No fixed effects.
 #> 
 #> Random effects:
-#>       Estimate Std.error z-value
-#> alpha  1.89697   0.19945   9.511
-#> tau    0.01764   0.01372   1.286
-#> kappa 17.79897   2.36402   7.529
+#>        Estimate Std.error z-value
+#> alpha  1.922699  0.112609  17.074
+#> tau    0.015954  0.007185   2.221
+#> kappa 18.096929  1.274882  14.195
 #> 
 #> Random effects (Matern parameterization):
 #>       Estimate Std.error z-value
-#> nu    0.896968  0.199447   4.497
-#> sigma 1.276248  0.016092  79.308
-#> range 0.150501  0.004606  32.676
+#> nu    0.922699  0.112609   8.194
+#> sigma 1.272341  0.016070  79.175
+#> range 0.150131  0.004532  33.131
 #> 
 #> Measurement error:
 #>          Estimate Std.error z-value
-#> std. dev 0.100590  0.002507   40.12
+#> std. dev 0.100629  0.002501   40.24
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
 #> 
-#> Log-Likelihood:  -5820.136 
-#> Number of function calls by 'optim' = 28
+#> Log-Likelihood:  -5820.15 
+#> Number of function calls by 'optim' = 22
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  1.21457 mins 
-#>   set up the parallelization = 2.62039 secs
+#> Time used to:     fit the model =  1.00803 mins 
+#>   set up the parallelization = 2.64976 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -824,11 +824,11 @@ print(data.frame(
 ))
 #>              sigma     range        nu
 #> Truth     1.300000 0.1500000 0.8000000
-#> Estimates 1.276248 0.1505007 0.8969678
+#> Estimates 1.272341 0.1501309 0.9226991
 
 # Total time
 print(fit_2d$fitting_time)
-#> Time difference of 1.214574 mins
+#> Time difference of 1.008037 mins
 ```
 
 ## References

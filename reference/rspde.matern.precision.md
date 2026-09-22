@@ -19,7 +19,8 @@ rspde.matern.precision(
   fem_mesh_matrices,
   only_fractional = FALSE,
   return_block_list = FALSE,
-  type_rational_approx = "brasil"
+  type_rational_approx = "brasil",
+  wl2_table = NULL
 )
 ```
 
@@ -69,7 +70,14 @@ rspde.matern.precision(
 - type_rational_approx:
 
   Which type of rational approximation should be used? The current types
-  are "brasil", "chebfun" or "chebfunLB".
+  are "brasil", "chebfun", "chebfunLB" or "wl2".
+
+- wl2_table:
+
+  A table of weighted-L2 coefficients, only used for
+  `type_rational_approx = "wl2"`. If `NULL`, it is taken from the tables
+  stored in the package where there is one for this configuration, and
+  computed otherwise.
 
 ## Value
 

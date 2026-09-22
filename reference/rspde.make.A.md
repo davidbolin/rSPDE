@@ -17,7 +17,8 @@ rspde.make.A(
   group = NULL,
   repl = 1L,
   n.group = NULL,
-  n.repl = NULL
+  n.repl = NULL,
+  type.rational.approx = "brasil"
 )
 ```
 
@@ -70,6 +71,12 @@ rspde.make.A(
 - n.repl:
 
   The total number of replicates.
+
+- type.rational.approx:
+
+  Which type of rational approximation the model uses. `"wl2"` has no
+  constant term, so the latent field has `rspde.order` blocks instead of
+  `rspde.order + 1`; the tabulated types are unaffected.
 
 ## Value
 

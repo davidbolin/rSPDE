@@ -221,31 +221,29 @@ components. The Laplacians are equipped with homogeneous Neumann
 boundary conditions. Unless supplied, the scaling is computed as the
 lowest positive eigenvalue of `sqrt(solve(c0))%*%g1%*%sqrt(solve(c0))`.
 opts provides a list of options for the numerical calculation of the
-scaling factor, which is done using `Rspectra::eigs_sym`. See the help
-of that function for details.
+scaling factor: `tol`, the relative tolerance on the eigenvalue, and
+`maxitr`, the maximum number of Lanczos steps.
 
 ## Examples
 
 ``` r
-if (requireNamespace("RSpectra", quietly = TRUE)) {
-  x <- seq(from = 0, to = 10, length.out = 201)
-  beta <- 1
-  alpha <- 1  
-  kappa <- 1
-  op <- intrinsic.matern.operators(
-    kappa = kappa, tau = 1, alpha = alpha,
-    beta = beta, loc_mesh = x, d = 1
-  )
-  # Compute and plot the variogram of the model
-  Sigma <- op$A[,-1] %*% solve(op$Q[-1,-1], t(op$A[,-1]))
-  One <- rep(1, times = ncol(Sigma))
-  D <- diag(Sigma)
-  Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
-  k <- 100
-  plot(x, Gamma[k, ], type = "l")
-  lines(x,
-    variogram.intrinsic.spde(x[k], x, kappa, alpha, beta, L = 10, d = 1),
-    col = 2, lty = 2
-  )
-}
+x <- seq(from = 0, to = 10, length.out = 201)
+beta <- 1
+alpha <- 1  
+kappa <- 1
+op <- intrinsic.matern.operators(
+  kappa = kappa, tau = 1, alpha = alpha,
+  beta = beta, loc_mesh = x, d = 1
+)
+# Compute and plot the variogram of the model
+Sigma <- op$A[,-1] %*% solve(op$Q[-1,-1], t(op$A[,-1]))
+One <- rep(1, times = ncol(Sigma))
+D <- diag(Sigma)
+Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
+k <- 100
+plot(x, Gamma[k, ], type = "l")
+lines(x,
+  variogram.intrinsic.spde(x[k], x, kappa, alpha, beta, L = 10, d = 1),
+  col = 2, lty = 2
+)
 ```

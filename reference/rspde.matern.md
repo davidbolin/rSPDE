@@ -32,7 +32,8 @@ rspde.matern(
   prior.theta.param = c("theta", "spde"),
   prior.nu.dist = c("beta", "lognormal"),
   nu.prec.inc = 1,
-  type.rational.approx = c("brasil", "chebfun", "chebfunLB"),
+  type.rational.approx = c("brasil", "chebfun", "chebfunLB", "wl2"),
+  wl2_table = NULL,
   debug = FALSE,
   shared_lib = "detect",
   ...
@@ -179,7 +180,19 @@ rspde.matern(
 - type.rational.approx:
 
   Which type of rational approximation should be used? The current types
-  are "brasil", "chebfun" or "chebfunLB".
+  are "brasil", "chebfun", "chebfunLB" and "wl2". The "wl2" coefficients
+  minimise the weighted \\L_2\\ error, see
+  [`rational.coefficients.wl2()`](https://davidbolin.github.io/rSPDE/reference/rational.coefficients.wl2.md);
+  they have no constant term, so the latent field has `rspde.order`
+  blocks instead of `rspde.order + 1`, and they require `rspde.order` at
+  least 1 and \\\nu \< 3 - d/2\\.
+
+- wl2_table:
+
+  A table of weighted-L2 coefficients from
+  [`rspde.wl2.table()`](https://davidbolin.github.io/rSPDE/reference/rspde.wl2.table.md),
+  only used for `type.rational.approx = "wl2"`. `NULL` uses the table
+  shipped with the package.
 
 - debug:
 

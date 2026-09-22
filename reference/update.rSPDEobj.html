@@ -69,6 +69,9 @@
 <span>  graph <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  range_mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  parameterization <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  type_rational_approximation <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">type_rational_approximation</span>,</span>
+<span>  x_min <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">x_min</span>,</span>
+<span>  kappa_ref <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">kappa_ref</span>,</span>
 <span>  check_stationarity <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -139,6 +142,21 @@ approximation, which needs to be a positive integer.</p></dd>
 
 <dt id="arg-parameterization">parameterization<a class="anchor" aria-label="anchor" href="#arg-parameterization"></a></dt>
 <dd><p>If non-null, update the parameterization. Only works for stationary models.</p></dd>
+
+
+<dt id="arg-type-rational-approximation">type_rational_approximation<a class="anchor" aria-label="anchor" href="#arg-type-rational-approximation"></a></dt>
+<dd><p>Which type of rational approximation
+should be used? See <code><a href="matern.operators.html">matern.operators()</a></code>.</p></dd>
+
+
+<dt id="arg-x-min">x_min<a class="anchor" aria-label="anchor" href="#arg-x-min"></a></dt>
+<dd><p>Lower end of the spectral interval used by
+<code>type_rational_approximation = "wl2"</code>, see <code><a href="rspde.xmin.html">rspde.xmin()</a></code>.</p></dd>
+
+
+<dt id="arg-kappa-ref">kappa_ref<a class="anchor" aria-label="anchor" href="#arg-kappa-ref"></a></dt>
+<dd><p>A lower bound for <code>kappa</code>, used to determine <code>x_min</code> when
+<code>x_min</code> is not given.</p></dd>
 
 
 <dt id="arg-check-stationarity">check_stationarity<a class="anchor" aria-label="anchor" href="#arg-check-stationarity"></a></dt>

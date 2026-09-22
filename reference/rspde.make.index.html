@@ -61,7 +61,8 @@
 <span>  mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  rspde.order <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  nu <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  dim <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  dim <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  type.rational.approx <span class="op">=</span> <span class="st">"brasil"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -102,6 +103,12 @@ be estimated. If nu is fixed, you should provide the value of nu.</p></dd>
 <dt id="arg-dim">dim<a class="anchor" aria-label="anchor" href="#arg-dim"></a></dt>
 <dd><p>the dimension of the domain. Should only be provided if
 <code>mesh</code> is not provided.</p></dd>
+
+
+<dt id="arg-type-rational-approx">type.rational.approx<a class="anchor" aria-label="anchor" href="#arg-type-rational-approx"></a></dt>
+<dd><p>Which type of rational approximation the model
+uses. <code>"wl2"</code> has no constant term, so the latent field has <code>rspde.order</code>
+blocks instead of <code>rspde.order + 1</code>; the tabulated types are unaffected.</p></dd>
 
 </dl></div>
     <div class="section level2">

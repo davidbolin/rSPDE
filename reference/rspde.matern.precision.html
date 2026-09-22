@@ -78,7 +78,8 @@ K_\nu(\kappa h)$$</p>
 <span>  <span class="va">fem_mesh_matrices</span>,</span>
 <span>  only_fractional <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_block_list <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  type_rational_approx <span class="op">=</span> <span class="st">"brasil"</span></span>
+<span>  type_rational_approx <span class="op">=</span> <span class="st">"brasil"</span>,</span>
+<span>  wl2_table <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -129,7 +130,14 @@ block parts of the precision matrix be returned separately as a list?</p></dd>
 
 <dt id="arg-type-rational-approx">type_rational_approx<a class="anchor" aria-label="anchor" href="#arg-type-rational-approx"></a></dt>
 <dd><p>Which type of rational approximation should be
-used? The current types are "brasil", "chebfun" or "chebfunLB".</p></dd>
+used? The current types are "brasil", "chebfun", "chebfunLB" or "wl2".</p></dd>
+
+
+<dt id="arg-wl-table">wl2_table<a class="anchor" aria-label="anchor" href="#arg-wl-table"></a></dt>
+<dd><p>A table of weighted-L2 coefficients, only used for
+<code>type_rational_approx = "wl2"</code>. If <code>NULL</code>, it is taken from the tables
+stored in the package where there is one for this configuration, and
+computed otherwise.</p></dd>
 
 </dl></div>
     <div class="section level2">

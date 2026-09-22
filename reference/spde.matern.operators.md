@@ -28,7 +28,8 @@ spde.matern.operators(
   loc_mesh = NULL,
   m = 1,
   type = c("covariance", "operator"),
-  type_rational_approximation = c("brasil", "chebfun", "chebfunLB"),
+  type_rational_approximation = c("brasil", "chebfun", "chebfunLB", "wl2"),
+  wl2_table = NULL,
   check_stationarity = TRUE
 )
 ```
@@ -145,7 +146,23 @@ spde.matern.operators(
 - type_rational_approximation:
 
   Which type of rational approximation should be used? The current types
-  are "brasil", "chebfun" or "chebfunLB".
+  are "brasil", "chebfun", "chebfunLB" and "wl2". The "wl2" coefficients
+  minimise the weighted \\L_2\\ error, see
+  [`rational.coefficients.wl2()`](https://davidbolin.github.io/rSPDE/reference/rational.coefficients.wl2.md);
+  they have no constant term, so the model has `m` instead of `m + 1`
+  blocks, and they require \\\nu \< 3 - d/2\\ for `type = "covariance"`
+  and \\\nu + d/2 \< 2\\ for `type = "operator"`. For
+  `type = "operator"` only `"chebfunLB"` and `"wl2"` are available,
+  since the operator-based construction has a single table of roots and
+  that table was produced by the chebfun lower-bound method; see
+  [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md).
+
+- wl2_table:
+
+  A table of weighted-L2 coefficients from
+  [`rspde.wl2.table()`](https://davidbolin.github.io/rSPDE/reference/rspde.wl2.table.md),
+  only used for `type_rational_approximation = "wl2"`. `NULL` uses the
+  table shipped with the package.
 
 - check_stationarity:
 

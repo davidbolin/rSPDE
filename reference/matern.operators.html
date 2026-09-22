@@ -84,7 +84,11 @@ $$C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}
 <span>  parameterization <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"spde"</span>, <span class="st">"matern"</span><span class="op">)</span>,</span>
 <span>  compute_higher_order <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_block_list <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  type_rational_approximation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"brasil"</span>, <span class="st">"chebfun"</span>, <span class="st">"chebfunLB"</span><span class="op">)</span>,</span>
+<span>  type_rational_approximation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"brasil"</span>, <span class="st">"chebfun"</span>, <span class="st">"chebfunLB"</span>, <span class="st">"wl2"</span><span class="op">)</span>,</span>
+<span>  x_min <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  kappa_ref <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  wl2_table <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  variance_correction <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"nodal"</span><span class="op">)</span>,</span>
 <span>  compute_logdet <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -94,27 +98,35 @@ $$C(h) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}
 
 
 <dl><dt id="arg-kappa">kappa<a class="anchor" aria-label="anchor" href="#arg-kappa"></a></dt>
-<dd><p>Parameter kappa of the SPDE representation. If <code>NULL</code>, the range parameter will be used. If the range is also <code>NULL</code>, a starting value based on the mesh will be supplied.</p></dd>
+<dd><p>Parameter kappa of the SPDE representation. If <code>NULL</code>, the range
+parameter will be used. If the range is also <code>NULL</code>, a starting value based on
+the mesh will be supplied.</p></dd>
 
 
 <dt id="arg-tau">tau<a class="anchor" aria-label="anchor" href="#arg-tau"></a></dt>
-<dd><p>Parameter tau of the SPDE representation. If both sigma and tau are <code>NULL</code>, a starting value based on the mesh will be supplied.</p></dd>
+<dd><p>Parameter tau of the SPDE representation. If both sigma and tau are
+<code>NULL</code>, a starting value based on the mesh will be supplied.</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
-<dd><p>Parameter alpha of the SPDE representation. If <code>alpha</code> is <code>NULL</code>, a starting value will be supplied.</p></dd>
+<dd><p>Parameter alpha of the SPDE representation. If <code>alpha</code> is <code>NULL</code>,
+a starting value will be supplied.</p></dd>
 
 
 <dt id="arg-sigma">sigma<a class="anchor" aria-label="anchor" href="#arg-sigma"></a></dt>
-<dd><p>Standard deviation of the covariance function. Used if <code>parameterization</code> is <code>matern</code>. If <code>NULL</code>, tau will be used. If tau is also <code>NULL</code>, a starting value based on the mesh will be supplied.</p></dd>
+<dd><p>Standard deviation of the covariance function. Used if <code>parameterization</code>
+is <code>matern</code>. If <code>NULL</code>, tau will be used. If tau is also <code>NULL</code>, a starting
+value based on the mesh will be supplied.</p></dd>
 
 
 <dt id="arg-range">range<a class="anchor" aria-label="anchor" href="#arg-range"></a></dt>
-<dd><p>Range parameter of the covariance function. Used if <code>parameterization</code> is <code>matern</code>. If range is <code>NULL</code>, a starting value based on the mesh will be supplied.</p></dd>
+<dd><p>Range parameter of the covariance function. Used if <code>parameterization</code>
+is <code>matern</code>. If range is <code>NULL</code>, a starting value based on the mesh will be supplied.</p></dd>
 
 
 <dt id="arg-nu">nu<a class="anchor" aria-label="anchor" href="#arg-nu"></a></dt>
-<dd><p>Shape parameter of the covariance function. Used if <code>parameterization</code> is <code>matern</code>. If <code>NULL</code>, a starting value will be supplied.</p></dd>
+<dd><p>Shape parameter of the covariance function. Used if <code>parameterization</code>
+is <code>matern</code>. If <code>NULL</code>, a starting value will be supplied.</p></dd>
 
 
 <dt id="arg-g">G<a class="anchor" aria-label="anchor" href="#arg-g"></a></dt>
@@ -141,11 +153,18 @@ of interest. Does not need to be given if either <code>mesh</code> or <code>grap
 
 
 <dt id="arg-range-mesh">range_mesh<a class="anchor" aria-label="anchor" href="#arg-range-mesh"></a></dt>
-<dd><p>The range of the mesh. Will be used to provide starting values for the parameters. Will be used if <code>mesh</code> and <code>graph</code> are <code>NULL</code>, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.</p></dd>
+<dd><p>The range of the mesh. Will be used to provide starting values
+for the parameters. Will be used if <code>mesh</code> and <code>graph</code> are <code>NULL</code>, and if one
+of the parameters (kappa or tau for spde parameterization, or sigma or range
+for matern parameterization) are not provided.</p></dd>
 
 
 <dt id="arg-loc-mesh">loc_mesh<a class="anchor" aria-label="anchor" href="#arg-loc-mesh"></a></dt>
-<dd><p>The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the <code><a href="rspde_lme.html">rspde_lme()</a></code> function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the <code>graph</code> argument.</p></dd>
+<dd><p>The mesh locations used to construct the matrices C and G.
+This option should be provided if one wants to use the <code><a href="rspde_lme.html">rspde_lme()</a></code> function
+and will not provide neither graph nor mesh. Only works for 1d data. Does not
+work for metric graphs. For metric graphs you should supply the graph using
+the <code>graph</code> argument.</p></dd>
 
 
 <dt id="arg-m">m<a class="anchor" aria-label="anchor" href="#arg-m"></a></dt>
@@ -159,7 +178,9 @@ positive integer. The default value is 1.</p></dd>
 
 
 <dt id="arg-parameterization">parameterization<a class="anchor" aria-label="anchor" href="#arg-parameterization"></a></dt>
-<dd><p>Which parameterization to use? <code>matern</code> uses range, std. deviation and nu (smoothness). <code>spde</code> uses kappa, tau and alpha. The default is <code>spde</code>.</p></dd>
+<dd><p>Which parameterization to use? <code>matern</code> uses range,
+std. deviation and nu (smoothness). <code>spde</code> uses kappa, tau and alpha. The
+default is <code>spde</code>.</p></dd>
 
 
 <dt id="arg-compute-higher-order">compute_higher_order<a class="anchor" aria-label="anchor" href="#arg-compute-higher-order"></a></dt>
@@ -174,13 +195,78 @@ separately as a list?</p></dd>
 
 
 <dt id="arg-type-rational-approximation">type_rational_approximation<a class="anchor" aria-label="anchor" href="#arg-type-rational-approximation"></a></dt>
-<dd><p>Which type of rational
-approximation should be used? The current types are
-"brasil", "chebfun" or "chebfunLB".</p></dd>
+<dd><p>Which type of rational approximation
+should be used? The tabulated types are "brasil", "chebfun" and "chebfunLB";
+"wl2" minimises the weighted \(L_2\) error over the spectral interval, see
+<code><a href="rational.coefficients.wl2.html">rational.coefficients.wl2()</a></code>. Its mesh-free coefficients are stored in the
+package and cost nothing to obtain, which is the default for
+<code>type = "covariance"</code>; a fit for a particular spectral interval, that is
+with <code>x_min</code> or <code>kappa_ref</code>, is computed when the model is created and can
+be kept between sessions with <code><a href="rspde.cache.html">rspde.cache()</a></code>. The "wl2" type requires
+\(\nu &lt; 3 - d/2\) for <code>type = "covariance"</code> and \(\nu + d/2 &lt; 2\) for
+<code>type = "operator"</code>.</p>
+<p>For <code>type = "operator"</code> only two of the four are available. The
+operator-based construction factorises the rational function into
+\(P_l\) and \(P_r\), and its tabulated roots come from a single table
+(<code>get.roots()</code>) produced by the chebfun lower-bound method, so
+<code>"chebfunLB"</code> selects that table and <code>"brasil"</code> and <code>"chebfun"</code> are refused
+rather than quietly given roots they did not produce. Leaving the argument
+at its default is not refused: the default <code>"brasil"</code> is the right one for
+<code>type = "covariance"</code>, and the operator-based construction falls back to
+the table it has. The tabulated roots are stored for <code>m</code> at most 4, while
+<code>"wl2"</code> fits the roots and has no such limit. A weighted-\(L_2\) fit for
+other weights can be obtained by providing the output of <code><a href="rspde.wl2.table.html">rspde.wl2.table()</a></code>
+as <code>wl2_table</code>.</p></dd>
+
+
+<dt id="arg-x-min">x_min<a class="anchor" aria-label="anchor" href="#arg-x-min"></a></dt>
+<dd><p>Lower end of the spectral interval used by
+<code>type_rational_approximation = "wl2"</code>, see <code><a href="rspde.xmin.html">rspde.xmin()</a></code>. The default
+<code>NULL</code> gives the mesh-free fit for <code>type = "covariance"</code>, and a value
+derived from the mesh and <code>kappa_ref</code> for <code>type = "operator"</code>.</p></dd>
+
+
+<dt id="arg-kappa-ref">kappa_ref<a class="anchor" aria-label="anchor" href="#arg-kappa-ref"></a></dt>
+<dd><p>A lower bound for <code>kappa</code>, used to determine <code>x_min</code> when
+<code>x_min</code> is not given. Must be a lower bound: a reference above the true
+<code>kappa</code> leaves part of the spectrum outside the fitted interval. The default
+corresponds to a range equal to the diameter of the domain.</p></dd>
+
+
+<dt id="arg-wl-table">wl2_table<a class="anchor" aria-label="anchor" href="#arg-wl-table"></a></dt>
+<dd><p>A table of weighted-L2 coefficients from
+<code><a href="rspde.wl2.table.html">rspde.wl2.table()</a></code>, for <code>type_rational_approximation = "wl2"</code>. Supplying
+one overrides <code>x_min</code> and <code>kappa_ref</code> and skips the fits, which is how a
+mesh-specific table is reused across models. <code>NULL</code> uses the table shipped
+with the package, or computes one if <code>x_min</code> or <code>kappa_ref</code> is given.</p></dd>
+
+
+<dt id="arg-variance-correction">variance_correction<a class="anchor" aria-label="anchor" href="#arg-variance-correction"></a></dt>
+<dd><p>Only available for <code>type = "covariance"</code> with
+<code>type_rational_approximation = "wl2"</code>; with any other combination it is
+ignored, with a warning. With <code>"nodal"</code>, the diagonal
+\(D = \max(\sigma^2 - \mathrm{diag}(\Sigma_{\mathrm{approx}}), 0)\) is
+computed on the mesh and stored in the object, and is added to the
+covariance by <code><a href="covariance_mesh.html">covariance_mesh()</a></code>, <code><a href="cov_function_mesh.html">cov_function_mesh()</a></code> and <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code>.
+In observation models this is equivalent to adding <code>A D t(A)</code> to the
+covariance of the measurement noise; note that the likelihood and prediction
+methods do not include it. The default is <code>"none"</code>.</p>
+<p>What it corrects is mostly the finite element discretisation, not the
+rational approximation. A mesh cannot represent the high frequency content
+of a rough field, so the nodal variance of the <em>exact</em> discretised model is
+already below \(\sigma^2\). The correction therefore moves the model towards
+the continuum Matern.</p>
+<p>Unlike the rational coefficients, this depends on <code>kappa</code>, <code>tau</code> and the
+mesh, so it cannot be tabulated and is recomputed whenever the parameters
+change, including at every <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> of a model being fitted. It costs the
+diagonal of the inverse of each block, so it is meant for a model whose
+parameters are known or already estimated, not for use inside a likelihood
+optimisation.</p></dd>
 
 
 <dt id="arg-compute-logdet">compute_logdet<a class="anchor" aria-label="anchor" href="#arg-compute-logdet"></a></dt>
-<dd><p>Should log determinants be computed while building the model? (For covariance-based models)</p></dd>
+<dd><p>Should log determinants be computed while building the
+model? (For covariance-based models)</p></dd>
 
 </dl></div>
     <div class="section level2">

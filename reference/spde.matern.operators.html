@@ -82,7 +82,8 @@ $$(\kappa(s) - \Delta)^\beta (\tau(s)u(s)) = W.$$</p>
 <span>  loc_mesh <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  m <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"covariance"</span>, <span class="st">"operator"</span><span class="op">)</span>,</span>
-<span>  type_rational_approximation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"brasil"</span>, <span class="st">"chebfun"</span>, <span class="st">"chebfunLB"</span><span class="op">)</span>,</span>
+<span>  type_rational_approximation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"brasil"</span>, <span class="st">"chebfun"</span>, <span class="st">"chebfunLB"</span>, <span class="st">"wl2"</span><span class="op">)</span>,</span>
+<span>  wl2_table <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  check_stationarity <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -104,25 +105,32 @@ of the mesh used for the finite element discretization of the SPDE.</p></dd>
 
 
 <dt id="arg-theta">theta<a class="anchor" aria-label="anchor" href="#arg-theta"></a></dt>
-<dd><p>Theta parameter that connects B.tau and B.kappa to tau and kappa through a log-linear regression, in case the parameterization is <code>spde</code>,
-and that connects B.sigma and B.range to tau and kappa in case the parameterization is <code>matern</code>. When both tau and kappa are constant after this
+<dd><p>Theta parameter that connects B.tau and B.kappa to tau and kappa
+through a log-linear regression, in case the parameterization is <code>spde</code>,
+and that connects B.sigma and B.range to tau and kappa in case the
+parameterization is <code>matern</code>. When both tau and kappa are constant after this
 transformation, <code>spde.matern.operators()</code> delegates to <code><a href="matern.operators.html">matern.operators()</a></code>.</p></dd>
 
 
 <dt id="arg-b-tau">B.tau<a class="anchor" aria-label="anchor" href="#arg-b-tau"></a></dt>
-<dd><p>Matrix with specification of log-linear model for \(\tau\). Will be used if <code>parameterization = 'spde'</code>.</p></dd>
+<dd><p>Matrix with specification of log-linear model for \(\tau\).
+Will be used if <code>parameterization = 'spde'</code>.</p></dd>
 
 
 <dt id="arg-b-kappa">B.kappa<a class="anchor" aria-label="anchor" href="#arg-b-kappa"></a></dt>
-<dd><p>Matrix with specification of log-linear model for \(\kappa\). Will be used if <code>parameterization = 'spde'</code>.</p></dd>
+<dd><p>Matrix with specification of log-linear model for \(\kappa\).
+Will be used if <code>parameterization = 'spde'</code>.</p></dd>
 
 
 <dt id="arg-b-sigma">B.sigma<a class="anchor" aria-label="anchor" href="#arg-b-sigma"></a></dt>
-<dd><p>Matrix with specification of log-linear model for \(\sigma\). Will be used if <code>parameterization = 'matern'</code>.</p></dd>
+<dd><p>Matrix with specification of log-linear model for \(\sigma\).
+Will be used if <code>parameterization = 'matern'</code>.</p></dd>
 
 
 <dt id="arg-b-range">B.range<a class="anchor" aria-label="anchor" href="#arg-b-range"></a></dt>
-<dd><p>Matrix with specification of log-linear model for \(\rho\), which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if <code>parameterization = 'matern'</code>.</p></dd>
+<dd><p>Matrix with specification of log-linear model for \(\rho\),
+which is a range-like parameter (it is exactly the range parameter in the
+stationary case). Will be used if <code>parameterization = 'matern'</code>.</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
@@ -130,11 +138,14 @@ transformation, <code>spde.matern.operators()</code> delegates to <code><a href=
 
 
 <dt id="arg-nu">nu<a class="anchor" aria-label="anchor" href="#arg-nu"></a></dt>
-<dd><p>Shape parameter of the covariance function. Will be used if the parameterization is 'matern'.</p></dd>
+<dd><p>Shape parameter of the covariance function. Will be used if the
+parameterization is 'matern'.</p></dd>
 
 
 <dt id="arg-parameterization">parameterization<a class="anchor" aria-label="anchor" href="#arg-parameterization"></a></dt>
-<dd><p>Which parameterization to use? <code>matern</code> uses range, std. deviation and nu (smoothness). <code>spde</code> uses kappa, tau and nu (smoothness). The default is <code>matern</code>.</p></dd>
+<dd><p>Which parameterization to use? <code>matern</code> uses range,
+std. deviation and nu (smoothness). <code>spde</code> uses kappa, tau and nu (smoothness).
+The default is <code>matern</code>.</p></dd>
 
 
 <dt id="arg-g">G<a class="anchor" aria-label="anchor" href="#arg-g"></a></dt>
@@ -162,11 +173,18 @@ must be given if <code>mesh</code> is not given.</p></dd>
 
 
 <dt id="arg-range-mesh">range_mesh<a class="anchor" aria-label="anchor" href="#arg-range-mesh"></a></dt>
-<dd><p>The range of the mesh. Will be used to provide starting values for the parameters. Will be used if <code>mesh</code> and <code>graph</code> are <code>NULL</code>, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.</p></dd>
+<dd><p>The range of the mesh. Will be used to provide starting
+values for the parameters. Will be used if <code>mesh</code> and <code>graph</code> are <code>NULL</code>, and
+if one of the parameters (kappa or tau for spde parameterization, or sigma or
+range for matern parameterization) are not provided.</p></dd>
 
 
 <dt id="arg-loc-mesh">loc_mesh<a class="anchor" aria-label="anchor" href="#arg-loc-mesh"></a></dt>
-<dd><p>The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the <code><a href="rspde_lme.html">rspde_lme()</a></code> function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the <code>graph</code> argument.</p></dd>
+<dd><p>The mesh locations used to construct the matrices C and G.
+This option should be provided if one wants to use the <code><a href="rspde_lme.html">rspde_lme()</a></code> function
+and will not provide neither graph nor mesh. Only works for 1d data. Does not
+work for metric graphs. For metric graphs you should supply the graph using
+the <code>graph</code> argument.</p></dd>
 
 
 <dt id="arg-m">m<a class="anchor" aria-label="anchor" href="#arg-m"></a></dt>
@@ -180,9 +198,21 @@ positive integer. The default value is 1.</p></dd>
 
 
 <dt id="arg-type-rational-approximation">type_rational_approximation<a class="anchor" aria-label="anchor" href="#arg-type-rational-approximation"></a></dt>
-<dd><p>Which type of rational
-approximation should be used? The current types are
-"brasil", "chebfun" or "chebfunLB".</p></dd>
+<dd><p>Which type of rational approximation
+should be used? The current types are "brasil", "chebfun", "chebfunLB" and
+"wl2". The "wl2" coefficients minimise the weighted \(L_2\) error, see
+<code><a href="rational.coefficients.wl2.html">rational.coefficients.wl2()</a></code>; they have no constant term, so the model has
+<code>m</code> instead of <code>m + 1</code> blocks, and they require \(\nu &lt; 3 - d/2\) for
+<code>type = "covariance"</code> and \(\nu + d/2 &lt; 2\) for <code>type = "operator"</code>. For
+<code>type = "operator"</code> only <code>"chebfunLB"</code> and <code>"wl2"</code> are available, since the
+operator-based construction has a single table of roots and that table was
+produced by the chebfun lower-bound method; see <code><a href="matern.operators.html">matern.operators()</a></code>.</p></dd>
+
+
+<dt id="arg-wl-table">wl2_table<a class="anchor" aria-label="anchor" href="#arg-wl-table"></a></dt>
+<dd><p>A table of weighted-L2 coefficients from
+<code><a href="rspde.wl2.table.html">rspde.wl2.table()</a></code>, only used for <code>type_rational_approximation = "wl2"</code>.
+<code>NULL</code> uses the table shipped with the package.</p></dd>
 
 
 <dt id="arg-check-stationarity">check_stationarity<a class="anchor" aria-label="anchor" href="#arg-check-stationarity"></a></dt>

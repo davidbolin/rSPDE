@@ -17,6 +17,7 @@ rspde.mesh.projector(
   ylim = NULL,
   dims = c(100, 100),
   projection = NULL,
+  type.rational.approx = "brasil",
   ...
 )
 
@@ -27,6 +28,7 @@ rspde.mesh.project(
   field = NULL,
   rspde.order = 1,
   nu = NULL,
+  type.rational.approx = "brasil",
   ...
 )
 
@@ -34,7 +36,15 @@ rspde.mesh.project(
 rspde.mesh.project(projector, field, ...)
 
 # S3 method for class 'inla.mesh.1d'
-rspde.mesh.project(mesh, loc, field = NULL, rspde.order = 1, nu = NULL, ...)
+rspde.mesh.project(
+  mesh,
+  loc,
+  field = NULL,
+  rspde.order = 1,
+  nu = NULL,
+  type.rational.approx = "brasil",
+  ...
+)
 ```
 
 ## Arguments

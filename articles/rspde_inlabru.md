@@ -324,7 +324,7 @@ summary(rspde_fit)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[Intercept, distSea, field], latent[] 
     ## Time used:
-    ##     Pre = 0.176, Running = 6.83, Post = 0.0385, Total = 7.04 
+    ##     Pre = 0.159, Running = 6.76, Post = 0.0832, Total = 7 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
     ## Intercept 1.942 0.042       1.86    1.942      2.023 1.942   0
@@ -786,7 +786,7 @@ summary(rspde_fit.rep)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.15, Running = 49.8, Post = 2.89, Total = 52.8 
+    ##     Pre = 0.147, Running = 48.8, Post = 2.87, Total = 51.8 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1065,7 +1065,7 @@ summary(rspde_fit_nonstat)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.133, Running = 15.7, Post = 0.136, Total = 16 
+    ##     Pre = 0.132, Running = 15.5, Post = 0.134, Total = 15.8 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1216,13 +1216,13 @@ cv_result
 ```
 
     ##           Model               mse               mae               dss
-    ## 1    stationary 0.138075285456791 0.273263421572093 -1.16181614755824
-    ## 2 nonstationary 0.137357380022626 0.273300150338153 -1.24654421531374
-    ##            Best     nonstationary        stationary     nonstationary
+    ## 1    stationary 0.138219947206708 0.273566304346668 -1.16340823133403
+    ## 2 nonstationary 0.137099729970654 0.273322423309222 -1.13443654942433
+    ##            Best     nonstationary     nonstationary        stationary
     ##                crps             scrps
-    ## 1 0.193203182275924 0.497468995656693
-    ## 2 0.194181978454815 0.494241900046936
-    ##          stationary     nonstationary
+    ## 1 0.193733148497118 0.498348321644965
+    ## 2 0.193954917103808 0.500779578846526
+    ##          stationary        stationary
 
 The
 [`cross_validation()`](https://davidbolin.github.io/rSPDE/reference/cross_validation.md)

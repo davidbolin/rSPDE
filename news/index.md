@@ -2,6 +2,125 @@
 
 ## rSPDE (development version)
 
+- Added `type_rational_approximation = "wl2"`, a new way of obtaining
+  the rational coefficients. The classes are parameterised so that every
+  fit is a valid model and have no constant term, so the
+  covariance-based models have `m` instead of `m + 1` latent blocks.
+  Available in
+  [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md)
+  and `CBrSPDE.matern.operators()` for both `type = "covariance"` and
+  `type = "operator"`, in
+  [`matern.rational()`](https://davidbolin.github.io/rSPDE/reference/matern.rational.md)
+  and
+  [`matern.rational.cov()`](https://davidbolin.github.io/rSPDE/reference/matern.rational.cov.md)
+  for the exact one-dimensional models, and directly through
+  [`rational.coefficients.wl2()`](https://davidbolin.github.io/rSPDE/reference/rational.coefficients.wl2.md).
+  It requires `floor(nu + d/2)` to be 0, 1 or 2 for the covariance type,
+  that is `nu < 3 - d/2`, and `nu + d/2 < 2` for the operator type. The
+  existing `"brasil"`, `"chebfun"` and `"chebfunLB"` types are unchanged
+  and remain the default.
+- [`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md)
+  accepts `type_rational_approximation = "wl2"` for both
+  `type = "covariance"` and `type = "operator"`. The coefficients depend
+  on `alpha` and the dimension only, not on the varying `kappa` and
+  `tau`, so the same ones serve the non-stationary model; the blocks
+  carry the shift in the same way as the stationary ones.
+- Fixed: the non-stationary covariance-based model
+  ([`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md)
+  with `type = "covariance"`) joined its blocks outside the loop over
+  the poles, so the precision had three blocks whatever the order. For
+  `m` at least 3 the model was silently the wrong one, missing the poles
+  2 to `m-1`.
+- Fixed:
+  [`spde.matern.operators()`](https://davidbolin.github.io/rSPDE/reference/spde.matern.operators.md)
+  with `type = "operator"` did not pass `type_rational_approximation`
+  on, so every type gave the same model.
+- `type = "operator"` now accepts only two of the four rational types.
+  Its factorisation has a single table of roots, produced by the chebfun
+  lower-bound method, so `"chebfunLB"` selects that table and `"wl2"`
+  fits its own; `"brasil"` and `"chebfun"` are refused rather than
+  quietly given roots they did not produce, and remain available for
+  `type = "covariance"`. Leaving `type_rational_approximation` at its
+  default is unaffected. The tabulated roots are stored for `m` at most
+  4, while `"wl2"` fits them at any order. The operator-based models
+  have no INLA interface;
+  [`rspde.matern()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.md)
+  is covariance-based throughout.
+- [`rspde.matern1d()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern1d.md)
+  accepts `type.rational.approx = "wl2"`, for a fixed `nu` and for an
+  estimated one. The exact one-dimensional model then has `rspde.order`
+  blocks of `floor(alpha) + 1` entries per location instead of that plus
+  a k-block, and the pole blocks carry the shared shift.
+- [`rspde.matern()`](https://davidbolin.github.io/rSPDE/reference/rspde.matern.md)
+  accepts `type.rational.approx = "wl2"`, for a fixed `nu` and for an
+  estimated one, with `rspde.order` at least 1. The latent field then
+  has `rspde.order` blocks instead of `rspde.order + 1`, which
+  [`rspde.make.A()`](https://davidbolin.github.io/rSPDE/reference/rspde.make.A.md)
+  and
+  [`rspde.make.index()`](https://davidbolin.github.io/rSPDE/reference/rspde.make.index.md)
+  follow through their new `type.rational.approx` argument.
+- The mesh-free weighted-L2 coefficients are stored in the package, as
+  the tabulated ones are, for `d` = 1 to 3, `m` = 1 to 6 and
+  `floor(alpha)` = 0, 1 and 2. They depend on neither the mesh nor
+  `kappa` and are what a covariance-based model uses by default, so the
+  common case fits nothing at set-up. `data-raw/wl2_tables.R`
+  regenerates them, and the tests check that a fresh fit still
+  reproduces what is stored.
+- Added
+  [`rspde.xmin()`](https://davidbolin.github.io/rSPDE/reference/rspde.xmin.md),
+  which computes the lower end of the spectral interval from the mesh
+  and a lower bound for `kappa`, and the arguments `x_min` and
+  `kappa_ref` to
+  [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md).
+  Fitting on that shorter interval is appreciably more accurate than the
+  mesh-free fit, and is done when the model is created.
+  [`update_rational_coefficients()`](https://davidbolin.github.io/rSPDE/reference/update_rational_coefficients.md)
+  recomputes the coefficients once `kappa` has been estimated.
+- Added
+  [`rspde.wl2.table()`](https://davidbolin.github.io/rSPDE/reference/rspde.wl2.table.md),
+  which builds a weighted-L2 table for a given spectral interval, and
+  the `wl2_table` argument of
+  [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md),
+  which takes one and overrides `x_min` and `kappa_ref`. A table built
+  for another dimension, order or range of `alpha` is refused rather
+  than used.
+- Added
+  [`rspde.cache()`](https://davidbolin.github.io/rSPDE/reference/rspde.cache.md),
+  which keeps generated coefficient tables between sessions, under
+  `tools::R_user_dir("rSPDE", "cache")` or a directory of your choosing.
+  It is off by default, since a package should not write outside the
+  session temporary directory unless asked; the environment variable
+  `RSPDE_CACHE_DIR` sets it for non-interactive use. Lookup is
+  automatic, and a table fitted on a slightly wider spectral interval is
+  reused, since it still covers the whole spectrum.
+- Added `variance_correction = "nodal"` to
+  [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md),
+  which adds `max(sigma^2 - diag(Sigma), 0)` to the diagonal of the
+  covariance of a `"wl2"` covariance-based model. What this corrects is
+  mostly the finite element discretisation rather than the rational
+  approximation. It is off by default, as it depends on the parameters
+  it cannot be tabulated, so it is meant for a model whose parameters
+  are already estimated.
+- The package now has compiled code in every install, CRAN included:
+  `src/wl2_fit.cpp` holds the inner loop of the weighted-L2 fit. The
+  INLA `cgeneric` sources remain optional and are still built only with
+  `RSPDE_COMPILE=1` or `--configure-args='--enable-compiled'`. The
+  equivalent R implementation is kept as the reference and is used when
+  `options(rSPDE.wl2.use.cpp = FALSE)`.
+- The `RSpectra` dependency is gone. `rspde.xmin(eigenvalue = "exact")`
+  and the scaling of the intrinsic models now use Lanczos iterations in
+  the package. Both are also more robust, and the intrinsic one is
+  faster than the old method.
+- [`intrinsic.operators()`](https://davidbolin.github.io/rSPDE/reference/intrinsic.operators.md)
+  now honours its `opts` argument, which was built and then replaced by
+  a hardcoded list. Its entries are `tol` and `maxitr`, as before.
+- Fixed
+  [`matern.rational.cov()`](https://davidbolin.github.io/rSPDE/reference/matern.rational.cov.md),
+  which evaluated the covariance at the lags `h[1] - h`, rather than at
+  `h`. A matrix of lags is now also accepted, and returns a matrix.
+- `get.roots()` now uses spline interpolation by default. Linear
+  interpolation lost accuracy off the 200-node beta grid of the tables
+  (symbol error 1.6e-4 instead of 1.8e-6 at beta = 0.875, m = 4).
 - Fixed the inlabru mapper for
   [`rspde.spacetime()`](https://davidbolin.github.io/rSPDE/reference/rspde.spacetime.md)
   models whose spatial mesh is a `metric_graph`.

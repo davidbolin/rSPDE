@@ -23,6 +23,9 @@ update(
   compute_higher_order = object$higher_order,
   parameterization = NULL,
   type_rational_approximation = object$type_rational_approximation,
+  x_min = object$x_min,
+  kappa_ref = object$kappa_ref,
+  variance_correction = object$variance_correction,
   return_block_list = object$return_block_list,
   check_stationarity = TRUE,
   ...
@@ -112,7 +115,24 @@ update(
 - type_rational_approximation:
 
   Which type of rational approximation should be used? The current types
-  are "chebfun", "brasil" or "chebfunLB".
+  are "chebfun", "brasil", "chebfunLB" or "wl2".
+
+- x_min:
+
+  Lower end of the spectral interval used by
+  `type_rational_approximation = "wl2"`, see
+  [`rspde.xmin()`](https://davidbolin.github.io/rSPDE/reference/rspde.xmin.md).
+
+- kappa_ref:
+
+  A lower bound for `kappa`, used to determine `x_min` when `x_min` is
+  not given.
+
+- variance_correction:
+
+  Should the nodal variance of the weighted-L2 approximation be
+  corrected? See
+  [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md).
 
 - return_block_list:
 

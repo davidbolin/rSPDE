@@ -71,6 +71,9 @@
 <span>  compute_higher_order <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">higher_order</span>,</span>
 <span>  parameterization <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  type_rational_approximation <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">type_rational_approximation</span>,</span>
+<span>  x_min <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">x_min</span>,</span>
+<span>  kappa_ref <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">kappa_ref</span>,</span>
+<span>  variance_correction <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">variance_correction</span>,</span>
 <span>  return_block_list <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="va">return_block_list</span>,</span>
 <span>  check_stationarity <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -150,7 +153,22 @@ finite element matrices be computed?</p></dd>
 <dt id="arg-type-rational-approximation">type_rational_approximation<a class="anchor" aria-label="anchor" href="#arg-type-rational-approximation"></a></dt>
 <dd><p>Which type of rational
 approximation should be used? The current types are "chebfun",
-"brasil" or "chebfunLB".</p></dd>
+"brasil", "chebfunLB" or "wl2".</p></dd>
+
+
+<dt id="arg-x-min">x_min<a class="anchor" aria-label="anchor" href="#arg-x-min"></a></dt>
+<dd><p>Lower end of the spectral interval used by
+<code>type_rational_approximation = "wl2"</code>, see <code><a href="rspde.xmin.html">rspde.xmin()</a></code>.</p></dd>
+
+
+<dt id="arg-kappa-ref">kappa_ref<a class="anchor" aria-label="anchor" href="#arg-kappa-ref"></a></dt>
+<dd><p>A lower bound for <code>kappa</code>, used to determine <code>x_min</code> when
+<code>x_min</code> is not given.</p></dd>
+
+
+<dt id="arg-variance-correction">variance_correction<a class="anchor" aria-label="anchor" href="#arg-variance-correction"></a></dt>
+<dd><p>Should the nodal variance of the weighted-L2
+approximation be corrected? See <code><a href="matern.operators.html">matern.operators()</a></code>.</p></dd>
 
 
 <dt id="arg-return-block-list">return_block_list<a class="anchor" aria-label="anchor" href="#arg-return-block-list"></a></dt>

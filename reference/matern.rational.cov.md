@@ -13,7 +13,8 @@ matern.rational.cov(
   nu,
   sigma,
   type_rational = "brasil",
-  type_interp = "linear"
+  type_interp = "linear",
+  wl2_table = NULL
 )
 ```
 
@@ -21,7 +22,8 @@ matern.rational.cov(
 
 - h:
 
-  Distances to compute the covariance for
+  Lags at which to compute the covariance. May also be a matrix of lags,
+  in which case a matrix of the same shape is returned.
 
 - order:
 
@@ -46,6 +48,13 @@ matern.rational.cov(
 - type_interp:
 
   Interpolation method for the rational coefficients.
+
+- wl2_table:
+
+  Table of weighted-L2 coefficients, only used for
+  `type_rational = "wl2"`. If `NULL`, it is taken from the tables stored
+  in the package where there is one for this configuration, and computed
+  otherwise.
 
 ## Value
 

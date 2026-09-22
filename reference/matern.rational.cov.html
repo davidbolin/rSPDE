@@ -60,7 +60,8 @@
 <span>  <span class="va">nu</span>,</span>
 <span>  <span class="va">sigma</span>,</span>
 <span>  type_rational <span class="op">=</span> <span class="st">"brasil"</span>,</span>
-<span>  type_interp <span class="op">=</span> <span class="st">"linear"</span></span>
+<span>  type_interp <span class="op">=</span> <span class="st">"linear"</span>,</span>
+<span>  wl2_table <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -69,7 +70,8 @@
 
 
 <dl><dt id="arg-h">h<a class="anchor" aria-label="anchor" href="#arg-h"></a></dt>
-<dd><p>Distances to compute the covariance for</p></dd>
+<dd><p>Lags at which to compute the covariance. May also be a matrix of
+lags, in which case a matrix of the same shape is returned.</p></dd>
 
 
 <dt id="arg-order">order<a class="anchor" aria-label="anchor" href="#arg-order"></a></dt>
@@ -94,6 +96,13 @@
 
 <dt id="arg-type-interp">type_interp<a class="anchor" aria-label="anchor" href="#arg-type-interp"></a></dt>
 <dd><p>Interpolation method for the rational coefficients.</p></dd>
+
+
+<dt id="arg-wl-table">wl2_table<a class="anchor" aria-label="anchor" href="#arg-wl-table"></a></dt>
+<dd><p>Table of weighted-L2 coefficients, only used for
+<code>type_rational = "wl2"</code>. If <code>NULL</code>, it is taken from the tables stored in
+the package where there is one for this configuration, and computed
+otherwise.</p></dd>
 
 </dl></div>
     <div class="section level2">

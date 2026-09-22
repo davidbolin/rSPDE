@@ -13,7 +13,8 @@ rspde.make.index(
   mesh = NULL,
   rspde.order = 1,
   nu = NULL,
-  dim = NULL
+  dim = NULL,
+  type.rational.approx = "brasil"
 )
 ```
 
@@ -52,6 +53,12 @@ rspde.make.index(
 
   the dimension of the domain. Should only be provided if `mesh` is not
   provided.
+
+- type.rational.approx:
+
+  Which type of rational approximation the model uses. `"wl2"` has no
+  constant term, so the latent field has `rspde.order` blocks instead of
+  `rspde.order + 1`; the tabulated types are unaffected.
 
 ## Value
 

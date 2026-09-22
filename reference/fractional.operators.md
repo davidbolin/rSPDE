@@ -9,7 +9,18 @@ scales the variance of the solution \\u\\, and \\W\\ is white noise.
 ## Usage
 
 ``` r
-fractional.operators(L, beta, C, scale.factor, m = 1, tau = 1)
+fractional.operators(
+  L,
+  beta,
+  C,
+  scale.factor,
+  m = 1,
+  tau = 1,
+  type_rational_approximation = "chebfunLB",
+  d = NULL,
+  x_min = NULL,
+  wl2_table = NULL
+)
 ```
 
 ## Arguments
@@ -42,6 +53,43 @@ fractional.operators(L, beta, C, scale.factor, m = 1, tau = 1)
 
   The constant or vector that scales the variance of the solution. The
   default value is 1.
+
+- type_rational_approximation:
+
+  Which type of rational approximation should be used? Two are available
+  for the operator-based construction: `"chebfunLB"`, the tabulated
+  roots of `get.roots()`, and `"wl2"`, which minimises the weighted
+  \\L_2\\ error over the spectral interval, see
+  [`rational.coefficients.wl2()`](https://davidbolin.github.io/rSPDE/reference/rational.coefficients.wl2.md).
+  The factorisation into \\P_l\\ and \\P_r\\ has a single table of roots
+  and that table was produced by the chebfun lower-bound method, so
+  `"brasil"` and `"chebfun"` are refused here rather than quietly given
+  roots they did not produce; they are available for
+  `type = "covariance"`. The tabulated roots are stored for `m` at most
+  4; `"wl2"` fits them and has no such limit, and requires \\\beta \<
+  1\\. Its mesh-free coefficients are stored in the package and cost
+  nothing to obtain; a fit for a particular spectral interval is
+  computed when the model is created. Supplying a `wl2_table` built by
+  [`rspde.wl2.table()`](https://davidbolin.github.io/rSPDE/reference/rspde.wl2.table.md)
+  can be used to work with other weights.
+
+- d:
+
+  The dimension of the domain. Only used for
+  `type_rational_approximation = "wl2"`.
+
+- x_min:
+
+  Lower end of the spectral interval used by
+  `type_rational_approximation = "wl2"`, see
+  [`rspde.xmin()`](https://davidbolin.github.io/rSPDE/reference/rspde.xmin.md).
+  `NULL` gives the mesh-free fit, which is not recommended for the
+  operator-based models.
+
+- wl2_table:
+
+  An optional table of weighted-L2 coefficients, supplied by
+  [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md).
 
 ## Value
 

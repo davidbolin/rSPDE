@@ -143,7 +143,13 @@ stationary Matern models on intervals. Other options are "Neumann" or "Dirichlet
 
 
 <dt id="arg-type-rational-approximation">type_rational_approximation<a class="anchor" aria-label="anchor" href="#arg-type-rational-approximation"></a></dt>
-<dd><p>Method used to compute the coefficients of the rational approximation.</p></dd>
+<dd><p>Method used to compute the coefficients of
+the rational approximation. The tabulated methods are "brasil", "chebfun"
+and "chebfunLB"; "wl2" minimises the weighted \(L_2\) error, see
+<code><a href="rational.coefficients.wl2.html">rational.coefficients.wl2()</a></code>. Its coefficients are stored in the package,
+so this costs nothing when the model is created. The "wl2" classes have no
+constant term, so the model has <code>m</code> instead of <code>m + 1</code> blocks, and they
+require \(\alpha = \nu + 1/2 &lt; 3\), that is \(\nu &lt; 5/2\).</p></dd>
 
 
 <dt id="arg-type-interp">type_interp<a class="anchor" aria-label="anchor" href="#arg-type-interp"></a></dt>

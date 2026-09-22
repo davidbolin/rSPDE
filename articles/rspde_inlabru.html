@@ -77,7 +77,7 @@
 Alexandre B. Simas</h4>
             
             <h4 data-toc-skip class="date">Created: 2022-09-13. Last
-modified: 2026-09-11.</h4>
+modified: 2026-09-22.</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/davidbolin/rSPDE/blob/devel/vignettes/rspde_inlabru.Rmd" class="external-link"><code>vignettes/rspde_inlabru.Rmd</code></a></small>
       <div class="d-none name"><code>rspde_inlabru.Rmd</code></div>
@@ -336,7 +336,7 @@ of the RW1, and the parameters of the spatial field):</p>
 <span><span class="co">##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE</span></span>
 <span><span class="co">##     Used components: effect[Intercept, distSea, field], latent[] </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.176, Running = 6.83, Post = 0.0385, Total = 7.04 </span></span>
+<span><span class="co">##     Pre = 0.159, Running = 6.76, Post = 0.0832, Total = 7 </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span></span>
 <span><span class="co">## Intercept 1.942 0.042       1.86    1.942      2.023 1.942   0</span></span>
@@ -693,7 +693,7 @@ some meaningless model.</p>
 <span><span class="co">##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE</span></span>
 <span><span class="co">##     Used components: effect[field], latent[] </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.15, Running = 49.8, Post = 2.89, Total = 52.8 </span></span>
+<span><span class="co">##     Pre = 0.147, Running = 48.8, Post = 2.87, Total = 51.8 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
@@ -929,7 +929,7 @@ some meaningless model.</p>
 <span><span class="co">##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE</span></span>
 <span><span class="co">##     Used components: effect[field], latent[] </span></span>
 <span><span class="co">## Time used:</span></span>
-<span><span class="co">##     Pre = 0.133, Running = 15.7, Post = 0.136, Total = 16 </span></span>
+<span><span class="co">##     Pre = 0.132, Running = 15.5, Post = 0.134, Total = 15.8 </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##   Name     Model</span></span>
 <span><span class="co">##     field CGeneric</span></span>
@@ -1040,13 +1040,13 @@ the last row.</p>
 <div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cv_result</span></span></code></pre></div>
 <pre><code><span><span class="co">##           Model               mse               mae               dss</span></span>
-<span><span class="co">## 1    stationary 0.138075285456791 0.273263421572093 -1.16181614755824</span></span>
-<span><span class="co">## 2 nonstationary 0.137357380022626 0.273300150338153 -1.24654421531374</span></span>
-<span><span class="co">##            Best     nonstationary        stationary     nonstationary</span></span>
+<span><span class="co">## 1    stationary 0.138219947206708 0.273566304346668 -1.16340823133403</span></span>
+<span><span class="co">## 2 nonstationary 0.137099729970654 0.273322423309222 -1.13443654942433</span></span>
+<span><span class="co">##            Best     nonstationary     nonstationary        stationary</span></span>
 <span><span class="co">##                crps             scrps</span></span>
-<span><span class="co">## 1 0.193203182275924 0.497468995656693</span></span>
-<span><span class="co">## 2 0.194181978454815 0.494241900046936</span></span>
-<span><span class="co">##          stationary     nonstationary</span></span></code></pre>
+<span><span class="co">## 1 0.193733148497118 0.498348321644965</span></span>
+<span><span class="co">## 2 0.193954917103808 0.500779578846526</span></span>
+<span><span class="co">##          stationary        stationary</span></span></code></pre>
 <p>The <code><a href="../reference/cross_validation.html">cross_validation()</a></code> function also has the following
 useful options:</p>
 <ul>

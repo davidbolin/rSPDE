@@ -61,15 +61,13 @@ The precision matrix.
 ## Examples
 
 ``` r
-if (requireNamespace("RSpectra", quietly = TRUE)) {
-  x <- seq(from = 0, to = 10, length.out = 201)
-  beta <- 1
-  alpha <- 1
-  kappa <- 1
-  op <- intrinsic.matern.operators(
-    kappa = kappa, tau = 1, alpha = alpha,
-    beta = beta, loc_mesh = x, d = 1
-  )
+x <- seq(from = 0, to = 10, length.out = 201)
+beta <- 1
+alpha <- 1
+kappa <- 1
+op <- intrinsic.matern.operators(
+  kappa = kappa, tau = 1, alpha = alpha,
+  beta = beta, loc_mesh = x, d = 1
+)
 Q <- precision(op) 
-}
 ```
