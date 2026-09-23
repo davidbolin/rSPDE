@@ -324,7 +324,7 @@ summary(rspde_fit)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[Intercept, distSea, field], latent[] 
     ## Time used:
-    ##     Pre = 0.159, Running = 6.76, Post = 0.0832, Total = 7 
+    ##     Pre = 0.166, Running = 7.17, Post = 0.0973, Total = 7.43 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
     ## Intercept 1.942 0.042       1.86    1.942      2.023 1.942   0
@@ -786,7 +786,7 @@ summary(rspde_fit.rep)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.147, Running = 48.8, Post = 2.87, Total = 51.8 
+    ##     Pre = 0.145, Running = 52.1, Post = 3.32, Total = 55.5 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
@@ -1065,26 +1065,26 @@ summary(rspde_fit_nonstat)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.132, Running = 15.5, Post = 0.134, Total = 15.8 
+    ##     Pre = 0.133, Running = 20.2, Post = 0.129, Total = 20.4 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
     ## 
     ## Model hyperparameters:
     ##                                            mean    sd 0.025quant 0.5quant
-    ## Precision for the Gaussian observations 105.715 9.925     87.409  105.292
-    ## Theta1 for field                         -0.068 0.086     -0.234   -0.069
-    ## Theta2 for field                          0.805 0.097      0.608    0.807
-    ## Theta3 for field                          1.109 0.121      0.889    1.103
-    ## Theta4 for field                          0.024 0.069     -0.100    0.020
+    ## Precision for the Gaussian observations 105.706 9.812     87.159  105.438
+    ## Theta1 for field                         -0.072 0.089     -0.241   -0.074
+    ## Theta2 for field                          0.807 0.095      0.623    0.807
+    ## Theta3 for field                          1.108 0.122      0.896    1.100
+    ## Theta4 for field                          0.025 0.067     -0.094    0.021
     ##                                         0.975quant    mode
-    ## Precision for the Gaussian observations    126.451 104.533
-    ## Theta1 for field                             0.105  -0.075
-    ## Theta2 for field                             0.991   0.814
-    ## Theta3 for field                             1.363   1.076
-    ## Theta4 for field                             0.170   0.003
+    ## Precision for the Gaussian observations    125.745 105.312
+    ## Theta1 for field                             0.109  -0.083
+    ## Theta2 for field                             0.996   0.804
+    ## Theta3 for field                             1.371   1.061
+    ## Theta4 for field                             0.169   0.002
     ## 
-    ## Marginal log-Likelihood:  2.18 
+    ## Marginal log-Likelihood:  2.17 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -1099,11 +1099,11 @@ result_fit_nonstat <- rspde.result(rspde_fit_nonstat, "field", rspde_model_nonst
 summary(result_fit_nonstat)
 ```
 
-    ##                     mean        sd 0.025quant   0.5quant 0.975quant       mode
-    ## Theta1.matern -0.0682154 0.0862728  -0.234333 -0.0694687   0.105397 -0.0749376
-    ## Theta2.matern  0.8048600 0.0974529   0.607660  0.8066160   0.991446  0.8144210
-    ## Theta3.matern  1.1085700 0.1208110   0.889254  1.1029500   1.363210  1.0760500
-    ## nu             1.0117200 0.0341447   0.950619  1.0093800   1.083890  1.0015200
+    ##                    mean        sd 0.025quant   0.5quant 0.975quant       mode
+    ## Theta1.matern -0.072034 0.0890079  -0.241107 -0.0740524   0.109327 -0.0831326
+    ## Theta2.matern  0.807357 0.0946565   0.623085  0.8066370   0.995871  0.8035420
+    ## Theta3.matern  1.108230 0.1216060   0.896489  1.1003500   1.371140  1.0611200
+    ## nu             1.012370 0.0333961   0.953260  1.0098500   1.083440  1.0011800
 
 Let us compare the mean to the true values of the parameters:
 
@@ -1119,11 +1119,11 @@ result_df <- data.frame(
 print(result_df)
 ```
 
-    ##       parameter true       mean       mode
-    ## 1 Theta1.matern  0.0 -0.0682154 -0.0749376
-    ## 2 Theta2.matern  1.0  0.8048600  0.8144210
-    ## 3 Theta3.matern  1.0  1.1085700  1.0760500
-    ## 4            nu  0.8  1.0117200  1.0015200
+    ##       parameter true      mean       mode
+    ## 1 Theta1.matern  0.0 -0.072034 -0.0831326
+    ## 2 Theta2.matern  1.0  0.807357  0.8035420
+    ## 3 Theta3.matern  1.0  1.108230  1.0611200
+    ## 4            nu  0.8  1.012370  1.0011800
 
 We can also plot the posterior densities. To this end we will use the
 [`gg_df()`](https://davidbolin.github.io/rSPDE/reference/gg_df.md)
@@ -1216,13 +1216,13 @@ cv_result
 ```
 
     ##           Model               mse               mae               dss
-    ## 1    stationary 0.138219947206708 0.273566304346668 -1.16340823133403
-    ## 2 nonstationary 0.137099729970654 0.273322423309222 -1.13443654942433
-    ##            Best     nonstationary     nonstationary        stationary
+    ## 1    stationary 0.138064177399303 0.273208343487825 -1.16657574126202
+    ## 2 nonstationary 0.136992567525633 0.272914411169388 -1.25517491452676
+    ##            Best     nonstationary     nonstationary     nonstationary
     ##                crps             scrps
-    ## 1 0.193733148497118 0.498348321644965
-    ## 2 0.193954917103808 0.500779578846526
-    ##          stationary        stationary
+    ## 1 0.193319448544208  0.49680960418182
+    ## 2   0.1917779724742 0.487564288159382
+    ##       nonstationary     nonstationary
 
 The
 [`cross_validation()`](https://davidbolin.github.io/rSPDE/reference/cross_validation.md)

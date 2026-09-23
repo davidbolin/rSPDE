@@ -93,6 +93,12 @@ rspde.mesh.project(
 
   One of c("default", "longlat", "longsinlat", "mollweide").
 
+- type.rational.approx:
+
+  Which type of rational approximation the model uses. `"wl2"` has no
+  constant term, so the latent field has `rspde.order` blocks instead of
+  `rspde.order + 1`; the tabulated types are unaffected.
+
 - field:
 
   Basis function weights, one per mesh basis function, describing the
