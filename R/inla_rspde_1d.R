@@ -144,19 +144,6 @@ rspde.matern1d <- function(loc,
             "type.rational.approx = 'wl2' requires rspde.order >= 1."
         ))
     }
-    if (wl2 && !rspde_cgeneric_symbol_available(
-        "inla_cgeneric_rspde_1d_general_wl2_model"
-    )) {
-        stop(paste0(
-            "type.rational.approx = 'wl2' needs the cgeneric model ",
-            "'inla_cgeneric_rspde_1d_general_wl2_model', which the available ",
-            "INLA binary does not provide. Install rSPDE with the cgeneric ",
-            "sources compiled,\n    remotes::install_github(\"davidbolin/rSPDE\", ",
-            "configure.args = \"--enable-compiled\")\n",
-            "and pass shared_lib = \"rSPDE\", or use a newer INLA."
-        ))
-    }
-    
     if(length(unique(diff(loc))) == 1) {
         equally_spaced <- TRUE
     } else {
@@ -234,6 +221,21 @@ rspde.matern1d <- function(loc,
                 get_rational_coefficients(rspde.order, type.rational.approx)
             }
         }
+    }
+    
+    ## The argument checks above come first: telling a user to update INLA when
+    ## their alpha is simply out of scope for the classes would be misleading.
+    if (wl2 && !rspde_cgeneric_symbol_available(
+        "inla_cgeneric_rspde_1d_general_wl2_model"
+    )) {
+        stop(paste0(
+            "type.rational.approx = 'wl2' needs the cgeneric model ",
+            "'inla_cgeneric_rspde_1d_general_wl2_model', which the available ",
+            "INLA binary does not provide. Install rSPDE with the cgeneric ",
+            "sources compiled,\n    remotes::install_github(\"davidbolin/rSPDE\", ",
+            "configure.args = \"--enable-compiled\")\n",
+            "and pass shared_lib = \"rSPDE\", or use a newer INLA."
+        ))
     }
     
     ### Location of object files

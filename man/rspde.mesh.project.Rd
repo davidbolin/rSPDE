@@ -72,6 +72,10 @@ the domain.}
 
 \item{projection}{One of c("default", "longlat", "longsinlat", "mollweide").}
 
+\item{type.rational.approx}{Which type of rational approximation the model
+uses. \code{"wl2"} has no constant term, so the latent field has \code{rspde.order}
+blocks instead of \code{rspde.order + 1}; the tabulated types are unaffected.}
+
 \item{field}{Basis function weights, one per mesh basis function, describing
 the function to be evaluated at the projection locations.}
 

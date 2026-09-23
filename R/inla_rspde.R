@@ -2625,6 +2625,9 @@ summary.rspde_result <- function(object,
 #' the domain.
 #' @param dims Lattice dimensions.
 #' @param projection One of c("default", "longlat", "longsinlat", "mollweide").
+#' @param type.rational.approx Which type of rational approximation the model
+#' uses. `"wl2"` has no constant term, so the latent field has `rspde.order`
+#' blocks instead of `rspde.order + 1`; the tabulated types are unaffected.
 #' @param ... Additional parameters.
 #' @return A list with projection information for rspde.mesh.project. For
 #' rspde.mesh.projector(mesh, ...),
