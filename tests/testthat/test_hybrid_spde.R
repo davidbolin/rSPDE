@@ -679,11 +679,15 @@ test_that("rspde_lme on hybrid model with beta_X fixed at 0 matches the underlyi
   y <- as.numeric(A_obs %*% u) + sigma.e * rnorm(n_obs)
 
   dat <- data.frame(y = y, loc = obs.loc)
-  fit_h <- rspde_lme(y ~ 1, loc = "loc", data = dat,
-                     model = op_h, parallel = FALSE,
-                     model_options = list(fix_beta_x = 0))
-  fit_b <- rspde_lme(y ~ 1, loc = "loc", data = dat,
-                     model = op_base, parallel = FALSE)
+  fit_h <- muffle_hessian_warnings(
+    rspde_lme(y ~ 1, loc = "loc", data = dat,
+              model = op_h, parallel = FALSE,
+              model_options = list(fix_beta_x = 0))
+  )
+  fit_b <- muffle_hessian_warnings(
+    rspde_lme(y ~ 1, loc = "loc", data = dat,
+              model = op_base, parallel = FALSE)
+  )
 
   expect_equal(fit_h$loglik, fit_b$loglik, tolerance = 1e-6)
 })

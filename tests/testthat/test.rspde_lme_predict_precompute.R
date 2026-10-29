@@ -34,9 +34,11 @@ skip_if_no_metric_graph <- function() {
                       edge_number = PtE[, 1],
                       distance_on_edge = PtE[, 2]),
     normalized = TRUE, verbose = 0)
-  fit <- MetricGraph::graph_lme(y ~ -1, graph = graph,
-                                model = list(type = "WhittleMatern",
-                                             alpha = 1, fem = TRUE))
+  fit <- muffle_hessian_warnings(
+    MetricGraph::graph_lme(y ~ -1, graph = graph,
+                           model = list(type = "WhittleMatern",
+                                        alpha = 1, fem = TRUE))
+  )
   # These tests target predict.rspde_lme directly; strip the graph_lme
   # wrapper so we don't go through MetricGraph's dispatch (which may
   # not yet forward advanced_options in the user's installed version).
