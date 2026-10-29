@@ -98,7 +98,9 @@ a list with the blocks.}
 matrix, the stiffness matrix and
 the higher-order FEM-related matrices.}
 \item{make_A}{Use \code{\link[=make_A]{make_A()}} to compute the projection matrix linking the field to observation locations.}
-\item{variogram}{A function to compute the variogram of the model at a specified node.}
+\item{variogram}{A function returning variances of increments between each
+interpolated field location and every mesh node. With \code{semi = TRUE} it
+returns half these variances.}
 \item{A}{Matrix that sums the components in the approximation to the mesh nodes.}
 \item{scaling}{The scaling used in the intrinsic part of the model.}
 }

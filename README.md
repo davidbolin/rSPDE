@@ -48,10 +48,10 @@ remotes::install_github("davidbolin/rspde", ref = "devel")
 
 *The following is intended for expert use only:*
 
-The `devel` branch ships pure R by default but also carries the C/C++ `cgeneric` sources, which can be compiled on demand to build the local INLA shared object (`inst/shared/rspde_cgeneric_models.so`). Compilation is opt-in and controlled by either an environment variable or a `--enable-compiled` flag passed to `remotes::install_github()`:
+The `devel` branch compiles its package-level C++ weighted-L2 helper during a source installation, so a suitable R C++ toolchain is required. Separately, the C/C++ `cgeneric` sources can be compiled on demand to build the local INLA shared object (`inst/shared/rspde_cgeneric_models.so`). That additional compilation is opt-in and controlled by either an environment variable or a `--enable-compiled` flag passed to `remotes::install_github()`:
 
 ```r
-# Pure R install (default; matches CRAN):
+# Default install (compiles the package-level helper):
 remotes::install_github("davidbolin/rSPDE", ref = "devel")
 
 # Opt in to the compiled cgeneric library:
@@ -71,7 +71,7 @@ withr::with_envvar(
 If you have already cloned the repository locally, `devtools::install()` works the same way. The most reliable form is to set the `RSPDE_COMPILE` environment variable before installing — `devtools::install()` does **not** accept a `configure.args` argument directly; configure flags must be forwarded through `args = "--configure-args=..."`:
 
 ```r
-# From the cloned repo root, pure R (default, no compilation):
+# From the cloned repo root, default package build:
 devtools::install()
 
 # From the cloned repo root, with compilation (env-var form, recommended):
@@ -88,13 +88,13 @@ withr::with_envvar(
 devtools::install(args = "--configure-args=--enable-compiled")
 ```
 
-The compiled C/C++ sources live in `inst/src-optional/`. The `configure` (POSIX) and `configure.win` (Windows) scripts copy them into `src/` only when compilation is requested; otherwise they write a no-op `Makevars` so the install stays pure R. CRAN passes neither flag, so the CRAN tarball is unaffected.
+The optional INLA `cgeneric` sources live in `inst/src-optional/`. The `configure` (POSIX) and `configure.win` (Windows) scripts copy them into `src/` only when that optional compilation is requested. The package-level `src/wl2_fit.cpp` is compiled in either case.
 
 At runtime the package checks the requested Cgeneric symbol in the installed INLA binary. If INLA does not provide it, rSPDE looks for the locally compiled shared object; if neither is available, it reports how to update INLA, compile rSPDE from source, or open an rSPDE issue.
 
-For Windows users without Rtools, leave compilation disabled — the default pure-R install does not require a toolchain.
+Windows source installs require Rtools for the package-level C++ helper. A suitable prebuilt binary avoids a local compiler.
 
-The compilation is only required to create the shared object used by `INLA`'s `cgeneric` interface; `INLA` itself ships such a shared object, so most users do not need to compile. The `stable-src` and `devel-src` branches are deprecated in favour of this single-branch `devel` workflow.
+The optional compilation creates a shared object used by `INLA`'s `cgeneric` interface; `INLA` itself ships such a shared object, so most users do not need this extra build. The `stable-src` and `devel-src` branches are deprecated in favour of this single-branch `devel` workflow.
 
 See the vignette [Building the rSPDE package from source on Mac and Linux](https://davidbolin.github.io/rSPDE//articles/build_source.html) for the toolchain prerequisites (gcc-14 on macOS, etc.) used by the optional compile path.
 

@@ -1854,6 +1854,15 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #'   summary(result)
 #' }
 #' }
+.rspde_positive_density <- function(samples, n) {
+  if (anyNA(samples) || any(!is.finite(samples)) || any(samples <= 0)) {
+    stop("Positive parameter samples must be finite and strictly positive.")
+  }
+  log_density <- stats::density(log(samples), n = n)
+  x <- exp(log_density$x)
+  list(x = x, y = log_density$y / x)
+}
+
 rspde.result <- function(inla, name, rspde, compute.summary = TRUE, 
                          parameterization = "detect", 
                          n_samples = 5000, n_density = 1024) {
@@ -2022,13 +2031,13 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE,
                       
                       if (parameterization == "matern") {
                           range_est <- sqrt(8 * nu_est) / kappa_est
-                          density_theta1 <- stats::density(sigma_est, n = n_density)
-                          density_theta2 <- stats::density(range_est, n = n_density)
+                          density_theta1 <- .rspde_positive_density(sigma_est, n = n_density)
+                          density_theta2 <- .rspde_positive_density(range_est, n = n_density)
                       } else if (parameterization == "matern2") {
                           var_est <- sigma_est^2
                           r_est <- 1 / kappa_est
-                          density_theta1 <- stats::density(var_est, n = n_density)
-                          density_theta2 <- stats::density(r_est, n = n_density)
+                          density_theta1 <- .rspde_positive_density(var_est, n = n_density)
+                          density_theta2 <- .rspde_positive_density(r_est, n = n_density)
                       }
                       
                       result[[paste0("marginals.", name_theta1)]] <- list()
@@ -2054,13 +2063,13 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE,
                       if (parameterization == "spde") {
                           tau_est <- sqrt(gamma(0.5) / (sigma_est^2 * kappa_est^(2 * nu_est) *
                                                             (4 * pi)^(dim / 2) * gamma(nu_est + dim / 2)))
-                          density_theta1 <- stats::density(tau_est, n = n_density)
-                          density_theta2 <- stats::density(kappa_est, n = n_density)
+                          density_theta1 <- .rspde_positive_density(tau_est, n = n_density)
+                          density_theta2 <- .rspde_positive_density(kappa_est, n = n_density)
                       } else if (parameterization == "matern2") {
                           var_est <- sigma_est^2
                           r_est <- 1 / kappa_est
-                          density_theta1 <- stats::density(var_est, n = n_density)
-                          density_theta2 <- stats::density(r_est, n = n_density)
+                          density_theta1 <- .rspde_positive_density(var_est, n = n_density)
+                          density_theta2 <- .rspde_positive_density(r_est, n = n_density)
                       }
                       
                       result[[paste0("marginals.", name_theta1)]] <- list()
@@ -2087,12 +2096,12 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE,
                       if (parameterization == "spde") {
                           tau_est <- sqrt(gamma(0.5) / (sigma_est^2 * kappa_est^(2 * nu_est) *
                                                             (4 * pi)^(dim / 2) * gamma(nu_est + dim / 2)))
-                          density_theta1 <- stats::density(tau_est, n = n_density)
-                          density_theta2 <- stats::density(kappa_est, n = n_density)
+                          density_theta1 <- .rspde_positive_density(tau_est, n = n_density)
+                          density_theta2 <- .rspde_positive_density(kappa_est, n = n_density)
                       } else if (parameterization == "matern") {
                           range_est <- sqrt(8 * nu_est) / kappa_est
-                          density_theta1 <- stats::density(sigma_est, n = n_density)
-                          density_theta2 <- stats::density(range_est, n = n_density)
+                          density_theta1 <- .rspde_positive_density(sigma_est, n = n_density)
+                          density_theta2 <- .rspde_positive_density(range_est, n = n_density)
                       }
                       
                       result[[paste0("marginals.", name_theta1)]] <- list()

@@ -88,8 +88,7 @@ plot(mesh_2d, main = "")
 
 We now use the `matern.operators()` function to construct a rational SPDE approximation of 
 order $m=2$ for a Gaussian random field with a Matérn covariance function on
-$[0,1]\times [0, 1]$. We choose $\nu=0.5$ which corresponds to exponential
-covariance. We also set $\sigma=1$ and the range as $0.2$.
+$[0,1]\times [0, 1]$. We choose $\nu=1.3$, $\sigma=2$ and range $0.25$.
 
 ```{r, message=FALSE}
 library(rSPDE)
@@ -124,8 +123,8 @@ where $\varepsilon_1,\ldots,\varepsilon_{m}$ are iid normally distributed
 with mean 0 and standard deviation 0.1.
 
 To generate a data set `y` from this model, we first draw some observation locations at random in the domain and then
-use the `spde.make.A()` functions (that wraps the functions `fm_basis()`, `fm_block()` and `fm_row_kron()` of the `fmesher` package) to construct the observation matrix which can be used to evaluate the
-simulated field $u$ at the observation locations. After this we simply add the measurment noise. 
+use the `spde.make.A()` function (which wraps `fm_basis()`, `fm_block()` and `fm_row_kron()` of the `fmesher` package) to construct the observation matrix which can be used to evaluate the
+simulated field $u$ at the observation locations. After this we simply add the measurement noise.
 
 ```{r}
 A <- spde.make.A(
@@ -184,9 +183,9 @@ st.dat <- inla.stack(
 ```
 
 We now create the model object. We need to set
-an upper bound for the smoothness parameter $\nu$. The default value for this is $4$. If 
+an upper bound for the smoothness parameter $\nu$. The default value for this is $2$. If
 we increase the upper bound for $\nu$
-we also increase the computational cost, and if we decrease the upper bound we also decrease the computatoinal cost. 
+we also increase the computational cost, and if we decrease the upper bound we also decrease the computational cost.
 For this example we set `nu.upper.bound=2`.
 See the  [R-INLA implementation of the rational SPDE approach](rspde_inla.html)
 for further details.

@@ -2196,6 +2196,17 @@ get_shared_library <- function(shared_lib) {
   }
 
   if (shared_lib %in% c("INLA", "detect")) {
+    # Older INLA versions cannot use models built into the INLA binary
+    # (shlib = NULL) and fail inside inla.cgeneric.define() with the cryptic
+    # "invalid 'path' argument" error (see rSPDE issue #18).
+    if (!rspde_inla_version_ok()) {
+      lib_path <- if (shared_lib == "detect") rspde_local_shared_library()
+      if (is.null(lib_path)) {
+        rspde_inla_too_old_error()
+      }
+      rspde_inla_too_old_message()
+      return(lib_path)
+    }
     return(NULL)
   }
   if (shared_lib == "rSPDE") {
@@ -2214,6 +2225,63 @@ get_shared_library <- function(shared_lib) {
 }
 
 .rspde_cgeneric_cache <- new.env(parent = emptyenv())
+
+# Minimum INLA version with the built-in rSPDE Cgeneric models. Keep in sync
+# with the INLA requirement in DESCRIPTION and rspde_safe_inla().
+.rspde_min_inla_version <- "26.08.22"
+
+#' @noRd
+rspde_inla_update_hint <- function() {
+  paste0(
+    "Please update INLA to the latest testing version with ",
+    "INLA::inla.update(testing = TRUE), then restart R. Note that ",
+    "INLA::inla.update() without 'testing = TRUE' may report that INLA is ",
+    "already up to date, because the stable INLA release can be older than ",
+    "the version rSPDE requires."
+  )
+}
+
+# TRUE when INLA is not installed (that is reported elsewhere) or recent enough.
+#' @noRd
+rspde_inla_version_ok <- function() {
+  inla_version <- tryCatch(utils::packageVersion("INLA"), error = function(e) NULL)
+  is.null(inla_version) ||
+    inla_version >= numeric_version(.rspde_min_inla_version)
+}
+
+#' @noRd
+rspde_inla_too_old_text <- function() {
+  paste0(
+    "The installed INLA version (", utils::packageVersion("INLA"), ") is ",
+    "older than the version required by rSPDE (>= ", .rspde_min_inla_version,
+    "). "
+  )
+}
+
+#' @noRd
+rspde_inla_too_old_error <- function() {
+  stop(
+    rspde_inla_too_old_text(),
+    "This INLA version does not include the rSPDE models. ",
+    rspde_inla_update_hint(),
+    call. = FALSE
+  )
+}
+
+# Shown once per session when falling back to the local rSPDE library.
+#' @noRd
+rspde_inla_too_old_message <- function() {
+  if (isTRUE(.rspde_cgeneric_cache$inla_too_old_message_shown)) {
+    return(invisible(NULL))
+  }
+  .rspde_cgeneric_cache$inla_too_old_message_shown <- TRUE
+  message(
+    rspde_inla_too_old_text(),
+    "Using the local rSPDE shared library instead. ",
+    rspde_inla_update_hint()
+  )
+  invisible(NULL)
+}
 
 # Include both package and executable metadata so an in-place INLA update
 # invalidates all cached symbol results, even within the same R session.
@@ -2395,9 +2463,9 @@ rspde_cgeneric_unavailable_error <- function(symbol = NULL) {
   stop(
     model_text,
     " is not available in the installed INLA binary, and no compiled local ",
-    "rSPDE shared library was found. Install the newest testing version of ",
-    "INLA, or reinstall rSPDE from source and compile its Cgeneric library. ",
-    "If neither resolves the problem, open an issue at ",
+    "rSPDE shared library was found. ", rspde_inla_update_hint(),
+    " Alternatively, reinstall rSPDE from source and compile its Cgeneric ",
+    "library. If neither resolves the problem, open an issue at ",
     "https://github.com/davidbolin/rSPDE/issues.",
     call. = FALSE
   )
@@ -2771,9 +2839,9 @@ rspde_check_cgeneric_symbol <- function(model) {
     if (inherits(loaded, "error")) {
         stop(
             "The local rSPDE shared library could not be loaded: ",
-            conditionMessage(loaded), ". Install the newest testing version ",
-            "of INLA, or reinstall rSPDE from source and compile its Cgeneric ",
-            "library. If neither resolves the problem, open an issue at ",
+            conditionMessage(loaded), ". ", rspde_inla_update_hint(),
+            " Alternatively, reinstall rSPDE from source and compile its ",
+            "Cgeneric library. If neither resolves the problem, open an issue at ",
             "https://github.com/davidbolin/rSPDE/issues.",
             call. = FALSE
         )
@@ -2782,9 +2850,9 @@ rspde_check_cgeneric_symbol <- function(model) {
     if (!is.loaded(symbol)) {
         stop(
             "The symbol '", symbol, "' is not available in the compiled local ",
-            "rSPDE shared library. Install the newest testing version of INLA, ",
-            "or reinstall rSPDE from source and compile its Cgeneric library. ",
-            "If neither resolves the problem, open an issue at ",
+            "rSPDE shared library. ", rspde_inla_update_hint(),
+            " Alternatively, reinstall rSPDE from source and compile its ",
+            "Cgeneric library. If neither resolves the problem, open an issue at ",
             "https://github.com/davidbolin/rSPDE/issues.",
             call. = FALSE
         )
