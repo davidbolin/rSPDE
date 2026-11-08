@@ -64,15 +64,14 @@ is mean-zero Gaussian measurement noise and \eqn{u(s)}{u(s)} is defined by
 an intrinsic SPDE as described in \code{\link[=intrinsic.matern.operators]{intrinsic.matern.operators()}}.
 }
 \examples{
-if (requireNamespace("RSpectra", quietly = TRUE)) {
-  x <- seq(from = 0, to = 10, length.out = 201)
-  beta <- 1
-  alpha <- 1
-  kappa <- 1
-  op <- intrinsic.matern.operators(
-    kappa = kappa, tau = 1, alpha = alpha,
-    beta = beta, loc_mesh = x, d = 1
-  )
+x <- seq(from = 0, to = 10, length.out = 201)
+beta <- 1
+alpha <- 1
+kappa <- 1
+op <- intrinsic.matern.operators(
+  kappa = kappa, tau = 1, alpha = alpha,
+  beta = beta, loc_mesh = x, d = 1
+)
 # Create some data
 u <-  simulate(op)
 sigma.e <- 0.1
@@ -83,19 +82,18 @@ Y <- as.vector(A \%*\% u + sigma.e * rnorm(20))
 # compute kriging predictions at the FEM grid
 A.krig <- rSPDE.A1d(x, x)
 u.krig <- predict(op,
-  A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e,
-  compute.variances = TRUE
+A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e,
+compute.variances = TRUE
 )
 
 plot(obs.loc, Y,
-  ylab = "u(x)", xlab = "x", main = "Data and prediction",
-  ylim = c(
-    min(u.krig$mean - 2 * sqrt(u.krig$variance)),
-    max(u.krig$mean + 2 * sqrt(u.krig$variance))
-  )
+ylab = "u(x)", xlab = "x", main = "Data and prediction",
+ylim = c(
+  min(u.krig$mean - 2 * sqrt(u.krig$variance)),
+  max(u.krig$mean + 2 * sqrt(u.krig$variance))
+)
 )
 lines(x, u.krig$mean)
 lines(x, u.krig$mean + 2 * sqrt(u.krig$variance), col = 2)
 lines(x, u.krig$mean - 2 * sqrt(u.krig$variance), col = 2)
-}
 }

@@ -38,27 +38,25 @@
 #' conditions and a zero-mean constraint is additionally imposed to obtained
 #' a non-intrinsic model. The scaling is computed as the lowest positive eigenvalue of 
 #' sqrt(solve(c0))%*%g1sqrt(solve(c0)). opts provides a list of options for the 
-#' numerical calculation of the scaling factor, which is done using `Rspectra::eigs_sym`. 
-#' See the help of that function for details. 
+#' numerical calculation of the scaling factor: `tol`, the relative tolerance
+#' on the eigenvalue, and `maxitr`, the maximum number of Lanczos steps. 
 #' @examples
-#' if (requireNamespace("RSpectra", quietly = TRUE)) {
-#'   x <- seq(from = 0, to = 10, length.out = 201)
-#'   beta <- 1
-#'   alpha <- 1
-#'   op <- intrinsic.operators(tau = 1, beta = beta, loc_mesh = x, d = 1)
-#'   # Compute and plot the variogram of the model
-#'   Sigma <- op$A[,-1] %*% solve(op$Q[-1,-1], t(op$A[,-1]))
-#'   One <- rep(1, times = ncol(Sigma))
-#'   D <- diag(Sigma)
-#'   Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
-#'   k <- 100
-#'   plot(x, Gamma[k, ], type = "l")
-#'   lines(x,
-#'     variogram.intrinsic.spde(x[k], x, kappa = 0, alpha = 0, 
-#'     beta = beta, L = 10, d = 1),
-#'     col = 2, lty = 2
-#'   )
-#' }
+#' x <- seq(from = 0, to = 10, length.out = 201)
+#' beta <- 1
+#' alpha <- 1
+#' op <- intrinsic.operators(tau = 1, beta = beta, loc_mesh = x, d = 1)
+#' # Compute and plot the variogram of the model
+#' Sigma <- op$A[,-1] %*% solve(op$Q[-1,-1], t(op$A[,-1]))
+#' One <- rep(1, times = ncol(Sigma))
+#' D <- diag(Sigma)
+#' Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
+#' k <- 100
+#' plot(x, Gamma[k, ], type = "l")
+#' lines(x,
+#'   variogram.intrinsic.spde(x[k], x, kappa = 0, alpha = 0, 
+#'   beta = beta, L = 10, d = 1),
+#'   col = 2, lty = 2
+#' )
 intrinsic.operators <- function(tau = NULL,
                                 beta = NULL,
                                 G = NULL,
@@ -269,10 +267,12 @@ intrinsic.operators.internal <- function(C,
       Cd <- Diagonal(dim(C)[1], 1/sqrt(diag(C)))
       Gg <- Cd%*%G%*%Cd
       if(is.null(opts)) { 
-          opts = list(tol = 1e-10, maxitr = 1e4)
+          opts = list(tol = 1e-10, maxitr = 300)
       }
-      scaling <- RSpectra::eigs_sym(as(Gg, "CsparseMatrix"), 2, which = "SM",
-                                    opts = list(tol = 1e-10, maxitr = 1e4))$values[1]
+      scaling <- rspde_lambda_min_nonzero(
+          as(Gg, "CsparseMatrix"), sqrt(diag(C)),
+          tol = if (is.null(opts$tol)) 1e-10 else opts$tol,
+          maxit = if (is.null(opts$maxitr)) 300 else opts$maxitr)
       if(is.na(scaling)){
           stop("Computation of scaling failed, provide the scaling manually or change opts to allow for higher maxitr or lower tol")
       }
@@ -583,31 +583,29 @@ intrinsic.precision <- function(alpha, rspde.order, dim, fem_mesh_matrices,
 #' components. The Laplacians are equipped with homogeneous Neumann boundary
 #' conditions. Unless supplied, the scaling is computed as the lowest positive eigenvalue of 
 #' `sqrt(solve(c0))%*%g1%*%sqrt(solve(c0))`. opts provides a list of options for the 
-#' numerical calculation of the scaling factor, which is done using `Rspectra::eigs_sym`. 
-#' See the help of that function for details. 
+#' numerical calculation of the scaling factor: `tol`, the relative tolerance
+#' on the eigenvalue, and `maxitr`, the maximum number of Lanczos steps. 
 #' 
 #' @examples
-#' if (requireNamespace("RSpectra", quietly = TRUE)) {
-#'   x <- seq(from = 0, to = 10, length.out = 201)
-#'   beta <- 1
-#'   alpha <- 1  
-#'   kappa <- 1
-#'   op <- intrinsic.matern.operators(
-#'     kappa = kappa, tau = 1, alpha = alpha,
-#'     beta = beta, loc_mesh = x, d = 1
-#'   )
-#'   # Compute and plot the variogram of the model
-#'   Sigma <- op$A[,-1] %*% solve(op$Q[-1,-1], t(op$A[,-1]))
-#'   One <- rep(1, times = ncol(Sigma))
-#'   D <- diag(Sigma)
-#'   Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
-#'   k <- 100
-#'   plot(x, Gamma[k, ], type = "l")
-#'   lines(x,
-#'     variogram.intrinsic.spde(x[k], x, kappa, alpha, beta, L = 10, d = 1),
-#'     col = 2, lty = 2
-#'   )
-#' }
+#' x <- seq(from = 0, to = 10, length.out = 201)
+#' beta <- 1
+#' alpha <- 1  
+#' kappa <- 1
+#' op <- intrinsic.matern.operators(
+#'   kappa = kappa, tau = 1, alpha = alpha,
+#'   beta = beta, loc_mesh = x, d = 1
+#' )
+#' # Compute and plot the variogram of the model
+#' Sigma <- op$A[,-1] %*% solve(op$Q[-1,-1], t(op$A[,-1]))
+#' One <- rep(1, times = ncol(Sigma))
+#' D <- diag(Sigma)
+#' Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
+#' k <- 100
+#' plot(x, Gamma[k, ], type = "l")
+#' lines(x,
+#'   variogram.intrinsic.spde(x[k], x, kappa, alpha, beta, L = 10, d = 1),
+#'   col = 2, lty = 2
+#' )
 intrinsic.matern.operators <- function(kappa,
                                        tau,
                                        alpha,
@@ -1130,17 +1128,15 @@ simulate.intrinsicCBrSPDEobj <- function(object, nsim = 1,
 #' @method update intrinsicCBrSPDEobj
 #'
 #' @examples
-#' if (requireNamespace("RSpectra", quietly = TRUE)) {
-#'   x <- seq(from = 0, to = 10, length.out = 201)
-#'   beta <- 1
-#'   alpha <- 1
-#'   kappa <- 1
-#'   op <- intrinsic.matern.operators(
-#'     kappa = kappa, tau = 1, alpha = alpha,
-#'     beta = beta, loc_mesh = x, d = 1
-#'   )
+#' x <- seq(from = 0, to = 10, length.out = 201)
+#' beta <- 1
+#' alpha <- 1
+#' kappa <- 1
+#' op <- intrinsic.matern.operators(
+#'   kappa = kappa, tau = 1, alpha = alpha,
+#'   beta = beta, loc_mesh = x, d = 1
+#' )
 #'op <- update(op, beta = 1.1, alpha = 0.9) 
-#'}
 update.intrinsicCBrSPDEobj <- function(object, 
                                        kappa = NULL,
                                        tau = NULL,
@@ -1211,17 +1207,15 @@ update.intrinsicCBrSPDEobj <- function(object,
 #' @seealso [simulate.intrinsicCBrSPDEobj()], [intrinsic.matern.operators()]
 #' @export
 #' @examples
-#' if (requireNamespace("RSpectra", quietly = TRUE)) {
-#'   x <- seq(from = 0, to = 10, length.out = 201)
-#'   beta <- 1
-#'   alpha <- 1
-#'   kappa <- 1
-#'   op <- intrinsic.matern.operators(
-#'     kappa = kappa, tau = 1, alpha = alpha,
-#'     beta = beta, loc_mesh = x, d = 1
-#'   )
+#' x <- seq(from = 0, to = 10, length.out = 201)
+#' beta <- 1
+#' alpha <- 1
+#' kappa <- 1
+#' op <- intrinsic.matern.operators(
+#'   kappa = kappa, tau = 1, alpha = alpha,
+#'   beta = beta, loc_mesh = x, d = 1
+#' )
 #' Q <- precision(op) 
-#'}
 precision.intrinsicCBrSPDEobj <- function(object,
                                    kappa = NULL,
                                    tau = NULL,
@@ -1313,15 +1307,14 @@ precision.intrinsicCBrSPDEobj <- function(object,
 #' @export
 #' @method predict intrinsicCBrSPDEobj
 #' @examples
-#' if (requireNamespace("RSpectra", quietly = TRUE)) {
-#'   x <- seq(from = 0, to = 10, length.out = 201)
-#'   beta <- 1
-#'   alpha <- 1
-#'   kappa <- 1
-#'   op <- intrinsic.matern.operators(
-#'     kappa = kappa, tau = 1, alpha = alpha,
-#'     beta = beta, loc_mesh = x, d = 1
-#'   )
+#' x <- seq(from = 0, to = 10, length.out = 201)
+#' beta <- 1
+#' alpha <- 1
+#' kappa <- 1
+#' op <- intrinsic.matern.operators(
+#'   kappa = kappa, tau = 1, alpha = alpha,
+#'   beta = beta, loc_mesh = x, d = 1
+#' )
 #' # Create some data
 #' u <-  simulate(op)
 #' sigma.e <- 0.1
@@ -1332,21 +1325,20 @@ precision.intrinsicCBrSPDEobj <- function(object,
 #' # compute kriging predictions at the FEM grid
 #' A.krig <- rSPDE.A1d(x, x)
 #' u.krig <- predict(op,
-#'   A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e,
-#'   compute.variances = TRUE
+#' A = A, Aprd = A.krig, Y = Y, sigma.e = sigma.e,
+#' compute.variances = TRUE
 #' )
 #'
 #' plot(obs.loc, Y,
-#'   ylab = "u(x)", xlab = "x", main = "Data and prediction",
-#'   ylim = c(
-#'     min(u.krig$mean - 2 * sqrt(u.krig$variance)),
-#'     max(u.krig$mean + 2 * sqrt(u.krig$variance))
-#'   )
+#' ylab = "u(x)", xlab = "x", main = "Data and prediction",
+#' ylim = c(
+#'   min(u.krig$mean - 2 * sqrt(u.krig$variance)),
+#'   max(u.krig$mean + 2 * sqrt(u.krig$variance))
+#' )
 #' )
 #' lines(x, u.krig$mean)
 #' lines(x, u.krig$mean + 2 * sqrt(u.krig$variance), col = 2)
 #' lines(x, u.krig$mean - 2 * sqrt(u.krig$variance), col = 2)
-#'}
 predict.intrinsicCBrSPDEobj <- function(object, 
                                         A, 
                                         Aprd, 
@@ -1491,21 +1483,19 @@ predict.intrinsicCBrSPDEobj <- function(object,
 #' @noRd
 #' @seealso [intrinsic.matern.operators()], [predict.intrinsicCBrSPDEobj()]
 #' @examples
-#' if (requireNamespace("RSpectra", quietly = TRUE)) {
-#'   x <- seq(from = 0, to = 10, length.out = 201)
-#'   beta <- 1
-#'   alpha <- 1
-#'   kappa <- 1
-#'   op <- intrinsic.matern.operators(
-#'     kappa = kappa, tau = 1, alpha = alpha,
-#'     beta = beta, loc_mesh = x, d = 1
-#'   )
+#' x <- seq(from = 0, to = 10, length.out = 201)
+#' beta <- 1
+#' alpha <- 1
+#' kappa <- 1
+#' op <- intrinsic.matern.operators(
+#'   kappa = kappa, tau = 1, alpha = alpha,
+#'   beta = beta, loc_mesh = x, d = 1
+#' )
 #' # Create some data
 #' obs.loc <- runif(n = 20, min = 0, max = 10)
 #' A <- rSPDE.A1d(x, obs.loc)
 #' Y <- as.vector(A %*% u + sigma.e * rnorm(20))
 #' loglik <- intrinsic.loglike(object, Y, A, sigma.e)
-#'}
 intrinsic.loglike <- function(object, 
                               Y, 
                               A, 
@@ -1762,27 +1752,25 @@ aux2_lme_intrinsic.loglike <- function(object, y, X_cov, repl, A_list, sigma_e,
 #' @seealso [intrinsic.matern.operators()]
 #'
 #' @examples
-#' if (requireNamespace("RSpectra", quietly = TRUE)) {
-#'   x <- seq(from = 0, to = 10, length.out = 201)
-#'   beta <- 1
-#'   alpha <- 1
-#'   kappa <- 1
-#'   op <- intrinsic.matern.operators(
-#'     kappa = kappa, tau = 1, alpha = alpha,
-#'     beta = beta, loc_mesh = x, d = 1
-#'   )
-#'   # Compute and plot the variogram of the model
-#'   Sigma <- op$A[,-1] %*% solve(op$Q[-1,-1], t(op$A[,-1]))
-#'   One <- rep(1, times = ncol(Sigma))
-#'   D <- diag(Sigma)
-#'   Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
-#'   k <- 100
-#'   plot(x, Gamma[k, ], type = "l")
-#'   lines(x,
-#'     variogram.intrinsic.spde(x[k], x, kappa, alpha, beta, L = 10, d = 1),
-#'     col = 2, lty = 2
-#'   )
-#' }
+#' x <- seq(from = 0, to = 10, length.out = 201)
+#' beta <- 1
+#' alpha <- 1
+#' kappa <- 1
+#' op <- intrinsic.matern.operators(
+#'   kappa = kappa, tau = 1, alpha = alpha,
+#'   beta = beta, loc_mesh = x, d = 1
+#' )
+#' # Compute and plot the variogram of the model
+#' Sigma <- op$A[,-1] %*% solve(op$Q[-1,-1], t(op$A[,-1]))
+#' One <- rep(1, times = ncol(Sigma))
+#' D <- diag(Sigma)
+#' Gamma <- 0.5 * (One %*% t(D) + D %*% t(One) - 2 * Sigma)
+#' k <- 100
+#' plot(x, Gamma[k, ], type = "l")
+#' lines(x,
+#'   variogram.intrinsic.spde(x[k], x, kappa, alpha, beta, L = 10, d = 1),
+#'   col = 2, lty = 2
+#' )
 variogram.intrinsic.spde <- function(s0 = NULL,
                                      s = NULL,
                                      kappa = 0,

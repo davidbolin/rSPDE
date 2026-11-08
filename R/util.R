@@ -613,7 +613,8 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
                                      nu,
                                      force_non_integer = FALSE,
                                      rspde.order = 2,
-                                     dim = NULL) {
+                                     dim = NULL,
+                                     wl2 = FALSE) {
   if (!is.null(mesh)) {
     dim <- fmesher::fm_manifold_dim(mesh)
     if (!fmesher::fm_manifold(mesh, c("R1", "R2"))) {
@@ -639,23 +640,19 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
       return(fem_mesh_matrices[[paste0("g", m_alpha)]])
     } else {
       if (sharp) {
-        if (m_alpha > 0) {
-          return(bdiag(
-            kronecker(
-              diag(rep(1, rspde.order)),
-              fem_mesh_matrices[[paste0("g", m_alpha + 1)]]
-            ),
-            fem_mesh_matrices[[paste0("g", m_alpha)]]
-          ))
+        ## The weighted-L2 classes have no constant term, hence no k-block.
+        gfull <- if (m_alpha > 0) {
+          fem_mesh_matrices[[paste0("g", m_alpha + 1)]]
         } else {
-          return(bdiag(
-            kronecker(
-              diag(rep(1, rspde.order)),
-              fem_mesh_matrices[["g1"]]
-            ),
-            fem_mesh_matrices[["c0"]]
-          ))
+          fem_mesh_matrices[["g1"]]
         }
+        gless <- if (m_alpha > 0) {
+          fem_mesh_matrices[[paste0("g", m_alpha)]]
+        } else {
+          fem_mesh_matrices[["c0"]]
+        }
+        blocks <- kronecker(diag(rep(1, rspde.order)), gfull)
+        return(if (wl2) blocks else bdiag(blocks, gless))
       } else {
         return(kronecker(
           diag(rep(1, rspde.order + 1)),
@@ -680,23 +677,19 @@ get.sparsity.graph.rspde <- function(mesh = NULL,
 
 
       if (sharp) {
-        if (m_alpha > 0) {
-          return(bdiag(
-            kronecker(
-              diag(rep(1, rspde.order)),
-              fem_mesh_matrices[[paste0("g", m_alpha + 1)]]
-            ),
-            fem_mesh_matrices[[paste0("g", m_alpha)]]
-          ))
+        ## The weighted-L2 classes have no constant term, hence no k-block.
+        gfull <- if (m_alpha > 0) {
+          fem_mesh_matrices[[paste0("g", m_alpha + 1)]]
         } else {
-          return(bdiag(
-            kronecker(
-              diag(rep(1, rspde.order)),
-              fem_mesh_matrices[["g1"]]
-            ),
-            fem_mesh_matrices[["c0"]]
-          ))
+          fem_mesh_matrices[["g1"]]
         }
+        gless <- if (m_alpha > 0) {
+          fem_mesh_matrices[[paste0("g", m_alpha)]]
+        } else {
+          fem_mesh_matrices[["c0"]]
+        }
+        blocks <- kronecker(diag(rep(1, rspde.order)), gfull)
+        return(if (wl2) blocks else bdiag(blocks, gless))
       } else {
         return(kronecker(
           diag(rep(1, rspde.order + 1)),
@@ -876,9 +869,11 @@ symmetric_part_matrix <- function(M) {
 #' @param order order of the rational approximation
 #' @param beta value of beta to get the coefficients for.
 #' @param type_interp Type of interpolation. Options are "linear" or "spline".
+#' "spline" is the default, since "linear" loses accuracy off the 200-node
+#' beta grid of the tables.
 #' @return A list with coefficients.
 #' @noRd
-get.roots <- function(order, beta, type_interp = "linear") {
+get.roots <- function(order, beta, type_interp = "spline") {
   if(!(order %in% c(1,2,3,4))) {
     stop("order must be one of the values 1,2,3,4.")
   }
@@ -918,6 +913,117 @@ get.roots <- function(order, beta, type_interp = "linear") {
   return(list(rb = rb, rc = rc, factor = factor))
 }
 
+#' @name rspde_lambda_min_nonzero
+#' @title Smallest non-zero eigenvalue of a singular symmetric matrix
+#' @description The scaling of the intrinsic models is the smallest non-zero
+#' eigenvalue of \eqn{\tilde G = C^{-1/2} G C^{-1/2}}. Its null vector is known
+#' rather than computed: \eqn{G} is a stiffness matrix, so \eqn{G 1 = 0} and
+#' hence \eqn{\tilde G \, C^{1/2} 1 = 0}. Deflating that direction turns the
+#' second smallest eigenvalue into the smallest, and shift-and-invert Lanczos
+#' then converges to it from the well separated end of the spectrum of the
+#' inverse, in about a dozen iterations.
+#' @param S A sparse symmetric positive semi-definite matrix.
+#' @param null_vec A vector spanning the known null space.
+#' @param tol Relative tolerance on the eigenvalue.
+#' @param maxit Maximum number of Lanczos steps.
+#' @return The smallest non-zero eigenvalue, or `NA_real_` on failure.
+#' @noRd
+rspde_lambda_min_nonzero <- function(S, null_vec, tol = 1e-10, maxit = 300) {
+  n <- dim(S)[1]
+  v0 <- as.vector(null_vec)
+  nv <- sqrt(sum(v0^2))
+  if (!is.finite(nv) || nv <= 0) {
+    return(NA_real_)
+  }
+  v0 <- v0 / nv
+  ## The deflation is only valid if this really is a null vector.
+  if (max(abs(as.vector(S %*% v0))) > 1e-6 * max(abs(Matrix::diag(S)))) {
+    return(NA_real_)
+  }
+  ## A shift that is tiny next to the matrix but enough to make it invertible;
+  ## the shift cancels exactly, since the eigenvalues of S + eps I are those of
+  ## S plus eps.
+  eps <- 1e-10 * max(abs(Matrix::diag(S)))
+  ch <- tryCatch(
+    Matrix::Cholesky(as(S + eps * Matrix::Diagonal(n), "symmetricMatrix"),
+      LDL = FALSE
+    ),
+    error = function(e) NULL
+  )
+  if (is.null(ch)) {
+    return(NA_real_)
+  }
+  defl <- function(x) x - v0 * sum(v0 * x)
+  q <- defl(rep_len(c(1, -1, 1, 1, -1), n) + seq_len(n) / n)
+  nq <- sqrt(sum(q^2))
+  if (!is.finite(nq) || nq <= 0) {
+    return(NA_real_)
+  }
+  q <- q / nq
+  k <- max(3L, min(as.integer(maxit), n - 1L))
+  Q <- matrix(0, n, k)
+  al <- be <- numeric(k)
+  qm <- numeric(n)
+  b <- 0
+  theta <- NA_real_
+  for (j in seq_len(k)) {
+    Q[, j] <- q
+    v <- defl(as.vector(Matrix::solve(ch, defl(q))))
+    al[j] <- sum(q * v)
+    v <- v - al[j] * q - b * qm
+    v <- v - Q %*% crossprod(Q, v)
+    b <- sqrt(sum(v^2))
+    if (j >= 3) {
+      Tm <- diag(al[seq_len(j)], j)
+      i <- seq_len(j - 1)
+      Tm[cbind(i, i + 1)] <- be[i]
+      Tm[cbind(i + 1, i)] <- be[i]
+      th <- tryCatch(max(eigen(Tm, symmetric = TRUE, only.values = TRUE)$values),
+        error = function(e) NA_real_
+      )
+      if (!is.finite(th) || th <= 0) {
+        return(NA_real_)
+      }
+      if (is.finite(theta) && abs(th - theta) <= tol * abs(th)) {
+        return(1 / th - eps)
+      }
+      theta <- th
+    }
+    if (!is.finite(b) || b < 1e-12) {
+      break
+    }
+    be[j] <- b
+    qm <- q
+    q <- as.vector(v) / b
+  }
+  if (is.finite(theta) && theta > 0) 1 / theta - eps else NA_real_
+}
+
+#' @name rspde_n_blocks
+#' @title Number of latent blocks of a covariance-based rational approximation
+#' @description The tabulated rational approximations ("chebfun", "brasil" and
+#' "chebfunLB") have a constant term, and therefore `m + 1` blocks, while the
+#' weighted-L2 approximation ("wl2") has no constant term and `m` blocks.
+#' @param m The order of the rational approximation.
+#' @param type_rational_approximation The type of rational approximation.
+#' @return The number of blocks.
+#' @noRd
+rspde_n_blocks <- function(m, type_rational_approximation = NULL) {
+  if (identical(type_rational_approximation[[1]], "wl2")) {
+    return(m)
+  }
+  m + 1
+}
+
+#' @name rspde_n_blocks_obj
+#' @title Number of latent blocks of a fitted object
+#' @param object An object with elements `m` and `type_rational_approximation`.
+#' @return The number of blocks.
+#' @noRd
+rspde_n_blocks_obj <- function(object) {
+  rspde_n_blocks(object$m, object$type_rational_approximation)
+}
+
 #' @name get_rational_coefficients
 #' @title Get matrix with rational coefficients
 #' @description Get matrix with rational coefficients
@@ -940,6 +1046,11 @@ get_rational_coefficients <- function(order, type_rational_approx) {
     mt <- matrix(nrow = nrow(mt_brasil), ncol = ncol(mt_brasil))
     mt[1:500,] <- mt_brasil[1:500,]
     mt[501:999] <- mt_chebfun[501:999,]
+  } else if (type_rational_approx == "wl2") {
+    stop(paste0(
+      "The weighted-L2 coefficients are not tabulated; they are computed at ",
+      "set-up. This function does not support them."
+    ))
   } else{
     stop("The options are 'mix', 'chebfun', 'brasil' and 'chebfunLB'!")
   }
@@ -953,18 +1064,39 @@ get_rational_coefficients <- function(order, type_rational_approx) {
 #' value of alpha.
 #' @param order order of the rational approximation
 #' @param type_rational_approx Type of the rational
-#' approximation. Options are "chebfun", "brasil"
-#' and "chebfunLB"
+#' approximation. Options are "chebfun", "brasil", "chebfunLB" and "wl2"
 #' @param type_interp Type of interpolation. Options are "linear"
 #' (linear interpolation), "log" (log-linear interpolation), "spline" (spline
-#' interpolation) and "logspline" (log-spline interpolation).
+#' interpolation) and "logspline" (log-spline interpolation). Not used for
+#' "wl2".
 #' @param alpha Value of alpha for the coefficients.
-#' @return A list with rational approximations.
+#' @param wl2_table Table of weighted-L2 coefficients, only used for
+#' `type_rational_approx = "wl2"`. If `NULL`, it is taken from the tables
+#' stored in the package where there is one for this configuration, and
+#' computed otherwise.
+#' @param d Dimension of the domain, only used for
+#' `type_rational_approx = "wl2"`.
+#' @return A list with rational approximations. The element `p0` is the pole of
+#' the integer factor of the weighted-L2 classes, and `NULL` otherwise, and `q`
+#' is the power that factor is raised to.
 #' @noRd
 interp_rational_coefficients <- function(order,
                                          type_rational_approx,
                                          type_interp = "spline",
-                                         alpha){
+                                         alpha,
+                                         wl2_table = NULL,
+                                         d = 1){
+    if (identical(type_rational_approx[[1]], "wl2")) {
+        ## The weighted-L2 coefficients are not tabulated; they are computed
+        ## when the model is created. There is no constant term.
+        if (is.null(wl2_table)) {
+            wl2_table <- wl2_coefficient_table(
+                d = d, m = order, m_alpha = floor(alpha), type = "covariance"
+            )
+        }
+        cf <- wl2_interp_coefficients(wl2_table, alpha)
+        return(list(k = 0, r = cf$r, p = cf$p, p0 = cf$p0, q = cf$q))
+    }
     mt <- get_rational_coefficients(order = order,
                                     type_rational_approx=type_rational_approx)
     alpha <- cut_decimals(alpha)
@@ -1003,7 +1135,7 @@ interp_rational_coefficients <- function(order,
     } else {
         stop("invalid type. The options are 'linear', 'log', 'spline' and 'logspline'.")
     }
-    return(list(k=k, r=r, p=p))
+    return(list(k=k, r=r, p=p, p0=NULL))
 }
 
 #' Changing the type of the rational approximation
@@ -1137,9 +1269,12 @@ rational.type <- function(object) {
   } else if (!is.null(attr(object, "inla_rspde_Amatrix"))) {
     n_temp <- ncol(object)
     old_rspde.order <- attr(object, "rspde.order")
-    orig_dim <- n_temp / (old_rspde.order + 1)
+    ty <- attr(object, "type.rational.approx")
+    if (is.null(ty)) ty <- "brasil"
+    orig_dim <- n_temp / rspde_n_blocks(old_rspde.order, ty)
     A <- object[, 1:orig_dim]
-    Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
+    Abar <- kronecker(matrix(1, 1, rspde_n_blocks(rspde.order, ty)), A)
+    attr(Abar, "type.rational.approx") <- ty
     attr(Abar, "inla_rspde_Amatrix") <- TRUE
     attr(Abar, "rspde.order") <- rspde.order
     integer_nu <- attr(object, "integer_nu")
@@ -1166,7 +1301,9 @@ rational.type <- function(object) {
     n.group <- attr(object, "n.group")
     n.repl <- attr(object, "n.repl")
 
-    factor_rspde <- rspde.order + 1
+    ty <- attr(object, "type.rational.approx")
+    if (is.null(ty)) ty <- "brasil"
+    factor_rspde <- rspde_n_blocks(rspde.order, ty)
 
     name.group <- paste(name, ".group", sep = "")
     name.repl <- paste(name, ".repl", sep = "")
@@ -1186,6 +1323,7 @@ rational.type <- function(object) {
     class(out) <- c("inla_rspde_index", class(out))
     attr(out, "rspde.order") <- rspde.order
     attr(out, "integer_nu") <- integer_nu
+    attr(out, "type.rational.approx") <- ty
     attr(out, "n.mesh") <- n_mesh
     attr(out, "name") <- name
     attr(out, "n.group") <- n.group
@@ -2058,6 +2196,17 @@ get_shared_library <- function(shared_lib) {
   }
 
   if (shared_lib %in% c("INLA", "detect")) {
+    # Older INLA versions cannot use models built into the INLA binary
+    # (shlib = NULL) and fail inside inla.cgeneric.define() with the cryptic
+    # "invalid 'path' argument" error (see rSPDE issue #18).
+    if (!rspde_inla_version_ok()) {
+      lib_path <- if (shared_lib == "detect") rspde_local_shared_library()
+      if (is.null(lib_path)) {
+        rspde_inla_too_old_error()
+      }
+      rspde_inla_too_old_message()
+      return(lib_path)
+    }
     return(NULL)
   }
   if (shared_lib == "rSPDE") {
@@ -2076,6 +2225,63 @@ get_shared_library <- function(shared_lib) {
 }
 
 .rspde_cgeneric_cache <- new.env(parent = emptyenv())
+
+# Minimum INLA version with the built-in rSPDE Cgeneric models. Keep in sync
+# with the INLA requirement in DESCRIPTION and rspde_safe_inla().
+.rspde_min_inla_version <- "26.08.22"
+
+#' @noRd
+rspde_inla_update_hint <- function() {
+  paste0(
+    "Please update INLA to the latest testing version with ",
+    "INLA::inla.update(testing = TRUE), then restart R. Note that ",
+    "INLA::inla.update() without 'testing = TRUE' may report that INLA is ",
+    "already up to date, because the stable INLA release can be older than ",
+    "the version rSPDE requires."
+  )
+}
+
+# TRUE when INLA is not installed (that is reported elsewhere) or recent enough.
+#' @noRd
+rspde_inla_version_ok <- function() {
+  inla_version <- tryCatch(utils::packageVersion("INLA"), error = function(e) NULL)
+  is.null(inla_version) ||
+    inla_version >= numeric_version(.rspde_min_inla_version)
+}
+
+#' @noRd
+rspde_inla_too_old_text <- function() {
+  paste0(
+    "The installed INLA version (", utils::packageVersion("INLA"), ") is ",
+    "older than the version required by rSPDE (>= ", .rspde_min_inla_version,
+    "). "
+  )
+}
+
+#' @noRd
+rspde_inla_too_old_error <- function() {
+  stop(
+    rspde_inla_too_old_text(),
+    "This INLA version does not include the rSPDE models. ",
+    rspde_inla_update_hint(),
+    call. = FALSE
+  )
+}
+
+# Shown once per session when falling back to the local rSPDE library.
+#' @noRd
+rspde_inla_too_old_message <- function() {
+  if (isTRUE(.rspde_cgeneric_cache$inla_too_old_message_shown)) {
+    return(invisible(NULL))
+  }
+  .rspde_cgeneric_cache$inla_too_old_message_shown <- TRUE
+  message(
+    rspde_inla_too_old_text(),
+    "Using the local rSPDE shared library instead. ",
+    rspde_inla_update_hint()
+  )
+  invisible(NULL)
+}
 
 # Include both package and executable metadata so an in-place INLA update
 # invalidates all cached symbol results, even within the same R session.
@@ -2257,9 +2463,9 @@ rspde_cgeneric_unavailable_error <- function(symbol = NULL) {
   stop(
     model_text,
     " is not available in the installed INLA binary, and no compiled local ",
-    "rSPDE shared library was found. Install the newest testing version of ",
-    "INLA, or reinstall rSPDE from source and compile its Cgeneric library. ",
-    "If neither resolves the problem, open an issue at ",
+    "rSPDE shared library was found. ", rspde_inla_update_hint(),
+    " Alternatively, reinstall rSPDE from source and compile its Cgeneric ",
+    "library. If neither resolves the problem, open an issue at ",
     "https://github.com/davidbolin/rSPDE/issues.",
     call. = FALSE
   )
@@ -2633,9 +2839,9 @@ rspde_check_cgeneric_symbol <- function(model) {
     if (inherits(loaded, "error")) {
         stop(
             "The local rSPDE shared library could not be loaded: ",
-            conditionMessage(loaded), ". Install the newest testing version ",
-            "of INLA, or reinstall rSPDE from source and compile its Cgeneric ",
-            "library. If neither resolves the problem, open an issue at ",
+            conditionMessage(loaded), ". ", rspde_inla_update_hint(),
+            " Alternatively, reinstall rSPDE from source and compile its ",
+            "Cgeneric library. If neither resolves the problem, open an issue at ",
             "https://github.com/davidbolin/rSPDE/issues.",
             call. = FALSE
         )
@@ -2644,9 +2850,9 @@ rspde_check_cgeneric_symbol <- function(model) {
     if (!is.loaded(symbol)) {
         stop(
             "The symbol '", symbol, "' is not available in the compiled local ",
-            "rSPDE shared library. Install the newest testing version of INLA, ",
-            "or reinstall rSPDE from source and compile its Cgeneric library. ",
-            "If neither resolves the problem, open an issue at ",
+            "rSPDE shared library. ", rspde_inla_update_hint(),
+            " Alternatively, reinstall rSPDE from source and compile its ",
+            "Cgeneric library. If neither resolves the problem, open an issue at ",
             "https://github.com/davidbolin/rSPDE/issues.",
             call. = FALSE
         )

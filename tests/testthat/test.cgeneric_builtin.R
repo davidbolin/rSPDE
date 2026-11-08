@@ -11,13 +11,13 @@ test_that("built-in Cgeneric models retain the shared-library argument slot", {
   expect_null(model$f$cgeneric$shlib)
   expect_false("shlib" %in% names(model$f$cgeneric$data$characters))
 
-  model <- rspde_prepare_cgeneric_model(model)
+  model <- rSPDE:::rspde_prepare_cgeneric_model(model)
   expect_identical(
     names(model$f$cgeneric$data$characters),
     c("model", "shlib", "parameterization")
   )
   expect_identical(model$f$cgeneric$data$characters$shlib, "")
-  expect_silent(rspde_check_cgeneric_symbol(model))
+  expect_silent(rSPDE:::rspde_check_cgeneric_symbol(model))
 
-  expect_identical(rspde_prepare_cgeneric_model(model), model)
+  expect_identical(rSPDE:::rspde_prepare_cgeneric_model(model), model)
 })

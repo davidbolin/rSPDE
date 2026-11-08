@@ -15,7 +15,8 @@ rspde.make.A(
   group = NULL,
   repl = 1L,
   n.group = NULL,
-  n.repl = NULL
+  n.repl = NULL,
+  type.rational.approx = "brasil"
 )
 }
 \arguments{
@@ -46,6 +47,10 @@ the group model.}
 \item{n.group}{The size of the group model.}
 
 \item{n.repl}{The total number of replicates.}
+
+\item{type.rational.approx}{Which type of rational approximation the model
+uses. \code{"wl2"} has no constant term, so the latent field has \code{rspde.order}
+blocks instead of \code{rspde.order + 1}; the tabulated types are unaffected.}
 }
 \value{
 The \eqn{A} matrix for rSPDE models.

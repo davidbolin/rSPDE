@@ -11,11 +11,13 @@ matern.rational.cov(
   nu,
   sigma,
   type_rational = "brasil",
-  type_interp = "linear"
+  type_interp = "linear",
+  wl2_table = NULL
 )
 }
 \arguments{
-\item{h}{Distances to compute the covariance for}
+\item{h}{Lags at which to compute the covariance. May also be a matrix of
+lags, in which case a matrix of the same shape is returned.}
 
 \item{order}{The order of the approximation}
 
@@ -28,6 +30,11 @@ matern.rational.cov(
 \item{type_rational}{Method used to compute the coefficients of the rational approximation.}
 
 \item{type_interp}{Interpolation method for the rational coefficients.}
+
+\item{wl2_table}{Table of weighted-L2 coefficients, only used for
+\code{type_rational = "wl2"}. If \code{NULL}, it is taken from the tables stored in
+the package where there is one for this configuration, and computed
+otherwise.}
 }
 \value{
 The covariance matrix of the approximation

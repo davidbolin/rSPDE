@@ -37,7 +37,8 @@ rspde_safe_inla <- function(multicore = NULL,
     if (!quietly) {
       message(
         "Installed INLA version is ", inla_version,
-        "; version >= ", minimum_version, " is required."
+        "; version >= ", minimum_version, " is required. ",
+        rspde_inla_update_hint()
       )
     }
     return(FALSE)

@@ -4,7 +4,18 @@
 \alias{fractional.operators}
 \title{Rational approximations of fractional operators}
 \usage{
-fractional.operators(L, beta, C, scale.factor, m = 1, tau = 1)
+fractional.operators(
+  L,
+  beta,
+  C,
+  scale.factor,
+  m = 1,
+  tau = 1,
+  type_rational_approximation = "chebfunLB",
+  d = NULL,
+  x_min = NULL,
+  wl2_table = NULL
+)
 }
 \arguments{
 \item{L}{A finite element discretization of the operator \eqn{L}{L}.}
@@ -24,6 +35,31 @@ of m that is implemented is 4.}
 
 \item{tau}{The constant or vector that scales the variance of the solution.
 The default value is 1.}
+
+\item{type_rational_approximation}{Which type of rational approximation
+should be used? Two are available for the operator-based construction:
+\code{"chebfunLB"}, the tabulated roots of \code{get.roots()}, and \code{"wl2"}, which
+minimises the weighted \eqn{L_2} error over the spectral interval, see
+\code{\link[=rational.coefficients.wl2]{rational.coefficients.wl2()}}. The factorisation into \eqn{P_l} and
+\eqn{P_r} has a single table of roots and that table was produced by the
+chebfun lower-bound method, so \code{"brasil"} and \code{"chebfun"} are refused here
+rather than quietly given roots they did not produce; they are available
+for \code{type = "covariance"}. The tabulated roots are stored for \code{m} at most
+4; \code{"wl2"} fits them and has no such limit, and requires \eqn{\beta < 1}.
+Its mesh-free coefficients are stored in the package and cost nothing to
+obtain; a fit for a particular spectral interval is computed when the model
+is created. Supplying a \code{wl2_table} built by \code{\link[=rspde.wl2.table]{rspde.wl2.table()}} can be used
+to work with other weights.}
+
+\item{d}{The dimension of the domain. Only used for
+\code{type_rational_approximation = "wl2"}.}
+
+\item{x_min}{Lower end of the spectral interval used by
+\code{type_rational_approximation = "wl2"}, see \code{\link[=rspde.xmin]{rspde.xmin()}}. \code{NULL} gives the
+mesh-free fit, which is not recommended for the operator-based models.}
+
+\item{wl2_table}{An optional table of weighted-L2 coefficients, supplied by
+\code{\link[=matern.operators]{matern.operators()}}.}
 }
 \value{
 \code{fractional.operators} returns an object of class "rSPDEobj".

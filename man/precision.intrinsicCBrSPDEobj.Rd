@@ -37,17 +37,15 @@ The precision matrix.
 Function to get the precision matrix of a intrinsicCBrSPDEobj object
 }
 \examples{
-if (requireNamespace("RSpectra", quietly = TRUE)) {
-  x <- seq(from = 0, to = 10, length.out = 201)
-  beta <- 1
-  alpha <- 1
-  kappa <- 1
-  op <- intrinsic.matern.operators(
-    kappa = kappa, tau = 1, alpha = alpha,
-    beta = beta, loc_mesh = x, d = 1
-  )
+x <- seq(from = 0, to = 10, length.out = 201)
+beta <- 1
+alpha <- 1
+kappa <- 1
+op <- intrinsic.matern.operators(
+  kappa = kappa, tau = 1, alpha = alpha,
+  beta = beta, loc_mesh = x, d = 1
+)
 Q <- precision(op) 
-}
 }
 \seealso{
 \code{\link[=simulate.intrinsicCBrSPDEobj]{simulate.intrinsicCBrSPDEobj()}}, \code{\link[=intrinsic.matern.operators]{intrinsic.matern.operators()}}

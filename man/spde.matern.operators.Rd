@@ -24,7 +24,8 @@ spde.matern.operators(
   loc_mesh = NULL,
   m = 1,
   type = c("covariance", "operator"),
-  type_rational_approximation = c("brasil", "chebfun", "chebfunLB"),
+  type_rational_approximation = c("brasil", "chebfun", "chebfunLB", "wl2"),
+  wl2_table = NULL,
   check_stationarity = TRUE
 )
 }
@@ -37,23 +38,33 @@ discretization of the SPDE.}
 parameter evaluated at the locations
 of the mesh used for the finite element discretization of the SPDE.}
 
-\item{theta}{Theta parameter that connects B.tau and B.kappa to tau and kappa through a log-linear regression, in case the parameterization is \code{spde},
-and that connects B.sigma and B.range to tau and kappa in case the parameterization is \code{matern}. When both tau and kappa are constant after this
+\item{theta}{Theta parameter that connects B.tau and B.kappa to tau and kappa
+through a log-linear regression, in case the parameterization is \code{spde},
+and that connects B.sigma and B.range to tau and kappa in case the
+parameterization is \code{matern}. When both tau and kappa are constant after this
 transformation, \code{spde.matern.operators()} delegates to \code{matern.operators()}.}
 
-\item{B.tau}{Matrix with specification of log-linear model for \eqn{\tau}. Will be used if \code{parameterization = 'spde'}.}
+\item{B.tau}{Matrix with specification of log-linear model for \eqn{\tau}.
+Will be used if \code{parameterization = 'spde'}.}
 
-\item{B.kappa}{Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if \code{parameterization = 'spde'}.}
+\item{B.kappa}{Matrix with specification of log-linear model for \eqn{\kappa}.
+Will be used if \code{parameterization = 'spde'}.}
 
-\item{B.sigma}{Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if \code{parameterization = 'matern'}.}
+\item{B.sigma}{Matrix with specification of log-linear model for \eqn{\sigma}.
+Will be used if \code{parameterization = 'matern'}.}
 
-\item{B.range}{Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if \code{parameterization = 'matern'}.}
+\item{B.range}{Matrix with specification of log-linear model for \eqn{\rho},
+which is a range-like parameter (it is exactly the range parameter in the
+stationary case). Will be used if \code{parameterization = 'matern'}.}
 
 \item{alpha}{smoothness parameter. Will be used if the parameterization is 'spde'.}
 
-\item{nu}{Shape parameter of the covariance function. Will be used if the parameterization is 'matern'.}
+\item{nu}{Shape parameter of the covariance function. Will be used if the
+parameterization is 'matern'.}
 
-\item{parameterization}{Which parameterization to use? \code{matern} uses range, std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness). The default is \code{matern}.}
+\item{parameterization}{Which parameterization to use? \code{matern} uses range,
+std. deviation and nu (smoothness). \code{spde} uses kappa, tau and nu (smoothness).
+The default is \code{matern}.}
 
 \item{G}{The stiffness matrix of a finite element discretization of
 the domain of interest.}
@@ -69,9 +80,16 @@ domain of interest.}
 \item{mesh}{An optional inla mesh. \code{d}, \code{C} and \code{G}
 must be given if \code{mesh} is not given.}
 
-\item{range_mesh}{The range of the mesh. Will be used to provide starting values for the parameters. Will be used if \code{mesh} and \code{graph} are \code{NULL}, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.}
+\item{range_mesh}{The range of the mesh. Will be used to provide starting
+values for the parameters. Will be used if \code{mesh} and \code{graph} are \code{NULL}, and
+if one of the parameters (kappa or tau for spde parameterization, or sigma or
+range for matern parameterization) are not provided.}
 
-\item{loc_mesh}{The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the \code{rspde_lme()} function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the \code{graph} argument.}
+\item{loc_mesh}{The mesh locations used to construct the matrices C and G.
+This option should be provided if one wants to use the \code{rspde_lme()} function
+and will not provide neither graph nor mesh. Only works for 1d data. Does not
+work for metric graphs. For metric graphs you should supply the graph using
+the \code{graph} argument.}
 
 \item{m}{The order of the rational approximation, which needs to be a
 positive integer. The default value is 1.}
@@ -79,9 +97,19 @@ positive integer. The default value is 1.}
 \item{type}{The type of the rational approximation. The options are
 "covariance" and "operator". The default is "covariance".}
 
-\item{type_rational_approximation}{Which type of rational
-approximation should be used? The current types are
-"brasil", "chebfun" or "chebfunLB".}
+\item{type_rational_approximation}{Which type of rational approximation
+should be used? The current types are "brasil", "chebfun", "chebfunLB" and
+"wl2". The "wl2" coefficients minimise the weighted \eqn{L_2} error, see
+\code{\link[=rational.coefficients.wl2]{rational.coefficients.wl2()}}; they have no constant term, so the model has
+\code{m} instead of \code{m + 1} blocks, and they require \eqn{\nu < 3 - d/2} for
+\code{type = "covariance"} and \eqn{\nu + d/2 < 2} for \code{type = "operator"}. For
+\code{type = "operator"} only \code{"chebfunLB"} and \code{"wl2"} are available, since the
+operator-based construction has a single table of roots and that table was
+produced by the chebfun lower-bound method; see \code{\link[=matern.operators]{matern.operators()}}.}
+
+\item{wl2_table}{A table of weighted-L2 coefficients from
+\code{\link[=rspde.wl2.table]{rspde.wl2.table()}}, only used for \code{type_rational_approximation = "wl2"}.
+\code{NULL} uses the table shipped with the package.}
 
 \item{check_stationarity}{Logical; if TRUE, automatically returns a stationary
 model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a

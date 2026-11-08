@@ -19,6 +19,9 @@
   graph = NULL,
   range_mesh = NULL,
   parameterization = NULL,
+  type_rational_approximation = object$type_rational_approximation,
+  x_min = object$x_min,
+  kappa_ref = object$kappa_ref,
   check_stationarity = TRUE,
   ...
 )
@@ -58,6 +61,15 @@ approximation, which needs to be a positive integer.}
 \item{range_mesh}{The range of the mesh. Will be used to provide starting values for the parameters. Will be used if \code{mesh} and \code{graph} are \code{NULL}, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.}
 
 \item{parameterization}{If non-null, update the parameterization. Only works for stationary models.}
+
+\item{type_rational_approximation}{Which type of rational approximation
+should be used? See \code{\link[=matern.operators]{matern.operators()}}.}
+
+\item{x_min}{Lower end of the spectral interval used by
+\code{type_rational_approximation = "wl2"}, see \code{\link[=rspde.xmin]{rspde.xmin()}}.}
+
+\item{kappa_ref}{A lower bound for \code{kappa}, used to determine \code{x_min} when
+\code{x_min} is not given.}
 
 \item{check_stationarity}{Logical; if TRUE, automatically returns a stationary
 model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a

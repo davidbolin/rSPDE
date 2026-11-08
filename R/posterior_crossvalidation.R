@@ -1,14 +1,78 @@
 #' @name posterior_crossvalidation
+#' @title Posterior cross-validation for fitted models
+#' @description Generic function for posterior cross-validation. 
+#' @param object A fitted model, or a (preferably named) list of fitted models.
+#'   The elements of a list can be of any class with a
+#'   \code{posterior_crossvalidation} method, so for instance \code{rspde_lme}
+#'   and \code{graph_lme} fits can be compared in one call.
+#' @param ... Arguments passed on to the methods. For a list of models, only
+#'   the arguments that are supplied are passed on, so each method uses its
+#'   own defaults for the rest.
+#' @param tibble If \code{TRUE} (default), the scores for a list of models are
+#'   returned as a \code{tibble} with a \code{Model} column.
+#' @param return_indices If \code{TRUE}, the train/test indices used for the
+#'   first model are also returned.
+#' @return A list with elements \code{mu}, \code{var} and \code{scores}, and
+#'   \code{indices} if requested. For a list of models, \code{mu} and
+#'   \code{var} are lists with one element per model, and \code{scores} has
+#'   one row per model.
+#' @export
+posterior_crossvalidation <- function(object, ...) {
+  UseMethod("posterior_crossvalidation")
+}
+
+#' @rdname posterior_crossvalidation
+#' @export
+posterior_crossvalidation.list <- function(object, ..., tibble = TRUE,
+                                           return_indices = FALSE) {
+  if (length(object) == 0) {
+    stop("'object' is an empty list.")
+  }
+  if (is.null(names(object))) {
+    warning("The list of fitted models has no names; results will not be properly named.")
+    names(object) <- paste0("Model ", seq_along(object))
+  }
+
+  results_list <- lapply(object, function(obj) {
+    if (!is.object(obj)) {
+      stop("Each element of 'object' must be a fitted model.")
+    }
+    posterior_crossvalidation(obj, ..., tibble = FALSE,
+                              return_indices = return_indices)
+  })
+
+  res <- list()
+  res[["mu"]]  <- lapply(results_list, `[[`, "mu")
+  res[["var"]] <- lapply(results_list, `[[`, "var")
+  scores_df <- do.call(rbind, lapply(results_list, `[[`, "scores"))
+  rownames(scores_df) <- names(results_list)
+  if (isTRUE(tibble) && requireNamespace("tidyr", quietly = TRUE)) {
+    scores_df[["Model"]] <- rownames(scores_df)
+    score_cols <- intersect(c("logscore", "crps", "scrps", "mae", "rmse"),
+                            names(scores_df))
+    scores_df <- tidyr::as_tibble(scores_df[, c("Model", score_cols),
+                                            drop = FALSE])
+  }
+  res[["scores"]] <- scores_df
+  if (return_indices && !is.null(results_list[[1]][["indices"]])) {
+    res[["indices"]] <- results_list[[1]][["indices"]]
+  }
+  res
+}
+
+#' @rdname posterior_crossvalidation
+#' @export
+posterior_crossvalidation.default <- function(object, ...) {
+  stop("No posterior_crossvalidation() method for objects of class '",
+       paste(class(object), collapse = "/"), "'. Supported are 'rspde_lme' ",
+       "fits, 'graph_lme' fits (MetricGraph), and lists of fitted models.",
+       call. = FALSE)
+}
+
+#' @name posterior_crossvalidation.rspde_lme
 #' @title Posterior cross-validation for \code{rspde_lme} models
 #' @description Performs cross-validation on objects fitted with
-#'   \code{\link{rspde_lme}} and computes common predictive scores. The interface
-#'   mirrors \code{MetricGraph::posterior_crossvalidation} so that the two can be
-#'   used interchangeably for graph-based and non-graph rSPDE fits. Pure OLS
-#'   fits (\code{rspde_lme(formula, data)} with no \code{model}) are also
-#'   supported: predictions reduce to evaluating the covariates at the test
-#'   locations, with predictive variance
-#'   \eqn{\sigma_\epsilon^2 \, (1 + x^\top (X^\top X)^{-1} x)}.
-#'
+#'   \code{\link{rspde_lme}} and computes common predictive scores. 
 #'   For \code{true_CV = FALSE} (default, "pseudo" cross-validation) the model
 #'   parameters are kept fixed at the estimates from the full fit and only the
 #'   held-out points are masked at prediction time. When \code{use_precomputed
@@ -16,16 +80,14 @@
 #'   precision matrix Q) are computed once and reused across folds, mirroring
 #'   the \code{advanced_options$precompute_data} / \code{na_test_idx} path of
 #'   \code{predict.rspde_lme}.
-#'
 #'   For \code{true_CV = TRUE} the model is refit on each training fold (with
 #'   the held-out response values set to \code{NA}). The previous fit is
 #'   forwarded via \code{previous_fit} so that the optimisation starts from the
 #'   full-data estimates.
 #'
-#' @param object A fitted object of class \code{rspde_lme}, or a (preferably
-#'   named) list of such objects. When a list is supplied, the function is
-#'   applied to each element and the scores are returned in a single
-#'   \code{data.frame} / \code{tibble}.
+#' @param object A fitted object of class \code{rspde_lme}. Lists of fitted
+#'   models are handled by \code{\link{posterior_crossvalidation}}.
+#' @param ... Currently not used.
 #' @param scores Character vector of scores to compute. Possible values are
 #'   \code{"logscore"}, \code{"crps"}, \code{"scrps"}, \code{"mae"} and
 #'   \code{"rmse"}.
@@ -82,8 +144,9 @@
 #'     \item{indices}{list of train/test indices used (if
 #'       \code{return_indices = TRUE})}
 #'   }
+#' @method posterior_crossvalidation rspde_lme
 #' @export
-posterior_crossvalidation <- function(object,
+posterior_crossvalidation.rspde_lme <- function(object,
                                       scores = c("logscore", "crps", "scrps",
                                                  "mae", "rmse"),
                                       mode = "k-fold",
@@ -102,11 +165,8 @@ posterior_crossvalidation <- function(object,
                                       return_indices = FALSE,
                                       use_precomputed = TRUE,
                                       data = NULL,
-                                      nelder_mead_init = FALSE) {
-
-  if (!inherits(object, "rspde_lme") && !is.list(object)) {
-    stop("object should be of class 'rspde_lme' or a list of 'rspde_lme' objects.")
-  }
+                                      nelder_mead_init = FALSE,
+                                      ...) {
 
   scores <- tolower(scores)
   valid_scores <- c("logscore", "crps", "scrps", "mae", "rmse")
@@ -123,53 +183,6 @@ posterior_crossvalidation <- function(object,
 
   if (isTRUE(parallel_folds) && isTRUE(parallel_fitting)) {
     stop("'parallel_folds' and 'parallel_fitting' cannot both be TRUE.")
-  }
-
-  if (!inherits(object, "rspde_lme")) {
-    is_rspde_list <- vapply(object, inherits, logical(1), what = "rspde_lme")
-    if (!all(is_rspde_list)) {
-      stop("All elements of 'object' must be of class 'rspde_lme'.")
-    }
-    if (is.null(names(object))) {
-      warning("The list of fitted models has no names; results will not be properly named.")
-      names(object) <- paste0("Model ", seq_along(object))
-    }
-
-    results_list <- lapply(object, function(obj) {
-      posterior_crossvalidation(obj,
-                                scores = scores, mode = mode, k = k,
-                                percentage = percentage,
-                                number_folds = number_folds,
-                                train_test_indices = train_test_indices,
-                                true_CV = true_CV, factor = factor,
-                                tibble = FALSE,
-                                parallel_folds = parallel_folds,
-                                parallel_fitting = parallel_fitting,
-                                n_cores = n_cores, print = print,
-                                seed = seed,
-                                return_indices = return_indices,
-                                use_precomputed = use_precomputed,
-                                data = data,
-                                nelder_mead_init = nelder_mead_init)
-    })
-
-    res <- list()
-    res[["mu"]]  <- lapply(results_list, `[[`, "mu")
-    res[["var"]] <- lapply(results_list, `[[`, "var")
-    scores_df <- do.call(rbind, lapply(results_list, `[[`, "scores"))
-    rownames(scores_df) <- names(results_list)
-    if (isTRUE(tibble) && requireNamespace("tidyr", quietly = TRUE)) {
-      scores_df[["Model"]] <- rownames(scores_df)
-      score_cols <- intersect(c("logscore", "crps", "scrps", "mae", "rmse"),
-                              names(scores_df))
-      scores_df <- tidyr::as_tibble(scores_df[, c("Model", score_cols),
-                                              drop = FALSE])
-    }
-    res[["scores"]] <- scores_df
-    if (return_indices && !is.null(results_list[[1]][["indices"]])) {
-      res[["indices"]] <- results_list[[1]][["indices"]]
-    }
-    return(res)
   }
 
   cv_info <- .rspde_cv_build_data(object, data)
