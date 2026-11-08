@@ -1748,6 +1748,15 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
   )
 }
 
+.rspde_positive_density <- function(samples, n) {
+  if (anyNA(samples) || any(!is.finite(samples)) || any(samples <= 0)) {
+    stop("Positive parameter samples must be finite and strictly positive.")
+  }
+  log_density <- stats::density(log(samples), n = n)
+  x <- exp(log_density$x)
+  list(x = x, y = log_density$y / x)
+}
+
 
 #' @name rspde.result
 #' @title rSPDE result extraction from INLA estimation results
@@ -1854,15 +1863,6 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
 #'   summary(result)
 #' }
 #' }
-.rspde_positive_density <- function(samples, n) {
-  if (anyNA(samples) || any(!is.finite(samples)) || any(samples <= 0)) {
-    stop("Positive parameter samples must be finite and strictly positive.")
-  }
-  log_density <- stats::density(log(samples), n = n)
-  x <- exp(log_density$x)
-  list(x = x, y = log_density$y / x)
-}
-
 rspde.result <- function(inla, name, rspde, compute.summary = TRUE, 
                          parameterization = "detect", 
                          n_samples = 5000, n_density = 1024) {

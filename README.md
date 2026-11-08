@@ -112,6 +112,19 @@ Examples that depend on `INLA` stay in the package unchanged across branches. Gu
 
 If an example requires a Cgeneric model that may not yet be present in every INLA build, pass its model symbol through `required_symbol`. Availability is detected dynamically; there is no static list of supported symbols.
 
+## Updating the CRAN branch ##
+
+The `cran` branch holds the source that is submitted to CRAN. Update it by merging `stable` into `cran` and pushing; do not edit the package code there directly. Every push to `cran` runs the `cran_setup` workflow (`.github/workflows/cran_setup.yml`, kept only on the `cran` branch), which turns the merged source into the CRAN package:
+
+  * it keeps the package-level C++ helper: `src/wl2_fit.cpp`, `src/Makevars` and `src/Makevars.win`. Any other file in `src/` is removed, and the setup fails if one of these three is missing;
+  * it removes the optional Cgeneric sources and everything that refers to them: `configure`, `configure.win`, `inst/src-optional/` and `inst/shared/`. On CRAN, INLA provides the Cgeneric models;
+  * it sets `NeedsCompilation: yes` in `DESCRIPTION`;
+  * it keeps only `vignettes/rSPDE_package.Rmd` (from `cran_vignettes/`), removes the other vignettes and `man/figures`, removes the workflows that only apply to the other branches, and regenerates `NAMESPACE` and `man/` with `devtools::document()`.
+
+Merge conflicts of the "modified in `stable`, deleted in `cran`" kind (Cgeneric sources, vignettes, `pkgdown`) can be resolved by keeping the `stable` version, since the setup removes those files anyway. Because `devtools::document()` regenerates `NAMESPACE` on `cran`, keep the roxygen blocks on `devel` attached to the function they document (no other code between a block and its function), or the exports on `cran` will differ from those on `devel`.
+
+The `cran` branch, like CRAN, compiles `src/wl2_fit.cpp`, so a source installation from it (`remotes::install_github("davidbolin/rspde", ref = "cran")`) needs a C++ toolchain (Rtools on Windows).
+
 ## Updating the INLA source branch ##
 
 The `inla` branch is used to mirror the source files that need to be available under `src/` for INLA. These files should be maintained on the `devel` branch under `inst/src-optional/`; they should not be edited manually on the `inla` branch.
