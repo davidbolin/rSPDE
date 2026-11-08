@@ -162,8 +162,8 @@ print(data.frame(
   nu = c(nu, exp(theta$par[3])), sigma.e = c(sigma.e, exp(theta$par[4])),
   row.names = c("Truth", "Estimates")
 ))
-#>              sigma     range        nu  sigma.e
-#> Truth     1.000000 0.2000000 0.8000000 0.100000
-#> Estimates 1.002128 0.1868185 0.9184139 0.100227
+#>              sigma     range       nu   sigma.e
+#> Truth     1.000000 0.2000000 0.800000 0.1000000
+#> Estimates 1.001965 0.1868318 0.918499 0.1002261
 # }
 ```

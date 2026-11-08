@@ -2,6 +2,8 @@
 
 ## rSPDE (development version)
 
+## rSPDE 2.7.0
+
 - Added `type_rational_approximation = "wl2"`, a new way of obtaining
   the rational coefficients. The classes are parameterised so that every
   fit is a valid model and have no constant term, so the

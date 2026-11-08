@@ -217,15 +217,15 @@ summary(fit)
     ## 
     ## Random effects:
     ##       Estimate Std.error z-value
-    ## nu     0.91412   0.10870   8.409
-    ## sigma  1.41325   0.08784  16.089
-    ## range  0.12563   0.01634   7.689
+    ## nu     0.91412   0.10864   8.414
+    ## sigma  1.41325   0.08782  16.093
+    ## range  0.12563   0.01633   7.693
     ## 
     ## Random effects (SPDE parameterization):
     ##        Estimate Std.error z-value
-    ## alpha  1.414116  0.108702   13.01
-    ## tau    0.024819  0.001191   20.84
-    ## kappa 21.525897  1.918353   11.22
+    ## alpha  1.414118  0.108645   13.02
+    ## tau    0.024818  0.001191   20.84
+    ## kappa 21.525926  1.917944   11.22
     ## 
     ## Measurement error:
     ##          Estimate Std.error z-value
@@ -237,8 +237,8 @@ summary(fit)
     ## Number of function calls by 'optim' = 42
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  2.05755 mins 
-    ##   set up the parallelization = 2.65558 secs
+    ## Time used to:     fit the model =  1.66772 mins 
+    ##   set up the parallelization = 2.29756 secs
 
 Let us compare with the true values and compare the time:
 
@@ -254,7 +254,7 @@ print(data.frame(
 
     ##              sigma     range        nu
     ## Truth     1.300000 0.1264911 0.8000000
-    ## Estimates 1.413248 0.1256274 0.9141162
+    ## Estimates 1.413249 0.1256274 0.9141185
 
 ``` r
 
@@ -263,7 +263,7 @@ total_time <- fit$fitting_time + fit$time_par
 print(total_time)
 ```
 
-    ## Time difference of 126.1089 secs
+    ## Time difference of 102.3611 secs
 
 ### Kriging
 
@@ -378,8 +378,8 @@ summary(result_fit)
 ```
 
     ##            mean       sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 1.01261 0.321035   0.593338 0.940902    1.81362 0.821777
-    ## range   2.86076 2.143320   0.801554 2.229010    8.46179 1.505980
+    ## std.dev 1.01322 0.321284   0.602838 0.939374    1.81912 0.814524
+    ## range   2.87017 2.161020   0.894646 2.214800    8.56933 1.404660
 
 ``` r
 
@@ -443,10 +443,10 @@ result_fit <- rspde.result(bru_fit, "field", bru_model, parameterization = "mate
 summary(result_fit)
 ```
 
-    ##             mean        sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 1.341920 0.4652430   0.669526 1.263060   2.445660 1.177250
-    ## range   1.030520 0.4291020   0.409715 0.956188   2.042570 0.797662
-    ## nu      0.732398 0.0970882   0.553926 0.728041   0.933819 0.717130
+    ##             mean       sd 0.025quant 0.5quant 0.975quant     mode
+    ## std.dev 1.677950 1.006790   0.666534 1.406110   4.314140 1.042580
+    ## range   1.497570 0.880972   0.506184 1.267070   3.813390 0.914298
+    ## nu      0.702457 0.103633   0.519529 0.694815   0.924224 0.673686
 
 ## Kriging with the inlabru implementation
 

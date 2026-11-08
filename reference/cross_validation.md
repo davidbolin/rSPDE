@@ -142,9 +142,9 @@ cross_validation(
 
 - true_CV:
 
-  Should a `TRUE` cross-validation be performed? If `TRUE` the models
-  will be fitted on the training dataset. If `FALSE`, the parameters
-  will be kept fixed at the ones obtained in the result object.
+  If `TRUE`, re-estimate hyperparameters on each training fold. If
+  `FALSE`, update the latent posterior on the training fold while
+  keeping the original hyperparameters fixed.
 
 - save_settings:
 
@@ -166,3 +166,11 @@ cross_validation(
 ## Value
 
 A data.frame with the fitted models and the corresponding scores.
+
+## Details
+
+Fits containing an exact MetricGraph SPDE component are delegated to
+[`MetricGraph::cross_validation()`](https://davidbolin.github.io/MetricGraph/reference/cross_validation.html)
+when MetricGraph is installed and every likelihood uses a family
+supported there. Mixed exact/rSPDE model lists follow the same route.
+Other fits retain rSPDE's implementation.

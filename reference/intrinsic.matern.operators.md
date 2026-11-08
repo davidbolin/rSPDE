@@ -201,7 +201,9 @@ quantities:
 
 - variogram:
 
-  A function to compute the variogram of the model at a specified node.
+  A function returning variances of increments between each interpolated
+  field location and every mesh node. With `semi = TRUE` it returns half
+  these variances.
 
 - A:
 

@@ -167,6 +167,12 @@ use `rspde_lme` to estimate the parameters based on the data.
 
 df <- data.frame(Y = as.matrix(Y), x = obs.loc[, 1], y = obs.loc[, 2])
 res <- rspde_lme(Y ~ 1, loc = c("x", "y"), data = df, model = op, parallel = TRUE)
+#> Warning in rspde_lme(Y ~ 1, loc = c("x", "y"), data = df, model = op, parallel
+#> = TRUE): The optimization failed to provide a numerically positive-definite
+#> Hessian. You can try to obtain a positive-definite Hessian by setting
+#> 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which allows other
+#> optimization methods to be used.
+#> Warning in sqrt(diag(inv_fisher)): NaNs produced
 ```
 
 In the call, `y~1` indicates that we also want to estimate a mean value
@@ -186,28 +192,28 @@ summary(res)
 #> 
 #> Fixed effects:
 #>             Estimate Std.error z-value Pr(>|z|)
-#> (Intercept)  -0.1569    0.1457  -1.077    0.282
+#> (Intercept)  -0.1542    0.1459  -1.057    0.291
 #> 
 #> Random effects:
 #>       Estimate Std.error z-value
-#> nu     0.44190   0.06000   7.365
-#> sigma  0.95961   0.05450  17.609
-#> hx     0.08968   0.01500   5.977
-#> hy     0.08914   0.01478   6.030
-#> hxy    0.57242   0.04927  11.618
+#> nu     0.43800       NaN     NaN
+#> sigma  0.95978   0.03242  29.602
+#> hx     0.09039   0.01289   7.015
+#> hy     0.08985   0.01276   7.042
+#> hxy    0.57272   0.04600  12.450
 #> 
 #> Measurement error:
 #>          Estimate Std.error z-value
-#> std. dev   0.1003    0.0027   37.15
+#> std. dev 0.100289  0.002668   37.59
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
 #> 
-#> Log-Likelihood:  -3.354359 
-#> Number of function calls by 'optim' = 46
+#> Log-Likelihood:  -3.352757 
+#> Number of function calls by 'optim' = 50
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  27.30431 secs 
-#>   set up the parallelization = 2.80383 secs
+#> Time used to:     fit the model =  22.70753 secs 
+#>   set up the parallelization = 2.39733 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -228,10 +234,10 @@ results <- data.frame(
 print(results)
 #>              sigma         hx         hy       hxy        nu   sigma.e
 #> True     1.0000000 0.08000000 0.08000000 0.5000000 0.5000000 0.1000000
-#> Estimate 0.9596148 0.08967586 0.08913957 0.5724202 0.4419019 0.1003199
+#> Estimate 0.9597773 0.09038937 0.08984753 0.5727222 0.4380047 0.1002889
 #>           intercept
 #> True      0.0000000
-#> Estimate -0.1568538
+#> Estimate -0.1542385
 ```
 
 Finally, we can also do prediction based on the fitted model as
@@ -309,10 +315,10 @@ results <- data.frame(
 )
 
 print(results)
-#>                  hx         hy       hxy     sigma        nu   sigma.e
-#> True           0.08       0.08       0.5         1       0.5 0.1000000
-#> Estimate 0.09141858 0.09091756 0.5692944 0.9765636 0.4574944 0.1001338
+#>                  hx         hy      hxy     sigma        nu   sigma.e
+#> True           0.08       0.08      0.5         1       0.5 0.1000000
+#> Estimate 0.09213042 0.09168396 0.566598 0.9738113 0.4562614 0.1001693
 #>           intercept
 #> True      0.0000000
-#> Estimate -0.1622097
+#> Estimate -0.1611728
 ```

@@ -4,9 +4,10 @@
 
 Starting with this release of `rSPDE`, the C/C++ `cgeneric` sources used
 by `INLA` live on a single branch (`devel`) together with the R code,
-and compilation is **opt-in**. The default install — including the CRAN
-release and the regular GitHub install — is pure R and requires no
-compiler.
+and compilation is **opt-in** for the INLA `cgeneric` shared library.
+The package-level C++ weighted-L2 helper (`src/wl2_fit.cpp`) is built on
+every source installation and requires an R C++ toolchain. Prebuilt
+binaries avoid local source compilation.
 
 When you opt in, the `configure` script copies the sources from
 `inst/src-optional/` into `src/` and then `R CMD INSTALL` builds
@@ -38,8 +39,9 @@ withr::with_envvar(
 )
 ```
 
-Without the flag (or `RSPDE_COMPILE=1`), `configure` writes a no-op
-`Makevars` and the install stays pure R.
+Without the flag (or `RSPDE_COMPILE=1`), `configure` omits the optional
+INLA `cgeneric` sources; the package-level weighted-L2 helper is still
+compiled.
 
 If you have already cloned the repository and want to build locally:
 

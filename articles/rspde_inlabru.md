@@ -226,7 +226,7 @@ In place of a `inla.stack`, we can set up a
 library(sf)
 ```
 
-    ## Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.4.0; sf_use_s2() is TRUE
+    ## Linking to GEOS 3.14.1, GDAL 3.12.2, PROJ 9.7.1; sf_use_s2() is TRUE
 
 ``` r
 
@@ -324,10 +324,10 @@ summary(rspde_fit)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[Intercept, distSea, field], latent[] 
     ## Time used:
-    ##     Pre = 0.166, Running = 7.17, Post = 0.0973, Total = 7.43 
+    ##     Pre = 0.152, Running = 5.29, Post = 0.089, Total = 5.53 
     ## Fixed effects:
     ##            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-    ## Intercept 1.942 0.042       1.86    1.942      2.023 1.942   0
+    ## Intercept 1.941 0.042       1.86    1.941      2.023 1.941   0
     ## 
     ## Random effects:
     ##   Name     Model
@@ -335,20 +335,20 @@ summary(rspde_fit)
     ##    field CGeneric
     ## 
     ## Model hyperparameters:
-    ##                                                   mean       sd 0.025quant
-    ## Precision-parameter for the Gamma observations   14.43    1.040     12.486
-    ## Precision for distSea                          7490.47 4024.383   2581.932
-    ## Theta1 for field                                 -4.20    3.592    -12.534
-    ## Theta2 for field                                  2.05    0.792      0.834
-    ## Theta3 for field                                  2.42    3.104     -2.170
+    ##                                                    mean      sd 0.025quant
+    ## Precision-parameter for the Gamma observations   14.433    1.04     12.484
+    ## Precision for distSea                          7539.323 4209.76   2290.333
+    ## Theta1 for field                                 -2.025    4.79    -11.934
+    ## Theta2 for field                                  1.677    1.22     -0.593
+    ## Theta3 for field                                  0.538    4.11     -7.106
     ##                                                0.5quant 0.975quant     mode
-    ## Precision-parameter for the Gamma observations    14.39      16.58   14.324
-    ## Precision for distSea                           6566.10   17898.92 5097.131
-    ## Theta1 for field                                  -3.72       1.10   -1.284
-    ## Theta2 for field                                   1.96       3.87    1.478
-    ## Theta3 for field                                   2.01       9.62   -0.094
+    ## Precision-parameter for the Gamma observations   14.398      16.58   14.333
+    ## Precision for distSea                          6599.551   18297.22 5017.752
+    ## Theta1 for field                                 -1.859       6.88   -1.102
+    ## Theta2 for field                                  1.638       4.19    1.456
+    ## Theta3 for field                                  0.396       9.05   -0.253
     ## 
-    ## Marginal log-Likelihood:  -1254.70 
+    ## Marginal log-Likelihood:  -1254.09 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -364,12 +364,11 @@ where $`\alpha = \nu + d/2`$, we have that
 ```
 and by default
 ``` math
-\nu = 4\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).
+\nu = 2\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).
 ```
-The number 4 comes from the upper bound for $`\nu`$, which is discussed
-in [R-INLA implementation of the rational SPDE
-approach](https://davidbolin.github.io/rSPDE/articles/rspde_inla.md)
-vignette.
+The number 2 is the default upper bound for $`\nu`$, discussed in
+[R-INLA implementation of the rational SPDE
+approach](https://davidbolin.github.io/rSPDE/articles/rspde_inla.md).
 
 In general, we have
 ``` math
@@ -405,10 +404,10 @@ result_fit <- rspde.result(rspde_fit, "field",
 summary(result_fit)
 ```
 
-    ##            mean        sd  0.025quant  0.5quant 0.975quant        mode
-    ## tau    0.366833  1.130790 4.07389e-06 0.0271234    2.94597 4.47635e-09
-    ## kappa 11.214200 13.398000 2.32491e+00 6.9273600   46.76600 3.66013e+00
-    ## nu     1.466000  0.588442 2.09108e-01 1.7418900    1.99985 1.99999e+00
+    ##            mean          sd  0.025quant 0.5quant 0.975quant        mode
+    ## tau   338.44300 5113.320000 7.42838e-06 0.164193  920.90400 5.67995e-09
+    ## kappa  11.60310   21.570700 5.62511e-01 5.081000   64.56100 1.35566e+00
+    ## nu      1.06955    0.798356 1.74082e-03 1.174550    1.99973 1.99999e+00
 
 We can also plot the posterior densities. To this end we will use the
 [`gg_df()`](https://davidbolin.github.io/rSPDE/reference/gg_df.md)
@@ -444,10 +443,10 @@ result_fit_matern <- rspde.result(rspde_fit, "field",
 summary(result_fit_matern)
 ```
 
-    ##             mean        sd 0.025quant 0.5quant 0.975quant      mode
-    ## std.dev 5.361980 47.654600 -0.0953519 1.741870  28.209300 -0.176325
-    ## range   0.438883  0.233215  0.0557886 0.428024   0.942785  0.428129
-    ## nu      1.466000  0.588442  0.2091080 1.741890   1.999850  1.999990
+    ##             mean        sd  0.025quant 0.5quant 0.975quant        mode
+    ## std.dev 2.249040 39.813200 0.000498624 0.279402  10.190200 2.93488e-07
+    ## range   0.423422  0.230984 0.061046200 0.402281   0.952403 3.66458e-01
+    ## nu      1.069550  0.798356 0.001740820 1.174550   1.999730 1.99999e+00
 
 In a similar manner, we can obtain posterior plots on the `matern`
 parameterization:
@@ -786,22 +785,22 @@ summary(rspde_fit.rep)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.145, Running = 52.1, Post = 3.32, Total = 55.5 
+    ##     Pre = 0.133, Running = 41.9, Post = 2.97, Total = 45 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
     ## 
     ## Model hyperparameters:
     ##                                           mean    sd 0.025quant 0.5quant
-    ## Precision for the Gaussian observations 91.179 4.582     82.462   91.075
-    ## Theta1 for field                        -3.264 0.049     -3.372   -3.260
-    ## Theta2 for field                         3.095 0.032      3.033    3.094
-    ## Theta3 for field                        -0.575 0.027     -0.623   -0.577
+    ## Precision for the Gaussian observations 91.187 4.584     82.468   91.080
+    ## Theta1 for field                        -3.259 0.047     -3.362   -3.256
+    ## Theta2 for field                         3.094 0.032      3.033    3.094
+    ## Theta3 for field                        -0.578 0.027     -0.626   -0.579
     ##                                         0.975quant   mode
-    ## Precision for the Gaussian observations    100.499 90.888
-    ## Theta1 for field                            -3.184 -3.239
-    ## Theta2 for field                             3.158  3.094
-    ## Theta3 for field                            -0.516 -0.586
+    ## Precision for the Gaussian observations     100.51 90.888
+    ## Theta1 for field                             -3.18 -3.239
+    ## Theta2 for field                              3.16  3.094
+    ## Theta3 for field                             -0.52 -0.586
     ## 
     ## Marginal log-Likelihood:  -4533.21 
     ##  is computed 
@@ -816,10 +815,10 @@ result_fit_rep <- rspde.result(rspde_fit.rep, "field", rspde_model.rep)
 summary(result_fit_rep)
 ```
 
-    ##             mean         sd 0.025quant   0.5quant 0.975quant      mode
-    ## tau    0.0382766 0.00183027   0.034362  0.0384385   0.041427  0.039104
-    ## kappa 22.0906000 0.69457900  20.771600 22.0739000  23.498900 22.032800
-    ## nu     0.7200830 0.01254460   0.698454  0.7189400   0.747260  0.714998
+    ##             mean         sd 0.025quant   0.5quant 0.975quant       mode
+    ## tau    0.0384701 0.00178786  0.0347072  0.0386004  0.0416442  0.0391484
+    ## kappa 22.0865000 0.69626000 20.7622000 22.0706000 23.4963000 22.0328000
+    ## nu     0.7190350 0.01240090  0.6970970  0.7180950  0.7454970  0.7149930
 
 ``` r
 
@@ -841,9 +840,9 @@ print(result_df)
 ```
 
     ##   parameter        true        mean        mode
-    ## 1       tau  0.08920621  0.03827659  0.03910402
-    ## 2     kappa 20.00000000 22.09063571 22.03283196
-    ## 3        nu  0.50000000  0.72008262  0.71499750
+    ## 1       tau  0.08920621  0.03847007  0.03914841
+    ## 2     kappa 20.00000000 22.08647014 22.03280766
+    ## 3        nu  0.50000000  0.71903547  0.71499270
 
 Let us also obtain the summary on the `matern` parameterization:
 
@@ -855,9 +854,9 @@ summary(result_fit_rep_matern)
 ```
 
     ##             mean         sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 1.100150 0.01199380   1.077190 1.099990   1.124300 1.099950
-    ## range   0.108489 0.00381035   0.101274 0.108385   0.116115 0.107466
-    ## nu      0.720083 0.01254460   0.698454 0.718940   0.747260 0.714998
+    ## std.dev 1.099680 0.01195240   1.076660 1.099590   1.123630 1.099370
+    ## range   0.108483 0.00381006   0.101274 0.108376   0.116113 0.107420
+    ## nu      0.719035 0.01240090   0.697097 0.718095   0.745497 0.714993
 
 ``` r
 
@@ -870,18 +869,18 @@ result_df_matern <- data.frame(
     result_fit_rep_matern$summary.nu$mean
   ),
   mode = c(
-    result_fit_rep$summary.std.dev$mode,
-    result_fit_rep$summary.range$mode,
-    result_fit_rep$summary.nu$mode
+    result_fit_rep_matern$summary.std.dev$mode,
+    result_fit_rep_matern$summary.range$mode,
+    result_fit_rep_matern$summary.nu$mode
   )
 )
 print(result_df_matern)
 ```
 
     ##   parameter true      mean      mode
-    ## 1   std_dev  1.0 1.1001484 0.7149975
-    ## 2     range  0.1 0.1084893 0.7149975
-    ## 3        nu  0.5 0.7200826 0.7149975
+    ## 1   std_dev  1.0 1.0996757 1.0993732
+    ## 2     range  0.1 0.1084833 0.1074197
+    ## 3        nu  0.5 0.7190355 0.7149927
 
 ## An example with a non-stationary model
 
@@ -1065,26 +1064,26 @@ summary(rspde_fit_nonstat)
     ##     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
     ##     Used components: effect[field], latent[] 
     ## Time used:
-    ##     Pre = 0.133, Running = 20.2, Post = 0.129, Total = 20.4 
+    ##     Pre = 0.12, Running = 16.9, Post = 0.118, Total = 17.2 
     ## Random effects:
     ##   Name     Model
     ##     field CGeneric
     ## 
     ## Model hyperparameters:
     ##                                            mean    sd 0.025quant 0.5quant
-    ## Precision for the Gaussian observations 105.706 9.812     87.159  105.438
-    ## Theta1 for field                         -0.072 0.089     -0.241   -0.074
-    ## Theta2 for field                          0.807 0.095      0.623    0.807
-    ## Theta3 for field                          1.108 0.122      0.896    1.100
-    ## Theta4 for field                          0.025 0.067     -0.094    0.021
+    ## Precision for the Gaussian observations 105.826 8.511     89.341  105.729
+    ## Theta1 for field                         -0.065 0.094     -0.234   -0.070
+    ## Theta2 for field                          0.809 0.099      0.628    0.805
+    ## Theta3 for field                          1.224 0.259      0.766    1.209
+    ## Theta4 for field                          0.030 0.071     -0.096    0.026
     ##                                         0.975quant    mode
-    ## Precision for the Gaussian observations    125.745 105.312
-    ## Theta1 for field                             0.109  -0.083
-    ## Theta2 for field                             0.996   0.804
-    ## Theta3 for field                             1.371   1.061
-    ## Theta4 for field                             0.169   0.002
+    ## Precision for the Gaussian observations    122.789 106.128
+    ## Theta1 for field                             0.136  -0.095
+    ## Theta2 for field                             1.016   0.785
+    ## Theta3 for field                             1.780   1.133
+    ## Theta4 for field                             0.182   0.006
     ## 
-    ## Marginal log-Likelihood:  2.17 
+    ## Marginal log-Likelihood:  2.79 
     ##  is computed 
     ## Posterior summaries for the linear predictor and the fitted values are computed
     ## (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
@@ -1100,10 +1099,10 @@ summary(result_fit_nonstat)
 ```
 
     ##                    mean        sd 0.025quant   0.5quant 0.975quant       mode
-    ## Theta1.matern -0.072034 0.0890079  -0.241107 -0.0740524   0.109327 -0.0831326
-    ## Theta2.matern  0.807357 0.0946565   0.623085  0.8066370   0.995871  0.8035420
-    ## Theta3.matern  1.108230 0.1216060   0.896489  1.1003500   1.371140  1.0611200
-    ## nu             1.012370 0.0333961   0.953260  1.0098500   1.083440  1.0011800
+    ## Theta1.matern -0.064955 0.0944432  -0.233872 -0.0700078   0.136008 -0.0945858
+    ## Theta2.matern  0.809048 0.0987540   0.628466  0.8048210   1.016220  0.7846640
+    ## Theta3.matern  1.224040 0.2592870   0.766125  1.2086900   1.780060  1.1332500
+    ## nu             1.014910 0.0351907   0.952523  1.0122900   1.089720  1.0033200
 
 Let us compare the mean to the true values of the parameters:
 
@@ -1120,10 +1119,10 @@ print(result_df)
 ```
 
     ##       parameter true      mean       mode
-    ## 1 Theta1.matern  0.0 -0.072034 -0.0831326
-    ## 2 Theta2.matern  1.0  0.807357  0.8035420
-    ## 3 Theta3.matern  1.0  1.108230  1.0611200
-    ## 4            nu  0.8  1.012370  1.0011800
+    ## 1 Theta1.matern  0.0 -0.064955 -0.0945858
+    ## 2 Theta2.matern  1.0  0.809048  0.7846640
+    ## 3 Theta3.matern  1.0  1.224040  1.1332500
+    ## 4            nu  0.8  1.014910  1.0033200
 
 We can also plot the posterior densities. To this end we will use the
 [`gg_df()`](https://davidbolin.github.io/rSPDE/reference/gg_df.md)
@@ -1204,8 +1203,50 @@ be used to perform the prediction.
 
 ``` r
 
-cv_result <- cross_validation(models, cv_type = "lpo", print = FALSE)
+cv_result <- rSPDE::cross_validation(models, cv_type = "lpo",
+                                    true_CV = FALSE, print = FALSE)
 ```
+
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
+    ## Warning in inla.mode.section(file = file.ini, cont.mode, data.dir): ***
+    ## control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'
 
 We can now look at the results by printing `cv_result`. Observe that the
 best model with respect to each score is displayed in the last row.
@@ -1216,19 +1257,19 @@ cv_result
 ```
 
     ##           Model               mse               mae               dss
-    ## 1    stationary 0.138064177399303 0.273208343487825 -1.16657574126202
-    ## 2 nonstationary 0.136992567525633 0.272914411169388 -1.25517491452676
+    ## 1    stationary 0.132705216750475 0.270196458742159 -1.31836269916411
+    ## 2 nonstationary 0.131340413326778 0.269048574151806 -1.34339935029524
     ##            Best     nonstationary     nonstationary     nonstationary
     ##                crps             scrps
-    ## 1 0.193319448544208  0.49680960418182
-    ## 2   0.1917779724742 0.487564288159382
+    ## 1 0.191280564695726 0.481165782897701
+    ## 2 0.189776946562102 0.475218304637547
     ##       nonstationary     nonstationary
 
 The
 [`cross_validation()`](https://davidbolin.github.io/rSPDE/reference/cross_validation.md)
 function also has the following useful options:
 
-- `return_score_folds` option, so that the scores for each fold can be
+- `return_scores_folds` option, so that the scores for each fold can be
   returned in order to create confidence regions for the scores.
 - `return_train_test` To return the train and test indexes that were
   used to perform the cross-validation.

@@ -13,15 +13,15 @@
 Source:
 [`inst/CITATION`](https://github.com/davidbolin/rSPDE/blob/devel/inst/CITATION)
 
-Bolin D, Simas A (2023). *rSPDE: Rational Approximations of Fractional
-Stochastic Partial Differential Equations*. R package version 2.3.3,
+Bolin D, Simas A (2026). *rSPDE: Rational Approximations of Fractional
+Stochastic Partial Differential Equations*. R package version 2.7.0,
 <https://CRAN.R-project.org/package=rSPDE>.
 
     @Manual{,
       title = {rSPDE: Rational Approximations of Fractional Stochastic Partial Differential Equations},
       author = {David Bolin and Alexandre B. Simas},
-      year = {2023},
-      note = {R package version 2.3.3},
+      year = {2026},
+      note = {R package version 2.7.0},
       url = {https://CRAN.R-project.org/package=rSPDE},
     }
 

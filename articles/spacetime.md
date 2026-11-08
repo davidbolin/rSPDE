@@ -248,8 +248,8 @@ summary(res)
 #> Number of function calls by 'optim' = 50
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  23.17158 secs 
-#>   set up the parallelization = 5.33606 secs
+#> Time used to:     fit the model =  18.48854 secs 
+#>   set up the parallelization = 4.49552 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -267,9 +267,9 @@ results <- data.frame(
 )
 
 print(results)
-#>             kappa     sigma    gamma      rho    sigma.e  intercept
-#> True     5.000000 10.000000 0.100000 1.000000 0.01000000 0.00000000
-#> Estimate 4.703093  9.067345 0.107612 1.030429 0.01399151 0.01225026
+#>             kappa     sigma     gamma     rho    sigma.e  intercept
+#> True     5.000000 10.000000 0.1000000 1.00000 0.01000000 0.00000000
+#> Estimate 4.703093  9.067347 0.1076121 1.03043 0.01399157 0.01225044
 ```
 
 Finally, we can also do prediction based on the fitted model as
@@ -348,9 +348,9 @@ results <- data.frame(
 )
 
 print(results)
-#>             kappa     sigma     gamma     rho   sigma.e  intercept
-#> True     5.000000 10.000000 0.1000000 1.00000 0.0100000 0.00000000
-#> Estimate 4.667901  9.177967 0.1070514 1.03885 0.0109618 0.01249396
+#>             kappa     sigma     gamma     rho    sigma.e  intercept
+#> True     5.000000 10.000000 0.1000000 1.00000 0.01000000 0.00000000
+#> Estimate 4.757712  8.897902 0.1004111 1.16866 0.01052652 0.01256611
 ```
 
 ## A spatial example
@@ -526,21 +526,21 @@ summary(res_2d)
 #> 
 #> Fixed effects:
 #>             Estimate Std.error z-value Pr(>|z|)
-#> (Intercept) -0.06204   0.05254  -1.181    0.238
+#> (Intercept) -0.06203   0.05254  -1.181    0.238
 #> 
 #> Random effects:
 #>               Estimate Std.error z-value
-#> kappa          9.07478   0.77151  11.762
-#> sigma         17.02583  24.20140   0.704
-#> gamma          0.09088   0.12872   0.706
-#> rho           -0.16257   0.98204  -0.166
-#> rho2          -0.13612   0.81533  -0.167
+#> kappa          9.07476   0.77158  11.761
+#> sigma         17.02716  24.21335   0.703
+#> gamma          0.09089   0.12878   0.706
+#> rho           -0.16257   0.98218  -0.166
+#> rho2          -0.13610   0.81528  -0.167
 #> alpha (fixed)  1.00000        NA      NA
 #> beta (fixed)   1.00000        NA      NA
 #> 
 #> Measurement error:
 #>          Estimate Std.error z-value
-#> std. dev  0.04151   0.11110   0.374
+#> std. dev   0.0415    0.1111   0.374
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
 #> 
@@ -548,8 +548,8 @@ summary(res_2d)
 #> Number of function calls by 'optim' = 97
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  2.86085 mins 
-#>   set up the parallelization = 5.93506 secs
+#> Time used to:     fit the model =  2.18639 mins 
+#>   set up the parallelization = 4.90787 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -570,10 +570,10 @@ results <- data.frame(
 print(results)
 #>             kappa    sigma      gamma      rho_1      rho_2    sigma.e
 #> True     9.900000 29.00000 0.11000000  0.2000000  0.3000000 0.01000000
-#> Estimate 9.074785 17.02583 0.09087809 -0.1625653 -0.1361213 0.04150663
+#> Estimate 9.074755 17.02716 0.09088552 -0.1625735 -0.1361049 0.04150478
 #>            intercept
 #> True      0.00000000
-#> Estimate -0.06203761
+#> Estimate -0.06203278
 ```
 
 Let us now use our `inlabru` implementation. We first define the model.
@@ -625,12 +625,12 @@ results <- data.frame(
 )
 
 print(results)
-#>              kappa        sigma        gamma       rho_1       rho_2
-#> True     9.9000000 2.900000e+01 1.100000e-01  0.20000000  0.30000000
-#> Estimate 0.2970484 3.925928e-05 9.066803e-09 -0.01537585 -0.03274914
-#>              sigma.e intercept
-#> True     0.010000000 0.0000000
-#> Estimate 0.000520211 0.4932864
+#>              kappa        sigma       gamma       rho_1      rho_2      sigma.e
+#> True     9.9000000 2.900000e+01 1.10000e-01  0.20000000  0.3000000 0.0100000000
+#> Estimate 0.2965403 3.891669e-05 8.95813e-09 -0.00347922 -0.0355655 0.0005202542
+#>          intercept
+#> True     0.0000000
+#> Estimate 0.4925989
 ```
 
 ## Fit with `bounded_rho = FALSE`
@@ -677,7 +677,7 @@ results <- data.frame(
 print(results)
 #>             kappa     sigma     gamma      rho    sigma.e  intercept
 #> True     9.900000 29.000000 0.1100000 1.000000 0.01000000 0.00000000
-#> Estimate 4.703103  9.067326 0.1076123 1.030429 0.01399151 0.01225258
+#> Estimate 4.703103  9.067327 0.1076123 1.030431 0.01399157 0.01225273
 ```
 
 Now, the `inlabru` implementation:
@@ -716,7 +716,7 @@ results_unbounded <- data.frame(
 print(results_unbounded)
 #>             kappa     sigma     gamma      rho     sigma.e  intercept
 #> True     9.900000 29.000000 0.1100000 1.000000 0.010000000 0.00000000
-#> Estimate 4.563857  8.994655 0.1125827 1.120419 0.009838172 0.01241676
+#> Estimate 4.809313  9.247417 0.1034586 1.474864 0.003435231 0.01179038
 ```
 
 ## References

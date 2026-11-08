@@ -66,11 +66,14 @@ compare the cost of evaluating:
 - the rSPDE sparse log-likelihood for approximation orders
   $`m = 1,\ldots,4`$.
 
-For each $`m`$, the rSPDE timing is averaged over 10 runs. When R is
-linked to FlexiBLAS and MKL or vecLib is available, we evaluate the
-exact model under Netlib (up to $`N=8000`$) and under MKL/vecLib for all
-sample sizes, while running rSPDE under Netlib for all sample sizes.
-Otherwise, both exact and rSPDE timings use the base R BLAS.
+For each method, the conditional likelihood timing is averaged over 10
+runs, after its covariance or sparse model has been constructed. The
+separate allocation measure is the change in R’s Vcells maximum used
+during setup and evaluation, not peak process RAM. When R is linked to
+FlexiBLAS and MKL or vecLib is available, we evaluate the exact model
+under Netlib (up to $`N=8000`$) and under MKL/vecLib for all sample
+sizes, while running rSPDE under Netlib for all sample sizes. Otherwise,
+both exact and rSPDE timings use the base R BLAS.
 
 Netlib BLAS is single-threaded, whereas MKL is multi-threaded. To keep
 the overall cost manageable, the exact Netlib evaluations are only
@@ -206,7 +209,7 @@ benchmark_data <- lapply(sample_sizes, function(N) {
   )
 })
 
-max_ram_usage <- function(expr) {
+vcells_max_used_delta <- function(expr) {
   start <- gc(verbose = FALSE, reset = TRUE)
   eval(substitute(expr), envir = parent.frame())
   end <- gc(verbose = FALSE, reset = FALSE)
@@ -222,7 +225,7 @@ run_exact <- function(locs, Y, backend_name) {
   }
   timing_env <- new.env(parent = emptyenv())
   timing_env$elapsed <- NA_real_
-  peak_mb <- max_ram_usage({
+  peak_mb <- vcells_max_used_delta({
     Sigma_field <- rSPDE::matern.covariance(
       h = as.matrix(dist(locs)),
       kappa = kappa_true, nu = nu_true, sigma = sigma_true
@@ -240,7 +243,7 @@ run_rspde <- function(locs, Y, backend_name, m) {
   }
   timing_env <- new.env(parent = emptyenv())
   timing_env$elapsed <- NA_real_
-  peak_mb <- max_ram_usage({
+  peak_mb <- vcells_max_used_delta({
     mesh <- fm_mesh_2d(loc = locs, cutoff = 0.0025)
     A <- fm_basis(mesh, locs)
     obj <- matern.operators(
@@ -248,7 +251,7 @@ run_rspde <- function(locs, Y, backend_name, m) {
       m = m, parameterization = "matern"
     )
     timing_env$elapsed <- system.time({
-      rSPDE:::rSPDE.matern.loglike(object = obj, Y = Y, A = A, sigma.e = sigma_e)
+      rSPDE::rSPDE.matern.loglike(object = obj, Y = Y, A = A, sigma.e = sigma_e)
     })["elapsed"]
   })
   list(elapsed_sec = as.numeric(timing_env$elapsed), peak_ram = peak_mb)
@@ -262,7 +265,11 @@ for (bm in benchmark_data) {
 
   for (backend_name in bench_plan$exact_backends) {
     if (backend_name == "netlib" && N > 8000) next
-    exact_vec <- run_exact(locs, Y, backend_name)
+    exact_runs <- lapply(seq_len(10), function(i) run_exact(locs, Y, backend_name))
+    exact_vec <- list(
+      elapsed_sec = mean(vapply(exact_runs, function(x) x$elapsed_sec, numeric(1))),
+      peak_ram = mean(vapply(exact_runs, function(x) x$peak_ram, numeric(1)))
+    )
     bench_rows[[length(bench_rows) + 1]] <- data.frame(
       N = N,
       backend = backend_label(backend_name),
@@ -291,8 +298,7 @@ bench_df <- bind_rows(bench_rows)
 results_all <- bench_df %>% mutate(expr = method, median = elapsed_sec)
 mem_df <- bench_df %>% mutate(method = method)
 if (!"ram_gib" %in% names(mem_df) && "peak_ram" %in% names(mem_df)) {
-  divisor <- if (max(mem_df$peak_ram, na.rm = TRUE) > 1e4) 1e5 else 1024
-  mem_df$ram_gib <- mem_df$peak_ram / divisor
+  mem_df$ram_gib <- mem_df$peak_ram / 1024
 }
 
 dir.create("cache", showWarnings = FALSE, recursive = TRUE)
@@ -303,10 +309,9 @@ saveRDS(list(results_all = results_all, mem_df = mem_df, sample_sizes = sample_s
 
 ## Results
 
-![Timing benchmark and peak memory usage for exact dense Matern
-likelihood evaluation versus rSPDE sparse approximations in a simplified
-Gaussian setting.](figures/timing-benchmark-1.png)
+![Conditional likelihood timing and R Vcells max-used change for the
+existing cached benchmark; the allocation panel is not peak process
+RAM.](figures/timing-benchmark-1.png)
 
-Timing benchmark and peak memory usage for exact dense Matern likelihood
-evaluation versus rSPDE sparse approximations in a simplified Gaussian
-setting.
+Conditional likelihood timing and R Vcells max-used change for the
+existing cached benchmark; the allocation panel is not peak process RAM.

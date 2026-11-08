@@ -155,7 +155,7 @@ of the three parameters we want to estimate.
 
 ## Constructing the approximation
 
-In this section, we explain how to to use the function
+In this section, we explain how to use the function
 [`matern.operators()`](https://davidbolin.github.io/rSPDE/reference/matern.operators.md)
 with the default argument `type`, that is, `type="covariance"`, which is
 constructs the covariance-based rational approximation. We will also
@@ -488,6 +488,10 @@ fit <- rspde_lme(y~x1, model = op_cov_est,
                     data = df_data, loc = "loc")
 ```
 
+    ## Warning in rspde_lme(y ~ x1, model = op_cov_est, data = df_data, loc = "loc"):
+    ## optim method L-BFGS-B failed to provide a positive-definite Hessian. Another
+    ## optimization method was used.
+
 We can get a summary of the fit with the
 [`summary()`](https://rdrr.io/r/base/summary.html) method:
 
@@ -504,32 +508,32 @@ summary(fit)
     ## 
     ## Fixed effects:
     ##             Estimate Std.error z-value Pr(>|z|)
-    ## (Intercept)  -0.9369    1.0706  -0.875    0.382
-    ## x1            0.8285    1.8447   0.449    0.653
+    ## (Intercept)  -0.9363    1.0694  -0.876    0.381
+    ## x1            0.8174    1.8424   0.444    0.657
     ## 
     ## Random effects:
     ##       Estimate Std.error z-value
-    ## nu     0.74530   0.07777   9.583
-    ## sigma  1.45161   0.27360   5.306
-    ## range  0.13177   0.04003   3.292
+    ## nu     0.74645   0.07821   9.544
+    ## sigma  1.45100   0.27316   5.312
+    ## range  0.13153   0.03988   3.298
     ## 
     ## Random effects (SPDE parameterization):
     ##        Estimate Std.error z-value
-    ## alpha  1.245304  0.077774  16.012
-    ## tau    0.048387  0.005367   9.015
-    ## kappa 18.531281  5.451482   3.399
+    ## alpha  1.246451  0.078210  15.937
+    ## tau    0.048129  0.005344   9.006
+    ## kappa 18.579389  5.454731   3.406
     ## 
     ## Measurement error:
     ##          Estimate Std.error z-value
-    ## std. dev  0.30987   0.02335   13.27
+    ## std. dev  0.30997   0.02335   13.27
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
-    ## Log-Likelihood:  -151.9017 
-    ## Number of function calls by 'optim' = 52
-    ## Optimization method used in 'optim' = L-BFGS-B
+    ## Log-Likelihood:  -151.9016 
+    ## Number of function calls by 'optim' = 239
+    ## Optimization method used in 'optim' = Nelder-Mead
     ## 
-    ## Time used to:     fit the model =  16.02831 secs
+    ## Time used to:     fit the model =  3.76552 secs
 
 Let us compare the parameters of the latent model:
 
@@ -545,7 +549,7 @@ print(data.frame(
 
     ##                  nu    sigma     range
     ## Truth     0.8000000 1.300000 0.1264911
-    ## Estimates 0.7453037 1.451613 0.1317669
+    ## Estimates 0.7464507 1.450997 0.1315268
 
 ``` r
 
@@ -553,7 +557,7 @@ print(data.frame(
 print(fit$fitting_time)
 ```
 
-    ## Time difference of 16.02831 secs
+    ## Time difference of 3.765522 secs
 
 Let us take a glance at the fit:
 
@@ -592,33 +596,33 @@ summary(fit_par)
     ## 
     ## Fixed effects:
     ##             Estimate Std.error z-value Pr(>|z|)
-    ## (Intercept) -0.51706   1.42006  -0.364    0.716
-    ## x1           0.09975   2.42250   0.041    0.967
+    ## (Intercept)  -0.9378    1.0673  -0.879    0.380
+    ## x1            0.8111    1.8389   0.441    0.659
     ## 
     ## Random effects:
     ##       Estimate Std.error z-value
-    ## nu    0.622500  0.007433  83.746
-    ## sigma 1.540749  0.391787   3.933
-    ## range 0.209251  0.093256   2.244
+    ## nu      0.7482       NaN     NaN
+    ## sigma   1.4502    0.2711    5.35
+    ## range   0.1311       NaN     NaN
     ## 
     ## Random effects (SPDE parameterization):
     ##        Estimate Std.error z-value
-    ## alpha  1.122500  0.007433 151.012
-    ## tau    0.097619  0.009413  10.371
-    ## kappa 10.664682  4.573720   2.332
+    ## alpha  1.248180        NA      NA
+    ## tau    0.047722  0.005304   8.997
+    ## kappa 18.660515  5.457566   3.419
     ## 
     ## Measurement error:
     ##          Estimate Std.error z-value
-    ## std. dev  0.29353   0.02219   13.23
+    ## std. dev  0.31003   0.01618   19.16
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
-    ## Log-Likelihood:  -153.0439 
-    ## Number of function calls by 'optim' = 52
+    ## Log-Likelihood:  -151.9017 
+    ## Number of function calls by 'optim' = 94
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  8.51844 secs 
-    ##   set up the parallelization = 2.62306 secs
+    ## Time used to:     fit the model =  11.81251 secs 
+    ##   set up the parallelization = 2.255 secs
 
 Let us compare with the true values and compare the time:
 
@@ -634,7 +638,7 @@ print(data.frame(
 
     ##              sigma     range        nu
     ## Truth     1.300000 0.1264911 0.8000000
-    ## Estimates 1.540749 0.2092506 0.6224996
+    ## Estimates 1.450169 0.1311066 0.7481803
 
 ``` r
 
@@ -643,7 +647,7 @@ total_time <- fit_par$fitting_time + fit_par$time_par
 print(total_time)
 ```
 
-    ## Time difference of 11.1415 secs
+    ## Time difference of 14.06752 secs
 
 ### Kriging
 
@@ -749,14 +753,6 @@ fit_repl <- rspde_lme(y_vec ~ -1, model = op_cov_est, repl = repl,
       data = df_data_repl, loc = "loc", parallel = TRUE)
 ```
 
-    ## Warning in rspde_lme(y_vec ~ -1, model = op_cov_est, repl = repl, data =
-    ## df_data_repl, : The optimization failed to provide a numerically
-    ## positive-definite Hessian. You can try to obtain a positive-definite Hessian by
-    ## setting 'improve_hessian' to TRUE or by setting 'parallel' to FALSE, which
-    ## allows other optimization methods to be used.
-
-    ## Warning in sqrt(diag(inv_fisher)): NaNs produced
-
 Let us see a summary of the fit:
 
 ``` r
@@ -777,28 +773,28 @@ summary(fit_repl)
     ## 
     ## Random effects:
     ##       Estimate Std.error z-value
-    ## nu    0.706953       NaN     NaN
-    ## sigma 1.280270  0.053547   23.91
-    ## range 0.138553  0.008751   15.83
+    ## nu     0.71184   0.01769   40.25
+    ## sigma  1.28155   0.05420   23.65
+    ## range  0.13963   0.01129   12.37
     ## 
     ## Random effects (SPDE parameterization):
     ##        Estimate Std.error z-value
-    ## alpha  1.206953        NA      NA
-    ## tau    0.065896  0.001669   39.49
-    ## kappa 17.164267  1.186120   14.47
+    ## alpha  1.211839  0.017685   68.52
+    ## tau    0.064975  0.001647   39.45
+    ## kappa 17.090854  1.179330   14.49
     ## 
     ## Measurement error:
     ##          Estimate Std.error z-value
-    ## std. dev 0.298933  0.004798   62.31
+    ## std. dev 0.298949  0.005093    58.7
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
-    ## Log-Likelihood:  -2760.546 
-    ## Number of function calls by 'optim' = 36
+    ## Log-Likelihood:  -2760.403 
+    ## Number of function calls by 'optim' = 54
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  13.8901 secs 
-    ##   set up the parallelization = 2.77996 secs
+    ## Time used to:     fit the model =  15.39388 secs 
+    ##   set up the parallelization = 2.27334 secs
 
 and glance:
 
@@ -810,7 +806,7 @@ glance(fit_repl)
     ## # A tibble: 1 × 8
     ##    nobs sigma logLik   AIC   BIC deviance df.residual model                     
     ##   <int> <dbl>  <dbl> <dbl> <dbl>    <dbl>       <dbl> <chr>                     
-    ## 1  4000 0.299 -2761. 5529. 5554.    5521.        3996 Covariance-Based Matern S…
+    ## 1  4000 0.299 -2760. 5529. 5554.    5521.        3996 Covariance-Based Matern S…
 
 Let us compare with the true values:
 
@@ -824,9 +820,9 @@ Let us compare with the true values:
   ))
 ```
 
-    ##             sigma     range        nu
-    ## Truth     1.30000 0.1264911 0.8000000
-    ## Estimates 1.28027 0.1385527 0.7069531
+    ##              sigma     range        nu
+    ## Truth     1.300000 0.1264911 0.8000000
+    ## Estimates 1.281551 0.1396278 0.7118388
 
 ``` r
 
@@ -834,7 +830,7 @@ Let us compare with the true values:
 print(fit_repl$fitting_time)
 ```
 
-    ## Time difference of 13.8901 secs
+    ## Time difference of 15.39389 secs
 
 We can obtain better estimates of the Hessian by setting
 `improve_hessian` to `TRUE`, however this might make the process take
@@ -867,29 +863,29 @@ summary(fit_repl2)
     ## 
     ## Random effects:
     ##       Estimate Std.error z-value
-    ## nu     0.70695   0.04226   16.73
-    ## sigma  1.28027   0.05369   23.84
-    ## range  0.13855   0.01244   11.14
+    ## nu     0.71184   0.04464   15.95
+    ## sigma  1.28155   0.05408   23.70
+    ## range  0.13963   0.01314   10.62
     ## 
     ## Random effects (SPDE parameterization):
     ##        Estimate Std.error z-value
-    ## alpha  1.206953  0.042257   28.56
-    ## tau    0.065896  0.001669   39.49
-    ## kappa 17.164267  1.186123   14.47
+    ## alpha  1.211839  0.044636   27.15
+    ## tau    0.064975  0.001647   39.45
+    ## kappa 17.090854  1.179330   14.49
     ## 
     ## Measurement error:
     ##          Estimate Std.error z-value
-    ## std. dev  0.29893   0.00543   55.05
+    ## std. dev 0.298949  0.005484   54.52
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
-    ## Log-Likelihood:  -2760.546 
-    ## Number of function calls by 'optim' = 36
+    ## Log-Likelihood:  -2760.403 
+    ## Number of function calls by 'optim' = 54
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  11.27441 secs 
-    ##   compute the Hessian = 6.44733 secs 
-    ##   set up the parallelization = 2.64518 secs
+    ## Time used to:     fit the model =  13.52105 secs 
+    ##   compute the Hessian = 5.36157 secs 
+    ##   set up the parallelization = 2.28701 secs
 
 ## Spatial data and parameter estimation
 
@@ -1075,11 +1071,11 @@ summary(fit_2d)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
     ## Log-Likelihood:  -5657.679 
-    ## Number of function calls by 'optim' = 69
+    ## Number of function calls by 'optim' = 73
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  2.79839 mins 
-    ##   set up the parallelization = 2.60305 secs
+    ## Time used to:     fit the model =  2.08428 mins 
+    ##   set up the parallelization = 2.27248 secs
 
 and glance:
 
@@ -1115,7 +1111,7 @@ print(data.frame(
 print(fit_2d$fitting_time)
 ```
 
-    ## Time difference of 2.798392 mins
+    ## Time difference of 2.084287 mins
 
 Let us now plot the prediction for replicate 3 by using the `augment`
 function. We begin by creating the `data.frame` we want to do
@@ -1249,8 +1245,8 @@ summary(fit_2d_fixed)
     ## Number of function calls by 'optim' = 8
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  16.09744 secs 
-    ##   set up the parallelization = 2.59588 secs
+    ## Time used to:     fit the model =  11.233 secs 
+    ##   set up the parallelization = 2.30453 secs
 
 Notice in the summary that ν and σ are fixed at the specified values,
 and only the range parameter is estimated. When parameters are fixed,
@@ -1337,7 +1333,7 @@ summary(fit_2d_start)
     ## Number of function calls by 'optim' = 235
     ## Optimization method used in 'optim' = Nelder-Mead
     ## 
-    ## Time used to:     fit the model =  2.45355 mins
+    ## Time used to:     fit the model =  1.93019 mins
 
 ## An example with a non-stationary model
 
@@ -1501,10 +1497,10 @@ summary(fit_ns)
     ## 
     ## Random effects:
     ##        Estimate Std.error z-value
-    ## nu      0.87847   0.02256  38.944
-    ## theta1 -0.23609   0.10187  -2.318
-    ## theta2  0.79452   0.26147   3.039
-    ## theta3  1.78561   0.36325   4.916
+    ## nu      0.87847   0.02258  38.913
+    ## theta1 -0.23609   0.10188  -2.317
+    ## theta2  0.79452   0.26145   3.039
+    ## theta3  1.78561   0.36322   4.916
     ## 
     ## Measurement error:
     ##          Estimate Std.error z-value
@@ -1512,12 +1508,12 @@ summary(fit_ns)
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
-    ## Log-Likelihood:  -379.6413 
+    ## Log-Likelihood:  -379.6412 
     ## Number of function calls by 'optim' = 42
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  10.70821 secs 
-    ##   set up the parallelization = 2.70642 secs
+    ## Time used to:     fit the model =  8.14679 secs 
+    ##   set up the parallelization = 2.28263 secs
 
 Let us now compare with the true values:
 
@@ -1531,9 +1527,9 @@ print(data.frame(
   row.names = c("Truth", "Estimates"))
 ```
 
-    ##               theta1    theta2   theta3        nu
-    ## Truth      0.0000000 1.0000000 1.000000 0.8000000
-    ## Estimates -0.2360934 0.7945223 1.785615 0.8784667
+    ##               theta1   theta2   theta3        nu
+    ## Truth      0.0000000 1.000000 1.000000 0.8000000
+    ## Estimates -0.2360908 0.794516 1.785615 0.8784704
 
 ### Fixing parameters in non-stationary models
 
@@ -1575,7 +1571,7 @@ summary(fit_ns_fixed_theta1)
     ##                Estimate Std.error z-value
     ## nu             0.627515  0.007208  87.054
     ## theta1 (fixed) 0.000000        NA      NA
-    ## theta2         1.155768  0.233188   4.956
+    ## theta2         1.155768  0.233189   4.956
     ## theta3         1.017623  0.185325   5.491
     ## 
     ## Measurement error:
@@ -1585,11 +1581,11 @@ summary(fit_ns_fixed_theta1)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
     ## Log-Likelihood:  -382.8119 
-    ## Number of function calls by 'optim' = 64
+    ## Number of function calls by 'optim' = 63
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  12.11707 secs 
-    ##   set up the parallelization = 2.69574 secs
+    ## Time used to:     fit the model =  9.15573 secs 
+    ##   set up the parallelization = 2.29666 secs
 
 We can also fix the entire theta vector at once using the `fix_theta`
 parameter. This is particularly useful when we have strong prior
@@ -1637,8 +1633,8 @@ summary(fit_ns_fixed_all)
     ## Number of function calls by 'optim' = 94
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  9.6931 secs 
-    ##   set up the parallelization = 2.74007 secs
+    ## Time used to:     fit the model =  7.31455 secs 
+    ##   set up the parallelization = 2.29269 secs
 
 Similarly, we can provide starting values for the entire theta vector
 with `start_theta`:
@@ -1670,23 +1666,23 @@ summary(fit_ns_start)
     ## 
     ## Random effects:
     ##        Estimate Std.error z-value
-    ## nu      0.88020   0.08057  10.925
-    ## theta1 -0.24227   0.10618  -2.282
-    ## theta2  0.78737   0.26109   3.016
-    ## theta3  1.81856   0.46608   3.902
+    ## nu       0.8812    0.0803  10.974
+    ## theta1  -0.2396    0.1061  -2.259
+    ## theta2   0.7846    0.2598   3.020
+    ## theta3   1.8110    0.4612   3.927
     ## 
     ## Measurement error:
     ##          Estimate Std.error z-value
-    ## std. dev  0.30919   0.01365   22.66
+    ## std. dev  0.30955   0.01367   22.65
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
-    ## Log-Likelihood:  -379.6359 
-    ## Number of function calls by 'optim' = 72
+    ## Log-Likelihood:  -379.6374 
+    ## Number of function calls by 'optim' = 45
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  17.08953 secs 
-    ##   set up the parallelization = 2.6972 secs
+    ## Time used to:     fit the model =  9.1995 secs 
+    ##   set up the parallelization = 2.28555 secs
 
 ## Changing the type and the order of the rational approximation
 
@@ -1784,11 +1780,11 @@ summary(fit_order1)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
     ## Log-Likelihood:  -5657.867 
-    ## Number of function calls by 'optim' = 43
+    ## Number of function calls by 'optim' = 42
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  49.87491 secs 
-    ##   set up the parallelization = 2.60612 secs
+    ## Time used to:     fit the model =  37.5178 secs 
+    ##   set up the parallelization = 2.26721 secs
 
 Let us compare with the true values:
 
@@ -1876,11 +1872,11 @@ summary(fit_brasil)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
     ## 
     ## Log-Likelihood:  -5659.434 
-    ## Number of function calls by 'optim' = 50
+    ## Number of function calls by 'optim' = 49
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  56.65663 secs 
-    ##   set up the parallelization = 2.74069 secs
+    ## Time used to:     fit the model =  42.42677 secs 
+    ##   set up the parallelization = 2.30322 secs
 
 Let us compare with the true values:
 

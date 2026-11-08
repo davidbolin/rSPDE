@@ -83,8 +83,8 @@ if (rspde_safe_inla()) {
 }
 #> Warning: the mean or mode of nu is very close to nu.upper.bound, please consider increasing nu.upper.bound, and refitting the model.
 #>            mean        sd  0.025quant   0.5quant 0.975quant        mode
-#> tau    0.146162  0.309272 9.68903e-05  0.0343226   0.962259 1.09520e-06
-#> kappa 14.864400 12.971900 4.01344e+00 10.7796000  50.305800 6.70214e+00
-#> nu     0.736572  0.294679 9.25906e-02  0.8767810   0.999910 9.99990e-01
+#> tau    0.146157  0.309311 9.67232e-05  0.0343068   0.962328 1.09222e-06
+#> kappa 14.866800 12.977500 4.01347e+00 10.7807000  50.323700 6.70240e+00
+#> nu     0.736604  0.294682 9.25823e-02  0.8768450   0.999910 9.99990e-01
 # }
 ```
