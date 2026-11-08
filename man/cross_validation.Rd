@@ -77,7 +77,7 @@ When supplying \code{train_test_indexes}, the \code{cv_type}, \code{k}, \code{pe
 
 \item{n_cores_RP}{Number of cores to be used if \code{parallelize_rp} is \code{TRUE}.}
 
-\item{true_CV}{If \code{TRUE}, re-estimate hyperparameters on each training fold. If \code{FALSE}, update the latent posterior on the training fold while keeping the original hyperparameters fixed.}
+\item{true_CV}{If \code{TRUE}, re-estimate hyperparameters on each training fold. If \code{FALSE}, update the latent posterior using the training fold while keeping the original hyperparameters fixed.}
 
 \item{save_settings}{Logical. If \code{TRUE}, the settings used in the cross-validation will also be returned.}
 
@@ -92,11 +92,14 @@ A data.frame with the fitted models and the corresponding scores.
 }
 \description{
 Obtain several scores for a list of fitted models according
-to a folding scheme.
+to a folding scheme. Scores are averaged equally across folds; for
+multiple likelihoods, each fold's total score weights likelihoods by
+its number of held-out responses. Repeated leave-percentage-out folds
+retain every held-out scoring event.
 }
 \details{
-Fits containing an exact MetricGraph SPDE component are delegated to
-\code{\link[MetricGraph:cross_validation]{MetricGraph::cross_validation()}} when MetricGraph is installed and
+Fits containing an exact MetricGraph SPDE component are delegated
+to \code{\link[MetricGraph:cross_validation]{MetricGraph::cross_validation()}} when MetricGraph is installed and
 every likelihood uses a family supported there. Mixed exact/rSPDE model
 lists follow the same route. Other fits retain rSPDE's implementation.
 }
