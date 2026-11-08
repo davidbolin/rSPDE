@@ -55,21 +55,56 @@ jobs:
           sessioninfo::session_info(pkgs, include_base = TRUE)
         shell: Rscript {0}
 
-      - name: Prepare the pure-R CRAN source
+      - name: Prepare the CRAN source
         run: |
           set -euo pipefail
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
 
-          # Compilation is deliberately unavailable on the CRAN branch. INLA
+          # The CRAN package compiles only its own C++ helper (src/wl2_fit.cpp)
+          # through src/Makevars. The optional INLA Cgeneric sources, and the
+          # configure scripts that copy them into src/, are removed: INLA
           # provides the Cgeneric models, and rspde_safe_inla() protects tests
           # and examples when a required INLA model is temporarily unavailable.
           git rm -rf --ignore-unmatch \
             configure configure.win cleanup cleanup.win \
-            src inst/src-optional inst/shared
+            inst/src-optional inst/shared
           rm -rf \
             configure configure.win cleanup cleanup.win \
-            src inst/src-optional inst/shared
+            inst/src-optional inst/shared
+
+          # Keep exactly the package-level sources in src/.
+          cran_src="wl2_fit.cpp Makevars Makevars.win"
+          for f in $cran_src; do
+            if [ ! -f "src/$f" ]; then
+              echo "src/$f is missing; the CRAN package cannot be built."
+              exit 1
+            fi
+          done
+          for path in src/* src/.[!.]*; do
+            [ -e "$path" ] || continue
+            case " $cran_src " in
+              *" $(basename "$path") "*) ;;
+              *) git rm -rf --ignore-unmatch "$path"; rm -rf "$path" ;;
+            esac
+          done
+
+          # The devel Makevars comments describe the optional configure
+          # step, which does not exist here; keep only the build settings.
+          for f in src/Makevars src/Makevars.win; do
+            grep -v '^#' "$f" > "$f.tmp"
+            mv "$f.tmp" "$f"
+          done
+          git add src
+
+          # The package compiles code, whatever a merge left in DESCRIPTION.
+          sed -i.bak 's/^NeedsCompilation:.*/NeedsCompilation: yes/' DESCRIPTION
+          rm -f DESCRIPTION.bak
+          grep -q '^NeedsCompilation: yes$' DESCRIPTION
+
+          # No locally compiled Cgeneric library exists on this branch.
+          sed -i.bak '/inst\/shared/d' .Rbuildignore
+          rm -f .Rbuildignore.bak
 
           # These legacy workflows only support compiled source branches and
           # are not part of the pure-R CRAN branch.
