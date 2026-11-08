@@ -21,6 +21,7 @@ rspde.mesh.projector(
   ylim = NULL,
   dims = c(100, 100),
   projection = NULL,
+  type.rational.approx = "brasil",
   ...
 )
 
@@ -30,12 +31,21 @@ rspde.mesh.projector(
   field = NULL,
   rspde.order = 1,
   nu = NULL,
+  type.rational.approx = "brasil",
   ...
 )
 
 \method{rspde.mesh.project}{rspde.mesh.projector}(projector, field, ...)
 
-\method{rspde.mesh.project}{inla.mesh.1d}(mesh, loc, field = NULL, rspde.order = 1, nu = NULL, ...)
+\method{rspde.mesh.project}{inla.mesh.1d}(
+  mesh,
+  loc,
+  field = NULL,
+  rspde.order = 1,
+  nu = NULL,
+  type.rational.approx = "brasil",
+  ...
+)
 }
 \arguments{
 \item{...}{Additional parameters.}
@@ -61,6 +71,10 @@ the domain.}
 \item{dims}{Lattice dimensions.}
 
 \item{projection}{One of c("default", "longlat", "longsinlat", "mollweide").}
+
+\item{type.rational.approx}{Which type of rational approximation the model
+uses. \code{"wl2"} has no constant term, so the latent field has \code{rspde.order}
+blocks instead of \code{rspde.order + 1}; the tabulated types are unaffected.}
 
 \item{field}{Basis function weights, one per mesh basis function, describing
 the function to be evaluated at the projection locations.}

@@ -1,6 +1,7 @@
 #!/bin/sh
-# Windows counterpart of ./configure. Same logic: pure-R by default,
-# compile only when RSPDE_COMPILE=1 or --enable-compiled is passed.
+# Windows counterpart of ./configure. Same logic: src/wl2_fit.cpp is always
+# compiled; the cgeneric sources only when RSPDE_COMPILE=1 or
+# --enable-compiled is passed.
 
 COMPILE="${RSPDE_COMPILE:-0}"
 
@@ -16,6 +17,12 @@ if [ "$COMPILE" = "1" ] || [ "$COMPILE" = "TRUE" ] || [ "$COMPILE" = "true" ]; t
     mkdir -p src
     cp inst/src-optional/* src/
 else
-    echo "*** rSPDE: pure-R install; no src directory will be created"
-    rm -rf src
+    echo "*** rSPDE: cgeneric sources not compiled (set RSPDE_COMPILE=1 or pass --configure-args='--enable-compiled' to compile them)"
+    # Remove anything a previous compiled configure copied in, so that only
+    # the package's own sources are built. Only files that came from
+    # inst/src-optional/ are touched.
+    for f in inst/src-optional/*; do
+        rm -f "src/`basename \"$f\"`"
+    done
+    rm -f src/cgeneric.h
 fi

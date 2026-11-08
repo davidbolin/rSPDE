@@ -21,6 +21,9 @@
   compute_higher_order = object$higher_order,
   parameterization = NULL,
   type_rational_approximation = object$type_rational_approximation,
+  x_min = object$x_min,
+  kappa_ref = object$kappa_ref,
+  variance_correction = object$variance_correction,
   return_block_list = object$return_block_list,
   check_stationarity = TRUE,
   ...
@@ -65,7 +68,16 @@ finite element matrices be computed?}
 
 \item{type_rational_approximation}{Which type of rational
 approximation should be used? The current types are "chebfun",
-"brasil" or "chebfunLB".}
+"brasil", "chebfunLB" or "wl2".}
+
+\item{x_min}{Lower end of the spectral interval used by
+\code{type_rational_approximation = "wl2"}, see \code{\link[=rspde.xmin]{rspde.xmin()}}.}
+
+\item{kappa_ref}{A lower bound for \code{kappa}, used to determine \code{x_min} when
+\code{x_min} is not given.}
+
+\item{variance_correction}{Should the nodal variance of the weighted-L2
+approximation be corrected? See \code{\link[=matern.operators]{matern.operators()}}.}
 
 \item{return_block_list}{Logical. For \code{type = "covariance"},
 should the block parts of the precision matrix be returned

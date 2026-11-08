@@ -3,17 +3,30 @@
 #' @description Creates an INLA object for a stationary Matern model with
 #' general smoothness parameter.
 #' @param mesh The mesh to build the model. It can be an `inla.mesh` or
-#' an `inla.mesh.1d` object. Otherwise, should be a list containing elements d, the dimension, C, the mass matrix,
-#' and G, the stiffness matrix.
-#' @param nu.upper.bound Upper bound for the smoothness parameter. If `NULL`, it will be set to 2.
-#' @param rspde.order The order of the covariance-based rational SPDE approach. The default order is 1.
+#' an `inla.mesh.1d` object. Otherwise, should be a list containing elements d, 
+#' the dimension, C, the mass matrix, and G, the stiffness matrix.
+#' @param nu.upper.bound Upper bound for the smoothness parameter. If `NULL`, 
+#' it will be set to 2.
+#' @param rspde.order The order of the covariance-based rational SPDE approach. 
+#' The default order is 1.
 #' @param nu If nu is set to a parameter, nu will be kept fixed and will not
 #' be estimated. If nu is `NULL`, it will be estimated.
-#' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma} (for 'matern' parameterization) or for \eqn{\sigma^2} (for 'matern2' parameterization). Will be used if `parameterization = 'matern'` or `parameterization = 'matern2'`.
-#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'` or `parameterization = 'matern2'`.
-#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). `matern2` uses range-like (1/kappa), variance and nu (smoothness). The default is `spde`.
-#' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
-#' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
+#' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma} 
+#' (for 'matern' parameterization) or for \eqn{\sigma^2} (for 'matern2' 
+#' parameterization). Will be used if `parameterization = 'matern'` or 
+#' `parameterization = 'matern2'`.
+#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, 
+#' which is a range-like parameter (it is exactly the range parameter in the 
+#' stationary case). Will be used if `parameterization = 'matern'` or 
+#' `parameterization = 'matern2'`.
+#' @param parameterization Which parameterization to use? `matern` uses range, 
+#' std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). 
+#' `matern2` uses range-like (1/kappa), variance and nu (smoothness). The default 
+#' is `spde`.
+#' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. 
+#' Will be used if `parameterization = 'spde'`.
+#' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. 
+#' Will be used if `parameterization = 'spde'`.
 #' @param prior.kappa a `list` containing the elements `meanlog` and
 #' `sdlog`, that is, the mean and standard deviation on the log scale.
 #' @param prior.nu a list containing the elements `mean` and `prec`
@@ -26,30 +39,52 @@
 #' @param prior.tau a list containing the elements `meanlog` and
 #' `sdlog`, that is, the mean and standard deviation on the log scale.
 #' @param prior.range a `list` containing the elements `meanlog` and
-#' `sdlog`, that is, the mean and standard deviation on the log scale. Will not be used if prior.kappa is non-null.
+#' `sdlog`, that is, the mean and standard deviation on the log scale. Will not 
+#' be used if prior.kappa is non-null.
 #' @param prior.std.dev a `list` containing the elements `meanlog` and
-#' `sdlog`, that is, the mean and standard deviation on the log scale. Will not be used if prior.tau is non-null.
+#' `sdlog`, that is, the mean and standard deviation on the log scale. Will not 
+#' be used if prior.tau is non-null.
 #' @param start.lkappa Starting value for log of kappa.
 #' @param start.nu Starting value for nu.
-#' @param start.theta Starting values for the model parameters. In the stationary case, if `parameterization='matern'`, then `theta[1]` is the std.dev and `theta[2]` is the range parameter.
-#' If `parameterization = 'spde'`, then `theta[1]` is `tau` and `theta[2]` is `kappa`.
+#' @param start.theta Starting values for the model parameters. In the stationary 
+#' case, if `parameterization='matern'`, then `theta[1]` is the std.dev and 
+#' `theta[2]` is the range parameter. If `parameterization = 'spde'`, then 
+#' `theta[1]` is `tau` and `theta[2]` is `kappa`.
 #' @param theta.prior.mean A vector for the mean priors of `theta`.
 #' @param theta.prior.prec A precision matrix for the prior of `theta`.
-#' @param prior.std.dev.nominal Prior std. deviation to be used for the priors and for the starting values.
-#' @param prior.range.nominal Prior range to be used for the priors and for the starting values.
-#' @param prior.kappa.mean Prior kappa to be used for the priors and for the starting values.
-#' @param prior.tau.mean Prior tau to be used for the priors and for the starting values.
-#' @param start.lstd.dev Starting value for log of std. deviation. Will not be used if start.ltau is non-null. Will be only used in the stationary case and if `parameterization = 'matern'`.
-#' @param start.lrange Starting value for log of range. Will not be used if start.lkappa is non-null. Will be only used in the stationary case and if `parameterization = 'matern'`.
-#' @param start.ltau Starting value for log of tau. Will be only used in the stationary case and if `parameterization = 'spde'`.
-#' @param start.lkappa Starting value for log of kappa. Will be only used in the stationary case and if `parameterization = 'spde'`.
-#' @param prior.theta.param Should the lognormal prior be on `theta` or on the SPDE parameters (`tau` and `kappa` on the stationary case)?
+#' @param prior.std.dev.nominal Prior std. deviation to be used for the priors 
+#' and for the starting values.
+#' @param prior.range.nominal Prior range to be used for the priors and for the 
+#' starting values.
+#' @param prior.kappa.mean Prior kappa to be used for the priors and for the 
+#' starting values.
+#' @param prior.tau.mean Prior tau to be used for the priors and for the 
+#' starting values.
+#' @param start.lstd.dev Starting value for log of std. deviation. Will not be 
+#' used if start.ltau is non-null. Will be only used in the stationary case and 
+#' if `parameterization = 'matern'`.
+#' @param start.lrange Starting value for log of range. Will not be used if 
+#' start.lkappa is non-null. Will be only used in the stationary case and if 
+#' `parameterization = 'matern'`.
+#' @param start.ltau Starting value for log of tau. Will be only used in the 
+#' stationary case and if `parameterization = 'spde'`.
+#' @param start.lkappa Starting value for log of kappa. Will be only used in 
+#' the stationary case and if `parameterization = 'spde'`.
+#' @param prior.theta.param Should the lognormal prior be on `theta` or on the 
+#' SPDE parameters (`tau` and `kappa` on the stationary case)?
 #' @param prior.nu.dist The distribution of the smoothness parameter.
 #' The current options are "beta" or "lognormal". The default is "lognormal".
 #' @param nu.prec.inc Amount to increase the precision in the beta prior
 #' distribution. Check details below.
 #' @param type.rational.approx Which type of rational approximation
-#' should be used? The current types are "brasil", "chebfun" or "chebfunLB".
+#' should be used? The current types are "brasil", "chebfun", "chebfunLB" and
+#' "wl2". The "wl2" coefficients minimise the weighted \eqn{L_2} error, see
+#' [rational.coefficients.wl2()]; they have no constant term, so the latent
+#' field has `rspde.order` blocks instead of `rspde.order + 1`, and they
+#' require `rspde.order` at least 1 and \eqn{\nu < 3 - d/2}. 
+#' @param wl2_table A table of weighted-L2 coefficients from
+#' [rspde.wl2.table()], only used for `type.rational.approx = "wl2"`. `NULL`
+#' uses the table shipped with the package.
 #' @param debug INLA debug argument
 #' @param shared_lib Which shared lib to use for the cgeneric implementation?
 #' `"detect"` and `"INLA"` prefer the model compiled into the INLA binary and
@@ -88,8 +123,10 @@ rspde.matern <- function(mesh,
                          type.rational.approx = c(
                            "brasil",
                            "chebfun",
-                           "chebfunLB"
+                           "chebfunLB",
+                           "wl2"
                          ),
+                         wl2_table = NULL,
                          debug = FALSE,
                          shared_lib = "detect",
                          ...) {
@@ -112,8 +149,18 @@ rspde.matern <- function(mesh,
     stop("parameterization should be either 'matern', 'spde' or 'matern2'!")
   }
 
-  if (!type.rational.approx %in% c("brasil", "chebfun", "chebfunLB")) {
-    stop("type.rational.approx should be either 'chebfun', 'brasil' or 'chebfunLB'!")
+  if (!type.rational.approx %in% c("brasil", "chebfun", "chebfunLB", "wl2")) {
+    stop(paste0(
+      "type.rational.approx should be 'chebfun', 'brasil', 'chebfunLB' or ",
+      "'wl2'!"
+    ))
+  }
+  wl2 <- identical(type.rational.approx, "wl2")
+  if (wl2 && rspde.order < 1) {
+    stop(paste0(
+      "type.rational.approx = 'wl2' requires rspde.order >= 1; the ",
+      "parsimonious rspde.order = 0 model is a different approximation."
+    ))
   }
 
   if (parameterization == "spde") {
@@ -199,6 +246,35 @@ rspde.matern <- function(mesh,
     nu_order <- nu.upper.bound
   }
 
+  if (wl2) {
+    ## The range check comes first: telling a user to update INLA when their
+    ## nu is simply out of scope for the classes would be misleading.
+    m_alpha_max <- floor(nu_order + d / 2 - if (fixed_nu) 0 else 1e-10)
+    if (m_alpha_max > 2) {
+      stop(paste0(
+        "type.rational.approx = 'wl2' is only implemented for floor(alpha) ",
+        "equal to 0, 1 or 2, but ",
+        if (fixed_nu) "nu = " else "nu.upper.bound = ", signif(nu_order, 6),
+        " with d = ", d, " reaches floor(alpha) = ", m_alpha_max, "."
+      ))
+    }
+    wl2_symbol <- if (fixed_nu) {
+      "inla_cgeneric_rspde_stat_frac_wl2_model"
+    } else {
+      "inla_cgeneric_rspde_stat_general_wl2_model"
+    }
+    if (!rspde_cgeneric_symbol_available(wl2_symbol)) {
+      stop(paste0(
+        "type.rational.approx = 'wl2' needs the cgeneric model '", wl2_symbol,
+        "', which the available INLA binary does not provide. Install rSPDE ",
+        "with the cgeneric sources compiled,\n    ",
+        "remotes::install_github(\"davidbolin/rSPDE\", ",
+        "configure.args = \"--enable-compiled\")\n",
+        "and pass shared_lib = \"rSPDE\", or use a newer INLA."
+      ))
+    }
+  }
+
   beta <- nu_order / 2 + d / 4
 
   m_alpha <- floor(2 * beta)
@@ -226,10 +302,15 @@ rspde.matern <- function(mesh,
         n_m <- rspde.order
         coeff <- interp_rational_coefficients(rspde.order,
                                               type_rational_approx = type.rational.approx,
-                                              alpha = alpha)
+                                              alpha = alpha,
+                                              wl2_table = wl2_table,
+                                              d = d)
         r <- coeff$r
         p <- coeff$p
         k <- coeff$k
+        ## The shared shift of the integer factor; 0 for floor(alpha) = 0 and
+        ## for the tabulated types, whose integer factor is unshifted.
+        p0 <- if (is.null(coeff$p0)) 0 else coeff$p0
         #mt <- get_rational_coefficients(rspde.order, type.rational.approx)
         #r <- sapply(1:(n_m), function(i) {
         #  approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2 * beta))$y
@@ -243,7 +324,18 @@ rspde.matern <- function(mesh,
   } else {
     integer_alpha <- FALSE
     if (rspde.order > 0) {
-      rational_table <- get_rational_coefficients(rspde.order, type.rational.approx)
+      rational_table <- if (wl2) {
+        ## One block of 999 rows per floor(alpha) the prior on nu can reach.
+        ## The cgeneric model only looks coefficients up; the fitting stays
+        ## in R, as it does for the tabulated types.
+        wl2_cgeneric_table(
+          d = d, m = rspde.order, nu_upper_bound = nu.upper.bound,
+          wl2_table = wl2_table
+        )
+      } else {
+        get_rational_coefficients(rspde.order, type.rational.approx)
+      }
+      wl2_m_alpha_min <- if (wl2) attr(rational_table, "m_alpha_min") else 0L
     }
   }
 
@@ -545,7 +637,8 @@ rspde.matern <- function(mesh,
           fem_mesh_matrices = fem_mesh_orig, dim = d,
           nu = nu.upper.bound,
           rspde.order = rspde.order,
-          force_non_integer = TRUE
+          force_non_integer = TRUE,
+          wl2 = wl2
         )
 
 
@@ -558,9 +651,16 @@ rspde.matern <- function(mesh,
         model <- do.call(
           eval(parse(text = "INLA::inla.cgeneric.define")),
           list(
-            model = "inla_cgeneric_rspde_stat_general_model",
+            model = if (wl2) {
+              "inla_cgeneric_rspde_stat_general_wl2_model"
+            } else {
+              "inla_cgeneric_rspde_stat_general_model"
+            },
             shlib = rspde_lib,
-            n = as.integer(n_cgeneric) * (rspde.order + 1), debug = debug,
+            ## the weighted-L2 classes have no constant term, hence no k-block
+            n = as.integer(n_cgeneric) *
+              (if (wl2) rspde.order else rspde.order + 1),
+            debug = debug,
             d = as.double(d),
             nu.upper.bound = nu.upper.bound,
             matrices_less = as.double(matrices_less),
@@ -579,7 +679,11 @@ rspde.matern <- function(mesh,
             rspde.order = as.integer(rspde.order),
             prior.nu.dist = prior.nu.dist,
             parameterization = parameterization,
-            prior.theta.param = prior.theta.param
+            prior.theta.param = prior.theta.param,
+            ## appended last, so that a model compiled before these existed
+            ## still reads its own arguments at unchanged indices
+            wl2 = as.integer(wl2),
+            wl2.m.alpha.min = as.integer(wl2_m_alpha_min)
           )
         )
       }
@@ -612,7 +716,8 @@ rspde.matern <- function(mesh,
           fem_mesh_matrices = fem_mesh_orig, dim = d,
           nu = nu,
           rspde.order = rspde.order,
-          force_non_integer = TRUE
+          force_non_integer = TRUE,
+          wl2 = wl2
         )
 
 
@@ -624,9 +729,16 @@ rspde.matern <- function(mesh,
         model <- do.call(
           eval(parse(text = "INLA::inla.cgeneric.define")),
           list(
-            model = "inla_cgeneric_rspde_stat_frac_model",
+            model = if (wl2) {
+              "inla_cgeneric_rspde_stat_frac_wl2_model"
+            } else {
+              "inla_cgeneric_rspde_stat_frac_model"
+            },
             shlib = rspde_lib,
-            n = as.integer(n_cgeneric) * (rspde.order + 1), debug = debug,
+            ## the weighted-L2 classes have no constant term, hence no k-block
+            n = as.integer(n_cgeneric) *
+              (if (wl2) rspde.order else rspde.order + 1),
+            debug = debug,
             nu = nu,
             matrices_less = as.double(matrices_less),
             matrices_full = as.double(matrices_full),
@@ -641,7 +753,11 @@ rspde.matern <- function(mesh,
             rspde.order = as.integer(rspde.order),
             parameterization = parameterization,
             d = as.integer(d),
-            prior.theta.param = prior.theta.param
+            prior.theta.param = prior.theta.param,
+            ## appended last, so that a model compiled before these existed
+            ## still reads its own arguments at unchanged indices
+            wl2 = as.integer(wl2),
+            p0_ratapprox = as.double(p0)
           )
         )
       }
@@ -1046,6 +1162,9 @@ spde.make.A <- function(mesh = NULL,
 #' @param repl For each observation/prediction value, the replicate index.
 #' @param n.group The size of the group model.
 #' @param n.repl The total number of replicates.
+#' @param type.rational.approx Which type of rational approximation the model
+#' uses. `"wl2"` has no constant term, so the latent field has `rspde.order`
+#' blocks instead of `rspde.order + 1`; the tabulated types are unaffected.
 #' @return The \eqn{A} matrix for rSPDE models.
 #' @export
 #' @examples
@@ -1072,7 +1191,8 @@ rspde.make.A <- function(mesh = NULL,
                          group = NULL,
                          repl = 1L,
                          n.group = NULL,
-                         n.repl = NULL) {
+                         n.repl = NULL,
+                         type.rational.approx = "brasil") {
   if (!is.null(mesh)) {
     cond1 <- inherits(mesh, "fm_mesh_1d")
     cond2 <- inherits(mesh, "fm_mesh_2d")
@@ -1169,6 +1289,9 @@ rspde.make.A <- function(mesh = NULL,
   }
 
   fixed_nu <- !is.null(nu)
+  ## The weighted-L2 classes have no constant term, so the latent field has
+  ## rspde.order blocks instead of rspde.order + 1.
+  n_blocks <- rspde_n_blocks(rspde.order, type.rational.approx)
   if (fixed_nu) {
     alpha <- nu + dim / 2
     integer_alpha <- (alpha %% 1 == 0)
@@ -1177,7 +1300,7 @@ rspde.make.A <- function(mesh = NULL,
       integer_nu <- TRUE
     } else {
       if (rspde.order > 0) {
-        Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
+        Abar <- kronecker(matrix(1, 1, n_blocks), A)
       } else {
         Abar <- A
       }
@@ -1185,7 +1308,7 @@ rspde.make.A <- function(mesh = NULL,
     }
   } else {
     if (rspde.order > 0) {
-      Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
+      Abar <- kronecker(matrix(1, 1, n_blocks), A)
     } else {
       Abar <- A
     }
@@ -1200,6 +1323,7 @@ rspde.make.A <- function(mesh = NULL,
   attr(Abar, "inla_rspde_Amatrix") <- TRUE
   attr(Abar, "rspde.order") <- rspde.order
   attr(Abar, "integer_nu") <- integer_nu
+  attr(Abar, "type.rational.approx") <- type.rational.approx
   return(Abar)
 }
 
@@ -1218,6 +1342,9 @@ rspde.make.A <- function(mesh = NULL,
 #' @param n.repl The total number of replicates.
 #' @param dim the dimension of the domain. Should only be provided if
 #' `mesh` is not provided.
+#' @param type.rational.approx Which type of rational approximation the model
+#' uses. `"wl2"` has no constant term, so the latent field has `rspde.order`
+#' blocks instead of `rspde.order + 1`; the tabulated types are unaffected.
 #' @return A list of named index vectors.
 #' \item{name}{Indices into the vector of latent variables}
 #' \item{name.group}{'group' indices}
@@ -1264,7 +1391,8 @@ rspde.make.A <- function(mesh = NULL,
 #' }
 rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
                              n.repl = 1, mesh = NULL,
-                             rspde.order = 1, nu = NULL, dim = NULL) {
+                             rspde.order = 1, nu = NULL, dim = NULL,
+                             type.rational.approx = "brasil") {
   if (is.null(n.spde) && is.null(mesh)) {
     stop("You should provide either n.spde or mesh!")
   }
@@ -1299,6 +1427,9 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
   }
 
   fixed_nu <- !is.null(nu)
+  ## The weighted-L2 classes have no constant term, so the latent field has
+  ## rspde.order blocks instead of rspde.order + 1.
+  n_blocks <- rspde_n_blocks(rspde.order, type.rational.approx)
 
   if (fixed_nu) {
     alpha <- nu + dim / 2
@@ -1309,7 +1440,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
       integer_nu <- TRUE
     } else {
       if (rspde.order > 0) {
-        factor_rspde <- rspde.order + 1
+        factor_rspde <- n_blocks
       } else {
         factor_rspde <- 1
       }
@@ -1317,7 +1448,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
     }
   } else {
     if (rspde.order > 0) {
-      factor_rspde <- rspde.order + 1
+      factor_rspde <- n_blocks
     } else {
       factor_rspde <- 1
     }
@@ -1342,6 +1473,7 @@ rspde.make.index <- function(name, n.spde = NULL, n.group = 1,
   }
   attr(out, "rspde.order") <- rspde.order
   attr(out, "integer_nu") <- integer_nu
+  attr(out, "type.rational.approx") <- type.rational.approx
   attr(out, "n.mesh") <- n_mesh
   attr(out, "name") <- name
   attr(out, "n.group") <- n.group
@@ -1614,6 +1746,15 @@ graph_index_rspde <- function(graph_spde, n.repl = 1, n.group = 1) {
   rep(rep(1:n_obs, times = n.group),
     times = n.repl
   )
+}
+
+.rspde_positive_density <- function(samples, n) {
+  if (anyNA(samples) || any(!is.finite(samples)) || any(samples <= 0)) {
+    stop("Positive parameter samples must be finite and strictly positive.")
+  }
+  log_density <- stats::density(log(samples), n = n)
+  x <- exp(log_density$x)
+  list(x = x, y = log_density$y / x)
 }
 
 
@@ -1890,13 +2031,13 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE,
                       
                       if (parameterization == "matern") {
                           range_est <- sqrt(8 * nu_est) / kappa_est
-                          density_theta1 <- stats::density(sigma_est, n = n_density)
-                          density_theta2 <- stats::density(range_est, n = n_density)
+                          density_theta1 <- .rspde_positive_density(sigma_est, n = n_density)
+                          density_theta2 <- .rspde_positive_density(range_est, n = n_density)
                       } else if (parameterization == "matern2") {
                           var_est <- sigma_est^2
                           r_est <- 1 / kappa_est
-                          density_theta1 <- stats::density(var_est, n = n_density)
-                          density_theta2 <- stats::density(r_est, n = n_density)
+                          density_theta1 <- .rspde_positive_density(var_est, n = n_density)
+                          density_theta2 <- .rspde_positive_density(r_est, n = n_density)
                       }
                       
                       result[[paste0("marginals.", name_theta1)]] <- list()
@@ -1922,13 +2063,13 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE,
                       if (parameterization == "spde") {
                           tau_est <- sqrt(gamma(0.5) / (sigma_est^2 * kappa_est^(2 * nu_est) *
                                                             (4 * pi)^(dim / 2) * gamma(nu_est + dim / 2)))
-                          density_theta1 <- stats::density(tau_est, n = n_density)
-                          density_theta2 <- stats::density(kappa_est, n = n_density)
+                          density_theta1 <- .rspde_positive_density(tau_est, n = n_density)
+                          density_theta2 <- .rspde_positive_density(kappa_est, n = n_density)
                       } else if (parameterization == "matern2") {
                           var_est <- sigma_est^2
                           r_est <- 1 / kappa_est
-                          density_theta1 <- stats::density(var_est, n = n_density)
-                          density_theta2 <- stats::density(r_est, n = n_density)
+                          density_theta1 <- .rspde_positive_density(var_est, n = n_density)
+                          density_theta2 <- .rspde_positive_density(r_est, n = n_density)
                       }
                       
                       result[[paste0("marginals.", name_theta1)]] <- list()
@@ -1955,12 +2096,12 @@ rspde.result <- function(inla, name, rspde, compute.summary = TRUE,
                       if (parameterization == "spde") {
                           tau_est <- sqrt(gamma(0.5) / (sigma_est^2 * kappa_est^(2 * nu_est) *
                                                             (4 * pi)^(dim / 2) * gamma(nu_est + dim / 2)))
-                          density_theta1 <- stats::density(tau_est, n = n_density)
-                          density_theta2 <- stats::density(kappa_est, n = n_density)
+                          density_theta1 <- .rspde_positive_density(tau_est, n = n_density)
+                          density_theta2 <- .rspde_positive_density(kappa_est, n = n_density)
                       } else if (parameterization == "matern") {
                           range_est <- sqrt(8 * nu_est) / kappa_est
-                          density_theta1 <- stats::density(sigma_est, n = n_density)
-                          density_theta2 <- stats::density(range_est, n = n_density)
+                          density_theta1 <- .rspde_positive_density(sigma_est, n = n_density)
+                          density_theta2 <- .rspde_positive_density(range_est, n = n_density)
                       }
                       
                       result[[paste0("marginals.", name_theta1)]] <- list()
@@ -2493,6 +2634,9 @@ summary.rspde_result <- function(object,
 #' the domain.
 #' @param dims Lattice dimensions.
 #' @param projection One of c("default", "longlat", "longsinlat", "mollweide").
+#' @param type.rational.approx Which type of rational approximation the model
+#' uses. `"wl2"` has no constant term, so the latent field has `rspde.order`
+#' blocks instead of `rspde.order + 1`; the tabulated types are unaffected.
 #' @param ... Additional parameters.
 #' @return A list with projection information for rspde.mesh.project. For
 #' rspde.mesh.projector(mesh, ...),
@@ -2520,6 +2664,7 @@ rspde.mesh.projector <- function(mesh,
                                  ylim = NULL,
                                  dims = c(100, 100),
                                  projection = NULL,
+                                 type.rational.approx = "brasil",
                                  ...) {
   args_list <- list()
   args_list[["mesh"]] <- mesh
@@ -2545,7 +2690,7 @@ rspde.mesh.projector <- function(mesh,
 
   out$proj$A <- rspde.make.A(
     A = out$proj$A, rspde.order = rspde.order, dim = dim,
-    nu = nu
+    nu = nu, type.rational.approx = type.rational.approx
   )
 
   class(out) <- c("rspde.mesh.projector", class(out))
@@ -2559,7 +2704,9 @@ rspde.mesh.projector <- function(mesh,
 
 rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
                                          field = NULL, rspde.order = 1,
-                                         nu = NULL, ...) {
+                                         nu = NULL,
+                                         type.rational.approx = "brasil",
+                                         ...) {
   cond1 <- inherits(mesh, "fm_mesh_1d")
   cond2 <- inherits(mesh, "fm_mesh_2d")
   stopifnot(cond1 || cond2)
@@ -2567,6 +2714,7 @@ rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
   if (!missing(field) && !is.null(field)) {
     proj <- rspde.mesh.projector(mesh,
       loc = loc, rspde.order = rspde.order, nu = nu,
+      type.rational.approx = type.rational.approx,
       ...
     )
     # return(INLA::inla.mesh.project(proj, field = field))
@@ -2599,16 +2747,18 @@ rspde.mesh.project.inla.mesh <- function(mesh, loc = NULL,
   }
 
   fixed_nu <- !is.null(nu)
+  ## the weighted-L2 classes have no constant term, hence one block fewer
+  n_blocks <- rspde_n_blocks(rspde.order, type.rational.approx)
   if (fixed_nu) {
     alpha <- nu + 1
     integer_alpha <- (alpha %% 1 == 0)
     if (integer_alpha) {
       Abar <- A
     } else {
-      Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
+      Abar <- kronecker(matrix(1, 1, n_blocks), A)
     }
   } else {
-    Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
+    Abar <- kronecker(matrix(1, 1, n_blocks), A)
   }
 
   # Note: this format is incompatible with fm_evaluator for
@@ -2635,11 +2785,14 @@ rspde.mesh.project.rspde.mesh.projector <- function(projector, field, ...) {
 #'
 
 rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
-                                            rspde.order = 1, nu = NULL, ...) {
+                                            rspde.order = 1, nu = NULL,
+                                            type.rational.approx = "brasil",
+                                            ...) {
   stopifnot(inherits(mesh, "fm_mesh_1d"))
   if (!missing(field) && !is.null(field)) {
     proj <- rspde.mesh.projector(mesh, loc,
-      rspde.order = rspde.order, nu = nu, ...
+      rspde.order = rspde.order, nu = nu,
+      type.rational.approx = type.rational.approx, ...
     )
     # return(INLA::inla.mesh.project(proj, field))
     return(fmesher::fm_evaluate(proj, field))
@@ -2653,16 +2806,18 @@ rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
   }
 
   fixed_nu <- !is.null(nu)
+  ## the weighted-L2 classes have no constant term, hence one block fewer
+  n_blocks <- rspde_n_blocks(rspde.order, type.rational.approx)
   if (fixed_nu) {
     alpha <- nu + 1 / 2
     integer_alpha <- (alpha %% 1 == 0)
     if (integer_alpha) {
       Abar <- A
     } else {
-      Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
+      Abar <- kronecker(matrix(1, 1, n_blocks), A)
     }
   } else {
-    Abar <- kronecker(matrix(1, 1, rspde.order + 1), A)
+    Abar <- kronecker(matrix(1, 1, n_blocks), A)
   }
   return(list(A = Abar, ok = (loc >= mesh$interval[1]) & (loc <=
     mesh$interval[2])))
@@ -2692,20 +2847,41 @@ rspde.mesh.project.inla.mesh.1d <- function(mesh, loc, field = NULL,
 #' @param sharp The sparsity graph should have the correct sparsity (costs
 #' more to perform a sparsity analysis) or an upper bound for the sparsity?
 #' @param type_rational_approx Which type of rational approximation
-#' should be used? The current types are "brasil", "chebfun" or "chebfunLB".
+#' should be used? The current types are "brasil", "chebfun", "chebfunLB" or
+#' "wl2".
+#' @param wl2_table A table of weighted-L2 coefficients, only used for
+#' `type_rational_approx = "wl2"`. If `NULL`, it is taken from the tables
+#' stored in the package where there is one for this configuration, and
+#' computed otherwise.
 #' @return The precision matrix
 #' @export
 
 rspde.matern.precision.opt <- function(
     kappa, nu, tau, rspde.order,
-    dim, fem_matrices, graph = NULL, sharp, type_rational_approx) {
+    dim, fem_matrices, graph = NULL, sharp, type_rational_approx,
+    wl2_table = NULL) {
   n_m <- rspde.order
-
-  mt <- get_rational_coefficients(n_m, type_rational_approx)
 
   beta <- nu / 2 + dim / 4
 
   m_alpha <- floor(2 * beta)
+
+  wl2 <- identical(type_rational_approx[[1]], "wl2")
+  p0 <- NULL
+  if (wl2) {
+    if (is.null(wl2_table)) {
+      wl2_table <- wl2_coefficient_table(
+        d = dim, m = n_m, m_alpha = m_alpha, type = "covariance"
+      )
+    }
+    coeff <- wl2_interp_coefficients(wl2_table, 2 * beta)
+    r <- coeff$r
+    p <- coeff$p
+    p0 <- coeff$p0
+    k <- NULL
+  } else {
+    mt <- get_rational_coefficients(n_m, type_rational_approx)
+  }
 
   # r <- sapply(1:(n_m), function(i) {
   #   approx(mt$alpha, mt[[paste0("r", i)]], cut_decimals(2 * beta))$y
@@ -2717,11 +2893,46 @@ rspde.matern.precision.opt <- function(
 
   # k <- approx(mt$alpha, mt$k, cut_decimals(2 * beta))$y
 
-  row_nu <- round(1000 * cut_decimals(2 * beta))
-  r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
-  p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
-  k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
+  if (!wl2) {
+    row_nu <- round(1000 * cut_decimals(2 * beta))
+    r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
+    p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
+    k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
+  }
 
+
+  if (wl2) {
+    ## The blocks are C (T - p_0)^q (T - p_i) / r_i with T = C^-1 L; see
+    ## wl2_block_builder(). There is no constant term, hence no k-block.
+    Gl <- function(l) {
+      if (l == 0L) {
+        fem_matrices[["C"]]
+      } else if (l == 1L) {
+        fem_matrices[["G"]]
+      } else {
+        fem_matrices[[paste0("G_", l)]]
+      }
+    }
+    block <- wl2_block_builder(
+      coeff$q, wl2_mass_powers(coeff$q, kappa, Gl), r, p, p0
+    )
+    Q <- block(1)
+    if (length(r) > 1) {
+      for (i in 2:length(r)) {
+        Q <- c(Q, block(i))
+      }
+    }
+    Q <- tau^2 * kappa^(4 * beta) * Q
+    if (!is.null(graph)) {
+      graph <- as(graph, "TsparseMatrix")
+      idx <- which(graph@i <= graph@j)
+      Q <- Matrix::sparseMatrix(
+        i = graph@i[idx], j = graph@j[idx], x = Q,
+        symmetric = TRUE, index1 = FALSE
+      )
+    }
+    return(Q)
+  }
 
   if (m_alpha == 0) {
     L <- (fem_matrices[["C"]] + fem_matrices[["G"]] / (kappa^2))
@@ -2758,11 +2969,15 @@ rspde.matern.precision.opt <- function(
       stop("Something is wrong with the value of nu!")
     }
 
-    Q <- 1 / r[1] * (Malpha + Malpha2 / kappa^2 - p[1] * Malpha)
+    block <- function(i) {
+      1 / r[i] * (Malpha + Malpha2 / kappa^2 - p[i] * Malpha)
+    }
+
+    Q <- block(1)
 
     if (length(r) > 1) {
       for (i in 2:length(r)) {
-        Q <- c(Q, 1 / r[i] * (Malpha + Malpha2 / kappa^2 - p[i] * Malpha))
+        Q <- c(Q, block(i))
       }
     }
   }
@@ -2859,7 +3074,11 @@ rspde.matern.precision.opt <- function(
 #' @param return_block_list Logical. For `type = "covariance"`, should the
 #' block parts of the precision matrix be returned separately as a list?
 #' @param type_rational_approx Which type of rational approximation should be
-#' used? The current types are "brasil", "chebfun" or "chebfunLB".
+#' used? The current types are "brasil", "chebfun", "chebfunLB" or "wl2".
+#' @param wl2_table A table of weighted-L2 coefficients, only used for
+#' `type_rational_approx = "wl2"`. If `NULL`, it is taken from the tables
+#' stored in the package where there is one for this configuration, and
+#' computed otherwise.
 #'
 #' @return The precision matrix
 #' @export
@@ -2901,7 +3120,7 @@ rspde.matern.precision <- function(
     kappa, nu, tau = NULL, sigma = NULL,
     rspde.order, dim, fem_mesh_matrices,
     only_fractional = FALSE, return_block_list = FALSE,
-    type_rational_approx = "brasil") {
+    type_rational_approx = "brasil", wl2_table = NULL) {
   if (is.null(tau) && is.null(sigma)) {
     stop("You should provide either tau or sigma!")
   }
@@ -2913,18 +3132,53 @@ rspde.matern.precision <- function(
 
   n_m <- rspde.order
 
-  mt <- get_rational_coefficients(n_m, type_rational_approx)
-
   beta <- nu / 2 + dim / 4
 
   m_alpha <- floor(2 * beta)
 
-  row_nu <- round(1000 * cut_decimals(2 * beta))
-  r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
-  p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
-  k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
+  wl2 <- identical(type_rational_approx[[1]], "wl2")
+  p0 <- NULL
+  if (wl2) {
+    if (is.null(wl2_table)) {
+      wl2_table <- wl2_coefficient_table(
+        d = dim, m = n_m, m_alpha = m_alpha, type = "covariance"
+      )
+    }
+    coeff <- wl2_interp_coefficients(wl2_table, 2 * beta)
+    r <- coeff$r
+    p <- coeff$p
+    p0 <- coeff$p0
+    k <- NULL
+  } else {
+    mt <- get_rational_coefficients(n_m, type_rational_approx)
+    row_nu <- round(1000 * cut_decimals(2 * beta))
+    r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
+    p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
+    k <- unlist(mt[row_nu, 2 + 2 * rspde.order])
+  }
 
   if (!only_fractional) {
+    if (wl2) {
+      ## The blocks are C (T - p_0)^q (T - p_i) / r_i with T = C^-1 L; see
+      ## wl2_block_builder(). There is no constant term, hence no k-block.
+      Gl <- function(l) {
+        if (l == 0L) {
+          fem_mesh_matrices[["c0"]]
+        } else {
+          fem_mesh_matrices[[paste0("g", l)]]
+        }
+      }
+      block <- wl2_block_builder(
+      coeff$q, wl2_mass_powers(coeff$q, kappa, Gl), r, p, p0
+    )
+      Q <- block(1)
+      if (length(r) > 1) {
+        for (i in 2:length(r)) {
+          Q <- bdiag(Q, block(i))
+        }
+      }
+      return(tau^2 * kappa^(4 * beta) * Q)
+    }
     if (m_alpha == 0) {
       L <- ((kappa^2) * fem_mesh_matrices[["c0"]] +
         fem_mesh_matrices[["g1"]]) / kappa^2
@@ -2964,14 +3218,20 @@ rspde.matern.precision <- function(
         stop("Something is wrong with the value of nu!")
       }
 
-      Q <- 1 / r[1] * (Malpha + Malpha2 / kappa^2 - p[1] * Malpha)
+      block <- function(i) {
+        ## (L C^-1 L - p_i L) / r_i.
+        1 / r[i] * (Malpha + Malpha2 / kappa^2 - p[i] * Malpha)
+      }
+
+      Q <- block(1)
 
       if (length(r) > 1) {
         for (i in 2:length(r)) {
-          Q <- bdiag(Q, 1 / r[i] * (Malpha + Malpha2 / kappa^2 - p[i] * Malpha))
+          Q <- bdiag(Q, block(i))
         }
       }
     }
+
 
 
     # add k_part into Q
@@ -3009,6 +3269,33 @@ rspde.matern.precision <- function(
   } else {
     L <- ((kappa^2) * fem_mesh_matrices[["c0"]] +
       fem_mesh_matrices[["g1"]]) / kappa^2
+
+    if (wl2) {
+      ## The blocks are (L - p_0 C) C^-1 ... (L - p_0 C) C^-1 (L - p_i C) / r_i
+      ## with the shifted factor repeated q times; see wl2_block_builder(). The
+      ## integer factor is therefore already included, and there is no k-block.
+      C0 <- fem_mesh_matrices[["c0"]]
+      qq <- coeff$q
+      Ci <- if (qq > 0) {
+        Matrix::Diagonal(dim(C0)[1], 1 / rowSums(C0))
+      } else {
+        NULL
+      }
+      block <- wl2_block_builder(
+        qq, wl2_operator_powers(qq, L, C0, Ci), r, p, p0
+      )
+      scaling <- kappa^(4 * beta) * tau^2
+      if (return_block_list) {
+        return(lapply(seq_len(n_m), function(i) scaling * block(i)))
+      }
+      Q <- block(1)
+      if (n_m > 1) {
+        for (i in 2:n_m) {
+          Q <- bdiag(Q, block(i))
+        }
+      }
+      return(scaling * Q)
+    }
 
     if (return_block_list) {
       Q <- list()

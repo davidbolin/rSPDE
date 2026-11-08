@@ -63,7 +63,10 @@
 #' }
 bru_get_mapper.inla_rspde <- function(model, ...) {
   stopifnot(requireNamespace("inlabru"))
-  n_rep <- model[["rspde.order"]] + 1
+  ## the weighted-L2 classes have no constant term, hence one block fewer
+  n_rep <- rspde_n_blocks(
+    model[["rspde.order"]], model[["type.rational.approx"]]
+  )
   if((model[["est_nu"]] == 0L) && (model[["integer.nu"]])){
     n_rep <- 1
   }
@@ -79,7 +82,8 @@ ibm_n.bru_mapper_inla_rspde <- function(mapper, ...) {
   if (integer_nu) {
     factor_rspde <- 1
   } else {
-    factor_rspde <- rspde_order + 1
+    ## the weighted-L2 classes have no constant term, hence one block fewer
+    factor_rspde <- rspde_n_blocks(rspde_order, model$type.rational.approx)
   }
   factor_rspde * model$n.spde
 }
@@ -105,7 +109,8 @@ ibm_jacobian.bru_mapper_inla_rspde <- function(mapper, input, ...) {
   rSPDE::rspde.make.A(
     mesh = model$mesh, loc = input,
     rspde.order = rspde_order,
-    nu = nu
+    nu = nu,
+    type.rational.approx = model$type.rational.approx
   )
 }
 
@@ -250,7 +255,10 @@ get_post_var <- function(density_df) {
 #' @name cross_validation
 #' @title Perform cross-validation on a list of fitted models.
 #' @description Obtain several scores for a list of fitted models according
-#' to a folding scheme.
+#' to a folding scheme. Scores are averaged equally across folds; for
+#' multiple likelihoods, each fold's total score weights likelihoods by
+#' its number of held-out responses. Repeated leave-percentage-out folds
+#' retain every held-out scoring event.
 #' @param models A fitted model obtained from calling the `bru()` function or a list of fitted models. 
 #'        All models in the list must have the same number of likelihoods and must be fitted to 
 #'        identical datasets. 
@@ -277,11 +285,15 @@ get_post_var <- function(density_df) {
 #' @param return_true_test_values If `TRUE` the true test values will be included in the returned list.
 #' @param parallelize_RP Logical. Should the computation of CRPS and SCRPS (and for some cases, DSS) be parallelized?
 #' @param n_cores_RP Number of cores to be used if `parallelize_rp` is `TRUE`.
-#' @param true_CV Should a `TRUE` cross-validation be performed? If `TRUE` the models will be fitted on the training dataset. If `FALSE`, the parameters will be kept fixed at the ones obtained in the result object.
+#' @param true_CV If `TRUE`, re-estimate hyperparameters on each training fold. If `FALSE`, update the latent posterior using the training fold while keeping the original hyperparameters fixed.
 #' @param save_settings Logical. If `TRUE`, the settings used in the cross-validation will also be returned.
 #' @param model_options_bru A list of options to be passed to inlabru.
 #' @param print Should partial results be printed throughout the computation?
 #' @param fit_verbose Should INLA's run during cross-validation be verbose?
+#' @details Fits containing an exact MetricGraph SPDE component are delegated
+#'   to [MetricGraph::cross_validation()] when MetricGraph is installed and
+#'   every likelihood uses a family supported there. Mixed exact/rSPDE model
+#'   lists follow the same route. Other fits retain rSPDE's implementation.
 #' @return A data.frame with the fitted models and the corresponding scores.
 #' @export
 cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse", "crps", "scrps", "dss"),
@@ -300,6 +312,27 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
                              model_options_bru = list(),
                              print = TRUE,
                              fit_verbose = FALSE) {
+  fits <- if (inherits(models, "bru")) list(models) else models
+  if (is.list(fits) && length(fits) &&
+      all(vapply(fits, inherits, logical(1), "bru"))) {
+    component_models <- unlist(lapply(fits, function(fit) {
+      effects <- fit$bru_info$model$effects
+      if (!is.list(effects)) return(list())
+      lapply(effects, function(effect) effect$main$model)
+    }), recursive = FALSE)
+    classes <- unlist(lapply(component_models, class), use.names = FALSE)
+    families <- unlist(lapply(fits, function(fit) fit$.args$family),
+                       use.names = FALSE)
+    graph_supported <- !length(families) ||
+      all(families %in% c("gaussian", "gamma", "poisson", "binomial", "t"))
+    if (any(classes %in% c("inla_metric_graph_spde",
+                           "inla_metric_graph_lgcp_spde")) &&
+        graph_supported && requireNamespace("MetricGraph", quietly = TRUE)) {
+      call <- match.call()
+      call[[1L]] <- quote(MetricGraph::cross_validation)
+      return(eval(call, envir = parent.frame()))
+    }
+  }
   orientation_results <- orientation_results[[1]]
   if (!(orientation_results %in% c("positive", "negative"))) {
     stop("orientation_results must be either 'positive' or 'negative'!")
@@ -360,8 +393,16 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
   n_likelihoods <- length(lhoods)
 
   for (model_number in seq_along(models)) {
-      if (length(inlabru::as_bru_obs_list(models[[model_number]])) != n_likelihoods) {
+      model_lhoods <- inlabru::as_bru_obs_list(models[[model_number]])
+      if (length(model_lhoods) != n_likelihoods) {
           stop(paste("Model", model_number, "does not have the same number of likelihoods as the first model."))
+      }
+      for (i in seq_len(n_likelihoods)) {
+          y0 <- lhoods[[i]]$response_data$BRU_response
+          y1 <- model_lhoods[[i]]$response_data$BRU_response
+          if (!isTRUE(all.equal(y0, y1, check.attributes = FALSE))) {
+              stop("All models must use the same responses in the same order.")
+          }
       }
   }
 
@@ -399,6 +440,7 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
   if (parallelize_RP) {
     cluster_tmp <- parallel::makeCluster(n_cores_RP)
     doParallel::registerDoParallel(cluster_tmp)
+    on.exit(parallel::stopCluster(cluster_tmp), add = TRUE)
   }
 
   # Creating lists of train and test datasets
@@ -517,7 +559,8 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
                       post_linear_predictors = post_linear_predictors, new_model = new_model,
                       i_lik = i_lik, new_n_samples = new_n_samples,
                       full_model = models[[model_number]],
-                      true_CV = true_CV, print = print)
+                      true_CV = true_CV, print = print,
+                      test_indices = test_list[[i_lik]])
 
           post_samples[[model_names[[model_number]]]][[fold]][[i_lik]] <-  do.call(rbind, post_samples[[model_names[[model_number]]]][[fold]][[i_lik]])
 
@@ -555,6 +598,9 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
             post_var <- rowMeans(post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, 1:n_samples, drop=FALSE]^2) - (rowMeans(post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, 1:n_samples, drop=FALSE]))^2
 
             dss[[i_lik]][fold, model_number] <- mean((test_data - rowMeans(post_samples[[model_names[[model_number]]]][[fold]][[i_lik]][, (n_samples + 1):(2 * n_samples), drop=FALSE]))^2 / post_var + log(post_var))
+            if (orientation_results == "positive") {
+              dss[[i_lik]][fold, model_number] <- -dss[[i_lik]][fold, model_number]
+            }
             if (print) {
               cat(paste("DSS - Likelihood ",i_lik,": ", dss[[i_lik]][fold, model_number], "\n"))
             }            
@@ -879,9 +925,6 @@ cross_validation <- function(models, model_names = NULL, scores = c("mae", "mse"
   }
 
   # Cluster cleanup
-  if (parallelize_RP) {
-   parallel::stopCluster(cluster_tmp)
-  }
 
   # Set return flag
   if (return_post_samples) {
@@ -1000,7 +1043,7 @@ sample_posterior_linear_predictor <- function(model, i_lik, test_list, n_samples
 
 #' @noRd
 
-get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_n_samples, full_model, true_CV, print){
+get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_n_samples, full_model, true_CV, print, test_indices = NULL){
     model_family <- new_model$.args$family[[i_lik]]
     
     if(true_CV){
@@ -1011,8 +1054,8 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
 
     family_mappings <- map_models_to_strings(full_model)
     if(family_mappings[[i_lik]][[1]] != ".none"){
+      hyper_sample <- INLA::inla.hyperpar.sample(new_n_samples, model_sample, improve.marginals = TRUE)
       meas_err_par <- lapply(family_mappings[[i_lik]], function(param) {
-                hyper_sample <- INLA::inla.hyperpar.sample(new_n_samples, model_sample, improve.marginals = TRUE)
                 return(hyper_sample[,param])
             })
     }
@@ -1032,16 +1075,36 @@ get_posterior_samples <- function(post_linear_predictors, new_model, i_lik, new_
       sd_sample <- 1 / sqrt(as.vector(meas_err_par[[1]]))
       deg_sample <- as.vector(meas_err_par[[2]])
       Y_sample <-  lapply(1:nrow(post_linear_predictors), function(i) {
-        scale_temp <- post_linear_predictors[i,] + 
-        sd_sample + rt(new_n_samples, df = deg_sample)
+        post_linear_predictors[i,] +
+          sd_sample * rt(new_n_samples, df = deg_sample)
       })
     } else if(model_family == "poisson"){
       Y_sample <- lapply(1:nrow(post_linear_predictors), function(i) {
               stats::rpois(new_n_samples, post_linear_predictors[i,])
             })
     } else if(model_family == "binomial"){
+      obs <- inlabru::as_bru_obs_list(full_model)[[i_lik]]
+      trials_all <- obs$response_data$BRU_Ntrials
+      if (is.null(trials_all)) trials_all <- obs$data$Ntrials
+      if (is.null(trials_all)) trials_all <- obs$response_data$Ntrials
+      if (is.null(trials_all)) {
+        responses <- obs$response_data$BRU_response
+        if (any(responses[test_indices] > 1, na.rm = TRUE)) {
+          stop("Binomial counts require observation-specific Ntrials in the likelihood data.")
+        }
+        trials_all <- rep(1L, nrow(obs$data))
+      }
+      if (length(trials_all) == 1L) {
+        trials_all <- rep(trials_all, nrow(obs$data))
+      }
+      trials <- trials_all[test_indices]
+      if (length(trials) != nrow(post_linear_predictors) ||
+          anyNA(trials) || any(trials < 1) ||
+          any(trials != as.integer(trials))) {
+        stop("Binomial trial counts must be positive integers for each held-out response.")
+      }
       Y_sample <- lapply(1:nrow(post_linear_predictors), function(i) {
-              stats::rbinom(n = new_n_samples, size = 1, prob = post_linear_predictors[i, ])
+              stats::rbinom(n = new_n_samples, size = trials[i], prob = post_linear_predictors[i, ])
             })
     } else if(model_family == "stochvol"){
         phi_sample <- as.vector(meas_err_par[[1]])

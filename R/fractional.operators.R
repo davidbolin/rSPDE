@@ -36,6 +36,27 @@
 #' of m that is implemented is 4.
 #' @param tau The constant or vector that scales the variance of the solution.
 #' The default value is 1.
+#' @param type_rational_approximation Which type of rational approximation
+#' should be used? Two are available for the operator-based construction:
+#' `"chebfunLB"`, the tabulated roots of `get.roots()`, and `"wl2"`, which
+#' minimises the weighted \eqn{L_2} error over the spectral interval, see
+#' [rational.coefficients.wl2()]. The factorisation into \eqn{P_l} and
+#' \eqn{P_r} has a single table of roots and that table was produced by the
+#' chebfun lower-bound method, so `"brasil"` and `"chebfun"` are refused here
+#' rather than quietly given roots they did not produce; they are available
+#' for `type = "covariance"`. The tabulated roots are stored for `m` at most
+#' 4; `"wl2"` fits them and has no such limit, and requires \eqn{\beta < 1}.
+#' Its mesh-free coefficients are stored in the package and cost nothing to
+#' obtain; a fit for a particular spectral interval is computed when the model
+#' is created. Supplying a `wl2_table` built by [rspde.wl2.table()] can be used
+#' to work with other weights. 
+#' @param d The dimension of the domain. Only used for
+#' `type_rational_approximation = "wl2"`.
+#' @param x_min Lower end of the spectral interval used by
+#' `type_rational_approximation = "wl2"`, see [rspde.xmin()]. `NULL` gives the
+#' mesh-free fit, which is not recommended for the operator-based models.
+#' @param wl2_table An optional table of weighted-L2 coefficients, supplied by
+#' [matern.operators()].
 #'
 #' @return `fractional.operators` returns an object of class "rSPDEobj".
 #' This object contains the following quantities:
@@ -103,7 +124,12 @@ fractional.operators <- function(L,
                                  C,
                                  scale.factor,
                                  m = 1,
-                                 tau = 1) {
+                                 tau = 1,
+                                 type_rational_approximation = "chebfunLB",
+                                 d = NULL,
+                                 x_min = NULL,
+                                 wl2_table = NULL) {
+  type_rational_approximation <- type_rational_approximation[[1]]
   if (min(tau) < 0) {
     stop("tau should be positive")
   }
@@ -132,7 +158,42 @@ fractional.operators <- function(L,
     Pl.scaling <- scale.factor^beta
     Pr.roots <- Pr.factors <- NULL
   } else {
-    roots <- get.roots(m, beta)
+    if (identical(type_rational_approximation, "wl2")) {
+      if (beta >= 1) {
+        stop(paste0(
+          "type_rational_approximation = 'wl2' with type = 'operator' ",
+          "requires beta < 1, i.e. alpha = nu + d/2 < 2."
+        ))
+      }
+      if (is.null(wl2_table)) {
+        if (is.null(d)) {
+          stop("d must be provided for type_rational_approximation = 'wl2'.")
+        }
+        cf <- rational.coefficients.wl2(
+          alpha = 2 * beta, d = d, m = m, x_min = x_min, type = "operator"
+        )
+      } else {
+        cf <- wl2_interp_coefficients(wl2_table, 2 * beta)
+        cf$x_min <- attr(wl2_table, "x_min")
+      }
+      roots <- wl2_roots(cf)
+    } else {
+      ## The tabulated roots of the operator-based factorisation come from one
+      ## table, which was produced by the chebfun lower-bound method. Reverting
+      ## to it for "brasil" or "chebfun" would silently give coefficients that
+      ## are not the ones asked for, so those are refused here; they are
+      ## available for type = "covariance".
+      if (!identical(type_rational_approximation, "chebfunLB")) {
+        stop(paste0(
+          "type_rational_approximation = '", type_rational_approximation,
+          "' is not available for the operator-based construction. Its ",
+          "tabulated roots come from a single table, produced by 'chebfunLB'; ",
+          "use that, or 'wl2'. The other types are available for ",
+          "type = 'covariance'."
+        ))
+      }
+      roots <- get.roots(m, beta)
+    }
     Pl.roots <- roots$rb
     Pr.roots <- roots$rc
     m_beta <- max(1, floor(beta))
@@ -189,7 +250,8 @@ fractional.operators <- function(L,
     ),
     m = m,
     beta = beta,
-    type = "fractional approximation"
+    type = "fractional approximation",
+    type_rational_approximation = type_rational_approximation
   )
   class(output) <- "rSPDEobj"
   return(output)
@@ -204,36 +266,109 @@ fractional.operators <- function(L,
 #' (\kappa h)^\nu K_\nu(\kappa h)}{C(h) = (\sigma^2/(2^{\nu-1}\Gamma(\nu))
 #' (\kappa h)^\nu K_\nu(\kappa h).}
 #'
-#' @param kappa Parameter kappa of the SPDE representation. If `NULL`, the range parameter will be used. If the range is also `NULL`, a starting value based on the mesh will be supplied.
-#' @param tau Parameter tau of the SPDE representation. If both sigma and tau are `NULL`, a starting value based on the mesh will be supplied.
-#' @param alpha Parameter alpha of the SPDE representation. If `alpha` is `NULL`, a starting value will be supplied.
-#' @param range Range parameter of the covariance function. Used if `parameterization` is `matern`. If range is `NULL`, a starting value based on the mesh will be supplied.
-#' @param sigma Standard deviation of the covariance function. Used if `parameterization` is `matern`. If `NULL`, tau will be used. If tau is also `NULL`, a starting value based on the mesh will be supplied.
-#' @param nu Shape parameter of the covariance function. Used if `parameterization` is `matern`. If `NULL`, a starting value will be supplied.
+#' @param kappa Parameter kappa of the SPDE representation. If `NULL`, the range 
+#' parameter will be used. If the range is also `NULL`, a starting value based on 
+#' the mesh will be supplied.
+#' @param tau Parameter tau of the SPDE representation. If both sigma and tau are 
+#' `NULL`, a starting value based on the mesh will be supplied.
+#' @param alpha Parameter alpha of the SPDE representation. If `alpha` is `NULL`, 
+#' a starting value will be supplied.
+#' @param range Range parameter of the covariance function. Used if `parameterization` 
+#' is `matern`. If range is `NULL`, a starting value based on the mesh will be supplied.
+#' @param sigma Standard deviation of the covariance function. Used if `parameterization` 
+#' is `matern`. If `NULL`, tau will be used. If tau is also `NULL`, a starting 
+#' value based on the mesh will be supplied.
+#' @param nu Shape parameter of the covariance function. Used if `parameterization` 
+#' is `matern`. If `NULL`, a starting value will be supplied.
 #' @param G The stiffness matrix of a finite element discretization of the
 #' domain of interest. Does not need to be given if either `mesh` or `graph` is supplied.
 #' @param C The mass matrix of a finite element discretization of the domain
 #' of interest. Does not need to be given if either `mesh` or `graph` is supplied.
 #' @param mesh An optional fmesher mesh. Replaces `d`, `C` and `G`.
 #' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`.
-#' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
-#' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument.
+#' @param range_mesh The range of the mesh. Will be used to provide starting values 
+#' for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one 
+#' of the parameters (kappa or tau for spde parameterization, or sigma or range 
+#' for matern parameterization) are not provided.
+#' @param loc_mesh The mesh locations used to construct the matrices C and G. 
+#' This option should be provided if one wants to use the `rspde_lme()` function 
+#' and will not provide neither graph nor mesh. Only works for 1d data. Does not 
+#' work for metric graphs. For metric graphs you should supply the graph using 
+#' the `graph` argument.
 #' @param d The dimension of the domain. Does not need to be given if either
 #' `mesh` or `graph` is provided.
 #' @param m The order of the rational approximation, which needs to be a
 #' positive integer. The default value is 1.
 #' @param type The type of the rational approximation. The options are
 #' "covariance" and "operator". The default is "covariance".
-#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and alpha. The default is `spde`.
+#' @param parameterization Which parameterization to use? `matern` uses range, 
+#' std. deviation and nu (smoothness). `spde` uses kappa, tau and alpha. The 
+#' default is `spde`.
 #' @param compute_higher_order Logical. Should the higher order finite
 #' element matrices be computed?
 #' @param return_block_list Logical. For `type = "covariance"`,
 #' should the block parts of the precision matrix be returned
 #' separately as a list?
-#' @param type_rational_approximation Which type of rational
-#' approximation should be used? The current types are
-#' "brasil", "chebfun" or "chebfunLB".
-#' @param compute_logdet Should log determinants be computed while building the model? (For covariance-based models)
+#' @param type_rational_approximation Which type of rational approximation 
+#' should be used? The tabulated types are "brasil", "chebfun" and "chebfunLB"; 
+#' "wl2" minimises the weighted \eqn{L_2} error over the spectral interval, see
+#' [rational.coefficients.wl2()]. Its mesh-free coefficients are stored in the
+#' package and cost nothing to obtain, which is the default for
+#' `type = "covariance"`; a fit for a particular spectral interval, that is
+#' with `x_min` or `kappa_ref`, is computed when the model is created and can
+#' be kept between sessions with [rspde.cache()]. The "wl2" type requires
+#' \eqn{\nu < 3 - d/2} for `type = "covariance"` and \eqn{\nu + d/2 < 2} for
+#' `type = "operator"`.
+#'
+#' For `type = "operator"` only two of the four are available. The
+#' operator-based construction factorises the rational function into
+#' \eqn{P_l} and \eqn{P_r}, and its tabulated roots come from a single table
+#' (`get.roots()`) produced by the chebfun lower-bound method, so
+#' `"chebfunLB"` selects that table and `"brasil"` and `"chebfun"` are refused
+#' rather than quietly given roots they did not produce. Leaving the argument
+#' at its default is not refused: the default `"brasil"` is the right one for
+#' `type = "covariance"`, and the operator-based construction falls back to
+#' the table it has. The tabulated roots are stored for `m` at most 4, while
+#' `"wl2"` fits the roots and has no such limit. A weighted-\eqn{L_2} fit for
+#' other weights can be obtained by providing the output of [rspde.wl2.table()] 
+#' as `wl2_table`.
+#' @param x_min Lower end of the spectral interval used by
+#' `type_rational_approximation = "wl2"`, see [rspde.xmin()]. The default
+#' `NULL` gives the mesh-free fit for `type = "covariance"`, and a value
+#' derived from the mesh and `kappa_ref` for `type = "operator"`.
+#' @param wl2_table A table of weighted-L2 coefficients from
+#' [rspde.wl2.table()], for `type_rational_approximation = "wl2"`. Supplying
+#' one overrides `x_min` and `kappa_ref` and skips the fits, which is how a
+#' mesh-specific table is reused across models. `NULL` uses the table shipped
+#' with the package, or computes one if `x_min` or `kappa_ref` is given.
+#' @param kappa_ref A lower bound for `kappa`, used to determine `x_min` when
+#' `x_min` is not given. Must be a lower bound: a reference above the true
+#' `kappa` leaves part of the spectrum outside the fitted interval. The default
+#' corresponds to a range equal to the diameter of the domain.
+#' @param variance_correction Only available for `type = "covariance"` with
+#' `type_rational_approximation = "wl2"`; with any other combination it is
+#' ignored, with a warning. With `"nodal"`, the diagonal
+#' \eqn{D = \max(\sigma^2 - \mathrm{diag}(\Sigma_{\mathrm{approx}}), 0)} is
+#' computed on the mesh and stored in the object, and is added to the
+#' covariance by [covariance_mesh()], [cov_function_mesh()] and [simulate()].
+#' In observation models this is equivalent to adding `A D t(A)` to the
+#' covariance of the measurement noise; note that the likelihood and prediction
+#' methods do not include it. The default is `"none"`.
+#'
+#' What it corrects is mostly the finite element discretisation, not the
+#' rational approximation. A mesh cannot represent the high frequency content
+#' of a rough field, so the nodal variance of the *exact* discretised model is
+#' already below \eqn{\sigma^2}. The correction therefore moves the model towards 
+#' the continuum Matern.
+#'
+#' Unlike the rational coefficients, this depends on `kappa`, `tau` and the
+#' mesh, so it cannot be tabulated and is recomputed whenever the parameters
+#' change, including at every [update()] of a model being fitted. It costs the
+#' diagonal of the inverse of each block, so it is meant for a model whose
+#' parameters are known or already estimated, not for use inside a likelihood
+#' optimisation.
+#' @param compute_logdet Should log determinants be computed while building the 
+#' model? (For covariance-based models)
 #' @return If `type` is "covariance", then `matern.operators`
 #' returns an object of class "CBrSPDEobj".
 #' This object is a list containing the
@@ -397,10 +532,20 @@ matern.operators <- function(kappa = NULL,
                              type_rational_approximation = c(
                                "brasil",
                                "chebfun",
-                               "chebfunLB"
+                               "chebfunLB",
+                               "wl2"
                              ),
+                             x_min = NULL,
+                             kappa_ref = NULL,
+                             wl2_table = NULL,
+                             variance_correction = c("none", "nodal"),
                              compute_logdet = FALSE) {
   type <- type[[1]]
+  ## An untouched default is still the full vector of choices; a caller who
+  ## named a type gives a single string. The operator-based construction
+  ## refuses two of the tabulated names, so it has to know which it is.
+  user_set_rational <- length(type_rational_approximation) == 1L
+  type_rational_approximation <- type_rational_approximation[[1]]
 
   if (!type %in% c("covariance", "operator")) {
     stop("The type should be 'covariance' or 'operator'!")
@@ -592,14 +737,55 @@ matern.operators <- function(kappa = NULL,
   # }
 
   if (type == "operator") {
+    ## The correction exists because the covariance-based weighted-L2 classes
+    ## have no constant term, so their nodal variance falls short of sigma^2.
+    ## The operator-based construction builds the covariance as r(x)^2 from
+    ## factors P_l, P_r, which a diagonal addition does not fit, so the option
+    ## has no meaning here and is refused rather than quietly dropped.
+    if (identical(variance_correction[[1]], "nodal")) {
+      warning(paste0(
+        "variance_correction = 'nodal' is only used with type = 'covariance'; ",
+        "it is ignored here."
+      ))
+    }
     beta <- (nu + d / 2) / 2
+    if (!identical(type_rational_approximation, "wl2")) {
+      wl2_table <- NULL
+    }
+    if (identical(type_rational_approximation, "wl2") && beta %% 1 != 0 &&
+      is.null(wl2_table)) {
+      ## For the operator-based models the spectral interval matters a great
+      ## deal, so x_min is taken from the mesh and a conservative reference
+      ## kappa rather than from the mesh-free fit.
+      if (is.null(x_min)) {
+        x_min <- rspde.xmin(
+          C = C, G = G, mesh = if (!is.null(mesh)) mesh else mesh_1d,
+          kappa_ref = kappa_ref, nu = nu, diameter = range_mesh,
+          loc_mesh = loc_mesh
+        )
+      }
+      wl2_table <- wl2_coefficient_table(
+        d = d, m = m, m_alpha = floor(2 * beta), x_min = x_min,
+        type = "operator"
+      )
+    }
+    if (!is.null(wl2_table)) {
+      wl2_check_table(wl2_table, "operator", d, m, 2 * beta)
+      x_min <- attr(wl2_table, "x_min")
+    }
     operators <- fractional.operators(
       L = G + C * kappa^2,
       beta = beta,
       C = C,
       scale.factor = kappa^2,
       m = m,
-      tau = tau
+      tau = tau,
+      type_rational_approximation = wl2_operator_type(
+        type_rational_approximation, user_set_rational
+      ),
+      d = d,
+      x_min = x_min,
+      wl2_table = wl2_table
     )
     output <- operators
     output$kappa <- kappa
@@ -621,16 +807,27 @@ matern.operators <- function(kappa = NULL,
     output$graph <- graph
     output$loc_mesh <- loc_mesh
     output$mesh_1d <- mesh_1d
+    ## store the type that was actually used, so that update() round-trips:
+    ## the operator-based construction resolves an untouched default to
+    ## "chebfunLB", and storing "brasil" would refuse the rebuild
+    output$type_rational_approximation <- wl2_operator_type(
+      type_rational_approximation, user_set_rational
+    )
+    output$x_min <- x_min
+    output$kappa_ref <- kappa_ref
+    output$wl2_table <- wl2_table
     class(output) <- c("matern_operator", class(output))
     return(output)
   } else {
     C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
-    type_rational_approximation <- type_rational_approximation[[1]]
     out <- CBrSPDE.matern.operators(
       C = C, G = G, mesh = mesh, nu = nu, kappa = kappa, tau = tau,
       m = m, d = d, compute_higher_order = compute_higher_order,
       return_block_list = return_block_list,
       type_rational_approximation = type_rational_approximation,
+      x_min = x_min, kappa_ref = kappa_ref, wl2_table = wl2_table,
+      variance_correction = variance_correction,
+      loc_mesh = loc_mesh, range_mesh = range_mesh, mesh_1d = mesh_1d,
       compute_logdet = compute_logdet
     )
     out$range <- range
@@ -765,11 +962,19 @@ CBrSPDE.matern.operators <- function(C,
                                      return_block_list = FALSE,
                                      type_rational_approximation = c(
                                        "chebfun",
-                                       "brasil", "chebfunLB"
+                                       "brasil", "chebfunLB", "wl2"
                                      ),
+                                     x_min = NULL,
+                                     kappa_ref = NULL,
+                                     wl2_table = NULL,
+                                     variance_correction = c("none", "nodal"),
+                                     loc_mesh = NULL,
+                                     range_mesh = NULL,
+                                     mesh_1d = NULL,
                                      fem_mesh_matrices = NULL,
                                      compute_logdet = FALSE) {
   type_rational_approximation <- type_rational_approximation[[1]]
+  variance_correction <- match.arg(variance_correction)
 
   if (is.null(fem_mesh_matrices)) {
     if (!is.null(mesh)) {
@@ -883,6 +1088,45 @@ CBrSPDE.matern.operators <- function(C,
   }
 
 
+  ## Weighted-L2 coefficients are computed here, at set-up, rather than read
+  ## off a stored table. For the covariance-based models the kappa-independent
+  ## default is the mesh-free fit, which needs nothing from the mesh; x_ref is
+  ## only used if the user asks for it through x_min or kappa_ref.
+  wl2 <- identical(type_rational_approximation, "wl2")
+  if (!wl2) {
+    wl2_table <- NULL
+  }
+  if (wl2) {
+    if (m < 1) {
+      stop("type_rational_approximation = 'wl2' requires m >= 1.")
+    }
+    if (!(m_alpha %in% c(0, 1, 2))) {
+      stop(paste0(
+        "type_rational_approximation = 'wl2' is only implemented for ",
+        "floor(alpha) equal to 0, 1 or 2, but floor(nu + d/2) = ", m_alpha, "."
+      ))
+    }
+    if (!is.null(wl2_table)) {
+      ## A table supplied by the user fixes the interval it was fitted on;
+      ## recomputing x_min from kappa_ref would say nothing about it.
+      wl2_check_table(wl2_table, "covariance", d, m, alpha)
+      x_min <- attr(wl2_table, "x_min")
+    } else {
+      if (is.null(x_min) && !is.null(kappa_ref)) {
+        x_min <- rspde.xmin(
+          C = C, G = G, mesh = if (!is.null(mesh)) mesh else mesh_1d,
+          kappa_ref = kappa_ref, nu = nu, diameter = range_mesh,
+          loc_mesh = loc_mesh
+        )
+      }
+      if (alpha %% 1 != 0) {
+        wl2_table <- wl2_coefficient_table(
+          d = d, m = m, m_alpha = m_alpha, x_min = x_min, type = "covariance"
+        )
+      }
+    }
+  }
+
   L <- (G + kappa^2 * C) / kappa^2
 
   if (compute_logdet) {
@@ -897,7 +1141,11 @@ CBrSPDE.matern.operators <- function(C,
 
   CiL <- GCi / kappa^2 + Diagonal(dim(GCi)[1])
 
-  if (m_alpha == 0) {
+  ## For the weighted-L2 coefficients the integer factor is part of the blocks
+  ## themselves, so there is no separate integer operator.
+  m_int <- if (wl2) 0 else m_alpha
+
+  if (m_int == 0) {
     aux_mat <- Diagonal(dim(L)[1])
   } else {
     aux_mat <- CiL
@@ -930,22 +1178,27 @@ CBrSPDE.matern.operators <- function(C,
         rspde.order = m, dim = d,
         fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
         return_block_list = TRUE,
-        type_rational_approx = type_rational_approximation
+        type_rational_approx = type_rational_approximation,
+        wl2_table = wl2_table
       )
 
       Q <- Q.frac
 
-      if (m_alpha > 0) {
+      ## The integer factor is already part of the weighted-L2 blocks.
+      if (m_int > 0) {
         for (j in seq_len(length(Q))) {
-          for (i in 1:m_alpha) {
+          for (i in 1:m_int) {
             Q[[j]] <- Q.int %*% Q[[j]]
           }
         }
       }
-      Q.int <- list(Q.int = Q.int, order = m_alpha)
+      Q.int <- list(Q.int = Q.int, order = m_int)
     }
   } else {
-    Q.int <- list(Q.int = kronecker(Diagonal(m + 1), aux_mat), order = m_alpha)
+    n_blocks <- rspde_n_blocks(m, type_rational_approximation)
+    Q.int <- list(
+      Q.int = kronecker(Diagonal(n_blocks), aux_mat), order = m_int
+    )
 
     if (alpha %% 1 == 0) {
       Q.frac <- Matrix::Diagonal(dim(L)[1])
@@ -966,19 +1219,54 @@ CBrSPDE.matern.operators <- function(C,
         kappa = kappa, nu = nu, tau = tau,
         rspde.order = m, dim = d,
         fem_mesh_matrices = fem_mesh_matrices, only_fractional = TRUE,
-        type_rational_approx = type_rational_approximation
+        type_rational_approx = type_rational_approximation,
+        wl2_table = wl2_table
       )
 
       Q <- Q.frac
 
-      if (m_alpha > 0) {
-        for (i in 1:m_alpha) {
+      ## The integer factor is already part of the weighted-L2 blocks.
+      if (m_int > 0) {
+        for (i in 1:m_int) {
           Q <- Q.int$Q.int %*% Q
         }
       }
     } else {
       Q <- markov.Q(alpha / 2, kappa, d, list(C = C, G = G))
       Q.frac <- Matrix::Diagonal(dim(L)[1])
+    }
+  }
+
+  ## Without a constant term the nodal variance of the approximation is not
+  ## exactly sigma^2; the nodal correction restores it.
+  nodal_correction <- NULL
+  if (variance_correction == "nodal") {
+    if (!wl2) {
+      warning(paste0(
+        "variance_correction = 'nodal' is only used with ",
+        "type_rational_approximation = 'wl2'; it is ignored here."
+      ))
+      variance_correction <- "none"
+    } else if (alpha %% 1 == 0) {
+      variance_correction <- "none"
+    } else {
+      sigma_target <- sqrt(gamma(nu) / (tau^2 * kappa^(2 * nu) *
+        (4 * pi)^(d / 2) * gamma(nu + d / 2)))
+      nodal_correction <- wl2_nodal_correction(
+        Q, rspde_n_blocks(m, type_rational_approximation), sigma_target
+      )
+      ## Only a deficit is corrected. Where the discretised model already has
+      ## more nodal variance than sigma^2 the correction would be negative,
+      ## and subtracting it does not leave a covariance: that happens over a
+      ## boundary layer about one range wide, where the variance of the Neumann
+      ## problem really is larger than sigma^2 (the exact covariance there is
+      ## the folded Matern, whose variance doubles at the boundary), so sigma^2
+      ## is not the right target to begin with. Unclamped, the smallest
+      ## eigenvalue of the covariance went from about +0.05 to about -0.9 in
+      ## every configuration tried. Clamping keeps the whole of the gain
+      ## wherever the correction is positive, which is where the missing
+      ## constant term actually costs something.
+      nodal_correction <- pmax(nodal_correction, 0)
     }
   }
 
@@ -994,6 +1282,10 @@ CBrSPDE.matern.operators <- function(C,
     Q = Q, sizeC = dim(C)[1],
     higher_order = compute_higher_order,
     type_rational_approximation = type_rational_approximation,
+    x_min = x_min, kappa_ref = kappa_ref, wl2_table = wl2_table,
+    variance_correction = variance_correction,
+    nodal_correction = nodal_correction,
+    n_blocks = rspde_n_blocks(m, type_rational_approximation),
     return_block_list = return_block_list,
     stationary = TRUE
   )
@@ -1017,15 +1309,25 @@ CBrSPDE.matern.operators <- function(C,
 #' @param tau Vector with the, possibly spatially varying, precision
 #' parameter evaluated at the locations
 #' of the mesh used for the finite element discretization of the SPDE.
-#' @param theta Theta parameter that connects B.tau and B.kappa to tau and kappa through a log-linear regression, in case the parameterization is `spde`,
-#' and that connects B.sigma and B.range to tau and kappa in case the parameterization is `matern`. When both tau and kappa are constant after this
+#' @param theta Theta parameter that connects B.tau and B.kappa to tau and kappa 
+#' through a log-linear regression, in case the parameterization is `spde`,
+#' and that connects B.sigma and B.range to tau and kappa in case the 
+#' parameterization is `matern`. When both tau and kappa are constant after this
 #' transformation, `spde.matern.operators()` delegates to `matern.operators()`.
-#' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. Will be used if `parameterization = 'matern'`.
-#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, which is a range-like parameter (it is exactly the range parameter in the stationary case). Will be used if `parameterization = 'matern'`.
-#' @param parameterization Which parameterization to use? `matern` uses range, std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). The default is `matern`.
-#' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. Will be used if `parameterization = 'spde'`.
-#' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. Will be used if `parameterization = 'spde'`.
-#' @param nu Shape parameter of the covariance function. Will be used if the parameterization is 'matern'.
+#' @param B.sigma Matrix with specification of log-linear model for \eqn{\sigma}. 
+#' Will be used if `parameterization = 'matern'`.
+#' @param B.range Matrix with specification of log-linear model for \eqn{\rho}, 
+#' which is a range-like parameter (it is exactly the range parameter in the 
+#' stationary case). Will be used if `parameterization = 'matern'`.
+#' @param parameterization Which parameterization to use? `matern` uses range, 
+#' std. deviation and nu (smoothness). `spde` uses kappa, tau and nu (smoothness). 
+#' The default is `matern`.
+#' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}. 
+#' Will be used if `parameterization = 'spde'`.
+#' @param B.kappa Matrix with specification of log-linear model for \eqn{\kappa}. 
+#' Will be used if `parameterization = 'spde'`.
+#' @param nu Shape parameter of the covariance function. Will be used if the 
+#' parameterization is 'matern'.
 #' @param alpha smoothness parameter. Will be used if the parameterization is 'spde'.
 #' @param G The stiffness matrix of a finite element discretization of
 #' the domain of interest.
@@ -1034,17 +1336,33 @@ CBrSPDE.matern.operators <- function(C,
 #' @param mesh An optional inla mesh. `d`, `C` and `G`
 #' must be given if `mesh` is not given.
 #' @param graph An optional `metric_graph` object. Replaces `d`, `C` and `G`.
-#' @param range_mesh The range of the mesh. Will be used to provide starting values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and if one of the parameters (kappa or tau for spde parameterization, or sigma or range for matern parameterization) are not provided.
-#' @param loc_mesh The mesh locations used to construct the matrices C and G. This option should be provided if one wants to use the `rspde_lme()` function and will not provide neither graph nor mesh. Only works for 1d data. Does not work for metric graphs. For metric graphs you should supply the graph using the `graph` argument.
+#' @param range_mesh The range of the mesh. Will be used to provide starting 
+#' values for the parameters. Will be used if `mesh` and `graph` are `NULL`, and 
+#' if one of the parameters (kappa or tau for spde parameterization, or sigma or 
+#' range for matern parameterization) are not provided.
+#' @param loc_mesh The mesh locations used to construct the matrices C and G. 
+#' This option should be provided if one wants to use the `rspde_lme()` function 
+#' and will not provide neither graph nor mesh. Only works for 1d data. Does not 
+#' work for metric graphs. For metric graphs you should supply the graph using 
+#' the `graph` argument.
 #' @param d The dimension of the domain. Does not need to be given if
 #' `mesh` is used.
 #' @param m The order of the rational approximation, which needs to be a
 #' positive integer. The default value is 1.
 #' @param type The type of the rational approximation. The options are
 #' "covariance" and "operator". The default is "covariance".
-#' @param type_rational_approximation Which type of rational
-#' approximation should be used? The current types are
-#' "brasil", "chebfun" or "chebfunLB".
+#' @param type_rational_approximation Which type of rational approximation 
+#' should be used? The current types are "brasil", "chebfun", "chebfunLB" and 
+#' "wl2". The "wl2" coefficients minimise the weighted \eqn{L_2} error, see 
+#' [rational.coefficients.wl2()]; they have no constant term, so the model has 
+#' `m` instead of `m + 1` blocks, and they require \eqn{\nu < 3 - d/2} for 
+#' `type = "covariance"` and \eqn{\nu + d/2 < 2} for `type = "operator"`. For 
+#' `type = "operator"` only `"chebfunLB"` and `"wl2"` are available, since the 
+#' operator-based construction has a single table of roots and that table was 
+#' produced by the chebfun lower-bound method; see [matern.operators()].
+#' @param wl2_table A table of weighted-L2 coefficients from
+#' [rspde.wl2.table()], only used for `type_rational_approximation = "wl2"`.
+#' `NULL` uses the table shipped with the package.
 #' @param check_stationarity Logical; if TRUE, automatically returns a stationary
 #' model when tau/kappa (or sigma/range) are constant. Set to FALSE to keep a
 #' non-stationary model even when parameters are constant.
@@ -1122,8 +1440,10 @@ spde.matern.operators <- function(kappa = NULL,
                                   type_rational_approximation = c(
                                     "brasil",
                                     "chebfun",
-                                    "chebfunLB"
+                                    "chebfunLB",
+                                    "wl2"
                                   ),
+                                  wl2_table = NULL,
                                   check_stationarity = TRUE) {
   is_constant_param <- function(x) {
     x <- as.numeric(x)
@@ -1131,6 +1451,10 @@ spde.matern.operators <- function(kappa = NULL,
   }
 
   type <- type[[1]]
+  ## An untouched default is still the full vector of choices; a caller who
+  ## named a type gives a single string. The operator-based construction
+  ## refuses two of the tabulated names, so it has to know which it is.
+  user_set_rational <- length(type_rational_approximation) == 1L
   if (!type %in% c("covariance", "operator")) {
     stop("The type should be 'covariance' or 'operator'!")
   }
@@ -1452,7 +1776,12 @@ spde.matern.operators <- function(kappa = NULL,
       C = C,
       scale.factor = min(kappa)^2,
       m = m,
-      tau = tau
+      tau = tau,
+      type_rational_approximation = wl2_operator_type(
+        type_rational_approximation, user_set_rational
+      ),
+      d = d,
+      wl2_table = wl2_table
     )
     output <- operators
     output$d <- d
@@ -1479,7 +1808,6 @@ spde.matern.operators <- function(kappa = NULL,
   } else {
     type_rational_approximation <- type_rational_approximation[[1]]
     m_alpha <- floor(alpha)
-    m_order <- m_alpha + 1
 
     C <- Matrix::Diagonal(dim(C)[1], rowSums(C))
     Ci <- Matrix::Diagonal(dim(C)[1], 1 / rowSums(C))
@@ -1509,52 +1837,81 @@ spde.matern.operators <- function(kappa = NULL,
         CinvL <- Matrix::Diagonal(dim(C)[1], 1 / diag(C)) %*% L
       }
 
-      mt <- get_rational_coefficients(m, type_rational_approximation)
       rspde.order <- m
-      row_nu <- round(1000 * cut_decimals(alpha))
-      r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
-      p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
-      k_rat <- unlist(mt[row_nu, 2 + 2 * rspde.order])
-
-      Q <- (L - p[1] * C) / r[1]
-      if (m_alpha > 0) {
-        for (count_m in 1:m_alpha) {
-          Q <- Q %*% CinvL
-        }
+      wl2 <- identical(type_rational_approximation, "wl2")
+      if (wl2) {
+        ## The weighted-L2 coefficients are fitted, not tabulated. They depend
+        ## on alpha and d only, not on the varying kappa and tau, so the same
+        ## coefficients serve the non-stationary model.
+        coeff <- interp_rational_coefficients(
+          order = m, type_rational_approx = "wl2", alpha = alpha,
+          wl2_table = wl2_table, d = d
+        )
+        r <- coeff$r
+        p <- coeff$p
+        p0 <- coeff$p0
+        qq <- coeff$q
+      } else {
+        mt <- get_rational_coefficients(m, type_rational_approximation)
+        row_nu <- round(1000 * cut_decimals(alpha))
+        r <- unlist(mt[row_nu, 2:(1 + rspde.order)])
+        p <- unlist(mt[row_nu, (2 + rspde.order):(1 + 2 * rspde.order)])
+        k_rat <- unlist(mt[row_nu, 2 + 2 * rspde.order])
       }
 
-      Q <- tau_matrix %*% Q %*% tau_matrix
+      ## Block i is C (T - p_0)^q (T - p_i) / r_i with T = C^-1 L, which is
+      ## (L - p_0 C) (T - p_0)^(q-1) C^-1 (L - p_i C) / r_i. The tabulated
+      ## classes are the same with p_0 = 0, that is q = floor(alpha) factors
+      ## of T; the weighted-L2 ones carry the shift.
+      if (wl2 && qq > 0) {
+        A0 <- L - p0 * C
+        T0 <- Ci %*% A0
+      }
+      block <- function(i) {
+        if (wl2) {
+          if (qq == 0) {
+            return((L - p[i] * C) / r[i])
+          }
+          out <- A0
+          if (qq > 1) {
+            for (count_m in 2:qq) out <- out %*% T0
+          }
+          return(out %*% Ci %*% (L - p[i] * C) / r[i])
+        }
+        out <- (L - p[i] * C) / r[i]
+        if (m_alpha > 0) {
+          for (count_m in 1:m_alpha) out <- out %*% CinvL
+        }
+        out
+      }
 
+      Q <- tau_matrix %*% block(1) %*% tau_matrix
       if (rspde.order > 1) {
         for (k_ind in 2:rspde.order) {
-          Q_tmp <- (L - p[k_ind] * C) / r[k_ind]
-          if (m_alpha > 0) {
-            for (count_m in 1:m_alpha) {
-              Q_tmp <- Q_tmp %*% CinvL
-            }
+          ## the bdiag has to be inside the loop: one block per pole
+          Q <- bdiag(Q, tau_matrix %*% block(k_ind) %*% tau_matrix)
+        }
+      }
+
+      # K part; the weighted-L2 classes have no constant term, hence no k-block
+
+      if (!wl2) {
+        if (m_alpha == 0) {
+          Q_tmp <- Ci
+        } else if (m_alpha == 1) {
+          Q_tmp <- L
+        } else {
+          Q_tmp <- L
+          for (count_m in 1:(m_alpha - 1)) {
+            Q_tmp <- Q_tmp %*% CinvL
           }
         }
+
         Q_tmp <- tau_matrix %*% Q_tmp %*% tau_matrix
+        Q_tmp <- Q_tmp / k_rat
+
         Q <- bdiag(Q, Q_tmp)
       }
-
-      # K part
-
-      if (m_alpha == 0) {
-        Q_tmp <- Ci
-      } else if (m_alpha == 1) {
-        Q_tmp <- L
-      } else {
-        Q_tmp <- L
-        for (count_m in 1:(m_alpha - 1)) {
-          Q_tmp <- Q_tmp %*% CinvL
-        }
-      }
-
-      Q_tmp <- tau_matrix %*% Q_tmp %*% tau_matrix
-      Q_tmp <- Q_tmp / k_rat
-
-      Q <- bdiag(Q, Q_tmp)
 
       Q <- factor^(alpha) * Q
     }
@@ -1878,7 +2235,7 @@ make_A.matern2d_operator <- function(object, loc, ...) {
   if (object$alpha %% 1 == 0) {
     return(A)
   }
-  return(kronecker(matrix(1, ncol = object$m + 1), A))
+  return(kronecker(matrix(1, ncol = rspde_n_blocks_obj(object)), A))
 }
 
 #' Covariance between mesh nodes and locations
@@ -1908,7 +2265,10 @@ cov_function_mesh.matern_operator <- function(object, p, direct = FALSE, ...) {
   if (inherits(object, "rSPDEobj")) {
     v <- make_A(object, loc = p)
     if (direct) {
-      return(object$Pr %*% solve(object$Q, object$Pr %*% t(v)))
+      # tol = 0 disables the "computationally singular" abort in Matrix: the
+      # operator-based representation is knowingly ill-conditioned for larger
+      # m, and the inaccurate result is the documented behaviour.
+      return(object$Pr %*% solve(object$Q, object$Pr %*% t(v), tol = 0))
     }
     return(Sigma.mult(object, t(v)))
   }
@@ -1917,9 +2277,13 @@ cov_function_mesh.matern_operator <- function(object, p, direct = FALSE, ...) {
   if (object$alpha %% 1 == 0) {
     return(A %*% solve(object$Q, v))
   }
-  v_bar <- kronecker(matrix(1, nrow = object$m + 1), v)
-  A_bar <- kronecker(matrix(1, ncol = object$m + 1), A)
-  return(A_bar %*% solve(object$Q, v_bar))
+  v_bar <- kronecker(matrix(1, nrow = rspde_n_blocks_obj(object)), v)
+  A_bar <- kronecker(matrix(1, ncol = rspde_n_blocks_obj(object)), A)
+  out <- A_bar %*% solve(object$Q, v_bar)
+  if (!is.null(object$nodal_correction)) {
+    out <- out + object$nodal_correction * v
+  }
+  return(out)
 }
 
 #' @export
@@ -1928,7 +2292,10 @@ cov_function_mesh.spde_matern_operator <- function(object, p, direct = FALSE, ..
   if (inherits(object, "rSPDEobj")) {
     v <- make_A(object, loc = p)
     if (direct) {
-      return(object$Pr %*% solve(object$Q, object$Pr %*% t(v)))
+      # tol = 0 disables the "computationally singular" abort in Matrix: the
+      # operator-based representation is knowingly ill-conditioned for larger
+      # m, and the inaccurate result is the documented behaviour.
+      return(object$Pr %*% solve(object$Q, object$Pr %*% t(v), tol = 0))
     }
     return(Sigma.mult(object, t(v)))
   }
@@ -1937,8 +2304,8 @@ cov_function_mesh.spde_matern_operator <- function(object, p, direct = FALSE, ..
   if (object$alpha %% 1 == 0) {
     return(A %*% solve(object$Q, v))
   }
-  v_bar <- kronecker(matrix(1, nrow = object$m + 1), v)
-  A_bar <- kronecker(matrix(1, ncol = object$m + 1), A)
+  v_bar <- kronecker(matrix(1, nrow = rspde_n_blocks_obj(object)), v)
+  A_bar <- kronecker(matrix(1, ncol = rspde_n_blocks_obj(object)), A)
   return(A_bar %*% solve(object$Q, v_bar))
 }
 
@@ -1948,7 +2315,7 @@ cov_function_mesh.matern2d_operator <- function(object, p, ...) {
   v <- t(make_A(object, loc = p))
   A <- Matrix::Diagonal(dim(object$fem$C)[1])
   if (object$alpha %% 1 != 0) {
-    A <- kronecker(matrix(1, ncol = object$m + 1), A)
+    A <- kronecker(matrix(1, ncol = rspde_n_blocks_obj(object)), A)
   }
   return(A %*% solve(object$Q, v))
 }
@@ -1977,27 +2344,33 @@ covariance_mesh.default <- function(object, ...) {
 #' @method covariance_mesh matern_operator
 covariance_mesh.matern_operator <- function(object, ...) {
   if (inherits(object, "rSPDEobj")) {
-    return(object$Pr %*% solve(object$Q, object$Pr))
+    # See the comment in cov_function_mesh() about tol = 0.
+    return(object$Pr %*% solve(object$Q, object$Pr, tol = 0))
   }
   A <- Matrix::Diagonal(dim(object$C)[1])
   if (object$alpha %% 1 == 0) {
     return(A %*% solve(object$Q, t(A)))
   }
-  A_bar <- kronecker(matrix(1, ncol = object$m + 1), A)
-  return(A_bar %*% solve(object$Q, t(A_bar)))
+  A_bar <- kronecker(matrix(1, ncol = rspde_n_blocks_obj(object)), A)
+  out <- A_bar %*% solve(object$Q, t(A_bar))
+  if (!is.null(object$nodal_correction)) {
+    out <- out + Matrix::Diagonal(dim(A)[1], object$nodal_correction)
+  }
+  return(out)
 }
 
 #' @export
 #' @method covariance_mesh spde_matern_operator
 covariance_mesh.spde_matern_operator <- function(object, ...) {
   if (inherits(object, "rSPDEobj")) {
-    return(object$Pr %*% solve(object$Q, object$Pr))
+    # See the comment in cov_function_mesh() about tol = 0.
+    return(object$Pr %*% solve(object$Q, object$Pr, tol = 0))
   }
   A <- Matrix::Diagonal(dim(object$C)[1])
   if (object$alpha %% 1 == 0) {
     return(A %*% solve(object$Q, t(A)))
   }
-  A_bar <- kronecker(matrix(1, ncol = object$m + 1), A)
+  A_bar <- kronecker(matrix(1, ncol = rspde_n_blocks_obj(object)), A)
   return(A_bar %*% solve(object$Q, t(A_bar)))
 }
 
@@ -2009,6 +2382,6 @@ covariance_mesh.matern2d_operator <- function(object, ...) {
   if (object$alpha %% 1 == 0) {
     return(A %*% solve(object$Q, t(A)))
   }
-  A_bar <- kronecker(matrix(1, ncol = object$m + 1), A)
+  A_bar <- kronecker(matrix(1, ncol = rspde_n_blocks_obj(object)), A)
   return(A_bar %*% solve(object$Q, t(A_bar)))
 }

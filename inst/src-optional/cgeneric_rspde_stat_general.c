@@ -63,6 +63,14 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
   assert(!strcasecmp(data->ints[4]->name, "rspde.order"));
   rspde_order = data->ints[4]->ints[0];
 
+  /* Appended last in the R call, so that every index above is unchanged and a
+     binary compiled before these existed still reads its own arguments. */
+  assert(!strcasecmp(data->ints[5]->name, "wl2"));
+  int wl2 = data->ints[5]->ints[0];
+
+  assert(!strcasecmp(data->ints[6]->name, "wl2.m.alpha.min"));
+  int wl2_m_alpha_min = data->ints[6]->ints[0];
+
   assert(!strcasecmp(data->chars[2]->name, "prior.nu.dist"));
   prior_nu_dist = &data->chars[2]->chars[0];
 
@@ -88,12 +96,18 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
   inla_cgeneric_vec_tp *fem_full = data->doubles[3];
   full_size = (fem_full->len)/(m_alpha+2);
   less_size = (fem_less->len)/(m_alpha+1);
-  assert(M == rspde_order * full_size + less_size);
+  /* The weighted-L2 classes have no constant term, hence no k-block. */
+  assert(M == rspde_order * full_size + (wl2 ? 0 : less_size));
 
 
   assert(!strcasecmp(data->mats[0]->name, "rational_table"));
   inla_cgeneric_mat_tp *rational_table = data->mats[0];
-  assert(rational_table->nrow == 999);  
+  /* The tabulated coefficients approximate x^frac(alpha), so 999 rows indexed
+     by the fractional part serve every floor(alpha). The weighted-L2 classes
+     are fitted to x^alpha as a whole, so the table carries one block of 999
+     rows per floor(alpha) reachable from the prior on nu. */
+  assert(rational_table->nrow == (wl2 ? 999 * (m_alpha - wl2_m_alpha_min + 1)
+                                      : 999));
 
   // prior parameters
   assert(!strcasecmp(data->doubles[4]->name, "start.theta"));
@@ -183,6 +197,10 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
       double multQ = pow(kappa, 2*new_alpha) * SQR(tau);
 
       int row_nu = (int)round(1000*cut_decimals(new_alpha))-1;
+      if (wl2) {
+        /* one block of 999 rows per floor(alpha) */
+        row_nu += 999 * (new_m_alpha - wl2_m_alpha_min);
+      }
 
       double *rat_coef = Calloc(n_terms-1, double);
       
@@ -195,7 +213,25 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
       
       r = &rat_coef[0];
       p = &rat_coef[rspde_order];
+      /* the last column is the constant term of the tabulated classes and the
+         shared shift p_0 of the weighted-L2 ones */
       k_rat = rat_coef[2*rspde_order];
+
+      if (wl2) {
+        double w[8], fact_mult;
+        for (j = 0; j < rspde_order; j++) {
+          wl2_block_weights(new_m_alpha, k_rat, p[j], w);
+          fact_mult = multQ * w[0] / r[j];
+          dcopy_(&full_size, &fem_full->doubles[0], &one, &ret[k + j*full_size], &one);
+          dscal_(&full_size, &fact_mult, &ret[k + j*full_size], &one);
+          for (i = 1; i <= new_m_alpha + 1; i++) {
+            fact_mult = multQ * w[i] / (r[j] * pow(kappa, 2*i));
+            daxpy_(&full_size, &fact_mult, &fem_full->doubles[i*full_size],
+                   &one, &ret[k + j*full_size], &one);
+          }
+        }
+        break;
+      }
 
       // FORTRAN IMPLEMENTATION
 
@@ -562,4 +598,10 @@ double *inla_cgeneric_rspde_stat_general_model(inla_cgeneric_cmd_tp cmd, double 
   }
   
   return (ret);
+}
+
+/* The weighted-L2 variant is the same model with the "wl2" flag set; it is
+   given its own name only so that its availability can be detected. */
+double *inla_cgeneric_rspde_stat_general_wl2_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data) {
+  return inla_cgeneric_rspde_stat_general_model(cmd, theta, data);
 }

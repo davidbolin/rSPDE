@@ -105,7 +105,7 @@ coords <- as.matrix(PRprec[ind, 1:2])
 alt <- PRprec$Altitude[ind]
 ```
 
-Let us build plot the precipitation observations using `ggplot`:
+Let us plot the precipitation observations using `ggplot`:
 
 ```{r plot_precipitations, message=FALSE, fig.align = "center", echo=TRUE}
 ggplot() +
@@ -187,17 +187,16 @@ points(coords[, 1], coords[, 2], pch = 19, cex = 0.5, col = "red")
 We now create the $A$ matrix, that connects the mesh to the observation 
 locations and then create the `rSPDE` model.
 
-For this task, as we mentioned earlier, we need to use an `rSPDE`specific function, 
+For this task, as we mentioned earlier, we need to use an `rSPDE`-specific function,
 whose name is very reminiscent to `r inla_link()`'s standard SPDE approach,
 namely `rspde.make.A()` (in place of `r inla_link()`'s `inla.spde.make.A()`). 
 The reason for the need of this specific function is that the size of
 the $A$ matrix depends on the order of the rational approximation. The details
 can be found in the introduction of the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette.
 
-The default order is 2 for our covariance-based rational approximation. 
-As mentioned in the introduction of the [Rational approximation with the `rSPDE` package](rspde_cov.html) vignette, an approximation of order 2 in the covariance-based
-rational approximation has approximately the same computational cost as the operator-based rational approximation
-of order 1.
+The default order is 1 for our covariance-based rational approximation.
+The approximation order affects the size of the latent representation and
+can be increased when greater accuracy is needed.
 
 Recall that the latent process $u$ is a solution of
 $$(\kappa^2 I-\Delta)^{\alpha/2}(\tau u) = \mathcal{W},$$
@@ -219,7 +218,7 @@ Abar <- rspde.make.A(mesh = prmesh, loc = coords)
 
 To set up an `rSPDE`model, all we need is the mesh. 
 By default it will assume that we want to estimate the smoothness parameter $\nu$
-and to do a covariance-based rational approximation of order 2.
+and to do a covariance-based rational approximation of order 1.
 
 Later in this vignette we will also see other options for setting up `rSPDE` models such as keeping
 the smoothness parameter fixed and/or increasing the order of the covariance-based
@@ -246,7 +245,7 @@ place of the standard `inla.spde.make.index()`) to
 create the index.
 
 If one is using the default options, that is, to estimate the smoothness parameter $\nu$
-and to do a rational approximation of order 2, the usage of `rspde.make.index()` is identical 
+and to do a rational approximation of order 1, the usage of `rspde.make.index()` is identical
 to the usage of `inla.spde.make.index()`:
 
 ```{r create_mesh_index, message=FALSE}
@@ -270,16 +269,15 @@ stk.dat <- inla.stack(
 )
 ```
 
-Here the observation matrix $A$ is applied to the spatial effect and the 
-intercept while an identity observation matrix, denoted by $1$, 
-is applied to the covariates. This means the covariates are unaffected 
-by the observation matrix. 
+Here the observation matrix `Abar` is applied to the spatial effect, while
+the identity matrix, denoted by `1`, is applied to the fixed-effect block
+containing the intercept and covariates.
 
 The observation matrices in $A=list(Abar,1)$ are used to link the corresponding 
 elements in the effects-list to the observations. Thus in our model the 
-latent spatial field `mesh.index` and the intercept are linked to the 
-log-expectation of the observations, i.e. $\eta(s)$, through the $A$-matrix.
-The covariates, on the other hand, are linked directly to $\eta(s)$. 
+latent spatial field `mesh.index` is linked to the log-expectation of the
+observations, i.e. $\eta(s)$, through `Abar`. The intercept and covariates
+are linked directly to $\eta(s)$ through the identity block.
 The `stk.dat` object defined above implies the following principal linkage 
 between model components and observations 
 $$\eta(s) \sim A x(s) + A \text{ Intercept} + \text{seaDist}.$$

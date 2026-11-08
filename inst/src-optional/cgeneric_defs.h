@@ -88,6 +88,12 @@ extern "C" {
 double cut_decimals(double nu);
 
 double nChoosek(int n, int k);
+
+/* Weights w_0..w_{q+1} of the weighted-L2 precision block for the pole pj:
+ * C (T - p0)^q (T - pj) = sum_l w_l G_l / kappa^(2l), T = C^-1 L. See
+ * cgeneric_rspde_stat_int.c. w must have room for q + 2 entries.
+ */
+void wl2_block_weights(int q, double p0, double pj, double *w);
 void compute_Q_intrinsic(int size, 
                          double *entries_C, int *i_C, int *j_C, int n_nonzero_C,
                          double *entries_G, int *i_G, int *j_G, int n_nonzero_G,
@@ -123,10 +129,14 @@ void compute_Q_anisotropic(
     const inla_cgeneric_mat_tp *rational_table,
     int est_nu);
 
+/* rat_p0 and wl2: the shared shift of the weighted-L2 integer factor and the
+   flag that selects those classes, which have no constant term and hence no
+   k-block. rat_p0 is unused when wl2 is 0. */
 void compute_Q1d(int n, double *loc, int rspde_order, double kappa,
                  double sigma, double *rat_p, double *rat_r, double rat_k,
                  double *Q_out, int *graph_i, int *graph_j, double nu, int M,
-                 int equally_spaced, double nu_upper_bound, int N, double *lconst);
+                 int equally_spaced, double nu_upper_bound, int N, double *lconst,
+                 double rat_p0, int wl2);
 
 void compute_Q_fintrinsic(double tau, double nu, 
                           const inla_cgeneric_smat_tp *C,

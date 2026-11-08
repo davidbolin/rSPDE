@@ -410,7 +410,31 @@ st.dat <- inla.stack(data = list(y = as.vector(y)), A = A, effects = mesh.index)
 
 ```
 
-We now create the model object. 
+```{r intrinsic_matern_check, include = FALSE}
+# rspde.intrinsic.matern() needs a Cgeneric model that is either built into
+# INLA or compiled with rSPDE. If neither is available (for example, in a
+# default source build with an INLA version that does not include it), the
+# R-INLA part of this example is shown but not run.
+intrinsic_matern_available <- tryCatch({
+  rspde.intrinsic.matern(mesh = mesh_2d, alpha = alpha)
+  TRUE
+}, error = function(e) FALSE)
+knitr::opts_chunk$set(eval = intrinsic_matern_available)
+```
+
+```{r intrinsic_matern_note, echo = FALSE, results = "asis", eval = TRUE}
+if (!intrinsic_matern_available) {
+  cat(
+    "> **Note:** the code in this section was not run when this vignette",
+    "was built, because the INLA model used by `rspde.intrinsic.matern()`",
+    "was not available. It is available when INLA includes it, or when",
+    "rSPDE is installed with its compiled Cgeneric library. See the",
+    "vignette \"Building the rSPDE package from source on Mac and Linux\".\n"
+  )
+}
+```
+
+We now create the model object.
 
 ```{r}
 rspde_model <- rspde.intrinsic.matern(mesh = mesh_2d, alpha = alpha)
@@ -534,6 +558,10 @@ ggplot(field.pred.sd.df, aes(x = x1, y = x2, fill = sd)) +
   geom_raster() + scale_fill_viridis()
 ```
 
+```{r intrinsic_matern_reset, include = FALSE, eval = TRUE}
+knitr::opts_chunk$set(eval = TRUE)
+```
+
 # Using intrinsic models without `R-INLA`
 
 Currently, the more general model is only implemented in `R-INLA` using fixed integer values of the smoothness parameters. However, all intrinsic models are implemented in `rSPDE` in full generality. In this section, we illustrate the `rSPDE` interface. Let us test a model in one dimension. 
@@ -603,7 +631,7 @@ We now use `rspde_lme` to fit the parameters based on this data. Since we genera
 data = data.frame(y = c(Y), loc = rep(obs.loc, n.rep), rep  = rep(1:n.rep, each = n.obs))
 
 fit <- rspde_lme(y ~ -1, loc = "loc", repl  = "rep", data = data,
-                 model = op, mean_correction = TRUE, parallel = TRUE,
+                 model = op, mean_correction = TRUE, parallel = FALSE,
                  model_options = list(fix_alpha = 0))
 
 rbind(c(fit$coeff$random_effects[c("beta", "tau")], fit$coeff$measurement_error), 

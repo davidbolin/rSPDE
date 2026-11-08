@@ -125,9 +125,11 @@ skip_if_no_metric_graph <- function() {
                       edge_number = PtE[, 1],
                       distance_on_edge = PtE[, 2]),
     normalized = TRUE, verbose = 0)
-  fit <- MetricGraph::graph_lme(y ~ -1, graph = graph,
-                                model = list(type = "WhittleMatern",
-                                             alpha = 1, fem = TRUE))
+  fit <- muffle_hessian_warnings(
+    MetricGraph::graph_lme(y ~ -1, graph = graph,
+                           model = list(type = "WhittleMatern",
+                                        alpha = 1, fem = TRUE))
+  )
   class(fit) <- "rspde_lme"
   fit
 }

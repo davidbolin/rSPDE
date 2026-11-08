@@ -18,9 +18,17 @@ obj = cgeneric_mvnormdens.o cgeneric_aux_nonstat.o cgeneric_aux_nonstat_fixed.o 
 	  cgeneric_rspde_1d_general.o cgeneric_aux_1d.o \
 	  cgeneric_rspde_hybrid_alpha2.o cgeneric_aux_hybrid_alpha2.o
 
-# Compiler settings
-CC = /opt/homebrew/bin/gcc-14
-CXX = /opt/homebrew/bin/g++-14
+# Compiler settings: Homebrew GCC on macOS, and the compilers R was
+# configured with everywhere else.
+# R CMD INSTALL reads ~/.R/Makevars after this file, so a user-level
+# CC/CXX (e.g. Apple clang, which lacks -fopenmp) would otherwise win.
+ifeq ($(shell uname -s), Darwin)
+    override CC = /opt/homebrew/bin/gcc-14
+    override CXX = /opt/homebrew/bin/g++-14
+else
+    CC := $(shell "$(R_HOME)/bin/R" CMD config CC)
+    CXX := $(shell "$(R_HOME)/bin/R" CMD config CXX)
+endif
 
 # Eigen and library paths
 EIGEN_MAC = /opt/homebrew/
@@ -46,8 +54,13 @@ else ifeq ($(shell uname -s), Darwin)
     endif
 endif
 
+# R CMD INSTALL uses this file in preference to src/Makevars, so it has to
+# build the package library rSPDE.so as well as the cgeneric library.
+BLAS_LIBS := $(shell "$(R_HOME)/bin/R" CMD config BLAS_LIBS)
+LAPACK_LIBS := $(shell "$(R_HOME)/bin/R" CMD config LAPACK_LIBS)
+
 # Default target
-all: rSPDE.so
+all: cgeneric rSPDE.so
 
 # Check or download cgeneric.h
 cgeneric.h:
@@ -65,10 +78,18 @@ cgeneric.h:
 	$(CC) $(flags) $(PKG_CFLAGS) -Iinclude -I$(toInclude) -L$(R_HOME)/lib -lR -c $< -o $@
 
 %.o: %.cpp cgeneric.h
-	$(CXX) $(flags) -I$(toInclude) -I$(EIGEN_MAC_VAR)/include/eigen3/ -I$(EIGEN_MAC)/include/eigen3/ -I$(EIGEN_LINUX)/include/eigen3/ -c $< -o $@
+	$(CXX) $(flags) $(PKG_CFLAGS) -I$(toInclude) -I$(EIGEN_MAC_VAR)/include/eigen3/ -I$(EIGEN_MAC)/include/eigen3/ -I$(EIGEN_LINUX)/include/eigen3/ -c $< -o $@
 
-# Link shared library
-rSPDE.so: cgeneric.h $(obj)
+# The package library, which is built whether or not the cgeneric sources
+# are compiled (see src/Makevars for the plain build).
+wl2_fit.o: wl2_fit.cpp
+	$(CXX) $(flags) $(PKG_CFLAGS) -c $< -o $@
+
+rSPDE.so: wl2_fit.o
+	$(CXX) $(flags) -shared wl2_fit.o -o rSPDE.so $(LAPACK_LIBS) $(BLAS_LIBS) $(LINK_FLAGS)
+
+# Link the cgeneric shared library
+cgeneric: cgeneric.h $(obj)
 	$(CXX) $(flags) -shared $(obj) -o ../inst/shared/rspde_cgeneric_models.so -lblas -llapack $(LINK_FLAGS)
 	@if [ "$$(uname -s)" = "Darwin" ]; then \
 	    echo "Adhoc-signing rspde_cgeneric_models.so for macOS dyld..."; \
@@ -79,6 +100,7 @@ rSPDE.so: cgeneric.h $(obj)
 clean:
 	rm -f *.o
 	rm -f cgeneric.h
+	rm -f rSPDE.so
 	rm -f ../inst/shared/rspde_cgeneric_models.so
 
-.PHONY: all clean
+.PHONY: all clean cgeneric

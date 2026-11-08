@@ -251,8 +251,8 @@ $$(\kappa^2 I - \Delta)^{\alpha/2}(\tau u) = \mathcal{W},$$
 where $\alpha = \nu + d/2$, we have that
 $$\tau = \exp(\theta_1),\quad \kappa = \exp(\theta_2), $$
 and by default
-$$\nu = 4\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
-The number 4 comes from the upper bound for $\nu$, which is discussed in [R-INLA implementation of the rational SPDE approach](rspde_inla.html) vignette. 
+$$\nu = 2\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big).$$
+The number 2 is the default upper bound for $\nu$, discussed in [R-INLA implementation of the rational SPDE approach](rspde_inla.html).
 
 In general, we have
 $$\nu = \nu_{UB}\Big(\frac{\exp(\theta_3)}{1+\exp(\theta_3)}\Big),$$
@@ -580,9 +580,9 @@ result_df_matern <- data.frame(
     result_fit_rep_matern$summary.nu$mean
   ),
   mode = c(
-    result_fit_rep$summary.std.dev$mode,
-    result_fit_rep$summary.range$mode,
-    result_fit_rep$summary.nu$mode
+    result_fit_rep_matern$summary.std.dev$mode,
+    result_fit_rep_matern$summary.range$mode,
+    result_fit_rep_matern$summary.nu$mode
   )
 )
 print(result_df_matern)
@@ -803,7 +803,8 @@ models <- list(stationary = rspde_fit_stat,
 We will now run the cross-validation on the models above. We set the `cv_type` to `lpo` to perform the leave percentage out cross-validation, there are also the `k-fold` (default) and `loo` options to perform k-fold and leave one out cross-validations, respectively. Observe that by default we are performing a pseudo cross-validation, that is, we will not refit the model for each fold, however only the training data will be used to perform the prediction.
 
 ```{r}
-cv_result <- cross_validation(models, cv_type = "lpo", print = FALSE)
+cv_result <- rSPDE::cross_validation(models, cv_type = "lpo",
+                                    true_CV = FALSE, print = FALSE)
 ```
 
 We can now look at the results by printing `cv_result`. Observe that the best model with respect to each score is displayed in the last row.
@@ -814,7 +815,7 @@ cv_result
 
 The `cross_validation()` function also has the following useful options:
 
-* `return_score_folds` option, so that the scores for each fold can be returned in order to create confidence regions for the scores. 
+* `return_scores_folds` option, so that the scores for each fold can be returned in order to create confidence regions for the scores.
 * `return_train_test` To return the train and test indexes that were used to perform the cross-validation.
 * `true_CV` To perform true cross-validation, that is, the data will be fit again for each fold, which is more costly.
 * `train_test_indexes` In which the user can provide the indexes for the train and test sets.

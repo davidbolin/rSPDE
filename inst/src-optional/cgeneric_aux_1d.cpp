@@ -69,9 +69,43 @@ double matern_p(double s,double t,double kappa, double p,double alpha){
     return(out);
 }
 
-double matern_p_deriv(double s,double t,double kappa,double p,double alpha,double deriv){
+/* Covariance (or its deriv-th derivative) of the symbol term 1/(lambda - p)^n.
+   With lambda = (kappa^2 + w^2)/kappa^2 this is the spectral density of a
+   Matern field with nu = n - 1/2 and range parameter kappa*sqrt(1 - p); see
+   matern.p.term() in R/stationary1d.R. */
+double matern_p_term(double h, double kappa, double p, double alpha,
+                     int deriv, int n) {
+    double ca = tgamma(alpha)/tgamma(alpha-0.5);
+    double s2 = ca*tgamma(n - 0.5)/(tgamma((double) n)*pow(1.0-p, n - 0.5));
+    return matern_derivative(h, kappa*sqrt(1.0-p), n - 0.5, sqrt(s2), deriv);
+}
+
+/* The shifted (weighted-L2) term 1/((lambda - p0)^q (lambda - p)). Expanding
+   1/(lambda - p) about lambda = p0 gives the partial fractions
+     sum_{j=1..q} (-1)^(q-j)/(p0-p)^(q-j+1) * 1/(lambda - p0)^j
+       + (-1)^q/(p0-p)^q * 1/(lambda - p),
+   so the covariance is the same combination of the terms above. */
+double matern_p_shifted(double h, double kappa, double p0, double p,
+                        double alpha, int deriv, int q) {
+    double d = p0 - p;
+    double sgn = (q % 2 == 0) ? 1.0 : -1.0;
+    double out = (sgn/pow(d, (double) q)) *
+        matern_p_term(h, kappa, p, alpha, deriv, 1);
+    for (int j = 1; j <= q; j++) {
+        double sj = ((q - j) % 2 == 0) ? 1.0 : -1.0;
+        out += (sj/pow(d, (double)(q - j + 1))) *
+            matern_p_term(h, kappa, p0, alpha, deriv, j);
+    }
+    return out;
+}
+
+double matern_p_deriv(double s,double t,double kappa,double p,double alpha,double deriv,
+                     double p0, int q){
     double h = s-t;
     double out, sigma;
+    if(q > 0){
+        return matern_p_shifted(h, kappa, p0, p, alpha, (int) deriv, q);
+    }
     if(deriv ==0){
         out = matern_p(s,t,kappa,p,alpha);
     } else {
@@ -94,7 +128,8 @@ double matern_p_deriv(double s,double t,double kappa,double p,double alpha,doubl
     return(out);
 }
 
-Eigen::MatrixXd matern_p_joint(double s,double t,double kappa, double p, double alpha){
+Eigen::MatrixXd matern_p_joint(double s,double t,double kappa, double p, double alpha,
+                               double p0, int q){
     
     int fa;
     double tmp;
@@ -107,9 +142,9 @@ Eigen::MatrixXd matern_p_joint(double s,double t,double kappa, double p, double 
     for(int i = 0; i < fa; i++) {
         for(int j =i; j< fa; j++) {
             if(i==j) {
-                mat(i,i) = pow(-1.0,i)*matern_p_deriv(s,t,kappa,p,alpha, 2*i);
+                mat(i,i) = pow(-1.0,i)*matern_p_deriv(s,t,kappa,p,alpha, 2*i, p0, q);
             } else {
-                tmp = matern_p_deriv(s,t,kappa,p,alpha, i + j);
+                tmp = matern_p_deriv(s,t,kappa,p,alpha, i + j, p0, q);
                 mat(i,j) = pow(-1.0,j)*tmp;
                 mat(j,i) = pow(-1.0,i)*tmp;
             }
@@ -276,7 +311,8 @@ std::tuple< Eigen::VectorXd, Eigen::VectorXd,
                                                             double kappa,
                                                             double p, 
                                                             int equally_spaced, 
-                                                            double alpha) {
+                                                            double alpha,
+                                                            double p0, int q) {
     
     int fa, N; 
     if(floor(alpha) == alpha) {
@@ -299,8 +335,8 @@ std::tuple< Eigen::VectorXd, Eigen::VectorXd,
         }
     }
 
-    Eigen::MatrixXd Sdiag = matern_p_joint(0,0,kappa,p, alpha);
-    Eigen::MatrixXd Sod = matern_p_joint(loc[0],loc[1],kappa,p,alpha);
+    Eigen::MatrixXd Sdiag = matern_p_joint(0,0,kappa,p, alpha, p0, q);
+    Eigen::MatrixXd Sod = matern_p_joint(loc[0],loc[1],kappa,p,alpha, p0, q);
     double di = abs(loc[1]-loc[0]);
         
     Sigma.topLeftCorner(fa,fa) = Sdiag;
@@ -339,7 +375,7 @@ std::tuple< Eigen::VectorXd, Eigen::VectorXd,
             if(equally_spaced == 0){
                 if(!(di == abs(loc[i]-loc[i-1]))) {
                     di = abs(loc[i]-loc[i-1]);
-                    Sod = matern_p_joint(loc[i-1],loc[i],kappa,p,alpha);
+                    Sod = matern_p_joint(loc[i-1],loc[i],kappa,p,alpha, p0, q);
                     Sigma.topRightCorner(fa,fa) = Sod;
                     Sigma.bottomLeftCorner(fa,fa) = Stransp.cwiseProduct(Sod);
                 }
@@ -378,12 +414,14 @@ int map_index(int i, int n, int fa1, int fa2, int fa_base1, int fa_base2) {
 extern "C" void compute_Q1d(int n, double *loc, int rspde_order, double kappa,
                            double sigma, double *rat_p, double *rat_r, double rat_k,
                            double *Q_out, int *graph_i, int *graph_j, double nu, int M,
-                           int equally_spaced, double nu_upper_bound, int N, double *lconst);
+                           int equally_spaced, double nu_upper_bound, int N, double *lconst,
+                           double rat_p0, int wl2);
 
 void compute_Q1d(int n, double *loc, int rspde_order, double kappa,
                  double sigma, double *rat_p, double *rat_r, double rat_k,
                     double *Q_out, int *graph_i, int *graph_j, double nu, int M,
-                    int equally_spaced, double nu_upper_bound, int N, double *lconst) 
+                    int equally_spaced, double nu_upper_bound, int N, double *lconst,
+                    double rat_p0, int wl2) 
     {
     
     //std::cout << "kappa = " << kappa << ", sigma = " << sigma << ", nu = " << nu << ", nu_ub = " << nu_upper_bound << std::endl;
@@ -417,48 +455,59 @@ void compute_Q1d(int n, double *loc, int rspde_order, double kappa,
         fa_base2 = floor(alpha_ub) + 1;
     }
     
+    /* The weighted-L2 classes have no constant term, hence no k-block: the
+       field is rspde_order blocks of fa2 entries per location, and the index
+       mapping starts at the first pole block instead of after the k-block.
+       q = floor(alpha) is the power of the shifted integer factor. */
+    int q = wl2 ? floor(alpha) : 0;
+    int fa_k  = wl2 ? 0 : fa;
+    int fab_k = wl2 ? 0 : fa_base;
+
     Eigen::VectorXd vec_ind = Eigen::VectorXd::Zero(N);
-    int J = fa*n + rspde_order*fa2*n;
+    int J = fa_k*n + rspde_order*fa2*n;
     for(int j = 0; j < J; j++) {
-        vec_ind(map_index(j, n, fa, fa2, fa_base, fa_base2)) = 1;
+        vec_ind(map_index(j, n, fa_k, fa2, fab_k, fa_base2)) = 1;
     }
         
     // K part
     //std::cout << "K part" << std::endl;
     int m, k, i;
     
-    int N1 = n*pow(fa,2) + (n-1)*pow(fa,2) - n*fa*(fa -1)/2;
-    
-    auto [ii, jj, val, FvalK] = matern_k_chol(n, loc, kappa, equally_spaced, alpha);
-    //std::cout << "K chol done" << std::endl;
-    for(int k = 0; k < N1; k++){
-        trp_L.push_back(Trip(map_index(ii[k], n, fa, fa2, fa_base, fa_base2),
-                             map_index(jj[k], n, fa, fa2, fa_base, fa_base2),
-                             val[k]));
-    }
     int ind;
-    //std::cout << "Set D, rat_k = " << rat_k << ", sigma = " << sigma << std::endl;
-    for(int k = 0; k < fa*n; k++){
-        ind = map_index(k, n, fa, fa2, fa_base, fa_base2);
-        trp_D.push_back(Trip(ind, ind, FvalK[k]/(rat_k*pow(sigma,2.0))));
+    lconst[0] = 0.0;
+    if(!wl2) {
+        int N1 = n*pow(fa,2) + (n-1)*pow(fa,2) - n*fa*(fa -1)/2;
+
+        auto [ii, jj, val, FvalK] = matern_k_chol(n, loc, kappa, equally_spaced, alpha);
+        //std::cout << "K chol done" << std::endl;
+        for(int k = 0; k < N1; k++){
+            trp_L.push_back(Trip(map_index(ii[k], n, fa_k, fa2, fab_k, fa_base2),
+                                 map_index(jj[k], n, fa_k, fa2, fab_k, fa_base2),
+                                 val[k]));
+        }
+        //std::cout << "Set D, rat_k = " << rat_k << ", sigma = " << sigma << std::endl;
+        for(int k = 0; k < fa*n; k++){
+            ind = map_index(k, n, fa_k, fa2, fab_k, fa_base2);
+            trp_D.push_back(Trip(ind, ind, FvalK[k]/(rat_k*pow(sigma,2.0))));
+        }
+        lconst[0] = FvalK.array().log().sum() - fa*n*log(rat_k) -2*fa*n*log(sigma);
     }
-    lconst[0] = FvalK.array().log().sum() - fa*n*log(rat_k) -2*fa*n*log(sigma);
-    
-    int ind_start = fa*n; 
+
+    int ind_start = fa_k*n; 
     
     // P part
     if(rspde_order > 0) {
         //std::cout << "P part" << std::endl;
         int N2 = n*pow(fa2,2) + (n-1)*pow(fa2,2) - n*fa2*(fa2 -1)/2;
         for(i =0; i < rspde_order; i++) {
-            auto [ii2, jj2, val2, Fvalp] = matern_p_chol(n, loc, kappa, rat_p[i],equally_spaced, alpha);
+            auto [ii2, jj2, val2, Fvalp] = matern_p_chol(n, loc, kappa, rat_p[i],equally_spaced, alpha, rat_p0, q);
             for(int k = 0; k < N2; k++){
-                trp_L.push_back(Trip(map_index(ind_start  + ii2[k], n, fa, fa2, fa_base, fa_base2),
-                                     map_index(ind_start + jj2[k], n, fa, fa2, fa_base, fa_base2),
+                trp_L.push_back(Trip(map_index(ind_start  + ii2[k], n, fa_k, fa2, fab_k, fa_base2),
+                                     map_index(ind_start + jj2[k], n, fa_k, fa2, fab_k, fa_base2),
                                      val2[k]));
             }  
             for(int k = 0; k < fa2*n; k++){
-                ind = map_index(ind_start + k, n, fa, fa2, fa_base, fa_base2);
+                ind = map_index(ind_start + k, n, fa_k, fa2, fab_k, fa_base2);
                 trp_D.push_back(Trip(ind, ind, Fvalp[k]/(rat_r[i]*pow(sigma,2.0))));
             }
             
@@ -473,7 +522,7 @@ void compute_Q1d(int n, double *loc, int rspde_order, double kappa,
     D.setFromTriplets(trp_D.begin(), trp_D.end());
     //std::cout << "L = " << std::endl << Eigen::MatrixXd(L) << std::endl;
     //std::cout << "D = " << std::endl << Eigen::MatrixXd(D) << std::endl;
-    lconst[0] -= n*(fa + rspde_order*fa2)*log(2.0*M_PI);
+    lconst[0] -= n*(fa_k + rspde_order*fa2)*log(2.0*M_PI);
     lconst[0] /= 2.0;
     
     Eigen::SparseMatrix<double> Q = L.transpose() * D * L;
