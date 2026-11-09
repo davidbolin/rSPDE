@@ -1,5 +1,11 @@
 # rSPDE 2.7.0
 
+* `rspde_safe_inla()` now finds the INLA executable with INLA >= 26.11, which
+  no longer sets the `inla.call` option. Previously it reported INLA as not
+  installed correctly, so INLA examples and tests were skipped. A missing
+  executable is now reported with a hint to run `INLA::inla.stiles.install()`.
+* The cross-validation routing tests skip the MetricGraph delegation checks
+  when INLA is not available.
 * Added `type_rational_approximation = "wl2"`, a new way of obtaining the
   rational coefficients. The classes are parameterised so that every fit is a 
   valid model and have no constant term, so the covariance-based models have `m` 

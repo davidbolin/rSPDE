@@ -2283,6 +2283,38 @@ rspde_inla_too_old_message <- function() {
   invisible(NULL)
 }
 
+# Path to the INLA executable, or NULL if it cannot be found. INLA versions
+# before 26.11 store it in the 'inla.call' option. Newer versions leave that
+# option unset and locate the executable with inla.binary.path(), which fails
+# when no executable has been installed (see INLA::inla.stiles.install()).
+#' @noRd
+rspde_inla_call <- function() {
+  if (!requireNamespace("INLA", quietly = TRUE)) {
+    return(NULL)
+  }
+  inla_call <- tryCatch(
+    INLA::inla.getOption("inla.call"),
+    error = function(e) NULL
+  )
+  is_path <- is.character(inla_call) && length(inla_call) >= 1L &&
+    all(nzchar(inla_call)) &&
+    !any(tolower(inla_call) %in% c("remote", "inla.remote"))
+  if (is_path) {
+    return(inla_call)
+  }
+  inla_ns <- asNamespace("INLA")
+  if (!exists("inla.binary.path", envir = inla_ns, inherits = FALSE)) {
+    return(NULL)
+  }
+  binary_path <- get("inla.binary.path", envir = inla_ns, inherits = FALSE)
+  inla_call <- tryCatch(binary_path(check = TRUE), error = function(e) NULL)
+  if (is.character(inla_call) && length(inla_call) == 1L &&
+      nzchar(inla_call)) {
+    return(inla_call)
+  }
+  NULL
+}
+
 # Include both package and executable metadata so an in-place INLA update
 # invalidates all cached symbol results, even within the same R session.
 #' @noRd
@@ -2291,10 +2323,10 @@ rspde_inla_fingerprint <- function() {
     return("INLA-unavailable")
   }
   version <- as.character(utils::packageVersion("INLA"))
-  inla_call <- tryCatch(
-    INLA::inla.getOption("inla.call"),
-    error = function(e) character()
-  )
+  inla_call <- rspde_inla_call()
+  if (is.null(inla_call)) {
+    inla_call <- character()
+  }
   binaries <- sub("\\.run$", "", inla_call)
   binary_info <- file.info(binaries)
   paste(
@@ -2318,10 +2350,7 @@ rspde_inla_builtin_symbols <- function(refresh = FALSE) {
   symbols <- character()
   registry_available <- FALSE
   if (requireNamespace("INLA", quietly = TRUE)) {
-    inla_call <- tryCatch(
-      INLA::inla.getOption("inla.call"),
-      error = function(e) NULL
-    )
+    inla_call <- rspde_inla_call()
     listing <- if (is.character(inla_call) && length(inla_call) == 1L) {
       suppressWarnings(tryCatch(
         system2(inla_call, "-c", stdout = TRUE, stderr = TRUE),

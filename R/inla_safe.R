@@ -48,13 +48,13 @@ rspde_safe_inla <- function(multicore = NULL,
     return(FALSE)
   }
 
-  inla_call <- tryCatch(
-    INLA::inla.getOption("inla.call"),
-    error = function(e) NULL
-  )
-  if (!is.character(inla_call) || length(inla_call) < 1L) {
+  inla_call <- rspde_inla_call()
+  if (is.null(inla_call)) {
     if (!quietly) {
-      message("inla.getOption('inla.call') failed; INLA is not installed correctly.")
+      message(
+        "The INLA executable could not be found; INLA is not installed ",
+        "correctly. With INLA >= 26.11, run INLA::inla.stiles.install()."
+      )
     }
     return(FALSE)
   }
