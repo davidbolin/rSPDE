@@ -237,8 +237,8 @@ summary(fit)
     ## Number of function calls by 'optim' = 42
     ## Optimization method used in 'optim' = L-BFGS-B
     ## 
-    ## Time used to:     fit the model =  1.69833 mins 
-    ##   set up the parallelization = 2.30636 secs
+    ## Time used to:     fit the model =  1.6169 mins 
+    ##   set up the parallelization = 2.28587 secs
 
 Let us compare with the true values and compare the time:
 
@@ -263,7 +263,7 @@ total_time <- fit$fitting_time + fit$time_par
 print(total_time)
 ```
 
-    ## Time difference of 104.2064 secs
+    ## Time difference of 99.30004 secs
 
 ### Kriging
 
@@ -378,8 +378,8 @@ summary(result_fit)
 ```
 
     ##            mean       sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 1.01367 0.321873   0.602676 0.939636    1.82114 0.814562
-    ## range   2.87359 2.167330   0.894114 2.216100    8.58927 1.404630
+    ## std.dev 1.01370 0.321978   0.602652 0.939628    1.82148 0.814633
+    ## range   2.87401 2.168510   0.894036 2.216070    8.59285 1.404870
 
 ``` r
 
@@ -444,9 +444,9 @@ summary(result_fit)
 ```
 
     ##             mean       sd 0.025quant 0.5quant 0.975quant     mode
-    ## std.dev 1.677950 1.006790   0.666534 1.406110   4.314140 1.042580
-    ## range   1.497570 0.880972   0.506184 1.267070   3.813390 0.914298
-    ## nu      0.702457 0.103633   0.519529 0.694815   0.924224 0.673686
+    ## std.dev 1.811400 1.642100   0.527598 1.340020   5.936820 0.937748
+    ## range   1.531750 1.119860   0.360774 1.222330   4.469250 0.824495
+    ## nu      0.712414 0.119055   0.501656 0.704017   0.966257 0.680965
 
 ## Kriging with the inlabru implementation
 

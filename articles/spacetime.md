@@ -248,8 +248,8 @@ summary(res)
 #> Number of function calls by 'optim' = 50
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  19.16481 secs 
-#>   set up the parallelization = 4.49815 secs
+#> Time used to:     fit the model =  18.91426 secs 
+#>   set up the parallelization = 4.46312 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -548,8 +548,8 @@ summary(res_2d)
 #> Number of function calls by 'optim' = 97
 #> Optimization method used in 'optim' = L-BFGS-B
 #> 
-#> Time used to:     fit the model =  2.17052 mins 
-#>   set up the parallelization = 5.10938 secs
+#> Time used to:     fit the model =  2.17262 mins 
+#>   set up the parallelization = 4.83634 secs
 ```
 
 Let us compare the estimated results with the true values:
@@ -625,12 +625,12 @@ results <- data.frame(
 )
 
 print(results)
-#>              kappa        sigma       gamma       rho_1      rho_2      sigma.e
-#> True     9.9000000 2.900000e+01 1.10000e-01  0.20000000  0.3000000 0.0100000000
-#> Estimate 0.2965403 3.891669e-05 8.95813e-09 -0.00347922 -0.0355655 0.0005202542
-#>          intercept
-#> True     0.0000000
-#> Estimate 0.4925989
+#>              kappa        sigma        gamma       rho_1      rho_2
+#> True     9.9000000 2.900000e+01 1.100000e-01  0.20000000 0.30000000
+#> Estimate 0.2996997 3.828076e-05 8.595527e-09 -0.04577021 0.01319095
+#>               sigma.e intercept
+#> True     0.0100000000 0.0000000
+#> Estimate 0.0005203809 0.4923473
 ```
 
 ## Fit with `bounded_rho = FALSE`

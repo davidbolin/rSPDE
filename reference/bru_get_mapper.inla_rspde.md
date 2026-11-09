@@ -117,10 +117,10 @@ if (rspde_safe_inla() &&
 #>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 #>     Used components: effect[Intercept, field], latent[] 
 #> Time used:
-#>     Pre = 0.144, Running = 0.339, Post = 0.053, Total = 0.536 
+#>     Pre = 0.139, Running = 0.332, Post = 0.0502, Total = 0.521 
 #> Fixed effects:
 #>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-#> Intercept 0.315 0.196     -0.083    0.317        0.7 0.317   0
+#> Intercept 0.315 0.196     -0.084    0.317        0.7 0.317   0
 #> 
 #> Random effects:
 #>   Name     Model
@@ -128,15 +128,15 @@ if (rspde_safe_inla() &&
 #> 
 #> Model hyperparameters:
 #>                                           mean     sd 0.025quant 0.5quant
-#> Precision for the Gaussian observations 143.14 51.939      64.60   135.38
-#> Theta1 for field                         -5.61  2.820     -12.03    -5.27
+#> Precision for the Gaussian observations 143.14 51.941      64.59   135.38
+#> Theta1 for field                         -5.60  2.813     -12.01    -5.27
 #> Theta2 for field                          2.69  0.467       1.89     2.66
-#> Theta3 for field                          1.21  1.701      -1.46     1.02
+#> Theta3 for field                          1.21  1.697      -1.45     1.01
 #>                                         0.975quant    mode
-#> Precision for the Gaussian observations     266.15 121.058
+#> Precision for the Gaussian observations     266.15 121.061
 #> Theta1 for field                             -1.22  -3.659
 #> Theta2 for field                              3.71   2.500
-#> Theta3 for field                              5.08   0.082
+#> Theta3 for field                              5.07   0.082
 #> 
 #> Marginal log-Likelihood:  -34.34 
 #>  is computed 
