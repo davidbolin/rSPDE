@@ -14,7 +14,11 @@
 #' @examples
 #' \donttest{
 #' if (rspde_safe_inla() &&
-#'   requireNamespace("inlabru", quietly = TRUE)) {
+#'   requireNamespace("inlabru", quietly = TRUE) &&
+#'   isTRUE(tryCatch(
+#'     inlabru::bru_safe_inla(multicore = TRUE, quietly = TRUE),
+#'     error = function(e) FALSE
+#'   ))) {
 #'   library(INLA)
 #'   library(inlabru)
 #'
