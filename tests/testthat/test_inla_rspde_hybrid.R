@@ -429,7 +429,7 @@ test_that("Hybrid model works with inlabru via the inla_rspde mapper", {
   local_rspde_safe_inla(
     required_symbol = "inla_cgeneric_rspde_hybrid_alpha2_model"
   )
-  skip_if_not_installed("inlabru")
+  skip_if_inlabru_cannot_use_inla()
   suppressMessages({library(INLA); library(inlabru)})
 
   s <- make_inla_hybrid_data(n_obs = 60, n_mesh = 41)
