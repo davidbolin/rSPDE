@@ -93,7 +93,11 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="rspde_safe_inla.html">rspde_safe_inla</a></span><span class="op">(</span><span class="op">)</span> <span class="op">&amp;&amp;</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"inlabru"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"inlabru"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">&amp;&amp;</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="fu">inlabru</span><span class="fu">::</span><span class="fu"><a href="https://inlabru-org.github.io/inlabru/reference/bru_safe_inla.html" class="external-link">bru_safe_inla</a></span><span class="op">(</span>multicore <span class="op">=</span> <span class="cn">TRUE</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="cn">FALSE</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://www.inlabru.org" class="external-link">inlabru</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -163,7 +167,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Used components: effect[Intercept, field], latent[] </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Time used:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 0.47, Running = 0.411, Post = 0.0552, Total = 0.936 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Pre = 0.144, Running = 0.339, Post = 0.053, Total = 0.536 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Intercept 0.315 0.196     -0.083    0.317        0.7 0.317   0</span>

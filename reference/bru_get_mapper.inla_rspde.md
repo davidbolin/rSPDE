@@ -43,7 +43,11 @@ ibm_jacobian.bru_mapper_inla_rspde(mapper, input, ...)
 ``` r
 # \donttest{
 if (rspde_safe_inla() &&
-  requireNamespace("inlabru", quietly = TRUE)) {
+  requireNamespace("inlabru", quietly = TRUE) &&
+  isTRUE(tryCatch(
+    inlabru::bru_safe_inla(multicore = TRUE, quietly = TRUE),
+    error = function(e) FALSE
+  ))) {
   library(INLA)
   library(inlabru)
 
@@ -113,7 +117,7 @@ if (rspde_safe_inla() &&
 #>     Additive/Linear/Rowwise: TRUE/TRUE/TRUE
 #>     Used components: effect[Intercept, field], latent[] 
 #> Time used:
-#>     Pre = 0.47, Running = 0.411, Post = 0.0552, Total = 0.936 
+#>     Pre = 0.144, Running = 0.339, Post = 0.053, Total = 0.536 
 #> Fixed effects:
 #>            mean    sd 0.025quant 0.5quant 0.975quant  mode kld
 #> Intercept 0.315 0.196     -0.083    0.317        0.7 0.317   0

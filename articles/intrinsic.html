@@ -236,8 +236,8 @@ the following:</p>
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;         mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">#&gt; tau 0.125553 0.0281312  0.0807935 0.121879   0.190724 0.114431</span></span>
-<span><span class="co">#&gt; nu  0.967630 0.0778580  0.8112470 0.969378   1.116190 0.975335</span></span>
+<span><span class="co">#&gt; tau 0.124546 0.0253746  0.0811314 0.122458   0.180401 0.118583</span></span>
+<span><span class="co">#&gt; nu  0.969414 0.0725746  0.8306280 0.967963   1.115050 0.963279</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">beta</span> <span class="op">-</span> <span class="fl">1</span> <span class="co">#beta = nu + d/2 </span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -250,9 +250,9 @@ the following:</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parameter true       mean       mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.2 0.12555252 0.11443101</span></span>
-<span><span class="co">#&gt; 2        nu  0.8 0.96763034 0.97533536</span></span>
-<span><span class="co">#&gt; 3   sigma.e  0.1 0.09794681 0.09828093</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       tau  0.2 0.12454591 0.11858278</span></span>
+<span><span class="co">#&gt; 2        nu  0.8 0.96941377 0.96327945</span></span>
+<span><span class="co">#&gt; 3   sigma.e  0.1 0.09782834 0.09799423</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="extreme-value-models">Extreme value models<a class="anchor" aria-label="anchor" href="#extreme-value-models"></a>
@@ -348,8 +348,8 @@ observations per replicate</p>
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span>, <span class="st">"field"</span>, <span class="va">rspde_model.rep</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;         mean        sd 0.025quant 0.5quant 0.975quant     mode</span></span>
-<span><span class="co">#&gt; tau 0.177818 0.0104793   0.158298 0.177437   0.199440 0.176614</span></span>
-<span><span class="co">#&gt; nu  0.924050 0.0137511   0.896881 0.924120   0.950887 0.924371</span></span>
+<span><span class="co">#&gt; tau 0.177534 0.0105766   0.157486 0.177301   0.198999 0.176935</span></span>
+<span><span class="co">#&gt; nu  0.924767 0.0137618   0.898023 0.924650   0.952074 0.924291</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">nu</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">beta</span> <span class="op">-</span> <span class="fl">1</span> <span class="co">#beta = nu + d/2 </span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -361,10 +361,10 @@ observations per replicate</p>
 <span>             <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">rspde_fit.rep</span><span class="op">$</span><span class="va">summary.hyperpar</span><span class="op">[</span><span class="fl">1</span>,<span class="fl">6</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   parameter true       mean       mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.2 0.17781799 0.17661427</span></span>
-<span><span class="co">#&gt; 2        nu  0.9 0.92404980 0.92437115</span></span>
-<span><span class="co">#&gt; 3   sigma.e  0.1 0.09999198 0.09986567</span></span></code></pre></div>
+<span><span class="co">#&gt;   parameter true       mean      mode</span></span>
+<span><span class="co">#&gt; 1       tau  0.2 0.17753448 0.1769352</span></span>
+<span><span class="co">#&gt; 2        nu  0.9 0.92476713 0.9242907</span></span>
+<span><span class="co">#&gt; 3   sigma.e  0.1 0.09994955 0.1000060</span></span></code></pre></div>
 <p>To see the posterior distributions of the parameters we can do:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit.rep</span>, <span class="st">"field"</span>, <span class="va">rspde_model.rep</span><span class="op">)</span></span>
@@ -496,7 +496,7 @@ to make the required elements.</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">rspde_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time used:</span></span>
-<span><span class="co">#&gt;     Pre = 0.174, Running = 19.2, Post = 0.0545, Total = 19.4 </span></span>
+<span><span class="co">#&gt;     Pre = 0.143, Running = 16.1, Post = 0.0473, Total = 16.3 </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;   Name     Model</span></span>
 <span><span class="co">#&gt;     field CGeneric</span></span>
@@ -521,8 +521,8 @@ following:</p>
 <code class="sourceCode R"><span><span class="va">result_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rspde.result.html">rspde.result</a></span><span class="op">(</span><span class="va">rspde_fit</span>, <span class="st">"field"</span>, <span class="va">rspde_model</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;              mean          sd 0.025quant    0.5quant  0.975quant       mode</span></span>
-<span><span class="co">#&gt; tau    0.00253262 0.000121589 0.00230339  0.00252838  0.00278042  0.0025204</span></span>
-<span><span class="co">#&gt; kappa 10.49390000 0.907085000 8.80766000 10.46260000 12.36750000 10.4090000</span></span>
+<span><span class="co">#&gt; tau    0.00253262 0.000121608 0.00230336  0.00252838  0.00278046  0.0025204</span></span>
+<span><span class="co">#&gt; kappa 10.49390000 0.907256000 8.80737000 10.46260000 12.36790000 10.4089000</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="va">op</span><span class="op">$</span><span class="va">tau</span></span>
 <span><span class="va">result_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tau"</span>, <span class="st">"kappa"</span><span class="op">)</span>,</span>
@@ -531,9 +531,9 @@ following:</p>
 <span>  mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">result_fit</span><span class="op">$</span><span class="va">summary.tau</span><span class="op">$</span><span class="va">mode</span>, <span class="va">result_fit</span><span class="op">$</span><span class="va">summary.kappa</span><span class="op">$</span><span class="va">mode</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_df</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   parameter    true        mean         mode</span></span>
-<span><span class="co">#&gt; 1       tau  0.0025  0.00253262  0.002520402</span></span>
-<span><span class="co">#&gt; 2     kappa 10.0000 10.49391152 10.408964297</span></span></code></pre></div>
+<span><span class="co">#&gt;   parameter    true         mean         mode</span></span>
+<span><span class="co">#&gt; 1       tau  0.0025  0.002532622  0.002520402</span></span>
+<span><span class="co">#&gt; 2     kappa 10.0000 10.493916427 10.408944600</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="kriging-with-r-inla-implementation">Kriging with <code>R-INLA</code> implementation<a class="anchor" aria-label="anchor" href="#kriging-with-r-inla-implementation"></a>
